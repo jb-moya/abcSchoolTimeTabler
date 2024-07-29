@@ -1,0 +1,155 @@
+given unordered map
+rooms and timeslots must be unique
+
+1 7
+2 7
+
+room 1: 7 8 9 10 11 12 1 2
+room 2: 7 8 9 10 11 12 1 2
+room 3: 7 8 9 10 11 12 1 2
+
+t1, t2, t3, t4, t5
+
+
+r1 1 1
+r1 1 2
+
+r2 2 1
+r3 2 2
+
+t1
+
+
+section -> teachers, room, timeslot
+teacher -> room, section, timeslot
+
+
+class -> teacher + section
+
+
+room -> for every timeslot, has class
+given a room, it can only handle one class at give timeslot
+
+
+class penalty if:
+    1. class have two different rooms with same timeslots
+    2. different class have same rooms with same timeslots
+
+room penalty if:
+    1. same class at same timeslot at different rooms
+    2. same room have more than one class at the same timeslots
+
+teacher penalty if:
+    1. more than one class at same timeslot
+
+
+6  0 0 3
+0  0 0 6
+13 0 0 7
+1  0 1 1
+11 0 1 2
+2  0 1 5
+15 0 1 7
+
+4  1 0 0
+3  1 0 4
+9  1 0 5
+5  1 1 0
+8  1 1 0
+10 1 1 2
+14 1 1 5
+7  1 1 7
+12 1 1 7
+
+
+2  0 0 2
+7  0 0 4
+8  0 0 7
+12 0 0 7
+14 0 1 2
+6  0 1 5
+
+1  1 0 2
+13 1 0 2
+15 1 0 6
+5  1 1 0
+4  1 1 1
+9  1 1 3
+3  1 1 4
+0  1 1 5
+10 1 1 5
+11 1 1 7
+
+1   0   0 4
+9   0   0 5
+14  0   0 0
+24  0   0 0
+25  0   0 2
+0   0   1 1
+5   0   1 6
+10  0   1 0
+12  0   1 4
+21  0   1 6
+23  0   1 7
+2   1   0 0
+4   1   0 7
+6   1   0 1
+7   1   0 0
+11  1   0 4
+17  1   0 0
+18  1   0 5
+19  1   0 7
+20  1   0 7
+22  1   0 7
+3   1   1 7
+8   1   1 0
+13  1   1 0
+15  1   1 4
+16  1   1 6
+
+
+
+_0   0   1      2
+_2   0   1      0
+_9   0   1      5
+_15  0   1      0
+_16  0   1      2
+_19  0   1      0
+_20  0   1      1
+_21  0   1      3
+_24  0   1      5
+_4   0   0      4
+_5   0   0      4
+_13  0   0      0
+_18  0   0      4
+_23  0   0      6
+_1   1   0      4
+_6   1   0      2
+_7   1   0      7
+_8   1   0      3
+_10  1   0      2
+_12  1   0      1
+_14  1   0      5
+_22  1   0      0
+_25  1   0      0
+_3   1   1      0
+_11  1   1      3
+_17  1   1      2
+
+
+0   0  0   6
+1   0  1   2
+2   0  0   5
+3   1  0   4
+4   1  0   3
+5   0  1   4
+6   0  0   2
+7   1  1   1
+8   0  1   0
+9   1  0   0
+10  1  1   3
+11  0  1   6
+12  1  1   7
+13  1  1   7
+14  1  1   5
+15  1  0   1
