@@ -21,49 +21,194 @@ using namespace std;
 // #define TEST_MODE
 #define _DEBUG
 
+// todo: make int into bits when necessary
+
 struct ClassRoom {
 	int room_id;
-	int class_id;
+	int school_class_id;
 	int timeslot;
 };
 
-struct SchoolClass {
-	int class_id;
+struct Teacher {
 	int teacher_id;
+	int school_class_id;
+	int timeslot;
+};
+
+// struct TeacherAvailability {
+
+// };
+
+// struct TeacherRanking {
+
+// };
+
+struct Curriculum {
+	int curriculum_id;
+	std::vector<int> subjects;
+	std::vector<int> sections;
+};
+
+// {math, english}, section1
+// {math, science}, section2
+
+struct SubjectTimeslot {
+	int subject_id;
+	int timeslot;
+	int teacher_id;
+};
+
+struct SchoolClass {
+	int school_class_id;
 	int section_id;
+	int subject_id;
+	int teacher_id;
 	int room_id;
 	int timeslot;
 };
 
 struct Section {
 	int section_id;
+	int school_class_id;
 };
 
-struct Teacher {
-	int teacher_id;
-	std::vector<int> school_class_ids;
-};
+// initializiation example
+// curriculum = [
+
+// // // // // //
+// // // // // // // // // // // //
+// // // // // // // // // // // // // // // // // //
+// // // // // // GLOBAL VARiABLES // // // // // // // // // // // //
+
+int NUM_CURRICULUM = 2;
+int NUM_TEACHER = 3;
+int NUM_ROOM = 8;
+int NUM_TIMESLOT = 5;
+std::vector<Curriculum> CURRICULUM_EXAMPLE = {{0, {1, 2, 3}, {1, 2}}, {1, {4, 5, 6}, {3, 4, 5}}};
+
+// // // // // // GLOBAL VARiABLES // // // // // // // // // // // //
+// // // // // // // // // // // // // // // // // //
+// // // // // // // // // // // //
+// // // // // //
 
 struct Timetable {
 	// classes pertains to class being done in a given timeslot with a given teacher in a given room
-	std::vector<SchoolClass> classes;
-	std::unordered_map<int, Teacher> teachers;  // unique teachers
-	std::unordered_map<int, ClassRoom> rooms;
+	std::vector<Curriculum> curriculums;
+	std::unordered_map<int, Section> sections;
+	std::unordered_map<int, Teacher> teachers;  // num_teachers * num_timeslots
+	std::unordered_map<int, ClassRoom> classrooms;
+	std::unordered_map<int, SchoolClass> schoolClasses;
 
-	Timetable(int num_classes) {
-		classes.reserve(num_classes);
+	// curriculum is list of subjects, section count is dependent on this
+
+	Timetable(int num_curriculum = NUM_CURRICULUM,
+	          int num_teachers = NUM_TEACHER,
+	          int num_rooms = NUM_ROOM,
+	          int num_timeslots = NUM_TIMESLOT) {  // timeslots is same for all (temp)
+
+		curriculums.reserve(num_curriculum);
+
+		// initialize teachers
+		for (int i = 0; i < num_teachers; i++) {
+			for (int j = 0; j < num_timeslots; j++) {
+				teachers[i * num_timeslots + j] = {i, -1, j};
+			}
+		}
+
+		// initialize classrooms
+		for (int i = 0; i < num_rooms; i++) {
+			for (int j = 0; j < num_timeslots; j++) {
+				classrooms[i * num_timeslots + j] = {i, -1, j};
+			};
+		}
 	}
 
-	void addClassAssignment(const SchoolClass& schoolClass) {
-		classes.push_back(schoolClass);
-		teachers[schoolClass.teacher_id].teacher_id = schoolClass.teacher_id;
-		teachers[schoolClass.teacher_id].school_class_ids.push_back(schoolClass.class_id);
+	void addCurriculum(const std::vector<Curriculum>& added_curriculums = CURRICULUM_EXAMPLE) {
+		int offset = 0;
 
-		for (const auto& pair : teachers) {
-			const Teacher& teacher = pair.second;
+		for (const auto& curriculum : added_curriculums) {
+			curriculums.push_back(curriculum);
+
+			// initialize sections
+			for (int curriculum_section_id = 0; curriculum_section_id < curriculum.sections.size(); curriculum_section_id++) {
+				for (int subject_id = 0; subject_id < curriculum.subjects.size(); subject_id++) {
+					int section_id = offset + curriculum_section_id * curriculum.subjects.size() + subject_id;
+					sections[section_id] = {curriculum.sections[curriculum_section_id], -1};
+				}
+			}
+
+			// initialize school class
+			for (int curriculum_section_id = 0; curriculum_section_id < curriculum.sections.size(); curriculum_section_id++) {
+				for (int subject_id = 0; subject_id < curriculum.subjects.size(); subject_id++) {
+					int school_class_id = offset + curriculum_section_id * curriculum.subjects.size() + subject_id;
+					schoolClasses[school_class_id] = {school_class_id, curriculum.sections[curriculum_section_id], curriculum.subjects[curriculum_section_id], -1, -1, -1};
+				}
+			}
+
+			offset = curriculum.sections.size() * curriculum.subjects.size();
+
+			// std::cout << "added curriculum" << curriculum.curriculum_id << std::endl;
 		}
-		// code smell
-		rooms[rooms.size() + 1] = {schoolClass.room_id, schoolClass.class_id, schoolClass.timeslot};
+
+		// std::cout << "school class size : " << schoolClasses.size() << std::endl;
+	}
+
+	void initializeRandomTimetable(
+	    std::mt19937& gen,
+	    std::uniform_int_distribution<int>& distribution_teacher,
+	    std::uniform_int_distribution<int>& distribution_room,
+	    std::uniform_int_distribution<int>& distribution_timeslot) {
+		// std::cout << "size : " << curriculums.size() << std::endl;
+
+		int offset = 0;
+		for (const auto& curriculum : curriculums) {
+			for (int curriculum_section_id = 0; curriculum_section_id < curriculum.sections.size(); curriculum_section_id++) {
+				for (int curriculum_subject_id = 0; curriculum_subject_id < curriculum.subjects.size(); curriculum_subject_id++) {
+					int room = distribution_room(gen);
+					int timeslot = distribution_timeslot(gen);
+					int teacher = distribution_teacher(gen);
+
+					int school_class_id = offset + curriculum_section_id * curriculum.subjects.size() + curriculum_subject_id;
+
+					schoolClasses[school_class_id] = {school_class_id, curriculum.sections[curriculum_section_id], curriculum.subjects[curriculum_subject_id], teacher, room, timeslot};
+
+					teachers[teachers.size() + 1] = {teacher, school_class_id, timeslot};
+					classrooms[classrooms.size() + 1] = {room, school_class_id, timeslot};
+				}
+			}
+
+			offset = curriculum.sections.size() * curriculum.subjects.size();
+		}
+	}
+
+	void updateTimetableUsingDifference(const Timetable& other, int num_rooms = NUM_ROOM, int num_timeslots = NUM_TIMESLOT, int num_teachers = NUM_TEACHER) {
+		int offset = 0;
+		for (const auto& curriculum : curriculums) {
+			for (int curriculum_section_id = 0; curriculum_section_id < curriculum.sections.size(); curriculum_section_id++) {
+				for (int curriculum_subject_id = 0; curriculum_subject_id < curriculum.subjects.size(); curriculum_subject_id++) {
+					int current_school_class_id = offset + curriculum_section_id * curriculum.subjects.size() + curriculum_subject_id;
+
+					const auto& current_class = schoolClasses[current_school_class_id];
+					const auto& other_class = other.schoolClasses.at(current_school_class_id);  // Assuming the same structure
+
+					int room = current_class.room_id + (current_class.room_id - other_class.room_id);
+					int timeslot = current_class.timeslot + (current_class.timeslot - other_class.timeslot);
+					int teacher = current_class.teacher_id + (current_class.teacher_id - other_class.teacher_id);
+
+					// Clamp the values to stay within valid bounds
+					room = std::min(std::max(room, 0), num_rooms - 1);
+					timeslot = std::min(std::max(timeslot, 0), num_timeslots - 1);
+					teacher = std::min(std::max(teacher, 0), num_teachers - 1);
+
+					schoolClasses[current_school_class_id] = {current_school_class_id, curriculum.sections[curriculum_section_id], curriculum.subjects[curriculum_subject_id], teacher, room, timeslot};
+
+					teachers[teachers.size() + 1] = {teacher, current_school_class_id, timeslot};
+					classrooms[classrooms.size() + 1] = {room, current_school_class_id, timeslot};
+				}
+			}
+
+			offset = curriculum.sections.size() * curriculum.subjects.size();
+		}
 	}
 };
 
@@ -80,36 +225,17 @@ std::uint64_t combine(std::uint32_t a, std::uint32_t b, std::uint32_t c, std::ui
 }
 
 struct ObjectiveFunction {
-	// class
-	// - same class cannot be in the different room at different timeslot
-
-	// room
-	// every room should have a unique combination of class_id and timeslot V
-	// every class should have a unique combination of room_id and timeslot V
-
-	// teacher
-	// - same teacher cannot be in the different class at different timeslot
-
-	// todo: inspect if there will be code smell on implementing these function
-	// splitting integer
-
-	// for every unique rooms, combination of class_id and timeslot must be unique
-	// a class should not have same timeslots in the different rooms
-	// room 1 -> class 1, timeslot 1
-	// room 1 -> class 1, timeslot 2
-	// room 1 -> class 2, timeslot 1
-	// room 1 -> class 2, timeslot 2 <- conflicting
-	// room 2 -> class 2, timeslot 1 <- conflicting
-
 	int hasConflictingRoomTimeslots(const std::unordered_map<int, ClassRoom>& rooms) const {
 		std::unordered_set<int> class_timeslot;
 		std::unordered_set<int> room_timeslot_set;
-		int conflicting_rooms = 0;
 		int conflicting_timeslots = 0;
+		int conflicting_rooms = 0;
 
 		for (const auto& pair : rooms) {
+			if (pair.second.school_class_id == -1) continue;
+
 			const ClassRoom& room = pair.second;
-			if (!class_timeslot.insert(combine(room.class_id, room.timeslot)).second) {
+			if (!class_timeslot.insert(combine(room.school_class_id, room.timeslot)).second) {
 				conflicting_timeslots++;
 			}
 
@@ -124,30 +250,35 @@ struct ObjectiveFunction {
 		return conflicting_timeslots + conflicting_rooms;
 	}
 
-	int hasConflictingTeacherAssignments(const Timetable& timetable) const {
-		std::unordered_set<int> class_assignment_set;
+	int hasConflictingTeacherAssignments(const std::unordered_map<int, Teacher>& teachers) const {
+		std::unordered_set<int> teacher_assignment_set;
+		std::unordered_set<int> teacher_timeslot_set;
+		int conflicting_assignments = 0;
 		int conflicting_timeslots = 0;
 
-		for (const auto& pair : timetable.teachers) {
+		for (const auto& pair : teachers) {
+			if (pair.second.school_class_id == -1) continue;
+
 			const Teacher& teacher = pair.second;
 
-			for (const auto& school_class_id : teacher.school_class_ids) {
-				SchoolClass school_class = timetable.classes[school_class_id];
+			if (!teacher_assignment_set.insert(combine(teacher.school_class_id, teacher.timeslot)).second) {
+				conflicting_assignments++;
+			}
 
-				// std::cout << teacher.teacher_id << " " << school_class_id << " " << school_class.timeslot << std::endl;
-				if (!class_assignment_set.insert(combine(teacher.teacher_id, school_class_id, school_class.timeslot)).second) {
-					conflicting_timeslots++;
-				}
+			if (!teacher_timeslot_set.insert(combine(teacher.teacher_id, teacher.timeslot)).second) {
+				conflicting_timeslots++;
 			}
 		}
 
 		// std::cout << "teacher assignment conflict : " << conflicting_timeslots << std::endl;
-		return conflicting_timeslots;
+		// std::cout << "teacher timeslot conflict : " << conflicting_assignments << std::endl;
+		// std::cout << "+ conflict : " << conflicting_timeslots + conflicting_assignments << std::endl;
+		return conflicting_timeslots + conflicting_assignments;
 	}
 
 	double evaluate(const Timetable& timetable, bool show_penalty = false) const {
-		int conflictingRoomTimeslots = hasConflictingRoomTimeslots(timetable.rooms);
-		int conflictingTeacherAssignments = hasConflictingTeacherAssignments(timetable);
+		int conflictingRoomTimeslots = hasConflictingRoomTimeslots(timetable.classrooms);
+		int conflictingTeacherAssignments = hasConflictingTeacherAssignments(timetable.teachers);
 		int conflictingClassTime = 0;
 
 		if (show_penalty) {
@@ -163,225 +294,138 @@ struct ObjectiveFunction {
 
 // Sample test function
 void testTimeSlotConflict() {
-	Timetable timetable(5);
+	Timetable timetable;
+	timetable.addCurriculum();
+	timetable.classrooms[1] = {1, 1, 1};
+	timetable.classrooms[2] = {1, 1, 2};
+	assert(ObjectiveFunction().hasConflictingRoomTimeslots(timetable.classrooms) == 0);
 
-	timetable.addClassAssignment({0, 0, 0, 0, 0});
-	timetable.addClassAssignment({0, 0, 0, 1, 1});
-	timetable.addClassAssignment({0, 0, 0, 2, 2});
-	timetable.addClassAssignment({0, 0, 0, 3, 3});
-	timetable.addClassAssignment({0, 0, 0, 4, 4});
+	Timetable timetable2;
+	timetable2.addCurriculum();
+	timetable2.classrooms[0] = {1, 1, 1};
+	timetable2.classrooms[1] = {1, 2, 1};
+	assert(ObjectiveFunction().hasConflictingRoomTimeslots(timetable2.classrooms) == 1);
 
-	assert(ObjectiveFunction().hasConflictingRoomTimeslots(timetable.rooms) == 0);
+	Timetable timetable3;
+	timetable3.addCurriculum();
+	timetable3.classrooms[0] = {1, 1, 1};
+	timetable3.classrooms[1] = {1, 1, 1};
+	assert(ObjectiveFunction().hasConflictingRoomTimeslots(timetable3.classrooms) == 2);
 
-	Timetable timetable3(5);
-	// timetable3 should break the constraint
-	timetable3.addClassAssignment({0, 0, 0, 0, 0});
-	timetable3.addClassAssignment({0, 0, 0, 1, 0});
-	timetable3.addClassAssignment({0, 0, 0, 2, 1});
+	Timetable timetable4;
+	timetable4.addCurriculum();
+	timetable4.classrooms[0] = {0, 1, 1};
+	timetable4.classrooms[1] = {1, 1, 1};
+	assert(ObjectiveFunction().hasConflictingRoomTimeslots(timetable4.classrooms) == 1);
 
-	assert(ObjectiveFunction().hasConflictingRoomTimeslots(timetable3.rooms) == 1);
+	Timetable timetable5;
+	timetable5.addCurriculum();
+	timetable5.classrooms[0] = {0, 1, 1};
+	timetable5.classrooms[1] = {1, 2, 1};
+	assert(ObjectiveFunction().hasConflictingRoomTimeslots(timetable5.classrooms) == 0);
 
-	Timetable timetable4(5);
-	// timetable4 should break the constraint
+	Timetable timetable6;
+	timetable6.addCurriculum();
+	timetable6.classrooms[0] = {0, 1, 1};
+	timetable6.classrooms[1] = {1, 1, 2};
+	assert(ObjectiveFunction().hasConflictingRoomTimeslots(timetable6.classrooms) == 0);
 
-	// differenct classse
-	// timetable4.addClassAssignment({0, 0, 0, 0, 0});
-	// timetable4.addClassAssignment({1, 0, 0, 0, 1});
-	// timetable4.addClassAssignment({2, 0, 0, 0, 2});
-
-	// timetable4.addClassAssignment({3, 0, 0, 1, 0});
-	// timetable4.addClassAssignment({4, 0, 0, 1, 1});
-	// timetable4.addClassAssignment({5, 0, 0, 1, 2});
-
-	// should be zero if same classes
-	timetable4.addClassAssignment({0, 0, 0, 0, 0});
-	timetable4.addClassAssignment({0, 0, 0, 0, 1});
-	timetable4.addClassAssignment({0, 0, 0, 0, 2});
-
-	timetable4.addClassAssignment({1, 0, 0, 1, 0});
-	timetable4.addClassAssignment({1, 0, 0, 1, 1});
-	timetable4.addClassAssignment({1, 0, 0, 1, 2});
-
-	assert(ObjectiveFunction().hasConflictingRoomTimeslots(timetable4.rooms) == 0);
-
-	Timetable timetable5(5);
-	timetable5.addClassAssignment({0, 0, 0, 0, 0});
-	timetable5.addClassAssignment({0, 0, 0, 0, 0});
-	timetable5.addClassAssignment({0, 0, 0, 0, 0});
-
-	assert(ObjectiveFunction().hasConflictingRoomTimeslots(timetable5.rooms) == 4);
-
-	Timetable timetable6(5);
-	// timetable6 should break the constraint
-	timetable6.addClassAssignment({0, 0, 0, 0, 1});
-	timetable6.addClassAssignment({0, 0, 0, 1, 1});
-
-	int result = ObjectiveFunction().hasConflictingRoomTimeslots(timetable6.rooms);
-	std::cout << "result " << result << std::endl;
-	assert(result == 1);
-
-	std::cout << "7" << std::endl;
-	Timetable timetable7(5);
-	// timetable7 should break the constraint
-	timetable7.addClassAssignment({1, 0, 0, 0, 1});
-	timetable7.addClassAssignment({1, 0, 0, 1, 1});
-
-	assert(ObjectiveFunction().hasConflictingRoomTimeslots(timetable7.rooms) == 1);
-
-	Timetable timetable8(5);
-	// timetable8 should break the constraint
-	timetable8.addClassAssignment({1, 0, 0, 0, 1});
-	timetable8.addClassAssignment({1, 0, 0, 1, 2});
-
-	assert(ObjectiveFunction().hasConflictingRoomTimeslots(timetable8.rooms) == 0);
-
-	Timetable timetable9(5);
-	// timetable9 should break the constraint
-	timetable9.addClassAssignment({1, 0, 0, 0, 1});
-	timetable9.addClassAssignment({1, 0, 0, 1, 1});
-
-	assert(ObjectiveFunction().hasConflictingRoomTimeslots(timetable9.rooms) == 1);
-
-	Timetable timetable2(5);
-	// timetable2 should break the constraint
-	// 1. same class at same timeslot at different rooms
-	timetable2.addClassAssignment({0, 0, 0, 0, 0});
-	timetable2.addClassAssignment({0, 0, 0, 1, 0});
-
-	assert(ObjectiveFunction().hasConflictingRoomTimeslots(timetable2.rooms) == 1);
-
-	Timetable timetable10(5);
-
-	timetable10.addClassAssignment({0, 0, 0, 1, 0});
-	timetable10.addClassAssignment({1, 0, 0, 1, 0});
-	timetable10.addClassAssignment({2, 0, 0, 1, 0});
-
-	assert(ObjectiveFunction().hasConflictingRoomTimeslots(timetable10.rooms) == 2);
-
-	Timetable timetable11(5);
-
-	timetable11.addClassAssignment({0, 0, 0, 0, 0});
-	timetable11.addClassAssignment({0, 0, 0, 0, 1});
-	timetable11.addClassAssignment({0, 0, 0, 1, 0});
-	timetable11.addClassAssignment({0, 0, 0, 1, 1});
-	timetable11.addClassAssignment({1, 0, 0, 0, 0});
-	timetable11.addClassAssignment({1, 0, 0, 0, 1});
-	timetable11.addClassAssignment({1, 0, 0, 1, 0});
-	timetable11.addClassAssignment({1, 0, 0, 1, 1});
-	timetable11.addClassAssignment({2, 0, 0, 0, 0});
-	timetable11.addClassAssignment({2, 0, 0, 0, 1});
-	timetable11.addClassAssignment({2, 0, 0, 1, 0});
-	timetable11.addClassAssignment({2, 0, 0, 1, 1});
-
-	assert(ObjectiveFunction().hasConflictingRoomTimeslots(timetable11.rooms) == 14);
-
-	Timetable timetable12(5);
-	timetable12.addClassAssignment({0, 0, 0, 0, 0});
-	timetable12.addClassAssignment({0, 0, 0, 0, 1});
-	timetable12.addClassAssignment({0, 0, 0, 1, 2});
-	timetable12.addClassAssignment({0, 0, 0, 1, 3});
-	timetable12.addClassAssignment({1, 0, 0, 2, 0});
-	timetable12.addClassAssignment({1, 0, 0, 2, 1});
-	timetable12.addClassAssignment({1, 0, 0, 3, 2});
-	timetable12.addClassAssignment({1, 0, 0, 3, 3});
-	timetable12.addClassAssignment({2, 0, 0, 4, 0});
-	timetable12.addClassAssignment({2, 0, 0, 4, 1});
-	timetable12.addClassAssignment({2, 0, 0, 5, 2});
-	timetable12.addClassAssignment({2, 0, 0, 5, 3});
-
-	assert(ObjectiveFunction().hasConflictingRoomTimeslots(timetable12.rooms) == 0);
+	Timetable timetable7;
+	timetable7.addCurriculum();
+	timetable7.classrooms[0] = {1, 1, 1};
+	timetable7.classrooms[1] = {1, 1, 2};
+	timetable7.classrooms[2] = {1, 1, 3};
+	assert(ObjectiveFunction().hasConflictingRoomTimeslots(timetable7.classrooms) == 0);
 
 	std::cout << "testTimeSlotConflict All tests passed!" << std::endl;
 }
-// int class_id;
-// int teacher_id;
-// int section_id;
-// int room_id;
-// int timeslot;
+
 void testHasConflictingTeacherAssignments() {
-	Timetable timetable(5);
+	Timetable timetable;
+	timetable.addCurriculum();
+	timetable.teachers[1] = {1, 1, 1};
+	timetable.teachers[2] = {1, 1, 2};
+	assert(ObjectiveFunction().hasConflictingTeacherAssignments(timetable.teachers) == 0);
 
-	timetable.addClassAssignment({0, 0, 0, 0, 0});
-	timetable.addClassAssignment({0, 1, 0, 0, 0});
+	Timetable timetable2;
+	timetable2.addCurriculum();
+	timetable2.teachers[1] = {1, 1, 1};
+	timetable2.teachers[2] = {1, 1, 1};
+	assert(ObjectiveFunction().hasConflictingTeacherAssignments(timetable2.teachers) == 2);
 
-	assert(ObjectiveFunction().hasConflictingTeacherAssignments(timetable) == 0);
-
-	Timetable timetable4(5);
-
-	timetable4.addClassAssignment({0, 0, 0, 0, 0});
-	timetable4.addClassAssignment({0, 0, 0, 0, 1});
-
-	int result = ObjectiveFunction().hasConflictingTeacherAssignments(timetable);
-	// std::cout << "conflicting Teacher Assignments: " << result << std::endl;
-	assert(result == 0);
-
-	Timetable timetable2(5);
-
-	timetable2.addClassAssignment({0, 0, 0, 0, 0});
-	timetable2.addClassAssignment({1, 1, 0, 0, 0});
-
-	assert(ObjectiveFunction().hasConflictingTeacherAssignments(timetable2) == 1);
-
-	Timetable timetable3(5);
-
-	timetable3.addClassAssignment({0, 1, 0, 0, 0});
-	timetable3.addClassAssignment({1, 1, 0, 0, 0});
-
-	result = ObjectiveFunction().hasConflictingTeacherAssignments(timetable);
-	std::cout << "conflicting Teacher Assignments: " << result << std::endl;
-	assert(result == 0);
+	Timetable timetable3;
+	timetable3.addCurriculum();
+	timetable3.teachers[1] = {1, 1, 1};
+	timetable3.teachers[2] = {1, 2, 1};
+	assert(ObjectiveFunction().hasConflictingTeacherAssignments(timetable3.teachers) == 1);
 
 	std::cout << "conflicting Teacher Assignments All tests passed!" << std::endl;
 }
 
-void testCombineInteger() {
-	int result = combine(0, 0, 0);
-	assert(result == 0);
+void testTimeTableInit() {
+	Timetable timetable;
+	timetable.addCurriculum();
 
-	result = combine(0, 0, 1);
-	std::cout << "result: " << result << std::endl;
+	random_device rd;
+	mt19937 gen(rd());
+	std::uniform_int_distribution<int> random_room(0, NUM_ROOM - 1);
+	std::uniform_int_distribution<int> random_timeslot(0, NUM_TIMESLOT - 1);
+	std::uniform_int_distribution<int> random_teacher(0, NUM_TEACHER - 1);
 
-	result = combine(0, 1, 0);
-	std::cout << "result: " << result << std::endl;
+	timetable.initializeRandomTimetable(gen, random_teacher, random_room, random_timeslot);
+	timetable.updateTimetableUsingDifference(timetable);
 
-	result = combine(0, 1, 1);
-	std::cout << "result: " << result << std::endl;
+	for (int i = 0; i < timetable.schoolClasses.size(); i++) {
+		std::cout
+		    << std::setw(4) << timetable.schoolClasses[i].school_class_id
+		    << std::setw(4) << timetable.schoolClasses[i].section_id
+		    << std::setw(4) << timetable.schoolClasses[i].subject_id
+		    << std::setw(4) << timetable.schoolClasses[i].teacher_id
+		    << std::setw(4) << timetable.schoolClasses[i].room_id
+		    << std::setw(4) << timetable.schoolClasses[i].timeslot << std::endl;
+	};
 
-	result = combine(1, 0, 0);
-	std::cout << "result: " << result << std::endl;
+	timetable.updateTimetableUsingDifference(timetable);
 
-	result = combine(1, 0, 1);
-	std::cout << "result: " << result << std::endl;
+	std::cout << "F" << std::endl;
+	for (int i = 0; i < timetable.schoolClasses.size(); i++) {
+		std::cout
+		    << std::setw(4) << timetable.schoolClasses[i].school_class_id
+		    << std::setw(4) << timetable.schoolClasses[i].section_id
+		    << std::setw(4) << timetable.schoolClasses[i].subject_id
+		    << std::setw(4) << timetable.schoolClasses[i].teacher_id
+		    << std::setw(4) << timetable.schoolClasses[i].room_id
+		    << std::setw(4) << timetable.schoolClasses[i].timeslot << std::endl;
+	};
 
-	result = combine(1, 1, 0);
-	std::cout << "result: " << result << std::endl;
+	// std::cout << "teachers" << std::endl;
+	// for (int i = 0; i < timetable.teachers.size(); i++) {
+	// 	std::cout
+	// 	    << std::setw(4) << timetable.teachers[i].teacher_id
+	// 	    << std::setw(4) << timetable.teachers[i].school_class_id
+	// 	    << std::setw(4) << timetable.teachers[i].timeslot << std::endl;
+	// };
 
-	result = combine(1, 1, 1);
-	std::cout << "result: " << result << std::endl;
+	// std::cout << "classrooms" << std::endl;
+	// for (int i = 0; i < timetable.classrooms.size(); i++) {
+	// 	std::cout
+	// 	    << std::setw(4) << timetable.classrooms[i].room_id
+	// 	    << std::setw(4) << timetable.classrooms[i].school_class_id
+	// 	    << std::setw(4) << timetable.classrooms[i].timeslot << std::endl;
+	// };
 
-	result = combine(1, 1, 2);
-	std::cout << "result: " << result << std::endl;
-
-	result = combine(1, 1, 3);
-	std::cout << "result: " << result << std::endl;
-
-	result = combine(1, 1, 4);
-	std::cout << "result: " << result << std::endl;
-
-	result = combine(1, 1, 10);
-	std::cout << "result: " << result << std::endl;
-
-	result = combine(1, 1, 100000000);
-	std::cout << "result: " << result << std::endl;
-
-	std::cout << "testCombineInteger All tests passed!" << std::endl;
+	// std::cout << "sections" << std::endl;
+	// for (int i = 0; i < timetable.sections.size(); i++) {
+	// 	std::cout << std::setw(4) << timetable.sections[i].school_class_id << std::endl;
+	// };
 }
 
 #ifdef TEST_MODE
 int main() {
-	testTimeSlotConflict();
-	// testConflictingClassTime();
+	testTimeTableInit();
+	// testTimeSlotConflict();
 	// testHasConflictingTeacherAssignments();
+	// testConflictingClassTime();
 	// testCombineInteger();
 }
 #endif
@@ -390,138 +434,88 @@ struct Bee {
 	Timetable timetable;
 	int cost;
 
-	Bee(int num_rooms) : timetable(num_rooms), cost(std::numeric_limits<int>::max()) {}
+	Bee(int num_curriculum) : timetable(num_curriculum), cost(std::numeric_limits<int>::max()) {}
 };
 
-Bee generateRandomTimetable(int num_classes, int num_teachers, int num_rooms, int num_timeslots, const ObjectiveFunction& objFunc) {
-	Bee newBee(num_classes);
+Bee generateRandomTimetable(int num_curriculum = NUM_CURRICULUM,
+                            int num_teachers = NUM_TEACHER,
+                            int num_rooms = NUM_ROOM,
+                            int num_timeslots = NUM_TIMESLOT,
+                            const ObjectiveFunction& objFunc = ObjectiveFunction()) {
+	Bee newBee(num_curriculum);
 
-	std::default_random_engine generator;
+	random_device rd;
+	mt19937 gen(rd());
 	std::uniform_int_distribution<int> teacher_dist(0, num_teachers - 1);
 	std::uniform_int_distribution<int> room_dist(0, num_rooms - 1);
 	std::uniform_int_distribution<int> timeslot_dist(0, num_timeslots - 1);
 
-	for (int i = 0; i < num_classes; ++i) {
-		SchoolClass schoolClass;
-		schoolClass.class_id = i;
-		schoolClass.teacher_id = teacher_dist(generator);
-		schoolClass.room_id = room_dist(generator);
-		schoolClass.timeslot = timeslot_dist(generator);
+	newBee.timetable.addCurriculum();
+	newBee.timetable.initializeRandomTimetable(gen, teacher_dist, room_dist, timeslot_dist);
 
-		newBee.timetable.addClassAssignment(schoolClass);
-	}
-
-	// Assume evaluateTimetable is a function that calculates the cost of the timetable
-	newBee.cost = objFunc.evaluate(newBee.timetable);
 	return newBee;
 }
-
-// void onlookerBeePhase(std::vector<Bee>& beesVector, const ObjectiveFunction& objFunc, int num_classes, int num_teachers, int num_rooms, int num_timeslots) {
-// 	std::vector<double> fitnessValues(beesVector.size());
-
-// 	// Calculate fitness values for all bees
-// 	for (size_t i = 0; i < beesVector.size(); ++i) {
-// 		fitnessValues[i] = 1.0 / (1.0 + beesVector[i].cost);  // Higher cost -> Lower fitness
-// 	}
-
-// 	std::default_random_engine generator;
-// 	std::uniform_real_distribution<double> distribution(0.0, 1.0);
-
-// 	// Onlooker bees phase
-// 	for (size_t i = 0; i < beesVector.size(); ++i) {
-// 		double random_value = distribution(generator);
-// 		double sum_fitness = std::accumulate(fitnessValues.begin(), fitnessValues.end(), 0.0);
-// 		double probability_threshold = random_value * sum_fitness;
-
-// 		double cumulative_probability = 0.0;
-// 		size_t selected_bee_index = 0;
-// 		for (size_t j = 0; j < beesVector.size(); ++j) {
-// 			cumulative_probability += fitnessValues[j];
-// 			if (cumulative_probability >= probability_threshold) {
-// 				selected_bee_index = j;
-// 				break;
-// 			}
-// 		}
-
-// 		// Generate a new neighbor solution
-// 		Bee newBee = beesVector[selected_bee_index];
-// 		std::uniform_int_distribution<int> teacher_dist(0, num_teachers - 1);
-// 		std::uniform_int_distribution<int> room_dist(0, num_rooms - 1);
-// 		std::uniform_int_distribution<int> timeslot_dist(0, num_timeslots - 1);
-
-// 		// Modify one of the classes randomly to create a new neighbor
-// 		int class_index = std::uniform_int_distribution<int>(0, num_classes - 1)(generator);
-// 		newBee.timetable.classes[class_index].teacher_id = teacher_dist(generator);
-// 		newBee.timetable.classes[class_index].room_id = room_dist(generator);
-// 		newBee.timetable.classes[class_index].timeslot = timeslot_dist(generator);
-
-// 		// Recalculate the cost of the new solution
-// 		newBee.cost = objFunc.evaluate(newBee.timetable);
-
-// 		// Replace the old solution if the new one is better
-// 		if (newBee.cost < beesVector[selected_bee_index].cost) {
-// 			beesVector[selected_bee_index] = newBee;
-// 		}
-// 	}
-// }
 
 #ifdef _DEBUG
 int main() {
 	int nrOfExperiments = 1;
-	int maxIterations = 1000;
+	int maxIterations = 2000;
+	// section instead of classes, with predefined subjects
 
-	int num_classes = 16;
-	int num_rooms = 2;
-	int num_timeslots = 8;
-	int num_teachers = 2;
+	int beesPopulation = 1000;
+	int beesEmployed = 500;
+	int beesOnlooker = 500;
+	int beesScout = 450;
 
-	// 15 * 8 = 120
-
-	// 10 * 8  = 80
-	// 10 * 10 = 100
-
-	// 2 rooms 8 hourslots -> 16 classes
-
-	int beesPopulation = 500;
-	int beesEmployed = 250;
-	int beesOnlooker = 250;
-	int beesScout = 250;
-
-	int limit = 100;
+	int limit = 2000;
 
 	random_device rd;
 	mt19937 gen(rd());
-	uniform_int_distribution<> random_room(0, num_rooms - 1);
-	uniform_int_distribution<> random_timeslot(0, num_timeslots - 1);
-	uniform_int_distribution<> random_teacher(0, num_teachers - 1);
+	std::uniform_int_distribution<int> random_room(0, NUM_ROOM - 1);
+	std::uniform_int_distribution<int> random_timeslot(0, NUM_TIMESLOT - 1);
+	std::uniform_int_distribution<int> random_teacher(0, NUM_TEACHER - 1);
 
 	ObjectiveFunction optimizableFunction;
 	vector<double> bestCostExperiments(nrOfExperiments, 0);
 	double allMeanCost = 0.0;
 	double allSDCost = 0.0;
 
-	printf("For function abcTestMine: %d experiments, %d iterations for each experiment, %d classes for each iteration.\n", nrOfExperiments, maxIterations, num_classes);
+	printf("For function abcTestMine: %d experiments, %d iterations for each experiment, %d classes for each iteration.\n", nrOfExperiments, maxIterations);
 
-	Bee bestSolution(num_classes);
+	Bee bestSolution(NUM_CURRICULUM);
+	bestSolution.timetable.addCurriculum();
+	bestSolution.timetable.initializeRandomTimetable(gen, random_teacher, random_room, random_timeslot);
 
 	auto start = std::chrono::high_resolution_clock::now();
 
 	for (int experiment = 0; experiment < nrOfExperiments; experiment++) {
 		printf("f");
-		vector<Bee> beesVector(beesPopulation, Bee(num_classes));
+		vector<Bee> beesVector(beesPopulation, Bee(NUM_CURRICULUM));
 
 		for (int i = 0; i < beesPopulation; i++) {
-			for (int j = 0; j < num_classes; j++) {
-				int room = random_room(gen);
-				int timeslot = random_timeslot(gen);
-				int teacher = random_teacher(gen);
-				beesVector[i].timetable.addClassAssignment({j, teacher, 1, room, timeslot});
-			}
+			beesVector[i].timetable.addCurriculum();
+			beesVector[i].timetable.initializeRandomTimetable(gen, random_teacher, random_room, random_timeslot);
+
 			beesVector[i].cost = optimizableFunction.evaluate(beesVector[i].timetable);
 			if (beesVector[i].cost <= bestSolution.cost) {
 				bestSolution = beesVector[i];
 			}
 		}
+
+		// std::cout << "beesVector.size()" << beesVector.size() << std::endl;
+		// for (int i = 0; i < beesVector.size(); i++) {
+		// 	std::cout << "schol calsses()" << beesVector[i].timetable.schoolClasses.size() << std::endl;
+		// 	for (int j = 0; j < beesVector[i].timetable.schoolClasses.size(); j++) {
+		// 		std::cout
+		// 		    << std::setw(4) << beesVector[i].timetable.schoolClasses[j].school_class_id
+		// 		    << std::setw(4) << beesVector[i].timetable.schoolClasses[j].section_id
+		// 		    << std::setw(4) << beesVector[i].timetable.schoolClasses[j].subject_id
+		// 		    << std::setw(4) << beesVector[i].timetable.schoolClasses[j].teacher_id
+		// 		    << std::setw(4) << beesVector[i].timetable.schoolClasses[j].room_id
+		// 		    << std::setw(4) << beesVector[i].timetable.schoolClasses[j].timeslot << std::endl;
+		// 	}
+		// }
+		// std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
 		vector<int> abandonedBees(beesPopulation, 0);
 		vector<double> bestCost(maxIterations, 0);
@@ -533,27 +527,10 @@ int main() {
 					randomBeesIndex = rand() % beesEmployed;
 				}
 
-				Bee newBee(num_classes);
-				for (int j = 0; j < num_classes; j++) {
-					int room = beesVector[i].timetable.classes[j].room_id;
-					int timeslot = beesVector[i].timetable.classes[j].timeslot;
-					int teacher = beesVector[i].timetable.classes[j].teacher_id;
+				Bee newBee(NUM_CURRICULUM);
+				newBee.timetable.addCurriculum();
+				newBee.timetable.updateTimetableUsingDifference(beesVector[randomBeesIndex].timetable);
 
-					room += (room - beesVector[randomBeesIndex].timetable.classes[j].room_id);
-					timeslot += (timeslot - beesVector[randomBeesIndex].timetable.classes[j].timeslot);
-					teacher += (teacher - beesVector[randomBeesIndex].timetable.classes[j].teacher_id);
-
-					// Introduce randomness into the values
-					// if (rand() % 2) room = random_room(gen);
-					// if (rand() % 2) timeslot = random_timeslot(gen);
-					// if (rand() % 2) teacher = random_teacher(gen);
-
-					room = min(max(room, 0), num_rooms - 1);
-					timeslot = min(max(timeslot, 0), num_timeslots - 1);
-					teacher = min(max(teacher, 0), num_teachers - 1);
-
-					newBee.timetable.addClassAssignment({j, teacher, 1, room, timeslot});
-				}
 				newBee.cost = optimizableFunction.evaluate(newBee.timetable);
 
 				if (newBee.cost <= beesVector[i].cost) {
@@ -563,14 +540,30 @@ int main() {
 				}
 			}
 
-			// for (int i = 0; i < beesVector.size(); i++) {
-			// 	for (int j = 0; j < num_classes; j++) {
-			// 		int room = beesVector[i].timetable.classes[j].room_id;
-			// 		int timeslot = beesVector[i].timetable.classes[j].timeslot;
+			// stop time for 1 sec
 
-			// 		std::cout << "FF " << room << " " << timeslot << std::endl;
+			// std::cout << "beesVector.size()" << beesVector.size() << std::endl;
+			// std::cout << "beesVector.size()" << beesVector.size() << std::endl;
+			// std::cout << "beesVector.size()" << beesVector.size() << std::endl;
+			// std::cout << "beesVector.size()" << beesVector.size() << std::endl;
+			// std::cout << "beesVector.size()" << beesVector.size() << std::endl;
+			// std::cout << "beesVector.size()" << beesVector.size() << std::endl;
+			// std::cout << "beesVector.size()" << beesVector.size() << std::endl;
+			// std::cout << "beesVector.size()" << beesVector.size() << std::endl;
+			// std::cout << "beesVector.size()" << beesVector.size() << std::endl;
+			// for (int i = 0; i < beesVector.size(); i++) {
+			// 	std::cout << "schol calsses()" << beesVector[i].timetable.schoolClasses.size() << std::endl;
+			// 	for (int j = 0; j < beesVector[i].timetable.schoolClasses.size(); j++) {
+			// 		std::cout
+			// 		    << std::setw(4) << beesVector[i].timetable.schoolClasses[j].school_class_id
+			// 		    << std::setw(4) << beesVector[i].timetable.schoolClasses[j].section_id
+			// 		    << std::setw(4) << beesVector[i].timetable.schoolClasses[j].subject_id
+			// 		    << std::setw(4) << beesVector[i].timetable.schoolClasses[j].teacher_id
+			// 		    << std::setw(4) << beesVector[i].timetable.schoolClasses[j].room_id
+			// 		    << std::setw(4) << beesVector[i].timetable.schoolClasses[j].timeslot << std::endl;
 			// 	}
 			// }
+			// std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
 			vector<double> fitnessValues(beesEmployed, 0);
 			double fSum = 0;
@@ -610,26 +603,11 @@ int main() {
 					randomBeesIndex = rand() % beesEmployed;
 				}
 
-				Bee newBee(num_classes);
-				for (int j = 0; j < num_classes; j++) {
-					int room = beesVector[i].timetable.classes[j].room_id;
-					int timeslot = beesVector[i].timetable.classes[j].timeslot;
-					int teacher = beesVector[i].timetable.classes[j].teacher_id;
+				Bee newBee(NUM_CURRICULUM);
+				newBee.timetable.addCurriculum();
 
-					room += (room - beesVector[randomBeesIndex].timetable.classes[j].room_id);
-					timeslot += (timeslot - beesVector[randomBeesIndex].timetable.classes[j].timeslot);
-					teacher += (teacher - beesVector[randomBeesIndex].timetable.classes[j].teacher_id);
+				newBee.timetable.updateTimetableUsingDifference(beesVector[randomBeesIndex].timetable);
 
-					// Introduce randomness into the values
-					if (rand() % 2) room = random_room(gen);
-					if (rand() % 2) timeslot = random_timeslot(gen);
-					if (rand() % 2) teacher = random_teacher(gen);
-
-					room = min(max(room, 0), num_rooms - 1);
-					timeslot = min(max(timeslot, 0), num_timeslots - 1);
-					teacher = min(max(teacher, 0), num_teachers - 1);
-					newBee.timetable.addClassAssignment({j, teacher, 1, room, timeslot});
-				}
 				newBee.cost = optimizableFunction.evaluate(newBee.timetable);
 
 				if (newBee.cost <= beesVector[i].cost) {
@@ -643,12 +621,12 @@ int main() {
 				for (int i = 0; i < beesEmployed; i++) {
 					if (abandonedBees[i] >= limit) {
 						// std::cout << "HEHE" << std::endl;
-						for (int j = 0; j < num_classes; j++) {
-							int room = random_room(gen);
-							int timeslot = random_timeslot(gen);
-							int teacher = random_teacher(gen);
-							beesVector[i] = generateRandomTimetable(num_classes, num_teachers, num_rooms, num_timeslots, optimizableFunction);
-						}
+
+						int room = random_room(gen);
+						int timeslot = random_timeslot(gen);
+						int teacher = random_teacher(gen);
+						beesVector[i] = generateRandomTimetable(NUM_CURRICULUM, NUM_TEACHER, NUM_ROOM, NUM_TIMESLOT, optimizableFunction);
+
 						beesVector[i].cost = optimizableFunction.evaluate(beesVector[i].timetable);
 						abandonedBees[i] = 0;
 					}
@@ -657,6 +635,17 @@ int main() {
 
 			for (int i = 0; i < beesEmployed; i++) {
 				if (beesVector[i].cost <= bestSolution.cost) {
+					// std::cout << "Best asdfdsfasdfsolution:" << std::endl;
+					// for (int i = 0; i < beesVector[i].timetable.schoolClasses.size(); i++) {
+					// 	std::cout
+					// 	    << std::setw(4) << beesVector[i].timetable.schoolClasses[i].school_class_id
+					// 	    << std::setw(4) << beesVector[i].timetable.schoolClasses[i].section_id
+					// 	    << std::setw(4) << beesVector[i].timetable.schoolClasses[i].subject_id
+					// 	    << std::setw(4) << beesVector[i].timetable.schoolClasses[i].teacher_id
+					// 	    << std::setw(4) << beesVector[i].timetable.schoolClasses[i].room_id
+					// 	    << std::setw(4) << beesVector[i].timetable.schoolClasses[i].timeslot << std::endl;
+					// }
+
 					bestSolution = beesVector[i];
 				}
 			}
@@ -689,11 +678,14 @@ int main() {
 	//           << endl;
 
 	std::cout << "Best solution: cost " << bestSolution.cost << endl;
-	for (int i = 0; i < bestSolution.timetable.classes.size(); i++) {
-		std::cout << std::setw(4) << bestSolution.timetable.classes[i].class_id
-		          << std::setw(4) << bestSolution.timetable.classes[i].teacher_id
-		          << std::setw(4) << bestSolution.timetable.classes[i].room_id
-		          << std::setw(4) << bestSolution.timetable.classes[i].timeslot << std::endl;
+	for (int i = 0; i < bestSolution.timetable.schoolClasses.size(); i++) {
+		std::cout
+		    << std::setw(4) << bestSolution.timetable.schoolClasses[i].school_class_id
+		    << std::setw(4) << bestSolution.timetable.schoolClasses[i].section_id
+		    << std::setw(4) << bestSolution.timetable.schoolClasses[i].subject_id
+		    << std::setw(4) << bestSolution.timetable.schoolClasses[i].teacher_id
+		    << std::setw(4) << bestSolution.timetable.schoolClasses[i].room_id
+		    << std::setw(4) << bestSolution.timetable.schoolClasses[i].timeslot << std::endl;
 	}
 
 	std::cout << "Objective function: " << ObjectiveFunction().evaluate(bestSolution.timetable) << endl;

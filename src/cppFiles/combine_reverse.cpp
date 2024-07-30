@@ -62,3 +62,95 @@ int main() {
 
 	return 0;
 }
+
+// void onlookerBeePhase(std::vector<Bee>& beesVector, const ObjectiveFunction& objFunc, int num_classes, int num_teachers, int num_rooms, int num_timeslots) {
+// 	std::vector<double> fitnessValues(beesVector.size());
+
+// 	// Calculate fitness values for all bees
+// 	for (size_t i = 0; i < beesVector.size(); ++i) {
+// 		fitnessValues[i] = 1.0 / (1.0 + beesVector[i].cost);  // Higher cost -> Lower fitness
+// 	}
+
+// 	std::default_random_engine generator;
+// 	std::uniform_real_distribution<double> distribution(0.0, 1.0);
+
+// 	// Onlooker bees phase
+// 	for (size_t i = 0; i < beesVector.size(); ++i) {
+// 		double random_value = distribution(generator);
+// 		double sum_fitness = std::accumulate(fitnessValues.begin(), fitnessValues.end(), 0.0);
+// 		double probability_threshold = random_value * sum_fitness;
+
+// 		double cumulative_probability = 0.0;
+// 		size_t selected_bee_index = 0;
+// 		for (size_t j = 0; j < beesVector.size(); ++j) {
+// 			cumulative_probability += fitnessValues[j];
+// 			if (cumulative_probability >= probability_threshold) {
+// 				selected_bee_index = j;
+// 				break;
+// 			}
+// 		}
+
+// 		// Generate a new neighbor solution
+// 		Bee newBee = beesVector[selected_bee_index];
+// 		std::uniform_int_distribution<int> teacher_dist(0, num_teachers - 1);
+// 		std::uniform_int_distribution<int> room_dist(0, num_rooms - 1);
+// 		std::uniform_int_distribution<int> timeslot_dist(0, num_timeslots - 1);
+
+// 		// Modify one of the classes randomly to create a new neighbor
+// 		int class_index = std::uniform_int_distribution<int>(0, num_classes - 1)(generator);
+// 		newBee.timetable.classes[class_index].teacher_id = teacher_dist(generator);
+// 		newBee.timetable.classes[class_index].room_id = room_dist(generator);
+// 		newBee.timetable.classes[class_index].timeslot = timeslot_dist(generator);
+
+// 		// Recalculate the cost of the new solution
+// 		newBee.cost = objFunc.evaluate(newBee.timetable);
+
+// 		// Replace the old solution if the new one is better
+// 		if (newBee.cost < beesVector[selected_bee_index].cost) {
+// 			beesVector[selected_bee_index] = newBee;
+// 		}
+// 	}
+// }
+
+// void testCombineInteger() {
+// 	int result = combine(0, 0, 0);
+// 	assert(result == 0);
+
+// 	result = combine(0, 0, 1);
+// 	std::cout << "result: " << result << std::endl;
+
+// 	result = combine(0, 1, 0);
+// 	std::cout << "result: " << result << std::endl;
+
+// 	result = combine(0, 1, 1);
+// 	std::cout << "result: " << result << std::endl;
+
+// 	result = combine(1, 0, 0);
+// 	std::cout << "result: " << result << std::endl;
+
+// 	result = combine(1, 0, 1);
+// 	std::cout << "result: " << result << std::endl;
+
+// 	result = combine(1, 1, 0);
+// 	std::cout << "result: " << result << std::endl;
+
+// 	result = combine(1, 1, 1);
+// 	std::cout << "result: " << result << std::endl;
+
+// 	result = combine(1, 1, 2);
+// 	std::cout << "result: " << result << std::endl;
+
+// 	result = combine(1, 1, 3);
+// 	std::cout << "result: " << result << std::endl;
+
+// 	result = combine(1, 1, 4);
+// 	std::cout << "result: " << result << std::endl;
+
+// 	result = combine(1, 1, 10);
+// 	std::cout << "result: " << result << std::endl;
+
+// 	result = combine(1, 1, 100000000);
+// 	std::cout << "result: " << result << std::endl;
+
+// 	std::cout << "testCombineInteger All tests passed!" << std::endl;
+// }

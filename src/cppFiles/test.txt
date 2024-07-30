@@ -153,3 +153,82 @@ _17  1   1      2
 13  1  1   7
 14  1  1   5
 15  1  0   1
+
+timetable initialization example
+
+curriculum [
+    {
+        subjects {
+            math science
+        }
+        sections: 4
+    }
+
+    {
+        subjects {
+            history filipino
+        }
+        sections: 2
+    }
+]
+
+teachers [
+    {
+        teacher_id
+        class_id
+        timeslot
+    }
+]
+
+rooms [
+    {
+        room_id
+        class_id
+        timeslot
+    }
+]
+
+
+
+   0   1   1    1   2   1
+   1   1   2    1   1   0
+   3   2   1    1   5   1
+   4   2   2    1   6   1
+   7   3   5    1   6   0
+  12   5   4    1   7   1
+   5   2   3    2   0   0
+   6   3   4    2   2   0
+   8   3   6    2   1   1
+  10   4   5    2   4   0
+  11   4   6    2   0   1
+   2   1   3    0   4   1
+   9   4   4    0   3   0
+  13   5   5    0   3   1
+  14   5   6    0   6   0
+
+fBest solution: cost 6
+   0   1   1      2   0   2
+   1   1   2      0   2   1
+   2   1   3      2   6   0
+   3   2   1      1   2   0
+   4   2   2      0   2   2
+   5   2   3      1   6   1
+   6   3   4      2   3   2
+   7   3   5      0   3   1
+   8   3   6      1   6   2
+   9   4   4      0   5   0
+  10   4   5      2   1   0
+  11   4   6      2   0   0
+  12   5   4      2   7   1
+  13   5   5      1   4   1
+  14   5   6      2   5   2
+
+  0 0 0
+  0 1 0
+  0 2 0
+  1 0 1
+  1 1 1
+  1 2 1
+  2 0 2
+  2 1 2
+  2 2 2
