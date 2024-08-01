@@ -16,6 +16,16 @@
 #include <unordered_set>
 #include <utility>
 
+// Define ANSI color codes
+#define RESET "\033[0m"
+#define RED "\033[31m"
+#define GREEN "\033[32m"
+#define YELLOW "\033[33m"
+#define BLUE "\033[34m"
+#define MAGENTA "\033[35m"
+#define CYAN "\033[36m"
+#define WHITE "\033[37m"
+
 using namespace std;
 
 // #define TEST_MODE
@@ -72,19 +82,47 @@ struct Section {
 	int school_class_id;
 };
 
-// initializiation example
-// curriculum = [
-
+// struct Teacher {
+// 	int teacher_id;
+// 	int school_class_id;
+// 	int timeslot;
+// };
 // // // // // //
 // // // // // // // // // // // //
 // // // // // // // // // // // // // // // // // //
 // // // // // // GLOBAL VARiABLES // // // // // // // // // // // //
 
 int NUM_CURRICULUM = 2;
-int NUM_TEACHER = 3;
+int NUM_TEACHER = 12;
 int NUM_ROOM = 8;
 int NUM_TIMESLOT = 5;
-std::vector<Curriculum> CURRICULUM_EXAMPLE = {{0, {1, 2, 3}, {1, 2}}, {1, {4, 5, 6}, {3, 4, 5}}};
+
+std::vector<Curriculum> CURRICULUM_EXAMPLE = {
+    {0, {1, 2, 3, 4, 5, 6, 7, 8, 9}, {1, 2}},
+    // {1, {4, 5, 6}, {3, 4, 5}}
+};
+
+// std::unordered_map<int, std::vector<int>> TEACHER_SUBJECTS = {
+//     {0, {1}},
+//     {1, {1}},
+//     {2, {2, 3}},
+//     {3, {1, 2, 3}},
+//     {4, {1, 3}},
+//     {5, {1, 3}},
+//     {6, {3}}};
+
+std::unordered_map<int, std::vector<int>> TEACHER_SUBJECTS = {
+    {0, {3}},
+    {1, {4, 5, 6}},
+    {2, {4, 5, 6}},
+    {3, {4, 5, 6}},
+    {4, {4, 5, 6}},
+    // {5, {2}},
+    // {6, {1}},
+    // {7, {1, 2, 3}},
+    // {8, {1, 2, 3}},
+    // {9, {1, 2, 3}},
+};
 
 // // // // // // GLOBAL VARiABLES // // // // // // // // // // // //
 // // // // // // // // // // // // // // // // // //
@@ -92,33 +130,32 @@ std::vector<Curriculum> CURRICULUM_EXAMPLE = {{0, {1, 2, 3}, {1, 2}}, {1, {4, 5,
 // // // // // //
 
 struct Timetable {
-	// classes pertains to class being done in a given timeslot with a given teacher in a given room
 	std::vector<Curriculum> curriculums;
-	std::unordered_map<int, Section> sections;
-	std::unordered_map<int, Teacher> teachers;  // num_teachers * num_timeslots
+	std::unordered_map<int, Teacher> teachers;
 	std::unordered_map<int, ClassRoom> classrooms;
 	std::unordered_map<int, SchoolClass> schoolClasses;
-
-	// curriculum is list of subjects, section count is dependent on this
 
 	Timetable(int num_curriculum = NUM_CURRICULUM,
 	          int num_teachers = NUM_TEACHER,
 	          int num_rooms = NUM_ROOM,
-	          int num_timeslots = NUM_TIMESLOT) {  // timeslots is same for all (temp)
+	          int num_timeslots = NUM_TIMESLOT) {
 
 		curriculums.reserve(num_curriculum);
+		
 
 		// initialize teachers
 		for (int i = 0; i < num_teachers; i++) {
 			for (int j = 0; j < num_timeslots; j++) {
-				teachers[i * num_timeslots + j] = {i, -1, j};
+				int teacher_id = i * num_timeslots + j;
+				teachers[teacher_id] = {teacher_id, -1, j};
 			}
 		}
 
 		// initialize classrooms
 		for (int i = 0; i < num_rooms; i++) {
 			for (int j = 0; j < num_timeslots; j++) {
-				classrooms[i * num_timeslots + j] = {i, -1, j};
+				int classroom_id = i * num_timeslots + j;
+				classrooms[classroom_id] = {classroom_id, -1, j};
 			};
 		}
 	}
@@ -129,14 +166,6 @@ struct Timetable {
 		for (const auto& curriculum : added_curriculums) {
 			curriculums.push_back(curriculum);
 
-			// initialize sections
-			for (int curriculum_section_id = 0; curriculum_section_id < curriculum.sections.size(); curriculum_section_id++) {
-				for (int subject_id = 0; subject_id < curriculum.subjects.size(); subject_id++) {
-					int section_id = offset + curriculum_section_id * curriculum.subjects.size() + subject_id;
-					sections[section_id] = {curriculum.sections[curriculum_section_id], -1};
-				}
-			}
-
 			// initialize school class
 			for (int curriculum_section_id = 0; curriculum_section_id < curriculum.sections.size(); curriculum_section_id++) {
 				for (int subject_id = 0; subject_id < curriculum.subjects.size(); subject_id++) {
@@ -146,11 +175,7 @@ struct Timetable {
 			}
 
 			offset = curriculum.sections.size() * curriculum.subjects.size();
-
-			// std::cout << "added curriculum" << curriculum.curriculum_id << std::endl;
 		}
-
-		// std::cout << "school class size : " << schoolClasses.size() << std::endl;
 	}
 
 	void initializeRandomTimetable(
@@ -158,7 +183,6 @@ struct Timetable {
 	    std::uniform_int_distribution<int>& distribution_teacher,
 	    std::uniform_int_distribution<int>& distribution_room,
 	    std::uniform_int_distribution<int>& distribution_timeslot) {
-		// std::cout << "size : " << curriculums.size() << std::endl;
 
 		int offset = 0;
 		for (const auto& curriculum : curriculums) {
@@ -250,35 +274,51 @@ struct ObjectiveFunction {
 		return conflicting_timeslots + conflicting_rooms;
 	}
 
-	int hasConflictingTeacherAssignments(const std::unordered_map<int, Teacher>& teachers) const {
-		std::unordered_set<int> teacher_assignment_set;
+	bool isQualified(int teacherID, int subjectID) const {
+		auto it = TEACHER_SUBJECTS.find(teacherID);
+		if (it != TEACHER_SUBJECTS.end()) {
+			const vector<int>& subjects = it->second;
+			return find(subjects.begin(), subjects.end(), subjectID) != subjects.end();
+		}
+		return true;
+	}
+
+	int hasConflictingTeacherAssignments(const std::unordered_map<int, Teacher>& teachers, const std::unordered_map<int, SchoolClass>& schoolClasses) const {
+		std::unordered_set<int> teacher_class_assignment_set;
 		std::unordered_set<int> teacher_timeslot_set;
 		int conflicting_assignments = 0;
 		int conflicting_timeslots = 0;
+		int invalid_teacher_subject_assignment = 0;
 
 		for (const auto& pair : teachers) {
 			if (pair.second.school_class_id == -1) continue;
 
 			const Teacher& teacher = pair.second;
 
-			if (!teacher_assignment_set.insert(combine(teacher.school_class_id, teacher.timeslot)).second) {
+			if (!teacher_class_assignment_set.insert(combine(teacher.school_class_id, teacher.timeslot)).second) {
 				conflicting_assignments++;
 			}
 
 			if (!teacher_timeslot_set.insert(combine(teacher.teacher_id, teacher.timeslot)).second) {
 				conflicting_timeslots++;
 			}
+
+			const auto& school_class = schoolClasses.at(teacher.school_class_id);
+			if (!isQualified(teacher.teacher_id, school_class.subject_id)) {
+				invalid_teacher_subject_assignment++;
+			}
 		}
 
 		// std::cout << "teacher assignment conflict : " << conflicting_timeslots << std::endl;
 		// std::cout << "teacher timeslot conflict : " << conflicting_assignments << std::endl;
+		// std::cout << "invalid_teacher_subject_assignment : " << invalid_teacher_subject_assignment << std::endl;
 		// std::cout << "+ conflict : " << conflicting_timeslots + conflicting_assignments << std::endl;
-		return conflicting_timeslots + conflicting_assignments;
+		return conflicting_timeslots + conflicting_assignments + invalid_teacher_subject_assignment;
 	}
 
 	double evaluate(const Timetable& timetable, bool show_penalty = false) const {
 		int conflictingRoomTimeslots = hasConflictingRoomTimeslots(timetable.classrooms);
-		int conflictingTeacherAssignments = hasConflictingTeacherAssignments(timetable.teachers);
+		int conflictingTeacherAssignments = hasConflictingTeacherAssignments(timetable.teachers, timetable.schoolClasses);
 		int conflictingClassTime = 0;
 
 		if (show_penalty) {
@@ -345,19 +385,19 @@ void testHasConflictingTeacherAssignments() {
 	timetable.addCurriculum();
 	timetable.teachers[1] = {1, 1, 1};
 	timetable.teachers[2] = {1, 1, 2};
-	assert(ObjectiveFunction().hasConflictingTeacherAssignments(timetable.teachers) == 0);
+	assert(ObjectiveFunction().hasConflictingTeacherAssignments(timetable.teachers, timetable.schoolClasses) == 0);
 
 	Timetable timetable2;
 	timetable2.addCurriculum();
 	timetable2.teachers[1] = {1, 1, 1};
 	timetable2.teachers[2] = {1, 1, 1};
-	assert(ObjectiveFunction().hasConflictingTeacherAssignments(timetable2.teachers) == 2);
+	assert(ObjectiveFunction().hasConflictingTeacherAssignments(timetable2.teachers, timetable.schoolClasses) == 2);
 
 	Timetable timetable3;
 	timetable3.addCurriculum();
 	timetable3.teachers[1] = {1, 1, 1};
 	timetable3.teachers[2] = {1, 2, 1};
-	assert(ObjectiveFunction().hasConflictingTeacherAssignments(timetable3.teachers) == 1);
+	assert(ObjectiveFunction().hasConflictingTeacherAssignments(timetable3.teachers, timetable.schoolClasses) == 1);
 
 	std::cout << "conflicting Teacher Assignments All tests passed!" << std::endl;
 }
@@ -459,15 +499,15 @@ Bee generateRandomTimetable(int num_curriculum = NUM_CURRICULUM,
 #ifdef _DEBUG
 int main() {
 	int nrOfExperiments = 1;
-	int maxIterations = 2000;
+	int maxIterations = 300;
 	// section instead of classes, with predefined subjects
 
-	int beesPopulation = 1000;
-	int beesEmployed = 500;
-	int beesOnlooker = 500;
-	int beesScout = 450;
+	int beesPopulation = 500;
+	int beesEmployed = 250;
+	int beesOnlooker = 250;
+	int beesScout = 150;
 
-	int limit = 2000;
+	int limit = 50;
 
 	random_device rd;
 	mt19937 gen(rd());
@@ -605,7 +645,6 @@ int main() {
 
 				Bee newBee(NUM_CURRICULUM);
 				newBee.timetable.addCurriculum();
-
 				newBee.timetable.updateTimetableUsingDifference(beesVector[randomBeesIndex].timetable);
 
 				newBee.cost = optimizableFunction.evaluate(newBee.timetable);
@@ -680,12 +719,14 @@ int main() {
 	std::cout << "Best solution: cost " << bestSolution.cost << endl;
 	for (int i = 0; i < bestSolution.timetable.schoolClasses.size(); i++) {
 		std::cout
-		    << std::setw(4) << bestSolution.timetable.schoolClasses[i].school_class_id
-		    << std::setw(4) << bestSolution.timetable.schoolClasses[i].section_id
-		    << std::setw(4) << bestSolution.timetable.schoolClasses[i].subject_id
-		    << std::setw(4) << bestSolution.timetable.schoolClasses[i].teacher_id
-		    << std::setw(4) << bestSolution.timetable.schoolClasses[i].room_id
-		    << std::setw(4) << bestSolution.timetable.schoolClasses[i].timeslot << std::endl;
+		    << RED << std::setw(4) << bestSolution.timetable.schoolClasses[i].school_class_id << RESET
+		    << GREEN << std::setw(4) << bestSolution.timetable.schoolClasses[i].section_id << RESET
+		    << YELLOW << std::setw(4) << bestSolution.timetable.schoolClasses[i].subject_id << RESET
+		    << BLUE << std::setw(4) << bestSolution.timetable.schoolClasses[i].teacher_id << RESET
+		    << MAGENTA << std::setw(4) << bestSolution.timetable.schoolClasses[i].room_id << RESET
+		    << CYAN << std::setw(4) << bestSolution.timetable.schoolClasses[i].timeslot << RESET
+		    << WHITE << std::setw(4) << bestSolution.timetable.teachers.size() << RESET
+		    << WHITE << std::setw(4) << bestSolution.timetable.classrooms.size() << RESET << std::endl;
 	}
 
 	std::cout << "Objective function: " << ObjectiveFunction().evaluate(bestSolution.timetable) << endl;
