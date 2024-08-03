@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+    createContext,
+    useRef,
+    useContext,
+    useState,
+    useEffect,
+} from "react";
 
 // Create the context
 const WasmContext = createContext(null);
@@ -11,10 +17,11 @@ export const useWasm = () => {
 // Provider component
 export const WasmProvider = ({ children }) => {
     const [instance, setInstance] = useState(null);
+    const getTimetableRef = useRef(() => {});
 
     useEffect(() => {
         const loadWasm = async () => {
-            const factory = require("./_hello_react.js");
+            const factory = require("./cppFiles/abc.js");
             const wasmInstance = await factory();
             setInstance(wasmInstance);
         };
@@ -22,7 +29,19 @@ export const WasmProvider = ({ children }) => {
         loadWasm();
     }, []);
 
+    useEffect(() => {
+        if (instance) {
+            getTimetableRef.current = instance.cwrap("runExperiment", null, [
+                "number",
+            ]);
+        } else {
+            getTimetableRef.current = () => {};
+        }
+    }, [instance]);
+
     return (
-        <WasmContext.Provider value={instance}>{children}</WasmContext.Provider>
+        <WasmContext.Provider value={{ getTimetable: getTimetableRef.current }}>
+            {children}
+        </WasmContext.Provider>
     );
 };

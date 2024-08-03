@@ -1,12 +1,13 @@
-#include <bits/stdc++.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
+#include <algorithm>
 #include <cassert>
 #include <chrono>
 #include <cmath>
+#include <cstdint>
 #include <iomanip>
 #include <iostream>
 #include <limits>
@@ -15,6 +16,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
+#include <vector>
 
 #include "abc.h"
 
@@ -28,62 +30,41 @@ void test_hello_react() {
 	vector<int> beesScoutOptions = {2};
 	vector<int> limits = {800};  // dependent on no. of school class
 
-	int num_curriculum = 16;
-	int num_teacher = 120;
-	int num_room = 120;
-	int num_timeslot = 8;
+	int num_teachers = 7;
+	int num_rooms = 7;
+	int num_timeslots = 7;
 
-	std::vector<Curriculum> curriculum = {
-	    {0, {1, 2, 3, 4, 5, 6, 7, 8}, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30}},
+	int32_t* section_subjects = new int32_t[7];
+	int32_t* teacher_subjects = new int32_t[num_teachers];
 
-	    {4, {11, 12, 13, 14, 15, 16, 17, 18}, {31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60}},
+	for (int i = 0; i < num_teachers; ++i) {
+		teacher_subjects[i] = -1;
+	}
 
-	    // {8, {21, 22, 23, 24, 25, 26, 27, 28}, {61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90}},
+	section_subjects[0] = packInt16ToInt32(0, 1);
+	section_subjects[1] = packInt16ToInt32(0, 2);
+	section_subjects[2] = packInt16ToInt32(0, 3);
+	section_subjects[3] = packInt16ToInt32(0, 4);
+	section_subjects[4] = packInt16ToInt32(0, 5);
+	section_subjects[5] = packInt16ToInt32(1, 6);
+	section_subjects[6] = packInt16ToInt32(1, 7);
 
-	    // {12, {31, 32, 33, 34, 35, 36, 37, 38}, {91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120}},
+	int total_school_class = 7;
 
-	    // {0, {1, 2, 3, 4, 5, 6, 7, 9}, {35, 36}},
-	    // {0, {1, 2, 3, 4, 5, 6, 7}, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}},
-	    // {0, {1, 2, 3, 4, 5, 6, 7}, {1, 2, 3, 4, 5}},
-	    // {0, {1, 2, 3, 4, 5, 6, 7}, {1, 2, 3}},
-	    // {0, {1, 2, 3, 4, 5, 6, 7}, {1, 2}},
-	    // {1, {1, 2, 3}, {1}}
-	};
+	std::cout << "total school class : " << total_school_class << std::endl;
 
-	std::unordered_map<int16_t, std::vector<int16_t>> teacher_subjects = {
-	    // {0, {1}},
-	    // {1, {2}},
-	    // {2, {3}},
-	    // {3, {4}},
-	    // {4, {5}},
-	    // {5, {6}},
-	    // {6, {7}},
-	    // {7, {8}},
-	    // {8, {1}},
-	    // {9, {2}},
-	    // {10,{3}},
-	    // {11,{4}},
-	    // {12,{5}},
-	    // {13,{6}},
-	    // {14,{7}},
-	    // {15,{8}},
-	    // {16,{1}},
-	    // {17,{2}},
-	    // {18,{3}},
-	    // {19,{4}},
-	    // {20,{5}},
-	    // {21,{6}},
-	    // {22,{7}},
-	    // {23,{8}},
-	    // {24,{1}},
-	    // {25,{2}},
-	    // {26,{3}},
-	    // {27,{4}},
-	    // {28,{5}},
-	    // {29,{6}},
-	    // {30,{7}},
-	    // {31,{8}},
-	};
+	teacher_subjects[0] = packInt16ToInt32(0, 1);
+	teacher_subjects[1] = packInt16ToInt32(1, 2);
+	teacher_subjects[2] = packInt16ToInt32(2, 3);
+	teacher_subjects[3] = packInt16ToInt32(3, 4);
+	teacher_subjects[4] = packInt16ToInt32(4, 5);
+	teacher_subjects[5] = packInt16ToInt32(5, 6);
+	teacher_subjects[6] = packInt16ToInt32(6, 7);
+
+	// int total_section = section_subjects.size();
+	int total_section = 1;
+
+	int64_t* result = new int64_t[total_school_class];
 
 	for (int beesPopulation : beesPopulations) {
 		for (int beesEmployed : beesEmployedOptions) {
@@ -97,16 +78,95 @@ void test_hello_react() {
 						          << beesOnlooker << ", "
 						          << beesScout << ", "
 						          << limit << std::endl;
-						runExperiment(max_iterations, num_curriculum, num_teacher, num_room, num_timeslot, curriculum, teacher_subjects, beesPopulation, beesEmployed, beesOnlooker, beesScout, limit);
+						runExperiment(
+						    max_iterations,
+						    num_teachers,
+						    num_rooms,
+						    num_timeslots,
+						    total_school_class,
+						    total_section,
+						    section_subjects,
+						    teacher_subjects,
+						    beesPopulation,
+						    beesEmployed,
+						    beesOnlooker,
+						    beesScout,
+						    limit,
+						    result);
 					}
 				}
 			}
 		}
 	}
+
+	for (int i = 0; i < total_school_class; i++) {
+		std::cout << result[i] << std::endl;
+	}
 }
 
+void unpackInt32ToInt16(int32_t packed, int16_t& first, int16_t& second) {
+	first = static_cast<int16_t>(packed >> 16);
+	second = static_cast<int16_t>(packed & 0xFFFF);
+}
+
+void test_packing_unpacking_integers() {
+	int16_t first = 3;
+	int16_t second = 1245;
+
+	int32_t packed = packInt16ToInt32(first, second);
+	std::cout << "Packed int32_t: " << packed << std::endl;
+
+	int16_t unpackedFirst, unpackedSecond;
+	unpackInt32ToInt16(packed, unpackedFirst, unpackedSecond);
+
+	std::cout << "Unpacked first int16_t: " << unpackedFirst << std::endl;
+	std::cout << "Unpacked second int16_t: " << unpackedSecond << std::endl;
+
+	std::unordered_map<int16_t, std::vector<int16_t>> sections;
+
+	std::vector<int32_t> inputArray = {197853, 197854, 197855, 197856, 197857, 19785, 32, 33, 34};
+	extractSectionSubjects(inputArray, sections);
+
+	for (auto it = sections.begin(); it != sections.end(); ++it) {
+		std::cout << std::endl
+		          << "Section ID: " << it->first;
+		std::cout << " Subjects: ";
+		for (int16_t subject_id : it->second) {
+			std::cout << subject_id << " ";
+		}
+	}
+}
 
 int main() {
-    test_hello_react();
-    return 0;
+	test_hello_react();
+
+	// for (auto it = sections.begin(); it != sections.end(); ++it) {
+	// 	int32_t packed = packInt16ToInt32(it->first, it->second[0]);
+	// 	std::cout << std::endl << "Packed int32_t: " << packed;
+	// }
+
+	// // Test data
+	// int arr1[] = {1, 2, 3, 4, 5};       // Sum = 15
+	// int arr2[] = {6, 7, 8, 9, 10};      // Sum = 40
+	// int arr3[] = {11, 12, 13, 14, 15};  // Sum = 65
+
+	// int* arrays[] = {arr1, arr2, arr3};
+	// int sizes[] = {5, 5, 5};  // Sizes of each array
+	// int numArrays = 3;
+
+	// // Expected sum: 15 + 40 + 65 = 120
+
+	// int result = sumOfArrays(arrays, sizes, numArrays);
+
+	// // Print the result
+	// printf("Total sum of all arrays: %d\n", result);
+
+	// // Check if the result is as expected
+	// if (result == 120) {
+	// 	printf("Test passed.\n");
+	// } else {
+	// 	printf("Test failed.\n");
+	// }
+
+	return 0;
 }
