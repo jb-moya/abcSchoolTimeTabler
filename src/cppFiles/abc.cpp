@@ -168,22 +168,6 @@ Bee generateRandomTimetable(
 	return newBee;
 };
 
-int sumJSArray(int* arr, int size) {
-	int sum = 0;
-	for (int i = 0; i < size; i++) {
-		sum += arr[i];
-	}
-	return sum;
-}
-
-int sumOfArrays(int** arrays, int* sizes, int numArrays) {
-	int totalSum = 0;
-	for (int i = 0; i < numArrays; i++) {
-		totalSum += sumJSArray(arrays[i], sizes[i]);
-	}
-	return totalSum;
-}
-
 int64_t packInt16ToInt64(int16_t first, int16_t second, int16_t third, int16_t fourth) {
 	int64_t result = 0;
 	result |= (static_cast<int64_t>(first) & 0xFFFF) << 48;

@@ -1,7 +1,8 @@
-import "./App.css";
+import React, { useEffect } from "react";
 import { useWasm } from "./WasmContext";
 import packInt16ToInt32 from "./utils/packInt16ToInt32";
 import { unpackInt64ToInt16 } from "./utils/packInt16ToInt64";
+import ThemeToggler from "./ThemeToggler";
 
 function App() {
     const { instance } = useWasm();
@@ -17,6 +18,7 @@ function App() {
     const num_timeslots = 7;
     const total_school_class = 5;
     const total_section = 1;
+
 
     const handleButtonClick = () => {
         if (!instance) return;
@@ -62,60 +64,45 @@ function App() {
 
         const resultBuff = instance._malloc(total_school_class * 8);
 
-        instance.ccall("runExperiment", null, [
-            "number",
-            "number",
-            "number",
-            "number",
-            "number",
-            "number",
-            "number",
-            "number",
-            "number",
-            "number",
-            "number",
-            "number",
-            "number",
-            "number",
-        ], [
-            max_iterations,
-            num_teachers,
-            num_rooms,
-            num_timeslots,
-            total_school_class,
-            total_section,
-            sectionSubjectsBuff,
-            teacherSubjectsBuff,
-            beesPopulations,
-            beesEmployedOptions,
-            beesOnlookerOptions,
-            beesScoutOptions,
-            limits,
-            resultBuff
-        ]);
-
-        // getTimetable(
-        //     max_iterations,
-        //     num_teachers,
-        //     num_rooms,
-        //     num_timeslots,
-        //     total_school_class,
-        //     total_section,
-        //     sectionSubjectsBuff,
-        //     teacherSubjectsBuff,
-        //     beesPopulations,
-        //     beesEmployedOptions,
-        //     beesOnlookerOptions,
-        //     beesScoutOptions,
-        //     limits,
-        //     resultBuff
-        // );
+        instance.ccall(
+            "runExperiment",
+            null,
+            [
+                "number",
+                "number",
+                "number",
+                "number",
+                "number",
+                "number",
+                "number",
+                "number",
+                "number",
+                "number",
+                "number",
+                "number",
+                "number",
+                "number",
+            ],
+            [
+                max_iterations,
+                num_teachers,
+                num_rooms,
+                num_timeslots,
+                total_school_class,
+                total_section,
+                sectionSubjectsBuff,
+                teacherSubjectsBuff,
+                beesPopulations,
+                beesEmployedOptions,
+                beesOnlookerOptions,
+                beesScoutOptions,
+                limits,
+                resultBuff,
+            ]
+        );
 
         for (let i = 0; i < total_school_class; i++) {
-            let result = instance.getValue(
-                resultBuff + i * 8,
-                "i64"
-            );
+            let result = instance.getValue(resultBuff + i * 8, "i64");
 
             console.log(unpackInt64ToInt16(result));
         }
@@ -127,8 +114,13 @@ function App() {
 
     return (
         <div className="App">
-            <header className="App-header">
-                <button onClick={handleButtonClick}>Call process_data</button>
+            <header className="App-header"> 
+                <ThemeToggler />
+
+                <button className="btn p-10 mr-12" onClick={handleButtonClick}>
+                    Call process_data
+                </button>
+                <div className="bg-blue-700">testfff</div>
             </header>
         </div>
     );
