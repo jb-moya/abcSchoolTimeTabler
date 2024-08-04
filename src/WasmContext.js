@@ -17,7 +17,6 @@ export const useWasm = () => {
 // Provider component
 export const WasmProvider = ({ children }) => {
     const [instance, setInstance] = useState(null);
-    const getTimetableRef = useRef(() => {});
 
     useEffect(() => {
         const loadWasm = async () => {
@@ -29,18 +28,8 @@ export const WasmProvider = ({ children }) => {
         loadWasm();
     }, []);
 
-    useEffect(() => {
-        if (instance) {
-            getTimetableRef.current = instance.cwrap("runExperiment", null, [
-                "number",
-            ]);
-        } else {
-            getTimetableRef.current = () => {};
-        }
-    }, [instance]);
-
     return (
-        <WasmContext.Provider value={{ getTimetable: getTimetableRef.current }}>
+        <WasmContext.Provider value={{ instance }}>
             {children}
         </WasmContext.Provider>
     );

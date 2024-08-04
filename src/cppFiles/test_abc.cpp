@@ -51,6 +51,9 @@ void test_hello_react() {
 
 	int total_school_class = 7;
 
+	int64_t packed64 = packInt16ToInt64(0, 1, 2, 3);
+	std::cout << "test " << packed64 << std::endl;
+
 	std::cout << "total school class : " << total_school_class << std::endl;
 
 	teacher_subjects[0] = packInt16ToInt32(0, 1);
