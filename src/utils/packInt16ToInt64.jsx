@@ -1,4 +1,4 @@
-var bigInt = require("big-integer");
+import bigInt from 'big-integer';
 
 
 function packInt16ToInt64(first, second, third, fourth) {
