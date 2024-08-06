@@ -15,7 +15,14 @@ import {
     addTeacher,
     fetchTeachers,
 } from "./features/teacherSlice";
+import {
+    removeSection,
+    addSection,
+    fetchSections,
+} from "./features/sectionSlice";
+
 import { toast } from "sonner";
+import { RiDeleteBin7Line } from "react-icons/ri";
 
 function App() {
     const { subjects, status: subjectStatus } = useSelector(
@@ -24,7 +31,9 @@ function App() {
     const { teachers, status: teacherStatus } = useSelector(
         (state) => state.teacher
     );
-    // const status = useSelector((state) => state.subject.status);
+    const { sections, status: sectionStatus } = useSelector(
+        (state) => state.section
+    );
 
     const dispatch = useDispatch();
     const { instance } = useWasm();
@@ -64,13 +73,19 @@ function App() {
         }
     }, [teacherStatus, dispatch]);
 
-    const handleKeyDown = (e, inputValue, setInputValue, set) => {
+    useEffect(() => {
+        if (sectionStatus === "idle") {
+            dispatch(fetchSections());
+        }
+    }, [sectionStatus, dispatch]);
+
+    const handleKeyDown = (e, fieldName, inputValue, setInputValue, set) => {
         toast("Enter to submit");
         if (e.key === "Enter") {
             e.preventDefault(); // Prevent default form submission
             if (inputValue.trim()) {
                 console.log("inputvalue", inputValue);
-                dispatch(set(inputValue));
+                dispatch(set({ [fieldName]: inputValue }));
                 setInputValue(""); // Clear the input field
             }
         }
@@ -180,8 +195,10 @@ function App() {
                                 {/* head */}
                                 <thead>
                                     <tr>
-                                        <th></th>
-                                        <th>Subjects</th>
+                                        <th>#</th>
+                                        <th>Subject ID</th>
+                                        <th>Subject</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -196,7 +213,7 @@ function App() {
                                                 <td>{subject.subject}</td>
                                                 <td>
                                                     <button
-                                                        className="group-hover:block hidden btn btn-xs btn-circle btn-outline"
+                                                        className="group-hover:block hidden btn btn-xs btn-ghost text-red-500"
                                                         onClick={() =>
                                                             dispatch(
                                                                 removeSubject(
@@ -205,19 +222,9 @@ function App() {
                                                             )
                                                         }
                                                     >
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            fill="none"
-                                                            viewBox="0 0 24 24"
-                                                            className="inline-block w-4 h-4 stroke-current"
-                                                        >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth="2"
-                                                                d="M6 18L18 6M6 6l12 12"
-                                                            ></path>
-                                                        </svg>
+                                                        <RiDeleteBin7Line
+                                                            size={20}
+                                                        />
                                                     </button>
                                                 </td>
                                             </tr>
@@ -238,6 +245,7 @@ function App() {
                                 onKeyDown={(e) => {
                                     handleKeyDown(
                                         e,
+                                        "subject",
                                         subjectInputValue,
                                         setSubjectInputValue,
                                         addSubject
@@ -252,8 +260,10 @@ function App() {
                                 {/* head */}
                                 <thead>
                                     <tr>
-                                        <th></th>
-                                        <th>Teachers</th>
+                                        <th>#</th>
+                                        <th>Teacher ID</th>
+                                        <th>Teacher</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -268,7 +278,7 @@ function App() {
                                                 <td>{teacher.teacher}</td>
                                                 <td>
                                                     <button
-                                                        className="group-hover:block hidden btn btn-xs btn-circle btn-outline"
+                                                        className="group-hover:block hidden btn btn-xs btn-ghost text-red-500"
                                                         onClick={() =>
                                                             dispatch(
                                                                 removeTeacher(
@@ -277,19 +287,9 @@ function App() {
                                                             )
                                                         }
                                                     >
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            fill="none"
-                                                            viewBox="0 0 24 24"
-                                                            className="inline-block w-4 h-4 stroke-current"
-                                                        >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth="2"
-                                                                d="M6 18L18 6M6 6l12 12"
-                                                            ></path>
-                                                        </svg>
+                                                        <RiDeleteBin7Line
+                                                            size={20}
+                                                        />
                                                     </button>
                                                 </td>
                                             </tr>
@@ -310,6 +310,7 @@ function App() {
                                 onKeyDown={(e) => {
                                     handleKeyDown(
                                         e,
+                                        "teacher",
                                         teacherInputValue,
                                         setTeacherInputValue,
                                         addTeacher
@@ -320,7 +321,77 @@ function App() {
                     </div>
                 </div>
                 <div className="w-8/12">
-                    <div className="overflow-x-auto"></div>
+                    <div className="overflow-x-auto">
+                        <table className="table table-sm table-zebra">
+                            {/* head */}
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Section ID</th>
+                                    <th>Section</th>
+                                    <th>Subjects</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {Object.entries(sections).map(
+                                    ([_, section], index) => (
+                                        <tr
+                                            key={section.id}
+                                            className="group hover"
+                                        >
+                                            <th>{index + 1}</th>
+                                            <th>{section.id}</th>
+                                            <td>{section.section}</td>
+                                            <td className="flex gap-2">
+                                                {subjectStatus == "succeeded" &&
+                                                    section.subjects.map(
+                                                        (subject) => (
+                                                            console.log(
+                                                                "qgv",
+                                                                subjects[
+                                                                    subject
+                                                                ].subject
+                                                            ),
+                                                            (
+                                                                <div
+                                                                    key={
+                                                                        subject
+                                                                    }
+                                                                >
+                                                                    {
+                                                                        subjects[
+                                                                            subject
+                                                                        ]
+                                                                            .subject
+                                                                    }
+                                                                </div>
+                                                            )
+                                                        )
+                                                    )}
+                                            </td>
+                                            <td>
+                                                <button
+                                                    className="group-hover:block hidden btn btn-xs btn-ghost text-red-500"
+                                                    onClick={() =>
+                                                        dispatch(
+                                                            removeSection(
+                                                                section.id
+                                                            )
+                                                        )
+                                                    }
+                                                >
+                                                    <RiDeleteBin7Line
+                                                        size={20}
+                                                    />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    )
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                     <div>
                         <button
                             className="btn btn-primary"
@@ -337,7 +408,11 @@ function App() {
                             Add Section
                         </button>
 
-                        {openAddSectionContainer && <AddSectionContainer />}
+                        {openAddSectionContainer && (
+                            <AddSectionContainer
+                                close={() => setOpenAddSectionContainer(false)}
+                            />
+                        )}
                     </div>
                 </div>
             </header>

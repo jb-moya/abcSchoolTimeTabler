@@ -16,6 +16,7 @@ export const fetchSections = createAsyncThunk(
     "section/fetchSections",
     async () => {
         const sections = await getAllEntitiesFromDB(STORE_NAMES.SECTIONS);
+        console.log("section", sections);
         return sections;
     }
 );
@@ -26,9 +27,8 @@ export const addSection = createAsyncThunk(
         const key = await addEntityToDB(
             STORE_NAMES.SECTIONS,
             section,
-            "section"
         );
-        dispatch(sectionSlice.actions.addSectionSync({ section, id: key }));
+        dispatch(sectionSlice.actions.addSectionSync({ ...section, id: key }));
     }
 );
 
@@ -50,11 +50,8 @@ export const sectionSlice = createSlice({
         },
 
         removeSectionSync: (state, action) => {
-            const { sectionName, subject } = action.payload;
-            if (!state.sections[sectionName]) {
-                state.sections[sectionName] = [];
-            }
-            state.sections[sectionName].push(subject);
+            const sectionId = action.payload;
+            delete state.sections[sectionId];
         },
     },
     extraReducers: (builder) => {

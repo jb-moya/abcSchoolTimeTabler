@@ -25,12 +25,8 @@ export const fetchSubjects = createAsyncThunk(
 export const addSubject = createAsyncThunk(
     "subject/addSubject",
     async (subject, { dispatch }) => {
-        const key = await addEntityToDB(
-            STORE_NAMES.SUBJECTS,
-            subject,
-            "subject"
-        );
-        dispatch(subjectSlice.actions.addSubjectSync({ subject, id: key }));
+        const key = await addEntityToDB(STORE_NAMES.SUBJECTS, subject);
+        dispatch(subjectSlice.actions.addSubjectSync({ ...subject, id: key }));
     }
 );
 

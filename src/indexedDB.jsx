@@ -24,13 +24,13 @@ export const initDB = async () => {
     });
 };
 
-export const addEntityToDB = async (storeName, entity, entityFieldName) => {
+export const addEntityToDB = async (storeName, entity) => {
     try {
         const db = await initDB();
         const tx = db.transaction(storeName, "readwrite");
         const store = tx.objectStore(storeName);
 
-        const key = await store.put({ [entityFieldName]: entity }); // `add` automatically generates the key
+        const key = await store.put({ ...entity }); // `add` automatically generates the key
         await tx.done;
 
         console.log("Entity added with key:", key);

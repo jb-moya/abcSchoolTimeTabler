@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { addSection } from "../features/sectionSlice";
+import escapeRegExp from "../utils/escapeRegExp";
+import { toast } from "sonner";
+import { IoAdd, IoRemove, IoRemoveCircleOutline } from "react-icons/io5";
 
-const AddSectionContainer = () => {
+const AddSectionContainer = ({ close }) => {
     const subjects = useSelector((state) => state.subject.subjects);
     const sections = useSelector((state) => state.section.sections);
     const dispatch = useDispatch();
@@ -15,27 +18,38 @@ const AddSectionContainer = () => {
         setValue(e.target.value);
     };
 
-    const searchSubjects = (subjects, searchValue) => {
-        // Convert the search value to a regex pattern with wildcard support
-        const pattern = new RegExp(searchValue.split("*").join(".*"), "i"); // 'i' for case-insensitive
+    Object.filter = (obj, predicate) =>
+        Object.fromEntries(Object.entries(obj).filter(predicate));
 
-        console.log("subjects", subjects);
-        // Filter the subjects based on the pattern
-        console.log("searchValue", searchValue);
-        console.log(
-            Array(subjects).filter((subjectName) => pattern.test(subjectName))
-        );
-        return subjects.filter((subjectName) =>
-            pattern.test(subjectName)
-        );
+    const searchResults = Object.filter(subjects, ([key, subject]) => {
+        const escapedSearchValue = escapeRegExp(searchSubjectValue)
+            .split("\\*")
+            .join(".*");
+
+        const pattern = new RegExp(escapedSearchValue, "i");
+
+        return pattern.test(subject.subject);
+    });
+
+    const toggleSubject = (subjectID) => {
+        toast("Enter to submit");
+
+        if (selectedSubjects.includes(subjectID)) {
+            setSelectedSubjects(
+                selectedSubjects.filter((s) => s !== subjectID)
+            );
+        } else {
+            setSelectedSubjects([...selectedSubjects, subjectID]);
+        }
     };
-
-    const searchResults = searchSubjects(subjects, searchSubjectValue);
 
     return (
         <div className="border p-2">
             AddSectionContainer
-            <button className="btn btn-xs btn-circle btn-outline">
+            <button
+                className="btn btn-xs btn-circle btn-outline"
+                onClick={close}
+            >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -50,9 +64,19 @@ const AddSectionContainer = () => {
                     ></path>
                 </svg>
             </button>
+            {selectedSubjects.map((subjectID) => (
+                <div
+                    key={subjectID}
+                    className="badge badge-secondary m-1 cursor-pointer"
+                    onClick={() => toggleSubject(subjectID)}
+                >
+                    {subjects[subjectID].subject}
+                </div>
+            ))}
             <input
                 type="text"
                 placeholder="Section Name"
+                required
                 className="input input-bordered input-sm w-full max-w-xs"
                 value={sectionInputValue}
                 onChange={(e) => {
@@ -67,9 +91,6 @@ const AddSectionContainer = () => {
                 }}
             />
             <div className="dropdown dropdown-open">
-                {/* <div tabIndex={0} role="button" className="btn m-1">
-                    Button
-                </div> */}
                 <input
                     role="buton"
                     type="text"
@@ -79,30 +100,57 @@ const AddSectionContainer = () => {
                     onChange={(e) => {
                         handleInputChange(e, setSearchSubjectValue);
                     }}
-                    // onKeyDown={(e) => {
-                    //     if (e.key === "Enter") {
-                    //         e.preventDefault();
-                    //         dispatch(addSection(sectionInputValue));
-                    //         setSectionInputValue("");
-                    //     }
-                    // }}
                 />
                 <ul
                     tabIndex={0}
                     className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
                 >
-                    {searchResults.map((subjectName) => (
-                        <li key={subjectName}>
-                            <a>{subjectName}</a>
-                        </li>
-                    ))}
+                    {Object.keys(searchResults).length === 0 ? (
+                        <div className="px-4 py-2 opacity-50">Not found</div>
+                    ) : (
+                        Object.entries(searchResults).map(
+                            ([_, subject], index) => (
+                                <li
+                                    role="button"
+                                    key={subject.id}
+                                    onClick={() => toggleSubject(subject.id)}
+                                >
+                                    <div className="flex justify-between">
+                                        <a>{subject.subject}</a>
+                                        {selectedSubjects.includes(
+                                            subject.id
+                                        ) ? (
+                                            <IoRemove
+                                                size={20}
+                                                className="text-secondary"
+                                            />
+                                        ) : (
+                                            <IoAdd
+                                                size={20}
+                                                className="text-primary"
+                                            />
+                                        )}
+                                    </div>
+                                </li>
+                            )
+                        )
+                    )}
                 </ul>
             </div>
-            <select className="select select-bordered select-xs w-full max-w-xs">
-                {subjects.map((subject) => (
-                    <option key={subject}>{subject}</option>
-                ))}
-            </select>
+            <button
+                className="btn btn-primary"
+                onClick={() =>
+                    dispatch(
+                        addSection({
+                            section: sectionInputValue,
+                            subjects: selectedSubjects,
+                        })
+                    )
+                }
+            >
+                <div>Add Section</div>
+                <IoAdd size={20} />
+            </button>
         </div>
     );
 };

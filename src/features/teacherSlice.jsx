@@ -24,8 +24,8 @@ export const fetchTeachers = createAsyncThunk(
 export const addTeacher = createAsyncThunk(
     "teacher/addTeacher",
     async (teacher, { dispatch }) => {
-        const key = await addEntityToDB(STORE_NAMES.TEACHERS, teacher, "teacher");
-        dispatch(teacherSlice.actions.addTeacherSync({ teacher, id: key }));
+        const key = await addEntityToDB(STORE_NAMES.TEACHERS, teacher);
+        dispatch(teacherSlice.actions.addTeacherSync({ ...teacher, id: key }));
     }
 );
 
