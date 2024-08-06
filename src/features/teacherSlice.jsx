@@ -3,6 +3,7 @@ import {
     addEntityToDB,
     removeEntityFromDB,
     getAllEntitiesFromDB,
+    editEntityFromDB,
     STORE_NAMES,
 } from "../indexedDB";
 
@@ -29,6 +30,14 @@ export const addTeacher = createAsyncThunk(
     }
 );
 
+export const editTeacher = createAsyncThunk(
+    "teacher/editTeacher",
+    async ({ teacherId, updatedTeacher }, { dispatch }) => {
+        await editEntityFromDB(STORE_NAMES.TEACHERS, teacherId, updatedTeacher);
+        dispatch(teacherSlice.actions.editTeacherSync({ id: teacherId, ...updatedTeacher }));
+    }
+);
+
 export const removeTeacher = createAsyncThunk(
     "teacher/removeTeacher",
     async (teacherId, { dispatch }) => {
@@ -45,7 +54,10 @@ export const teacherSlice = createSlice({
             const teacher = action.payload;
             state.teachers[teacher.id] = teacher;
         },
-
+        editTeacherSync: (state, action) => {
+            const updatedTeacher = action.payload;
+            state.teachers[updatedTeacher.id] = { ...state.teachers[updatedTeacher.id], ...updatedTeacher };
+        },
         removeTeacherSync: (state, action) => {
             const teacherId = action.payload;
             delete state.teachers[teacherId];
@@ -68,6 +80,6 @@ export const teacherSlice = createSlice({
 });
 
 // Action creators are generated for each case reducer function
-export const { addTeacherSync, removeTeacherSync } = teacherSlice.actions;
+export const { addTeacherSync, editTeacherSync, removeTeacherSync } = teacherSlice.actions;
 
 export default teacherSlice.reducer;

@@ -41,6 +41,34 @@ export const addEntityToDB = async (storeName, entity) => {
     }
 };
 
+// Edit an existing entity in the specified store by ID
+export const editEntityFromDB = async (storeName, entityId, updatedEntity) => {
+    try {
+        const db = await initDB();
+        const tx = db.transaction(storeName, "readwrite");
+        const store = tx.objectStore(storeName);
+
+        const existingEntity = await store.get(entityId);
+        if (!existingEntity) {
+            throw new Error("Entity not found");
+        }
+
+        console.log("Updating entity in store: ", storeName);
+        console.log("Updating entity with ID: ", entityId);
+        console.log("Updating entity with new values:", updatedEntity);
+
+        const updated = { ...existingEntity, ...updatedEntity };
+        await store.put(updated);
+        await tx.done;
+
+        console.log("Entity updated with ID:", entityId);
+        return entityId;
+    } catch (error) {
+        console.error("Error updating entity in DB:", error);
+        toast.error("Failed to update entity in DB");
+    }
+};
+
 // Remove an entity from the specified store by ID
 export const removeEntityFromDB = async (storeName, entityId) => {
     try {

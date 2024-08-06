@@ -3,6 +3,7 @@ import {
     addEntityToDB,
     removeEntityFromDB,
     getAllEntitiesFromDB,
+    editEntityFromDB,
     STORE_NAMES,
 } from "../indexedDB";
 // import { toast } from "sonner";
@@ -30,6 +31,14 @@ export const addSubject = createAsyncThunk(
     }
 );
 
+export const editSubject = createAsyncThunk(
+    "subject/editSubject",
+    async ({ subjectId, updatedSubject }, { dispatch }) => {
+        await editEntityFromDB(STORE_NAMES.SUBJECTS, subjectId, updatedSubject);
+        dispatch(subjectSlice.actions.editSubjectSync({ id: subjectId, ...updatedSubject }));
+    }
+);
+
 export const removeSubject = createAsyncThunk(
     "subject/removeSubject",
     async (subjectId, { dispatch }) => {
@@ -45,6 +54,10 @@ export const subjectSlice = createSlice({
         addSubjectSync: (state, action) => {
             const subject = action.payload;
             state.subjects[subject.id] = subject;
+        },
+        editSubjectSync: (state, action) => {
+            const updatedSubject = action.payload;
+            state.subjects[updatedSubject.id] = { ...state.subjects[updatedSubject.id], ...updatedSubject };
         },
         removeSubjectSync: (state, action) => {
             const subjectId = action.payload;
@@ -68,6 +81,6 @@ export const subjectSlice = createSlice({
     },
 });
 
-export const { addSubjectSync, removeSubjectSync } = subjectSlice.actions;
+export const { addSubjectSync, editSubjectSync, removeSubjectSync } = subjectSlice.actions;
 
 export default subjectSlice.reducer;

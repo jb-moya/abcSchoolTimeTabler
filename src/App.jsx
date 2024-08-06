@@ -8,11 +8,13 @@ import { useSelector, useDispatch } from "react-redux";
 import {
     fetchSubjects,
     addSubject,
+    editSubject,
     removeSubject,
 } from "./features/subjectSlice";
 import {
     removeTeacher,
     addTeacher,
+    editTeacher,
     fetchTeachers,
 } from "./features/teacherSlice";
 import {
@@ -22,7 +24,7 @@ import {
 } from "./features/sectionSlice";
 
 import { toast } from "sonner";
-import { RiDeleteBin7Line } from "react-icons/ri";
+import { RiDeleteBin7Line, RiEdit2Fill } from "react-icons/ri";
 
 function App() {
     const { subjects, status: subjectStatus } = useSelector(
@@ -53,9 +55,17 @@ function App() {
     const [openAddSectionContainer, setOpenAddSectionContainer] =
         useState(false);
 
-    const [subjectInputValue, setSubjectInputValue] = useState("");
-
+    const [subjectInputValue, setSubjectInputValue] = useState(""); 
     const [teacherInputValue, setTeacherInputValue] = useState("");
+
+    const [editSubjectId, setEditSubjectId] = useState(null);
+    const [editSubjectValue, setEditSubjectValue] = useState('');
+
+    const [editTeacherId, setEditTeacherId] = useState(null);
+    const [editTeacherValue, setEditTeacherValue] = useState('');
+
+    const [editSectionId, setEditSectionId] = useState(null);
+    const [editSectionValue, setEditSectionValue] = useState('');
 
     const handleInputChange = (e, setInputValue) => {
         setInputValue(e.target.value);
@@ -90,6 +100,36 @@ function App() {
             }
         }
     };
+
+    function handleEditSubjectClick(subject) {
+        setEditSubjectId(subject.id);
+        setEditSubjectValue(subject.subject);
+    }
+
+    function handleSaveSubjectEditClick(subjectId) {
+        dispatch(editSubject({ subjectId, updatedSubject: { subject: editSubjectValue } }));
+        setEditSubjectId(null);
+    }
+
+    function handleCancelSubjectEditClick() {
+        setEditSubjectId(null);
+        setEditSubjectValue("");
+    }
+
+    function handleEditTeacherClick(teacher) {
+        setEditTeacherId(teacher.id);
+        setEditTeacherValue(teacher.teacher);
+    }
+
+    function handleSaveTeacherEditClick(teacherId) {
+        dispatch(editTeacher({ teacherId, updatedTeacher: { subject: editTeacherValue } }));
+        setEditTeacherId(null);
+    }
+
+    function handleCancelTeacherEditClick() {
+        setEditTeacherId(null);
+        setEditTeacherValue("");
+    }
 
     const handleButtonClick = () => {
         if (!instance) return;
@@ -210,22 +250,60 @@ function App() {
                                             >
                                                 <th>{index + 1}</th>
                                                 <th>{subject.id}</th>
-                                                <td>{subject.subject}</td>
                                                 <td>
-                                                    <button
-                                                        className="group-hover:block hidden btn btn-xs btn-ghost text-red-500"
-                                                        onClick={() =>
-                                                            dispatch(
-                                                                removeSubject(
-                                                                    subject.id
-                                                                )
-                                                            )
-                                                        }
-                                                    >
-                                                        <RiDeleteBin7Line
-                                                            size={20}
+                                                    {editSubjectId === subject.id ? (
+                                                        <input
+                                                            type="text"
+                                                            value={editSubjectValue}
+                                                            onChange={(e) => setEditSubjectValue(e.target.value)}
+                                                            className="input input-bordered input-sm w-full"
                                                         />
-                                                    </button>
+                                                    ) : (
+                                                        subject.subject
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {editSubjectId === subject.id ? (
+                                                        <>
+                                                            <button
+                                                            className="btn btn-xs btn-ghost text-green-500"
+                                                            onClick={() => handleSaveSubjectEditClick(subject.id)}
+                                                                >
+                                                                Save
+                                                            </button>
+                                                            <button
+                                                            className="btn btn-xs btn-ghost text-red-500"
+                                                            onClick={() => handleCancelSubjectEditClick()}
+                                                                >
+                                                                Cancel
+                                                            </button>
+                                                        </>
+                                                        
+                                                        ) : (
+                                                            <>
+                                                                <button
+                                                                    className="btn btn-xs btn-ghost text-red-500"
+                                                                    onClick={() => handleEditSubjectClick(subject)}
+                                                                >
+                                                                    <RiEdit2Fill size={20} />
+                                                                </button>
+                                                                <button
+                                                                    className="btn btn-xs btn-ghost text-red-500"
+                                                                    onClick={() =>
+                                                                        dispatch(
+                                                                            removeSubject(
+                                                                                subject.id
+                                                                            )
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <RiDeleteBin7Line
+                                                                        size={20}
+                                                                    />
+                                                                </button>
+                                                            </>
+                                                    )}
+                                                    
                                                 </td>
                                             </tr>
                                         )
@@ -275,22 +353,60 @@ function App() {
                                             >
                                                 <th>{index + 1}</th>
                                                 <th>{teacher.id}</th>
-                                                <td>{teacher.teacher}</td>
                                                 <td>
-                                                    <button
-                                                        className="group-hover:block hidden btn btn-xs btn-ghost text-red-500"
-                                                        onClick={() =>
-                                                            dispatch(
-                                                                removeTeacher(
-                                                                    teacher.id
-                                                                )
-                                                            )
-                                                        }
-                                                    >
-                                                        <RiDeleteBin7Line
-                                                            size={20}
+                                                    {editTeacherId === teacher.id ? (
+                                                        <input
+                                                            type="text"
+                                                            value={editTeacherValue}
+                                                            onChange={(e) => setEditTeacherValue(e.target.value)}
+                                                            className="input input-bordered input-sm w-full"
                                                         />
-                                                    </button>
+                                                    ) : (
+                                                        teacher.teacher
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {editTeacherId === teacher.id ? (
+                                                        <>
+                                                            <button
+                                                            className="btn btn-xs btn-ghost text-green-500"
+                                                            onClick={() => handleSaveTeacherEditClick(teacher.id)}
+                                                                >
+                                                                Save
+                                                            </button>
+                                                            <button
+                                                            className="btn btn-xs btn-ghost text-red-500"
+                                                            onClick={() => handleCancelTeacherEditClick()}
+                                                                >
+                                                                Cancel
+                                                            </button>
+                                                        </>
+                                                        
+                                                        ) : (
+                                                            <>
+                                                                <button
+                                                                    className="btn btn-xs btn-ghost text-red-500"
+                                                                    onClick={() => handleEditTeacherClick(teacher)}
+                                                                >
+                                                                    <RiEdit2Fill size={20} />
+                                                                </button>
+                                                                <button
+                                                                    className="btn btn-xs btn-ghost text-red-500"
+                                                                    onClick={() =>
+                                                                        dispatch(
+                                                                            removeTeacher(
+                                                                                teacher.id
+                                                                            )
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <RiDeleteBin7Line
+                                                                        size={20}
+                                                                    />
+                                                                </button>
+                                                            </>
+                                                    )}
+                                                    
                                                 </td>
                                             </tr>
                                         )
