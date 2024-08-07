@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useWasm } from "./hooks/useWasm";
+// import { useWasm } from "./hooks/useWasm";
 import packInt16ToInt32 from "./utils/packInt16ToInt32";
 import { unpackInt64ToInt16 } from "./utils/packInt16ToInt64";
 import Navbar from "./components/Navbar";
@@ -29,11 +29,11 @@ import {
 
 import { toast } from "sonner";
 import { IoAdd, IoRemove } from "react-icons/io5";
-import { RiDeleteBin7Line } from "react-icons/ri";
+import { RiEdit2Fill, RiDeleteBin7Line } from "react-icons/ri";
 
 import { wrap } from "comlink";
 import WasmWorker from "./wasm.worker?worker";
-const wasmWorker = wrap(new WasmWorker());
+const getTimetable = wrap(new WasmWorker());
 
 function App() {
     const { subjects, status: subjectStatus } = useSelector(
@@ -48,16 +48,8 @@ function App() {
 
     const [result, setResult] = useState(0);
 
-    const getResult = async () => {
-        const result = await wasmWorker(1, 4);
-        setResult(result);
-    };
-    useEffect(() => {
-        getResult();
-    }, []);
-
     const dispatch = useDispatch();
-    const { instance } = useWasm();
+    // const { instance } = useWasm();
 
     const [openAddSectionContainer, setOpenAddSectionContainer] =
         useState(false);
@@ -67,13 +59,13 @@ function App() {
     const [teacherInputValue, setTeacherInputValue] = useState("");
 
     const [editSubjectId, setEditSubjectId] = useState(null);
-    const [editSubjectValue, setEditSubjectValue] = useState('');
+    const [editSubjectValue, setEditSubjectValue] = useState("");
 
     const [editTeacherId, setEditTeacherId] = useState(null);
-    const [editTeacherValue, setEditTeacherValue] = useState('');
+    const [editTeacherValue, setEditTeacherValue] = useState("");
 
     const [editSectionId, setEditSectionId] = useState(null);
-    const [editSectionValue, setEditSectionValue] = useState('');
+    const [editSectionValue, setEditSectionValue] = useState("");
     const [editSectionCurr, setEditSectionCurr] = useState([]);
     const [searchSubjectValue, setSearchSubjectValue] = useState("");
 
@@ -116,7 +108,12 @@ function App() {
     }
 
     function handleSaveSubjectEditClick(subjectId) {
-        dispatch(editSubject({ subjectId, updatedSubject: { subject: editSubjectValue } }));
+        dispatch(
+            editSubject({
+                subjectId,
+                updatedSubject: { subject: editSubjectValue },
+            })
+        );
         setEditSubjectId(null);
     }
 
@@ -131,7 +128,12 @@ function App() {
     }
 
     function handleSaveTeacherEditClick(teacherId) {
-        dispatch(editTeacher({ teacherId, updatedTeacher: { teacher: editTeacherValue } }));
+        dispatch(
+            editTeacher({
+                teacherId,
+                updatedTeacher: { teacher: editTeacherValue },
+            })
+        );
         setEditTeacherId(null);
     }
 
@@ -147,13 +149,15 @@ function App() {
     }
 
     function handleSaveSectionEditClick(sectionId) {
-        dispatch(editSection({
-            sectionId,
-            updatedSection: {
-                section: editSectionValue,
-                subjects: editSectionCurr
-            }
-        }));
+        dispatch(
+            editSection({
+                sectionId,
+                updatedSection: {
+                    section: editSectionValue,
+                    subjects: editSectionCurr,
+                },
+            })
+        );
         setEditSectionId(null);
     }
 
@@ -176,9 +180,7 @@ function App() {
         Object.fromEntries(Object.entries(obj).filter(predicate));
 
     const searchResults = Object.filter(subjects, ([, subject]) => {
-        const escapedSearchValue = searchSubjectValue
-            .split("\\*")
-            .join(".*");
+        const escapedSearchValue = searchSubjectValue.split("\\*").join(".*");
 
         const pattern = new RegExp(escapedSearchValue, "i");
 
@@ -186,10 +188,8 @@ function App() {
     });
 
     const handleButtonClick = () => {
-        if (!instance) return;
-
         const subjectMap = Object.entries(subjects).reduce(
-            (acc, [key, value], index) => {
+            (acc, [, value], index) => {
                 acc[index] = value.id;
                 return acc;
             },
@@ -197,7 +197,7 @@ function App() {
         );
 
         const subjectMapReverse = Object.entries(subjects).reduce(
-            (acc, [key, value], index) => {
+            (acc, [, value], index) => {
                 acc[value.id] = index;
                 return acc;
             },
@@ -205,7 +205,7 @@ function App() {
         );
 
         const teacherMap = Object.entries(teachers).reduce(
-            (acc, [key, value], index) => {
+            (acc, [, value], index) => {
                 acc[index] = value.id;
                 return acc;
             },
@@ -213,7 +213,7 @@ function App() {
         );
 
         const sectionMap = Object.entries(sections).reduce(
-            (acc, [key, value], index) => {
+            (acc, [, value], index) => {
                 acc[index] = value.subjects.map(
                     (subjectID) => subjectMapReverse[subjectID]
                 );
@@ -231,8 +231,8 @@ function App() {
         console.log("sectionMap", sectionMap);
         for (const [sectionKey, subjects] of Object.entries(sectionMap)) {
             for (const subject of subjects) {
+                console.log(sectionKey, subject);
                 sectionSubjectArray.push(packInt16ToInt32(sectionKey, subject));
-                // console.log(sectionKey, subject);
             }
         }
 
@@ -245,6 +245,9 @@ function App() {
         const beesScoutOptions = 2;
         const limits = 800;
 
+        console.log("sectionSubjects", sectionSubjects, sectionSubjects.length);
+
+
         console.log(
             "Object.keys(sectionMap).length",
             Object.keys(sectionMap).length
@@ -254,20 +257,11 @@ function App() {
             Object.keys(teacherMap).length
         );
         console.log("sectionSubjectArray.length", sectionSubjectArray.length);
-        const num_teachers = Object.keys(teacherMap).length;
-        const num_rooms = 7;
+        const numTeachers = Object.keys(teacherMap).length;
+        const numRooms = 7;
         const num_timeslots = 8;
-        const total_school_class = sectionSubjectArray.length;
-        const total_section = Object.keys(sectionMap).length;
-
-        const sectionSubjectsBuff = instance._malloc(
-            sectionSubjects.length * sectionSubjects.BYTES_PER_ELEMENT
-        );
-
-        instance.HEAP32.set(
-            sectionSubjects,
-            sectionSubjectsBuff / sectionSubjects.BYTES_PER_ELEMENT
-        );
+        const totalSchoolClass = sectionSubjectArray.length;
+        const totalSection = Object.keys(sectionMap).length;
 
         const teacherSubjectsLength = 0;
 
@@ -283,111 +277,27 @@ function App() {
             // packInt16ToInt32(6, 7),
         ]);
 
-        // const teacherSubjectsBuff = await malloc(
-        //     teacherSubjects.length * teacherSubjects.BYTES_PER_ELEMENT
-        // );
+        const params = {
+            maxIterations: max_iterations,
+            numTeachers: numTeachers,
+            numRooms: numRooms,
+            numTimeslots: num_timeslots,
+            totalSchoolClass: totalSchoolClass,
+            totalSection: totalSection,
+            sectionSubjects: sectionSubjects,
+            teacherSubjects: teacherSubjects,
+            teacherSubjectsLength: teacherSubjectsLength,
+            beesPopulation: beesPopulations,
+            beesEmployed: beesEmployedOptions,
+            beesOnlooker: beesOnlookerOptions,
+            beesScout: beesScoutOptions,
+            limits: limits,
+        };
 
-        // // Use HEAP32 to write the Int32Array data into the allocated memory
-        // await setHEAP32(
-        //     teacherSubjects,
-        //     teacherSubjectsBuff / teacherSubjects.BYTES_PER_ELEMENT
-        // );
 
-        const resultBuff = instance._malloc(total_school_class * 8);
+        getTimetable(params);
 
-        await new Promise((resolve, reject) => {
-            try {
-                instance.ccall(
-                    "runExperiment",
-                    null,
-                    [
-                        "number",
-                        "number",
-                        "number",
-                        "number",
-                        "number",
-                        "number",
-                        "number",
-                        "number",
-                        "number",
-                        "number",
-                        "number",
-                        "number",
-                        "number",
-                        "number",
-                    ],
-                    [
-                        max_iterations,
-                        num_teachers,
-                        num_rooms,
-                        num_timeslots,
-                        total_school_class,
-                        total_section,
-                        sectionSubjectsBuff,
-                        teacherSubjectsBuff,
-                        teacherSubjectsLength,
-                        beesPopulations,
-                        beesEmployedOptions,
-                        beesOnlookerOptions,
-                        beesScoutOptions,
-                        limits,
-                        resultBuff,
-                    ]
-                );
-                resolve();
-            } catch (error) {
-                reject(error);
-            }
-        });
-
-        // await instance.ccall(
-        //     "runExperiment",
-        //     null,
-        //     [
-        //         "number",
-        //         "number",
-        //         "number",
-        //         "number",
-        //         "number",
-        //         "number",
-        //         "number",
-        //         "number",
-        //         "number",
-        //         "number",
-        //         "number",
-        //         "number",
-        //         "number",
-        //         "number",
-        //         "number",
-        //     ],
-        //     [
-        //         max_iterations,
-        //         num_teachers,
-        //         num_rooms,
-        //         num_timeslots,
-        //         total_school_class,
-        //         total_section,
-        //         sectionSubjectsBuff,
-        //         teacherSubjectsBuff,
-        //         teacherSubjectsLength,
-        //         beesPopulations,
-        //         beesEmployedOptions,
-        //         beesOnlookerOptions,
-        //         beesScoutOptions,
-        //         limits,
-        //         resultBuff,
-        //     ]
-        // );
-
-        for (let i = 0; i < total_school_class; i++) {
-            let result = instance.getValue(resultBuff + i * 8, "i64");
-
-            console.log(`Class ${i + 1}: ${result}`);
-        }
-
-        // await free(sectionSubjectsBuff);
-        // await free(teacherSubjectsBuff);
-        // await free(resultBuff);
+        return;
     };
 
     useEffect(() => {}, [teachers]);
@@ -530,126 +440,198 @@ function App() {
                     </div>
                 </div>
                 <div className="w-8/12">
-                <div className="overflow-x-auto">
-                    <table className="table table-sm table-zebra">
-                        {/* head */}
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Section ID</th>
-                                <th>Section</th>
-                                <th>Subjects</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {Object.entries(sections).map(
-                                ([_, section], index) => (
-                                    <tr
-                                        key={section.id}
-                                        className="group hover"
-                                    >
-                                        <th>{index + 1}</th>
-                                        <th>{section.id}</th>
-                                        <td>
-                                            {editSectionId === section.id ? (
-                                                <input
-                                                    type="text"
-                                                    value={editSectionValue}
-                                                    onChange={(e) => setEditSectionValue(e.target.value)}
-                                                    className="input input-bordered input-sm w-full"
-                                                />
-                                            ) : (
-                                                section.section
-                                            )}
-                                        </td>
-                                        <td className="flex gap-2">
-                                            {editSectionId === section.id ? (
-                                                <div className="dropdown dropdown-open">
+                    <div className="overflow-x-auto">
+                        <table className="table table-sm table-zebra">
+                            {/* head */}
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Section ID</th>
+                                    <th>Section</th>
+                                    <th>Subjects</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {Object.entries(sections).map(
+                                    ([_, section], index) => (
+                                        <tr
+                                            key={section.id}
+                                            className="group hover"
+                                        >
+                                            <th>{index + 1}</th>
+                                            <th>{section.id}</th>
+                                            <td>
+                                                {editSectionId ===
+                                                section.id ? (
                                                     <input
-                                                        role="button"
                                                         type="text"
-                                                        placeholder="Search subject"
-                                                        className="input input-bordered input-sm w-full max-w-xs"
-                                                        value={searchSubjectValue}
-                                                        onChange={(e) => handleInputChange(e, setSearchSubjectValue)}
-                                                    />
-                                                    <ul
-                                                        tabIndex={0}
-                                                        className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
-                                                    >
-                                                        {Object.keys(searchResults).length === 0 ? (
-                                                            <div className="px-4 py-2 opacity-50">Not found</div>
-                                                        ) : (
-                                                            Object.entries(searchResults).map(
-                                                                ([, subject]) => (
-                                                                    <li
-                                                                        role="button"
-                                                                        key={subject.id}
-                                                                        onClick={() => toggleSubject(subject.id)}
-                                                                    >
-                                                                        <div className="flex justify-between">
-                                                                            <a>{subject.subject}</a>
-                                                                            {editSectionCurr.includes(subject.id) ? (
-                                                                                <IoRemove size={20} className="text-secondary" />
-                                                                            ) : (
-                                                                                <IoAdd size={20} className="text-primary" />
-                                                                            )}
-                                                                        </div>
-                                                                    </li>
-                                                                )
+                                                        value={editSectionValue}
+                                                        onChange={(e) =>
+                                                            setEditSectionValue(
+                                                                e.target.value
                                                             )
-                                                        )}
-                                                    </ul>
-                                                </div>
-                                            ) : (
-                                                subjectStatus === "succeeded" &&
-                                                section.subjects.map((subject) => (
-                                                    <div key={subject}>
-                                                        {subjects[subject].subject}
+                                                        }
+                                                        className="input input-bordered input-sm w-full"
+                                                    />
+                                                ) : (
+                                                    section.section
+                                                )}
+                                            </td>
+                                            <td className="flex gap-2">
+                                                {editSectionId ===
+                                                section.id ? (
+                                                    <div className="dropdown dropdown-open">
+                                                        <input
+                                                            role="button"
+                                                            type="text"
+                                                            placeholder="Search subject"
+                                                            className="input input-bordered input-sm w-full max-w-xs"
+                                                            value={
+                                                                searchSubjectValue
+                                                            }
+                                                            onChange={(e) =>
+                                                                handleInputChange(
+                                                                    e,
+                                                                    setSearchSubjectValue
+                                                                )
+                                                            }
+                                                        />
+                                                        <ul
+                                                            tabIndex={0}
+                                                            className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
+                                                        >
+                                                            {Object.keys(
+                                                                searchResults
+                                                            ).length === 0 ? (
+                                                                <div className="px-4 py-2 opacity-50">
+                                                                    Not found
+                                                                </div>
+                                                            ) : (
+                                                                Object.entries(
+                                                                    searchResults
+                                                                ).map(
+                                                                    ([
+                                                                        ,
+                                                                        subject,
+                                                                    ]) => (
+                                                                        <li
+                                                                            role="button"
+                                                                            key={
+                                                                                subject.id
+                                                                            }
+                                                                            onClick={() =>
+                                                                                toggleSubject(
+                                                                                    subject.id
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            <div className="flex justify-between">
+                                                                                <a>
+                                                                                    {
+                                                                                        subject.subject
+                                                                                    }
+                                                                                </a>
+                                                                                {editSectionCurr.includes(
+                                                                                    subject.id
+                                                                                ) ? (
+                                                                                    <IoRemove
+                                                                                        size={
+                                                                                            20
+                                                                                        }
+                                                                                        className="text-secondary"
+                                                                                    />
+                                                                                ) : (
+                                                                                    <IoAdd
+                                                                                        size={
+                                                                                            20
+                                                                                        }
+                                                                                        className="text-primary"
+                                                                                    />
+                                                                                )}
+                                                                            </div>
+                                                                        </li>
+                                                                    )
+                                                                )
+                                                            )}
+                                                        </ul>
                                                     </div>
-                                                ))
-                                            )}
-                                        </td>
-                                        <td>
-                                            {editSectionId === section.id ? (
-                                                <>
-                                                    <button
-                                                        className="btn btn-xs btn-ghost text-green-500"
-                                                        onClick={() => handleSaveSectionEditClick(section.id)}
-                                                    >
-                                                        Save
-                                                    </button>
-                                                    <button
-                                                        className="btn btn-xs btn-ghost text-red-500"
-                                                        onClick={handleCancelSectionEditClick}
-                                                    >
-                                                        Cancel
-                                                    </button>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <button
-                                                        className="btn btn-xs btn-ghost text-red-500"
-                                                        onClick={() => handleEditSectionClick(section)}
-                                                    >
-                                                        <RiEdit2Fill size={20} />
-                                                    </button>
-                                                    <button
-                                                        className="btn btn-xs btn-ghost text-red-500"
-                                                        onClick={() => dispatch(removeSection(section.id))}
-                                                    >
-                                                        <RiDeleteBin7Line size={20} />
-                                                    </button>
-                                                </>
-                                            )}
-                                        </td>
-                                    </tr>
-                                )
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                                                ) : (
+                                                    subjectStatus ===
+                                                        "succeeded" &&
+                                                    section.subjects.map(
+                                                        (subject) => (
+                                                            <div key={subject}>
+                                                                {
+                                                                    subjects[
+                                                                        subject
+                                                                    ].subject
+                                                                }
+                                                            </div>
+                                                        )
+                                                    )
+                                                )}
+                                            </td>
+                                            <td>
+                                                {editSectionId ===
+                                                section.id ? (
+                                                    <>
+                                                        <button
+                                                            className="btn btn-xs btn-ghost text-green-500"
+                                                            onClick={() =>
+                                                                handleSaveSectionEditClick(
+                                                                    section.id
+                                                                )
+                                                            }
+                                                        >
+                                                            Save
+                                                        </button>
+                                                        <button
+                                                            className="btn btn-xs btn-ghost text-red-500"
+                                                            onClick={
+                                                                handleCancelSectionEditClick
+                                                            }
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <button
+                                                            className="btn btn-xs btn-ghost text-red-500"
+                                                            onClick={() =>
+                                                                handleEditSectionClick(
+                                                                    section
+                                                                )
+                                                            }
+                                                        >
+                                                            <RiEdit2Fill
+                                                                size={20}
+                                                            />
+                                                        </button>
+                                                        <button
+                                                            className="btn btn-xs btn-ghost text-red-500"
+                                                            onClick={() =>
+                                                                dispatch(
+                                                                    removeSection(
+                                                                        section.id
+                                                                    )
+                                                                )
+                                                            }
+                                                        >
+                                                            <RiDeleteBin7Line
+                                                                size={20}
+                                                            />
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    )
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                     <div>
                         <button
                             className="btn btn-primary"
