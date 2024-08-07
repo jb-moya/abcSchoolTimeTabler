@@ -20,10 +20,12 @@ import {
 import {
     removeSection,
     addSection,
+    editSection,
     fetchSections,
 } from "./features/sectionSlice";
 
 import { toast } from "sonner";
+import { IoAdd, IoRemove } from "react-icons/io5";
 import { RiDeleteBin7Line, RiEdit2Fill } from "react-icons/ri";
 
 function App() {
@@ -66,6 +68,8 @@ function App() {
 
     const [editSectionId, setEditSectionId] = useState(null);
     const [editSectionValue, setEditSectionValue] = useState('');
+    const [editSectionCurr, setEditSectionCurr] = useState([]);
+    const [searchSubjectValue, setSearchSubjectValue] = useState("");
 
     const handleInputChange = (e, setInputValue) => {
         setInputValue(e.target.value);
@@ -122,7 +126,7 @@ function App() {
     }
 
     function handleSaveTeacherEditClick(teacherId) {
-        dispatch(editTeacher({ teacherId, updatedTeacher: { subject: editTeacherValue } }));
+        dispatch(editTeacher({ teacherId, updatedTeacher: { teacher: editTeacherValue } }));
         setEditTeacherId(null);
     }
 
@@ -130,6 +134,51 @@ function App() {
         setEditTeacherId(null);
         setEditTeacherValue("");
     }
+
+    function handleEditSectionClick(section) {
+        setEditSectionId(section.id);
+        setEditSectionValue(section.section);
+        setEditSectionCurr(section.subjects);
+    }
+
+    function handleSaveSectionEditClick(sectionId) {
+        dispatch(editSection({
+            sectionId,
+            updatedSection: {
+                section: editSectionValue,
+                subjects: editSectionCurr
+            }
+        }));
+        setEditSectionId(null);
+    }
+
+    function handleCancelSectionEditClick() {
+        setEditSectionId(null);
+        setEditSectionValue("");
+        setEditSectionCurr([]);
+        // console.log("editSectionCurr: ",editSectionCurr);
+    }
+
+    const toggleSubject = (subjectId) => {
+        setEditSectionCurr((prev) =>
+            prev.includes(subjectId)
+                ? prev.filter((id) => id !== subjectId)
+                : [...prev, subjectId]
+        );
+    };
+
+    Object.filter = (obj, predicate) =>
+        Object.fromEntries(Object.entries(obj).filter(predicate));
+
+    const searchResults = Object.filter(subjects, ([, subject]) => {
+        const escapedSearchValue = searchSubjectValue
+            .split("\\*")
+            .join(".*");
+
+        const pattern = new RegExp(escapedSearchValue, "i");
+
+        return pattern.test(subject.subject);
+    });
 
     const handleButtonClick = () => {
         if (!instance) return;
@@ -437,77 +486,126 @@ function App() {
                     </div>
                 </div>
                 <div className="w-8/12">
-                    <div className="overflow-x-auto">
-                        <table className="table table-sm table-zebra">
-                            {/* head */}
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Section ID</th>
-                                    <th>Section</th>
-                                    <th>Subjects</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {Object.entries(sections).map(
-                                    ([_, section], index) => (
-                                        <tr
-                                            key={section.id}
-                                            className="group hover"
-                                        >
-                                            <th>{index + 1}</th>
-                                            <th>{section.id}</th>
-                                            <td>{section.section}</td>
-                                            <td className="flex gap-2">
-                                                {subjectStatus == "succeeded" &&
-                                                    section.subjects.map(
-                                                        (subject) => (
-                                                            console.log(
-                                                                "qgv",
-                                                                subjects[
-                                                                    subject
-                                                                ].subject
-                                                            ),
-                                                            (
-                                                                <div
-                                                                    key={
-                                                                        subject
-                                                                    }
-                                                                >
-                                                                    {
-                                                                        subjects[
-                                                                            subject
-                                                                        ]
-                                                                            .subject
-                                                                    }
-                                                                </div>
-                                                            )
-                                                        )
-                                                    )}
-                                            </td>
-                                            <td>
-                                                <button
-                                                    className="group-hover:block hidden btn btn-xs btn-ghost text-red-500"
-                                                    onClick={() =>
-                                                        dispatch(
-                                                            removeSection(
-                                                                section.id
-                                                            )
-                                                        )
-                                                    }
-                                                >
-                                                    <RiDeleteBin7Line
-                                                        size={20}
+                <div className="overflow-x-auto">
+                    <table className="table table-sm table-zebra">
+                        {/* head */}
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Section ID</th>
+                                <th>Section</th>
+                                <th>Subjects</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {Object.entries(sections).map(
+                                ([_, section], index) => (
+                                    <tr
+                                        key={section.id}
+                                        className="group hover"
+                                    >
+                                        <th>{index + 1}</th>
+                                        <th>{section.id}</th>
+                                        <td>
+                                            {editSectionId === section.id ? (
+                                                <input
+                                                    type="text"
+                                                    value={editSectionValue}
+                                                    onChange={(e) => setEditSectionValue(e.target.value)}
+                                                    className="input input-bordered input-sm w-full"
+                                                />
+                                            ) : (
+                                                section.section
+                                            )}
+                                        </td>
+                                        <td className="flex gap-2">
+                                            {editSectionId === section.id ? (
+                                                <div className="dropdown dropdown-open">
+                                                    <input
+                                                        role="button"
+                                                        type="text"
+                                                        placeholder="Search subject"
+                                                        className="input input-bordered input-sm w-full max-w-xs"
+                                                        value={searchSubjectValue}
+                                                        onChange={(e) => handleInputChange(e, setSearchSubjectValue)}
                                                     />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    )
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                                    <ul
+                                                        tabIndex={0}
+                                                        className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
+                                                    >
+                                                        {Object.keys(searchResults).length === 0 ? (
+                                                            <div className="px-4 py-2 opacity-50">Not found</div>
+                                                        ) : (
+                                                            Object.entries(searchResults).map(
+                                                                ([, subject]) => (
+                                                                    <li
+                                                                        role="button"
+                                                                        key={subject.id}
+                                                                        onClick={() => toggleSubject(subject.id)}
+                                                                    >
+                                                                        <div className="flex justify-between">
+                                                                            <a>{subject.subject}</a>
+                                                                            {editSectionCurr.includes(subject.id) ? (
+                                                                                <IoRemove size={20} className="text-secondary" />
+                                                                            ) : (
+                                                                                <IoAdd size={20} className="text-primary" />
+                                                                            )}
+                                                                        </div>
+                                                                    </li>
+                                                                )
+                                                            )
+                                                        )}
+                                                    </ul>
+                                                </div>
+                                            ) : (
+                                                subjectStatus === "succeeded" &&
+                                                section.subjects.map((subject) => (
+                                                    <div key={subject}>
+                                                        {subjects[subject].subject}
+                                                    </div>
+                                                ))
+                                            )}
+                                        </td>
+                                        <td>
+                                            {editSectionId === section.id ? (
+                                                <>
+                                                    <button
+                                                        className="btn btn-xs btn-ghost text-green-500"
+                                                        onClick={() => handleSaveSectionEditClick(section.id)}
+                                                    >
+                                                        Save
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-xs btn-ghost text-red-500"
+                                                        onClick={handleCancelSectionEditClick}
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <button
+                                                        className="btn btn-xs btn-ghost text-red-500"
+                                                        onClick={() => handleEditSectionClick(section)}
+                                                    >
+                                                        <RiEdit2Fill size={20} />
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-xs btn-ghost text-red-500"
+                                                        onClick={() => dispatch(removeSection(section.id))}
+                                                    >
+                                                        <RiDeleteBin7Line size={20} />
+                                                    </button>
+                                                </>
+                                            )}
+                                        </td>
+                                    </tr>
+                                )
+                            )}
+                        </tbody>
+                    </table>
+                </div>
                     <div>
                         <button
                             className="btn btn-primary"

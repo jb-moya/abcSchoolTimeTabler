@@ -3,6 +3,7 @@ import {
     addEntityToDB,
     removeEntityFromDB,
     getAllEntitiesFromDB,
+    editEntityFromDB,
     STORE_NAMES,
 } from "../indexedDB";
 
@@ -32,6 +33,14 @@ export const addSection = createAsyncThunk(
     }
 );
 
+export const editSection = createAsyncThunk(
+    "section/editSection",
+    async ({ sectionId, updatedSection }, { dispatch }) => {
+        await editEntityFromDB(STORE_NAMES.SECTIONS, sectionId, updatedSection);
+        dispatch(sectionSlice.actions.editSectionSync({ id: sectionId, ...updatedSection }));
+    }
+);
+
 export const removeSection = createAsyncThunk(
     "section/removeSection",
     async (sectionId, { dispatch }) => {
@@ -48,7 +57,10 @@ export const sectionSlice = createSlice({
             const section = action.payload;
             state.sections[section.id] = section;
         },
-
+        editSectionSync: (state, action) => {
+            const updatedSection = action.payload;
+            state.sections[updatedSection.id] = { ...state.sections[updatedSection.id], ...updatedSection };
+        },
         removeSectionSync: (state, action) => {
             const sectionId = action.payload;
             delete state.sections[sectionId];
@@ -70,6 +82,6 @@ export const sectionSlice = createSlice({
     },
 });
 
-export const { addSectionSync, removeSectionSync } = sectionSlice.actions;
+export const { addSectionSync, editSectionSync, removeSectionSync } = sectionSlice.actions;
 
 export default sectionSlice.reducer;
