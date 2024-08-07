@@ -46,7 +46,9 @@ function App() {
         (state) => state.section
     );
 
-    const [result, setResult] = useState(0);
+    const [timetable, setTimetable] = useState([]);
+    const [sectionTimetable, setSectionTimetable] = useState({});
+    const [teacherTimetable, setTeacherTimetable] = useState({});
 
     const dispatch = useDispatch();
     // const { instance } = useWasm();
@@ -187,7 +189,7 @@ function App() {
         return pattern.test(subject.subject);
     });
 
-    const handleButtonClick = () => {
+    const handleButtonClick = async () => {
         const subjectMap = Object.entries(subjects).reduce(
             (acc, [, value], index) => {
                 acc[index] = value.id;
@@ -214,9 +216,13 @@ function App() {
 
         const sectionMap = Object.entries(sections).reduce(
             (acc, [, value], index) => {
-                acc[index] = value.subjects.map(
-                    (subjectID) => subjectMapReverse[subjectID]
-                );
+                acc[index] = {
+                    subjects: value.subjects.map(
+                        (subjectID) => subjectMapReverse[subjectID]
+                    ),
+                    id: value.id,
+                };
+
                 return acc;
             },
             {}
@@ -229,7 +235,7 @@ function App() {
 
         const sectionSubjectArray = [];
         console.log("sectionMap", sectionMap);
-        for (const [sectionKey, subjects] of Object.entries(sectionMap)) {
+        for (const [sectionKey, { subjects }] of Object.entries(sectionMap)) {
             for (const subject of subjects) {
                 console.log(sectionKey, subject);
                 sectionSubjectArray.push(packInt16ToInt32(sectionKey, subject));
@@ -246,7 +252,6 @@ function App() {
         const limits = 800;
 
         console.log("sectionSubjects", sectionSubjects, sectionSubjects.length);
-
 
         console.log(
             "Object.keys(sectionMap).length",
@@ -294,19 +299,73 @@ function App() {
             limits: limits,
         };
 
+        const timetable = await getTimetable(params);
 
-        getTimetable(params);
+        const timetableMap = [];
+        const sectionTimetable = {};
+        const teacherTimetable = {};
+
+        console.log("testing subjectmap", subjectMap["1"]);
+
+        for (const entry of timetable) {
+            console.log("F", entry, typeof entry[0]);
+            const section = sectionMap[entry[0]].id;
+            const subject = subjectMap[entry[1]];
+            const teacher = teacherMap[entry[2]];
+            const timeslot = entry[3];
+
+            timetableMap.push({
+                section: section,
+                subject: section,
+                teacher: section,
+                timeslot: section,
+            });
+
+            if (!Array.isArray(sectionTimetable[section])) {
+                sectionTimetable[section] = []; // Initialize as an empty array if it does not exist or is not an array
+            }
+
+            sectionTimetable[section].push({
+                subject: subject,
+                teacher: teacher,
+                timeslot: timeslot,
+            });
+
+            if (!Array.isArray(teacherTimetable[teacher])) {
+                teacherTimetable[teacher] = []; // Initialize as an empty array if it does not exist or is not an array
+            }
+
+            teacherTimetable[teacher].push({
+                section: section,
+                subject: subject,
+                timeslot: timeslot,
+            });
+        }
+
+        // setTimetable(timetable);
+        console.log("timetable", timetableMap);
+        console.log("section timetable", sectionTimetable);
+        console.log("teacher timetable", teacherTimetable);
+
+        setTimetable(timetableMap);
+        setSectionTimetable(sectionTimetable);
+        setTeacherTimetable(teacherTimetable);
 
         return;
     };
 
-    useEffect(() => {}, [teachers]);
+    useEffect(() => {
+        console.log("BAKIT GANON", sectionTimetable);
+
+        Object.entries(sectionTimetable).forEach(([key, value]) => {
+            console.log(key, value);
+        });
+    }, [sectionTimetable]);
 
     return (
         <div className="App container mx-auto px-4">
             <header className="App-header">
                 <Navbar />
-                <div className="p-10 bg-pink-600">{result}</div>
                 <div className="flex gap-4">
                     <div className="w-4/12">
                         <div className="overflow-x-auto">
@@ -322,29 +381,86 @@ function App() {
                                 </thead>
                                 <tbody>
                                     {Object.entries(subjects).map(
-                                        ([, subject], index) => (
+                                        ([_, subject], index) => (
                                             <tr
                                                 key={subject.id}
-                                                className="group hover:text-accent"
+                                                className="group hover"
                                             >
                                                 <th>{index + 1}</th>
                                                 <th>{subject.id}</th>
-                                                <td>{subject.subject}</td>
                                                 <td>
-                                                    <button
-                                                        className="group-hover:block hidden btn btn-xs btn-ghost text-red-500"
-                                                        onClick={() =>
-                                                            dispatch(
-                                                                removeSubject(
-                                                                    subject.id
+                                                    {editSubjectId ===
+                                                    subject.id ? (
+                                                        <input
+                                                            type="text"
+                                                            value={
+                                                                editSubjectValue
+                                                            }
+                                                            onChange={(e) =>
+                                                                setEditSubjectValue(
+                                                                    e.target
+                                                                        .value
                                                                 )
-                                                            )
-                                                        }
-                                                    >
-                                                        <RiDeleteBin7Line
-                                                            size={20}
+                                                            }
+                                                            className="input input-bordered input-sm w-full"
                                                         />
-                                                    </button>
+                                                    ) : (
+                                                        subject.subject
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {editSubjectId ===
+                                                    subject.id ? (
+                                                        <>
+                                                            <button
+                                                                className="btn btn-xs btn-ghost text-green-500"
+                                                                onClick={() =>
+                                                                    handleSaveSubjectEditClick(
+                                                                        subject.id
+                                                                    )
+                                                                }
+                                                            >
+                                                                Save
+                                                            </button>
+                                                            <button
+                                                                className="btn btn-xs btn-ghost text-red-500"
+                                                                onClick={() =>
+                                                                    handleCancelSubjectEditClick()
+                                                                }
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <button
+                                                                className="btn btn-xs btn-ghost text-red-500"
+                                                                onClick={() =>
+                                                                    handleEditSubjectClick(
+                                                                        subject
+                                                                    )
+                                                                }
+                                                            >
+                                                                <RiEdit2Fill
+                                                                    size={20}
+                                                                />
+                                                            </button>
+                                                            <button
+                                                                className="btn btn-xs btn-ghost text-red-500"
+                                                                onClick={() =>
+                                                                    dispatch(
+                                                                        removeSubject(
+                                                                            subject.id
+                                                                        )
+                                                                    )
+                                                                }
+                                                            >
+                                                                <RiDeleteBin7Line
+                                                                    size={20}
+                                                                />
+                                                            </button>
+                                                        </>
+                                                    )}
                                                 </td>
                                             </tr>
                                         )
@@ -387,29 +503,86 @@ function App() {
                                 </thead>
                                 <tbody>
                                     {Object.entries(teachers).map(
-                                        ([, teacher], index) => (
+                                        ([_, teacher], index) => (
                                             <tr
                                                 key={teacher.id}
-                                                className="group hover:text-accent"
+                                                className="group hover"
                                             >
                                                 <th>{index + 1}</th>
                                                 <th>{teacher.id}</th>
-                                                <td>{teacher.teacher}</td>
                                                 <td>
-                                                    <button
-                                                        className="group-hover:block hidden btn btn-xs btn-ghost text-red-500"
-                                                        onClick={() =>
-                                                            dispatch(
-                                                                removeTeacher(
-                                                                    teacher.id
+                                                    {editTeacherId ===
+                                                    teacher.id ? (
+                                                        <input
+                                                            type="text"
+                                                            value={
+                                                                editTeacherValue
+                                                            }
+                                                            onChange={(e) =>
+                                                                setEditTeacherValue(
+                                                                    e.target
+                                                                        .value
                                                                 )
-                                                            )
-                                                        }
-                                                    >
-                                                        <RiDeleteBin7Line
-                                                            size={20}
+                                                            }
+                                                            className="input input-bordered input-sm w-full"
                                                         />
-                                                    </button>
+                                                    ) : (
+                                                        teacher.teacher
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {editTeacherId ===
+                                                    teacher.id ? (
+                                                        <>
+                                                            <button
+                                                                className="btn btn-xs btn-ghost text-green-500"
+                                                                onClick={() =>
+                                                                    handleSaveTeacherEditClick(
+                                                                        teacher.id
+                                                                    )
+                                                                }
+                                                            >
+                                                                Save
+                                                            </button>
+                                                            <button
+                                                                className="btn btn-xs btn-ghost text-red-500"
+                                                                onClick={() =>
+                                                                    handleCancelTeacherEditClick()
+                                                                }
+                                                            >
+                                                                Cancel
+                                                            </button>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <button
+                                                                className="btn btn-xs btn-ghost text-red-500"
+                                                                onClick={() =>
+                                                                    handleEditTeacherClick(
+                                                                        teacher
+                                                                    )
+                                                                }
+                                                            >
+                                                                <RiEdit2Fill
+                                                                    size={20}
+                                                                />
+                                                            </button>
+                                                            <button
+                                                                className="btn btn-xs btn-ghost text-red-500"
+                                                                onClick={() =>
+                                                                    dispatch(
+                                                                        removeTeacher(
+                                                                            teacher.id
+                                                                        )
+                                                                    )
+                                                                }
+                                                            >
+                                                                <RiDeleteBin7Line
+                                                                    size={20}
+                                                                />
+                                                            </button>
+                                                        </>
+                                                    )}
                                                 </td>
                                             </tr>
                                         )
@@ -653,6 +826,62 @@ function App() {
                                 close={() => setOpenAddSectionContainer(false)}
                             />
                         )}
+                    </div>
+                </div>
+
+                <div className="w-8/12">
+                    <div className="overflow-x-auto">
+                        {sectionTimetable !== null &&
+                            Object.entries(sectionTimetable).map(
+                                ([sectionID, section]) => (
+                                    <>
+                                        <div className="font-bold text-center">
+                                            Section Name:
+                                            {sections[sectionID].section}
+                                        </div>
+                                        <table
+                                            key={sectionID}
+                                            className="table bg-base-100"
+                                        >
+                                            {/* head */}
+                                            <thead>
+                                                <tr>
+                                                    <th></th>
+                                                    <th>Subject</th>
+                                                    <th>teacher</th>
+                                                    <th>timeslot</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {section.map((subject) => (
+                                                    <tr key={subject.subject}>
+                                                        <th></th>
+                                                        <td>
+                                                            {
+                                                                subjects[
+                                                                    subject
+                                                                        .subject
+                                                                ].subject
+                                                            }
+                                                        </td>
+                                                        <td>
+                                                            {
+                                                                teachers[
+                                                                    subject
+                                                                        .teacher
+                                                                ].teacher
+                                                            }
+                                                        </td>
+                                                        <td>
+                                                            {subject.timeslot}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </>
+                                )
+                            )}
                     </div>
                 </div>
             </header>

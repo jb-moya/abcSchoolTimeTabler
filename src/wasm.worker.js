@@ -1,5 +1,6 @@
 import { expose } from "comlink";
 import abcWasm from "./cppFiles/abc.js";
+import { unpackInt64ToInt16 } from "./utils/packInt16ToInt64.jsx";
 
 const getTimetable = async (params) =>
     new Promise(async (resolve) => {
@@ -65,19 +66,23 @@ const getTimetable = async (params) =>
             resultBuff
         );
 
+        const timetable = [];
+
         for (let i = 0; i < params.totalSchoolClass; i++) {
             let result = wasm.getValue(resultBuff + i * 8, "i64");
 
-            console.log(`Class ${i + 1}: ${result}`);
+            result = unpackInt64ToInt16(result);
+            timetable.push(result);
+            console.log(`Class ${i + 1}: ${result}`, result);
         }
 
-        console.log("resultBuff", resultBuff);
+        console.log("resultBuff", resultBuff, timetable);
 
         wasm._free(sectionSubjectsBuff);
         wasm._free(teacherSubjectsBuff);
         wasm._free(resultBuff);
 
-        resolve();
+        resolve(timetable);
     });
 
 expose(getTimetable);

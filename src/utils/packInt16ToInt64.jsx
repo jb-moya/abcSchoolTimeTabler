@@ -20,7 +20,7 @@ function unpackInt64ToInt16(packed64) {
     let second = bigPacked64.shiftRight(32).and(0xffff).toJSNumber();
     let first = bigPacked64.shiftRight(48).and(0xffff).toJSNumber();
 
-    return { first, second, third, fourth };
+    return [ first, second, third, fourth ];
 }
 
 // Example usage
