@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 // import { useWasm } from "./hooks/useWasm";
 import packInt16ToInt32 from "./utils/packInt16ToInt32";
 import { unpackInt64ToInt16 } from "./utils/packInt16ToInt64";
 import Navbar from "./components/Navbar";
-import AddSectionContainer from "./components/AddSectionContainer";
+import AddEntryContainer from "./components/AddSectionContainer";
 import { useSelector, useDispatch } from "react-redux";
 
 import {
@@ -51,9 +51,10 @@ function App() {
     const [teacherTimetable, setTeacherTimetable] = useState({});
 
     const dispatch = useDispatch();
-    // const { instance } = useWasm();
 
     const [openAddSectionContainer, setOpenAddSectionContainer] =
+        useState(false);
+    const [openAddTeacherContainer, setOpenAddTeacherContainer] =
         useState(false);
 
     const [subjectInputValue, setSubjectInputValue] = useState("");
@@ -65,10 +66,12 @@ function App() {
 
     const [editTeacherId, setEditTeacherId] = useState(null);
     const [editTeacherValue, setEditTeacherValue] = useState("");
+    const [editTeacherCurr, setEditTeacherCurr] = useState([]);
 
     const [editSectionId, setEditSectionId] = useState(null);
     const [editSectionValue, setEditSectionValue] = useState("");
     const [editSectionCurr, setEditSectionCurr] = useState([]);
+
     const [searchSubjectValue, setSearchSubjectValue] = useState("");
 
     const handleInputChange = (e, setInputValue) => {
@@ -127,13 +130,17 @@ function App() {
     function handleEditTeacherClick(teacher) {
         setEditTeacherId(teacher.id);
         setEditTeacherValue(teacher.teacher);
+        setEditTeacherCurr(teacher.subjects);
     }
 
     function handleSaveTeacherEditClick(teacherId) {
         dispatch(
             editTeacher({
                 teacherId,
-                updatedTeacher: { teacher: editTeacherValue },
+                updatedTeacher: {
+                    teacher: editTeacherValue,
+                    subjects: editTeacherCurr,
+                },
             })
         );
         setEditTeacherId(null);
@@ -142,6 +149,7 @@ function App() {
     function handleCancelTeacherEditClick() {
         setEditTeacherId(null);
         setEditTeacherValue("");
+        setEditTeacherCurr([]);
     }
 
     function handleEditSectionClick(section) {
@@ -170,8 +178,8 @@ function App() {
         // console.log("editSectionCurr: ",editSectionCurr);
     }
 
-    const toggleSubject = (subjectId) => {
-        setEditSectionCurr((prev) =>
+    const toggleSubject = (setCurr, subjectId) => {
+        setCurr((prev) =>
             prev.includes(subjectId)
                 ? prev.filter((id) => id !== subjectId)
                 : [...prev, subjectId]
@@ -228,13 +236,13 @@ function App() {
             {}
         );
 
-        console.log("subjectMap", subjectMap);
-        console.log("teacherMap", teacherMap);
-        console.log("subjectMapReverse", subjectMapReverse);
-        console.log("sectionMap", sectionMap);
+        // console.log("subjectMap", subjectMap);
+        // console.log("teacherMap", teacherMap);
+        // console.log("subjectMapReverse", subjectMapReverse);
+        // console.log("sectionMap", sectionMap);
 
         const sectionSubjectArray = [];
-        console.log("sectionMap", sectionMap);
+        // console.log("sectionMap", sectionMap);
         for (const [sectionKey, { subjects }] of Object.entries(sectionMap)) {
             for (const subject of subjects) {
                 console.log(sectionKey, subject);
@@ -251,17 +259,17 @@ function App() {
         const beesScoutOptions = 2;
         const limits = 800;
 
-        console.log("sectionSubjects", sectionSubjects, sectionSubjects.length);
+        // console.log("sectionSubjects", sectionSubjects, sectionSubjects.length);
 
-        console.log(
-            "Object.keys(sectionMap).length",
-            Object.keys(sectionMap).length
-        );
-        console.log(
-            "Object.keys(teacherMap).length",
-            Object.keys(teacherMap).length
-        );
-        console.log("sectionSubjectArray.length", sectionSubjectArray.length);
+        // console.log(
+        //     "Object.keys(sectionMap).length",
+        //     Object.keys(sectionMap).length
+        // );
+        // console.log(
+        //     "Object.keys(teacherMap).length",
+        //     Object.keys(teacherMap).length
+        // );
+        // console.log("sectionSubjectArray.length", sectionSubjectArray.length);
         const numTeachers = Object.keys(teacherMap).length;
         const numRooms = 7;
         const num_timeslots = 8;
@@ -305,10 +313,10 @@ function App() {
         const sectionTimetable = {};
         const teacherTimetable = {};
 
-        console.log("testing subjectmap", subjectMap["1"]);
+        // console.log("testing subjectmap", subjectMap["1"]);
 
         for (const entry of timetable) {
-            console.log("F", entry, typeof entry[0]);
+            // console.log("F", entry, typeof entry[0]);
             const section = sectionMap[entry[0]].id;
             const subject = subjectMap[entry[1]];
             const teacher = teacherMap[entry[2]];
@@ -343,9 +351,9 @@ function App() {
         }
 
         // setTimetable(timetable);
-        console.log("timetable", timetableMap);
-        console.log("section timetable", sectionTimetable);
-        console.log("teacher timetable", teacherTimetable);
+        // console.log("timetable", timetableMap);
+        // console.log("section timetable", sectionTimetable);
+        // console.log("teacher timetable", teacherTimetable);
 
         setTimetable(timetableMap);
         setSectionTimetable(sectionTimetable);
@@ -353,14 +361,6 @@ function App() {
 
         return;
     };
-
-    useEffect(() => {
-        console.log("BAKIT GANON", sectionTimetable);
-
-        Object.entries(sectionTimetable).forEach(([key, value]) => {
-            console.log(key, value);
-        });
-    }, [sectionTimetable]);
 
     return (
         <div className="App container mx-auto px-4">
@@ -498,6 +498,7 @@ function App() {
                                         <th>#</th>
                                         <th>Teacher ID</th>
                                         <th>Teacher</th>
+                                        <th>subjects</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -530,6 +531,110 @@ function App() {
                                                         teacher.teacher
                                                     )}
                                                 </td>
+
+                                                <td className="flex gap-2">
+                                                    {editTeacherId ===
+                                                    teacher.id ? (
+                                                        <div className="dropdown dropdown-open">
+                                                            <input
+                                                                role="button"
+                                                                type="text"
+                                                                placeholder="Search subject"
+                                                                className="input input-bordered input-sm w-full max-w-xs"
+                                                                value={
+                                                                    searchSubjectValue
+                                                                }
+                                                                onChange={(e) =>
+                                                                    handleInputChange(
+                                                                        e,
+                                                                        setSearchSubjectValue
+                                                                    )
+                                                                }
+                                                            />
+                                                            <ul
+                                                                tabIndex={0}
+                                                                className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
+                                                            >
+                                                                {Object.keys(
+                                                                    searchResults
+                                                                ).length ===
+                                                                0 ? (
+                                                                    <div className="px-4 py-2 opacity-50">
+                                                                        Not
+                                                                        found
+                                                                    </div>
+                                                                ) : (
+                                                                    Object.entries(
+                                                                        searchResults
+                                                                    ).map(
+                                                                        ([
+                                                                            ,
+                                                                            subject,
+                                                                        ]) => (
+                                                                            <li
+                                                                                role="button"
+                                                                                key={
+                                                                                    subject.id
+                                                                                }
+                                                                                onClick={() =>
+                                                                                    toggleSubject(
+                                                                                        setEditTeacherCurr,
+                                                                                        subject.id
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                <div className="flex justify-between">
+                                                                                    <a>
+                                                                                        {
+                                                                                            subject.subject
+                                                                                        }
+                                                                                    </a>
+                                                                                    {editTeacherCurr.includes(
+                                                                                        subject.id
+                                                                                    ) ? (
+                                                                                        <IoRemove
+                                                                                            size={
+                                                                                                20
+                                                                                            }
+                                                                                            className="text-secondary"
+                                                                                        />
+                                                                                    ) : (
+                                                                                        <IoAdd
+                                                                                            size={
+                                                                                                20
+                                                                                            }
+                                                                                            className="text-primary"
+                                                                                        />
+                                                                                    )}
+                                                                                </div>
+                                                                            </li>
+                                                                        )
+                                                                    )
+                                                                )}
+                                                            </ul>
+                                                        </div>
+                                                    ) : (
+                                                        subjectStatus ===
+                                                            "succeeded" &&
+                                                        teacher.subjects.map(
+                                                            (subject) => (
+                                                                <div
+                                                                    key={
+                                                                        subject
+                                                                    }
+                                                                >
+                                                                    {
+                                                                        subjects[
+                                                                            subject
+                                                                        ]
+                                                                            .subject
+                                                                    }
+                                                                </div>
+                                                            )
+                                                        )
+                                                    )}
+                                                </td>
+
                                                 <td>
                                                     {editTeacherId ===
                                                     teacher.id ? (
@@ -591,7 +696,26 @@ function App() {
                             </table>
                         </div>
                         <div>
-                            <input
+                            <button
+                                className="btn btn-secondary"
+                                onClick={() => {
+                                    setOpenAddTeacherContainer(true);
+                                }}
+                            >
+                                Add Teacher
+                            </button>
+
+                            {openAddTeacherContainer && (
+                                <AddEntryContainer
+                                    close={() =>
+                                        setOpenAddTeacherContainer(false)
+                                    }
+                                    reduxField={["teacher", "subjects"]}
+                                    reduxFunction={addTeacher}
+                                />
+                            )}
+
+                            {/* <input
                                 type="text"
                                 placeholder="teachers"
                                 className="input input-bordered input-sm w-full max-w-xs"
@@ -608,7 +732,7 @@ function App() {
                                         addTeacher
                                     );
                                 }}
-                            />
+                            /> */}
                         </div>
                     </div>
                 </div>
@@ -695,6 +819,7 @@ function App() {
                                                                             }
                                                                             onClick={() =>
                                                                                 toggleSubject(
+                                                                                    setEditSectionCurr,
                                                                                     subject.id
                                                                                 )
                                                                             }
@@ -822,8 +947,10 @@ function App() {
                         </button>
 
                         {openAddSectionContainer && (
-                            <AddSectionContainer
+                            <AddEntryContainer
                                 close={() => setOpenAddSectionContainer(false)}
+                                reduxField={["section", "subjects"]}
+                                reduxFunction={addSection}
                             />
                         )}
                     </div>
@@ -834,15 +961,14 @@ function App() {
                         {sectionTimetable !== null &&
                             Object.entries(sectionTimetable).map(
                                 ([sectionID, section]) => (
-                                    <>
+                                    <React.Fragment key={sectionID}>
                                         <div className="font-bold text-center">
-                                            Section Name:
-                                            {sections[sectionID].section}
+                                            <div>section:</div>
+                                            <div className="text-accent">
+                                                {sections[sectionID].section}
+                                            </div>
                                         </div>
-                                        <table
-                                            key={sectionID}
-                                            className="table bg-base-100"
-                                        >
+                                        <table className="table table-zebra bg-base-100">
                                             {/* head */}
                                             <thead>
                                                 <tr>
@@ -879,7 +1005,62 @@ function App() {
                                                 ))}
                                             </tbody>
                                         </table>
-                                    </>
+                                    </React.Fragment>
+                                )
+                            )}
+                    </div>
+                </div>
+
+                <div className="w-8/12">
+                    <div className="overflow-x-auto">
+                        {teacherTimetable !== null &&
+                            Object.entries(teacherTimetable).map(
+                                ([teacherID, teacher]) => (
+                                    <React.Fragment key={teacherID}>
+                                        <div className="font-bold text-center">
+                                            <div>Teacher: </div>
+                                            <div className="text-lg text-accent">
+                                                {teachers[teacherID].teacher}
+                                            </div>
+                                        </div>
+                                        <table className="table table-zebra bg-base-100 border p-10">
+                                            {/* head */}
+                                            <thead>
+                                                <tr>
+                                                    <th></th>
+                                                    <th>Section</th>
+                                                    <th>subject</th>
+                                                    <th>timeslot</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {teacher.map((teacher) => (
+                                                    <tr key={teacher.timeslot}>
+                                                        <th></th>
+                                                        <td>
+                                                            {
+                                                                sections[
+                                                                    teacher
+                                                                        .section
+                                                                ].section
+                                                            }
+                                                        </td>
+                                                        <td>
+                                                            {
+                                                                subjects[
+                                                                    teacher
+                                                                        .subject
+                                                                ].subject
+                                                            }
+                                                        </td>
+                                                        <td>
+                                                            {teacher.timeslot}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </React.Fragment>
                                 )
                             )}
                     </div>

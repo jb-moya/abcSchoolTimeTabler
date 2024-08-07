@@ -3,14 +3,13 @@ import { useSelector, useDispatch } from "react-redux";
 import { addSection } from "../features/sectionSlice";
 import escapeRegExp from "../utils/escapeRegExp";
 import { toast } from "sonner";
-import { IoAdd, IoChevronDown, IoRemove, IoRemoveCircleOutline } from "react-icons/io5";
+import { IoAdd, IoChevronDown, IoRemove } from "react-icons/io5";
 
-const AddSectionContainer = ({ close }) => {
+const AddEntryContainer = ({ close, reduxField, reduxFunction }) => {
     const subjects = useSelector((state) => state.subject.subjects);
-    const sections = useSelector((state) => state.section.sections);
     const dispatch = useDispatch();
 
-    const [sectionInputValue, setSectionInputValue] = useState("");
+    const [inputValue, setInputValue] = useState("");
     const [selectedSubjects, setSelectedSubjects] = useState([]);
     const [searchSubjectValue, setSearchSubjectValue] = useState("");
 
@@ -71,7 +70,7 @@ const AddSectionContainer = ({ close }) => {
 
     return (
         <div className="card bg-base-200 p-4">
-            AddSectionContainer
+            Add {reduxField[0].toUpperCase()}
             <button
                 className="btn btn-xs btn-circle btn-outline"
                 onClick={close}
@@ -101,12 +100,12 @@ const AddSectionContainer = ({ close }) => {
             ))}
             <input
                 type="text"
-                placeholder="Section Name"
+                placeholder={`${reduxField[0]} Name`}
                 required
                 className="input input-bordered input-sm w-full max-w-xs"
-                value={sectionInputValue}
+                value={inputValue}
                 onChange={(e) => {
-                    handleInputChange(e, setSectionInputValue);
+                    handleInputChange(e, setInputValue);
                 }}
                 // onKeyDown={(e) => {
                 //     if (e.key === "Enter") {
@@ -174,18 +173,18 @@ const AddSectionContainer = ({ close }) => {
                 className="btn btn-primary"
                 onClick={() =>
                     dispatch(
-                        addSection({
-                            section: sectionInputValue,
-                            subjects: selectedSubjects,
+                        reduxFunction({
+                            [reduxField[0]]: inputValue,
+                            [reduxField[1]]: selectedSubjects,
                         })
                     )
                 }
             >
-                <div>Add Section</div>
+                <div>Add {reduxField[0]}</div>
                 <IoAdd size={20} />
             </button>
         </div>
     );
 };
 
-export default AddSectionContainer;
+export default AddEntryContainer;

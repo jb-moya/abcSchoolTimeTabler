@@ -125,7 +125,7 @@ double ObjectiveFunction::evaluate(
 	for (const auto& school_class : timetable.schoolClasses) {
 		if (school_class.teacher_id == -1 || school_class.timeslot == -1) continue;
 
-		if (!class_timeslot.insert(combine(static_cast<int>(school_class.school_class_id), static_cast<int>(school_class.timeslot))).second) {
+		if (!class_timeslot.insert(combine(static_cast<int>(school_class.section_id), static_cast<int>(school_class.timeslot))).second) {
 			// std::cout << "conflicting_timeslots" << conflicting_timeslots << std::endl;
 			conflicting_timeslots++;
 		}
