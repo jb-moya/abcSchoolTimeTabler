@@ -5,18 +5,21 @@ import { unpackInt64ToInt16 } from "./utils/packInt16ToInt64";
 import Navbar from "./components/Navbar";
 import AddSectionContainer from "./components/AddSectionContainer";
 import { useSelector, useDispatch } from "react-redux";
+
 import {
     fetchSubjects,
     addSubject,
     editSubject,
     removeSubject,
 } from "./features/subjectSlice";
+
 import {
     removeTeacher,
     addTeacher,
     editTeacher,
     fetchTeachers,
 } from "./features/teacherSlice";
+
 import {
     removeSection,
     addSection,
@@ -26,7 +29,11 @@ import {
 
 import { toast } from "sonner";
 import { IoAdd, IoRemove } from "react-icons/io5";
-import { RiDeleteBin7Line, RiEdit2Fill } from "react-icons/ri";
+import { RiDeleteBin7Line } from "react-icons/ri";
+
+import { wrap } from "comlink";
+import WasmWorker from "./wasm.worker?worker";
+const wasmWorker = wrap(new WasmWorker());
 
 function App() {
     const { subjects, status: subjectStatus } = useSelector(
@@ -39,25 +46,24 @@ function App() {
         (state) => state.section
     );
 
+    const [result, setResult] = useState(0);
+
+    const getResult = async () => {
+        const result = await wasmWorker(1, 4);
+        setResult(result);
+    };
+    useEffect(() => {
+        getResult();
+    }, []);
+
     const dispatch = useDispatch();
     const { instance } = useWasm();
-    const max_iterations = 70000;
-    const beesPopulations = 5;
-    const beesEmployedOptions = 5;
-    const beesOnlookerOptions = 2;
-    const beesScoutOptions = 2;
-    const limits = 800;
-
-    const num_teachers = 7;
-    const num_rooms = 7;
-    const num_timeslots = 7;
-    const total_school_class = 5;
-    const total_section = 1;
 
     const [openAddSectionContainer, setOpenAddSectionContainer] =
         useState(false);
 
-    const [subjectInputValue, setSubjectInputValue] = useState(""); 
+    const [subjectInputValue, setSubjectInputValue] = useState("");
+
     const [teacherInputValue, setTeacherInputValue] = useState("");
 
     const [editSubjectId, setEditSubjectId] = useState(null);
@@ -98,7 +104,6 @@ function App() {
         if (e.key === "Enter") {
             e.preventDefault(); // Prevent default form submission
             if (inputValue.trim()) {
-                console.log("inputvalue", inputValue);
                 dispatch(set({ [fieldName]: inputValue }));
                 setInputValue(""); // Clear the input field
             }
@@ -182,101 +187,216 @@ function App() {
 
     const handleButtonClick = () => {
         if (!instance) return;
-        console.log("clicked", instance);
 
-        const sectionSubjects = new Int32Array([
-            packInt16ToInt32(0, 1),
-            packInt16ToInt32(0, 2),
-            packInt16ToInt32(0, 3),
-            packInt16ToInt32(0, 4),
-            packInt16ToInt32(0, 5),
-        ]);
+        const subjectMap = Object.entries(subjects).reduce(
+            (acc, [key, value], index) => {
+                acc[index] = value.id;
+                return acc;
+            },
+            {}
+        );
+
+        const subjectMapReverse = Object.entries(subjects).reduce(
+            (acc, [key, value], index) => {
+                acc[value.id] = index;
+                return acc;
+            },
+            {}
+        );
+
+        const teacherMap = Object.entries(teachers).reduce(
+            (acc, [key, value], index) => {
+                acc[index] = value.id;
+                return acc;
+            },
+            {}
+        );
+
+        const sectionMap = Object.entries(sections).reduce(
+            (acc, [key, value], index) => {
+                acc[index] = value.subjects.map(
+                    (subjectID) => subjectMapReverse[subjectID]
+                );
+                return acc;
+            },
+            {}
+        );
+
+        console.log("subjectMap", subjectMap);
+        console.log("teacherMap", teacherMap);
+        console.log("subjectMapReverse", subjectMapReverse);
+        console.log("sectionMap", sectionMap);
+
+        const sectionSubjectArray = [];
+        console.log("sectionMap", sectionMap);
+        for (const [sectionKey, subjects] of Object.entries(sectionMap)) {
+            for (const subject of subjects) {
+                sectionSubjectArray.push(packInt16ToInt32(sectionKey, subject));
+                // console.log(sectionKey, subject);
+            }
+        }
+
+        const sectionSubjects = new Int32Array([...sectionSubjectArray]);
+
+        const max_iterations = 10000;
+        const beesPopulations = 5;
+        const beesEmployedOptions = 5;
+        const beesOnlookerOptions = 2;
+        const beesScoutOptions = 2;
+        const limits = 800;
+
+        console.log(
+            "Object.keys(sectionMap).length",
+            Object.keys(sectionMap).length
+        );
+        console.log(
+            "Object.keys(teacherMap).length",
+            Object.keys(teacherMap).length
+        );
+        console.log("sectionSubjectArray.length", sectionSubjectArray.length);
+        const num_teachers = Object.keys(teacherMap).length;
+        const num_rooms = 7;
+        const num_timeslots = 8;
+        const total_school_class = sectionSubjectArray.length;
+        const total_section = Object.keys(sectionMap).length;
+
         const sectionSubjectsBuff = instance._malloc(
             sectionSubjects.length * sectionSubjects.BYTES_PER_ELEMENT
         );
+
         instance.HEAP32.set(
             sectionSubjects,
             sectionSubjectsBuff / sectionSubjects.BYTES_PER_ELEMENT
         );
 
+        const teacherSubjectsLength = 0;
+
         const teacherSubjects = new Int32Array([
-            packInt16ToInt32(0, 1),
-            packInt16ToInt32(1, 2),
-            packInt16ToInt32(2, 3),
-            packInt16ToInt32(3, 4),
-            packInt16ToInt32(4, 5),
-            packInt16ToInt32(5, 6),
-            packInt16ToInt32(6, 7),
+            // packInt16ToInt32(0, 0),
+            // packInt16ToInt32(0, 1),
+            // packInt16ToInt32(0, 3),
+            // packInt16ToInt32(1, 2),
+            // packInt16ToInt32(2, 3),
+            // packInt16ToInt32(3, 4),
+            // packInt16ToInt32(4, 5),
+            // packInt16ToInt32(5, 6),
+            // packInt16ToInt32(6, 7),
         ]);
 
-        const teacherSubjectsBuff = instance._malloc(
-            teacherSubjects.length * teacherSubjects.BYTES_PER_ELEMENT
-        );
+        // const teacherSubjectsBuff = await malloc(
+        //     teacherSubjects.length * teacherSubjects.BYTES_PER_ELEMENT
+        // );
 
-        // Use HEAP32 to write the Int32Array data into the allocated memory
-        instance.HEAP32.set(
-            teacherSubjects,
-            teacherSubjectsBuff / teacherSubjects.BYTES_PER_ELEMENT
-        );
+        // // Use HEAP32 to write the Int32Array data into the allocated memory
+        // await setHEAP32(
+        //     teacherSubjects,
+        //     teacherSubjectsBuff / teacherSubjects.BYTES_PER_ELEMENT
+        // );
 
         const resultBuff = instance._malloc(total_school_class * 8);
 
-        instance.ccall(
-            "runExperiment",
-            null,
-            [
-                "number",
-                "number",
-                "number",
-                "number",
-                "number",
-                "number",
-                "number",
-                "number",
-                "number",
-                "number",
-                "number",
-                "number",
-                "number",
-                "number",
-            ],
-            [
-                max_iterations,
-                num_teachers,
-                num_rooms,
-                num_timeslots,
-                total_school_class,
-                total_section,
-                sectionSubjectsBuff,
-                teacherSubjectsBuff,
-                beesPopulations,
-                beesEmployedOptions,
-                beesOnlookerOptions,
-                beesScoutOptions,
-                limits,
-                resultBuff,
-            ]
-        );
+        await new Promise((resolve, reject) => {
+            try {
+                instance.ccall(
+                    "runExperiment",
+                    null,
+                    [
+                        "number",
+                        "number",
+                        "number",
+                        "number",
+                        "number",
+                        "number",
+                        "number",
+                        "number",
+                        "number",
+                        "number",
+                        "number",
+                        "number",
+                        "number",
+                        "number",
+                    ],
+                    [
+                        max_iterations,
+                        num_teachers,
+                        num_rooms,
+                        num_timeslots,
+                        total_school_class,
+                        total_section,
+                        sectionSubjectsBuff,
+                        teacherSubjectsBuff,
+                        teacherSubjectsLength,
+                        beesPopulations,
+                        beesEmployedOptions,
+                        beesOnlookerOptions,
+                        beesScoutOptions,
+                        limits,
+                        resultBuff,
+                    ]
+                );
+                resolve();
+            } catch (error) {
+                reject(error);
+            }
+        });
+
+        // await instance.ccall(
+        //     "runExperiment",
+        //     null,
+        //     [
+        //         "number",
+        //         "number",
+        //         "number",
+        //         "number",
+        //         "number",
+        //         "number",
+        //         "number",
+        //         "number",
+        //         "number",
+        //         "number",
+        //         "number",
+        //         "number",
+        //         "number",
+        //         "number",
+        //         "number",
+        //     ],
+        //     [
+        //         max_iterations,
+        //         num_teachers,
+        //         num_rooms,
+        //         num_timeslots,
+        //         total_school_class,
+        //         total_section,
+        //         sectionSubjectsBuff,
+        //         teacherSubjectsBuff,
+        //         teacherSubjectsLength,
+        //         beesPopulations,
+        //         beesEmployedOptions,
+        //         beesOnlookerOptions,
+        //         beesScoutOptions,
+        //         limits,
+        //         resultBuff,
+        //     ]
+        // );
 
         for (let i = 0; i < total_school_class; i++) {
             let result = instance.getValue(resultBuff + i * 8, "i64");
 
-            console.log(unpackInt64ToInt16(result));
+            console.log(`Class ${i + 1}: ${result}`);
         }
 
-        instance._free(sectionSubjectsBuff);
-        instance._free(teacherSubjectsBuff);
-        instance._free(resultBuff);
+        // await free(sectionSubjectsBuff);
+        // await free(teacherSubjectsBuff);
+        // await free(resultBuff);
     };
 
-    useEffect(() => {
-        console.log("faflasjdfsdjsdljdf");
-    }, [teachers]);
+    useEffect(() => {}, [teachers]);
 
     return (
         <div className="App container mx-auto px-4">
             <header className="App-header">
                 <Navbar />
+                <div className="p-10 bg-pink-600">{result}</div>
                 <div className="flex gap-4">
                     <div className="w-4/12">
                         <div className="overflow-x-auto">
@@ -292,67 +412,29 @@ function App() {
                                 </thead>
                                 <tbody>
                                     {Object.entries(subjects).map(
-                                        ([_, subject], index) => (
+                                        ([, subject], index) => (
                                             <tr
                                                 key={subject.id}
-                                                className="group hover"
+                                                className="group hover:text-accent"
                                             >
                                                 <th>{index + 1}</th>
                                                 <th>{subject.id}</th>
+                                                <td>{subject.subject}</td>
                                                 <td>
-                                                    {editSubjectId === subject.id ? (
-                                                        <input
-                                                            type="text"
-                                                            value={editSubjectValue}
-                                                            onChange={(e) => setEditSubjectValue(e.target.value)}
-                                                            className="input input-bordered input-sm w-full"
+                                                    <button
+                                                        className="group-hover:block hidden btn btn-xs btn-ghost text-red-500"
+                                                        onClick={() =>
+                                                            dispatch(
+                                                                removeSubject(
+                                                                    subject.id
+                                                                )
+                                                            )
+                                                        }
+                                                    >
+                                                        <RiDeleteBin7Line
+                                                            size={20}
                                                         />
-                                                    ) : (
-                                                        subject.subject
-                                                    )}
-                                                </td>
-                                                <td>
-                                                    {editSubjectId === subject.id ? (
-                                                        <>
-                                                            <button
-                                                            className="btn btn-xs btn-ghost text-green-500"
-                                                            onClick={() => handleSaveSubjectEditClick(subject.id)}
-                                                                >
-                                                                Save
-                                                            </button>
-                                                            <button
-                                                            className="btn btn-xs btn-ghost text-red-500"
-                                                            onClick={() => handleCancelSubjectEditClick()}
-                                                                >
-                                                                Cancel
-                                                            </button>
-                                                        </>
-                                                        
-                                                        ) : (
-                                                            <>
-                                                                <button
-                                                                    className="btn btn-xs btn-ghost text-red-500"
-                                                                    onClick={() => handleEditSubjectClick(subject)}
-                                                                >
-                                                                    <RiEdit2Fill size={20} />
-                                                                </button>
-                                                                <button
-                                                                    className="btn btn-xs btn-ghost text-red-500"
-                                                                    onClick={() =>
-                                                                        dispatch(
-                                                                            removeSubject(
-                                                                                subject.id
-                                                                            )
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <RiDeleteBin7Line
-                                                                        size={20}
-                                                                    />
-                                                                </button>
-                                                            </>
-                                                    )}
-                                                    
+                                                    </button>
                                                 </td>
                                             </tr>
                                         )
@@ -395,67 +477,29 @@ function App() {
                                 </thead>
                                 <tbody>
                                     {Object.entries(teachers).map(
-                                        ([_, teacher], index) => (
+                                        ([, teacher], index) => (
                                             <tr
                                                 key={teacher.id}
-                                                className="group hover"
+                                                className="group hover:text-accent"
                                             >
                                                 <th>{index + 1}</th>
                                                 <th>{teacher.id}</th>
+                                                <td>{teacher.teacher}</td>
                                                 <td>
-                                                    {editTeacherId === teacher.id ? (
-                                                        <input
-                                                            type="text"
-                                                            value={editTeacherValue}
-                                                            onChange={(e) => setEditTeacherValue(e.target.value)}
-                                                            className="input input-bordered input-sm w-full"
+                                                    <button
+                                                        className="group-hover:block hidden btn btn-xs btn-ghost text-red-500"
+                                                        onClick={() =>
+                                                            dispatch(
+                                                                removeTeacher(
+                                                                    teacher.id
+                                                                )
+                                                            )
+                                                        }
+                                                    >
+                                                        <RiDeleteBin7Line
+                                                            size={20}
                                                         />
-                                                    ) : (
-                                                        teacher.teacher
-                                                    )}
-                                                </td>
-                                                <td>
-                                                    {editTeacherId === teacher.id ? (
-                                                        <>
-                                                            <button
-                                                            className="btn btn-xs btn-ghost text-green-500"
-                                                            onClick={() => handleSaveTeacherEditClick(teacher.id)}
-                                                                >
-                                                                Save
-                                                            </button>
-                                                            <button
-                                                            className="btn btn-xs btn-ghost text-red-500"
-                                                            onClick={() => handleCancelTeacherEditClick()}
-                                                                >
-                                                                Cancel
-                                                            </button>
-                                                        </>
-                                                        
-                                                        ) : (
-                                                            <>
-                                                                <button
-                                                                    className="btn btn-xs btn-ghost text-red-500"
-                                                                    onClick={() => handleEditTeacherClick(teacher)}
-                                                                >
-                                                                    <RiEdit2Fill size={20} />
-                                                                </button>
-                                                                <button
-                                                                    className="btn btn-xs btn-ghost text-red-500"
-                                                                    onClick={() =>
-                                                                        dispatch(
-                                                                            removeTeacher(
-                                                                                teacher.id
-                                                                            )
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <RiDeleteBin7Line
-                                                                        size={20}
-                                                                    />
-                                                                </button>
-                                                            </>
-                                                    )}
-                                                    
+                                                    </button>
                                                 </td>
                                             </tr>
                                         )

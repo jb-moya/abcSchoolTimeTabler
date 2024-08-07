@@ -21,7 +21,12 @@
 #include "abc.h"
 
 using namespace std;
-
+/* eslint-disable no-undef */
+/* eslint-disable  no-restricted-globals */
+/* eslint-disable  no-unused-expressions */
+/* eslint-disable import/no-amd */
+// export default Module;
+// emcc abc.cpp -s -sMODULARIZE=1 -sWASM_BIGINT - sEXPORTED_FUNCTIONS = '_runExperiment', '_malloc', '_free', getValue abc.js
 void test_hello_react() {
 	int max_iterations = 70000;
 	int beesPopulation = 10;
@@ -31,11 +36,11 @@ void test_hello_react() {
 	std::cout << "size: " << std::endl;
 
 	int num_rooms = 7;
-	int num_teachers = 120;
+	int num_teachers = 1;
 	int num_timeslots = 7;
 
-	int total_section = 120;
-	int num_subjects = 7;
+	int total_section = 1;
+	int num_subjects = 3;
 	int total_school_class = total_section * num_subjects;
 	int limit = num_timeslots * num_teachers;  // dependent on no. of school class
 
@@ -46,16 +51,20 @@ void test_hello_react() {
 		return;
 	}
 
-	int32_t* teacher_subjects = new (std::nothrow) int32_t[num_teachers];
+	int teacher_subjects_length = 1;
+
+	int32_t* teacher_subjects = new (std::nothrow) int32_t[teacher_subjects_length];
 	if (!teacher_subjects) {
 		std::cerr << "Failed to allocate memory for teacher_subjects" << std::endl;
 		delete[] section_subjects;
 		return;
 	}
 
-	for (int i = 0; i < num_teachers; ++i) {
+	for (int i = 0; i < teacher_subjects_length; ++i) {
 		teacher_subjects[i] = -1;
 	}
+
+	teacher_subjects[0] = packInt16ToInt32(0, 0);
 
 	for (int16_t i = 0; i < total_section; ++i) {
 		for (int16_t j = 0; j < num_subjects; ++j) {
@@ -88,6 +97,7 @@ void test_hello_react() {
 	    total_section,
 	    section_subjects,
 	    teacher_subjects,
+	    teacher_subjects_length,
 	    beesPopulation,
 	    beesEmployed,
 	    beesOnlooker,

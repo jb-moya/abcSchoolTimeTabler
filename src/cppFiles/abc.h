@@ -72,6 +72,7 @@ void runExperiment(
     int total_section,
     int32_t* section_subjects,
     int32_t* teacher_subjects,
+    int teacher_subjects_length,
     int beesPopulation,
     int beesEmployed,
     int beesOnlooker,

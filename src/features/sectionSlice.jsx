@@ -17,7 +17,6 @@ export const fetchSections = createAsyncThunk(
     "section/fetchSections",
     async () => {
         const sections = await getAllEntitiesFromDB(STORE_NAMES.SECTIONS);
-        console.log("section", sections);
         return sections;
     }
 );

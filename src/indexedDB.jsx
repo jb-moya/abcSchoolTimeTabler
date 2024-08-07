@@ -3,6 +3,7 @@ import { toast } from "sonner";
 
 const DB_NAME = "abcTimetable";
 const DB_VERSION = 1;
+
 export const STORE_NAMES = {
     SUBJECTS: "subjects",
     TEACHERS: "teachers",
@@ -33,10 +34,8 @@ export const addEntityToDB = async (storeName, entity) => {
         const key = await store.put({ ...entity }); // `add` automatically generates the key
         await tx.done;
 
-        console.log("Entity added with key:", key);
         return key;
     } catch (error) {
-        console.error("Error adding entity to DB:", error);
         toast.error("Failed to add entity to DB");
     }
 };
@@ -75,14 +74,9 @@ export const removeEntityFromDB = async (storeName, entityId) => {
         const db = await initDB();
         const tx = db.transaction(storeName, "readwrite");
         const store = tx.objectStore(storeName);
-        console.log(entityId);
-        console.log(
-            `Deleting entity with ID: ${entityId} (Type: ${typeof entityId})`
-        );
 
         await store.delete(entityId);
     } catch (error) {
-        console.error("Error adding entity to DB:", error);
         toast.error("Failed to add entity to DB");
     }
 };
@@ -95,7 +89,6 @@ export const getAllEntitiesFromDB = async (storeName) => {
 
     const entity = {};
     for await (const cursor of store) {
-        console.log(cursor.value);
         entity[cursor.value.id] = cursor.value;
     }
 

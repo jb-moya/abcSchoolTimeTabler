@@ -71,7 +71,6 @@ export const subjectSlice = createSlice({
             })
             .addCase(fetchSubjects.fulfilled, (state, action) => {
                 state.status = "succeeded";
-                console.log("action.payload", action.payload);
                 state.subjects = action.payload;
             })
             .addCase(fetchSubjects.rejected, (state, action) => {
