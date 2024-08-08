@@ -8,7 +8,7 @@ import {
     editSubject,
     removeSubject,
 } from "../features/subjectSlice";
-import { IoSearch } from "react-icons/io5";
+import { IoAdd, IoSearch } from "react-icons/io5";
 import debounce from "debounce";
 import { filterObject } from "../utils/filterObject";
 import escapeRegExp from "../utils/escapeRegExp";
@@ -209,18 +209,22 @@ const SubjectListContainer = () => {
             </table>
 
             <div>
-                <input
-                    type="text"
-                    placeholder="subject"
-                    className="input input-bordered input-sm w-full max-w-xs"
-                    value={subjectInputValue}
-                    onChange={(e) => {
-                        handleInputChange(e);
-                    }}
-                    onKeyDown={(e) => {
-                        handleKeyDown(e);
-                    }}
-                />
+                <label className="my-2 input input-sm input-bordered flex w-full max-w-xs items-center gap-2  border-secondary">
+                    <input
+                        type="text"
+                        placeholder="add subject"
+                        className="grow"
+                        value={subjectInputValue}
+                        onChange={(e) => {
+                            handleInputChange(e);
+                        }}
+                        onKeyDown={(e) => {
+                            handleKeyDown(e);
+                        }}
+                    />
+
+                    <IoAdd size={26} />
+                </label>
             </div>
         </div>
     );

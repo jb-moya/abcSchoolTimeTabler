@@ -202,7 +202,7 @@ function App() {
                         className="btn btn-primary"
                         onClick={() => handleButtonClick()}
                     >
-                        Run
+                        Generate Timetable
                     </button>
                 </div>
 
