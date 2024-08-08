@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { IoChevronDown } from "react-icons/io5";
 import { useSelector } from "react-redux";
 import { filterObject } from "../utils/filterObject";
@@ -64,7 +64,7 @@ const SearchableDropdownToggler = ({
     };
 
     return (
-        <div className="dropdown dropdown-hover">
+        <div className="dropdown">
             <div tabIndex={0} role="button" className="btn m-1">
                 {isEditMode ? (
                     <div>
