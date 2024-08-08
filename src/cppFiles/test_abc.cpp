@@ -28,21 +28,22 @@ using namespace std;
 // export default Module;
 // emcc abc.cpp -s -sMODULARIZE=1 -sWASM_BIGINT - sEXPORTED_FUNCTIONS = '_runExperiment', '_malloc', '_free', getValue abc.js
 void test_hello_react() {
-	int max_iterations = 70000;
-	int beesPopulation = 10;
+	int max_iterations = 20000;
+	int beesPopulation = 11;
 	int beesEmployed = 5;
 	int beesOnlooker = 5;
 	int beesScout = 1;
 	std::cout << "size: " << std::endl;
 
 	int num_rooms = 7;
-	int num_teachers = 1;
+	int num_teachers = 120;
 	int num_timeslots = 7;
 
-	int total_section = 1;
-	int num_subjects = 3;
+	int total_section = 120;
+	int num_subjects = 6;
 	int total_school_class = total_section * num_subjects;
-	int limit = num_timeslots * num_teachers;  // dependent on no. of school class
+	// int limit = num_timeslots * num_teachers;  // dependent on no. of school class
+	int limit = 10;  // dependent on no. of school class
 
 	// Allocate arrays with checks
 	int32_t* section_subjects = new (std::nothrow) int32_t[total_school_class];

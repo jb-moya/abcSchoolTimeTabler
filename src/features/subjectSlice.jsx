@@ -6,15 +6,13 @@ import {
     editEntityFromDB,
     STORE_NAMES,
 } from "../indexedDB";
-// import { toast } from "sonner";
 
 const initialState = {
-    subjects: {}, // Change from array to object
+    subjects: {},
     status: "idle",
     error: null,
 };
 
-// Thunks for asynchronous operations
 export const fetchSubjects = createAsyncThunk(
     "subject/fetchSubjects",
     async () => {

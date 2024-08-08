@@ -25,6 +25,10 @@ const SearchableDropdownToggler = ({
     });
 
     useEffect(() => {
+        console.log(searchResults);
+    }, [searchResults]);
+
+    useEffect(() => {
         let observerRefValue = null;
 
         const handleBlur = () => {

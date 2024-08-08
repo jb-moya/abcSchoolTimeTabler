@@ -40,7 +40,6 @@ export const addEntityToDB = async (storeName, entity) => {
     }
 };
 
-// Edit an existing entity in the specified store by ID
 export const editEntityFromDB = async (storeName, entityId, updatedEntity) => {
     try {
         const db = await initDB();
@@ -68,7 +67,6 @@ export const editEntityFromDB = async (storeName, entityId, updatedEntity) => {
     }
 };
 
-// Remove an entity from the specified store by ID
 export const removeEntityFromDB = async (storeName, entityId) => {
     try {
         const db = await initDB();
@@ -78,37 +76,44 @@ export const removeEntityFromDB = async (storeName, entityId) => {
             const teachersTx = db.transaction(STORE_NAMES.TEACHERS, "readonly");
             const teachersStore = teachersTx.objectStore(STORE_NAMES.TEACHERS);
             const teachers = await teachersStore.getAll();
-            const teacherDependent = teachers.find(teacher => teacher.subjects.includes(entityId));
+            const teacherDependent = teachers.find((teacher) =>
+                teacher.subjects.includes(entityId)
+            );
 
             const sectionsTx = db.transaction(STORE_NAMES.SECTIONS, "readonly");
             const sectionsStore = sectionsTx.objectStore(STORE_NAMES.SECTIONS);
             const sections = await sectionsStore.getAll();
-            const sectionDependent = sections.find(section => section.subjects.includes(entityId));
+            const sectionDependent = sections.find((section) =>
+                section.subjects.includes(entityId)
+            );
 
             if (teacherDependent || sectionDependent) {
-                toast.error("Cannot delete subject as it is referenced by teachers or sections.");
-                throw new Error("Dependency Error: Subject is referenced by teachers or sections.");
+                toast.error(
+                    "Cannot delete subject as it is referenced by teachers or sections."
+                );
+                throw new Error(
+                    "Dependency Error: Subject is referenced by teachers or sections."
+                );
             }
         }
 
         const tx = db.transaction(storeName, "readwrite");
         const store = tx.objectStore(storeName);
         await store.delete(entityId);
+
         toast.success("Entity removed successfully");
+        return true;
     } catch (error) {
-        // Check if error message indicates a dependency issue
         if (error.message.includes("Dependency Error")) {
-            // Specific handling for dependency errors
             console.warn("Dependency error: ", error.message);
         } else {
-            // General error handling
             toast.error("Failed to remove entity from DB");
         }
+
+        return false;
     }
 };
 
-
-// Get all entities from the specified store
 export const getAllEntitiesFromDB = async (storeName) => {
     const db = await initDB();
     const tx = db.transaction(storeName, "readonly");
