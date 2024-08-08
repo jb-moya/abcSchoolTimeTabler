@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import packInt16ToInt32 from "./utils/packInt16ToInt32";
 import { unpackInt64ToInt16 } from "./utils/packInt16ToInt64";
 import Navbar from "./components/Navbar";
-import AddEntryContainer from "./components/AddSectionContainer";
+import AddEntryContainer from "./components/AddEntryContainer";
 import { useSelector, useDispatch } from "react-redux";
 
 import {
@@ -33,6 +33,7 @@ import { RiEdit2Fill, RiDeleteBin7Line } from "react-icons/ri";
 
 import { wrap } from "comlink";
 import WasmWorker from "./wasm.worker?worker";
+import SearchableDropdownToggler from "./components/searchableDropdown";
 const getTimetable = wrap(new WasmWorker());
 
 function App() {
@@ -58,8 +59,6 @@ function App() {
         useState(false);
 
     const [subjectInputValue, setSubjectInputValue] = useState("");
-
-    const [teacherInputValue, setTeacherInputValue] = useState("");
 
     const [editSubjectId, setEditSubjectId] = useState(null);
     const [editSubjectValue, setEditSubjectValue] = useState("");
@@ -99,10 +98,10 @@ function App() {
     const handleKeyDown = (e, fieldName, inputValue, setInputValue, set) => {
         toast("Enter to submit");
         if (e.key === "Enter") {
-            e.preventDefault(); // Prevent default form submission
+            e.preventDefault();
             if (inputValue.trim()) {
                 dispatch(set({ [fieldName]: inputValue }));
-                setInputValue(""); // Clear the input field
+                setInputValue("");
             }
         }
     };
@@ -175,7 +174,6 @@ function App() {
         setEditSectionId(null);
         setEditSectionValue("");
         setEditSectionCurr([]);
-        // console.log("editSectionCurr: ",editSectionCurr);
     }
 
     const toggleSubject = (setCurr, subjectId) => {
@@ -535,84 +533,14 @@ function App() {
                                                 <td className="flex gap-2">
                                                     {editTeacherId ===
                                                     teacher.id ? (
-                                                        <div className="dropdown dropdown-open">
-                                                            <input
-                                                                role="button"
-                                                                type="text"
-                                                                placeholder="Search subject"
-                                                                className="input input-bordered input-sm w-full max-w-xs"
-                                                                value={
-                                                                    searchSubjectValue
-                                                                }
-                                                                onChange={(e) =>
-                                                                    handleInputChange(
-                                                                        e,
-                                                                        setSearchSubjectValue
-                                                                    )
-                                                                }
-                                                            />
-                                                            <ul
-                                                                tabIndex={0}
-                                                                className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
-                                                            >
-                                                                {Object.keys(
-                                                                    searchResults
-                                                                ).length ===
-                                                                0 ? (
-                                                                    <div className="px-4 py-2 opacity-50">
-                                                                        Not
-                                                                        found
-                                                                    </div>
-                                                                ) : (
-                                                                    Object.entries(
-                                                                        searchResults
-                                                                    ).map(
-                                                                        ([
-                                                                            ,
-                                                                            subject,
-                                                                        ]) => (
-                                                                            <li
-                                                                                role="button"
-                                                                                key={
-                                                                                    subject.id
-                                                                                }
-                                                                                onClick={() =>
-                                                                                    toggleSubject(
-                                                                                        setEditTeacherCurr,
-                                                                                        subject.id
-                                                                                    )
-                                                                                }
-                                                                            >
-                                                                                <div className="flex justify-between">
-                                                                                    <a>
-                                                                                        {
-                                                                                            subject.subject
-                                                                                        }
-                                                                                    </a>
-                                                                                    {editTeacherCurr.includes(
-                                                                                        subject.id
-                                                                                    ) ? (
-                                                                                        <IoRemove
-                                                                                            size={
-                                                                                                20
-                                                                                            }
-                                                                                            className="text-secondary"
-                                                                                        />
-                                                                                    ) : (
-                                                                                        <IoAdd
-                                                                                            size={
-                                                                                                20
-                                                                                            }
-                                                                                            className="text-primary"
-                                                                                        />
-                                                                                    )}
-                                                                                </div>
-                                                                            </li>
-                                                                        )
-                                                                    )
-                                                                )}
-                                                            </ul>
-                                                        </div>
+                                                        <SearchableDropdownToggler
+                                                            selectedList={
+                                                                editTeacherCurr
+                                                            }
+                                                            setSelectedList={
+                                                                setEditTeacherCurr
+                                                            }
+                                                        />
                                                     ) : (
                                                         subjectStatus ===
                                                             "succeeded" &&
@@ -739,7 +667,6 @@ function App() {
                 <div className="w-8/12">
                     <div className="overflow-x-auto">
                         <table className="table table-sm table-zebra">
-                            {/* head */}
                             <thead>
                                 <tr>
                                     <th>#</th>
@@ -778,82 +705,14 @@ function App() {
                                             <td className="flex gap-2">
                                                 {editSectionId ===
                                                 section.id ? (
-                                                    <div className="dropdown dropdown-open">
-                                                        <input
-                                                            role="button"
-                                                            type="text"
-                                                            placeholder="Search subject"
-                                                            className="input input-bordered input-sm w-full max-w-xs"
-                                                            value={
-                                                                searchSubjectValue
-                                                            }
-                                                            onChange={(e) =>
-                                                                handleInputChange(
-                                                                    e,
-                                                                    setSearchSubjectValue
-                                                                )
-                                                            }
-                                                        />
-                                                        <ul
-                                                            tabIndex={0}
-                                                            className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
-                                                        >
-                                                            {Object.keys(
-                                                                searchResults
-                                                            ).length === 0 ? (
-                                                                <div className="px-4 py-2 opacity-50">
-                                                                    Not found
-                                                                </div>
-                                                            ) : (
-                                                                Object.entries(
-                                                                    searchResults
-                                                                ).map(
-                                                                    ([
-                                                                        ,
-                                                                        subject,
-                                                                    ]) => (
-                                                                        <li
-                                                                            role="button"
-                                                                            key={
-                                                                                subject.id
-                                                                            }
-                                                                            onClick={() =>
-                                                                                toggleSubject(
-                                                                                    setEditSectionCurr,
-                                                                                    subject.id
-                                                                                )
-                                                                            }
-                                                                        >
-                                                                            <div className="flex justify-between">
-                                                                                <a>
-                                                                                    {
-                                                                                        subject.subject
-                                                                                    }
-                                                                                </a>
-                                                                                {editSectionCurr.includes(
-                                                                                    subject.id
-                                                                                ) ? (
-                                                                                    <IoRemove
-                                                                                        size={
-                                                                                            20
-                                                                                        }
-                                                                                        className="text-secondary"
-                                                                                    />
-                                                                                ) : (
-                                                                                    <IoAdd
-                                                                                        size={
-                                                                                            20
-                                                                                        }
-                                                                                        className="text-primary"
-                                                                                    />
-                                                                                )}
-                                                                            </div>
-                                                                        </li>
-                                                                    )
-                                                                )
-                                                            )}
-                                                        </ul>
-                                                    </div>
+                                                    <SearchableDropdownToggler
+                                                        selectedList={
+                                                            editSectionCurr
+                                                        }
+                                                        setSelectedList={
+                                                            setEditSectionCurr
+                                                        }
+                                                    />
                                                 ) : (
                                                     subjectStatus ===
                                                         "succeeded" &&
