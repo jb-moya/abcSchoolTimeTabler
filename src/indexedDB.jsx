@@ -72,14 +72,41 @@ export const editEntityFromDB = async (storeName, entityId, updatedEntity) => {
 export const removeEntityFromDB = async (storeName, entityId) => {
     try {
         const db = await initDB();
+
+        if (storeName === STORE_NAMES.SUBJECTS) {
+            // Check if any teachers or sections reference this subject
+            const teachersTx = db.transaction(STORE_NAMES.TEACHERS, "readonly");
+            const teachersStore = teachersTx.objectStore(STORE_NAMES.TEACHERS);
+            const teachers = await teachersStore.getAll();
+            const teacherDependent = teachers.find(teacher => teacher.subjects.includes(entityId));
+
+            const sectionsTx = db.transaction(STORE_NAMES.SECTIONS, "readonly");
+            const sectionsStore = sectionsTx.objectStore(STORE_NAMES.SECTIONS);
+            const sections = await sectionsStore.getAll();
+            const sectionDependent = sections.find(section => section.subjects.includes(entityId));
+
+            if (teacherDependent || sectionDependent) {
+                toast.error("Cannot delete subject as it is referenced by teachers or sections.");
+                throw new Error("Dependency Error: Subject is referenced by teachers or sections.");
+            }
+        }
+
         const tx = db.transaction(storeName, "readwrite");
         const store = tx.objectStore(storeName);
-
         await store.delete(entityId);
+        toast.success("Entity removed successfully");
     } catch (error) {
-        toast.error("Failed to add entity to DB");
+        // Check if error message indicates a dependency issue
+        if (error.message.includes("Dependency Error")) {
+            // Specific handling for dependency errors
+            console.warn("Dependency error: ", error.message);
+        } else {
+            // General error handling
+            toast.error("Failed to remove entity from DB");
+        }
     }
 };
+
 
 // Get all entities from the specified store
 export const getAllEntitiesFromDB = async (storeName) => {
