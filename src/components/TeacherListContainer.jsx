@@ -144,7 +144,7 @@ const TeacherListContainer = () => {
                                             )}
                                         </td>
 
-                                        <td className="flex gap-2">
+                                        <td className="flex gap-1 flex-wrap">
                                             {editTeacherId === teacher.id ? (
                                                 <SearchableDropdownToggler
                                                     selectedList={
@@ -159,7 +159,7 @@ const TeacherListContainer = () => {
                                                 subjectStatus === "succeeded" &&
                                                 teacher.subjects.map(
                                                     (subject) => (
-                                                        <div key={subject}>
+                                                        <div key={subject} className="px-2 border border-gray-500 border-opacity-30">
                                                             {
                                                                 subjects[
                                                                     subject

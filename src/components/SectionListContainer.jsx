@@ -142,7 +142,7 @@ const SectionListContainer = () => {
                                                 section.section
                                             )}
                                         </td>
-                                        <td className="flex gap-2">
+                                        <td className="flex gap-1 flex-wrap">
                                             {editSectionId === section.id ? (
                                                 <SearchableDropdownToggler
                                                     selectedList={
@@ -157,7 +157,10 @@ const SectionListContainer = () => {
                                                 subjectStatus === "succeeded" &&
                                                 section.subjects.map(
                                                     (subject) => (
-                                                        <div key={subject}>
+                                                        <div
+                                                            key={subject}
+                                                            className="px-2 border border-gray-500 border-opacity-30"
+                                                        >
                                                             {
                                                                 subjects[
                                                                     subject
@@ -236,7 +239,6 @@ const SectionListContainer = () => {
                     }}
                 >
                     Add Section
-
                     <IoAdd size={26} />
                 </button>
 

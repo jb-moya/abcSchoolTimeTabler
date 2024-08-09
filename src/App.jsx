@@ -8,6 +8,7 @@ import WasmWorker from "./wasm.worker?worker";
 import SubjectListContainer from "./components/SubjectListContainer";
 import TeacherListContainer from "./components/TeacherListContainer";
 import SectionListContainer from "./components/SectionListContainer";
+import clsx from "clsx";
 const getTimetable = wrap(new WasmWorker());
 
 function App() {
@@ -18,6 +19,8 @@ function App() {
     const [timetable, setTimetable] = useState([]);
     const [sectionTimetable, setSectionTimetable] = useState({});
     const [teacherTimetable, setTeacherTimetable] = useState({});
+    const [timetableGenerationStatus, setTimetableGenerationStatus] =
+        useState("idle");
 
     const timeSlotMap = {
         0: "06:00 - 06:50",
@@ -27,11 +30,12 @@ function App() {
         4: "09:50 - 10:40",
         5: "10:40 - 11:30",
         6: "11:30 - 12:20",
-        7: "12:20 - 01:10",
+        7: "01:10 - 02:00",
     };
 
     const beforeBreakTime = {
         2: "08:30 - 09:00",
+        6: "12:20 - 01:10",
     };
 
     const handleButtonClick = async () => {
@@ -53,7 +57,13 @@ function App() {
 
         const teacherMap = Object.entries(teachers).reduce(
             (acc, [, value], index) => {
-                acc[index] = value.id;
+                acc[index] = {
+                    subjects: value.subjects.map(
+                        (subjectID) => subjectMapReverse[subjectID]
+                    ),
+                    id: value.id,
+                };
+                // acc[index] = value.id;
                 return acc;
             },
             {}
@@ -113,19 +123,43 @@ function App() {
         const totalSchoolClass = sectionSubjectArray.length;
         const totalSection = Object.keys(sectionMap).length;
 
-        const teacherSubjectsLength = 0;
+        const teacherSubjectArray = [];
 
-        const teacherSubjects = new Int32Array([
-            // packInt16ToInt32(0, 0),
-            // packInt16ToInt32(0, 1),
-            // packInt16ToInt32(0, 3),
-            // packInt16ToInt32(1, 2),
-            // packInt16ToInt32(2, 3),
-            // packInt16ToInt32(3, 4),
-            // packInt16ToInt32(4, 5),
-            // packInt16ToInt32(5, 6),
-            // packInt16ToInt32(6, 7),
-        ]);
+        console.log("teacherMap", teacherMap);
+        for (const [teacherKey, { subjects }] of Object.entries(teacherMap)) {
+            for (const subject of subjects) {
+                console.log("hehe", teacherKey, subject);
+                teacherSubjectArray.push(packInt16ToInt32(teacherKey, subject));
+            }
+        }
+
+        const teacherSubjects = new Int32Array([...teacherSubjectArray]);
+        console.log("teacherSubjects.length", teacherSubjects.length);
+        console.log("teacherSubjects.length", teacherSubjects.length);
+        console.log("teacherSubjects.length", teacherSubjects.length);
+        console.log("teacherSubjects.length", teacherSubjects.length);
+        console.log("teacherSubjects.length", teacherSubjects.length);
+        console.log("teacherSubjects.length", teacherSubjects.length);
+        console.log("teacherSubjects.length", teacherSubjects.length);
+        console.log("teacherSubjects.length", teacherSubjects.length);
+        console.log("teacherSubjects.length", teacherSubjects.length);
+        console.log("teacherSubjects.length", teacherSubjects.length);
+        console.log("teacherSubjects.length", teacherSubjects.length);
+        console.log("teacherSubjects.length", teacherSubjects.length);
+        console.log("teacherSubjects.length", teacherSubjects.length);
+        console.log("teacherSubjects.length", teacherSubjects.length);
+        console.log("teacherSubjects.length", teacherSubjects.length);
+        console.log("teacherSubjects.length", teacherSubjects.length);
+        console.log("teacherSubjects.length", teacherSubjects.length);
+        console.log("teacherSubjects.length", teacherSubjects.length);
+        console.log("teacherSubjects.length", teacherSubjects.length);
+        console.log("teacherSubjects.length", teacherSubjects.length);
+        console.log("teacherSubjects.length", teacherSubjects.length);
+        console.log("teacherSubjects.length", teacherSubjects.length);
+        console.log("teacherSubjects.length", teacherSubjects.length);
+        console.log("teacherSubjects.length", teacherSubjects.length);
+        console.log("teacherSubjects.length", teacherSubjects.length);
+        console.log("teacherSubjects.length", teacherSubjects.length);
 
         const params = {
             maxIterations: max_iterations,
@@ -136,7 +170,7 @@ function App() {
             totalSection: totalSection,
             sectionSubjects: sectionSubjects,
             teacherSubjects: teacherSubjects,
-            teacherSubjectsLength: teacherSubjectsLength,
+            teacherSubjectsLength: teacherSubjects.length,
             beesPopulation: beesPopulations,
             beesEmployed: beesEmployedOptions,
             beesOnlooker: beesOnlookerOptions,
@@ -144,7 +178,10 @@ function App() {
             limits: limits,
         };
 
-        const timetable = await getTimetable(params);
+        setTimetableGenerationStatus("running");
+        const { timetable, status } = await getTimetable(params);
+        console.log("success", timetable, status);
+        setTimetableGenerationStatus(status);
 
         const timetableMap = [];
         const sectionTimetable = {};
@@ -156,7 +193,7 @@ function App() {
             // console.log("F", entry, typeof entry[0]);
             const section = sectionMap[entry[0]].id;
             const subject = subjectMap[entry[1]];
-            const teacher = teacherMap[entry[2]];
+            const teacher = teacherMap[entry[2]].id;
             const timeslot = entry[3];
 
             timetableMap.push({
@@ -165,10 +202,6 @@ function App() {
                 teacher: section,
                 timeslot: section,
             });
-
-            // if (!Array.isArray(sectionTimetable[section])) {
-            //     sectionTimetable[section] = {}; // Initialize as an empty obj if it does not exist or is not an ojb
-            // }
 
             if (
                 typeof sectionTimetable[section] !== "object" ||
@@ -226,15 +259,31 @@ function App() {
                 <div className="w-full">
                     <SectionListContainer />
                     <button
-                        className="btn btn-primary"
+                        className={clsx("btn btn-primary", {
+                            "cursor-not-allowed":
+                                timetableGenerationStatus === "running",
+                        })}
                         onClick={() => handleButtonClick()}
+                        disabled={timetableGenerationStatus === "running"}
                     >
-                        Generate Timetable
+                        {timetableGenerationStatus == "running"
+                            ? "Generating..."
+                            : "Generate Timetable"}
                     </button>
                 </div>
 
                 <div className="w-8/12">
                     <div className="overflow-x-auto">
+                        {timetableGenerationStatus === "running" && (
+                            <div className="overflow-x-auto">
+                                <div className="skeleton h-96 w-full flex align-middle justify-center items-center">
+                                    <div className="text-lg opacity-50">
+                                        Generating timetable... wait ka
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {sectionTimetable !== null &&
                             Object.entries(sectionTimetable).map(
                                 ([sectionID, section]) => (
@@ -316,16 +365,10 @@ function App() {
                                                                         colSpan={
                                                                             3
                                                                         }
-                                                                        className="opacity-50 col-span-full"
+                                                                        className="opacity-50 col-span-full text-center"
                                                                     >
-                                                                        <span>
-                                                                            ------
-                                                                        </span>
-                                                                        <span>
+                                                                        <span className="divider m-0">
                                                                             empty
-                                                                        </span>
-                                                                        <span>
-                                                                            ------
                                                                         </span>
                                                                     </td>
                                                                 </tr>
@@ -352,9 +395,9 @@ function App() {
                                                                         colSpan={
                                                                             3
                                                                         }
-                                                                        className="opacity-50 col-span-full"
+                                                                        className="opacity-50 text-center col-span-full"
                                                                     >
-                                                                        <span>
+                                                                        <span className="divider m-0">
                                                                             break
                                                                             time
                                                                         </span>
@@ -403,7 +446,6 @@ function App() {
                                                         timeslot,
                                                     ]) => {
                                                         const rows = [];
-
 
                                                         if (
                                                             teacher[timeslotID]
@@ -460,24 +502,10 @@ function App() {
                                                                         colSpan={
                                                                             2
                                                                         }
+                                                                        className="text-center"
                                                                     >
-                                                                        <span>
-                                                                            - -
-                                                                            - -
-                                                                            - -
-                                                                            - -
-                                                                            - -{" "}
-                                                                        </span>
-                                                                        <span>
+                                                                        <span className="divider m-0">
                                                                             empty
-                                                                        </span>
-                                                                        <span>
-                                                                            {" "}
-                                                                            - -
-                                                                            - -
-                                                                            - -
-                                                                            - -
-                                                                            - -
                                                                         </span>
                                                                     </td>
                                                                 </tr>
@@ -504,9 +532,9 @@ function App() {
                                                                         colSpan={
                                                                             3
                                                                         }
-                                                                        className="opacity-50 col-span-full"
+                                                                        className="opacity-50 col-span-full text-center"
                                                                     >
-                                                                        <span>
+                                                                        <span className="divider m-0">
                                                                             break
                                                                             time
                                                                         </span>
