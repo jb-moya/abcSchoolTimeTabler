@@ -113,7 +113,7 @@ const SectionListContainer = () => {
                     <tbody>
                         {Object.values(searchSectionResult).length === 0 ? (
                             <tr>
-                                <td colSpan="4" className="text-center">
+                                <td colSpan="5" className="text-center">
                                     No sections found
                                 </td>
                             </tr>

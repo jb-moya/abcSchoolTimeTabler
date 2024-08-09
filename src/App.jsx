@@ -19,6 +19,17 @@ function App() {
     const [sectionTimetable, setSectionTimetable] = useState({});
     const [teacherTimetable, setTeacherTimetable] = useState({});
 
+    const timeSlotMap = {
+        0: "06:00 - 06:50",
+        1: "06:50 - 07:40",
+        2: "07:40 - 08:30",
+        3: "09:00 - 09:50",
+        4: "09:50 - 10:40",
+        5: "10:40 - 11:30",
+        6: "11:30 - 12:20",
+        7: "12:20 - 01:10",
+    };
+
     const handleButtonClick = async () => {
         const subjectMap = Object.entries(subjects).reduce(
             (acc, [, value], index) => {
@@ -151,31 +162,43 @@ function App() {
                 timeslot: section,
             });
 
-            if (!Array.isArray(sectionTimetable[section])) {
-                sectionTimetable[section] = []; // Initialize as an empty array if it does not exist or is not an array
+            // if (!Array.isArray(sectionTimetable[section])) {
+            //     sectionTimetable[section] = {}; // Initialize as an empty obj if it does not exist or is not an ojb
+            // }
+
+            if (
+                typeof sectionTimetable[section] !== "object" ||
+                sectionTimetable[section] === null ||
+                Array.isArray(sectionTimetable[section])
+            ) {
+                sectionTimetable[section] = {}; // Initialize as an empty object if it is not an object or is null/undefined
             }
 
-            sectionTimetable[section].push({
+            sectionTimetable[section][timeslot] = {
                 subject: subject,
                 teacher: teacher,
                 timeslot: timeslot,
-            });
+            };
 
-            if (!Array.isArray(teacherTimetable[teacher])) {
-                teacherTimetable[teacher] = []; // Initialize as an empty array if it does not exist or is not an array
+            if (
+                typeof teacherTimetable[teacher] !== "object" ||
+                teacherTimetable[teacher] === null ||
+                Array.isArray(teacherTimetable[teacher])
+            ) {
+                teacherTimetable[teacher] = {}; // Initialize as an empty object if it is not an object or is null/undefined
             }
 
-            teacherTimetable[teacher].push({
+            teacherTimetable[teacher][timeslot] = {
                 section: section,
                 subject: subject,
                 timeslot: timeslot,
-            });
+            };
         }
 
         // setTimetable(timetable);
         // console.log("timetable", timetableMap);
-        // console.log("section timetable", sectionTimetable);
-        // console.log("teacher timetable", teacherTimetable);
+        console.log("section timetable", sectionTimetable);
+        console.log("teacher timetable", teacherTimetable);
 
         setTimetable(timetableMap);
         setSectionTimetable(sectionTimetable);
@@ -212,47 +235,108 @@ function App() {
                             Object.entries(sectionTimetable).map(
                                 ([sectionID, section]) => (
                                     <React.Fragment key={sectionID}>
-                                        <div className="font-bold text-center">
-                                            <div>section:</div>
-                                            <div className="text-accent">
+                                        <div className="font-bold text-center my-10">
+                                            <span>section: </span>
+                                            <span className="text-accent">
                                                 {sections[sectionID].section}
-                                            </div>
+                                            </span>
                                         </div>
                                         <table className="table table-zebra bg-base-100">
-                                            {/* head */}
                                             <thead>
                                                 <tr>
-                                                    <th></th>
+                                                    <th>time</th>
                                                     <th>Subject</th>
                                                     <th>teacher</th>
-                                                    <th>timeslot</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {section.map((subject) => (
-                                                    <tr key={subject.subject}>
-                                                        <th></th>
-                                                        <td>
-                                                            {
-                                                                subjects[
-                                                                    subject
-                                                                        .subject
-                                                                ].subject
-                                                            }
-                                                        </td>
-                                                        <td>
-                                                            {
-                                                                teachers[
-                                                                    subject
-                                                                        .teacher
-                                                                ].teacher
-                                                            }
-                                                        </td>
-                                                        <td>
-                                                            {subject.timeslot}
-                                                        </td>
-                                                    </tr>
-                                                ))}
+                                                {Object.entries(
+                                                    timeSlotMap
+                                                ).map(
+                                                    ([
+                                                        timeslotID,
+                                                        timeslot,
+                                                    ]) => {
+                                                        if (
+                                                            section[timeslotID]
+                                                        ) {
+                                                            return (
+                                                                <tr
+                                                                    key={
+                                                                        timeslotID
+                                                                    }
+                                                                >
+                                                                    <td>
+                                                                        {
+                                                                            timeslot
+                                                                        }
+                                                                    </td>
+                                                                    <th>
+                                                                        {
+                                                                            subjects[
+                                                                                section[
+                                                                                    timeslotID
+                                                                                ]
+                                                                                    .subject
+                                                                            ]
+                                                                                .subject
+                                                                        }
+                                                                    </th>
+                                                                    <td>
+                                                                        {
+                                                                            teachers[
+                                                                                section[
+                                                                                    timeslotID
+                                                                                ]
+                                                                                    .teacher
+                                                                            ]
+                                                                                .teacher
+                                                                        }
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        } else {
+                                                            return (
+                                                                <tr
+                                                                    key={
+                                                                        timeslotID
+                                                                    }
+                                                                >
+                                                                    <td>
+                                                                        {
+                                                                            timeslot
+                                                                        }
+                                                                    </td>
+                                                                    <td
+                                                                        colSpan={
+                                                                            3
+                                                                        }
+                                                                        className="opacity-50 col-span-full"
+                                                                    >
+                                                                        <span>
+                                                                            - -
+                                                                            - -
+                                                                            - -
+                                                                            - -
+                                                                            - -{" "}
+                                                                        </span>
+                                                                        <span>
+                                                                            empty
+                                                                        </span>
+                                                                        <span>
+                                                                            {" "}
+                                                                            - -
+                                                                            - -
+                                                                            - -
+                                                                            - -
+                                                                            - -
+                                                                        </span>
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        }
+                                                    }
+                                                )}
                                             </tbody>
                                         </table>
                                     </React.Fragment>
@@ -267,47 +351,113 @@ function App() {
                             Object.entries(teacherTimetable).map(
                                 ([teacherID, teacher]) => (
                                     <React.Fragment key={teacherID}>
-                                        <div className="font-bold text-center">
-                                            <div>Teacher: </div>
-                                            <div className="text-lg text-accent">
+                                        <div className="font-bold text-center my-10">
+                                            <span>Teacher: </span>
+                                            <span className="text-lg text-accent">
                                                 {teachers[teacherID].teacher}
-                                            </div>
+                                            </span>
                                         </div>
-                                        <table className="table table-zebra bg-base-100 border p-10">
-                                            {/* head */}
+                                        <table className="table table-zebra bg-base-100">
                                             <thead>
                                                 <tr>
                                                     <th></th>
                                                     <th>Section</th>
                                                     <th>subject</th>
-                                                    <th>timeslot</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {teacher.map((teacher) => (
-                                                    <tr key={teacher.timeslot}>
-                                                        <th></th>
-                                                        <td>
-                                                            {
-                                                                sections[
-                                                                    teacher
-                                                                        .section
-                                                                ].section
-                                                            }
-                                                        </td>
-                                                        <td>
-                                                            {
-                                                                subjects[
-                                                                    teacher
-                                                                        .subject
-                                                                ].subject
-                                                            }
-                                                        </td>
-                                                        <td>
-                                                            {teacher.timeslot}
-                                                        </td>
-                                                    </tr>
-                                                ))}
+                                                {Object.entries(
+                                                    timeSlotMap
+                                                ).map(
+                                                    ([
+                                                        timeslotID,
+                                                        timeslot,
+                                                    ]) => {
+                                                        if (
+                                                            teacher[timeslotID]
+                                                        ) {
+                                                            console.log(
+                                                                teacher[
+                                                                    timeslotID
+                                                                ]
+                                                            );
+                                                            return (
+                                                                <tr
+                                                                    key={
+                                                                        timeslotID
+                                                                    }
+                                                                >
+                                                                    <td>
+                                                                        {
+                                                                            timeslot
+                                                                        }
+                                                                    </td>
+                                                                    <th>
+                                                                        {
+                                                                            sections[
+                                                                                teacher[
+                                                                                    timeslotID
+                                                                                ]
+                                                                                    .section
+                                                                            ]
+                                                                                .section
+                                                                        }
+                                                                    </th>
+                                                                    <td>
+                                                                        {
+                                                                            subjects[
+                                                                                teacher[
+                                                                                    timeslotID
+                                                                                ]
+                                                                                    .subject
+                                                                            ]
+                                                                                .subject
+                                                                        }
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        } else {
+                                                            return (
+                                                                <tr
+                                                                    key={
+                                                                        timeslotID
+                                                                    }
+                                                                    className="opacity-50"
+                                                                >
+                                                                    <td>
+                                                                        {
+                                                                            timeslot
+                                                                        }
+                                                                    </td>
+                                                                    <td
+                                                                        colSpan={
+                                                                            2
+                                                                        }
+                                                                    >
+                                                                        <span>
+                                                                            - -
+                                                                            - -
+                                                                            - -
+                                                                            - -
+                                                                            - -{" "}
+                                                                        </span>
+                                                                        <span>
+                                                                            empty
+                                                                        </span>
+                                                                        <span>
+                                                                            {" "}
+                                                                            - -
+                                                                            - -
+                                                                            - -
+                                                                            - -
+                                                                            - -
+                                                                        </span>
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        }
+                                                    }
+                                                )}
                                             </tbody>
                                         </table>
                                     </React.Fragment>

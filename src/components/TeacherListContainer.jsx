@@ -240,11 +240,8 @@ const TeacherListContainer = () => {
                     }}
                 >
                     Add Teacher
-
                     <IoAdd size={26} />
                 </button>
-
-
 
                 {openAddTeacherContainer && (
                     <AddEntryContainer
