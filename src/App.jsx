@@ -30,6 +30,10 @@ function App() {
         7: "12:20 - 01:10",
     };
 
+    const beforeBreakTime = {
+        2: "08:30 - 09:00",
+    };
+
     const handleButtonClick = async () => {
         const subjectMap = Object.entries(subjects).reduce(
             (acc, [, value], index) => {
@@ -257,10 +261,12 @@ function App() {
                                                         timeslotID,
                                                         timeslot,
                                                     ]) => {
+                                                        const rows = [];
+
                                                         if (
                                                             section[timeslotID]
                                                         ) {
-                                                            return (
+                                                            rows.push(
                                                                 <tr
                                                                     key={
                                                                         timeslotID
@@ -296,11 +302,10 @@ function App() {
                                                                 </tr>
                                                             );
                                                         } else {
-                                                            return (
+                                                            // Default row if no matching conditions
+                                                            rows.push(
                                                                 <tr
-                                                                    key={
-                                                                        timeslotID
-                                                                    }
+                                                                    key={`${timeslotID}-empty`}
                                                                 >
                                                                     <td>
                                                                         {
@@ -314,27 +319,51 @@ function App() {
                                                                         className="opacity-50 col-span-full"
                                                                     >
                                                                         <span>
-                                                                            - -
-                                                                            - -
-                                                                            - -
-                                                                            - -
-                                                                            - -{" "}
+                                                                            ------
                                                                         </span>
                                                                         <span>
                                                                             empty
                                                                         </span>
                                                                         <span>
-                                                                            {" "}
-                                                                            - -
-                                                                            - -
-                                                                            - -
-                                                                            - -
-                                                                            - -
+                                                                            ------
                                                                         </span>
                                                                     </td>
                                                                 </tr>
                                                             );
                                                         }
+
+                                                        if (
+                                                            beforeBreakTime[
+                                                                timeslotID
+                                                            ]
+                                                        ) {
+                                                            rows.push(
+                                                                <tr
+                                                                    key={`${timeslotID}-break`}
+                                                                >
+                                                                    <td>
+                                                                        {
+                                                                            beforeBreakTime[
+                                                                                timeslotID
+                                                                            ]
+                                                                        }
+                                                                    </td>
+                                                                    <td
+                                                                        colSpan={
+                                                                            3
+                                                                        }
+                                                                        className="opacity-50 col-span-full"
+                                                                    >
+                                                                        <span>
+                                                                            break
+                                                                            time
+                                                                        </span>
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        }
+
+                                                        return rows;
                                                     }
                                                 )}
                                             </tbody>
@@ -373,15 +402,13 @@ function App() {
                                                         timeslotID,
                                                         timeslot,
                                                     ]) => {
+                                                        const rows = [];
+
+
                                                         if (
                                                             teacher[timeslotID]
                                                         ) {
-                                                            console.log(
-                                                                teacher[
-                                                                    timeslotID
-                                                                ]
-                                                            );
-                                                            return (
+                                                            rows.push(
                                                                 <tr
                                                                     key={
                                                                         timeslotID
@@ -417,7 +444,7 @@ function App() {
                                                                 </tr>
                                                             );
                                                         } else {
-                                                            return (
+                                                            rows.push(
                                                                 <tr
                                                                     key={
                                                                         timeslotID
@@ -456,6 +483,39 @@ function App() {
                                                                 </tr>
                                                             );
                                                         }
+
+                                                        if (
+                                                            beforeBreakTime[
+                                                                timeslotID
+                                                            ]
+                                                        ) {
+                                                            rows.push(
+                                                                <tr
+                                                                    key={`${timeslotID}-break`}
+                                                                >
+                                                                    <td>
+                                                                        {
+                                                                            beforeBreakTime[
+                                                                                timeslotID
+                                                                            ]
+                                                                        }
+                                                                    </td>
+                                                                    <td
+                                                                        colSpan={
+                                                                            3
+                                                                        }
+                                                                        className="opacity-50 col-span-full"
+                                                                    >
+                                                                        <span>
+                                                                            break
+                                                                            time
+                                                                        </span>
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        }
+
+                                                        return rows;
                                                     }
                                                 )}
                                             </tbody>
