@@ -36,23 +36,22 @@ void test_hello_react() {
 	std::cout << "size: " << std::endl;
 
 	int num_rooms = 7;
-	int num_teachers = 120;
-	int num_timeslots = 7;
+	int num_teachers = 7;
+	int num_timeslots = 6;
 
-	int total_section = 120;
-	int num_subjects = 6;
+	int total_section = 7;
+	int num_subjects = 7;
 	int total_school_class = total_section * num_subjects;
-	// int limit = num_timeslots * num_teachers;  // dependent on no. of school class
-	int limit = 10;  // dependent on no. of school class
+	int limit = num_timeslots * num_teachers;  // dependent on no. of school class
+	// int limit = 10;  // dependent on no. of school class
 
-	// Allocate arrays with checks
 	int32_t* section_subjects = new (std::nothrow) int32_t[total_school_class];
 	if (!section_subjects) {
 		std::cerr << "Failed to allocate memory for section_subjects" << std::endl;
 		return;
 	}
 
-	int teacher_subjects_length = 1;
+	int teacher_subjects_length = 7;
 
 	int32_t* teacher_subjects = new (std::nothrow) int32_t[teacher_subjects_length];
 	if (!teacher_subjects) {
@@ -66,6 +65,12 @@ void test_hello_react() {
 	}
 
 	teacher_subjects[0] = packInt16ToInt32(0, 0);
+	teacher_subjects[1] = packInt16ToInt32(1, 1);
+	teacher_subjects[2] = packInt16ToInt32(2, 2);
+	teacher_subjects[3] = packInt16ToInt32(3, 3);
+	teacher_subjects[4] = packInt16ToInt32(4, 4);
+	teacher_subjects[5] = packInt16ToInt32(5, 5);
+	teacher_subjects[6] = packInt16ToInt32(6, 6);
 
 	for (int16_t i = 0; i < total_section; ++i) {
 		for (int16_t j = 0; j < num_subjects; ++j) {

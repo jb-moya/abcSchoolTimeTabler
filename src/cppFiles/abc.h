@@ -38,9 +38,11 @@ struct Timetable {
 
 	void initializeRandomTimetable(
 	    std::mt19937& gen,
-	    std::uniform_int_distribution<int16_t>& distribution_teacher,
+	    // std::uniform_int_distribution<int16_t>& distribution_teacher,
+	    std::unordered_map<int, std::vector<int16_t>>& eligible_teachers_in_subject,
 	    std::uniform_int_distribution<int16_t>& distribution_room,
-	    std::uniform_int_distribution<int16_t>& distribution_timeslot,
+	    // std::uniform_int_distribution<int16_t>& distribution_timeslot,
+	    std::unordered_map<int16_t, std::uniform_int_distribution<int>>& class_timeslot_distributions,
 	    std::unordered_map<int16_t, std::vector<int16_t>>& section_subjects);
 
 	void updateTimetableUsingDifference(
@@ -48,9 +50,11 @@ struct Timetable {
 	    std::uniform_int_distribution<int16_t>& distribution_field,
 	    std::uniform_int_distribution<int16_t>& distribution_school_class,
 	    std::uniform_int_distribution<int16_t>& distribution_section,
-	    std::uniform_int_distribution<int16_t>& distribution_teacher,
+	    // std::uniform_int_distribution<int16_t>& distribution_teacher,
+	    std::unordered_map<int, std::vector<int16_t>>& eligible_teachers_in_subject,
 	    std::uniform_int_distribution<int16_t>& distribution_room,
-	    std::uniform_int_distribution<int16_t>& distribution_timeslot);
+	    // std::uniform_int_distribution<int16_t>& distribution_timeslot
+	    std::unordered_map<int16_t, std::uniform_int_distribution<int>>& class_timeslot_distributions);
 };
 
 struct Bee {
@@ -98,20 +102,19 @@ struct ObjectiveFunction {
 	bool isQualified(
 	    const int16_t& teacherID,
 	    const int16_t& subjectID,
-	    const std::unordered_map<int16_t, std::vector<int16_t>>& teacher_subjects = {}) const;
+	    const std::unordered_map<int16_t, std::vector<int16_t>>& teacher_subjects_map = {}) const;
 	double evaluate(
 	    const Timetable& timetable,
-	    bool show_penalty = false,
-	    const std::unordered_map<int16_t, std::vector<int16_t>>& teacher_subjects = {}) const;
+	    bool show_penalty = false) const;
 };
 
-Bee generateRandomTimetable(
-    int& num_school_class,
-    int& num_teachers,
-    int& num_rooms,
-    int& num_timeslots,
-    std::unordered_map<int16_t, std::vector<int16_t>>& section_subjects,
-    const ObjectiveFunction& objFunc = ObjectiveFunction());
+// Bee generateRandomTimetable(
+//     int& num_school_class,
+//     int& num_teachers,
+//     int& num_rooms,
+//     int& num_timeslots,
+//     std::unordered_map<int16_t, std::vector<int16_t>>& section_subjects,
+//     const ObjectiveFunction& objFunc = ObjectiveFunction());
 
 // auto fitnessProportionateSelection = [](const vector<double>& prob) {};
 

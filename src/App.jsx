@@ -35,7 +35,7 @@ function App() {
 
     const beforeBreakTime = {
         2: "08:30 - 09:00",
-        6: "12:20 - 01:10",
+        6: "12:20 - 01:00",
     };
 
     const handleButtonClick = async () => {
@@ -83,10 +83,10 @@ function App() {
             {}
         );
 
-        // console.log("subjectMap", subjectMap);
-        // console.log("teacherMap", teacherMap);
-        // console.log("subjectMapReverse", subjectMapReverse);
-        // console.log("sectionMap", sectionMap);
+        console.log("subjectMap", subjectMap);
+        console.log("teacherMap", teacherMap);
+        console.log("subjectMapReverse", subjectMapReverse);
+        console.log("sectionMap", sectionMap);
 
         const sectionSubjectArray = [];
         // console.log("sectionMap", sectionMap);
@@ -99,12 +99,12 @@ function App() {
 
         const sectionSubjects = new Int32Array([...sectionSubjectArray]);
 
-        const max_iterations = 10000;
+        const max_iterations = 30000;
         const beesPopulations = 5;
         const beesEmployedOptions = 5;
         const beesOnlookerOptions = 2;
         const beesScoutOptions = 2;
-        const limits = 800;
+        const limits = 300;
 
         // console.log("sectionSubjects", sectionSubjects, sectionSubjects.length);
 
@@ -119,7 +119,7 @@ function App() {
         // console.log("sectionSubjectArray.length", sectionSubjectArray.length);
         const numTeachers = Object.keys(teacherMap).length;
         const numRooms = 7;
-        const num_timeslots = 8;
+        const num_timeslots = 7;
         const totalSchoolClass = sectionSubjectArray.length;
         const totalSection = Object.keys(sectionMap).length;
 
@@ -134,32 +134,6 @@ function App() {
         }
 
         const teacherSubjects = new Int32Array([...teacherSubjectArray]);
-        console.log("teacherSubjects.length", teacherSubjects.length);
-        console.log("teacherSubjects.length", teacherSubjects.length);
-        console.log("teacherSubjects.length", teacherSubjects.length);
-        console.log("teacherSubjects.length", teacherSubjects.length);
-        console.log("teacherSubjects.length", teacherSubjects.length);
-        console.log("teacherSubjects.length", teacherSubjects.length);
-        console.log("teacherSubjects.length", teacherSubjects.length);
-        console.log("teacherSubjects.length", teacherSubjects.length);
-        console.log("teacherSubjects.length", teacherSubjects.length);
-        console.log("teacherSubjects.length", teacherSubjects.length);
-        console.log("teacherSubjects.length", teacherSubjects.length);
-        console.log("teacherSubjects.length", teacherSubjects.length);
-        console.log("teacherSubjects.length", teacherSubjects.length);
-        console.log("teacherSubjects.length", teacherSubjects.length);
-        console.log("teacherSubjects.length", teacherSubjects.length);
-        console.log("teacherSubjects.length", teacherSubjects.length);
-        console.log("teacherSubjects.length", teacherSubjects.length);
-        console.log("teacherSubjects.length", teacherSubjects.length);
-        console.log("teacherSubjects.length", teacherSubjects.length);
-        console.log("teacherSubjects.length", teacherSubjects.length);
-        console.log("teacherSubjects.length", teacherSubjects.length);
-        console.log("teacherSubjects.length", teacherSubjects.length);
-        console.log("teacherSubjects.length", teacherSubjects.length);
-        console.log("teacherSubjects.length", teacherSubjects.length);
-        console.log("teacherSubjects.length", teacherSubjects.length);
-        console.log("teacherSubjects.length", teacherSubjects.length);
 
         const params = {
             maxIterations: max_iterations,
