@@ -89,7 +89,7 @@ const TeacherListContainer = () => {
 
     return (
         <React.Fragment>
-            <div className="overflow-x-auto">
+            <div className="">
                 <label className="input input-sm input-bordered flex items-center gap-2">
                     <input
                         type="text"
@@ -104,11 +104,11 @@ const TeacherListContainer = () => {
                 <table className="table table-sm table-zebra">
                     <thead>
                         <tr>
-                            <th>#</th>
+                            <th className="w-8">#</th>
                             <th>Teacher ID</th>
                             <th>Teacher</th>
                             <th>subjects</th>
-                            <th>Actions</th>
+                            <th className="text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -125,7 +125,7 @@ const TeacherListContainer = () => {
                                         key={teacher.id}
                                         className="group hover"
                                     >
-                                        <th>{index + 1}</th>
+                                        <td>{index + 1}</td>
                                         <th>{teacher.id}</th>
                                         <td>
                                             {editTeacherId === teacher.id ? (
@@ -159,7 +159,10 @@ const TeacherListContainer = () => {
                                                 subjectStatus === "succeeded" &&
                                                 teacher.subjects.map(
                                                     (subject) => (
-                                                        <div key={subject} className="px-2 border border-gray-500 border-opacity-30">
+                                                        <div
+                                                            key={subject}
+                                                            className="px-2 border border-gray-500 border-opacity-30"
+                                                        >
                                                             {
                                                                 subjects[
                                                                     subject
@@ -171,7 +174,7 @@ const TeacherListContainer = () => {
                                             )}
                                         </td>
 
-                                        <td>
+                                        <td className="w-28 text-right">
                                             {editTeacherId === teacher.id ? (
                                                 <>
                                                     <button

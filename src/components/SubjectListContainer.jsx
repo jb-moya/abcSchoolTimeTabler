@@ -100,7 +100,7 @@ const SubjectListContainer = () => {
     window.onresize = debounce(resize, 1000);
 
     return (
-        <div className="overflow-x-auto">
+        <div className="">
             <label className="input input-sm input-bordered flex items-center gap-2">
                 <input
                     type="text"
@@ -115,10 +115,10 @@ const SubjectListContainer = () => {
             <table className="table table-sm table-zebra">
                 <thead>
                     <tr>
-                        <th>#</th>
+                        <th className="w-8">#</th>
                         <th>Subject ID</th>
                         <th>Subject</th>
-                        <th>Actions</th>
+                        <th className="text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -132,7 +132,7 @@ const SubjectListContainer = () => {
                         Object.entries(searchSubjectResult).map(
                             ([, subject], index) => (
                                 <tr key={subject.id} className="group hover">
-                                    <th>{index + 1}</th>
+                                    <td>{index + 1}</td>
                                     <th>{subject.id}</th>
                                     <td>
                                         {editSubjectId === subject.id ? (
@@ -150,7 +150,7 @@ const SubjectListContainer = () => {
                                             subject.subject
                                         )}
                                     </td>
-                                    <td>
+                                    <td className="w-28 text-right">
                                         {editSubjectId === subject.id ? (
                                             <>
                                                 <button

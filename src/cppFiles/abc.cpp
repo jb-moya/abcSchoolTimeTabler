@@ -94,14 +94,6 @@ int combine(int class_id, int time_slot) {
 	return (class_id << 16) | time_slot;
 };
 
-std::uint32_t combine(std::uint32_t class_id, std::uint32_t time_slot, std::uint32_t teacher_id) {
-	return (class_id << 20) | (time_slot << 10) | teacher_id;  // Assuming each is 10-bit
-};
-
-std::uint64_t combine(std::uint32_t a, std::uint32_t b, std::uint32_t c, std::uint32_t d) {
-	return (static_cast<std::uint64_t>(a) << 48) | (static_cast<std::uint64_t>(b) << 32) | (static_cast<std::uint64_t>(c) << 16) | d;
-};
-
 void extractSectionSubjects(const std::vector<int32_t>& inputArray, std::unordered_map<int16_t, std::vector<int16_t>>& section_subjects) {
 	for (int32_t value : inputArray) {
 		int16_t section_id = static_cast<int16_t>(value >> 16);
@@ -109,18 +101,6 @@ void extractSectionSubjects(const std::vector<int32_t>& inputArray, std::unorder
 		section_subjects[section_id].push_back(subject_id);
 	}
 }
-
-// bool ObjectiveFunction::isQualified(
-//     const int16_t& teacherID,
-//     const int16_t& subjectID,
-//     const std::unordered_map<int16_t, vector<int16_t>>& teacher_subjects_map) const {
-// 	auto it = teacher_subjects_map.find(teacherID);
-// 	if (it != teacher_subjects_map.end()) {
-// 		const vector<int16_t>& subjects = it->second;
-// 		return std::find(subjects.begin(), subjects.end(), subjectID) != subjects.end();
-// 	}
-// 	return true;
-// };
 
 double ObjectiveFunction::evaluate(
     const Timetable& timetable,
@@ -147,26 +127,6 @@ double ObjectiveFunction::evaluate(
 
 	return conflicting_timeslots + invalid_teacher_subject_assignment;
 };
-
-// Bee generateRandomTimetable(
-//     int& num_school_class,
-//     int& num_teachers,
-//     int& num_rooms,
-//     int& num_timeslots,
-//     std::unordered_map<int16_t, std::vector<int16_t>>& section_subjects,
-//     const ObjectiveFunction& objFunc) {
-// 	Bee newBee(num_school_class);
-
-// 	random_device rd;
-// 	mt19937 gen(rd());
-// 	std::uniform_int_distribution<int16_t> teacher_dist(0, num_teachers - 1);
-// 	std::uniform_int_distribution<int16_t> room_dist(0, num_rooms - 1);
-// 	std::uniform_int_distribution<int16_t> timeslot_dist(0, num_timeslots - 1);
-
-// 	newBee.timetable.initializeRandomTimetable(gen, teacher_dist, room_dist, timeslot_dist, section_subjects);
-
-// 	return newBee;
-// };
 
 int64_t packInt16ToInt64(int16_t first, int16_t second, int16_t third, int16_t fourth) {
 	int64_t result = 0;
@@ -322,8 +282,6 @@ void runExperiment(
 		vector<int> abandonedBees(beesPopulation, 0);
 		std::uniform_int_distribution<> dist_bees_employed(0, beesEmployed - 1);
 		for (int iter = 0; iter < max_iterations; iter++) {
-			// std::cout << "Iter: " << iter << std::endl;
-
 			for (int i = 0; i < beesEmployed; i++) {
 				int randomBeesIndex;
 				do {
@@ -433,6 +391,7 @@ void runExperiment(
 	}
 
 	std::cout << "Objective function: " << ObjectiveFunction().evaluate(bestSolution.timetable, true) << endl;
+	
 	auto end = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> duration = end - start;
 

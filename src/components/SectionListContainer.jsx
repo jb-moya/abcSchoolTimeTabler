@@ -88,7 +88,7 @@ const SectionListContainer = () => {
 
     return (
         <React.Fragment>
-            <div className="overflow-x-auto">
+            <div>
                 <label className="input input-sm input-bordered flex items-center gap-2">
                     <input
                         type="text"
@@ -103,11 +103,11 @@ const SectionListContainer = () => {
                 <table className="table table-sm table-zebra">
                     <thead>
                         <tr>
-                            <th>#</th>
+                            <th className="w-8">#</th>
                             <th>Section ID</th>
                             <th>Section</th>
                             <th>Subjects</th>
-                            <th>Actions</th>
+                            <th className="text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -124,7 +124,7 @@ const SectionListContainer = () => {
                                         key={section.id}
                                         className="group hover"
                                     >
-                                        <th>{index + 1}</th>
+                                        <td>{index + 1}</td>
                                         <th>{section.id}</th>
                                         <td>
                                             {editSectionId === section.id ? (
@@ -171,7 +171,7 @@ const SectionListContainer = () => {
                                                 )
                                             )}
                                         </td>
-                                        <td>
+                                        <td className="w-28 text-right">
                                             {editSectionId === section.id ? (
                                                 <>
                                                     <button

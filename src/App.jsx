@@ -9,6 +9,8 @@ import SubjectListContainer from "./components/SubjectListContainer";
 import TeacherListContainer from "./components/TeacherListContainer";
 import SectionListContainer from "./components/SectionListContainer";
 import clsx from "clsx";
+import NotificationHandler from "./components/NotificationHandler";
+import GeneratedTimetable from "./components/TimeTable";
 const getTimetable = wrap(new WasmWorker());
 
 function App() {
@@ -31,6 +33,9 @@ function App() {
         5: "10:40 - 11:30",
         6: "11:30 - 12:20",
         7: "01:10 - 02:00",
+        8: "02:00 - 02:50",
+        9: "02:50 - 03:40",
+        10: "03:40 - 04:30",
     };
 
     const beforeBreakTime = {
@@ -100,11 +105,11 @@ function App() {
         const sectionSubjects = new Int32Array([...sectionSubjectArray]);
 
         const max_iterations = 30000;
-        const beesPopulations = 5;
+        const beesPopulations = 11;
         const beesEmployedOptions = 5;
-        const beesOnlookerOptions = 2;
-        const beesScoutOptions = 2;
-        const limits = 300;
+        const beesOnlookerOptions = 5;
+        const beesScoutOptions = 1;
+        const limits = 800;
 
         // console.log("sectionSubjects", sectionSubjects, sectionSubjects.length);
 
@@ -220,6 +225,10 @@ function App() {
 
     return (
         <div className="App container mx-auto px-4">
+            <NotificationHandler
+                timetableCondition={timetableGenerationStatus}
+            />
+
             <header className="App-header">
                 <Navbar />
                 <div className="flex gap-4">
@@ -246,287 +255,27 @@ function App() {
                     </button>
                 </div>
 
-                <div className="w-8/12">
-                    <div className="overflow-x-auto">
-                        {timetableGenerationStatus === "running" && (
-                            <div className="overflow-x-auto">
-                                <div className="skeleton h-96 w-full flex align-middle justify-center items-center">
-                                    <div className="text-lg opacity-50">
-                                        Generating timetable... wait ka
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                <GeneratedTimetable
+                    timetable={sectionTimetable}
+                    collection={sections}
+                    field={"section"}
+                    timeSlotMap={timeSlotMap}
+                    firstColumnMap={subjects}
+                    secondColumnMap={teachers}
+                    columnField={["subject", "teacher"]}
+                    beforeBreakTime={beforeBreakTime}
+                />
 
-                        {sectionTimetable !== null &&
-                            Object.entries(sectionTimetable).map(
-                                ([sectionID, section]) => (
-                                    <React.Fragment key={sectionID}>
-                                        <div className="font-bold text-center my-10">
-                                            <span>section: </span>
-                                            <span className="text-accent">
-                                                {sections[sectionID].section}
-                                            </span>
-                                        </div>
-                                        <table className="table table-zebra bg-base-100">
-                                            <thead>
-                                                <tr>
-                                                    <th>time</th>
-                                                    <th>Subject</th>
-                                                    <th>teacher</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {Object.entries(
-                                                    timeSlotMap
-                                                ).map(
-                                                    ([
-                                                        timeslotID,
-                                                        timeslot,
-                                                    ]) => {
-                                                        const rows = [];
-
-                                                        if (
-                                                            section[timeslotID]
-                                                        ) {
-                                                            rows.push(
-                                                                <tr
-                                                                    key={
-                                                                        timeslotID
-                                                                    }
-                                                                >
-                                                                    <td>
-                                                                        {
-                                                                            timeslot
-                                                                        }
-                                                                    </td>
-                                                                    <th>
-                                                                        {
-                                                                            subjects[
-                                                                                section[
-                                                                                    timeslotID
-                                                                                ]
-                                                                                    .subject
-                                                                            ]
-                                                                                .subject
-                                                                        }
-                                                                    </th>
-                                                                    <td>
-                                                                        {
-                                                                            teachers[
-                                                                                section[
-                                                                                    timeslotID
-                                                                                ]
-                                                                                    .teacher
-                                                                            ]
-                                                                                .teacher
-                                                                        }
-                                                                    </td>
-                                                                </tr>
-                                                            );
-                                                        } else {
-                                                            // Default row if no matching conditions
-                                                            rows.push(
-                                                                <tr
-                                                                    key={`${timeslotID}-empty`}
-                                                                >
-                                                                    <td>
-                                                                        {
-                                                                            timeslot
-                                                                        }
-                                                                    </td>
-                                                                    <td
-                                                                        colSpan={
-                                                                            3
-                                                                        }
-                                                                        className="opacity-50 col-span-full text-center"
-                                                                    >
-                                                                        <span className="divider m-0">
-                                                                            empty
-                                                                        </span>
-                                                                    </td>
-                                                                </tr>
-                                                            );
-                                                        }
-
-                                                        if (
-                                                            beforeBreakTime[
-                                                                timeslotID
-                                                            ]
-                                                        ) {
-                                                            rows.push(
-                                                                <tr
-                                                                    key={`${timeslotID}-break`}
-                                                                >
-                                                                    <td>
-                                                                        {
-                                                                            beforeBreakTime[
-                                                                                timeslotID
-                                                                            ]
-                                                                        }
-                                                                    </td>
-                                                                    <td
-                                                                        colSpan={
-                                                                            3
-                                                                        }
-                                                                        className="opacity-50 text-center col-span-full"
-                                                                    >
-                                                                        <span className="divider m-0">
-                                                                            break
-                                                                            time
-                                                                        </span>
-                                                                    </td>
-                                                                </tr>
-                                                            );
-                                                        }
-
-                                                        return rows;
-                                                    }
-                                                )}
-                                            </tbody>
-                                        </table>
-                                    </React.Fragment>
-                                )
-                            )}
-                    </div>
-                </div>
-
-                <div className="w-8/12">
-                    <div className="overflow-x-auto">
-                        {teacherTimetable !== null &&
-                            Object.entries(teacherTimetable).map(
-                                ([teacherID, teacher]) => (
-                                    <React.Fragment key={teacherID}>
-                                        <div className="font-bold text-center my-10">
-                                            <span>Teacher: </span>
-                                            <span className="text-lg text-accent">
-                                                {teachers[teacherID].teacher}
-                                            </span>
-                                        </div>
-                                        <table className="table table-zebra bg-base-100">
-                                            <thead>
-                                                <tr>
-                                                    <th></th>
-                                                    <th>Section</th>
-                                                    <th>subject</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {Object.entries(
-                                                    timeSlotMap
-                                                ).map(
-                                                    ([
-                                                        timeslotID,
-                                                        timeslot,
-                                                    ]) => {
-                                                        const rows = [];
-
-                                                        if (
-                                                            teacher[timeslotID]
-                                                        ) {
-                                                            rows.push(
-                                                                <tr
-                                                                    key={
-                                                                        timeslotID
-                                                                    }
-                                                                >
-                                                                    <td>
-                                                                        {
-                                                                            timeslot
-                                                                        }
-                                                                    </td>
-                                                                    <th>
-                                                                        {
-                                                                            sections[
-                                                                                teacher[
-                                                                                    timeslotID
-                                                                                ]
-                                                                                    .section
-                                                                            ]
-                                                                                .section
-                                                                        }
-                                                                    </th>
-                                                                    <td>
-                                                                        {
-                                                                            subjects[
-                                                                                teacher[
-                                                                                    timeslotID
-                                                                                ]
-                                                                                    .subject
-                                                                            ]
-                                                                                .subject
-                                                                        }
-                                                                    </td>
-                                                                </tr>
-                                                            );
-                                                        } else {
-                                                            rows.push(
-                                                                <tr
-                                                                    key={
-                                                                        timeslotID
-                                                                    }
-                                                                    className="opacity-50"
-                                                                >
-                                                                    <td>
-                                                                        {
-                                                                            timeslot
-                                                                        }
-                                                                    </td>
-                                                                    <td
-                                                                        colSpan={
-                                                                            2
-                                                                        }
-                                                                        className="text-center"
-                                                                    >
-                                                                        <span className="divider m-0">
-                                                                            empty
-                                                                        </span>
-                                                                    </td>
-                                                                </tr>
-                                                            );
-                                                        }
-
-                                                        if (
-                                                            beforeBreakTime[
-                                                                timeslotID
-                                                            ]
-                                                        ) {
-                                                            rows.push(
-                                                                <tr
-                                                                    key={`${timeslotID}-break`}
-                                                                >
-                                                                    <td>
-                                                                        {
-                                                                            beforeBreakTime[
-                                                                                timeslotID
-                                                                            ]
-                                                                        }
-                                                                    </td>
-                                                                    <td
-                                                                        colSpan={
-                                                                            3
-                                                                        }
-                                                                        className="opacity-50 col-span-full text-center"
-                                                                    >
-                                                                        <span className="divider m-0">
-                                                                            break
-                                                                            time
-                                                                        </span>
-                                                                    </td>
-                                                                </tr>
-                                                            );
-                                                        }
-
-                                                        return rows;
-                                                    }
-                                                )}
-                                            </tbody>
-                                        </table>
-                                    </React.Fragment>
-                                )
-                            )}
-                    </div>
-                </div>
+                <GeneratedTimetable
+                    timetable={teacherTimetable}
+                    collection={teachers}
+                    field={"teacher"}
+                    timeSlotMap={timeSlotMap}
+                    firstColumnMap={sections}
+                    secondColumnMap={subjects}
+                    columnField={["section", "subject"]}
+                    beforeBreakTime={beforeBreakTime}
+                />
             </header>
         </div>
     );

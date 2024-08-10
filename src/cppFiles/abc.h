@@ -84,9 +84,6 @@ void runExperiment(
     int limit,
     int64_t* result);
 
-int sumJSArray(int* arr, int size);
-int sumOfArrays(int** arrays, int* sizes, int numArrays);
-
 #ifdef __cplusplus
 }
 #endif
