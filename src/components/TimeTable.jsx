@@ -24,14 +24,14 @@ const TimetableRow = ({
     }
 
     if (teacherTimeslot) {
-        const section = teacherTimeslot[columnField[0]];
-        const subject = teacherTimeslot[columnField[1]];
+        const fieldName1 = teacherTimeslot[columnField[0]];
+        const fieldName2 = teacherTimeslot[columnField[1]];
 
         return (
             <tr key={timeslotID}>
                 <td>{timeslot}</td>
-                <th>{firstColumnMap[section][columnField[0]]}</th>
-                <td>{secondColumnMap[subject][columnField[1]]}</td>
+                <th>{firstColumnMap[fieldName1][columnField[0]]}</th>
+                <td>{secondColumnMap[fieldName2][columnField[1]]}</td>
             </tr>
         );
     }
@@ -59,21 +59,20 @@ const GeneratedTimetable = ({
     if (!timetable) return null;
 
     return (
-        <div className="w-6/12">
+        <div className="w-1/2">
             <div className="overflow-x-auto">
-                {timetable !== null &&
-                    Object.entries(timetable).map(([entryID, entry]) => (
+                {Object.entries(timetable).map(([entryID, entry]) => (
                         <React.Fragment key={entryID}>
-                            <div className="font-bold text-center my-10">
-                                <span>{field}: </span>
-                                <span className="text-lg text-accent">
+                            <div className="flex gap-4 font-bold items-center text-center mt-10">
+                                <div>{field}: </div>
+                                <div className="text-lg text-accent">
                                     {collection[entryID][field]}
-                                </span>
+                                </div>
                             </div>
-                            <table className="table table-zebra bg-base-100">
+                            <table className="table table-zebra table-xs bg-base-100">
                                 <thead>
                                     <tr>
-                                        <th></th>
+                                        <th>Time</th>
                                         <th>Section</th>
                                         <th>Subject</th>
                                     </tr>

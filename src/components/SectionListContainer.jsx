@@ -89,7 +89,7 @@ const SectionListContainer = () => {
     return (
         <React.Fragment>
             <div>
-                <label className="input input-sm input-bordered flex items-center gap-2">
+                <label className="input input-sm input-bordered flex items-center mt-5">
                     <input
                         type="text"
                         className="grow"
@@ -232,22 +232,22 @@ const SectionListContainer = () => {
                 </table>
             </div>
             <div>
-                <button
-                    className="btn btn-secondary"
-                    onClick={() => {
-                        setOpenAddSectionContainer(true);
-                    }}
-                >
-                    Add Section
-                    <IoAdd size={26} />
-                </button>
-
-                {openAddSectionContainer && (
+                {openAddSectionContainer ? (
                     <AddEntryContainer
                         close={() => setOpenAddSectionContainer(false)}
                         reduxField={["section", "subjects"]}
                         reduxFunction={addSection}
                     />
+                ) : (
+                    <button
+                        className="btn btn-secondary my-5"
+                        onClick={() => {
+                            setOpenAddSectionContainer(true);
+                        }}
+                    >
+                        Add Section
+                        <IoAdd size={26} />
+                    </button>
                 )}
             </div>
         </React.Fragment>

@@ -224,7 +224,7 @@ function App() {
     };
 
     return (
-        <div className="App container mx-auto px-4">
+        <div className="App container mx-auto px-4 mb-10">
             <NotificationHandler
                 timetableCondition={timetableGenerationStatus}
             />
@@ -242,40 +242,47 @@ function App() {
                 <div className="w-full">
                     <SectionListContainer />
                     <button
-                        className={clsx("btn btn-primary", {
+                        className={clsx("btn btn-primary w-full", {
                             "cursor-not-allowed":
                                 timetableGenerationStatus === "running",
                         })}
                         onClick={() => handleButtonClick()}
                         disabled={timetableGenerationStatus === "running"}
                     >
-                        {timetableGenerationStatus == "running"
-                            ? "Generating..."
-                            : "Generate Timetable"}
+                        {timetableGenerationStatus == "running" ? (
+                            <div className="flex gap-2">
+                                <span>Generating</span>
+                                <span className="loading loading-spinner loading-xs"></span>
+                            </div>
+                        ) : (
+                            "Generate Timetable"
+                        )}
                     </button>
                 </div>
 
-                <GeneratedTimetable
-                    timetable={sectionTimetable}
-                    collection={sections}
-                    field={"section"}
-                    timeSlotMap={timeSlotMap}
-                    firstColumnMap={subjects}
-                    secondColumnMap={teachers}
-                    columnField={["subject", "teacher"]}
-                    beforeBreakTime={beforeBreakTime}
-                />
+                <div className="flex w-full gap-4">
+                    <GeneratedTimetable
+                        timetable={sectionTimetable}
+                        collection={sections}
+                        field={"section"}
+                        timeSlotMap={timeSlotMap}
+                        firstColumnMap={subjects}
+                        secondColumnMap={teachers}
+                        columnField={["subject", "teacher"]}
+                        beforeBreakTime={beforeBreakTime}
+                    />
 
-                <GeneratedTimetable
-                    timetable={teacherTimetable}
-                    collection={teachers}
-                    field={"teacher"}
-                    timeSlotMap={timeSlotMap}
-                    firstColumnMap={sections}
-                    secondColumnMap={subjects}
-                    columnField={["section", "subject"]}
-                    beforeBreakTime={beforeBreakTime}
-                />
+                    <GeneratedTimetable
+                        timetable={teacherTimetable}
+                        collection={teachers}
+                        field={"teacher"}
+                        timeSlotMap={timeSlotMap}
+                        firstColumnMap={sections}
+                        secondColumnMap={subjects}
+                        columnField={["section", "subject"]}
+                        beforeBreakTime={beforeBreakTime}
+                    />
+                </div>
             </header>
         </div>
     );

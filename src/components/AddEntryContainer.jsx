@@ -36,7 +36,7 @@ const AddEntryContainer = ({ close, reduxField, reduxFunction }) => {
     };
 
     return (
-        <div className="card bg-base-200 p-4">
+        <div className="card bg-base-200 p-4 my-5">
             <div className="flex justify-between">
                 <h1>Add {reduxField[0].toUpperCase()}</h1>
                 <button

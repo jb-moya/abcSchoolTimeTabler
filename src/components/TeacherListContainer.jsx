@@ -107,7 +107,7 @@ const TeacherListContainer = () => {
                             <th className="w-8">#</th>
                             <th>Teacher ID</th>
                             <th>Teacher</th>
-                            <th>subjects</th>
+                            <th>Subject Specialization</th>
                             <th className="text-right">Actions</th>
                         </tr>
                     </thead>
@@ -236,22 +236,22 @@ const TeacherListContainer = () => {
             </div>
 
             <div>
-                <button
-                    className="btn btn-secondary"
-                    onClick={() => {
-                        setOpenAddTeacherContainer(true);
-                    }}
-                >
-                    Add Teacher
-                    <IoAdd size={26} />
-                </button>
-
-                {openAddTeacherContainer && (
+                {openAddTeacherContainer ? (
                     <AddEntryContainer
                         close={() => setOpenAddTeacherContainer(false)}
                         reduxField={["teacher", "subjects"]}
                         reduxFunction={addTeacher}
                     />
+                ) : (
+                    <button
+                        className="btn btn-secondary my-5"
+                        onClick={() => {
+                            setOpenAddTeacherContainer(true);
+                        }}
+                    >
+                        Add Teacher
+                        <IoAdd size={26} />
+                    </button>
                 )}
             </div>
         </React.Fragment>
