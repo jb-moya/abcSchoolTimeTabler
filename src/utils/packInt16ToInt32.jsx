@@ -5,6 +5,6 @@ function packInt16ToInt32(first, second) {
 
 // Example usage
 let packed32 = packInt16ToInt32(1, 1);
-console.log(packed32); // Outputs the packed 32-bit integer
+// console.log(packed32); // Outputs the packed 32-bit integer
 
 export default packInt16ToInt32

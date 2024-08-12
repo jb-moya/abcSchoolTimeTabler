@@ -71,8 +71,6 @@ const TeacherListContainer = () => {
                     return pattern.test(teacher.teacher);
                 })
             );
-
-            console.log(searchValue, searchTeacherResult);
         }, 200),
         []
     );

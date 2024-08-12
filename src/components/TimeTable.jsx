@@ -73,8 +73,8 @@ const GeneratedTimetable = ({
                                 <thead>
                                     <tr>
                                         <th>Time</th>
-                                        <th>Section</th>
-                                        <th>Subject</th>
+                                        <th>{columnField[0]}</th>
+                                        <th>{columnField[1]}</th>
                                     </tr>
                                 </thead>
                                 <tbody>

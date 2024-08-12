@@ -26,8 +26,8 @@ function unpackInt64ToInt16(packed64) {
 // Example usage
 let packed64 = packInt16ToInt64(0, 1, 2, 3);
 let unpacked = unpackInt64ToInt16(packed64);
-console.log(packed64.toString()); // Outputs the packed 64-bit integer as a string
-console.log(unpacked); // Outputs: { first: 0, second: 1, third: 2, fourth: 3 }
+// console.log(packed64.toString()); // Outputs the packed 64-bit integer as a string
+// console.log(unpacked); // Outputs: { first: 0, second: 1, third: 2, fourth: 3 }
 
 export default packInt16ToInt64;
 export { unpackInt64ToInt16 };

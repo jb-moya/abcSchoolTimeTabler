@@ -70,8 +70,6 @@ const SectionListContainer = () => {
                     return pattern.test(section.section);
                 })
             );
-
-            console.log(searchValue, searchSectionResult);
         }, 200),
         []
     );

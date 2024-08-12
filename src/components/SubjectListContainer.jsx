@@ -78,8 +78,6 @@ const SubjectListContainer = () => {
                     return pattern.test(subject.subject);
                 })
             );
-
-            console.log(searchValue, searchSubjectResult);
         }, 200),
         []
     );
@@ -89,15 +87,8 @@ const SubjectListContainer = () => {
     }, [searchSubjectValue, subjects, debouncedSearch]);
 
     useEffect(() => {
-        console.log("searchSubjectResult", searchSubjectResult);
+        // console.log("searchSubjectResult", searchSubjectResult);
     }, [searchSubjectResult]);
-
-    function resize() {
-        console.log("height", window.innerHeight);
-        console.log("width", window.innerWidth);
-    }
-
-    window.onresize = debounce(resize, 1000);
 
     return (
         <div className="">

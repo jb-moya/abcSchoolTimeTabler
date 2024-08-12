@@ -28,21 +28,17 @@ using namespace std;
 // export default Module;
 // emcc abc.cpp -s -sMODULARIZE=1 -sWASM_BIGINT - sEXPORTED_FUNCTIONS = '_runExperiment', '_malloc', '_free', getValue abc.js
 void test_hello_react() {
-	int max_iterations = 20000;
-	int beesPopulation = 11;
+	int max_iterations = 10000;
+	int beesPopulation = 10;
 	int beesEmployed = 5;
 	int beesOnlooker = 5;
 	int beesScout = 1;
-	std::cout << "size: " << std::endl;
+	int limit = 800;  // dependent on no. of school class
 
-	int num_rooms = 7;
-	int num_teachers = 7;
-	int num_timeslots = 6;
-
-	int total_section = 7;
-	int num_subjects = 7;
+	int num_teachers = 10;
+	int total_section = 9;
+	int num_subjects = 10;
 	int total_school_class = total_section * num_subjects;
-	int limit = num_timeslots * num_teachers;  // dependent on no. of school class
 	// int limit = 10;  // dependent on no. of school class
 
 	int32_t* section_subjects = new (std::nothrow) int32_t[total_school_class];
@@ -51,7 +47,7 @@ void test_hello_react() {
 		return;
 	}
 
-	int teacher_subjects_length = 7;
+	int teacher_subjects_length = num_teachers;
 
 	int32_t* teacher_subjects = new (std::nothrow) int32_t[teacher_subjects_length];
 	if (!teacher_subjects) {
@@ -64,6 +60,7 @@ void test_hello_react() {
 		teacher_subjects[i] = -1;
 	}
 
+	// initialize 20 teachers
 	teacher_subjects[0] = packInt16ToInt32(0, 0);
 	teacher_subjects[1] = packInt16ToInt32(1, 1);
 	teacher_subjects[2] = packInt16ToInt32(2, 2);
@@ -71,6 +68,19 @@ void test_hello_react() {
 	teacher_subjects[4] = packInt16ToInt32(4, 4);
 	teacher_subjects[5] = packInt16ToInt32(5, 5);
 	teacher_subjects[6] = packInt16ToInt32(6, 6);
+	teacher_subjects[7] = packInt16ToInt32(7, 7);
+	teacher_subjects[8] = packInt16ToInt32(8, 8);
+	teacher_subjects[9] = packInt16ToInt32(9, 9);
+	// teacher_subjects[10] = packInt16ToInt32(10, 0);
+	// teacher_subjects[11] = packInt16ToInt32(11, 1);
+	// teacher_subjects[12] = packInt16ToInt32(12, 2);
+	// teacher_subjects[13] = packInt16ToInt32(13, 3);
+	// teacher_subjects[14] = packInt16ToInt32(14, 4);
+	// teacher_subjects[15] = packInt16ToInt32(15, 5);
+	// teacher_subjects[16] = packInt16ToInt32(16, 6);
+	// teacher_subjects[17] = packInt16ToInt32(17, 7);
+	// teacher_subjects[18] = packInt16ToInt32(18, 8);
+	// teacher_subjects[19] = packInt16ToInt32(19, 9);
 
 	for (int16_t i = 0; i < total_section; ++i) {
 		for (int16_t j = 0; j < num_subjects; ++j) {
@@ -97,8 +107,6 @@ void test_hello_react() {
 	runExperiment(
 	    max_iterations,
 	    num_teachers,
-	    num_rooms,
-	    num_timeslots,
 	    total_school_class,
 	    total_section,
 	    section_subjects,

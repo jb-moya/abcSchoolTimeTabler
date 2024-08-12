@@ -11,6 +11,9 @@ import SectionListContainer from "./components/SectionListContainer";
 import clsx from "clsx";
 import NotificationHandler from "./components/NotificationHandler";
 import GeneratedTimetable from "./components/TimeTable";
+import validateTimetableVariables from "./validation/validateTimetableVariables";
+import { toast } from "sonner";
+import ViolationList from "./components/ViolationList";
 const getTimetable = wrap(new WasmWorker());
 
 function App() {
@@ -23,6 +26,20 @@ function App() {
     const [teacherTimetable, setTeacherTimetable] = useState({});
     const [timetableGenerationStatus, setTimetableGenerationStatus] =
         useState("idle");
+    const [violations, setViolations] = useState([]);
+
+    // Scope and Limitations
+    // Room-Section Relationship: Each room is uniquely assigned to a specific subject, establishing a 1:1 relationship.
+    // Due to this strict pairing, room allocation is not a factor in timetable generation.
+
+    // Uniform Weekly Schedule: Time slots for classes remain consistent across all days of the week.
+    // There are no variations in the daily schedule for classes.
+
+    // Curriculum-Driven Course Selection: Students are required to follow a predefined curriculum.
+    // They do not have the option to select subjects independently.
+
+    // Standardized Class Start and Break Times: The start time for the first class and the timing of breaks are
+    // standardized across all sections and teachers, ensuring uniformity in the daily schedule.
 
     const timeSlotMap = {
         0: "06:00 - 06:50",
@@ -41,6 +58,24 @@ function App() {
     const beforeBreakTime = {
         2: "08:30 - 09:00",
         6: "12:20 - 01:00",
+    };
+
+    const validate = () => {
+        const { canProceed, violations } = validateTimetableVariables({
+            sections,
+            teachers,
+            subjects,
+        });
+
+        if (!canProceed) {
+            toast.error("Invalid timetable variables");
+            console.log(violations);
+            setViolations(violations);
+            return false;
+        }
+
+        setViolations([]);
+        return true;
     };
 
     const handleButtonClick = async () => {
@@ -88,10 +123,10 @@ function App() {
             {}
         );
 
-        console.log("subjectMap", subjectMap);
-        console.log("teacherMap", teacherMap);
-        console.log("subjectMapReverse", subjectMapReverse);
-        console.log("sectionMap", sectionMap);
+        // console.log("subjectMap", subjectMap);
+        // console.log("teacherMap", teacherMap);
+        // console.log("subjectMapReverse", subjectMapReverse);
+        // console.log("sectionMap", sectionMap);
 
         const sectionSubjectArray = [];
         // console.log("sectionMap", sectionMap);
@@ -105,11 +140,24 @@ function App() {
         const sectionSubjects = new Int32Array([...sectionSubjectArray]);
 
         const max_iterations = 30000;
-        const beesPopulations = 11;
-        const beesEmployedOptions = 5;
-        const beesOnlookerOptions = 5;
+        const beesPopulations = 50;
+        const beesEmployedOptions = 25;
+        const beesOnlookerOptions = 25;
         const beesScoutOptions = 1;
-        const limits = 800;
+        const limits = 4;
+
+        //    0   3   0   3   0
+        //    1   3   1   1   2
+        //    2   3   2   2   1
+        //    3   2   0   0   2
+        //    4   2   1   1   1
+        //    5   2   2   2   0
+        //    6   1   0   3   2
+        //    7   1   1   1   0
+        //    8   1   2   2   1
+        //    9   0   0   0   0
+        //   11   0   2   2   2
+        //   10   0   1   3   1
 
         // console.log("sectionSubjects", sectionSubjects, sectionSubjects.length);
 
@@ -130,10 +178,10 @@ function App() {
 
         const teacherSubjectArray = [];
 
-        console.log("teacherMap", teacherMap);
+        // console.log("teacherMap", teacherMap);
         for (const [teacherKey, { subjects }] of Object.entries(teacherMap)) {
             for (const subject of subjects) {
-                console.log("hehe", teacherKey, subject);
+                // console.log("hehe", teacherKey, subject);
                 teacherSubjectArray.push(packInt16ToInt32(teacherKey, subject));
             }
         }
@@ -159,7 +207,7 @@ function App() {
 
         setTimetableGenerationStatus("running");
         const { timetable, status } = await getTimetable(params);
-        console.log("success", timetable, status);
+        // console.log("success", timetable, status);
         setTimetableGenerationStatus(status);
 
         const timetableMap = [];
@@ -213,8 +261,8 @@ function App() {
 
         // setTimetable(timetable);
         // console.log("timetable", timetableMap);
-        console.log("section timetable", sectionTimetable);
-        console.log("teacher timetable", teacherTimetable);
+        // console.log("section timetable", sectionTimetable);
+        // console.log("teacher timetable", teacherTimetable);
 
         setTimetable(timetableMap);
         setSectionTimetable(sectionTimetable);
@@ -245,8 +293,13 @@ function App() {
                         className={clsx("btn btn-primary w-full", {
                             "cursor-not-allowed":
                                 timetableGenerationStatus === "running",
+                            "btn-error": timetableGenerationStatus === "error",
                         })}
-                        onClick={() => handleButtonClick()}
+                        onClick={() => {
+                            if (validate()) {
+                                handleButtonClick();
+                            }
+                        }}
                         disabled={timetableGenerationStatus === "running"}
                     >
                         {timetableGenerationStatus == "running" ? (
@@ -258,6 +311,10 @@ function App() {
                             "Generate Timetable"
                         )}
                     </button>
+
+                    <div>
+                        <ViolationList violations={violations} />
+                    </div>
                 </div>
 
                 <div className="flex w-full gap-4">
