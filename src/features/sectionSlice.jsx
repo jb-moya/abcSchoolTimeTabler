@@ -24,10 +24,7 @@ export const fetchSections = createAsyncThunk(
 export const addSection = createAsyncThunk(
     "section/addSection",
     async (section, { dispatch }) => {
-        const key = await addEntityToDB(
-            STORE_NAMES.SECTIONS,
-            section,
-        );
+        const key = await addEntityToDB(STORE_NAMES.SECTIONS, section);
         dispatch(sectionSlice.actions.addSectionSync({ ...section, id: key }));
     }
 );
@@ -36,7 +33,12 @@ export const editSection = createAsyncThunk(
     "section/editSection",
     async ({ sectionId, updatedSection }, { dispatch }) => {
         await editEntityFromDB(STORE_NAMES.SECTIONS, sectionId, updatedSection);
-        dispatch(sectionSlice.actions.editSectionSync({ id: sectionId, ...updatedSection }));
+        dispatch(
+            sectionSlice.actions.editSectionSync({
+                id: sectionId,
+                ...updatedSection,
+            })
+        );
     }
 );
 
@@ -58,11 +60,17 @@ export const sectionSlice = createSlice({
         },
         editSectionSync: (state, action) => {
             const updatedSection = action.payload;
-            state.sections[updatedSection.id] = { ...state.sections[updatedSection.id], ...updatedSection };
+            state.sections[updatedSection.id] = {
+                ...state.sections[updatedSection.id],
+                ...updatedSection,
+            };
         },
         removeSectionSync: (state, action) => {
             const sectionId = action.payload;
             delete state.sections[sectionId];
+        },
+        setStatusIdle: (state) => {
+            state.status = "idle";
         },
     },
     extraReducers: (builder) => {
@@ -81,6 +89,7 @@ export const sectionSlice = createSlice({
     },
 });
 
-export const { addSectionSync, editSectionSync, removeSectionSync } = sectionSlice.actions;
+export const { addSectionSync, editSectionSync, removeSectionSync, setStatusIdle: setSectionStatusIdle } =
+    sectionSlice.actions;
 
 export default sectionSlice.reducer;

@@ -33,7 +33,12 @@ export const editSubject = createAsyncThunk(
     "subject/editSubject",
     async ({ subjectId, updatedSubject }, { dispatch }) => {
         await editEntityFromDB(STORE_NAMES.SUBJECTS, subjectId, updatedSubject);
-        dispatch(subjectSlice.actions.editSubjectSync({ id: subjectId, ...updatedSubject }));
+        dispatch(
+            subjectSlice.actions.editSubjectSync({
+                id: subjectId,
+                ...updatedSubject,
+            })
+        );
     }
 );
 
@@ -41,7 +46,10 @@ export const removeSubject = createAsyncThunk(
     "subject/removeSubject",
     async (subjectId, { dispatch, rejectWithValue }) => {
         try {
-            const success = await removeEntityFromDB(STORE_NAMES.SUBJECTS, subjectId);
+            const success = await removeEntityFromDB(
+                STORE_NAMES.SUBJECTS,
+                subjectId
+            );
             if (success) {
                 dispatch(subjectSlice.actions.removeSubjectSync(subjectId));
             }
@@ -61,11 +69,17 @@ export const subjectSlice = createSlice({
         },
         editSubjectSync: (state, action) => {
             const updatedSubject = action.payload;
-            state.subjects[updatedSubject.id] = { ...state.subjects[updatedSubject.id], ...updatedSubject };
+            state.subjects[updatedSubject.id] = {
+                ...state.subjects[updatedSubject.id],
+                ...updatedSubject,
+            };
         },
         removeSubjectSync: (state, action) => {
             const subjectId = action.payload;
             delete state.subjects[subjectId];
+        },
+        setStatusIdle: (state) => {
+            state.status = "idle";
         },
     },
     extraReducers: (builder) => {
@@ -84,6 +98,7 @@ export const subjectSlice = createSlice({
     },
 });
 
-export const { addSubjectSync, editSubjectSync, removeSubjectSync } = subjectSlice.actions;
+export const { addSubjectSync, editSubjectSync, removeSubjectSync, setStatusIdle: setSubjectStatusIdle } =
+    subjectSlice.actions;
 
 export default subjectSlice.reducer;

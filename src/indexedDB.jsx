@@ -1,7 +1,7 @@
 import { openDB } from "idb";
 import { toast } from "sonner";
 
-const DB_NAME = "abcTimetable";
+export const DB_NAME = "abcTimetable";
 const DB_VERSION = 1;
 
 export const STORE_NAMES = {
@@ -127,4 +127,110 @@ export const getAllEntitiesFromDB = async (storeName) => {
     await tx.done;
 
     return entity;
+};
+
+export const clearAllEntriesAcrossStores = async () => {
+    const db = await initDB();
+    const storeNames = Object.values(STORE_NAMES);
+    for (const storeName of storeNames) {
+        const tx = db.transaction(storeName, "readwrite");
+        const store = tx.objectStore(storeName);
+        await store.clear();
+    }
+};
+
+export const exportIndexedDB = (dbName) => {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(dbName);
+        request.onerror = () => {
+            reject("Error opening IndexedDB");
+        };
+        request.onsuccess = (event) => {
+            const db = event.target.result;
+            const transaction = db.transaction(db.objectStoreNames, "readonly");
+            const exportData = {};
+            let objectStoresProcessed = 0;
+
+            for (const storeName of db.objectStoreNames) {
+                const store = transaction.objectStore(storeName);
+                const request = store.getAll();
+
+                request.onsuccess = (event) => {
+                    exportData[storeName] = event.target.result;
+                    objectStoresProcessed++;
+                    if (objectStoresProcessed === db.objectStoreNames.length) {
+                        resolve(exportData);
+                    }
+                };
+                request.onerror = () => {
+                    reject(`Error exporting store: ${storeName}`);
+                };
+            }
+        };
+    });
+};
+
+export const importIndexedDB = (dbName, jsonData) => {
+    const importData = JSON.parse(jsonData);
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(dbName);
+        request.onerror = () => {
+            reject("Error opening IndexedDB");
+        };
+        request.onsuccess = (event) => {
+            const db = event.target.result;
+            const transaction = db.transaction(
+                db.objectStoreNames,
+                "readwrite"
+            );
+
+            for (const storeName in importData) {
+                const store = transaction.objectStore(storeName);
+                importData[storeName].forEach((item) => {
+                    store.put(item);
+                });
+            }
+
+            transaction.oncomplete = () => {
+                resolve("Import complete");
+            };
+            transaction.onerror = () => {
+                reject("Error importing data");
+            };
+        };
+    });
+};
+
+export const downloadData = (jsonData, fileName) => {
+    const blob = new Blob([jsonData], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(url);
+};
+
+export const loadFile = () => {
+    return new Promise((resolve, reject) => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "application/json";
+
+        input.onchange = (event) => {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                resolve(e.target.result);
+            };
+            reader.onerror = () => {
+                reject("Error reading file");
+            };
+
+            reader.readAsText(file);
+        };
+
+        input.click();
+    });
 };
