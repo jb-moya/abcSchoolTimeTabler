@@ -1,7 +1,7 @@
 #include "abc.h"
 
 #include <math.h>
-#include <omp.h>
+// #include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -44,7 +44,9 @@ void Timetable::initializeRandomTimetable(
     std::mt19937& gen,
     std::unordered_map<int16_t, std::vector<int16_t>>& eligible_teachers_in_subject,
     std::unordered_map<int16_t, std::uniform_int_distribution<int>>& class_timeslot_distributions,
-    std::unordered_map<int16_t, std::vector<int16_t>>& section_subjects) {
+    std::unordered_map<int16_t, std::vector<int16_t>>& section_subjects,
+    std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>>& section_subjects_units_map,
+    std::uniform_int_distribution<int8_t>& random_workday) {
 	int16_t offset = 0;
 
 	for (const auto& entry : section_subjects) {
@@ -60,9 +62,26 @@ void Timetable::initializeRandomTimetable(
 			int16_t timeslot = class_timeslot_distributions[section_id](gen);
 			int16_t teacher = eligible_teachers_in_subject[subject_id][dis(gen)];
 
-			// std::cout << "Teacher: " << teacher << " subject " << subject_id << std::endl;
+			int16_t unit = section_subjects_units_map[section_id][subject_id].second;
 
-			schoolClasses.push_back({school_class_id, section_id, subject_id, teacher, timeslot});
+			// std::cout << "section_id : " << section_id << " subject : " << subject_id << " units : " << unit << "  -  " << std::endl;
+
+			if (unit == 0) {
+				// std::cout << "HEHEHEHEHEH" << std::endl;
+				schoolClasses.push_back({school_class_id, section_id, subject_id, teacher, timeslot, 0});
+			} else {
+				for (int16_t i = 0; i < unit; ++i) {
+					int8_t workday = random_workday(gen);
+					schoolClasses.push_back({static_cast<int16_t>(school_class_id + i), section_id, subject_id, teacher, timeslot, workday});
+				}
+			}
+
+			// if the subject of the subject is full workweek, add simple integer timeslot inside {}
+
+			// first  bits for the hour:minute
+			// last 3 bits for the day
+
+			// std::cout << "Teacher: " << teacher << " subject " << subject_id << std::endl;
 		}
 
 		offset += num_subjects;
@@ -73,16 +92,25 @@ void Timetable::update(std::mt19937& gen,
                        std::uniform_int_distribution<int16_t>& distribution_field,
                        std::uniform_int_distribution<int16_t>& distribution_school_class,
                        std::uniform_int_distribution<int16_t>& distribution_section,
+                       std::uniform_int_distribution<int8_t>& random_workday,
+                       std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>>& section_subjects_units_map,
                        std::unordered_map<int16_t, std::vector<int16_t>>& eligible_teachers_in_subject,
                        std::unordered_map<int16_t, std::uniform_int_distribution<int>>& class_timeslot_distributions) {
 	int16_t choice = distribution_field(gen);
 	int16_t school_class_id = distribution_school_class(gen);
 
-	// std::cout << "choice: " << choice << " school_class_id: " << school_class_id << std::endl;
-	//  0   1   0   1   1
-	//  1   1   1   1   0
-	//  2   0   0   0   1
-	//  3   0   1   1   0
+	if (choice == 2) {
+		int16_t unit = section_subjects_units_map[schoolClasses[school_class_id].section_id][schoolClasses[school_class_id].subject_id].second;
+		if (unit != 0) {
+			int8_t workday = random_workday(gen);
+			schoolClasses[school_class_id].day = workday;
+
+			return;
+		} else {
+			std::uniform_int_distribution<> rechoice_dis(0, 1);
+			choice = rechoice_dis(gen);
+		}
+	}
 
 	if (choice == 0) {
 		int16_t subject_id = schoolClasses[school_class_id].subject_id;
@@ -94,21 +122,29 @@ void Timetable::update(std::mt19937& gen,
 		schoolClasses[school_class_id]
 		    .teacher_id = teacher;
 
-		// std::cout << " subject " << subject_id << " Teacher: " << teacher << std::endl;
-
 	} else if (choice == 1) {
 		int16_t timeslot = class_timeslot_distributions[schoolClasses[school_class_id].section_id](gen);
-
-		// std::cout << "timeslot: " << timeslot << std::endl;
 
 		schoolClasses[school_class_id]
 		    .timeslot = timeslot;
 	}
 };
 
-int combine(int class_id, int time_slot) {
-	return (class_id << 16) | time_slot;
+int combine(int first, int second) {
+	return (first << 16) | second;
 };
+int combine(int first, int second, int third) {
+	return (first << 16) | (second << 8) | third;
+}
+int extractFirst(int combined) {
+	return (combined >> 16) & 0xFFFF;
+}
+int extractSecond(int combined) {
+	return (combined >> 8) & 0xFF;
+}
+int extractThird(int combined) {
+	return combined & 0xFF;
+}
 
 void extractSectionSubjects(const std::vector<int32_t>& inputArray, std::unordered_map<int16_t, std::vector<int16_t>>& section_subjects) {
 	for (int32_t value : inputArray) {
@@ -131,16 +167,20 @@ double ObjectiveFunction::evaluate(
 		int teacher_id = static_cast<int>(school_class.teacher_id);
 		int timeslot = static_cast<int>(school_class.timeslot);
 		int section_id = static_cast<int>(school_class.section_id);
+		int day = static_cast<int>(school_class.day);
+		// std::cout << "day : " << day << std::endl;
 
 		if (teacher_id == -1 || timeslot == -1) continue;
 
-		int class_timeslot_key = combine(section_id, timeslot);
+		int class_timeslot_key = combine(section_id, timeslot, day);
 		if (!class_timeslot_set.insert(class_timeslot_key).second) {
+			std::cout << "BOBO  :" << section_id << "  " << timeslot << "  " << day << std::endl;
 			conflicting_timeslots++;
 		}
 
-		int teacher_timeslot_key = combine(teacher_id, timeslot);
+		int teacher_timeslot_key = combine(teacher_id, timeslot, day);
 		if (!teacher_timeslot_set.insert(teacher_timeslot_key).second) {
+			std::cout << "GAGO  : " << teacher_id << "  " << timeslot << "  " << day << std::endl;
 			conflicting_timeslots++;
 		}
 	}
@@ -176,25 +216,27 @@ void runExperiment(
     int total_section,
     int32_t* section_subjects,
     int32_t* teacher_subjects,
+    int32_t* section_subject_units,
     int teacher_subjects_length,
     int beesPopulation,
     int beesEmployed,
     int beesOnlooker,
     int beesScout,
     int limit,
+    int workweek,
     int64_t* result) {
 	// Set the number of threads to the number of logical processors available
-	omp_set_num_threads(omp_get_max_threads());
+	// 	omp_set_num_threads(omp_get_max_threads());
 
-#pragma omp parallel
-	{
-		int thread_id = omp_get_thread_num();
-		int num_threads = omp_get_num_threads();
-		if (thread_id == 0) {
-			std::cout << "Total number of threads: " << num_threads << std::endl;
-		}
-		std::cout << "Thread " << thread_id << " is running" << std::endl;
-	}
+	// #pragma omp parallel
+	// 	{
+	// 		int thread_id = omp_get_thread_num();
+	// 		int num_threads = omp_get_num_threads();
+	// 		if (thread_id == 0) {
+	// 			std::cout << "Total number of threads: " << num_threads << std::endl;
+	// 		}
+	// 		std::cout << "Thread " << thread_id << " is running" << std::endl;
+	// 	}
 
 	int16_t nrOfExperiments = 1;
 
@@ -203,6 +245,7 @@ void runExperiment(
 
 	std::unordered_map<int16_t, std::vector<int16_t>> section_subjects_map = {};
 	std::unordered_map<int16_t, std::vector<int16_t>> teacher_subjects_map = {};
+	std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>> section_subjects_units_map = {};
 
 	std::unordered_map<int16_t, std::vector<int16_t>> eligible_teachers_in_subject;
 
@@ -219,7 +262,7 @@ void runExperiment(
 		eligible_teachers_in_subject[unpackedSecond].push_back(unpackedFirst);
 	}
 
-	std::cout << "eligible_teachers_in_subject" << std::endl;
+	// std::cout << "eligible_teachers_in_subject" << std::endl;
 	for (auto it = eligible_teachers_in_subject.begin(); it != eligible_teachers_in_subject.end(); it++) {
 		std::cout << it->first << " ";
 
@@ -229,14 +272,14 @@ void runExperiment(
 
 		std::cout << std::endl;
 	}
-	std::cout << "eligible_teachers_in_subject end" << std::endl;
+	// std::cout << "eligible_teachers_in_subject end" << std::endl;
 
-	std::cout << "teacher_subjects_map" << std::endl;
+	// std::cout << "teacher_subjects_map" << std::endl;
 	for (const auto& pair : teacher_subjects_map) {
 		int16_t teacher_id = pair.first;
 		const std::vector<int16_t>& subjects = pair.second;
 
-		std::cout << "Teacher ID: " << teacher_id << " teaches subjects: ";
+		// std::cout << "Teacher ID: " << teacher_id << " teaches subjects: ";
 		for (int16_t subject : subjects) {
 			std::cout << subject << " ";
 		}
@@ -245,24 +288,32 @@ void runExperiment(
 
 	std::unordered_map<int, int> class_num_of_subjects;
 
-	std::cout << "section_subjects_map" << std::endl;
+	// std::cout << "section_subjects_map" << std::endl;
 	for (int i = 0; i < total_school_class; i++) {
-		int16_t unpackedFirst, unpackedSecond;
+		int16_t unpacked_first_section_subjects, unpacked_second_section_subjects;
+		int16_t unpacked_first_section_subjects_units, unpacked_second_section_subjects_units;
 
-		unpackedFirst = static_cast<int16_t>(section_subjects[i] >> 16);
-		unpackedSecond = static_cast<int16_t>(section_subjects[i] & 0xFFFF);
-		std::cout << "unpackedFirst: " << unpackedFirst << " unpackedSecond: " << unpackedSecond << std::endl;
-		section_subjects_map[unpackedFirst].push_back(unpackedSecond);
+		unpacked_first_section_subjects = static_cast<int16_t>(section_subjects[i] >> 16);
+		unpacked_second_section_subjects = static_cast<int16_t>(section_subjects[i] & 0xFFFF);
 
-		class_num_of_subjects[unpackedFirst]++;
+		unpacked_first_section_subjects_units = static_cast<int16_t>(section_subject_units[i] >> 16);
+		unpacked_second_section_subjects_units = static_cast<int16_t>(section_subject_units[i] & 0xFFFF);
+
+		section_subjects_map[unpacked_first_section_subjects].push_back(unpacked_second_section_subjects);
+
+		std::cout << "a : " << unpacked_first_section_subjects_units << " b : " << unpacked_second_section_subjects_units << std::endl;
+
+		section_subjects_units_map[unpacked_first_section_subjects].push_back(std::make_pair(unpacked_first_section_subjects_units, unpacked_second_section_subjects_units));
+
+		class_num_of_subjects[unpacked_first_section_subjects]++;
 	}
 
 	// cout all class_num_of_subjects
-	std::cout << "class_num_of_subjects" << std::endl;
+	// std::cout << "class_num_of_subjects" << std::endl;
 	for (auto it = class_num_of_subjects.begin(); it != class_num_of_subjects.end(); it++) {
 		std::cout << it->first << " " << it->second << std::endl;
 	}
-	std::cout << "class_num_of_subjects end" << std::endl;
+	// std::cout << "class_num_of_subjects end" << std::endl;
 
 	for (int16_t i = 0; i < section_subjects_map.size(); i++) {
 		for (int j = 0; j < section_subjects_map[i].size(); j++) {
@@ -275,21 +326,22 @@ void runExperiment(
 	std::unordered_map<int16_t, std::uniform_int_distribution<int>> class_timeslot_distributions;
 
 	std::cout << "class_timeslot_distributions" << std::endl;
-	std::cout << "class_timeslot_distributions" << std::endl;
+	// std::cout << "class_timeslot_distributions" << std::endl;
 	for (auto it = class_num_of_subjects.begin(); it != class_num_of_subjects.end(); it++) {
 		std::cout << it->first << " " << it->second << std::endl;
 		class_timeslot_distributions[it->first] = std::uniform_int_distribution<int>(0, it->second - 1);
 	}
 
-	std::cout << total_school_class << " hehe " << std::endl;
-	std::cout << total_section << " hehe " << std::endl;
-	std::cout << num_teachers << " hehe " << std::endl;
+	// std::cout << total_school_class << " hehe " << std::endl;
+	// std::cout << total_section << " hehe " << std::endl;
+	// std::cout << num_teachers << " hehe " << std::endl;
 
 	std::uniform_int_distribution<int16_t>
-	    random_field(0, 1);
+	    random_field(0, 2);
 	std::uniform_int_distribution<int16_t> random_school_class(0, total_school_class - 1);
 	std::uniform_int_distribution<int16_t> random_section(0, total_section - 1);
 	std::uniform_int_distribution<int16_t> random_teacher(0, num_teachers - 1);
+	std::uniform_int_distribution<int8_t> random_workDay(1, workweek);
 
 	ObjectiveFunction optimizableFunction;
 	vector<double> bestCostExperiments(nrOfExperiments, 0);
@@ -299,7 +351,7 @@ void runExperiment(
 	printf("For function abcTestMine: %d experiments, %d iterations for each experiment. \n", nrOfExperiments, max_iterations);
 
 	Bee bestSolution(total_school_class);
-	bestSolution.timetable.initializeRandomTimetable(gen, eligible_teachers_in_subject, class_timeslot_distributions, section_subjects_map);
+	bestSolution.timetable.initializeRandomTimetable(gen, eligible_teachers_in_subject, class_timeslot_distributions, section_subjects_map, section_subjects_units_map, random_workDay);
 	bestSolution.cost = optimizableFunction.evaluate(bestSolution.timetable, false);
 
 	auto start = std::chrono::high_resolution_clock::now();
@@ -308,7 +360,7 @@ void runExperiment(
 		vector<Bee> beesVector(beesPopulation, Bee(total_school_class));
 
 		for (int i = 0; i < beesPopulation; i++) {
-			beesVector[i].timetable.initializeRandomTimetable(gen, eligible_teachers_in_subject, class_timeslot_distributions, section_subjects_map);
+			beesVector[i].timetable.initializeRandomTimetable(gen, eligible_teachers_in_subject, class_timeslot_distributions, section_subjects_map, section_subjects_units_map, random_workDay);
 
 			beesVector[i].cost = optimizableFunction.evaluate(beesVector[i].timetable, false);
 			if (beesVector[i].cost <= bestSolution.cost) {
@@ -320,7 +372,7 @@ void runExperiment(
 		std::uniform_int_distribution<> dist_bees_employed(0, beesEmployed - 1);
 
 		for (int iter = 0; iter < max_iterations; iter++) {
-#pragma omp parallel for
+			// #pragma omp parallel for
 			for (int i = 0; i < beesEmployed; i++) {
 				int randomBeesIndex;
 				do {
@@ -329,11 +381,11 @@ void runExperiment(
 
 				Bee newBee(total_school_class);
 				newBee = beesVector[randomBeesIndex];
-				newBee.timetable.update(gen, random_field, random_school_class, random_section, eligible_teachers_in_subject, class_timeslot_distributions);
+				newBee.timetable.update(gen, random_field, random_school_class, random_section, random_workDay, section_subjects_units_map, eligible_teachers_in_subject, class_timeslot_distributions);
 
 				newBee.cost = optimizableFunction.evaluate(newBee.timetable, false);
 
-#pragma omp critical
+				// #pragma omp critical
 				{
 					if (newBee.cost <= beesVector[i].cost) {
 						beesVector[i] = newBee;
@@ -374,7 +426,7 @@ void runExperiment(
 				return static_cast<int>(prob.size() - 1);
 			};
 
-#pragma omp parallel for
+			// #pragma omp parallel for
 			for (int m = 0; m < beesOnlooker; m++) {
 				int i = fitnessProportionateSelection(prob);
 
@@ -385,11 +437,11 @@ void runExperiment(
 
 				Bee newBee(total_school_class);
 				newBee = beesVector[randomBeesIndex];
-				newBee.timetable.update(gen, random_field, random_school_class, random_section, eligible_teachers_in_subject, class_timeslot_distributions);
+				newBee.timetable.update(gen, random_field, random_school_class, random_section, random_workDay, section_subjects_units_map, eligible_teachers_in_subject, class_timeslot_distributions);
 
 				newBee.cost = optimizableFunction.evaluate(newBee.timetable, false);
 
-#pragma omp critical
+				// #pragma omp critical
 				{
 					if (newBee.cost <= beesVector[i].cost) {
 						beesVector[i] = newBee;
@@ -399,12 +451,12 @@ void runExperiment(
 				}
 			}
 
-#pragma omp parallel for
+			// #pragma omp parallel for
 			for (int itScout = 0; itScout < beesScout; itScout++) {
 				for (int i = 0; i < beesEmployed; i++) {
 					if (abandonedBees[i] >= limit) {
 						Bee newBee(total_school_class);
-						newBee.timetable.initializeRandomTimetable(gen, eligible_teachers_in_subject, class_timeslot_distributions, section_subjects_map);
+						newBee.timetable.initializeRandomTimetable(gen, eligible_teachers_in_subject, class_timeslot_distributions, section_subjects_map, section_subjects_units_map, random_workDay);
 						newBee = beesVector[i];
 
 						beesVector[i].cost = optimizableFunction.evaluate(beesVector[i].timetable, false);
@@ -434,7 +486,8 @@ void runExperiment(
 		    << GREEN << std::setw(4) << bestSolution.timetable.schoolClasses[i].section_id << RESET
 		    << YELLOW << std::setw(4) << bestSolution.timetable.schoolClasses[i].subject_id << RESET
 		    << BLUE << std::setw(4) << bestSolution.timetable.schoolClasses[i].teacher_id << RESET
-		    << CYAN << std::setw(4) << bestSolution.timetable.schoolClasses[i].timeslot << RESET << std::endl;
+		    << CYAN << std::setw(4) << bestSolution.timetable.schoolClasses[i].timeslot << RESET
+		    << MAGENTA << std::setw(4) << static_cast<int>(bestSolution.timetable.schoolClasses[i].day) << RESET << std::endl;
 	}
 
 	std::cout << "Objective function: " << ObjectiveFunction().evaluate(bestSolution.timetable, true) << endl;

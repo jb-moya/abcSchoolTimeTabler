@@ -14,7 +14,7 @@ const TimetableRow = ({
             <tr key={`${timeslotID}-break`}>
                 <td>{timeslot}</td>
                 <td
-                    colSpan={3}
+                    colSpan={5}
                     className="opacity-50 col-span-full text-center"
                 >
                     <span className="divider m-0">break time</span>
@@ -30,8 +30,10 @@ const TimetableRow = ({
         return (
             <tr key={timeslotID}>
                 <td>{timeslot}</td>
-                <th>{firstColumnMap[fieldName1][columnField[0]]}</th>
-                <td>{secondColumnMap[fieldName2][columnField[1]]}</td>
+                <td colSpan={5} className="w-full text-center">
+                    <div>{firstColumnMap[fieldName1][columnField[0]]}</div>
+                    <div>{secondColumnMap[fieldName2][columnField[1]]}</div>
+                </td>
             </tr>
         );
     }
@@ -39,7 +41,7 @@ const TimetableRow = ({
     return (
         <tr key={timeslotID} className="opacity-50">
             <td>{timeslot}</td>
-            <td colSpan={2} className="text-center">
+            <td className="text-center" colSpan={5}>
                 <span className="divider m-0">empty</span>
             </td>
         </tr>
@@ -59,58 +61,63 @@ const GeneratedTimetable = ({
     if (!timetable) return null;
 
     return (
-        <div className="w-1/2">
+        <div className="">
             <div className="overflow-x-auto">
                 {Object.entries(timetable).map(([entryID, entry]) => (
-                        <React.Fragment key={entryID}>
-                            <div className="flex gap-4 font-bold items-center text-center mt-10">
-                                <div>{field}: </div>
-                                <div className="text-lg text-accent">
-                                    {collection[entryID][field]}
-                                </div>
+                    <React.Fragment key={entryID}>
+                        <div className="flex gap-4 font-bold items-center text-center mt-10">
+                            <div>{field}: </div>
+                            <div className="text-lg text-accent">
+                                {collection[entryID][field]}
                             </div>
-                            <table className="table table-zebra table-xs bg-base-100">
-                                <thead>
-                                    <tr>
-                                        <th>Time</th>
-                                        <th>{columnField[0]}</th>
-                                        <th>{columnField[1]}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {Object.entries(timeSlotMap).map(
-                                        ([timeslotID, timeslot]) => (
-                                            <React.Fragment key={timeslotID}>
+                        </div>
+                        <table className="table table-zebra table-xs bg-base-100 table-fixed">
+                            <thead>
+                                <tr className="text-center">
+                                    <th className="border border-primary-content">Time</th>
+                                    <th className="border border-primary-content">Mon</th>
+                                    <th className="border border-primary-content">Tue</th>
+                                    <th className="border border-primary-content">Wed</th>
+                                    <th className="border border-primary-content">Thu</th>
+                                    <th className="border border-primary-content">Fri</th>
+                                    {/* <th>{columnField[0]}</th>
+                                        <th>{columnField[1]}</th> */}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {Object.entries(timeSlotMap).map(
+                                    ([timeslotID, timeslot]) => (
+                                        <React.Fragment key={timeslotID}>
+                                            <TimetableRow
+                                                timeslot={timeslot}
+                                                timeslotID={timeslotID}
+                                                teacherTimeslot={
+                                                    entry[timeslotID]
+                                                }
+                                                firstColumnMap={firstColumnMap}
+                                                secondColumnMap={
+                                                    secondColumnMap
+                                                }
+                                                columnField={columnField}
+                                            />
+                                            {beforeBreakTime[timeslotID] && (
                                                 <TimetableRow
-                                                    timeslot={timeslot}
-                                                    timeslotID={timeslotID}
-                                                    teacherTimeslot={
-                                                        entry[timeslotID]
+                                                    timeslot={
+                                                        beforeBreakTime[
+                                                            timeslotID
+                                                        ]
                                                     }
-                                                    firstColumnMap={firstColumnMap}
-                                                    secondColumnMap={secondColumnMap}
-                                                    columnField={columnField}
+                                                    timeslotID={timeslotID}
+                                                    isBreak
                                                 />
-                                                {beforeBreakTime[
-                                                    timeslotID
-                                                ] && (
-                                                    <TimetableRow
-                                                        timeslot={
-                                                            beforeBreakTime[
-                                                                timeslotID
-                                                            ]
-                                                        }
-                                                        timeslotID={timeslotID}
-                                                        isBreak
-                                                    />
-                                                )}
-                                            </React.Fragment>
-                                        )
-                                    )}
-                                </tbody>
-                            </table>
-                        </React.Fragment>
-                    ))}
+                                            )}
+                                        </React.Fragment>
+                                    )
+                                )}
+                            </tbody>
+                        </table>
+                    </React.Fragment>
+                ))}
             </div>
         </div>
     );

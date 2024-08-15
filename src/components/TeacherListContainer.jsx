@@ -59,16 +59,25 @@ const TeacherListContainer = () => {
     };
 
     const debouncedSearch = useCallback(
-        debounce((searchValue, teachers) => {
+        debounce((searchValue, teachers, subjects) => {
             setSearchTeacherResult(
                 filterObject(teachers, ([, teacher]) => {
+                    if (!searchValue) return true;
+
+                    const teachersSubjectsName = teacher.subjects
+                        .map((subjectID) => subjects[subjectID].subject)
+                        .join(" ");
+
                     const escapedSearchValue = escapeRegExp(searchValue)
                         .split("\\*")
                         .join(".*");
 
                     const pattern = new RegExp(escapedSearchValue, "i");
 
-                    return pattern.test(teacher.teacher);
+                    return (
+                        pattern.test(teacher.teacher) ||
+                        pattern.test(teachersSubjectsName)
+                    );
                 })
             );
         }, 200),
@@ -76,8 +85,8 @@ const TeacherListContainer = () => {
     );
 
     useEffect(() => {
-        debouncedSearch(searchTeacherValue, teachers);
-    }, [searchTeacherValue, teachers, debouncedSearch]);
+        debouncedSearch(searchTeacherValue, teachers, subjects);
+    }, [searchTeacherValue, teachers, debouncedSearch, subjects]);
 
     useEffect(() => {
         if (teacherStatus === "idle") {
@@ -92,7 +101,7 @@ const TeacherListContainer = () => {
                     <input
                         type="text"
                         className="grow"
-                        placeholder="Search Teacher"
+                        placeholder="Search Teacher by Name or Subject Specialization"
                         value={searchTeacherValue}
                         onChange={(e) => setSearcTeacherValue(e.target.value)}
                     />
@@ -112,7 +121,7 @@ const TeacherListContainer = () => {
                     <tbody>
                         {Object.values(searchTeacherResult).length === 0 ? (
                             <tr>
-                                <td colSpan="4" className="text-center">
+                                <td colSpan="5" className="text-center">
                                     No teachers found
                                 </td>
                             </tr>

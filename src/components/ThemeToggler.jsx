@@ -7,6 +7,9 @@ const ThemeToggler = () => {
         document.documentElement.setAttribute("data-theme", theme);
     }, [theme]);
 
+    const darkTheme = "darkEdu";
+    const lightTheme = "lightEdu";
+
     return (
         <label className="flex cursor-pointer items-center gap-2">
             <svg
@@ -26,13 +29,13 @@ const ThemeToggler = () => {
             <input
                 data-toggle-theme={theme}
                 type="checkbox"
-                className="toggle"
-                defaultChecked
+                className="toggle bg-secondary hover:bg-primary"
+                defaultChecked={theme === darkTheme}
                 onChange={() => {
-                    setTheme(theme === "dark" ? "light" : "dark");
+                    setTheme(theme === darkTheme ? lightTheme : darkTheme);
                     localStorage.setItem(
                         "theme",
-                        theme === "dark" ? "light" : "dark"
+                        theme === darkTheme ? lightTheme : darkTheme
                     );
                 }}
             />

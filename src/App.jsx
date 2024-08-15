@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import packInt16ToInt32 from "./utils/packInt16ToInt32";
 import Navbar from "./components/Navbar";
 import { useSelector } from "react-redux";
@@ -14,12 +14,17 @@ import GeneratedTimetable from "./components/TimeTable";
 import validateTimetableVariables from "./validation/validateTimetableVariables";
 import { toast } from "sonner";
 import ViolationList from "./components/ViolationList";
+import Dashboard from "./components/Dashboard";
+import { BiChevronDown, BiChevronUp } from "react-icons/bi";
+
 const getTimetable = wrap(new WasmWorker());
 
 function App() {
     const { subjects } = useSelector((state) => state.subject);
     const { teachers } = useSelector((state) => state.teacher);
     const { sections } = useSelector((state) => state.section);
+
+    const [numOfSchoolDays, setNumOfSchoolDays] = useState(5);
 
     const [timetable, setTimetable] = useState([]);
     const [sectionTimetable, setSectionTimetable] = useState({});
@@ -115,6 +120,12 @@ function App() {
                     subjects: value.subjects.map(
                         (subjectID) => subjectMapReverse[subjectID]
                     ),
+                    units: Object.keys(value.units).reduce((acc, key) => {
+                        let mappedKey = subjectMapReverse[key];
+
+                        acc[mappedKey] = value.units[key];
+                        return acc;
+                    }, {}),
                     id: value.id,
                 };
 
@@ -126,19 +137,32 @@ function App() {
         // console.log("subjectMap", subjectMap);
         // console.log("teacherMap", teacherMap);
         // console.log("subjectMapReverse", subjectMapReverse);
-        // console.log("sectionMap", sectionMap);
+        console.log("sectionMap", sectionMap);
 
         const sectionSubjectArray = [];
+        const sectionSubjectUnitArray = [];
         // console.log("sectionMap", sectionMap);
-        for (const [sectionKey, { subjects }] of Object.entries(sectionMap)) {
+        for (const [sectionKey, { subjects, units }] of Object.entries(
+            sectionMap
+        )) {
             for (const subject of subjects) {
-                console.log(sectionKey, subject);
+                
+                console.log("ghh : ", sectionKey, subject, units);
                 sectionSubjectArray.push(packInt16ToInt32(sectionKey, subject));
+            }
+
+            for (const unit of Object.keys(units)) {
+                console.log("unit", unit);
+                sectionSubjectUnitArray.push(packInt16ToInt32(unit, units[unit]));
             }
         }
 
         const sectionSubjects = new Int32Array([...sectionSubjectArray]);
+        const sectionSubjectUnits = new Int32Array([
+            ...sectionSubjectUnitArray,
+        ]);
 
+        // return;
         const max_iterations = 30000;
         const beesPopulations = 50;
         const beesEmployedOptions = 25;
@@ -197,18 +221,22 @@ function App() {
             totalSection: totalSection,
             sectionSubjects: sectionSubjects,
             teacherSubjects: teacherSubjects,
+            sectionSubjectUnits: sectionSubjectUnits,
             teacherSubjectsLength: teacherSubjects.length,
             beesPopulation: beesPopulations,
             beesEmployed: beesEmployedOptions,
             beesOnlooker: beesOnlookerOptions,
             beesScout: beesScoutOptions,
             limits: limits,
+            workWeek: numOfSchoolDays,
         };
 
         setTimetableGenerationStatus("running");
         const { timetable, status } = await getTimetable(params);
         // console.log("success", timetable, status);
         setTimetableGenerationStatus(status);
+
+        return;
 
         const timetableMap = [];
         const sectionTimetable = {};
@@ -271,6 +299,24 @@ function App() {
         return;
     };
 
+    useEffect(() => {
+        // Function to handle the beforeunload event
+        const handleBeforeUnload = (event) => {
+            if (timetableGenerationStatus === "running") {
+                event.preventDefault();
+                event.returnValue = ""; // Legacy for older browsers
+            }
+        };
+
+        // Add the event listener
+        window.addEventListener("beforeunload", handleBeforeUnload);
+
+        // Cleanup the event listener when the component unmounts
+        return () => {
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+        };
+    }, [timetableGenerationStatus]); // The effect depends on the isProcessRunning state
+
     return (
         <div className="App container mx-auto px-4 mb-10">
             <NotificationHandler
@@ -279,6 +325,57 @@ function App() {
 
             <header className="App-header">
                 <Navbar />
+
+                <div className="w-full flex justify-center my-5">
+                    <Dashboard />
+                </div>
+
+                <div className="mb-10">
+                    <h1 className="divider">Configuration</h1>
+                    <div className="join border border-base-content">
+                        <div className="join-item px-2">
+                            {" "}
+                            Number of Days in week
+                        </div>
+                        <input
+                            type="number"
+                            placeholder="eg. 5 (mon to fri)"
+                            className="input w-full join-item"
+                            value={numOfSchoolDays}
+                            onChange={(e) => {
+                                setNumOfSchoolDays(e.target.value);
+                            }}
+                        />
+
+                        <div className="join join-item join-vertical flex w-20 items-center border-y border-r border-primary">
+                            <button
+                                className="join-item h-1/2 w-full bg-secondary hover:brightness-110 flex justify-center"
+                                onClick={() => {
+                                    if (numOfSchoolDays == 7) {
+                                        return;
+                                    }
+                                    setNumOfSchoolDays(numOfSchoolDays + 1);
+                                }}
+                            >
+                                <BiChevronUp size={24} />
+                            </button>
+                            <button
+                                className="join-item h-1/2 w-full bg-secondary hover:brightness-110 flex justify-center"
+                                onClick={() => {
+                                    if (numOfSchoolDays == 1) {
+                                        return;
+                                    }
+
+                                    setNumOfSchoolDays(numOfSchoolDays - 1);
+                                }}
+                            >
+                                <BiChevronDown size={24} />
+                            </button>
+                        </div>
+                    </div>
+                    <h1 className="divider"></h1>
+                </div>
+
                 <div className="flex gap-4">
                     <div className="w-5/12">
                         <SubjectListContainer />
@@ -317,7 +414,7 @@ function App() {
                     </div>
                 </div>
 
-                <div className="flex w-full gap-4">
+                <div className="grid grid-cols-1 col-span-full gap-4 sm:grid-cols-2">
                     <GeneratedTimetable
                         timetable={sectionTimetable}
                         collection={sections}

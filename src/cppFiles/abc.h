@@ -27,6 +27,7 @@ struct SchoolClass {
 	int16_t subject_id;
 	int16_t teacher_id;
 	int16_t timeslot;
+	int8_t day;
 };
 
 struct Timetable {
@@ -38,13 +39,17 @@ struct Timetable {
 	    std::mt19937& gen,
 	    std::unordered_map<int16_t, std::vector<int16_t>>& eligible_teachers_in_subject,
 	    std::unordered_map<int16_t, std::uniform_int_distribution<int>>& class_timeslot_distributions,
-	    std::unordered_map<int16_t, std::vector<int16_t>>& section_subjects);
+	    std::unordered_map<int16_t, std::vector<int16_t>>& section_subjects,
+	    std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>>& section_subjects_units_map,
+	    std::uniform_int_distribution<int8_t>& random_workday);
 
 	void update(
 	    std::mt19937& gen,
 	    std::uniform_int_distribution<int16_t>& distribution_field,
 	    std::uniform_int_distribution<int16_t>& distribution_school_class,
 	    std::uniform_int_distribution<int16_t>& distribution_section,
+	    std::uniform_int_distribution<int8_t>& random_workday,
+	    std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>>& section_subjects_units_map,
 	    std::unordered_map<int16_t, std::vector<int16_t>>& eligible_teachers_in_subject,
 	    std::unordered_map<int16_t, std::uniform_int_distribution<int>>& class_timeslot_distributions);
 };
@@ -66,17 +71,26 @@ void runExperiment(
     int total_section,
     int32_t* section_subjects,
     int32_t* teacher_subjects,
+    int32_t* section_subject_units,
     int teacher_subjects_length,
     int beesPopulation,
     int beesEmployed,
     int beesOnlooker,
     int beesScout,
     int limit,
+    int workweek,
     int64_t* result);
 
 #ifdef __cplusplus
 }
 #endif
+
+int combine(int first, int second);
+int combine(int first, int second, int third);
+
+int extractFirst(int combined);
+int extractSecond(int combined);
+int extractThird(int combined);
 
 int64_t packInt16ToInt64(int16_t first, int16_t second, int16_t third, int16_t fourth);
 int32_t packInt16ToInt32(int16_t first, int16_t second);

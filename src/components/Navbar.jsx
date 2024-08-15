@@ -1,5 +1,5 @@
 import React from "react";
-import ThemeToggler from "../ThemeToggler";
+import ThemeToggler from "./ThemeToggler";
 import ExportImportDBButtons from "./ExportImportDBButtons";
 
 const Navbar = () => {

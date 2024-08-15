@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import { filterObject } from "../utils/filterObject";
 import escapeRegExp from "../utils/escapeRegExp";
 import { IoRemove, IoAdd } from "react-icons/io5";
+import clsx from "clsx";
 
 const SearchableDropdownToggler = ({
     selectedList,
@@ -105,7 +106,9 @@ const SearchableDropdownToggler = ({
                             onClick={() => toggleSubject(subject.id)}
                         >
                             <div className="flex justify-between">
-                                <a>{subject.subject}</a>
+                                <a className={clsx("w-full")}>
+                                    {subject.subject}
+                                </a>
                                 {selectedList.includes(subject.id) ? (
                                     <IoRemove
                                         size={20}

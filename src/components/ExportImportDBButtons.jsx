@@ -52,6 +52,10 @@ const ExportImportDBButtons = () => {
             .then(() => {
                 toast.success("DB imported successfully");
             })
+            .catch((error) => {
+                toast.error("Error importing DB");
+                console.log(error);
+            })
             .finally(() => {
                 document.getElementById("import-confirmation-modal").close();
             });
@@ -60,7 +64,7 @@ const ExportImportDBButtons = () => {
     return (
         <div className="flex gap-2">
             <button
-                className="btn btn-sm"
+                className="btn btn-sm btn-secondary"
                 onClick={() => {
                     exportDB();
                 }}
@@ -68,7 +72,7 @@ const ExportImportDBButtons = () => {
                 Export <CiExport size={20} />
             </button>
             <button
-                className="btn btn-sm"
+                className="btn btn-sm btn-secondary"
                 onClick={() => {
                     document
                         .getElementById("import-confirmation-modal")
@@ -88,13 +92,13 @@ const ExportImportDBButtons = () => {
                     <div className="modal-action">
                         <form method="dialog">
                             <div className="flex gap-2">
-                                <button className="btn bg-error text-error-content">
+                                <button className="btn btn-error">
                                     Cancel
                                 </button>
                             </div>
                         </form>
                         <button
-                            className="btn"
+                            className="btn btn-primary"
                             onClick={() => {
                                 clearAllEntriesAcrossStores();
                                 importDB();

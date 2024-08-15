@@ -2,6 +2,24 @@ import { expose } from "comlink";
 import abcWasm from "./cppFiles/abc.js";
 import { unpackInt64ToInt16 } from "./utils/packInt16ToInt64.jsx";
 
+// console.log("params.maxIterations", params.maxIterations);
+// console.log("params.numTeachers", params.numTeachers);
+// console.log("params.numRooms", params.numRooms);
+// console.log("params.numTimeslots", params.numTimeslots);
+// console.log("params.totalSchoolClass", params.totalSchoolClass);
+// console.log("params.totalSection", params.totalSection);
+// console.log("params.sectionSubjects", params.sectionSubjects);
+// console.log("params.teacherSubjects", params.teacherSubjects);
+// console.log(
+//     "params.teacherSubjectsLength",
+//     params.teacherSubjectsLength
+// );
+// console.log("params.beesPopulation", params.beesPopulation);
+// console.log("params.beesEmployed", params.beesEmployed);
+// console.log("params.beesOnlooker", params.beesOnlooker);
+// console.log("params.beesScout", params.beesScout);
+// console.log("params.limits", params.limits);
+
 const getTimetable = async (params) =>
     new Promise(async (resolve, reject) => {
         try {
@@ -14,27 +32,20 @@ const getTimetable = async (params) =>
                     params.sectionSubjects.BYTES_PER_ELEMENT
             );
 
-            // console.log("params.maxIterations", params.maxIterations);
-            // console.log("params.numTeachers", params.numTeachers);
-            // console.log("params.numRooms", params.numRooms);
-            // console.log("params.numTimeslots", params.numTimeslots);
-            // console.log("params.totalSchoolClass", params.totalSchoolClass);
-            // console.log("params.totalSection", params.totalSection);
-            // console.log("params.sectionSubjects", params.sectionSubjects);
-            // console.log("params.teacherSubjects", params.teacherSubjects);
-            // console.log(
-            //     "params.teacherSubjectsLength",
-            //     params.teacherSubjectsLength
-            // );
-            // console.log("params.beesPopulation", params.beesPopulation);
-            // console.log("params.beesEmployed", params.beesEmployed);
-            // console.log("params.beesOnlooker", params.beesOnlooker);
-            // console.log("params.beesScout", params.beesScout);
-            // console.log("params.limits", params.limits);
-
             wasm.HEAP32.set(
                 params.sectionSubjects,
                 sectionSubjectsBuff / params.sectionSubjects.BYTES_PER_ELEMENT
+            );
+
+            const sectionSubjectUnitsBuff = wasm._malloc(
+                params.sectionSubjectUnits.length *
+                    params.sectionSubjectUnits.BYTES_PER_ELEMENT
+            );
+
+            wasm.HEAP32.set(
+                params.sectionSubjectUnits,
+                sectionSubjectUnitsBuff /
+                    params.sectionSubjectUnits.BYTES_PER_ELEMENT
             );
 
             const teacherSubjectsBuff = wasm._malloc(
@@ -56,12 +67,14 @@ const getTimetable = async (params) =>
                 params.totalSection,
                 sectionSubjectsBuff,
                 teacherSubjectsBuff,
+                sectionSubjectUnitsBuff,
                 params.teacherSubjectsLength,
                 params.beesPopulation,
                 params.beesEmployed,
                 params.beesOnlooker,
                 params.beesScout,
                 params.limits,
+                params.workWeek,
                 resultBuff
             );
 
