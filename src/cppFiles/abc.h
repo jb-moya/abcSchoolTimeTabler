@@ -79,6 +79,7 @@ void runExperiment(
     int beesScout,
     int limit,
     int workweek,
+	int result_buff_length,
     int64_t* result);
 
 #ifdef __cplusplus
@@ -92,7 +93,7 @@ int extractFirst(int combined);
 int extractSecond(int combined);
 int extractThird(int combined);
 
-int64_t packInt16ToInt64(int16_t first, int16_t second, int16_t third, int16_t fourth);
+int64_t pack5IntToInt64(int16_t a, int16_t b, int16_t c, int8_t d, int8_t e);
 int32_t packInt16ToInt32(int16_t first, int16_t second);
 
 void extractSectionSubjects(
@@ -106,7 +107,8 @@ struct ObjectiveFunction {
 	    const std::unordered_map<int16_t, std::vector<int16_t>>& teacher_subjects_map = {}) const;
 	double evaluate(
 	    const Timetable& timetable,
-	    bool show_penalty = false) const;
+	    bool show_penalty = false,
+	    const int& work_week = 5) const;
 };
 
 #endif  // ABC_H

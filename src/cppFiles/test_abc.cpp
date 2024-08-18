@@ -20,19 +20,18 @@
 
 #include "abc.h"
 
-
 using namespace std;
 
 void test_hello_react() {
-	int max_iterations = 500;
-	int beesPopulation = 10;
-	int beesEmployed = 5;
-	int beesOnlooker = 5;
+	int max_iterations = 1000;
+	int beesPopulation = 50;
+	int beesEmployed = 25;
+	int beesOnlooker = 25;
 	int beesScout = 1;
-	int limit = 8;
+	int limit = 10;
 
-	int num_teachers = 2;
-	int total_section = 2;
+	int num_teachers = 4;
+	int total_section = 1;
 	int num_subjects = 2;
 	int total_school_class = total_section * num_subjects;
 	int teacher_subjects_length = num_teachers;
@@ -65,6 +64,10 @@ void test_hello_react() {
 
 	teacher_subjects[0] = packInt16ToInt32(0, 0);
 	teacher_subjects[1] = packInt16ToInt32(1, 1);
+	teacher_subjects[2] = packInt16ToInt32(0, 0);
+	teacher_subjects[3] = packInt16ToInt32(1, 1);
+	// teacher_subjects[2] = packInt16ToInt32(2, 2);
+	// teacher_subjects[5] = packInt16ToInt32(2, 2);
 	// teacher_subjects[2] = packInt16ToInt32(2, 2);
 	// teacher_subjects[3] = packInt16ToInt32(3, 3);
 	// teacher_subjects[4] = packInt16ToInt32(4, 4);
@@ -100,6 +103,8 @@ void test_hello_react() {
 	          << beesScout << ", "
 	          << limit << std::endl;
 
+	int result_buff_length = 6;  // arbitrary
+
 	runExperiment(
 	    max_iterations,
 	    num_teachers,
@@ -115,6 +120,7 @@ void test_hello_react() {
 	    beesScout,
 	    limit,
 	    workweek,
+	    result_buff_length,
 	    result);
 }
 
@@ -122,8 +128,6 @@ void unpackInt32ToInt16(int32_t packed, int16_t& first, int16_t& second) {
 	first = static_cast<int16_t>(packed >> 16);
 	second = static_cast<int16_t>(packed & 0xFFFF);
 }
-
-
 
 void test_packing_unpacking_integers() {
 	int16_t first = 3;
@@ -183,7 +187,6 @@ void test_combine() {
 
 	int16_t unpackedFirst, unpackedSecond;
 	std::cout << "extracted : " << extractFirst(combined) << " " << extractSecond(combined) << std::endl;
-
 
 	int first2 = 0;
 	int second2 = 55;

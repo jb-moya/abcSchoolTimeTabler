@@ -156,7 +156,8 @@ void extractSectionSubjects(const std::vector<int32_t>& inputArray, std::unorder
 
 double ObjectiveFunction::evaluate(
     const Timetable& timetable,
-    bool show_penalty) const {
+    bool show_penalty,
+    const int& work_week) const {
 	std::unordered_set<int> class_timeslot_set;
 	std::unordered_set<int> teacher_timeslot_set;
 
@@ -172,28 +173,48 @@ double ObjectiveFunction::evaluate(
 
 		if (teacher_id == -1 || timeslot == -1) continue;
 
-		int class_timeslot_key = combine(section_id, timeslot, day);
-		if (!class_timeslot_set.insert(class_timeslot_key).second) {
-			std::cout << "BOBO  :" << section_id << "  " << timeslot << "  " << day << std::endl;
-			conflicting_timeslots++;
+		if (day != 0) {
+			int class_timeslot_key = combine(section_id, timeslot, day);
+			if (!class_timeslot_set.insert(class_timeslot_key).second) {
+				// std::cout << "BOBO  :" << section_id << "  " << timeslot << "  " << day << std::endl;
+				conflicting_timeslots++;
+			}
+		} else {
+			for (int i = 1; i <= work_week; ++i) {
+				int class_timeslot_key = combine(section_id, timeslot, i);
+				if (!class_timeslot_set.insert(class_timeslot_key).second) {
+					conflicting_timeslots++;
+				}
+			}
 		}
 
-		int teacher_timeslot_key = combine(teacher_id, timeslot, day);
-		if (!teacher_timeslot_set.insert(teacher_timeslot_key).second) {
-			std::cout << "GAGO  : " << teacher_id << "  " << timeslot << "  " << day << std::endl;
-			conflicting_timeslots++;
+		if (day != 0) {
+			int teacher_timeslot_key = combine(teacher_id, timeslot, day);
+			if (!teacher_timeslot_set.insert(teacher_timeslot_key).second) {
+				// std::cout << "GAGO  : " << teacher_id << "  " << timeslot << "  " << day << std::endl;
+				conflicting_timeslots++;
+			}
+		} else {
+			for (int i = 1; i <= work_week; ++i) {
+				// std::cout << "IIIIII: " << i << std::endl;
+				int teacher_timeslot_key = combine(teacher_id, timeslot, i);
+				if (!teacher_timeslot_set.insert(teacher_timeslot_key).second) {
+					conflicting_timeslots++;
+				}
+			}
 		}
 	}
 
 	return conflicting_timeslots;
 };
 
-int64_t packInt16ToInt64(int16_t first, int16_t second, int16_t third, int16_t fourth) {
+int64_t pack5IntToInt64(int16_t a, int16_t b, int16_t c, int8_t d, int8_t e) {
 	int64_t result = 0;
-	result |= (static_cast<int64_t>(first) & 0xFFFF) << 48;
-	result |= (static_cast<int64_t>(second) & 0xFFFF) << 32;
-	result |= (static_cast<int64_t>(third) & 0xFFFF) << 16;
-	result |= (static_cast<int64_t>(fourth) & 0xFFFF);
+	result |= (static_cast<int64_t>(a) & 0xFFFF) << 48;
+	result |= (static_cast<int64_t>(b) & 0xFFFF) << 32;
+	result |= (static_cast<int64_t>(c) & 0xFFFF) << 16;
+	result |= (static_cast<int64_t>(d) & 0xFF) << 8;
+	result |= (static_cast<int64_t>(e) & 0xFF);
 	return result;
 }
 
@@ -223,7 +244,8 @@ void runExperiment(
     int beesOnlooker,
     int beesScout,
     int limit,
-    int workweek,
+    int work_week,
+    int result_buff_length,
     int64_t* result) {
 	// Set the number of threads to the number of logical processors available
 	// 	omp_set_num_threads(omp_get_max_threads());
@@ -341,7 +363,7 @@ void runExperiment(
 	std::uniform_int_distribution<int16_t> random_school_class(0, total_school_class - 1);
 	std::uniform_int_distribution<int16_t> random_section(0, total_section - 1);
 	std::uniform_int_distribution<int16_t> random_teacher(0, num_teachers - 1);
-	std::uniform_int_distribution<int8_t> random_workDay(1, workweek);
+	std::uniform_int_distribution<int8_t> random_workDay(1, work_week);
 
 	ObjectiveFunction optimizableFunction;
 	vector<double> bestCostExperiments(nrOfExperiments, 0);
@@ -352,7 +374,7 @@ void runExperiment(
 
 	Bee bestSolution(total_school_class);
 	bestSolution.timetable.initializeRandomTimetable(gen, eligible_teachers_in_subject, class_timeslot_distributions, section_subjects_map, section_subjects_units_map, random_workDay);
-	bestSolution.cost = optimizableFunction.evaluate(bestSolution.timetable, false);
+	bestSolution.cost = optimizableFunction.evaluate(bestSolution.timetable, false, work_week);
 
 	auto start = std::chrono::high_resolution_clock::now();
 
@@ -362,7 +384,7 @@ void runExperiment(
 		for (int i = 0; i < beesPopulation; i++) {
 			beesVector[i].timetable.initializeRandomTimetable(gen, eligible_teachers_in_subject, class_timeslot_distributions, section_subjects_map, section_subjects_units_map, random_workDay);
 
-			beesVector[i].cost = optimizableFunction.evaluate(beesVector[i].timetable, false);
+			beesVector[i].cost = optimizableFunction.evaluate(beesVector[i].timetable, false, work_week);
 			if (beesVector[i].cost <= bestSolution.cost) {
 				bestSolution = beesVector[i];
 			}
@@ -383,7 +405,7 @@ void runExperiment(
 				newBee = beesVector[randomBeesIndex];
 				newBee.timetable.update(gen, random_field, random_school_class, random_section, random_workDay, section_subjects_units_map, eligible_teachers_in_subject, class_timeslot_distributions);
 
-				newBee.cost = optimizableFunction.evaluate(newBee.timetable, false);
+				newBee.cost = optimizableFunction.evaluate(newBee.timetable, false, work_week);
 
 				// #pragma omp critical
 				{
@@ -439,7 +461,7 @@ void runExperiment(
 				newBee = beesVector[randomBeesIndex];
 				newBee.timetable.update(gen, random_field, random_school_class, random_section, random_workDay, section_subjects_units_map, eligible_teachers_in_subject, class_timeslot_distributions);
 
-				newBee.cost = optimizableFunction.evaluate(newBee.timetable, false);
+				newBee.cost = optimizableFunction.evaluate(newBee.timetable, false, work_week);
 
 				// #pragma omp critical
 				{
@@ -459,7 +481,7 @@ void runExperiment(
 						newBee.timetable.initializeRandomTimetable(gen, eligible_teachers_in_subject, class_timeslot_distributions, section_subjects_map, section_subjects_units_map, random_workDay);
 						newBee = beesVector[i];
 
-						beesVector[i].cost = optimizableFunction.evaluate(beesVector[i].timetable, false);
+						beesVector[i].cost = optimizableFunction.evaluate(beesVector[i].timetable, false, work_week);
 						abandonedBees[i] = 0;
 					}
 				}
@@ -490,15 +512,22 @@ void runExperiment(
 		    << MAGENTA << std::setw(4) << static_cast<int>(bestSolution.timetable.schoolClasses[i].day) << RESET << std::endl;
 	}
 
-	std::cout << "Objective function: " << ObjectiveFunction().evaluate(bestSolution.timetable, true) << endl;
+	std::cout << "Objective function: " << ObjectiveFunction().evaluate(bestSolution.timetable, true, work_week) << endl;
 
 	auto end = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> duration = end - start;
 
 	std::cout << "Time taken: " << duration.count() << " milliseconds" << endl;
 
-	for (int i = 0; i < total_school_class; i++) {
-		int64_t packed = packInt16ToInt64(bestSolution.timetable.schoolClasses[i].section_id, bestSolution.timetable.schoolClasses[i].subject_id, bestSolution.timetable.schoolClasses[i].teacher_id, bestSolution.timetable.schoolClasses[i].timeslot);
+	for (int i = 0; i < result_buff_length; i++) {
+		int64_t packed = pack5IntToInt64(
+		    bestSolution.timetable.schoolClasses[i].section_id,
+		    bestSolution.timetable.schoolClasses[i].subject_id,
+		    bestSolution.timetable.schoolClasses[i].teacher_id,
+		    static_cast<int8_t>(bestSolution.timetable.schoolClasses[i].timeslot),
+		    bestSolution.timetable.schoolClasses[i].day);
+		std::cout << "packed : " << packed << std::endl;
+
 		result[i] = packed;
 	}
 }

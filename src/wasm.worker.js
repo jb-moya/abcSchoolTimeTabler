@@ -1,6 +1,6 @@
 import { expose } from "comlink";
 import abcWasm from "./cppFiles/abc.js";
-import { unpackInt64ToInt16 } from "./utils/packInt16ToInt64.jsx";
+import { unpackIntegers } from "./utils/packInt16ToInt64.js";
 
 // console.log("params.maxIterations", params.maxIterations);
 // console.log("params.numTeachers", params.numTeachers);
@@ -25,7 +25,7 @@ const getTimetable = async (params) =>
         try {
             const wasm = await abcWasm();
 
-            // console.log("wasm", wasm);
+            console.log("wasm", params.sectionSubjects);
 
             const sectionSubjectsBuff = wasm._malloc(
                 params.sectionSubjects.length *
@@ -58,7 +58,7 @@ const getTimetable = async (params) =>
                 teacherSubjectsBuff / params.teacherSubjects.BYTES_PER_ELEMENT
             );
 
-            const resultBuff = wasm._malloc(params.totalSchoolClass * 8);
+            const resultBuff = wasm._malloc(params.resultLength * 8);
 
             wasm._runExperiment(
                 params.maxIterations,
@@ -75,15 +75,16 @@ const getTimetable = async (params) =>
                 params.beesScout,
                 params.limits,
                 params.workWeek,
+                params.resultLength,
                 resultBuff
             );
 
             const timetable = [];
 
-            for (let i = 0; i < params.totalSchoolClass; i++) {
+            for (let i = 0; i < params.resultLength; i++) {
                 let result = wasm.getValue(resultBuff + i * 8, "i64");
 
-                result = unpackInt64ToInt16(result);
+                result = unpackIntegers(result);
                 timetable.push(result);
                 // console.log(`Class ${i + 1}: ${result}`, result);
             }

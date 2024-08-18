@@ -15,6 +15,7 @@ import validateTimetableVariables from "./validation/validateTimetableVariables"
 import { toast } from "sonner";
 import ViolationList from "./components/ViolationList";
 import Dashboard from "./components/Dashboard";
+import findInObject from "./utils/utils";
 import { BiChevronDown, BiChevronUp } from "react-icons/bi";
 
 const getTimetable = wrap(new WasmWorker());
@@ -27,8 +28,8 @@ function App() {
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(5);
 
     const [timetable, setTimetable] = useState([]);
-    const [sectionTimetable, setSectionTimetable] = useState({});
-    const [teacherTimetable, setTeacherTimetable] = useState({});
+    const [sectionTimetables, setSectionTimetables] = useState({});
+    const [teacherTimetables, setTeacherTimetables] = useState({});
     const [timetableGenerationStatus, setTimetableGenerationStatus] =
         useState("idle");
     const [violations, setViolations] = useState([]);
@@ -62,7 +63,7 @@ function App() {
 
     const beforeBreakTime = {
         2: "08:30 - 09:00",
-        6: "12:20 - 01:00",
+        // 6: "12:20 - 01:00",
     };
 
     const validate = () => {
@@ -120,12 +121,15 @@ function App() {
                     subjects: value.subjects.map(
                         (subjectID) => subjectMapReverse[subjectID]
                     ),
-                    units: Object.keys(value.units).reduce((acc, key) => {
-                        let mappedKey = subjectMapReverse[key];
+                    subjectUnits: Object.keys(value.units).reduce(
+                        (acc, key) => {
+                            let mappedKey = subjectMapReverse[key];
 
-                        acc[mappedKey] = value.units[key];
-                        return acc;
-                    }, {}),
+                            acc[mappedKey] = value.units[key];
+                            return acc;
+                        },
+                        {}
+                    ),
                     id: value.id,
                 };
 
@@ -141,21 +145,46 @@ function App() {
 
         const sectionSubjectArray = [];
         const sectionSubjectUnitArray = [];
+        let cellCount = 0;
         // console.log("sectionMap", sectionMap);
-        for (const [sectionKey, { subjects, units }] of Object.entries(
+        for (const [sectionKey, { subjects, subjectUnits }] of Object.entries(
             sectionMap
         )) {
             for (const subject of subjects) {
-                
-                console.log("ghh : ", sectionKey, subject, units);
+                console.log("ghh : ", sectionKey, subject, subjectUnits);
                 sectionSubjectArray.push(packInt16ToInt32(sectionKey, subject));
             }
 
-            for (const unit of Object.keys(units)) {
+            for (const unit of Object.keys(subjectUnits)) {
                 console.log("unit", unit);
-                sectionSubjectUnitArray.push(packInt16ToInt32(unit, units[unit]));
+
+                const unitCount = subjectUnits[unit];
+
+                if (unitCount === 0) {
+                    cellCount++;
+                } else {
+                    cellCount += unitCount;
+                }
+
+                sectionSubjectUnitArray.push(
+                    packInt16ToInt32(unit, subjectUnits[unit])
+                );
             }
         }
+
+        // for (let i = 0; i < sectionSubjectUnitArray.length; i++) {
+        //     if (sectionSubjectUnitArray[i] === 5) {
+        //         cellCount++;
+        //     } else {
+        //         cellCount += sectionSubjectUnitArray[i];
+        //     }
+        // }
+
+        // console.log("sectionSubjectUnitArray fff", sectionSubject    UnitArray);
+        console.log("sectionSubjectUnitArray fff", cellCount);
+        console.log("sectionSubjectUnitArray fff", cellCount);
+        console.log("sectionSubjectUnitArray fff", cellCount);
+        console.log("sectionSubjectUnitArray fff", cellCount);
 
         const sectionSubjects = new Int32Array([...sectionSubjectArray]);
         const sectionSubjectUnits = new Int32Array([
@@ -163,12 +192,12 @@ function App() {
         ]);
 
         // return;
-        const max_iterations = 30000;
-        const beesPopulations = 50;
-        const beesEmployedOptions = 25;
-        const beesOnlookerOptions = 25;
+        const max_iterations = 200;
+        const beesPopulations = 100;
+        const beesEmployedOptions = 50;
+        const beesOnlookerOptions = 50;
         const beesScoutOptions = 1;
-        const limits = 4;
+        const limits = 20;
 
         //    0   3   0   3   0
         //    1   3   1   1   2
@@ -229,6 +258,7 @@ function App() {
             beesScout: beesScoutOptions,
             limits: limits,
             workWeek: numOfSchoolDays,
+            resultLength: cellCount,
         };
 
         setTimetableGenerationStatus("running");
@@ -236,13 +266,34 @@ function App() {
         // console.log("success", timetable, status);
         setTimetableGenerationStatus(status);
 
-        return;
-
         const timetableMap = [];
         const sectionTimetable = {};
         const teacherTimetable = {};
 
         // console.log("testing subjectmap", subjectMap["1"]);
+
+        function sortObjectByTimeslotAndDay(obj) {
+            // Convert the object into an array of [key, value] pairs
+            const entries = Object.entries(obj);
+
+            // Sort the entries based on timeslot and day
+            entries.sort(([keyA, valueA], [keyB, valueB]) => {
+                if (valueA.timeslot !== valueB.timeslot) {
+                    return valueA.timeslot - valueB.timeslot;
+                }
+                if (valueA.day !== valueB.day) {
+                    return valueA.day - valueB.day;
+                }
+                return 0;
+            });
+
+            // Convert the sorted array of entries back into an object
+            return Object.fromEntries(entries);
+        }
+
+        function compareNumbers(a, b) {
+            return a - b;
+        }
 
         for (const entry of timetable) {
             // console.log("F", entry, typeof entry[0]);
@@ -250,53 +301,85 @@ function App() {
             const subject = subjectMap[entry[1]];
             const teacher = teacherMap[entry[2]].id;
             const timeslot = entry[3];
+            const day = entry[4];
 
-            timetableMap.push({
-                section: section,
-                subject: section,
-                teacher: section,
-                timeslot: section,
-            });
+            const existingSectionEntry = findInObject(
+                sectionTimetable[section],
+                ["subject", "teacher", "timeslot"],
+                [subject, teacher, timeslot]
+            );
 
-            if (
-                typeof sectionTimetable[section] !== "object" ||
-                sectionTimetable[section] === null ||
-                Array.isArray(sectionTimetable[section])
-            ) {
-                sectionTimetable[section] = {}; // Initialize as an empty object if it is not an object or is null/undefined
+            // const existingSectionEntry = false;
+
+            if (existingSectionEntry) {
+                // If it exists, push the day to the existing entry's day array
+                if (Array.isArray(existingSectionEntry.day)) {
+                    existingSectionEntry.day.push(day);
+                } else {
+                    console.log("ff", existingSectionEntry.day);
+                    existingSectionEntry.day = [existingSectionEntry.day, day];
+                }
+            } else {
+                // If it doesn't exist, create a new entry
+                sectionTimetable[section] = sectionTimetable[section] || {};
+                sectionTimetable[section][timeslot] =
+                    sectionTimetable[section][timeslot] || [];
+                sectionTimetable[section][timeslot].push({
+                    subject: subject,
+                    teacher: teacher,
+                    timeslot: timeslot,
+                    day: [day],
+                });
             }
 
-            sectionTimetable[section][timeslot] = {
-                subject: subject,
-                teacher: teacher,
-                timeslot: timeslot,
-            };
+            // Sort sectionTimetable by timeslot and day
+            // sectionTimetable[section] = sortObjectByTimeslotAndDay(
+            //     sectionTimetable[section]
+            // );
 
-            if (
-                typeof teacherTimetable[teacher] !== "object" ||
-                teacherTimetable[teacher] === null ||
-                Array.isArray(teacherTimetable[teacher])
-            ) {
-                teacherTimetable[teacher] = {}; // Initialize as an empty object if it is not an object or is null/undefined
+            const existingTeacherEntry = findInObject(
+                teacherTimetable[teacher],
+                ["section", "subject", "timeslot"],
+                [section, subject, timeslot]
+            );
+
+            // const existingTeacherEntry = false;
+
+            if (existingTeacherEntry) {
+                // If it exists, push the day to the existing entry's day array
+                if (Array.isArray(existingTeacherEntry.day)) {
+                    existingTeacherEntry.day.push(day);
+                } else {
+                    existingTeacherEntry.day = [existingTeacherEntry.day, day];
+                }
+            } else {
+                // If it doesn't exist, create a new entry
+                teacherTimetable[teacher] = teacherTimetable[teacher] || {};
+                teacherTimetable[teacher][timeslot] =
+                    teacherTimetable[teacher][timeslot] || [];
+                teacherTimetable[teacher][timeslot].push({
+                    section: section,
+                    subject: subject,
+                    timeslot: timeslot,
+                    day: [day],
+                });
             }
 
-            teacherTimetable[teacher][timeslot] = {
-                section: section,
-                subject: subject,
-                timeslot: timeslot,
-            };
+            // Sort teacherTimetable by timeslot and day
+            // teacherTimetable[teacher] = sortObjectByTimeslotAndDay(
+            //     teacherTimetable[teacher]
+            // );
         }
 
         // setTimetable(timetable);
         // console.log("timetable", timetableMap);
-        // console.log("section timetable", sectionTimetable);
+        console.log("section timetable", sectionTimetable);
         // console.log("teacher timetable", teacherTimetable);
+        // return;
 
         setTimetable(timetableMap);
-        setSectionTimetable(sectionTimetable);
-        setTeacherTimetable(teacherTimetable);
-
-        return;
+        setSectionTimetables(sectionTimetable);
+        setTeacherTimetables(teacherTimetable);
     };
 
     useEffect(() => {
@@ -416,7 +499,7 @@ function App() {
 
                 <div className="grid grid-cols-1 col-span-full gap-4 sm:grid-cols-2">
                     <GeneratedTimetable
-                        timetable={sectionTimetable}
+                        timetables={sectionTimetables}
                         collection={sections}
                         field={"section"}
                         timeSlotMap={timeSlotMap}
@@ -427,7 +510,7 @@ function App() {
                     />
 
                     <GeneratedTimetable
-                        timetable={teacherTimetable}
+                        timetables={teacherTimetables}
                         collection={teachers}
                         field={"teacher"}
                         timeSlotMap={timeSlotMap}

@@ -8,12 +8,12 @@ import { Provider } from "react-redux";
 import { Toaster } from "sonner";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-    <React.StrictMode>
+    // <React.StrictMode>
         <Provider store={store}>
             {/* <WasmProvider> */}
                 <Toaster richColors />
                 <App />
             {/* </WasmProvider> */}
         </Provider>
-    </React.StrictMode>
+    // </React.StrictMode>
 );

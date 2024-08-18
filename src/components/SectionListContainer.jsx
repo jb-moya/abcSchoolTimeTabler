@@ -109,7 +109,7 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
                                 type="text"
                                 placeholder="Units"
                                 className="input w-full join-item"
-                                value={subjectUnits[subjectID] || 5}
+                                value={subjectUnits[subjectID]}
                                 onChange={(e) => {
                                     setSubjectUnits({
                                         ...subjectUnits,
@@ -122,9 +122,9 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
                                 <button
                                     className="join-item h-1/2 w-full bg-secondary hover:brightness-110 flex justify-center"
                                     onClick={() => {
-                                        if (subjectUnits[subjectID] >= 5) {
-                                            return;
-                                        }
+                                        // if (subjectUnits[subjectID] >= 5) {
+                                        //     return;
+                                        // }
 
                                         setSubjectUnits({
                                             ...subjectUnits,
@@ -138,9 +138,9 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
                                 <button
                                     className="join-item h-1/2 w-full bg-secondary hover:brightness-110 flex justify-center"
                                     onClick={() => {
-                                        if (subjectUnits[subjectID] <= 1) {
-                                            return;
-                                        }
+                                        // if (subjectUnits[subjectID] <= 0) {
+                                        //     return;
+                                        // }
 
                                         setSubjectUnits({
                                             ...subjectUnits,
@@ -322,13 +322,30 @@ const SectionListContainer = () => {
                                                     (subject) => (
                                                         <div
                                                             key={subject}
-                                                            className="px-2 border border-gray-500 border-opacity-30"
+                                                            className="px-2 flex  items-center border border-gray-500 border-opacity-30"
                                                         >
-                                                            {
-                                                                subjects[
-                                                                    subject
-                                                                ].subject
-                                                            }
+                                                            <div className="mr-2">
+                                                                {
+                                                                    subjects[
+                                                                        subject
+                                                                    ].subject
+                                                                }
+                                                            </div>
+                                                            <div className="text-xs opacity-75">
+                                                                <span className="mr-1">
+                                                                    {
+                                                                        sections[
+                                                                            section
+                                                                                .id
+                                                                        ].units[
+                                                                            subject
+                                                                        ]
+                                                                    }
+                                                                </span>
+                                                                <span>
+                                                                    unit(s)
+                                                                </span>
+                                                            </div>
                                                         </div>
                                                     )
                                                 )

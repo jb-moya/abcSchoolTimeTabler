@@ -1,55 +1,137 @@
+import clsx from "clsx";
 import React from "react";
+import extendArray from "../utils/extendArray";
+import findMissingNumbers from "../utils/findMissingNumbers";
 
 const TimetableRow = ({
     timeslot,
-    timeslotID,
-    teacherTimeslot,
+    row,
     firstColumnMap,
     secondColumnMap,
     columnField,
-    isBreak,
+    // isBreak,
 }) => {
-    if (isBreak) {
+    console.log("haha", row);
+
+    // if (isBreak) {
+    //     return (
+    //         <div
+    //             className={clsx("flex", `order-${timeslot}`)}
+    //             key={`${timeslot}-break`}
+    //         >
+    //             <div className="w-2/12">{timeSlotMap[row[2]]}</div>
+    //             <div className="w-10/12 flex-1 opacity-50 col-span-full text-center">
+    //                 <span className="divider m-0">break time</span>
+    //             </div>
+    //         </div>
+    //     );
+    // }
+    // return null;
+
+    if (row) {
+        console.log("fFFFFFFFFFFFFFFFFFFFFFFF", row);
+        const numbersToCheck = [1, 2, 3, 4, 5];
+
+        const availableDay = [];
+
+        const row_cell_length = row.length;
+        for (let i = 0; i < row_cell_length; i++) {
+            extendArray(availableDay, row[i].day);
+        }
+
+        console.log("V", availableDay);
+
+        const renderedRow = [];
+        for (let i = 0; i < row_cell_length; i++) {
+            const fieldName1 = row[i][columnField[0]];
+            const fieldName2 = row[i][columnField[1]];
+
+            if (row[i].day.includes(0)) {
+                renderedRow.push(
+                    <div
+                        key={`0-${fieldName1}-${fieldName2}`}
+                        className={clsx(
+                            "text-nowrap h-10 leading-4 content-center",
+                            `order-[calc(${row[i].timeslot}+10+1)]`,
+                            row[i].day.includes(0)
+                                ? "basis-full"
+                                : `basis-1/5`
+                        )}
+                    >
+                        <div className="flex gap-x-2 text-center justify-center">
+                            <span>
+                                {firstColumnMap[fieldName1][columnField[0]]}
+                            </span>
+                            <span>
+                                {secondColumnMap[fieldName2][columnField[1]]}
+                            </span>
+                        </div>
+                    </div>
+                );
+
+                continue;
+            }
+
+            for (const day of numbersToCheck) {
+                console.log("row[i].day", row[i].day);
+
+                if (!availableDay.includes(day)) {
+                    renderedRow.push(
+                        <div
+                            className={clsx(
+                                "text-nowrap h-10 leading-4 content-center bg-purple-400",
+                                `order-[calc(${row[i].timeslot}+10+${day}+1)]`,
+                                `basis-1/5`
+                            )}
+                        >
+                            <span className="divider my-auto">x</span>
+                        </div>
+                    );
+                } else {
+                    renderedRow.push(
+                        <div
+                            key={`${day}-${fieldName1}-${fieldName2}`}
+                            className={clsx(
+                                "text-nowrap h-10 leading-4 content-center basis-1/5",
+                                `order-[calc(${row[i].timeslot}+10+${day}+1)]`
+                            )}
+                        >
+                            <div className="flex gap-x-2 text-center justify-center">
+                                <span>
+                                    {firstColumnMap[fieldName1][columnField[0]]}
+                                </span>
+                                <span>
+                                    {
+                                        secondColumnMap[fieldName2][
+                                            columnField[1]
+                                        ]
+                                    }
+                                </span>
+                            </div>
+                        </div>
+                    );
+                }
+            }
+        }
+
+        return renderedRow;
+    } else {
+        // return null;
         return (
-            <tr key={`${timeslotID}-break`}>
-                <td>{timeslot}</td>
-                <td
-                    colSpan={5}
-                    className="opacity-50 col-span-full text-center"
-                >
-                    <span className="divider m-0">break time</span>
-                </td>
-            </tr>
+            <div
+                className={clsx(
+                    `opacity-50 border-b h-10 content-center basis-full`,
+                    `order-[calc(${timeslot}+10+1)]`
+                )}
+            >
+                <span className="divider my-auto">{timeslot}</span>
+            </div>
         );
     }
-
-    if (teacherTimeslot) {
-        const fieldName1 = teacherTimeslot[columnField[0]];
-        const fieldName2 = teacherTimeslot[columnField[1]];
-
-        return (
-            <tr key={timeslotID}>
-                <td>{timeslot}</td>
-                <td colSpan={5} className="w-full text-center">
-                    <div>{firstColumnMap[fieldName1][columnField[0]]}</div>
-                    <div>{secondColumnMap[fieldName2][columnField[1]]}</div>
-                </td>
-            </tr>
-        );
-    }
-
-    return (
-        <tr key={timeslotID} className="opacity-50">
-            <td>{timeslot}</td>
-            <td className="text-center" colSpan={5}>
-                <span className="divider m-0">empty</span>
-            </td>
-        </tr>
-    );
 };
 
 const GeneratedTimetable = ({
-    timetable,
+    timetables,
     collection,
     field,
     timeSlotMap,
@@ -58,66 +140,88 @@ const GeneratedTimetable = ({
     columnField,
     beforeBreakTime,
 }) => {
-    if (!timetable) return null;
+    if (!timetables) return null;
 
     return (
         <div className="">
             <div className="overflow-x-auto">
-                {Object.entries(timetable).map(([entryID, entry]) => (
-                    <React.Fragment key={entryID}>
-                        <div className="flex gap-4 font-bold items-center text-center mt-10">
-                            <div>{field}: </div>
-                            <div className="text-lg text-accent">
-                                {collection[entryID][field]}
-                            </div>
-                        </div>
-                        <table className="table table-zebra table-xs bg-base-100 table-fixed">
-                            <thead>
-                                <tr className="text-center">
-                                    <th className="border border-primary-content">Time</th>
-                                    <th className="border border-primary-content">Mon</th>
-                                    <th className="border border-primary-content">Tue</th>
-                                    <th className="border border-primary-content">Wed</th>
-                                    <th className="border border-primary-content">Thu</th>
-                                    <th className="border border-primary-content">Fri</th>
-                                    {/* <th>{columnField[0]}</th>
-                                        <th>{columnField[1]}</th> */}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {Object.entries(timeSlotMap).map(
-                                    ([timeslotID, timeslot]) => (
-                                        <React.Fragment key={timeslotID}>
-                                            <TimetableRow
-                                                timeslot={timeslot}
-                                                timeslotID={timeslotID}
-                                                teacherTimeslot={
-                                                    entry[timeslotID]
-                                                }
-                                                firstColumnMap={firstColumnMap}
-                                                secondColumnMap={
-                                                    secondColumnMap
-                                                }
-                                                columnField={columnField}
-                                            />
-                                            {beforeBreakTime[timeslotID] && (
-                                                <TimetableRow
-                                                    timeslot={
-                                                        beforeBreakTime[
-                                                            timeslotID
-                                                        ]
-                                                    }
-                                                    timeslotID={timeslotID}
-                                                    isBreak
-                                                />
+                {Object.entries(timetables).map(
+                    ([timetableID, timetable]) => (
+                        console.log("timetablaae", timetable),
+                        (
+                            <React.Fragment key={timetableID}>
+                                <div className="flex gap-4 font-bold items-center text-center mt-10">
+                                    <div>{field}: </div>
+                                    <div className="text-lg text-accent">
+                                        {/* {timetable[timetableID][field]} */}
+                                    </div>
+                                </div>
+                                <div className="flex bg-base-100">
+                                    <div>
+                                        <div className="border border-primary-content">
+                                            Time
+                                        </div>
+                                        <div className="leading-4">
+                                            {Object.entries(timeSlotMap).map(
+                                                ([timeslotID, timeslot]) => (
+                                                    <div
+                                                        key={timeslotID}
+                                                        className="border-b h-10"
+                                                    >
+                                                        {timeslot}
+                                                    </div>
+                                                )
                                             )}
-                                        </React.Fragment>
-                                    )
-                                )}
-                            </tbody>
-                        </table>
-                    </React.Fragment>
-                ))}
+                                        </div>
+                                    </div>
+                                    <div className="w-full">
+                                        <div className="flex text-center w-full">
+                                            <div className="w-1/5 border border-primary-content">
+                                                Mon
+                                            </div>
+                                            <div className="w-1/5 border border-primary-content">
+                                                Tue
+                                            </div>
+                                            <div className="w-1/5 border border-primary-content">
+                                                Wed
+                                            </div>
+                                            <div className="w-1/5 border border-primary-content">
+                                                divu
+                                            </div>
+                                            <div className="w-1/5 border border-primary-content">
+                                                Fri
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-wrap">
+                                            {Object.entries(timeSlotMap).map(
+                                                ([timeslotID, timeslot]) => (
+                                                    <TimetableRow
+                                                        key={timeslotID}
+                                                        timeslot={timeslotID}
+                                                        row={
+                                                            timetable[
+                                                                timeslotID
+                                                            ]
+                                                        }
+                                                        firstColumnMap={
+                                                            firstColumnMap
+                                                        }
+                                                        secondColumnMap={
+                                                            secondColumnMap
+                                                        }
+                                                        columnField={
+                                                            columnField
+                                                        }
+                                                    />
+                                                )
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </React.Fragment>
+                        )
+                    )
+                )}
             </div>
         </div>
     );
