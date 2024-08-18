@@ -53,9 +53,7 @@ const TimetableRow = ({
                         className={clsx(
                             "text-nowrap h-10 leading-4 content-center",
                             `order-[calc(${row[i].timeslot}+10+1)]`,
-                            row[i].day.includes(0)
-                                ? "basis-full"
-                                : `basis-1/5`
+                            row[i].day.includes(0) ? "basis-full" : `basis-1/5`
                         )}
                     >
                         <div className="flex gap-x-2 text-center justify-center">
@@ -72,51 +70,47 @@ const TimetableRow = ({
                 continue;
             }
 
-            for (const day of numbersToCheck) {
-                console.log("row[i].day", row[i].day);
+            for (const day in row[i].day) {
+                console.log("row[i].day", day);
+                renderedRow.push(
+                    <div
+                        key={`${day}-${fieldName1}-${fieldName2}`}
+                        className={clsx(
+                            "text-nowrap h-10 leading-4 content-center basis-1/5",
+                            `order-[calc(${row[i].timeslot}+10+${day}+1)]`
+                        )}
+                    >
+                        <div className="flex gap-x-2 text-center justify-center">
+                            <span>
+                                {firstColumnMap[fieldName1][columnField[0]]}
+                            </span>
+                            <span>
+                                {secondColumnMap[fieldName2][columnField[1]]}
+                            </span>
+                        </div>
+                    </div>
+                );
+            }
 
-                if (!availableDay.includes(day)) {
-                    renderedRow.push(
-                        <div
-                            className={clsx(
-                                "text-nowrap h-10 leading-4 content-center bg-purple-400",
-                                `order-[calc(${row[i].timeslot}+10+${day}+1)]`,
-                                `basis-1/5`
-                            )}
-                        >
-                            <span className="divider my-auto">x</span>
-                        </div>
-                    );
-                } else {
-                    renderedRow.push(
-                        <div
-                            key={`${day}-${fieldName1}-${fieldName2}`}
-                            className={clsx(
-                                "text-nowrap h-10 leading-4 content-center basis-1/5",
-                                `order-[calc(${row[i].timeslot}+10+${day}+1)]`
-                            )}
-                        >
-                            <div className="flex gap-x-2 text-center justify-center">
-                                <span>
-                                    {firstColumnMap[fieldName1][columnField[0]]}
-                                </span>
-                                <span>
-                                    {
-                                        secondColumnMap[fieldName2][
-                                            columnField[1]
-                                        ]
-                                    }
-                                </span>
-                            </div>
-                        </div>
-                    );
-                }
+            const emptyDay = findMissingNumbers(row[i].day);
+
+            for (const day of emptyDay) {
+                renderedRow.push(
+                    <div
+                        className={clsx(
+                            "text-nowrap h-10 leading-4 content-center bg-purple-400",
+                            `order-[calc(${row[i].timeslot}+10+${day}+1)]`,
+                            `basis-1/5`
+                        )}
+                    >
+                        <span className="divider my-auto">x</span>
+                    </div>
+                );
             }
         }
 
         return renderedRow;
     } else {
-        // return null;
         return (
             <div
                 className={clsx(
