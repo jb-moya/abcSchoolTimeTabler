@@ -193,16 +193,29 @@ const SectionListContainer = () => {
     const handleEditSectionClick = (section) => {
         setEditSectionId(section.id);
         setEditSectionValue(section.section);
-        setEditSectionCurr(section.subjects);
+
+        const subjectsWithUnits = section.subjects.map((subjectId) => ({
+            id: subjectId,
+            name: subjects[subjectId].subject,
+            units: sections[section.id]?.units?.[subjectId] || 0,
+        }));
+        setEditSectionCurr(subjectsWithUnits);
     };
 
     const handleSaveSectionEditClick = (sectionId) => {
+        const updatedSubjects = editSectionCurr.map((item) => item.id);
+        const updatedUnits = editSectionCurr.reduce((acc, item) => {
+            acc[item.id] = item.units;
+            return acc;
+        }, {});
+
         dispatch(
             editSection({
                 sectionId,
                 updatedSection: {
                     section: editSectionValue,
-                    subjects: editSectionCurr,
+                    subjects: updatedSubjects,
+                    units: updatedUnits,
                 },
             })
         );
@@ -307,25 +320,57 @@ const SectionListContainer = () => {
                                         </td>
                                         <td className="flex gap-1 flex-wrap">
                                             {editSectionId === section.id ? (
-                                                <SearchableDropdownToggler
-                                                    selectedList={
-                                                        editSectionCurr
-                                                    }
-                                                    setSelectedList={
-                                                        setEditSectionCurr
-                                                    }
-                                                    isEditMode={true}
-                                                />
+                                                editSectionCurr.map(
+                                                    ({ id, name, units }) => (
+                                                        <div
+                                                            key={id}
+                                                            className="px-2 flex items-center border border-gray-500 border-opacity-30"
+                                                        >
+                                                            <div className="mr-2">
+                                                                {name}
+                                                            </div>
+                                                            <input
+                                                                type="number"
+                                                                value={units}
+                                                                onChange={(e) =>
+                                                                    setEditSectionCurr(
+                                                                        editSectionCurr.map(
+                                                                            (
+                                                                                item
+                                                                            ) =>
+                                                                                item.id ===
+                                                                                id
+                                                                                    ? {
+                                                                                          ...item,
+                                                                                          units:
+                                                                                              parseInt(
+                                                                                                  e
+                                                                                                      .target
+                                                                                                      .value
+                                                                                              ),
+                                                                                      }
+                                                                                    : item
+                                                                        )
+                                                                    )
+                                                                }
+                                                                className="input input-xs w-16"
+                                                            />
+                                                            <span className="text-xs ml-1">
+                                                                unit(s)
+                                                            </span>
+                                                        </div>
+                                                    )
+                                                )
                                             ) : (
                                                 subjectStatus === "succeeded" &&
                                                 section.subjects.map(
                                                     (subject) => (
                                                         <div
                                                             key={subject}
-                                                            className="px-2 flex  items-center border border-gray-500 border-opacity-30"
+                                                            className="px-2 flex items-center border border-gray-500 border-opacity-30"
                                                         >
                                                             <div className="mr-2">
-                                                                {
+                                                                {   
                                                                     subjects[
                                                                         subject
                                                                     ].subject
@@ -337,9 +382,9 @@ const SectionListContainer = () => {
                                                                         sections[
                                                                             section
                                                                                 .id
-                                                                        ].units[
+                                                                        ]?.units?.[
                                                                             subject
-                                                                        ]
+                                                                        ] || 0
                                                                     }
                                                                 </span>
                                                                 <span>
@@ -434,5 +479,6 @@ const SectionListContainer = () => {
         </React.Fragment>
     );
 };
+
 
 export default SectionListContainer;
