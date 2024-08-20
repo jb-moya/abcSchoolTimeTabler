@@ -11,7 +11,7 @@ const TimetableRow = ({
     columnField,
     // isBreak,
 }) => {
-    console.log("haha", row);
+    // console.log("haha", row);
 
     // if (isBreak) {
     //     return (
@@ -29,7 +29,7 @@ const TimetableRow = ({
     // return null;
 
     if (row) {
-        console.log("fFFFFFFFFFFFFFFFFFFFFFFF", row);
+        // console.log("fFFFFFFFFFFFFFFFFFFFFFFF", row);
         const numbersToCheck = [1, 2, 3, 4, 5];
 
         const availableDay = [];
@@ -39,7 +39,7 @@ const TimetableRow = ({
             extendArray(availableDay, row[i].day);
         }
 
-        console.log("V", availableDay);
+        // console.log("V", availableDay);
 
         const renderedRow = [];
         for (let i = 0; i < row_cell_length; i++) {
@@ -71,7 +71,7 @@ const TimetableRow = ({
             }
 
             for (const day in row[i].day) {
-                console.log("row[i].day", day);
+                // console.log("row[i].day", day);
                 renderedRow.push(
                     <div
                         key={`${day}-${fieldName1}-${fieldName2}`}
@@ -141,7 +141,7 @@ const GeneratedTimetable = ({
             <div className="overflow-x-auto">
                 {Object.entries(timetables).map(
                     ([timetableID, timetable]) => (
-                        console.log("timetablaae", timetable),
+                        // console.log("timetablaae", timetable),
                         (
                             <React.Fragment key={timetableID}>
                                 <div className="flex gap-4 font-bold items-center text-center mt-10">

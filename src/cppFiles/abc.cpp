@@ -56,7 +56,7 @@ void Timetable::initializeRandomTimetable(
 
 		for (const auto& subject_id : subjects) {
 			int16_t school_class_id = offset + subject_id;
-
+			// std::cout << "school id : " << school_class_id << std::endl;
 			std::uniform_int_distribution<> dis(0, eligible_teachers_in_subject[subject_id].size() - 1);
 
 			int16_t timeslot = class_timeslot_distributions[section_id](gen);
@@ -74,30 +74,31 @@ void Timetable::initializeRandomTimetable(
 					int8_t workday = random_workday(gen);
 					schoolClasses.push_back({static_cast<int16_t>(school_class_id + i), section_id, subject_id, teacher, timeslot, workday});
 				}
+
+				offset += unit - 1;
 			}
-
-			// if the subject of the subject is full workweek, add simple integer timeslot inside {}
-
-			// first  bits for the hour:minute
-			// last 3 bits for the day
-
-			// std::cout << "Teacher: " << teacher << " subject " << subject_id << std::endl;
 		}
 
 		offset += num_subjects;
 	}
+
+	// for (int i = 0; i < schoolClasses.size(); ++i) {
+	// 	std::cout << "school class id : " << schoolClasses[i].school_class_id << std::endl;
+	// }
 };
 
 void Timetable::update(std::mt19937& gen,
                        std::uniform_int_distribution<int16_t>& distribution_field,
-                       std::uniform_int_distribution<int16_t>& distribution_school_class,
+                       std::uniform_int_distribution<int16_t>& distribution_class_block,
                        std::uniform_int_distribution<int16_t>& distribution_section,
                        std::uniform_int_distribution<int8_t>& random_workday,
                        std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>>& section_subjects_units_map,
                        std::unordered_map<int16_t, std::vector<int16_t>>& eligible_teachers_in_subject,
                        std::unordered_map<int16_t, std::uniform_int_distribution<int>>& class_timeslot_distributions) {
 	int16_t choice = distribution_field(gen);
-	int16_t school_class_id = distribution_school_class(gen);
+	int16_t school_class_id = distribution_class_block(gen);
+
+	// std::cout << "choice : " << choice << " school class id : " << school_class_id << std::endl;
 
 	if (choice == 2) {
 		int16_t unit = section_subjects_units_map[schoolClasses[school_class_id].section_id][schoolClasses[school_class_id].subject_id].second;
@@ -163,7 +164,9 @@ double ObjectiveFunction::evaluate(
 
 	int16_t conflicting_timeslots = 0;
 
-	for (int i = 0; i < timetable.schoolClasses.size(); ++i) {
+	int total_class_block = timetable.schoolClasses.size();
+
+	for (int i = 0; i < total_class_block; ++i) {
 		const auto& school_class = timetable.schoolClasses[i];
 		int teacher_id = static_cast<int>(school_class.teacher_id);
 		int timeslot = static_cast<int>(school_class.timeslot);
@@ -233,7 +236,8 @@ int sum(int a, int b) {
 void runExperiment(
     int max_iterations,
     int num_teachers,
-    int total_school_class,
+    int total_section_subjects,
+    int total_class_block,
     int total_section,
     int32_t* section_subjects,
     int32_t* teacher_subjects,
@@ -277,7 +281,7 @@ void runExperiment(
 		int16_t unpackedFirst, unpackedSecond;
 		unpackedFirst = static_cast<int16_t>(teacher_subjects[i] >> 16);
 		unpackedSecond = static_cast<int16_t>(teacher_subjects[i] & 0xFFFF);
-		std::cout << "eno to: " << unpackedFirst << " eno to 2: " << unpackedSecond << std::endl;
+		// std::cout << "eno to: " << unpackedFirst << " eno to 2: " << unpackedSecond << std::endl;
 
 		teacher_subjects_map[unpackedFirst].push_back(unpackedSecond);
 
@@ -286,13 +290,13 @@ void runExperiment(
 
 	// std::cout << "eligible_teachers_in_subject" << std::endl;
 	for (auto it = eligible_teachers_in_subject.begin(); it != eligible_teachers_in_subject.end(); it++) {
-		std::cout << it->first << " ";
+		// std::cout << it->first << " ";
 
 		for (int i = 0; i < it->second.size(); i++) {
-			std::cout << it->second[i] << " ";
+			// std::cout << it->second[i] << " ";
 		}
 
-		std::cout << std::endl;
+		// std::cout << std::endl;
 	}
 	// std::cout << "eligible_teachers_in_subject end" << std::endl;
 
@@ -303,15 +307,15 @@ void runExperiment(
 
 		// std::cout << "Teacher ID: " << teacher_id << " teaches subjects: ";
 		for (int16_t subject : subjects) {
-			std::cout << subject << " ";
+			// std::cout << subject << " ";
 		}
-		std::cout << std::endl;
+		// std::cout << std::endl;
 	}
 
 	std::unordered_map<int, int> class_num_of_subjects;
 
 	// std::cout << "section_subjects_map" << std::endl;
-	for (int i = 0; i < total_school_class; i++) {
+	for (int i = 0; i < total_section_subjects; i++) {
 		int16_t unpacked_first_section_subjects, unpacked_second_section_subjects;
 		int16_t unpacked_first_section_subjects_units, unpacked_second_section_subjects_units;
 
@@ -323,20 +327,32 @@ void runExperiment(
 
 		section_subjects_map[unpacked_first_section_subjects].push_back(unpacked_second_section_subjects);
 
-		std::cout << "a : " << unpacked_first_section_subjects_units << " b : " << unpacked_second_section_subjects_units << std::endl;
+		std::cout << "a : " << unpacked_first_section_subjects << " b : " << unpacked_second_section_subjects << std::endl;
 
 		section_subjects_units_map[unpacked_first_section_subjects].push_back(std::make_pair(unpacked_first_section_subjects_units, unpacked_second_section_subjects_units));
 
 		class_num_of_subjects[unpacked_first_section_subjects]++;
 	}
 
+	std::cout << "section_subjects_units_map" << std::endl;
+	for (auto it = section_subjects_units_map.begin(); it != section_subjects_units_map.end(); it++) {
+		std::cout << it->first << " g: ";
+		for (int i = 0; i < it->second.size(); i++) {
+			std::cout << it->second[i].first << " h: " << it->second[i].second << " ";
+		}
+
+		std::cout << std::endl;
+	}
+
 	// cout all class_num_of_subjects
-	// std::cout << "class_num_of_subjects" << std::endl;
+	std::cout
+	    << "class_num_of_subjects" << std::endl;
 	for (auto it = class_num_of_subjects.begin(); it != class_num_of_subjects.end(); it++) {
 		std::cout << it->first << " " << it->second << std::endl;
 	}
 	// std::cout << "class_num_of_subjects end" << std::endl;
 
+	std::cout << " duplicated " << std::endl;
 	for (int16_t i = 0; i < section_subjects_map.size(); i++) {
 		for (int j = 0; j < section_subjects_map[i].size(); j++) {
 			std::cout << section_subjects_map[i][j] << " ";
@@ -347,20 +363,22 @@ void runExperiment(
 
 	std::unordered_map<int16_t, std::uniform_int_distribution<int>> class_timeslot_distributions;
 
-	std::cout << "class_timeslot_distributions" << std::endl;
 	// std::cout << "class_timeslot_distributions" << std::endl;
+	// std::cout << "class_timeslot_distributions" << std::endl;
+
+	// FUTURE FEAUTRE: THIS CAN BE TURNED ON/OFF
 	for (auto it = class_num_of_subjects.begin(); it != class_num_of_subjects.end(); it++) {
-		std::cout << it->first << " " << it->second << std::endl;
+		// std::cout << it->first << " " << it->second << std::endl;
 		class_timeslot_distributions[it->first] = std::uniform_int_distribution<int>(0, it->second - 1);
 	}
 
-	// std::cout << total_school_class << " hehe " << std::endl;
+	// std::cout << total_class_block << " hehe " << std::endl;
 	// std::cout << total_section << " hehe " << std::endl;
 	// std::cout << num_teachers << " hehe " << std::endl;
 
 	std::uniform_int_distribution<int16_t>
 	    random_field(0, 2);
-	std::uniform_int_distribution<int16_t> random_school_class(0, total_school_class - 1);
+	std::uniform_int_distribution<int16_t> random_class_block(0, total_class_block - 1);
 	std::uniform_int_distribution<int16_t> random_section(0, total_section - 1);
 	std::uniform_int_distribution<int16_t> random_teacher(0, num_teachers - 1);
 	std::uniform_int_distribution<int8_t> random_workDay(1, work_week);
@@ -372,14 +390,16 @@ void runExperiment(
 
 	printf("For function abcTestMine: %d experiments, %d iterations for each experiment. \n", nrOfExperiments, max_iterations);
 
-	Bee bestSolution(total_school_class);
+	Bee bestSolution(total_class_block);
 	bestSolution.timetable.initializeRandomTimetable(gen, eligible_teachers_in_subject, class_timeslot_distributions, section_subjects_map, section_subjects_units_map, random_workDay);
 	bestSolution.cost = optimizableFunction.evaluate(bestSolution.timetable, false, work_week);
+
+	// return;
 
 	auto start = std::chrono::high_resolution_clock::now();
 
 	for (int experiment = 0; experiment < nrOfExperiments; experiment++) {
-		vector<Bee> beesVector(beesPopulation, Bee(total_school_class));
+		vector<Bee> beesVector(beesPopulation, Bee(total_class_block));
 
 		for (int i = 0; i < beesPopulation; i++) {
 			beesVector[i].timetable.initializeRandomTimetable(gen, eligible_teachers_in_subject, class_timeslot_distributions, section_subjects_map, section_subjects_units_map, random_workDay);
@@ -401,9 +421,9 @@ void runExperiment(
 					randomBeesIndex = dist_bees_employed(gen);
 				} while (randomBeesIndex == i);
 
-				Bee newBee(total_school_class);
+				Bee newBee(total_class_block);
 				newBee = beesVector[randomBeesIndex];
-				newBee.timetable.update(gen, random_field, random_school_class, random_section, random_workDay, section_subjects_units_map, eligible_teachers_in_subject, class_timeslot_distributions);
+				newBee.timetable.update(gen, random_field, random_class_block, random_section, random_workDay, section_subjects_units_map, eligible_teachers_in_subject, class_timeslot_distributions);
 
 				newBee.cost = optimizableFunction.evaluate(newBee.timetable, false, work_week);
 
@@ -457,9 +477,9 @@ void runExperiment(
 					randomBeesIndex = rand() % beesEmployed;
 				}
 
-				Bee newBee(total_school_class);
+				Bee newBee(total_class_block);
 				newBee = beesVector[randomBeesIndex];
-				newBee.timetable.update(gen, random_field, random_school_class, random_section, random_workDay, section_subjects_units_map, eligible_teachers_in_subject, class_timeslot_distributions);
+				newBee.timetable.update(gen, random_field, random_class_block, random_section, random_workDay, section_subjects_units_map, eligible_teachers_in_subject, class_timeslot_distributions);
 
 				newBee.cost = optimizableFunction.evaluate(newBee.timetable, false, work_week);
 
@@ -477,11 +497,12 @@ void runExperiment(
 			for (int itScout = 0; itScout < beesScout; itScout++) {
 				for (int i = 0; i < beesEmployed; i++) {
 					if (abandonedBees[i] >= limit) {
-						Bee newBee(total_school_class);
+						Bee newBee(total_class_block);
 						newBee.timetable.initializeRandomTimetable(gen, eligible_teachers_in_subject, class_timeslot_distributions, section_subjects_map, section_subjects_units_map, random_workDay);
-						newBee = beesVector[i];
 
+						beesVector[i] = newBee;
 						beesVector[i].cost = optimizableFunction.evaluate(beesVector[i].timetable, false, work_week);
+
 						abandonedBees[i] = 0;
 					}
 				}
@@ -526,7 +547,7 @@ void runExperiment(
 		    bestSolution.timetable.schoolClasses[i].teacher_id,
 		    static_cast<int8_t>(bestSolution.timetable.schoolClasses[i].timeslot),
 		    bestSolution.timetable.schoolClasses[i].day);
-		std::cout << "packed : " << packed << std::endl;
+		// std::cout << "packed : " << packed << std::endl;
 
 		result[i] = packed;
 	}

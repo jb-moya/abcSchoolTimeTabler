@@ -4,7 +4,7 @@ const findInObject = (obj, keys, values) => {
         // console.log("key", key);
         if (Object.hasOwn(obj, key)) {
             const propertyArray = obj[key];
-            console.log("propertyArray", propertyArray);
+            // console.log("propertyArray", propertyArray);
 
             for (const property of propertyArray) {
                 if (
