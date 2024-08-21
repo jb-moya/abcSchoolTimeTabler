@@ -47,8 +47,8 @@ void test_hello_react() {
 	int limit = 30;
 
 	int num_teachers = 10 ;
-	int total_section = 1 ;
-	int num_subjects = 5 ;
+	int total_section = 10 ;
+	int num_subjects = 10 ;
 	int teacher_subjects_length = num_teachers;
 	int default_units = 0;  // 0 means everyday
 	int workweek = 5;
@@ -92,13 +92,12 @@ void test_hello_react() {
 			// std::cout << "i : " << section << "j " << subject << " default_units " << default_units << std::endl;
 			section_subject_units[index] = packInt16ToInt32(subject, default_units);
 		}
-
 	}
 
-	section_subject_units[0] = packInt16ToInt32(0, 3);
-	section_subject_units[1] = packInt16ToInt32(1, 3);
-	section_subject_units[2] = packInt16ToInt32(2, 3);
-	section_subject_units[3] = packInt16ToInt32(3, 1);
+	// section_subject_units[0] = packInt16ToInt32(0, 3);
+	// section_subject_units[1] = packInt16ToInt32(1, 3);
+	// section_subject_units[2] = packInt16ToInt32(2, 3);
+	// section_subject_units[3] = packInt16ToInt32(3, 1);
 
 	int total_class_block = 0;
 	for (int i = 0; i < total_section_subjects; ++i) {

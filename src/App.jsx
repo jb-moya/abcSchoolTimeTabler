@@ -38,9 +38,6 @@ function App() {
     // Room-Section Relationship: Each room is uniquely assigned to a specific subject, establishing a 1:1 relationship.
     // Due to this strict pairing, room allocation is not a factor in timetable generation.
 
-    // Uniform Weekly Schedule: Time slots for classes remain consistent across all days of the week.
-    // There are no variations in the daily schedule for classes.
-
     // Curriculum-Driven Course Selection: Students are required to follow a predefined curriculum.
     // They do not have the option to select subjects independently.
 
@@ -48,17 +45,17 @@ function App() {
     // standardized across all sections and teachers, ensuring uniformity in the daily schedule.
 
     const timeSlotMap = {
-        0: "06:00 - 06:50",
-        1: "06:50 - 07:40",
-        2: "07:40 - 08:30",
-        3: "09:00 - 09:50",
-        4: "09:50 - 10:40",
-        5: "10:40 - 11:30",
-        6: "11:30 - 12:20",
-        7: "01:10 - 02:00",
-        8: "02:00 - 02:50",
-        9: "02:50 - 03:40",
-        10: "03:40 - 04:30",
+        0: "06:00 - 06:40",
+        1: "06:40 - 07:20",
+        2: "07:20 - 08:00",
+        3: "08:00 - 08:40",
+        4: "08:40 - 09:20",
+        5: "09:20 - 10:00",
+        6: "10:00 - 10:40",
+        7: "10:40 - 11:20",
+        8: "11:20 - 12:00",
+        9: "12:00 - 12:40",
+        10: "12:40 - 01:20",
     };
 
     const beforeBreakTime = {
@@ -153,7 +150,6 @@ function App() {
             }
 
             for (const unit of Object.keys(subjectUnits)) {
-
                 const unitCount = subjectUnits[unit];
 
                 if (unitCount === 0) {
@@ -267,7 +263,6 @@ function App() {
                 [section, subject, timeslot]
             );
 
-
             if (existingTeacherEntry) {
                 if (Array.isArray(existingTeacherEntry.day)) {
                     existingTeacherEntry.day.push(day);
@@ -350,32 +345,6 @@ function App() {
                                 setNumOfSchoolDays(e.target.value);
                             }}
                         />
-
-                        <div className="join join-item join-vertical flex w-20 items-center border-y border-r border-primary">
-                            <button
-                                className="join-item h-1/2 w-full bg-secondary hover:brightness-110 flex justify-center"
-                                onClick={() => {
-                                    if (numOfSchoolDays == 7) {
-                                        return;
-                                    }
-                                    setNumOfSchoolDays(numOfSchoolDays + 1);
-                                }}
-                            >
-                                <BiChevronUp size={24} />
-                            </button>
-                            <button
-                                className="join-item h-1/2 w-full bg-secondary hover:brightness-110 flex justify-center"
-                                onClick={() => {
-                                    if (numOfSchoolDays == 1) {
-                                        return;
-                                    }
-
-                                    setNumOfSchoolDays(numOfSchoolDays - 1);
-                                }}
-                            >
-                                <BiChevronDown size={24} />
-                            </button>
-                        </div>
                     </div>
                     <h1 className="divider"></h1>
                 </div>

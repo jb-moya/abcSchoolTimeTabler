@@ -109,11 +109,11 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
                                 type="text"
                                 placeholder="Units"
                                 className="input w-full join-item"
-                                value={subjectUnits[subjectID]}
+                                value={subjectUnits[subjectID] ?? 0}
                                 onChange={(e) => {
                                     setSubjectUnits({
                                         ...subjectUnits,
-                                        [subjectID]: e.target.value,
+                                        [subjectID]: parseInt(e.target.value, 10),
                                     });
                                 }}
                             />

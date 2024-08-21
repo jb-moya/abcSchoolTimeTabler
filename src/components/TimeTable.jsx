@@ -2,6 +2,7 @@ import clsx from "clsx";
 import React from "react";
 import extendArray from "../utils/extendArray";
 import findMissingNumbers from "../utils/findMissingNumbers";
+const numbersToCheck = [1, 2, 3, 4, 5];
 
 const TimetableRow = ({
     timeslot,
@@ -30,7 +31,6 @@ const TimetableRow = ({
 
     if (row) {
         // console.log("fFFFFFFFFFFFFFFFFFFFFFFF", row);
-        const numbersToCheck = [1, 2, 3, 4, 5];
 
         const availableDay = [];
 
@@ -39,7 +39,7 @@ const TimetableRow = ({
             extendArray(availableDay, row[i].day);
         }
 
-        console.log("V", availableDay);
+        // console.log("V", availableDay);
 
         const renderedRow = [];
         for (let i = 0; i < row_cell_length; i++) {
@@ -50,21 +50,20 @@ const TimetableRow = ({
                 renderedRow.push(
                     <div
                         key={`0-${fieldName1}-${fieldName2}`}
-                        className={clsx(
-                            "text-nowrap h-10 leading-4 content-center",
-                            row[i].day.includes(0) ? "basis-full" : `basis-1/5`
-                        )}
+                        className={
+                            "text-nowrap h-12 leading-4 content-center w-full"
+                        }
                         style={{
                             order: `calc((${row[i].timeslot} * 10) + 1)`,
                         }}
                     >
-                        <div className="flex gap-x-2 text-center justify-center">
-                            <span>
+                        <div className="flex flex-col gap-x-2 text-center justify-center">
+                            <div className="text-ellipsis">
                                 {firstColumnMap[fieldName1][columnField[0]]}
-                            </span>
-                            <span>
+                            </div>
+                            <div className="text-ellipsis">
                                 {secondColumnMap[fieldName2][columnField[1]]}
-                            </span>
+                            </div>
                         </div>
                     </div>
                 );
@@ -77,34 +76,33 @@ const TimetableRow = ({
                 renderedRow.push(
                     <div
                         key={`${row[i].day[day]}-${fieldName1}-${fieldName2}`}
-                        className={clsx(
-                            "text-nowrap h-10 leading-4 content-center basis-1/5"
-                        )}
+                        className={
+                            "text-nowrap h-10 leading-4 content-center w-1/5"
+                        }
                         style={{
                             order: `calc((${row[i].timeslot} * 10) + ${row[i].day[day]} + 1)`,
                         }}
                     >
-                        <div className="flex gap-x-2 text-center justify-center">
-                            <span>
+                        <div className="flex flex-col gap-x-2 text-center justify-center">
+                            <div className="text-ellipsis">
                                 {firstColumnMap[fieldName1][columnField[0]]}
-                            </span>
-                            <span>
+                            </div>
+                            <div className="text-ellipsis">
                                 {secondColumnMap[fieldName2][columnField[1]]}
-                            </span>
+                            </div>
                         </div>
                     </div>
                 );
             }
 
-            const emptyDay = findMissingNumbers(availableDay);
+            const emptyDay = findMissingNumbers(numbersToCheck, availableDay);
 
             for (const day of emptyDay) {
                 renderedRow.push(
                     <div
-                        className={clsx(
-                            "text-nowrap h-10 leading-4 content-center bg-purple-400",
-                            `basis-1/5`
-                        )}
+                        className={
+                            "text-nowrap h-12 leading-4 content-center bg-purple-400 w-1/5"
+                        }
                         style={{
                             order: `calc((${row[i].timeslot} * 10) + ${day} + 1)`,
                         }}
@@ -119,9 +117,9 @@ const TimetableRow = ({
     } else {
         return (
             <div
-                className={clsx(
-                    `opacity-50 border-b h-10 content-center bg-orange-600 basis-full`
-                )}
+                className={
+                    "opacity-50 border-b h-12 content-center bg-orange-600 w-full"
+                }
                 style={{
                     order: `calc((${timeslot} * 10) + 1)`,
                 }}
@@ -159,7 +157,7 @@ const GeneratedTimetable = ({
                                     </div>
                                 </div>
                                 <div className="flex bg-base-100">
-                                    <div>
+                                    <div className="w-1/12">
                                         <div className="border border-primary-content">
                                             Time
                                         </div>
@@ -168,7 +166,7 @@ const GeneratedTimetable = ({
                                                 ([timeslotID, timeslot]) => (
                                                     <div
                                                         key={timeslotID}
-                                                        className="border-b h-10"
+                                                        className="border-b h-12"
                                                     >
                                                         {timeslot}
                                                     </div>
@@ -176,7 +174,7 @@ const GeneratedTimetable = ({
                                             )}
                                         </div>
                                     </div>
-                                    <div className="w-full">
+                                    <div className="w-11/12">
                                         <div className="flex text-center w-full">
                                             <div className="w-1/5 border border-primary-content">
                                                 Mon
