@@ -56,7 +56,7 @@ struct Timetable {
 
 struct Bee {
 	Timetable timetable;
-	int16_t cost;
+	int cost;
 
 	Bee(int num_school_class) : timetable(num_school_class), cost(std::numeric_limits<int16_t>::max()) {}
 };
@@ -106,7 +106,7 @@ struct ObjectiveFunction {
 	    const int16_t& teacherID,
 	    const int16_t& subjectID,
 	    const std::unordered_map<int16_t, std::vector<int16_t>>& teacher_subjects_map = {}) const;
-	double evaluate(
+	int evaluate(
 	    const Timetable& timetable,
 	    bool show_penalty = false,
 	    const int& work_week = 5) const;

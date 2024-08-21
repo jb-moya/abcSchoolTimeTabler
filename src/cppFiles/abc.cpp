@@ -14,6 +14,7 @@
 #include <iomanip>
 #include <iostream>
 #include <limits>
+#include <map>
 #include <random>
 #include <set>
 #include <unordered_map>
@@ -155,14 +156,16 @@ void extractSectionSubjects(const std::vector<int32_t>& inputArray, std::unorder
 	}
 }
 
-double ObjectiveFunction::evaluate(
+int ObjectiveFunction::evaluate(
     const Timetable& timetable,
     bool show_penalty,
     const int& work_week) const {
 	std::unordered_set<int> class_timeslot_set;
 	std::unordered_set<int> teacher_timeslot_set;
+	std::unordered_map<int, std::map<int, std::unordered_set<int>>> section_class_slot;
 
-	int16_t conflicting_timeslots = 0;
+	int conflicting_timeslots = 0;
+	int unused_class_slot = 0;
 
 	int total_class_block = timetable.schoolClasses.size();
 
@@ -176,39 +179,75 @@ double ObjectiveFunction::evaluate(
 
 		if (teacher_id == -1 || timeslot == -1) continue;
 
+		// section_class_slot[section_id][timeslot].insert(day);
+
 		if (day != 0) {
 			int class_timeslot_key = combine(section_id, timeslot, day);
 			if (!class_timeslot_set.insert(class_timeslot_key).second) {
-				// std::cout << "BOBO  :" << section_id << "  " << timeslot << "  " << day << std::endl;
-				conflicting_timeslots++;
+				conflicting_timeslots += 1000;
 			}
+			int teacher_timeslot_key = combine(teacher_id, timeslot, day);
+			if (!teacher_timeslot_set.insert(teacher_timeslot_key).second) {
+				conflicting_timeslots += 1000;
+			}
+
 		} else {
 			for (int i = 1; i <= work_week; ++i) {
 				int class_timeslot_key = combine(section_id, timeslot, i);
 				if (!class_timeslot_set.insert(class_timeslot_key).second) {
-					conflicting_timeslots++;
+					conflicting_timeslots += 1000;
 				}
 			}
-		}
-
-		if (day != 0) {
-			int teacher_timeslot_key = combine(teacher_id, timeslot, day);
-			if (!teacher_timeslot_set.insert(teacher_timeslot_key).second) {
-				// std::cout << "GAGO  : " << teacher_id << "  " << timeslot << "  " << day << std::endl;
-				conflicting_timeslots++;
-			}
-		} else {
 			for (int i = 1; i <= work_week; ++i) {
-				// std::cout << "IIIIII: " << i << std::endl;
 				int teacher_timeslot_key = combine(teacher_id, timeslot, i);
 				if (!teacher_timeslot_set.insert(teacher_timeslot_key).second) {
-					conflicting_timeslots++;
+					conflicting_timeslots += 1000;
 				}
 			}
 		}
 	}
 
-	return conflicting_timeslots;
+	// for (const auto& entry : section_class_slot) {
+	// 	// int section_id = entry.first;
+	// 	const std::map<int, std::unordered_set<int>>& timeslot_map = entry.second;
+
+	// 	int previous_timeslot = -1;
+	// 	// std::cout << "asd : " << entry.first << std::endl;
+	// 	for (const auto& timeslot_entry : timeslot_map) {
+	// 		int timeslot = timeslot_entry.first;
+
+	// 		// std::cout << "timeslot: " << timeslot << std::endl;
+	// 		if (timeslot > previous_timeslot + 1) {
+	// 			// There are missing keys between previous_timeslot and timeslot
+	// 			for (int missing_key = previous_timeslot + 1; missing_key < timeslot; ++missing_key) {
+	// 				// std::cout << "Missing key: " << missing_key << std::endl;
+	// 				unused_class_slot += 100;
+	// 			}
+	// 		}
+
+	// 		// Update the previous_key to the current key
+	// 		previous_timeslot = timeslot;
+
+	// 		for (const auto& day : timeslot_entry.second) {
+	// 			// std::cout << "dayyyyy : " << day << std::endl;
+	// 		}
+
+	// 		if (timeslot_entry.second.find(0) != timeslot_entry.second.end()) {
+	// 			continue;
+	// 		}
+
+	// 		for (int day = 1; day <= work_week; ++day) {
+	// 			// std::cout << "dddddddddddddd : " << day << std::endl;
+
+	// 			if (timeslot_entry.second.find(day) == timeslot_entry.second.end()) {
+	// 				// std::cout << "wala : " << day << std::endl;
+	// 				unused_class_slot += 1;
+	// 			}
+	// 		}
+	// 	}
+	// }
+
+	return conflicting_timeslots + unused_class_slot;
 };
 
 int64_t pack5IntToInt64(int16_t a, int16_t b, int16_t c, int8_t d, int8_t e) {
@@ -312,7 +351,7 @@ void runExperiment(
 		// std::cout << std::endl;
 	}
 
-	std::unordered_map<int, int> class_num_of_subjects;
+	std::unordered_map<int, int> section_num_of_class_block;
 
 	// std::cout << "section_subjects_map" << std::endl;
 	for (int i = 0; i < total_section_subjects; i++) {
@@ -331,7 +370,7 @@ void runExperiment(
 
 		section_subjects_units_map[unpacked_first_section_subjects].push_back(std::make_pair(unpacked_first_section_subjects_units, unpacked_second_section_subjects_units));
 
-		class_num_of_subjects[unpacked_first_section_subjects]++;
+		section_num_of_class_block[unpacked_first_section_subjects] += unpacked_second_section_subjects_units == 0 ? 5 : unpacked_second_section_subjects_units;
 	}
 
 	std::cout << "section_subjects_units_map" << std::endl;
@@ -347,7 +386,7 @@ void runExperiment(
 	// cout all class_num_of_subjects
 	std::cout
 	    << "class_num_of_subjects" << std::endl;
-	for (auto it = class_num_of_subjects.begin(); it != class_num_of_subjects.end(); it++) {
+	for (auto it = section_num_of_class_block.begin(); it != section_num_of_class_block.end(); it++) {
 		std::cout << it->first << " " << it->second << std::endl;
 	}
 	// std::cout << "class_num_of_subjects end" << std::endl;
@@ -364,13 +403,15 @@ void runExperiment(
 	std::unordered_map<int16_t, std::uniform_int_distribution<int>> class_timeslot_distributions;
 
 	// std::cout << "class_timeslot_distributions" << std::endl;
-	// std::cout << "class_timeslot_distributions" << std::endl;
+	std::cout << "class_timeslot_distributions" << std::endl;
 
 	// FUTURE FEAUTRE: THIS CAN BE TURNED ON/OFF
-	for (auto it = class_num_of_subjects.begin(); it != class_num_of_subjects.end(); it++) {
-		// std::cout << it->first << " " << it->second << std::endl;
-		class_timeslot_distributions[it->first] = std::uniform_int_distribution<int>(0, it->second - 1);
+	for (auto it = section_num_of_class_block.begin(); it != section_num_of_class_block.end(); it++) {
+		std::cout << it->first << " " << it->second << std::endl;
+		class_timeslot_distributions[it->first] = std::uniform_int_distribution<int>(0, ((it->second + work_week - 1) / work_week) - 1);
 	}
+
+	// class_timeslot_distributions[0] = std::uniform_int_distribution<int>(0, 2);
 
 	// std::cout << total_class_block << " hehe " << std::endl;
 	// std::cout << total_section << " hehe " << std::endl;
@@ -393,8 +434,6 @@ void runExperiment(
 	Bee bestSolution(total_class_block);
 	bestSolution.timetable.initializeRandomTimetable(gen, eligible_teachers_in_subject, class_timeslot_distributions, section_subjects_map, section_subjects_units_map, random_workDay);
 	bestSolution.cost = optimizableFunction.evaluate(bestSolution.timetable, false, work_week);
-
-	// return;
 
 	auto start = std::chrono::high_resolution_clock::now();
 

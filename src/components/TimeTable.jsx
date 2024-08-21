@@ -180,7 +180,7 @@ const GeneratedTimetable = ({
                                                 Wed
                                             </div>
                                             <div className="w-1/5 border border-primary-content">
-                                                divu
+                                                Thur
                                             </div>
                                             <div className="w-1/5 border border-primary-content">
                                                 Fri

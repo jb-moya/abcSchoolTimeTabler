@@ -173,7 +173,7 @@ function App() {
             ...sectionSubjectUnitArray,
         ]);
 
-        const max_iterations = 2000;
+        const max_iterations = 10000;
         const beesPopulations = 50;
         const beesEmployedOptions = 25;
         const beesOnlookerOptions = 25;

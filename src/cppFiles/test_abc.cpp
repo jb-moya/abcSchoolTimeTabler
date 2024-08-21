@@ -39,16 +39,16 @@ void unpackInt32ToInt16(int32_t packed, int16_t& first, int16_t& second) {
 }
 
 void test_hello_react() {
-	int max_iterations = 10000;
-	int beesPopulation = 10;
-	int beesEmployed = 5;
-	int beesOnlooker = 5;
+	int max_iterations = 20000;
+	int beesPopulation = 20;
+	int beesEmployed = 10;
+	int beesOnlooker = 10;
 	int beesScout = 1;
-	int limit = 1400;
+	int limit = 30;
 
-	int num_teachers = 8 ;
-	int total_section = 8 ;
-	int num_subjects = 8 ;
+	int num_teachers = 10 ;
+	int total_section = 1 ;
+	int num_subjects = 5 ;
 	int teacher_subjects_length = num_teachers;
 	int default_units = 0;  // 0 means everyday
 	int workweek = 5;
@@ -95,10 +95,10 @@ void test_hello_react() {
 
 	}
 
-	// section_subject_units[0] = packInt16ToInt32(0, 4);
-	// section_subject_units[1] = packInt16ToInt32(1, 4);
-	// section_subject_units[2] = packInt16ToInt32(2, 4);
-	// section_subject_units[3] = packInt16ToInt32(0, 4);
+	section_subject_units[0] = packInt16ToInt32(0, 3);
+	section_subject_units[1] = packInt16ToInt32(1, 3);
+	section_subject_units[2] = packInt16ToInt32(2, 3);
+	section_subject_units[3] = packInt16ToInt32(3, 1);
 
 	int total_class_block = 0;
 	for (int i = 0; i < total_section_subjects; ++i) {
