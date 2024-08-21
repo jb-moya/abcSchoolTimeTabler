@@ -39,7 +39,7 @@ const TimetableRow = ({
             extendArray(availableDay, row[i].day);
         }
 
-        // console.log("V", availableDay);
+        console.log("V", availableDay);
 
         const renderedRow = [];
         for (let i = 0; i < row_cell_length; i++) {
@@ -52,9 +52,11 @@ const TimetableRow = ({
                         key={`0-${fieldName1}-${fieldName2}`}
                         className={clsx(
                             "text-nowrap h-10 leading-4 content-center",
-                            `order-[calc(${row[i].timeslot}+10+1)]`,
                             row[i].day.includes(0) ? "basis-full" : `basis-1/5`
                         )}
+                        style={{
+                            order: `calc((${row[i].timeslot} * 10) + 1)`,
+                        }}
                     >
                         <div className="flex gap-x-2 text-center justify-center">
                             <span>
@@ -71,14 +73,16 @@ const TimetableRow = ({
             }
 
             for (const day in row[i].day) {
-                // console.log("row[i].day", day);
+                console.log("row[i].day", row[i].day[day], row[i].day);
                 renderedRow.push(
                     <div
-                        key={`${day}-${fieldName1}-${fieldName2}`}
+                        key={`${row[i].day[day]}-${fieldName1}-${fieldName2}`}
                         className={clsx(
-                            "text-nowrap h-10 leading-4 content-center basis-1/5",
-                            `order-[calc(${row[i].timeslot}+10+${day}+1)]`
+                            "text-nowrap h-10 leading-4 content-center basis-1/5"
                         )}
+                        style={{
+                            order: `calc((${row[i].timeslot} * 10) + ${row[i].day[day]} + 1)`,
+                        }}
                     >
                         <div className="flex gap-x-2 text-center justify-center">
                             <span>
@@ -92,16 +96,18 @@ const TimetableRow = ({
                 );
             }
 
-            const emptyDay = findMissingNumbers(row[i].day);
+            const emptyDay = findMissingNumbers(availableDay);
 
             for (const day of emptyDay) {
                 renderedRow.push(
                     <div
                         className={clsx(
                             "text-nowrap h-10 leading-4 content-center bg-purple-400",
-                            `order-[calc(${row[i].timeslot}+10+${day}+1)]`,
                             `basis-1/5`
                         )}
+                        style={{
+                            order: `calc((${row[i].timeslot} * 10) + ${day} + 1)`,
+                        }}
                     >
                         <span className="divider my-auto">x</span>
                     </div>
@@ -114,9 +120,11 @@ const TimetableRow = ({
         return (
             <div
                 className={clsx(
-                    `opacity-50 border-b h-10 content-center basis-full`,
-                    `order-[calc(${timeslot}+10+1)]`
+                    `opacity-50 border-b h-10 content-center bg-orange-600 basis-full`
                 )}
+                style={{
+                    order: `calc((${timeslot} * 10) + 1)`,
+                }}
             >
                 <span className="divider my-auto">{timeslot}</span>
             </div>
@@ -141,13 +149,13 @@ const GeneratedTimetable = ({
             <div className="overflow-x-auto">
                 {Object.entries(timetables).map(
                     ([timetableID, timetable]) => (
-                        // console.log("timetablaae", timetable),
+                        console.log("timetablaae", timetable),
                         (
                             <React.Fragment key={timetableID}>
                                 <div className="flex gap-4 font-bold items-center text-center mt-10">
                                     <div>{field}: </div>
                                     <div className="text-lg text-accent">
-                                        {/* {timetable[timetableID][field]} */}
+                                        {collection[timetableID][field]}
                                     </div>
                                 </div>
                                 <div className="flex bg-base-100">
