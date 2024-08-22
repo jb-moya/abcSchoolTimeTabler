@@ -156,15 +156,27 @@ void extractSectionSubjects(const std::vector<int32_t>& inputArray, std::unorder
 	}
 }
 
+struct pair_hash {
+    template <class T1, class T2>
+    std::size_t operator() (const std::pair<T1, T2> &pair) const {
+        return std::hash<T1>()(pair.first) ^ std::hash<T2>()(pair.second);
+    }
+};
+
 int ObjectiveFunction::evaluate(
     const Timetable& timetable,
     bool show_penalty,
-    const int& work_week) const {
+    const int& work_week) 
+	
+	const {
 	std::unordered_set<int> class_timeslot_set;
 	std::unordered_set<int> teacher_timeslot_set;
+	std::unordered_map<std::pair<int, int>, int, pair_hash> teacher_class_count;
+
 	std::unordered_map<int, std::map<int, std::unordered_set<int>>> section_class_slot;
 
 	int conflicting_timeslots = 0;
+	int exceeding_assignments = 0;
 
 	int total_class_block = timetable.schoolClasses.size();
 
@@ -202,7 +214,21 @@ int ObjectiveFunction::evaluate(
 		}
 	}
 
-	return conflicting_timeslots;
+	for (const auto& school_class : timetable.schoolClasses) {
+		int teacher_id = static_cast<int>(school_class.teacher_id);
+		int day = static_cast<int>(school_class.day);
+
+		if (teacher_id != -1 && day != 0) {
+			teacher_class_count[{teacher_id, day}]++;
+		}
+
+		if (teacher_class_count[{teacher_id, day}] > 1) {
+			exceeding_assignments += 1000;
+		}	
+	}
+
+	return exceeding_assignments;
+	// return conflicting_timeslots + exceeding_assignments;
 };
 
 int64_t pack5IntToInt64(int16_t a, int16_t b, int16_t c, int8_t d, int8_t e) {
