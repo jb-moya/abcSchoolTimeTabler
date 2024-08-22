@@ -156,13 +156,6 @@ void extractSectionSubjects(const std::vector<int32_t>& inputArray, std::unorder
 	}
 }
 
-struct pair_hash {
-    template <class T1, class T2>
-    std::size_t operator() (const std::pair<T1, T2> &pair) const {
-        return std::hash<T1>()(pair.first) ^ std::hash<T2>()(pair.second);
-    }
-};
-
 int ObjectiveFunction::evaluate(
     const Timetable& timetable,
     bool show_penalty,
@@ -171,9 +164,7 @@ int ObjectiveFunction::evaluate(
 	const {
 	std::unordered_set<int> class_timeslot_set;
 	std::unordered_set<int> teacher_timeslot_set;
-	std::unordered_map<std::pair<int, int>, int, pair_hash> teacher_class_count;
-
-	std::unordered_map<int, std::map<int, std::unordered_set<int>>> section_class_slot;
+	std::unordered_map<int, std::map<int, std::unordered_set<int>>> teacher_class_count;
 
 	int conflicting_timeslots = 0;
 	int exceeding_assignments = 0;
@@ -217,18 +208,19 @@ int ObjectiveFunction::evaluate(
 	for (const auto& school_class : timetable.schoolClasses) {
 		int teacher_id = static_cast<int>(school_class.teacher_id);
 		int day = static_cast<int>(school_class.day);
+		int class_id = static_cast<int>(school_class.school_class_id);
 
-		if (teacher_id != -1 && day != 0) {
-			teacher_class_count[{teacher_id, day}]++;
+		if (teacher_id != -1) {
+			teacher_class_count[teacher_id][day].insert(class_id);
 		}
 
-		if (teacher_class_count[{teacher_id, day}] > 1) {
+		if (teacher_class_count[teacher_id][day].size() > 1) {
 			exceeding_assignments += 1000;
-		}	
+		}
 	}
 
-	return exceeding_assignments;
-	// return conflicting_timeslots + exceeding_assignments;
+	// return exceeding_assignments;
+	return conflicting_timeslots + exceeding_assignments;
 };
 
 int64_t pack5IntToInt64(int16_t a, int16_t b, int16_t c, int8_t d, int8_t e) {
