@@ -22,13 +22,29 @@
 
 using namespace std;
 
+int32_t* allocate(int size) {
+	int32_t* static_array = new (std::nothrow) int32_t[size];
+
+	if (!static_array) {
+		std::cerr << "Failed to allocate memory for static array" << std::endl;
+		return nullptr;
+	}
+
+	return static_array;
+}
+
+void unpackInt32ToInt16(int32_t packed, int16_t& first, int16_t& second) {
+	first = static_cast<int16_t>(packed >> 16);
+	second = static_cast<int16_t>(packed & 0xFFFF);
+}
+
 void test_hello_react() {
 	int max_iterations = 5000;
 	int beesPopulation = 10;
 	int beesEmployed = 5;
 	int beesOnlooker = 5;
 	int beesScout = 1;
-	int limit = 10;
+	int limit = 90;
 
 	int num_teachers = 14;
 	int total_section = 2;
@@ -37,53 +53,44 @@ void test_hello_react() {
 	int default_units = 0;  // 0 means everyday
 	int workweek = 5;
 
-	int32_t* section_subjects = new (std::nothrow) int32_t[total_school_class];
-	if (!section_subjects) {
-		std::cerr << "Failed to allocate memory for section_subjects" << std::endl;
-		return;
-	}
+	// 500 x 20 x 5
 
-	int32_t* teacher_subjects = new (std::nothrow) int32_t[teacher_subjects_length];
-	if (!teacher_subjects) {
-		std::cerr << "Failed to allocate memory for teacher_subjects" << std::endl;
-		delete[] section_subjects;
-		return;
-	}
+	int total_section_subjects = total_section * num_subjects;
 
-	int32_t* section_subject_units = new (std::nothrow) int32_t[total_school_class];
-	if (!section_subject_units) {
-		std::cerr << "Failed to allocate memory for teacher_subjects" << std::endl;
-		delete[] section_subject_units;
-		return;
-	}
+	int32_t* section_subjects = allocate(total_section_subjects);
+	int32_t* teacher_subjects = allocate(teacher_subjects_length);
+	int32_t* section_subject_units = allocate(total_section_subjects);
 
 	for (int i = 0; i < teacher_subjects_length; ++i) {
 		teacher_subjects[i] = -1;
 	}
 
-	teacher_subjects[0] = packInt16ToInt32(0, 0);
-	teacher_subjects[1] = packInt16ToInt32(1, 1);
-	teacher_subjects[2] = packInt16ToInt32(0, 0);
-	teacher_subjects[3] = packInt16ToInt32(1, 1);
-	// teacher_subjects[2] = packInt16ToInt32(2, 2);
-	// teacher_subjects[5] = packInt16ToInt32(2, 2);
-	// teacher_subjects[2] = packInt16ToInt32(2, 2);
-	// teacher_subjects[3] = packInt16ToInt32(3, 3);
-	// teacher_subjects[4] = packInt16ToInt32(4, 4);
+	for (int i = 0; i < num_teachers; ++i) {
+		teacher_subjects[i] = packInt16ToInt32(i, i % num_subjects);
+	}
 
-	for (int16_t i = 0; i < total_section; ++i) {
-		for (int16_t j = 0; j < num_subjects; ++j) {
-			int index = i * num_subjects + j;
-			if (index >= total_school_class) {
+	// teacher_subjects[0] = packInt16ToInt32(0, 0);
+	// teacher_subjects[1] = packInt16ToInt32(1, 1);
+	// teacher_subjects[2] = packInt16ToInt32(2, 0);
+	// teacher_subjects[3] = packInt16ToInt32(3, 1);
+	// teacher_subjects[2] = packInt16ToInt32(2, 2);
+
+	for (int16_t section = 0; section < total_section; ++section) {
+		for (int16_t subject = 0; subject < num_subjects; ++subject) {
+			int index = section * num_subjects + subject;
+
+			if (index >= total_section_subjects) {
 				std::cerr << "Index out of bounds: " << index << std::endl;
 				delete[] section_subjects;
 				delete[] teacher_subjects;
 				return;
 			}
-			section_subjects[index] = packInt16ToInt32(i, j);
 
-			std::cout << "j " << j << " default_units " << default_units << std::endl;
-			section_subject_units[index] = packInt16ToInt32(j, default_units);
+			section_subjects[index] = packInt16ToInt32(section, subject);
+
+			std::cout << "index:  " << index << std::endl;
+			// std::cout << "i : " << section << "j " << subject << " default_units " << default_units << std::endl;
+			section_subject_units[index] = packInt16ToInt32(subject, default_units);
 		}
 	}
 
@@ -105,7 +112,7 @@ void test_hello_react() {
 
 	std::cout << "total_class_block: " << total_class_block << std::endl;
 
-	int64_t* result = new (std::nothrow) int64_t[total_school_class];
+	int64_t* result = new (std::nothrow) int64_t[total_class_block];
 
 	std::cout << "Running experiment with configuration: ";
 
@@ -116,12 +123,13 @@ void test_hello_react() {
 	          << beesScout << ", "
 	          << limit << std::endl;
 
-	int result_buff_length = 6;  // arbitrary
+	int result_buff_length = total_class_block;  // arbitrary
 
 	runExperiment(
 	    max_iterations,
 	    num_teachers,
-	    total_school_class,
+	    total_section_subjects,
+	    total_class_block,
 	    total_section,
 	    section_subjects,
 	    teacher_subjects,
@@ -136,11 +144,6 @@ void test_hello_react() {
 	    9,
 	    result_buff_length,
 	    result);
-}
-
-void unpackInt32ToInt16(int32_t packed, int16_t& first, int16_t& second) {
-	first = static_cast<int16_t>(packed >> 16);
-	second = static_cast<int16_t>(packed & 0xFFFF);
 }
 
 void test_packing_unpacking_integers() {

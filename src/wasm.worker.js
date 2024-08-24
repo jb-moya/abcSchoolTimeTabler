@@ -64,6 +64,7 @@ const getTimetable = async (params) =>
                 params.maxIterations,
                 params.numTeachers,
                 params.totalSchoolClass,
+                params.totalCellBlock,
                 params.totalSection,
                 sectionSubjectsBuff,
                 teacherSubjectsBuff,

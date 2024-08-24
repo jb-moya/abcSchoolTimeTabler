@@ -109,11 +109,11 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
                                 type="text"
                                 placeholder="Units"
                                 className="input w-full join-item"
-                                value={subjectUnits[subjectID]}
+                                value={subjectUnits[subjectID] ?? 0}
                                 onChange={(e) => {
                                     setSubjectUnits({
                                         ...subjectUnits,
-                                        [subjectID]: e.target.value,
+                                        [subjectID]: parseInt(e.target.value, 10),
                                     });
                                 }}
                             />
@@ -186,54 +186,74 @@ const SectionListContainer = () => {
         useState(false);
     const [editSectionId, setEditSectionId] = useState(null);
     const [editSectionValue, setEditSectionValue] = useState("");
-    const [editSectionCurr, setEditSectionCurr] = useState([]);
+    const [editSectionSubjects, setEditSectionSubjects] = useState([]);
+    const [editSectionUnits, setEditSectionUnits] = useState({});
     const [searchSectionResult, setSearchSectionResult] = useState(sections);
     const [searchSectionValue, setSearchSectionValue] = useState("");
 
     const handleEditSectionClick = (section) => {
         setEditSectionId(section.id);
         setEditSectionValue(section.section);
-        setEditSectionCurr(section.subjects);
+
+        const subjectsWithUnits = section.subjects.map((subjectId) => ({
+            id: subjectId,
+            name: subjects[subjectId].subject,
+            units: sections[section.id]?.units?.[subjectId] || 0,
+        }));
+
+        setEditSectionSubjects(subjectsWithUnits.map(({ id }) => id));
+        
+        setEditSectionUnits(subjectsWithUnits.reduce((acc, { id, units }) => {
+            acc[id] = units;
+            return acc;
+        }, {}));
     };
 
     const handleSaveSectionEditClick = (sectionId) => {
-        dispatch(
-            editSection({
-                sectionId,
-                updatedSection: {
-                    section: editSectionValue,
-                    subjects: editSectionCurr,
-                },
-            })
+        const updatedUnits = editSectionSubjects.reduce((acc, subjectId) => {
+            acc[subjectId] = editSectionUnits[subjectId];
+            return acc;
+    }, {});
+
+    dispatch(
+        editSection({
+            sectionId,
+            updatedSection: {
+                section: editSectionValue,
+                subjects: editSectionSubjects,
+                units: updatedUnits,
+            },
+        })
+    );
+
+    setEditSectionId(null);
+};
+
+const handleCancelSectionEditClick = () => {
+    setEditSectionId(null);
+    setEditSectionValue("");
+    setEditSectionSubjects([]);
+    setEditSectionUnits({});
+};
+
+const debouncedSearch = useCallback(
+    debounce((searchValue, sections, subjects) => {
+        setSearchSectionResult(
+            filterObject(sections, ([, section]) => {
+                const escapedSearchValue = escapeRegExp(searchValue)
+                    .split("\\*")
+                    .join(".*");
+
+                const sectionSubjectsName = section.subjects
+                    .map((subjectID) => subjects[subjectID].subject)
+                    .join(" ");
+
+                const pattern = new RegExp(escapedSearchValue, "i");
+        return (
+            pattern.test(section.section) ||
+            pattern.test(sectionSubjectsName)
         );
-        setEditSectionId(null);
-    };
-
-    const handleCancelSectionEditClick = () => {
-        setEditSectionId(null);
-        setEditSectionValue("");
-        setEditSectionCurr([]);
-    };
-
-    const debouncedSearch = useCallback(
-        debounce((searchValue, sections, subjects) => {
-            setSearchSectionResult(
-                filterObject(sections, ([, section]) => {
-                    const escapedSearchValue = escapeRegExp(searchValue)
-                        .split("\\*")
-                        .join(".*");
-
-                    const sectionSubjectsName = section.subjects
-                        .map((subjectID) => subjects[subjectID].subject)
-                        .join(" ");
-
-                    const pattern = new RegExp(escapedSearchValue, "i");
-
-                    return (
-                        pattern.test(section.section) ||
-                        pattern.test(sectionSubjectsName)
-                    );
-                })
+            })
             );
         }, 200),
         []
@@ -307,22 +327,90 @@ const SectionListContainer = () => {
                                         </td>
                                         <td className="flex gap-1 flex-wrap">
                                             {editSectionId === section.id ? (
-                                                <SearchableDropdownToggler
-                                                    selectedList={
-                                                        editSectionCurr
-                                                    }
-                                                    setSelectedList={
-                                                        setEditSectionCurr
-                                                    }
-                                                    isEditMode={true}
-                                                />
+                                                <div>
+                                                    {editSectionSubjects.map(
+                                                        (subjectId) => (
+                                                            <div
+                                                                key={subjectId}
+                                                                className="px-2 flex items-center border border-gray-500 border-opacity-30"
+                                                            >
+                                                                <div className="mr-2">
+                                                                    {subjects[
+                                                                        subjectId
+                                                                    ].subject}
+                                                                </div>
+                                                                <input
+                                                                    type="number"
+                                                                    value={
+                                                                        editSectionUnits[
+                                                                            subjectId
+                                                                        ]
+                                                                    }
+                                                                    onChange={(
+                                                                        e
+                                                                    ) =>
+                                                                        setEditSectionUnits(
+                                                                            {
+                                                                                ...editSectionUnits,
+                                                                                [subjectId]:
+                                                                                    parseInt(
+                                                                                        e
+                                                                                            .target
+                                                                                            .value
+                                                                                    ),
+                                                                            }
+                                                                        )
+                                                                    }
+                                                                    className="input input-xs w-16"
+                                                                />
+                                                                <span className="text-xs ml-1">
+                                                                    unit(s)
+                                                                </span>
+                                                                <button
+                                                                    className="btn btn-xs btn-outline ml-2"
+                                                                    onClick={() => {
+                                                                        setEditSectionSubjects(
+                                                                            editSectionSubjects.filter(
+                                                                                id =>
+                                                                                    id !==
+                                                                                    subjectId
+                                                                            )
+                                                                        );
+                                                                        const updatedUnits =
+                                                                            {
+                                                                                ...editSectionUnits,
+                                                                            };
+                                                                        delete updatedUnits[
+                                                                            subjectId
+                                                                        ];
+                                                                        setEditSectionUnits(
+                                                                            updatedUnits
+                                                                        );
+                                                                    }}
+                                                                >
+                                                                    Remove
+                                                                </button>
+                                                            </div>
+                                                        )
+                                                    )}
+                                                    <SearchableDropdownToggler
+                                                        selectedList={
+                                                            editSectionSubjects
+                                                        }
+                                                        setSelectedList={
+                                                            setEditSectionSubjects
+                                                        }
+                                                        isEditMode={true}
+                                                    />
+                                                </div>
                                             ) : (
-                                                subjectStatus === "succeeded" &&
+                                                subjectStatus ===
+                                                    "succeeded" &&
                                                 section.subjects.map(
                                                     (subject) => (
                                                         <div
                                                             key={subject}
-                                                            className="px-2 flex  items-center border border-gray-500 border-opacity-30"
+                                                            className="px-2 flex items-center border border-gray-500 border-opacity-30"
                                                         >
                                                             <div className="mr-2">
                                                                 {
@@ -337,9 +425,9 @@ const SectionListContainer = () => {
                                                                         sections[
                                                                             section
                                                                                 .id
-                                                                        ].units[
+                                                                        ]?.units?.[
                                                                             subject
-                                                                        ]
+                                                                        ] || 0
                                                                     }
                                                                 </span>
                                                                 <span>

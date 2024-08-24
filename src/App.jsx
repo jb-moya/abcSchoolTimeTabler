@@ -38,9 +38,6 @@ function App() {
     // Room-Section Relationship: Each room is uniquely assigned to a specific subject, establishing a 1:1 relationship.
     // Due to this strict pairing, room allocation is not a factor in timetable generation.
 
-    // Uniform Weekly Schedule: Time slots for classes remain consistent across all days of the week.
-    // There are no variations in the daily schedule for classes.
-
     // Curriculum-Driven Course Selection: Students are required to follow a predefined curriculum.
     // They do not have the option to select subjects independently.
 
@@ -48,17 +45,17 @@ function App() {
     // standardized across all sections and teachers, ensuring uniformity in the daily schedule.
 
     const timeSlotMap = {
-        0: "06:00 - 06:50",
-        1: "06:50 - 07:40",
-        2: "07:40 - 08:30",
-        3: "09:00 - 09:50",
-        4: "09:50 - 10:40",
-        5: "10:40 - 11:30",
-        6: "11:30 - 12:20",
-        7: "01:10 - 02:00",
-        8: "02:00 - 02:50",
-        9: "02:50 - 03:40",
-        10: "03:40 - 04:30",
+        0: "06:00 - 06:40",
+        1: "06:40 - 07:20",
+        2: "07:20 - 08:00",
+        3: "08:00 - 08:40",
+        4: "08:40 - 09:20",
+        5: "09:20 - 10:00",
+        6: "10:00 - 10:40",
+        7: "10:40 - 11:20",
+        8: "11:20 - 12:00",
+        9: "12:00 - 12:40",
+        10: "12:40 - 01:20",
     };
 
     const beforeBreakTime = {
@@ -109,7 +106,6 @@ function App() {
                     ),
                     id: value.id,
                 };
-                // acc[index] = value.id;
                 return acc;
             },
             {}
@@ -146,18 +142,14 @@ function App() {
         const sectionSubjectArray = [];
         const sectionSubjectUnitArray = [];
         let cellCount = 0;
-        // console.log("sectionMap", sectionMap);
         for (const [sectionKey, { subjects, subjectUnits }] of Object.entries(
             sectionMap
         )) {
             for (const subject of subjects) {
-                console.log("ghh : ", sectionKey, subject, subjectUnits);
                 sectionSubjectArray.push(packInt16ToInt32(sectionKey, subject));
             }
 
             for (const unit of Object.keys(subjectUnits)) {
-                console.log("unit", unit);
-
                 const unitCount = subjectUnits[unit];
 
                 if (unitCount === 0) {
@@ -172,57 +164,17 @@ function App() {
             }
         }
 
-        // for (let i = 0; i < sectionSubjectUnitArray.length; i++) {
-        //     if (sectionSubjectUnitArray[i] === 5) {
-        //         cellCount++;
-        //     } else {
-        //         cellCount += sectionSubjectUnitArray[i];
-        //     }
-        // }
-
-        // console.log("sectionSubjectUnitArray fff", sectionSubject    UnitArray);
-        console.log("sectionSubjectUnitArray fff", cellCount);
-        console.log("sectionSubjectUnitArray fff", cellCount);
-        console.log("sectionSubjectUnitArray fff", cellCount);
-        console.log("sectionSubjectUnitArray fff", cellCount);
-
         const sectionSubjects = new Int32Array([...sectionSubjectArray]);
         const sectionSubjectUnits = new Int32Array([
             ...sectionSubjectUnitArray,
         ]);
 
-        // return;
-        const max_iterations = 200;
-        const beesPopulations = 100;
-        const beesEmployedOptions = 50;
-        const beesOnlookerOptions = 50;
+        const max_iterations = 10000;
+        const beesPopulations = 50;
+        const beesEmployedOptions = 25;
+        const beesOnlookerOptions = 25;
         const beesScoutOptions = 1;
-        const limits = 20;
-
-        //    0   3   0   3   0
-        //    1   3   1   1   2
-        //    2   3   2   2   1
-        //    3   2   0   0   2
-        //    4   2   1   1   1
-        //    5   2   2   2   0
-        //    6   1   0   3   2
-        //    7   1   1   1   0
-        //    8   1   2   2   1
-        //    9   0   0   0   0
-        //   11   0   2   2   2
-        //   10   0   1   3   1
-
-        // console.log("sectionSubjects", sectionSubjects, sectionSubjects.length);
-
-        // console.log(
-        //     "Object.keys(sectionMap).length",
-        //     Object.keys(sectionMap).length
-        // );
-        // console.log(
-        //     "Object.keys(teacherMap).length",
-        //     Object.keys(teacherMap).length
-        // );
-        // console.log("sectionSubjectArray.length", sectionSubjectArray.length);
+        const limits = 200;
         const numTeachers = Object.keys(teacherMap).length;
         const numRooms = 7;
         const num_timeslots = 7;
@@ -231,10 +183,8 @@ function App() {
 
         const teacherSubjectArray = [];
 
-        // console.log("teacherMap", teacherMap);
         for (const [teacherKey, { subjects }] of Object.entries(teacherMap)) {
             for (const subject of subjects) {
-                // console.log("hehe", teacherKey, subject);
                 teacherSubjectArray.push(packInt16ToInt32(teacherKey, subject));
             }
         }
@@ -247,6 +197,7 @@ function App() {
             numRooms: numRooms,
             numTimeslots: num_timeslots,
             totalSchoolClass: totalSchoolClass,
+            totalCellBlock: cellCount,
             totalSection: totalSection,
             sectionSubjects: sectionSubjects,
             teacherSubjects: teacherSubjects,
@@ -264,37 +215,11 @@ function App() {
 
         setTimetableGenerationStatus("running");
         const { timetable, status } = await getTimetable(params);
-        // console.log("success", timetable, status);
         setTimetableGenerationStatus(status);
 
         const timetableMap = [];
         const sectionTimetable = {};
         const teacherTimetable = {};
-
-        // console.log("testing subjectmap", subjectMap["1"]);
-
-        function sortObjectByTimeslotAndDay(obj) {
-            // Convert the object into an array of [key, value] pairs
-            const entries = Object.entries(obj);
-
-            // Sort the entries based on timeslot and day
-            entries.sort(([keyA, valueA], [keyB, valueB]) => {
-                if (valueA.timeslot !== valueB.timeslot) {
-                    return valueA.timeslot - valueB.timeslot;
-                }
-                if (valueA.day !== valueB.day) {
-                    return valueA.day - valueB.day;
-                }
-                return 0;
-            });
-
-            // Convert the sorted array of entries back into an object
-            return Object.fromEntries(entries);
-        }
-
-        function compareNumbers(a, b) {
-            return a - b;
-        }
 
         for (const entry of timetable) {
             // console.log("F", entry, typeof entry[0]);
@@ -333,28 +258,19 @@ function App() {
                 });
             }
 
-            // Sort sectionTimetable by timeslot and day
-            // sectionTimetable[section] = sortObjectByTimeslotAndDay(
-            //     sectionTimetable[section]
-            // );
-
             const existingTeacherEntry = findInObject(
                 teacherTimetable[teacher],
                 ["section", "subject", "timeslot"],
                 [section, subject, timeslot]
             );
 
-            // const existingTeacherEntry = false;
-
             if (existingTeacherEntry) {
-                // If it exists, push the day to the existing entry's day array
                 if (Array.isArray(existingTeacherEntry.day)) {
                     existingTeacherEntry.day.push(day);
                 } else {
                     existingTeacherEntry.day = [existingTeacherEntry.day, day];
                 }
             } else {
-                // If it doesn't exist, create a new entry
                 teacherTimetable[teacher] = teacherTimetable[teacher] || {};
                 teacherTimetable[teacher][timeslot] =
                     teacherTimetable[teacher][timeslot] || [];
@@ -374,7 +290,7 @@ function App() {
 
         // setTimetable(timetable);
         // console.log("timetable", timetableMap);
-        console.log("section timetable", sectionTimetable);
+        // console.log("section timetable", sectionTimetable);
         // console.log("teacher timetable", teacherTimetable);
         // return;
 
@@ -430,32 +346,6 @@ function App() {
                                 setNumOfSchoolDays(e.target.value);
                             }}
                         />
-
-                        <div className="join join-item join-vertical flex w-20 items-center border-y border-r border-primary">
-                            <button
-                                className="join-item h-1/2 w-full bg-secondary hover:brightness-110 flex justify-center"
-                                onClick={() => {
-                                    if (numOfSchoolDays == 7) {
-                                        return;
-                                    }
-                                    setNumOfSchoolDays(numOfSchoolDays + 1);
-                                }}
-                            >
-                                <BiChevronUp size={24} />
-                            </button>
-                            <button
-                                className="join-item h-1/2 w-full bg-secondary hover:brightness-110 flex justify-center"
-                                onClick={() => {
-                                    if (numOfSchoolDays == 1) {
-                                        return;
-                                    }
-
-                                    setNumOfSchoolDays(numOfSchoolDays - 1);
-                                }}
-                            >
-                                <BiChevronDown size={24} />
-                            </button>
-                        </div>
                     </div>
                     <h1 className="divider"></h1>
                 </div>

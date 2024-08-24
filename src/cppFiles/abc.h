@@ -46,7 +46,7 @@ struct Timetable {
 	void update(
 	    std::mt19937& gen,
 	    std::uniform_int_distribution<int16_t>& distribution_field,
-	    std::uniform_int_distribution<int16_t>& distribution_school_class,
+	    std::uniform_int_distribution<int16_t>& distribution_class_block,
 	    std::uniform_int_distribution<int16_t>& distribution_section,
 	    std::uniform_int_distribution<int8_t>& random_workday,
 	    std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>>& section_subjects_units_map,
@@ -56,7 +56,7 @@ struct Timetable {
 
 struct Bee {
 	Timetable timetable;
-	int16_t cost;
+	int cost;
 
 	Bee(int num_school_class) : timetable(num_school_class), cost(std::numeric_limits<int16_t>::max()) {}
 };
@@ -67,7 +67,8 @@ extern "C" {
 void runExperiment(
     int max_iterations,
     int num_teachers,
-    int total_school_class,
+    int total_section_subjects,
+    int total_class_block,
     int total_section,
     int32_t* section_subjects,
     int32_t* teacher_subjects,
@@ -108,7 +109,7 @@ struct ObjectiveFunction {
 	    const int16_t& teacherID,
 	    const int16_t& subjectID,
 	    const std::unordered_map<int16_t, std::vector<int16_t>>& teacher_subjects_map = {}) const;
-	double evaluate(
+	int evaluate(
 	    const Timetable& timetable,
 	    bool show_penalty = false,
 	    const int& work_week = 5,
