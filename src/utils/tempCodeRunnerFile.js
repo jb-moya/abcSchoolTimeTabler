@@ -1,15 +1,25 @@
-function findMissingNumbers(arr) {
-    // Create an array with numbers 1 to 5
-    const numbersToCheck = [1, 2, 3, 4, 5];
+function distributeBreaks(timeslot, breaks = 1) {
+    let breakPositions = [];
 
-    // Filter out the numbers that are not in the input array
-    const missingNumbers = numbersToCheck.filter((num) => !arr.includes(num));
+    if (breaks === 1) {
+        // Place the single break in the middle of the timeslot
+        breakPositions.push(Math.round(timeslot / 2));
+    } else {
+        // Calculate the interval between the breaks
+        let interval = timeslot / (breaks + 1);
 
-    // Return the missing numbers
-    return missingNumbers;
+        // Calculate the break positions and round them to the nearest integer
+        for (let i = 1; i <= breaks; i++) {
+            breakPositions.push(Math.round(i * interval));
+        }
+    }
+
+    return breakPositions;
 }
 
 // Example usage:
-const inputArray = [1, 2, 4]; // Example array
-const missingNumbers = findMissingNumbers(inputArray);
-console.log("Missing numbers:", missingNumbers); // Output will be: [3, 5]
+let timeslot = 13;
+let breakPositions = distributeBreaks(timeslot, 2);
+console.log(breakPositions);
+
+// 1 2 3 [4] 5 6 7 8 [9] 10 11 12 13

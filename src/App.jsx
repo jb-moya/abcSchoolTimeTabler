@@ -258,6 +258,7 @@ function App() {
             beesScout: beesScoutOptions,
             limits: limits,
             workWeek: numOfSchoolDays,
+            maxTeacherWorkLoad: 9,
             resultLength: cellCount,
         };
 

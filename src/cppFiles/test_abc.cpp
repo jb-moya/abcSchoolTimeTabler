@@ -23,17 +23,16 @@
 using namespace std;
 
 void test_hello_react() {
-	int max_iterations = 1000;
-	int beesPopulation = 50;
-	int beesEmployed = 25;
-	int beesOnlooker = 25;
+	int max_iterations = 5000;
+	int beesPopulation = 10;
+	int beesEmployed = 5;
+	int beesOnlooker = 5;
 	int beesScout = 1;
 	int limit = 10;
 
-	int num_teachers = 4;
-	int total_section = 1;
-	int num_subjects = 2;
-	int total_school_class = total_section * num_subjects;
+	int num_teachers = 14;
+	int total_section = 2;
+	int num_subjects = 14;
 	int teacher_subjects_length = num_teachers;
 	int default_units = 0;  // 0 means everyday
 	int workweek = 5;
@@ -88,9 +87,23 @@ void test_hello_react() {
 		}
 	}
 
-	section_subject_units[0] = packInt16ToInt32(0, 4);
+	// section_subject_units[0] = packInt16ToInt32(0, 3);
+	// section_subject_units[1] = packInt16ToInt32(1, 2);
+	// section_subject_units[2] = packInt16ToInt32(2, 3);
+	// section_subject_units[3] = packInt16ToInt32(3, 1);
 
-	// timeslot is a bitfield for section and teachers
+	int total_class_block = 0;
+	for (int i = 0; i < total_section_subjects; ++i) {
+		int16_t unpackedFirst, unpackedSecond;
+		unpackInt32ToInt16(section_subject_units[i], unpackedFirst, unpackedSecond);
+		total_class_block += unpackedSecond == 0 ? 1 : unpackedSecond;
+	}
+
+	// for (int i = 0; i < total_section; ++i) {
+	// 	total_class_block += 2;
+	// }
+
+	std::cout << "total_class_block: " << total_class_block << std::endl;
 
 	int64_t* result = new (std::nothrow) int64_t[total_school_class];
 
@@ -120,6 +133,7 @@ void test_hello_react() {
 	    beesScout,
 	    limit,
 	    workweek,
+	    9,
 	    result_buff_length,
 	    result);
 }

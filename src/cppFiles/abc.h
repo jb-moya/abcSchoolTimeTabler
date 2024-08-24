@@ -79,12 +79,15 @@ void runExperiment(
     int beesScout,
     int limit,
     int workweek,
-	int result_buff_length,
+    int max_teacher_work_load,
+    int result_buff_length,
     int64_t* result);
 
 #ifdef __cplusplus
 }
 #endif
+
+std::vector<int> calculatePositions(int total_length, int divisions = 1);
 
 int combine(int first, int second);
 int combine(int first, int second, int third);
@@ -108,7 +111,8 @@ struct ObjectiveFunction {
 	double evaluate(
 	    const Timetable& timetable,
 	    bool show_penalty = false,
-	    const int& work_week = 5) const;
+	    const int& work_week = 5,
+	    const int& max_teacher_work_load = 9) const;
 };
 
 #endif  // ABC_H
