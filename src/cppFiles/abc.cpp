@@ -222,12 +222,14 @@ double ObjectiveFunction::evaluate(
     const int& max_teacher_work_load)
 
     const {
+		
 	std::unordered_set<int> class_timeslot_set;
 	std::unordered_set<int> teacher_timeslot_set;
-	std::unordered_map<int, std::map<int, std::unordered_set<int>>> teacher_class_count;
 	std::unordered_map<int, std::set<int>> section_timeslots;
+	std::unordered_map<int, std::map<int, std::unordered_set<int>>> teacher_class_count;
 
-	int16_t conflicting_timeslots = 0;
+	int conflicting_timeslots = 0;
+	int exceeding_assignments = 0;
 
 	for (int i = 0; i < timetable.schoolClasses.size(); ++i) {
 		const auto& school_class = timetable.schoolClasses[i];
@@ -408,7 +410,7 @@ void runExperiment(
 	std::unordered_map<int16_t, std::vector<int16_t>> section_subjects_map = {};
 	std::unordered_map<int16_t, std::vector<int16_t>> teacher_subjects_map = {};
 	std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>> section_subjects_units_map = {};
-
+	std::unordered_map<int16_t, int> class_num_of_subjects = {};
 	std::unordered_map<int16_t, std::vector<int16_t>> eligible_teachers_in_subject;
 	std::unordered_map<int, int> section_num_of_class_block;
 	std::unordered_map<int, std::vector<int>> section_break_time_timeslots;
@@ -480,7 +482,7 @@ void runExperiment(
 		std::cout << " xx x xxxxxxxxxxxf : " << (((it->second + work_week - 1) / work_week) - 1) << std::endl;
 		int timeslots = (((it->second + work_week - 1) / work_week) - 1);
 		int num_breaks = timeslots < 10 ? 1 : 2;
-// 16
+		// 16
 		std::cout << "ehhe " << timeslots + num_breaks << std::endl;
 		class_timeslot_distributions[it->first] = std::uniform_int_distribution<int>(0, timeslots + num_breaks);
 		// below 10 - 1, 2 equal or above
@@ -517,11 +519,11 @@ void runExperiment(
 		for (int i = 0; i < beesPopulation; i++) {
 			beesVector[i].timetable.initializeRandomTimetable(gen, eligible_teachers_in_subject, class_timeslot_distributions, section_subjects_map, section_subjects_units_map, random_workDay);
 
-		beesVector[i].cost = optimizableFunction.evaluate(beesVector[i].timetable, false, work_week, max_teacher_work_load);
-		if (beesVector[i].cost <= bestSolution.cost) {
-			bestSolution = beesVector[i];
+			beesVector[i].cost = optimizableFunction.evaluate(beesVector[i].timetable, false, work_week, max_teacher_work_load);
+			if (beesVector[i].cost <= bestSolution.cost) {
+				bestSolution = beesVector[i];
+			}
 		}
-	}
 
 		vector<int> abandonedBees(beesPopulation, 0);
 		std::uniform_int_distribution<> dist_bees_employed(0, beesEmployed - 1);
@@ -538,19 +540,19 @@ void runExperiment(
 				newBee = beesVector[randomBeesIndex];
 				newBee.timetable.update(gen, random_field, random_school_class, random_section, random_workDay, section_subjects_units_map, eligible_teachers_in_subject, class_timeslot_distributions);
 
-			newBee.cost = optimizableFunction.evaluate(newBee.timetable, false, work_week, max_teacher_work_load);
+				newBee.cost = optimizableFunction.evaluate(newBee.timetable, false, work_week, max_teacher_work_load);
 
-			// #pragma omp critical
-			{
-				if (newBee.cost <= beesVector[i].cost) {
-					beesVector[i] = newBee;
-				} else {
-					abandonedBees[i]++;
+				// #pragma omp critical
+				{
+					if (newBee.cost <= beesVector[i].cost) {
+						beesVector[i] = newBee;
+					} else {
+						abandonedBees[i]++;
+					}
 				}
 			}
-		}
 
-		// return;
+			// return;
 
 			double averageCost = 0;
 			for (int i = 0; i < beesEmployed; i++) {
@@ -596,7 +598,7 @@ void runExperiment(
 				newBee = beesVector[randomBeesIndex];
 				newBee.timetable.update(gen, random_field, random_school_class, random_section, random_workDay, section_subjects_units_map, eligible_teachers_in_subject, class_timeslot_distributions);
 
-			newBee.cost = optimizableFunction.evaluate(newBee.timetable, false, work_week, max_teacher_work_load);
+				newBee.cost = optimizableFunction.evaluate(newBee.timetable, false, work_week, max_teacher_work_load);
 
 				// #pragma omp critical
 				{
@@ -616,13 +618,13 @@ void runExperiment(
 						newBee.timetable.initializeRandomTimetable(gen, eligible_teachers_in_subject, class_timeslot_distributions, section_subjects_map, section_subjects_units_map, random_workDay);
 						newBee = beesVector[i];
 
-					beesVector[i] = newBee;
-					beesVector[i].cost = optimizableFunction.evaluate(beesVector[i].timetable, false, work_week, max_teacher_work_load);
+						beesVector[i] = newBee;
+						beesVector[i].cost = optimizableFunction.evaluate(beesVector[i].timetable, false, work_week, max_teacher_work_load);
 
-					abandonedBees[i] = 0;
+						abandonedBees[i] = 0;
+					}
 				}
 			}
-		}
 
 			for (int i = 0; i < beesEmployed; i++) {
 				if (beesVector[i].cost <= bestSolution.cost) {
