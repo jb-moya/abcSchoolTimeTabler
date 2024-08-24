@@ -8,6 +8,7 @@ export const STORE_NAMES = {
     SUBJECTS: "subjects",
     TEACHERS: "teachers",
     SECTIONS: "sections",
+    PROGRAMS: "programs",
 };
 
 export const initDB = async () => {
@@ -51,18 +52,18 @@ export const editEntityFromDB = async (storeName, entityId, updatedEntity) => {
             throw new Error("Entity not found");
         }
 
-        console.log("Updating entity in store: ", storeName);
-        console.log("Updating entity with ID: ", entityId);
-        console.log("Updating entity with new values:", updatedEntity);
+        // console.log("Updating entity in store: ", storeName);
+        // console.log("Updating entity with ID: ", entityId);
+        // console.log("Updating entity with new values:", updatedEntity);
 
         const updated = { ...existingEntity, ...updatedEntity };
         await store.put(updated);
         await tx.done;
 
-        console.log("Entity updated with ID:", entityId);
+        // console.log("Entity updated with ID:", entityId);
         return entityId;
     } catch (error) {
-        console.error("Error updating entity in DB:", error);
+        // console.error("Error updating entity in DB:", error);
         toast.error("Failed to update entity in DB");
     }
 };
@@ -87,7 +88,14 @@ export const removeEntityFromDB = async (storeName, entityId) => {
                 section.subjects.includes(entityId)
             );
 
-            if (teacherDependent || sectionDependent) {
+            const programsTx = db.transaction(STORE_NAMES.PROGRAMS, "readonly");
+            const programsStore = programsTx.objectStore(STORE_NAMES.PROGRAMS);
+            const programs = await programsStore.getAll();
+            const programDependent = programs.find((program) =>
+                program.subjects.includes(entityId)
+            );
+
+            if (teacherDependent || sectionDependent || programDependent ) {
                 toast.error(
                     "Cannot delete subject as it is referenced by teachers or sections."
                 );

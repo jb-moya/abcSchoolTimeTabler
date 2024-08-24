@@ -8,6 +8,7 @@ import WasmWorker from "./wasm.worker?worker";
 import SubjectListContainer from "./components/SubjectListContainer";
 import TeacherListContainer from "./components/TeacherListContainer";
 import SectionListContainer from "./components/SectionListContainer";
+import ProgramListContainer from "./components/ProgramListContainer";
 import clsx from "clsx";
 import NotificationHandler from "./components/NotificationHandler";
 import GeneratedTimetable from "./components/TimeTable";
@@ -24,6 +25,7 @@ function App() {
     const { subjects } = useSelector((state) => state.subject);
     const { teachers } = useSelector((state) => state.teacher);
     const { sections } = useSelector((state) => state.section);
+    const { programs } = useSelector((state) => state.program);
 
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(5);
 
@@ -68,6 +70,7 @@ function App() {
             sections,
             teachers,
             subjects,
+            programs,
         });
 
         if (!canProceed) {
@@ -355,6 +358,11 @@ function App() {
                     </div>
                     <div className="w-7/12">
                         <TeacherListContainer />
+                    </div>
+                </div>
+                <div className="flex gap-4">
+                    <div className="w-12/12">
+                        <ProgramListContainer />
                     </div>
                 </div>
                 <div className="w-full">
