@@ -40,6 +40,7 @@ struct Timetable {
 	    std::unordered_map<int16_t, std::vector<int16_t>>& eligible_teachers_in_subject,
 	    std::unordered_map<int16_t, std::uniform_int_distribution<int>>& class_timeslot_distributions,
 	    std::unordered_map<int16_t, std::vector<int16_t>>& section_subjects,
+	    std::unordered_map<int, int>& section_num_breaks,
 	    std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>>& section_subjects_units_map,
 	    std::uniform_int_distribution<int8_t>& random_workday);
 
@@ -71,6 +72,8 @@ void runExperiment(
     int total_class_block,
     int total_section,
     int32_t* section_subjects,
+    int32_t* section_subject_duration,
+    int32_t* section_start,
     int32_t* teacher_subjects,
     int32_t* section_subject_units,
     int teacher_subjects_length,
@@ -88,7 +91,9 @@ void runExperiment(
 }
 #endif
 
-std::vector<int> calculatePositions(int total_length, int divisions = 1);
+std::vector<int> calculatePositions(
+	std::vector<std::pair<int16_t, int16_t>> subjects_duration_map,
+	int divisions = 1);
 
 int combine(int first, int second);
 int combine(int first, int second, int third);
@@ -105,15 +110,13 @@ void extractSectionSubjects(
     std::unordered_map<int16_t, std::vector<int16_t>>& section_subjects);
 
 struct ObjectiveFunction {
-	bool isQualified(
-	    const int16_t& teacherID,
-	    const int16_t& subjectID,
-	    const std::unordered_map<int16_t, std::vector<int16_t>>& teacher_subjects_map = {}) const;
 	int evaluate(
-	    const Timetable& timetable,
-	    bool show_penalty = false,
-	    const int& work_week = 5,
-	    const int& max_teacher_work_load = 9) const;
+	    Timetable& timetable,
+	    bool show_penalty,
+	    int& work_week,
+	    std::unordered_map<int16_t, std::vector<int>> section_possible_break_slot,
+	    std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>>& section_subjects_duration,
+	    int& max_teacher_work_load);
 };
 
 #endif  // ABC_H
