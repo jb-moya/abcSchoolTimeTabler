@@ -73,7 +73,6 @@ export const removeEntityFromDB = async (storeName, entityId) => {
         const db = await initDB();
 
         if (storeName === STORE_NAMES.SUBJECTS) {
-            // Check if any teachers or sections reference this subject
             const teachersTx = db.transaction(STORE_NAMES.TEACHERS, "readonly");
             const teachersStore = teachersTx.objectStore(STORE_NAMES.TEACHERS);
             const teachers = await teachersStore.getAll();
@@ -102,6 +101,20 @@ export const removeEntityFromDB = async (storeName, entityId) => {
                 throw new Error(
                     "Dependency Error: Subject is referenced by teachers or sections."
                 );
+            }
+        }
+
+        if (storeName === STORE_NAMES.PROGRAMS) {
+            const sectionsTx = db.transaction(STORE_NAMES.SECTIONS, "readonly");
+            const sectionsStore = sectionsTx.objectStore(STORE_NAMES.SECTIONS);
+            const sections = await sectionsStore.getAll();
+            const sectionDependent = sections.find((section) =>
+                section.program === entityId
+            );
+
+            if (sectionDependent) {
+                toast.error("Cannot delete program as it is referenced by sections.");
+                throw new Error("Dependency Error: Program is referenced by sections.");
             }
         }
 

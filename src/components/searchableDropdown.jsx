@@ -61,12 +61,14 @@ const SearchableDropdownToggler = ({
     };
 
     const toggleSubject = (subjectID) => {
-        setSelectedList((prev) =>
-            prev.includes(subjectID)
-                ? prev.filter((id) => id !== subjectID)
-                : [...prev, subjectID]
-        );
+        const updatedList = selectedList.includes(subjectID)
+            ? selectedList.filter((id) => id !== subjectID)
+            : [...selectedList, subjectID];
+
+        setSelectedList(updatedList);
+        console.log(`Updated selected list:`, updatedList); // Log updated selected list
     };
+
 
     return (
         <div className="dropdown">
