@@ -39,20 +39,20 @@ void unpackInt32ToInt16(int32_t packed, int16_t& first, int16_t& second) {
 }
 
 void test_generate_timetable() {
-	int max_iterations = 500;
+	int max_iterations = 3000;
 	int beesPopulation = 11;
 	int beesEmployed = 5;
 	int beesOnlooker = 5;
 	int beesScout = 1;
-	int limit = 200;
+	int limit = 70;
 	int num_teachers = 3;
-	int total_section = 2;
+	int total_section = 3;
 	int num_subjects = 3;
-	int max_teacher_work_load = 14;
+	int max_teacher_work_load = 2;
 	int teacher_subjects_length = num_teachers;
 	int default_units = 0;  // 0 means everyday
 	int default_duration = 1;
-	int workweek = 5;
+	int workweek = 1;
 
 	// 500 x 20 x 5
 

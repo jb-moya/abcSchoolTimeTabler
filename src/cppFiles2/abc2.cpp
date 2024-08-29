@@ -41,6 +41,23 @@ using namespace std;
 
 std::default_random_engine engine(std::chrono::system_clock::now().time_since_epoch().count());
 
+// Base case for the recursive variadic template function
+void print() {
+	// No parameters left to print
+}
+
+// Recursive case for the variadic template function
+template <typename T, typename... Args>
+void print(T first, Args... args) {
+	std::cout << first;
+	if constexpr (sizeof...(args) > 0) {
+		std::cout << " - ";  // Print a space if there are more arguments
+		print(args...);      // Recursive call with the remaining arguments
+	} else {
+		std::cout << std::endl;
+	}
+}
+
 std::vector<int> calculatePositions(
     std::unordered_map<int16_t, int16_t> subjects_duration_map,
     int divisions) {
@@ -87,9 +104,11 @@ bool isAround(int number, int target, int range = 5) {
 }
 
 void Timetable::initializeTeachersClass(int teachers, int work_week, int num_time_fragment) {
+	// print("gento pag initialize ng teahcers");
 	for (int i = 0; i < teachers; ++i) {
 		for (int j = 1; j <= work_week; ++j) {
 			for (int k = 0; k < num_time_fragment; ++k) {
+				// print("gento pag initialize ng teahcers", i, j, k);
 				teachers_timeslots[i][k + (j * 100)] = 1;
 			}
 		}
@@ -154,9 +173,18 @@ void Timetable::initializeRandomTimetable(
 			// std::cout << "duratuion :: " << subject_id << " " << duration << std::endl;
 
 			for (int i = 1; i <= work_week; ++i) {
-				for (int j = 1; j <= duration; ++j) {
+				for (int j = 0; j < duration; ++j) {
 					// std::cout << "deleting : " << random_teacher << " " << i * 100 + start + j << std::endl;
-					teachers_timeslots[random_teacher][i * 100 + start + j]--;
+					teachers_timeslots[random_teacher][j + (i * 100) + start]--;
+
+					// for (int i = 0; i < teachers; ++i) {
+					// 	for (int j = 1; j <= work_week; ++j) {
+					// 		for (int k = 0; k < num_time_fragment; ++k) {
+					// 			// print("gento pag initialize ng teahcers", i, j, k);
+					// 			teachers_timeslots[i][k + (j * 100)] = 1;
+					// 		}
+					// 	}
+					// }
 				}
 			}
 
@@ -182,9 +210,9 @@ void Timetable::initializeRandomTimetable(
 
 				schoolClasses[section_id][timeslot][day] = SchoolClass{subject_id, random_teacher};
 
-				for (int j = 1; j <= duration; ++j) {
+				for (int j = 0; j < duration; ++j) {
 					// std::cout << "asd deleting : " << random_teacher << " " << day * 100 + start + j << std::endl;
-					teachers_timeslots[random_teacher][day * 100 + start + j]--;
+					teachers_timeslots[random_teacher][j + (day * 100) + start]--;
 				}
 
 				section_segmented_timeslot[section_id].insert(timeslot);
@@ -227,23 +255,6 @@ int getRandomInRange(int n) {
 	return distribution(engine);
 }
 
-// Base case for the recursive variadic template function
-void print() {
-	// No parameters left to print
-}
-
-// Recursive case for the variadic template function
-template <typename T, typename... Args>
-void print(T first, Args... args) {
-	std::cout << first;
-	if constexpr (sizeof...(args) > 0) {
-		std::cout << " - ";  // Print a space if there are more arguments
-		print(args...);      // Recursive call with the remaining arguments
-	} else {
-		std::cout << std::endl;
-	}
-}
-
 void Timetable::updateTeachersTimeslots(
     std::unordered_map<int16_t, int>& section_start_map,
     std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>>& section_subjects_duration_map,
@@ -264,13 +275,13 @@ void Timetable::updateTeachersTimeslots(
 
 			if (subject != -1) {
 				for (int i = 1; i <= work_week; ++i) {
-					for (int j = 1; j <= duration; ++j) {
+					for (int j = 0; j < duration; ++j) {
 						// std::cout << "Inserting: Teacher " << teacher << " at " << i * 100 + start + j << std::endl;
 
 						if (is_reset) {
-							teachers_timeslots[teacher][i * 100 + start + j] = 1;
+							teachers_timeslots[teacher][j + (i * 100) + start]++;
 						} else {
-							teachers_timeslots[teacher][i * 100 + start + j]--;
+							teachers_timeslots[teacher][j + (i * 100) + start]--;
 						}
 					}
 				}
@@ -286,11 +297,11 @@ void Timetable::updateTeachersTimeslots(
 				int duration = section_subjects_duration_map[random_section][subject];
 
 				if (subject != -1) {
-					for (int j = 1; j <= duration; ++j) {
+					for (int j = 0; j < duration; ++j) {
 						// std::cout << "Inserting: Teacher " << teacher << " at " << day.first * 100 + start + j << std::endl;
 
 						if (is_reset) {
-							teachers_timeslots[teacher][day.first * 100 + start + j] = 1;
+							teachers_timeslots[teacher][day.first * 100 + start + j]++;
 						} else {
 							teachers_timeslots[teacher][day.first * 100 + start + j]--;
 						}
@@ -321,6 +332,24 @@ void Timetable::update(std::mt19937& gen,
 
 	// choice = 0;
 
+	// print("choice", choice);
+	// print("choice", choice);
+	// print("choice", choice);
+	// print("choice", choice);
+	// print("choice", choice);
+	// print("choice", choice);
+	// print("choice", choice);
+	// print("choice", choice);
+	// print("choice", choice);
+	// print("choice", choice);
+	// print("choice", choice);
+	// print("choice", choice);
+	// print("choice", choice);
+	// print("choice", choice);
+	// print("choice", choice);
+	// print("choice", choice);
+	// print("choice", choice);
+
 	if (choice == 2) {
 		// std::cout << GREEN << "CHOICE 2" << RESET << std::endl;
 
@@ -340,7 +369,7 @@ void Timetable::update(std::mt19937& gen,
 	updateTeachersTimeslots(section_start_map, section_subjects_duration_map, random_section, work_week, true);
 
 	if (choice == 0) {
-		// 	// swapping of classes between timeslots in the same section
+		// swapping of classes between timeslots in the same section
 		int random_timeslot_1 = getRandomInRange(section_timeslot[random_section]);
 		int random_timeslot_2;
 
@@ -360,7 +389,6 @@ void Timetable::update(std::mt19937& gen,
 			// std::cout << BLUE << "HAHAHHAHAHAHAH" << std::endl;
 			timeslot_set.erase(random_timeslot_1);
 			timeslot_set.insert(random_timeslot_2);
-
 			// for (const auto& entry : section_segmented_timeslot) {
 			// 	std::cout << " E P A L " << std::endl;
 			// 	std::cout << entry.first << " " << entry.second.size() << std::endl;
@@ -472,10 +500,10 @@ int ObjectiveFunction::evaluate(
 	// std::cout << "Evaluating ........" << std::endl;
 	for (auto& [teacher_id, timeslot_map] : timetable.teachers_timeslots) {
 		for (auto& [timeslot, value] : timeslot_map) {
+			// if (show_penalty) {
+				std::cout << " " << teacher_id << " " << timeslot << " " << value << std::endl;
+			// }
 			if (value < 0) {
-				// if (show_penalty) {
-				// std::cout << " " << teacher_id << " " << timeslot << " " << value << std::endl;
-				// }
 				class_timeslot_overlap += abs(value);
 			}
 		}
@@ -681,25 +709,28 @@ void runExperiment(
 
 	printf("For function abcTestMine: %d iterations for each experiment. \n", max_iterations);
 
+	int ewan = 3;
+
 	Bee bestSolution;
-	bestSolution.timetable.initializeTeachersClass(num_teachers, work_week, 72);
+	bestSolution.timetable.initializeTeachersClass(num_teachers, work_week, ewan);
 	bestSolution.timetable.initializeRandomTimetable(gen, work_week, eligible_teachers_in_subject, section_timeslot, section_subjects_map, section_start_map, section_subjects_units_map, section_subjects_duration_map, random_workDay);
 	// printSchoolClasses(bestSolution.timetable.schoolClasses);
 
-	// bestSolution.timetable.update(gen, work_week, random_field, section_timeslot, section_start_map, random_section, random_workDay, section_subjects_units_map, eligible_teachers_in_subject, section_subjects_duration_map, section_with_segmented_timeslots);
+	bestSolution.timetable.update(gen, work_week, random_field, section_timeslot, section_start_map, random_section, random_workDay, section_subjects_units_map, eligible_teachers_in_subject, section_subjects_duration_map, section_with_segmented_timeslots);
 	// printSchoolClasses(bestSolution.timetable.schoolClasses);
-
-	printSchoolClasses(bestSolution.timetable.schoolClasses);
 
 	std::cout << "FIRSTTTTTTTTTTTTT" << std::endl;
 	bestSolution.cost = optimizableFunction.evaluate(bestSolution.timetable, false, work_week, section_start_map, section_possible_break_slot, section_subjects_duration_map, max_teacher_work_load);
 	std::cout << bestSolution.cost << std::endl;
 	std::cout << "FIRSTTTTTTTTTTTTT" << std::endl;
 
+	printSchoolClasses(bestSolution.timetable.schoolClasses);
+	return;
+
 	if (bestSolution.cost == 0) {
-		// std::cout << RED << "JACKPOT FIRST TIME BRUH" << bestSolution.cost << " size " << RESET << endl;
-		// printSchoolClasses(bestSolution.timetable.schoolClasses);
-		// std::cout << RED << "JACKPOT FIRST TIME BRUH" << bestSolution.cost << " size " << RESET << endl;
+		std::cout << RED << "JACKPOT FIRST TIME BRUH" << bestSolution.cost << " size " << RESET << endl;
+		printSchoolClasses(bestSolution.timetable.schoolClasses);
+		std::cout << RED << "JACKPOT FIRST TIME BRUH" << bestSolution.cost << " size " << RESET << endl;
 		system("cls");
 		runExperiment(
 		    max_iterations,
@@ -731,15 +762,15 @@ void runExperiment(
 	vector<Bee> beesVector(beesPopulation, Bee());
 
 	for (int i = 0; i < beesPopulation; i++) {
-		beesVector[i].timetable.initializeTeachersClass(num_teachers, work_week, 72);
+		beesVector[i].timetable.initializeTeachersClass(num_teachers, work_week, ewan);
 		beesVector[i].timetable.initializeRandomTimetable(gen, work_week, eligible_teachers_in_subject, section_timeslot, section_subjects_map, section_start_map, section_subjects_units_map, section_subjects_duration_map, random_workDay);
 
 		beesVector[i].cost = optimizableFunction.evaluate(beesVector[i].timetable, false, work_week, section_start_map, section_possible_break_slot, section_subjects_duration_map, max_teacher_work_load);
 
 		if (beesVector[i].cost == 0) {
-			// std::cout << RED << "JACKPOT " << i << " " << beesVector[i].cost << " size " << RESET << endl;
-			// printSchoolClasses(beesVector[i].timetable.schoolClasses);
-			// std::cout << RED << "JACKPOT " << i << " " << beesVector[i].cost << " size " << RESET << endl;
+			std::cout << RED << "JACKPOT " << i << " " << beesVector[i].cost << " size " << RESET << endl;
+			printSchoolClasses(beesVector[i].timetable.schoolClasses);
+			std::cout << RED << "JACKPOT " << i << " " << beesVector[i].cost << " size " << RESET << endl;
 			system("cls");
 			runExperiment(
 			    max_iterations,
@@ -786,7 +817,7 @@ void runExperiment(
 			newBee = beesVector[randomBeesIndex];
 
 			// std::cout << YELLOW << "update and evaluate " << RESET << endl;
-			// newBee.timetable.update(gen, work_week, random_field, section_timeslot, section_start_map, random_section, random_workDay, section_subjects_units_map, eligible_teachers_in_subject, section_subjects_duration_map, section_with_segmented_timeslots);
+			newBee.timetable.update(gen, work_week, random_field, section_timeslot, section_start_map, random_section, random_workDay, section_subjects_units_map, eligible_teachers_in_subject, section_subjects_duration_map, section_with_segmented_timeslots);
 
 			newBee.cost = optimizableFunction.evaluate(newBee.timetable, false, work_week, section_start_map, section_possible_break_slot, section_subjects_duration_map, max_teacher_work_load);
 
@@ -843,7 +874,7 @@ void runExperiment(
 			Bee newBee;
 			newBee = beesVector[randomBeesIndex];
 			// std::cout << YELLOW << "update and evaluate " << RESET << endl;
-			// newBee.timetable.update(gen, work_week, random_field, section_timeslot, section_start_map, random_section, random_workDay, section_subjects_units_map, eligible_teachers_in_subject, section_subjects_duration_map, section_with_segmented_timeslots);
+			newBee.timetable.update(gen, work_week, random_field, section_timeslot, section_start_map, random_section, random_workDay, section_subjects_units_map, eligible_teachers_in_subject, section_subjects_duration_map, section_with_segmented_timeslots);
 
 			newBee.cost = optimizableFunction.evaluate(newBee.timetable, false, work_week, section_start_map, section_possible_break_slot, section_subjects_duration_map, max_teacher_work_load);
 
@@ -862,7 +893,7 @@ void runExperiment(
 			for (int i = 0; i < beesEmployed; i++) {
 				if (abandonedBees[i] >= limit) {
 					Bee newBee;
-					newBee.timetable.initializeTeachersClass(num_teachers, work_week, 72);
+					newBee.timetable.initializeTeachersClass(num_teachers, work_week, ewan);
 					newBee.timetable.initializeRandomTimetable(gen, work_week, eligible_teachers_in_subject, section_timeslot, section_subjects_map, section_start_map, section_subjects_units_map, section_subjects_duration_map, random_workDay);
 
 					beesVector[i] = newBee;
@@ -887,12 +918,13 @@ void runExperiment(
 	}
 
 	std::cout << "Best solution: cost " << bestSolution.cost << " size " << endl;
+
 	printSchoolClasses(bestSolution.timetable.schoolClasses);
 
 	std::cout << "Objective function: " << optimizableFunction.evaluate(bestSolution.timetable, true, work_week, section_start_map, section_possible_break_slot, section_subjects_duration_map, max_teacher_work_load) << std::endl;
-	std::cout << "Objective function: " << optimizableFunction.evaluate(bestSolution.timetable, true, work_week, section_start_map, section_possible_break_slot, section_subjects_duration_map, max_teacher_work_load) << std::endl;
-	std::cout << "Objective function: " << optimizableFunction.evaluate(bestSolution.timetable, true, work_week, section_start_map, section_possible_break_slot, section_subjects_duration_map, max_teacher_work_load) << std::endl;
-	std::cout << "Objective function: " << optimizableFunction.evaluate(bestSolution.timetable, true, work_week, section_start_map, section_possible_break_slot, section_subjects_duration_map, max_teacher_work_load) << std::endl;
+	// std::cout << "Objective function: " << optimizableFunction.evaluate(bestSolution.timetable, true, work_week, section_start_map, section_possible_break_slot, section_subjects_duration_map, max_teacher_work_load) << std::endl;
+	// std::cout << "Objective function: " << optimizableFunction.evaluate(bestSolution.timetable, true, work_week, section_start_map, section_possible_break_slot, section_subjects_duration_map, max_teacher_work_load) << std::endl;
+	// std::cout << "Objective function: " << optimizableFunction.evaluate(bestSolution.timetable, true, work_week, section_start_map, section_possible_break_slot, section_subjects_duration_map, max_teacher_work_load) << std::endl;
 
 	auto end = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> duration = end - start;
