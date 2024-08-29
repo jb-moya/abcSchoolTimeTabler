@@ -14,9 +14,9 @@ const ViolationList = ({ violations }) => {
                         key={violation.type}
                         className="flex gap-2 join-item border-error border rounded-lg p-2"
                     >
-                        <dig className="badge bg-error text-primary-content">
+                        <div className="badge bg-error text-primary-content">
                             error
-                        </dig>
+                        </div>
                         {violation.type === "teachersNotCovered" && (
                             <div>
                                 <div>

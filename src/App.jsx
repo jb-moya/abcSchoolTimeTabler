@@ -116,26 +116,30 @@ function App() {
 
         const sectionMap = Object.entries(sections).reduce(
             (acc, [, value], index) => {
+                // Assuming value.subjects is an object with subject IDs as keys
+                const subjectIDs = Object.keys(value.subjects);
+        
                 acc[index] = {
-                    subjects: value.subjects.map(
+                    // Map over the subject IDs to transform them using subjectMapReverse
+                    subjects: subjectIDs.map(
                         (subjectID) => subjectMapReverse[subjectID]
                     ),
-                    subjectUnits: Object.keys(value.units).reduce(
-                        (acc, key) => {
-                            let mappedKey = subjectMapReverse[key];
-
-                            acc[mappedKey] = value.units[key];
-                            return acc;
+                    // Process the units associated with each subject
+                    subjectUnits: Object.keys(value.subjects).reduce(
+                        (unitAcc, subjectID) => {
+                            let mappedKey = subjectMapReverse[subjectID];
+                            unitAcc[mappedKey] = value.subjects[subjectID]; // Use value.subjects[subjectID] to get the number of units
+                            return unitAcc;
                         },
                         {}
                     ),
                     id: value.id,
                 };
-
+        
                 return acc;
             },
             {}
-        );
+        );        
 
         // console.log("subjectMap", subjectMap);
         // console.log("teacherMap", teacherMap);

@@ -8,14 +8,16 @@ const validateTimetableVariables = ({ sections, teachers, subjects }) => {
     const teachersCoveredSubjects = new Set();
 
     Object.values(sections).forEach((section) => {
-        console.log("section", section);
-        for (const subject of section.subjects) {
-            includedSubjects.add(subject);
+        // console.log("section", section);
+        for (const subjectId of Object.keys(section.subjects)) {
+            const intSubjectId = parseInt(subjectId, 10);
+            console.log("typeof(subjectId)", typeof subjectId);
+            includedSubjects.add(intSubjectId);
         }
     });
 
     Object.values(teachers).forEach((teacher) => {
-        console.log("teacher", teacher);
+        // console.log("teacher", teacher);
         for (const subject of teacher.subjects) {
             teachersCoveredSubjects.add(subject);
         }
@@ -29,7 +31,7 @@ const validateTimetableVariables = ({ sections, teachers, subjects }) => {
     }
 
     const isCovered = isSubset(teachersCoveredSubjects, includedSubjects);
-    console.log("isCovered", isCovered);
+    // console.log("isCovered", isCovered);
 
     function hasAtLeastOneUnique(set1, set2) {
         for (const element of set1) {
@@ -88,10 +90,10 @@ const validateTimetableVariables = ({ sections, teachers, subjects }) => {
         });
     }
 
-    console.log("subjectsNotCovered", subjectsNotCovered);
-    console.log("isInsufficientTeacher", isInsufficientTeacher);
-    console.log("teachersNotCovered", teachersNotCovered);
-    console.log("isSurplusTeacher", isSurplusTeacher);
+    // console.log("subjectsNotCovered", subjectsNotCovered);
+    // console.log("isInsufficientTeacher", isInsufficientTeacher);
+    // console.log("teachersNotCovered", teachersNotCovered);
+    // console.log("isSurplusTeacher", isSurplusTeacher);
 
     return { canProceed: subjectsNotCovered.length == 0, violations };
 };
