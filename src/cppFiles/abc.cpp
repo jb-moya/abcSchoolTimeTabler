@@ -65,31 +65,6 @@ bool isAround(int number, int target, int range = 5) {
 	return std::abs(number - target) <= range;
 }
 
-std::vector<int> findMissingNumbers(const std::set<int>& orderedSet) {
-	// std::cout << "ordered set : " << orderedSet.size() << std::endl;
-	std::vector<int> missingNumbers;
-
-	if (orderedSet.empty()) return missingNumbers;
-
-	// int minElement = *orderedSet.begin();
-	// int maxElement = *orderedSet.rbegin();
-
-	int minElement = 0;
-	int maxElement = 15;
-
-	for (int i = minElement; i <= maxElement; ++i) {
-		if (orderedSet.find(i) == orderedSet.end()) {
-			missingNumbers.push_back(i);
-		}
-	}
-
-	for (int i = 0; i < missingNumbers.size(); ++i) {
-		// std::cout << " xxx " << missingNumbers[i] << std::endl;
-	}
-
-	return missingNumbers;
-}
-
 Timetable::Timetable(int num_school_class) {
 	schoolClasses.reserve(num_school_class);
 };
@@ -104,6 +79,10 @@ void Timetable::initializeRandomTimetable(
     std::uniform_int_distribution<int8_t>& random_workday) {
 	int16_t offset = 0;
 
+	// iterate all possible order in each section
+
+
+
 	for (const auto& entry : section_subjects) {
 		int16_t section_id = entry.first;
 		const std::vector<int16_t>& subjects = entry.second;
@@ -116,7 +95,6 @@ void Timetable::initializeRandomTimetable(
 
 			int16_t timeslot = class_timeslot_distributions[section_id](gen);
 			int16_t teacher = eligible_teachers_in_subject[subject_id][dis(gen)];
-
 			int16_t num_unit = section_subjects_units_map[section_id][subject_id].second;
 
 			// std::cout << "section_id : " << section_id << " subject : " << subject_id << " units : " << unit << "  -  " << std::endl;
@@ -215,11 +193,13 @@ int ObjectiveFunction::evaluate(
 	std::unordered_set<int> class_timeslot_set;
 	std::unordered_set<int> teacher_timeslot_set;
 	std::unordered_map<int, std::map<int, int>> section_timeslots;
+	std::unordered_map<int, std::map<int, std::map<int, std::map<int, std::set<int>>>>> teacher_timeslots;
 	std::unordered_map<int, std::map<int, std::unordered_set<int>>> teacher_class_count;
 
 	int conflicting_timeslots = 0;
 	int exceeding_assignments = 0;
 	int early_break_violation = 0;
+
 	// penalty is about prioritization but can also be a hindrance...
 	// it is not so much about hard/soft type of constraints anymore...
 
@@ -248,6 +228,7 @@ int ObjectiveFunction::evaluate(
 				}
 
 				teacher_class_count[teacher_id][day].insert(school_class_id);
+				teacher_timeslots[teacher_id][day][timeslot][section_id].insert(subject_id);
 			}
 
 		} else {
@@ -264,6 +245,7 @@ int ObjectiveFunction::evaluate(
 					}
 
 					teacher_class_count[teacher_id][i].insert(school_class_id);
+					teacher_timeslots[teacher_id][i][timeslot][section_id].insert(subject_id);
 				}
 			}
 		}
@@ -291,7 +273,6 @@ int ObjectiveFunction::evaluate(
 						possible = true;
 					}
 
-					// break;
 				} else {
 					total_duration += section_subjects_duration[section_id][subject_id].second;
 				}
@@ -300,6 +281,26 @@ int ObjectiveFunction::evaluate(
 			if (!possible) {
 				early_break_violation += 11111;
 			}
+		}
+	}
+
+	if (show_penalty) {
+		for (const auto& teacher : teacher_timeslots) {
+			std::cout << "teacher : " << teacher.first << std::endl;
+			for (const auto& day : teacher.second) {
+				std::cout << "day : " << day.first << std::endl;
+				for (const auto& timeslot : day.second) {
+					std::cout << "timeslot : " << timeslot.first << std::endl;
+
+					for (const auto& section : timeslot.second) {
+						std::cout << "section : " << section.first << std::endl;
+						for (const auto& subject : section.second) {
+							std::cout << "subject : " << subject << std::endl;
+						}
+					}
+				}
+			}
+			std::cout << std::endl;
 		}
 	}
 
