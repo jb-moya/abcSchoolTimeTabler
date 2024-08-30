@@ -7,6 +7,12 @@ import SignIn from './pages/Authentication/SignIn';
 import SignUp from './pages/Authentication/SignUp';
 import Calendar from './pages/Calendar';
 import Chart from './pages/Chart';
+
+import Timetable from './pages/Schedule/Timetable';
+import Sections from './pages/Schedule/Sections';
+import Subjects from './pages/Schedule/Subjects';
+import Teachers from './pages/Schedule/Teachers';
+
 import ECommerce from './pages/Dashboard/ECommerce';
 import FormElements from './pages/Form/FormElements';
 import FormLayout from './pages/Form/FormLayout';
@@ -139,6 +145,42 @@ function App() {
             <>
               <PageTitle title="Signup | TailAdmin - Tailwind CSS Admin Dashboard Template" />
               <SignUp />
+            </>
+          }
+        />
+        <Route
+          path="/schedule/timetable"
+          element={
+            <>
+              <PageTitle title="Timetable | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+              <Timetable />
+            </>
+          }
+        />
+        <Route
+          path="/schedule/teachers"
+          element={
+            <>
+              <PageTitle title="Teachers | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+              <Teachers />
+            </>
+          }
+        />
+        <Route
+          path="/schedule/subjects"
+          element={
+            <>
+              <PageTitle title="Subjects | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+              <Subjects />
+            </>
+          }
+        />
+        <Route
+          path="/schedule/sections"
+          element={
+            <>
+              <PageTitle title="Sections | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+              <Sections />
             </>
           }
         />
