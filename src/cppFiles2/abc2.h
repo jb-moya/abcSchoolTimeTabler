@@ -35,6 +35,9 @@ struct Timetable {
 	std::map<int16_t, std::map<int, std::map<int, SchoolClass>>> schoolClasses;
 	// teachers                 classes (timeslot)
 	std::unordered_map<int16_t, std::unordered_map<int, int>> teachers_timeslots;
+	// teachers                 days                    min/max timeslot
+	std::unordered_map<int16_t, std::unordered_map<int, std::pair<int, int>>> teachers_min_max_timeslots;
+	std::vector<int> teachers_class_count;
 	std::map<int16_t, std::unordered_set<int16_t>> section_segmented_timeslot;
 
 	void initializeTeachersClass(int teachers, int work_week, int num_time_fragment);
@@ -69,6 +72,8 @@ struct Timetable {
 	    int16_t random_section,
 	    int work_week,
 	    bool is_reset);
+
+	void updateTeachersMinMaxTimeslots(int16_t teacher, int day, int timeslot);
 };
 
 struct Bee {
