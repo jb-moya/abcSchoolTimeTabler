@@ -39,16 +39,41 @@ void unpackInt32ToInt16(int32_t packed, int16_t& first, int16_t& second) {
 }
 
 void test_generate_timetable() {
-	int max_iterations = 8000;
+	// std::map<int, std::string> myMap = {
+	//     {0, "zero"},
+	//     {1, "one"},
+	//     {2, "two"},
+	//     {3, "three"},
+	//     {4, "four"},
+	//     {5, "five"}};
+
+	// // Get an iterator pointing to the first element with key >= 2
+	// auto itStart = myMap.lower_bound(3);
+	// // Get an iterator pointing to the first element with key > 4
+	// auto itEnd = myMap.upper_bound(5);
+
+	// // Iterate from key 2 to 4
+	// std::cout << "what: " << itStart->first << ", what: " << itEnd->first << std::endl;
+
+	// for (auto it = itStart; it != itEnd; ++it) {
+	// 	if (it->first == itStart->first + 1 && false) {
+	// 		// Set iterator to the last valid position in the range
+	// 		it = std::prev(itEnd);
+	// 	}
+
+	// 	std::cout << "Key: " << it->first << ", Value: " << it->second << std::endl;
+	// }
+
+	int max_iterations = 2000;
 	int beesPopulation = 11;
 	int beesEmployed = 5;
 	int beesOnlooker = 5;
 	int beesScout = 1;
-	int limit = 140;
+	int limit = 800;
 	
-	int num_teachers = 20;
-	int total_section = 7;
-	int num_subjects = 5;
+	int num_teachers = 28;
+	int total_section = 10;
+	int num_subjects = 14;
 	
 	int default_units = 0;  // 0 means everyday
 	int default_duration = 4;
@@ -57,10 +82,6 @@ void test_generate_timetable() {
 	int max_teacher_work_load = 9;
 	int teacher_subjects_length = num_teachers;
 
-	// 500 x 20 x 5
-
-	// 0 1 2 3 5
-	// 0 0 0 0 1 1 1 1 2 2 2 2 3 3 3 3 - - - - 5 5 5 5
 
 	int total_section_subjects = total_section * num_subjects;
 
