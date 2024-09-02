@@ -74,7 +74,7 @@ function App() {
         });
 
         if (!canProceed) {
-            if (violations.some((v) => v.type === "emptyDatabase")) {
+            if (violations.some(v => v.type === "emptyDatabase")) {
                 toast.error("One or more tables are empty.");
             } else {
                 toast.error("Invalid timetable variables");
@@ -121,7 +121,7 @@ function App() {
             (acc, [, value], index) => {
                 // Assuming value.subjects is an object with subject IDs as keys
                 const subjectIDs = Object.keys(value.subjects);
-
+        
                 acc[index] = {
                     // Map over the subject IDs to transform them using subjectMapReverse
                     subjects: subjectIDs.map(
@@ -138,11 +138,11 @@ function App() {
                     ),
                     id: value.id,
                 };
-
+        
                 return acc;
             },
             {}
-        );
+        );        
 
         // console.log("subjectMap", subjectMap);
         // console.log("teacherMap", teacherMap);
@@ -151,8 +151,6 @@ function App() {
 
         const sectionSubjectArray = [];
         const sectionSubjectUnitArray = [];
-        const sectionSubjectDuration = [];
-
         let cellCount = 0;
         for (const [sectionKey, { subjects, subjectUnits }] of Object.entries(
             sectionMap
@@ -173,17 +171,12 @@ function App() {
                 sectionSubjectUnitArray.push(
                     packInt16ToInt32(unit, subjectUnits[unit])
                 );
-
-                sectionSubjectDuration.push(packInt16ToInt32(unit, 1));
             }
         }
 
         const sectionSubjects = new Int32Array([...sectionSubjectArray]);
         const sectionSubjectUnits = new Int32Array([
             ...sectionSubjectUnitArray,
-        ]);
-        const sectionSubjectDurations = new Int32Array([
-            ...sectionSubjectDuration,
         ]);
 
         const max_iterations = 10000;
@@ -208,14 +201,6 @@ function App() {
 
         const teacherSubjects = new Int32Array([...teacherSubjectArray]);
 
-        const sectionStartArray = [];
-
-        for (let i = 0; i < totalSection; i++) {
-            sectionStartArray[i] = 0;
-        }
-
-        const sectionStarts = new Int32Array([...sectionStartArray]);
-
         const params = {
             maxIterations: max_iterations,
             numTeachers: numTeachers,
@@ -225,8 +210,6 @@ function App() {
             totalCellBlock: cellCount,
             totalSection: totalSection,
             sectionSubjects: sectionSubjects,
-            sectionSubjectDurations: sectionSubjectDurations,
-            sectionStarts: sectionStarts,
             teacherSubjects: teacherSubjects,
             sectionSubjectUnits: sectionSubjectUnits,
             teacherSubjectsLength: teacherSubjects.length,

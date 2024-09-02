@@ -197,8 +197,8 @@ int getRandomInRange(int n) {
 void Timetable::updateTeachersTimeslots(
     std::unordered_map<int16_t, int>& section_start_map,
     std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>>& section_subjects_duration_map,
-    std::map<int, std::unordered_map<int, SchoolClass>>::iterator& itLow,
-    std::map<int, std::unordered_map<int, SchoolClass>>::iterator& itUp,
+    std::map<int, std::unordered_map<int, SchoolClass>>::iterator itLow,
+    std::map<int, std::unordered_map<int, SchoolClass>>::iterator itUp,
     bool is_skipping_between,
     int random_timeslot_1,
     int random_timeslot_2,
@@ -517,7 +517,7 @@ int ObjectiveFunction::evaluate(
 						if (show_penalty) {
 							print(GREEN, "teacher", teacher_id, day, "timeslot", key, "value", it->second, RESET);
 						}
-
+						
 						teacher_available_timeslot.insert(key);
 					}
 				}
