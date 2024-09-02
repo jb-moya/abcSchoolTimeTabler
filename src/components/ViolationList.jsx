@@ -4,7 +4,26 @@ import { useSelector } from "react-redux";
 const ViolationList = ({ violations }) => {
     const { subjects } = useSelector((state) => state.subject);
     const { teachers } = useSelector((state) => state.teacher);
-    // const { sections } = useSelector((state) => state.section);
+    const { sections } = useSelector((state) => state.section);
+    const { programs } = useSelector((state) => state.program);
+
+    const emptyDatabases = [];
+
+    if (Object.keys(sections).length === 0) {
+        emptyDatabases.push("sections");
+    }
+
+    if (Object.keys(teachers).length === 0) {
+        emptyDatabases.push("teachers");
+    }
+
+    if (Object.keys(subjects).length === 0) {
+        emptyDatabases.push("subjects");
+    }
+
+    if (Object.keys(programs).length === 0) {
+        emptyDatabases.push("programs");
+    }
 
     return (
         <div className="join join-vertical mt-4 w-full">
@@ -60,10 +79,26 @@ const ViolationList = ({ violations }) => {
                             </div>
                         )}
 
+                        {violation.type === "emptyDatabase" && (
+                            <div className="flex gap-2">
+                                <div>Databases without entries:</div>
+                                <div className="flex gap-2">
+                                    {emptyDatabases.map((db) => (
+                                        <p
+                                            key={`violation-${db}`}
+                                            className="px-2 border border-gray-500 border-opacity-30"
+                                        >
+                                            {db}
+                                        </p>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         {violation.type === "subjectsNotCovered" && (
                             <div className="flex gap-2">
                                 <div>
-                                    Subjects lacking specialized teachers:
+                                    Databases without entries:
                                 </div>
                                 <div className="flex gap-2">
                                     {violation.variable.map((subject) => (
@@ -77,6 +112,7 @@ const ViolationList = ({ violations }) => {
                                 </div>
                             </div>
                         )}
+
                     </div>
                 ))}
         </div>
