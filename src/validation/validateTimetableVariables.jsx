@@ -1,8 +1,17 @@
-const validateTimetableVariables = ({ sections, teachers, subjects }) => {
+const validateTimetableVariables = ({ sections, teachers, subjects, programs }) => {
     const violations = [];
 
     console.log("teachers subjects", teachers);
     console.log("sections subjects", sections);
+
+    if (
+        Object.keys(sections).length === 0 ||
+        Object.keys(teachers).length === 0 ||
+        Object.keys(subjects).length === 0 ||
+        Object.keys(programs).length === 0
+    ) {
+        return { canProceed: false, violations: [{ type: "emptyDatabase" }] };
+    }
 
     const includedSubjects = new Set();
     const teachersCoveredSubjects = new Set();

@@ -74,8 +74,11 @@ function App() {
         });
 
         if (!canProceed) {
-            toast.error("Invalid timetable variables");
-            console.log(violations);
+            if (violations.some(v => v.type === "emptyDatabase")) {
+                toast.error("One or more tables are empty.");
+            } else {
+                toast.error("Invalid timetable variables");
+            }
             setViolations(violations);
             return false;
         }
