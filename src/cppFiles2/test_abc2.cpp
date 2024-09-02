@@ -71,9 +71,9 @@ void test_generate_timetable() {
 	int beesScout = 1;
 	int limit = 1400;
 	
-	int num_teachers = 5;
-	int total_section = 3;
-	int num_subjects = 5;
+	int num_teachers = 12;
+	int total_section = 5;
+	int num_subjects = 6;
 	
 	int default_units = 0;  // 0 means everyday
 	int default_duration = 1;

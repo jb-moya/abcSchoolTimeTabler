@@ -58,6 +58,27 @@ const getTimetable = async (params) =>
                 teacherSubjectsBuff / params.teacherSubjects.BYTES_PER_ELEMENT
             );
 
+            const sectionStartsBuff = wasm._malloc(
+                params.sectionStarts.length *
+                    params.sectionStarts.BYTES_PER_ELEMENT
+            );
+
+            wasm.HEAP32.set(
+                params.sectionStarts,
+                sectionStartsBuff / params.sectionStarts.BYTES_PER_ELEMENT
+            );
+
+            const sectionSubjectDurationsBuff = wasm._malloc(
+                params.sectionSubjectDurations.length *
+                    params.sectionSubjectDurations.BYTES_PER_ELEMENT
+            );
+
+            wasm.HEAP32.set(
+                params.sectionSubjectDurations,
+                sectionSubjectDurationsBuff /
+                    params.sectionSubjectDurations.BYTES_PER_ELEMENT
+            );
+
             const resultBuff = wasm._malloc(params.resultLength * 8);
 
             wasm._runExperiment(
@@ -67,6 +88,8 @@ const getTimetable = async (params) =>
                 params.totalCellBlock,
                 params.totalSection,
                 sectionSubjectsBuff,
+                sectionSubjectDurationsBuff,
+                sectionStartsBuff,
                 teacherSubjectsBuff,
                 sectionSubjectUnitsBuff,
                 params.teacherSubjectsLength,
