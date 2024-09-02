@@ -76,6 +76,7 @@ const getTimetable = async (params) =>
                 params.beesScout,
                 params.limits,
                 params.workWeek,
+                params.maxTeacherWorkLoad,
                 params.resultLength,
                 resultBuff
             );
