@@ -13,7 +13,7 @@ import Sections from './pages/Schedule/Sections';
 import Subjects from './pages/Schedule/Subjects';
 import Teachers from './pages/Schedule/Teachers';
 
-import ECommerce from './pages/Dashboard/ECommerce';
+import Homepage from './pages/Dashboard/Homepage';
 import FormElements from './pages/Form/FormElements';
 import FormLayout from './pages/Form/FormLayout';
 import Profile from './pages/Profile';
@@ -44,8 +44,8 @@ function App() {
           index
           element={
             <>
-              <PageTitle title="eCommerce Dashboard | TailAdmin - Tailwind CSS Admin Dashboard Template" />
-              <ECommerce />
+              <PageTitle title="Homepage Dashboard | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+              <Homepage />
             </>
           }
         />
