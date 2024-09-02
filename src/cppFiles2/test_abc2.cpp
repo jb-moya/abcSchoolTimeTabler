@@ -64,20 +64,20 @@ void test_generate_timetable() {
 	// 	std::cout << "Key: " << it->first << ", Value: " << it->second << std::endl;
 	// }
 
-	int max_iterations = 2000;
+	int max_iterations = 5000;
 	int beesPopulation = 11;
 	int beesEmployed = 5;
 	int beesOnlooker = 5;
 	int beesScout = 1;
-	int limit = 800;
+	int limit = 1400;
 	
-	int num_teachers = 28;
-	int total_section = 10;
-	int num_subjects = 14;
+	int num_teachers = 5;
+	int total_section = 3;
+	int num_subjects = 5;
 	
 	int default_units = 0;  // 0 means everyday
-	int default_duration = 4;
-	int workweek = 5;
+	int default_duration = 1;
+	int workweek = 1;
 
 	int max_teacher_work_load = 9;
 	int teacher_subjects_length = num_teachers;

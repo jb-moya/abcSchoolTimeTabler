@@ -31,10 +31,10 @@ struct SchoolClass {
 };
 
 struct Timetable {
-	// section        timeslot      days                    subject/teacher
-	std::map<int16_t, std::map<int, std::unordered_map<int, SchoolClass>>> schoolClasses;
+	// section                          timeslot                days  subject/teacher
+	std::unordered_map<int16_t, std::map<int, std::unordered_map<int, SchoolClass>>> schoolClasses;
 	// teachers                 days                    classes (timeslot)
-	std::unordered_map<int16_t, std::unordered_map<int, std::unordered_map<int, int>>> teachers_timeslots;
+	std::unordered_map<int16_t, std::unordered_map<int, std::map<int, int>>> teachers_timeslots;
 	// teachers                 days                    min/max timeslot
 	std::vector<int> teachers_class_count;
 	std::map<int16_t, std::unordered_set<int16_t>> section_segmented_timeslot;
@@ -49,7 +49,7 @@ struct Timetable {
 	    std::unordered_map<int16_t, std::vector<int16_t>>& section_subjects,
 	    std::unordered_map<int16_t, int>& section_start_map,
 	    std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>>& section_subjects_units_map,
-	    std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> section_subjects_duration_map,
+	    std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>>& section_subjects_duration_map,
 	    std::uniform_int_distribution<int8_t>& random_workday);
 
 	void update(
@@ -62,12 +62,15 @@ struct Timetable {
 	    std::uniform_int_distribution<int8_t>& random_workday,
 	    std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>>& section_subjects_units_map,
 	    std::unordered_map<int16_t, std::vector<int16_t>>& eligible_teachers_in_subject,
-	    std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> section_subjects_duration_map,
+	    std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>>& section_subjects_duration_map,
 	    std::vector<int>& section_with_segmented_timeslots);
 
 	void updateTeachersTimeslots(
 	    std::unordered_map<int16_t, int>& section_start_map,
 	    std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>>& section_subjects_duration_map,
+		std::map<int, std::unordered_map<int, SchoolClass>>::iterator itLow,
+		std::map<int, std::unordered_map<int, SchoolClass>>::iterator itUp,
+		bool is_skipping_between,
 		int random_timeslot_1,
 		int random_timeslot_2,
 	    int16_t random_section,
@@ -137,8 +140,7 @@ struct ObjectiveFunction {
 	    bool show_penalty,
 	    int& work_week,
 	    std::unordered_map<int16_t, int>& section_start_map,
-	    std::unordered_map<int16_t, std::vector<int>>& section_possible_break_slot,
-	    std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> section_subjects_duration_map,
+	    std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>>& section_subjects_duration_map,
 	    int& max_teacher_work_load);
 };
 

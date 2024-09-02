@@ -55,31 +55,7 @@ void print(T first, Args... args) {
 	}
 }
 
-std::vector<int> calculatePositions(
-    std::unordered_map<int16_t, int16_t> subjects_duration_map,
-    int divisions) {
-	std::vector<int> positions;
-
-	int total_length = 0;
-
-	for (const auto& [subject, duration] : subjects_duration_map) {
-		total_length += duration;
-	}
-
-	if (divisions == 1) {
-		positions.push_back(static_cast<int>(std::round(total_length / 2.0)));
-	} else {
-		double interval = static_cast<double>(total_length) / (divisions + 1);
-
-		for (int i = 1; i <= divisions; ++i) {
-			positions.push_back(static_cast<int>(std::round(i * interval)));
-		}
-	}
-
-	return positions;
-}
-
-void printSchoolClasses(const std::map<int16_t, std::map<int, std::unordered_map<int, SchoolClass>>>& schoolClasses) {
+void printSchoolClasses(const std::unordered_map<int16_t, std::map<int, std::unordered_map<int, SchoolClass>>>& schoolClasses) {
 	for (const auto& [grade, gradeMap] : schoolClasses) {
 		std::cout << BLUE << "--------- - - Section: " << grade << RESET << std::endl;
 		for (const auto& [timeslot, classMap] : gradeMap) {
@@ -96,15 +72,8 @@ void printSchoolClasses(const std::map<int16_t, std::map<int, std::unordered_map
 	std::cout << std::endl;
 }
 
-bool isAround(int number, int target, int range = 5) {
-	return std::abs(number - target) <= range;
-}
-
 void Timetable::initializeTeachersClass(int teachers, int work_week, int num_time_fragment) {
-	// print("gento pag initialize ng teahcers");
-
 	teachers_class_count.resize(teachers);
-
 	for (int i = 0; i < teachers; ++i) {
 		teachers_class_count[i] = 0;
 	}
@@ -118,7 +87,7 @@ void Timetable::initializeRandomTimetable(
     std::unordered_map<int16_t, std::vector<int16_t>>& section_subjects,
     std::unordered_map<int16_t, int>& section_start_map,
     std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>>& section_subjects_units_map,
-    std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> section_subjects_duration_map,
+    std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>>& section_subjects_duration_map,
     std::uniform_int_distribution<int8_t>& random_workday) {
 	for (const auto& entry : section_subjects) {
 		int16_t section_id = entry.first;
@@ -151,8 +120,6 @@ void Timetable::initializeRandomTimetable(
 			timeslot_keys.push_back(i);
 		}
 
-		// std::shuffle(timeslot_keys.begin(), timeslot_keys.end(), engine);
-
 		int start = section_start_map[section_id];
 
 		for (const auto& subject_id : full_week_day_subjects) {
@@ -167,11 +134,8 @@ void Timetable::initializeRandomTimetable(
 
 			int duration = section_subjects_duration_map[section_id][subject_id];
 
-			// std::cout << "duratuion :: " << subject_id << " " << duration << std::endl;
-
 			for (int i = 1; i <= work_week; ++i) {
 				for (int j = 0; j < duration; ++j) {
-					// std::cout << "deleting : " << random_teacher << " " << i << " " << start + j << std::endl;
 					teachers_timeslots[random_teacher][i][j + start]++;
 				}
 			}
@@ -201,18 +165,14 @@ void Timetable::initializeRandomTimetable(
 				schoolClasses[section_id][timeslot][day] = SchoolClass{subject_id, random_teacher};
 
 				for (int j = 0; j < duration; ++j) {
-					// std::cout << "asd deleting : " << random_teacher << " " << day * 100 + start + j << std::endl;
 					teachers_timeslots[random_teacher][day][j + start]++;
 				}
 
 				section_segmented_timeslot[section_id].insert(timeslot);
 
 				if (--timeslots[timeslot] == 0) {
-					// Convert reverse iterator to a regular iterator
 					auto regularIt = it.base();
-					// Adjust iterator to point to the correct element
 					timeslot_keys.erase(--regularIt);
-					// timeslot_keys.erase(it);
 					timeslots.erase(timeslot);
 					start += duration;
 				}
@@ -227,15 +187,6 @@ void Timetable::initializeRandomTimetable(
 			}
 		}
 	}
-
-	// for (const auto& entry : section_segmented_timeslot) {
-	// 	std::cout << " E P A L " << std::endl;
-	// 	std::cout << entry.first << " " << entry.second.size() << std::endl;
-
-	// 	for (const auto& segment : entry.second) {
-	// 		std::cout << segment << "v " << std::endl;
-	// 	}
-	// }
 };
 
 int getRandomInRange(int n) {
@@ -246,64 +197,15 @@ int getRandomInRange(int n) {
 void Timetable::updateTeachersTimeslots(
     std::unordered_map<int16_t, int>& section_start_map,
     std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>>& section_subjects_duration_map,
+    std::map<int, std::unordered_map<int, SchoolClass>>::iterator itLow,
+    std::map<int, std::unordered_map<int, SchoolClass>>::iterator itUp,
+    bool is_skipping_between,
     int random_timeslot_1,
     int random_timeslot_2,
     int16_t random_section,
     int work_week,
     bool is_reset) {
-	auto itLow = schoolClasses[random_section].lower_bound(std::min(random_timeslot_1, random_timeslot_2));
-	auto itUp = schoolClasses[random_section].upper_bound(std::max(random_timeslot_1, random_timeslot_2));
-
-	// print(schoolClasses[random_section][random_timeslot_1])
-
-	// print("Updating teachers timeslots", random_section, random_timeslot_1, random_timeslot_2, itLow->first, std::prev(itUp)->first);
-
-	int random_timeslot_1_max_duration = 0;
-	int random_timeslot_2_max_duration = 0;
-
-	if (schoolClasses[random_section][itLow->first].find(0) != schoolClasses[random_section][itLow->first].end()) {
-		int subject = schoolClasses[random_section][itLow->first][0].subject_id;
-
-		if (subject == -1) {
-			random_timeslot_1_max_duration = 3;
-		} else {
-			random_timeslot_1_max_duration = section_subjects_duration_map[random_section][subject];
-		}
-
-	} else {
-		for (const auto& day : itLow->second) {
-			if (day.second.subject_id != -1) {
-				if (random_timeslot_1_max_duration < section_subjects_duration_map[random_section][day.second.subject_id]) {
-					random_timeslot_1_max_duration = section_subjects_duration_map[random_section][day.second.subject_id];
-				}
-			}
-		}
-	}
-
-	if (schoolClasses[random_section][std::prev(itUp)->first].find(0) != schoolClasses[random_section][std::prev(itUp)->first].end()) {
-		int subject = schoolClasses[random_section][std::prev(itUp)->first][0].subject_id;
-
-		if (subject == -1) {
-			random_timeslot_2_max_duration = 3;
-		} else {
-			random_timeslot_2_max_duration = section_subjects_duration_map[random_section][subject];
-		}
-
-	} else {
-		for (const auto& day : std::prev(itUp)->second) {
-			if (day.second.subject_id != -1) {
-				if (random_timeslot_2_max_duration < section_subjects_duration_map[random_section][day.second.subject_id]) {
-					random_timeslot_2_max_duration = section_subjects_duration_map[random_section][day.second.subject_id];
-				}
-			}
-		}
-	}
-
-	bool is_skipping_between = false;
-	if (random_timeslot_1_max_duration == random_timeslot_2_max_duration) {
-		is_skipping_between = true;
-	}
-
+	auto itUpPrev = std::prev(itUp);
 	// print("a", random_timeslot_1_max_duration, random_timeslot_2_max_duration, is_skipping_between);
 	int start = section_start_map[random_section];
 	for (auto it = schoolClasses[random_section].begin(); it != itUp; ++it) {
@@ -311,20 +213,16 @@ void Timetable::updateTeachersTimeslots(
 
 		if (it->first == itLow->first + 1 && is_skipping_between) {
 			// print("ff", it->first);
-			it = std::prev(itUp);
+			it = itUpPrev;
 		}
 
-		auto day_zero = schoolClasses[random_section][it->first].find(0);
+		auto& day_schedule = schoolClasses[random_section][it->first];
+		auto day_zero = day_schedule.find(0);
 
-		if (day_zero != schoolClasses[random_section][it->first].end()) {
-			int subject = schoolClasses[random_section][it->first][0].subject_id;
-			int teacher = schoolClasses[random_section][it->first][0].teacher_id;
-
-			int duration = section_subjects_duration_map[random_section][subject];
-
-			if (subject == -1) {
-				duration = 3;
-			}
+		if (day_zero != day_schedule.end()) {
+			int subject = day_zero->second.subject_id;
+			int teacher = day_zero->second.teacher_id;
+			int duration = (subject == -1) ? 3 : section_subjects_duration_map[random_section][subject];
 
 			if (subject != -1 && it->first >= itLow->first) {
 				for (int i = 1; i <= work_week; ++i) {
@@ -387,7 +285,7 @@ void Timetable::update(std::mt19937& gen,
                        std::uniform_int_distribution<int8_t>& random_workday,
                        std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>>& section_subjects_units_map,
                        std::unordered_map<int16_t, std::vector<int16_t>>& eligible_teachers_in_subject,
-                       std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> section_subjects_duration_map,
+                       std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>>& section_subjects_duration_map,
                        std::vector<int>& section_with_segmented_timeslots) {
 	int16_t choice = distribution_field(gen);
 	int16_t random_section;
@@ -439,14 +337,52 @@ void Timetable::update(std::mt19937& gen,
 		random_timeslot_2 = timeslots[timeslot_index_2];
 	}
 
-	updateTeachersTimeslots(section_start_map, section_subjects_duration_map, random_timeslot_1, random_timeslot_2, random_section, work_week, true);
+	auto itLow = schoolClasses[random_section].lower_bound(std::min(random_timeslot_1, random_timeslot_2));
+	auto itUp = schoolClasses[random_section].upper_bound(std::max(random_timeslot_1, random_timeslot_2));
+
+	// print(schoolClasses[random_section][random_timeslot_1])
+
+	// print("Updating teachers timeslots", random_section, random_timeslot_1, random_timeslot_2, itLow->first, std::prev(itUp)->first);
+
+	int16_t random_timeslot_1_max_duration = 0;
+	int16_t random_timeslot_2_max_duration = 0;
+
+	// Compute max duration for random_timeslot_1
+	if (auto itLowDayZero = schoolClasses[random_section][itLow->first].find(0); itLowDayZero != schoolClasses[random_section][itLow->first].end()) {
+		int subject = itLowDayZero->second.subject_id;
+		random_timeslot_1_max_duration = (subject == -1) ? 3 : section_subjects_duration_map[random_section][subject];
+	} else {
+		for (const auto& day : itLow->second) {
+			if (day.second.subject_id != -1) {
+				random_timeslot_1_max_duration = std::max(random_timeslot_1_max_duration, section_subjects_duration_map[random_section][day.second.subject_id]);
+			}
+		}
+	}
+
+	auto itUpPrev = std::prev(itUp);
+	if (auto itUpDayZero = schoolClasses[random_section][itUpPrev->first].find(0); itUpDayZero != schoolClasses[random_section][itUpPrev->first].end()) {
+		int subject = itUpDayZero->second.subject_id;
+		random_timeslot_2_max_duration = (subject == -1) ? 3 : section_subjects_duration_map[random_section][subject];
+	} else {
+		for (const auto& day : itUpPrev->second) {
+			if (day.second.subject_id != -1) {
+				random_timeslot_2_max_duration = std::max(random_timeslot_2_max_duration, section_subjects_duration_map[random_section][day.second.subject_id]);
+			}
+		}
+	}
+
+	bool is_skipping_between = (random_timeslot_1_max_duration == random_timeslot_2_max_duration);
+
+	updateTeachersTimeslots(section_start_map, section_subjects_duration_map, itLow, itUp, is_skipping_between, random_timeslot_1, random_timeslot_2, random_section, work_week, true);
+
+	auto& section = schoolClasses[random_section];
 
 	if (choice == 0) {
 		// swapping of classes between timeslots in the same section
 
 		// std::cout << "swapping " << random_section << " " << random_timeslot_1 << " " << random_timeslot_2 << std::endl;
 
-		std::swap(schoolClasses[random_section][random_timeslot_1], schoolClasses[random_section][random_timeslot_2]);
+		std::swap(section[random_timeslot_1], section[random_timeslot_2]);
 
 		auto& timeslot_set = section_segmented_timeslot[random_section];
 
@@ -463,10 +399,11 @@ void Timetable::update(std::mt19937& gen,
 	} else if (choice == 1) {
 		// 	// changing teachers
 		int random_timeslot = random_timeslot_1;
+		auto& section_timeslot = section[random_timeslot];
 
-		if (schoolClasses[random_section][random_timeslot].count(0) > 0) {
-			int16_t subject_id = schoolClasses[random_section][random_timeslot][0].subject_id;
-			int16_t old_teacher = schoolClasses[random_section][random_timeslot][0].teacher_id;
+		if (section_timeslot.count(0) > 0) {
+			int16_t subject_id = section_timeslot[0].subject_id;
+			int16_t old_teacher = section_timeslot[0].teacher_id;
 			std::uniform_int_distribution<> dis(0, eligible_teachers_in_subject[subject_id].size() - 1);
 
 			if (subject_id != -1) {
@@ -480,12 +417,12 @@ void Timetable::update(std::mt19937& gen,
 				teachers_class_count[random_teacher]++;
 
 				// std::cout << subject_id << " old teacher : " << old_teacher << " <- zero day :" << "Randomized: " << random_section << " " << random_timeslot << " " << random_teacher << std::endl;
-				schoolClasses[random_section][random_timeslot][0] = SchoolClass{subject_id, random_teacher};
+				section_timeslot[0] = SchoolClass{subject_id, random_teacher};
 			};
 		} else {
 			int8_t workday = random_workday(gen);
-			int16_t subject_id = schoolClasses[random_section][random_timeslot][workday].subject_id;
-			int16_t old_teacher = schoolClasses[random_section][random_timeslot][workday].teacher_id;
+			int16_t subject_id = section_timeslot[workday].subject_id;
+			int16_t old_teacher = section_timeslot[workday].teacher_id;
 			std::uniform_int_distribution<> dis(0, eligible_teachers_in_subject[subject_id].size() - 1);
 
 			if (subject_id != -1) {
@@ -499,58 +436,50 @@ void Timetable::update(std::mt19937& gen,
 				teachers_class_count[random_teacher]++;
 
 				// std::cout << subject_id << " old teacher : " << old_teacher << " <- workday : " << static_cast<int>(workday) << " Randomized: " << random_section << " " << random_timeslot << " " << random_teacher << std::endl;
-				schoolClasses[random_section][random_timeslot][workday] = SchoolClass{subject_id, random_teacher};
+				section_timeslot[workday] = SchoolClass{subject_id, random_teacher};
 			}
 		}
 	} else if (choice == 2) {
 		// std::cout << " : ( " << random_section << " " << random_timeslot_1 << " " << random_timeslot_2 << std::endl;
+		int day_1, day_2;
 
-		int day_1;
-		int day_2;
+		auto& section_timeslot_1 = section[random_timeslot_1];
+		auto& section_timeslot_2 = section[random_timeslot_2];
 
 		do {
 			day_1 = random_workday(gen);
 			day_2 = random_workday(gen);
 		} while ((day_1 == day_2 && random_timeslot_1 == random_timeslot_2) ||
-		         (schoolClasses[random_section][random_timeslot_1].count(day_1) == 0 && schoolClasses[random_section][random_timeslot_2].count(day_2) == 0));
+		         (section_timeslot_1.find(day_1) == section_timeslot_1.end() &&
+		          section_timeslot_2.find(day_2) == section_timeslot_2.end()));
 
-		// std::cout << " f  " << day_1 << " " << day_2 << std::endl;
+		auto it1 = section_timeslot_1.find(day_1);
+		auto it2 = section_timeslot_2.find(day_2);
 
-		if (schoolClasses[random_section][random_timeslot_1].count(day_1) > 0 && schoolClasses[random_section][random_timeslot_2].count(day_2) > 0) {
-			std::swap(schoolClasses[random_section][random_timeslot_1][day_1], schoolClasses[random_section][random_timeslot_2][day_2]);
-		} else if (schoolClasses[random_section][random_timeslot_1].count(day_1) > 0 && schoolClasses[random_section][random_timeslot_2].count(day_2) == 0) {
-			schoolClasses[random_section][random_timeslot_2][day_2] = schoolClasses[random_section][random_timeslot_1][day_1];
-			schoolClasses[random_section][random_timeslot_1].erase(day_1);
-		} else if (schoolClasses[random_section][random_timeslot_1].count(day_1) == 0 && schoolClasses[random_section][random_timeslot_2].count(day_2) > 0) {
-			schoolClasses[random_section][random_timeslot_1][day_1] = schoolClasses[random_section][random_timeslot_2][day_2];
-			schoolClasses[random_section][random_timeslot_2].erase(day_2);
+		if (it1 != section_timeslot_1.end() && it2 != section_timeslot_2.end()) {
+			std::swap(it1->second, it2->second);
+		} else if (it1 != section_timeslot_1.end() && it2 == section_timeslot_2.end()) {
+			section_timeslot_2[day_2] = std::move(it1->second);
+			section_timeslot_1.erase(it1);
+		} else if (it1 == section_timeslot_1.end() && it2 != section_timeslot_2.end()) {
+			section_timeslot_1[day_1] = std::move(it2->second);
+			section_timeslot_2.erase(it2);
 		}
 	}
 
-	updateTeachersTimeslots(section_start_map, section_subjects_duration_map, random_timeslot_1, random_timeslot_2, random_section, work_week, false);
+	updateTeachersTimeslots(section_start_map, section_subjects_duration_map, itLow, itUp, is_skipping_between, random_timeslot_1, random_timeslot_2, random_section, work_week, false);
 };
-
-// int combine(int first, int second) {
-// 	return (first << 16) | second;
-// };
-// int combine(int first, int second, int third) {
-// 	return (first << 16) | (second << 8) | third;
-// }
 
 int ObjectiveFunction::evaluate(
     Timetable& timetable,
     bool show_penalty,
     int& work_week,
     std::unordered_map<int16_t, int>& section_start_map,
-    std::unordered_map<int16_t, std::vector<int>>& section_possible_break_slot,
-    std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> section_subjects_duration_map,
+    std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>>& section_subjects_duration_map,
     int& max_teacher_work_load) {
 	int class_timeslot_overlap = 0;
 	int teacher_have_no_break = 0;
 	int teacher_exceed_workload = 0;
-
-	// auto itLow = schoolClasses[random_section].lower_bound(std::min(random_timeslot_1, random_timeslot_2));
-	// auto itUp = schoolClasses[random_section].upper_bound(std::max(random_timeslot_1, random_timeslot_2));
 
 	// std::cout << "Evaluating ........" << std::endl;
 	for (auto& [teacher_id, days] : timetable.teachers_timeslots) {
@@ -585,6 +514,10 @@ int ObjectiveFunction::evaluate(
 				if (nextIt != timeslot.end()) {
 					int nextKey = nextIt->first;
 					for (int key = currentKey + 1; key < nextKey; ++key) {
+						if (show_penalty) {
+							print(GREEN, "teacher", teacher_id, day, "timeslot", key, "value", it->second, RESET);
+						}
+						
 						teacher_available_timeslot.insert(key);
 					}
 				}
@@ -662,16 +595,6 @@ int32_t packInt16ToInt32(int16_t first, int16_t second) {
 	return result;
 }
 
-void insertUnique(std::vector<int>& vec, int element, std::set<int>& existingElements) {
-	// Check if the element is not already in the set
-	if (existingElements.find(element) == existingElements.end()) {
-		// Insert the element into the vector
-		vec.push_back(element);
-		// Also insert it into the set to track it
-		existingElements.insert(element);
-	}
-}
-
 extern "C" {
 
 void runExperiment(
@@ -700,9 +623,7 @@ void runExperiment(
 
 	std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>> section_subjects_units_map = {};
 	std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> section_subjects_duration_map = {};
-	std::unordered_map<int16_t, std::vector<int>> section_possible_break_slot = {};
 	std::vector<int> section_with_segmented_timeslots;
-	std::set<int> section_set;
 	std::unordered_map<int16_t, int> section_start_map = {};
 	std::unordered_map<int16_t, std::vector<int16_t>> section_subjects_map = {};
 	std::unordered_map<int, std::vector<int>> section_break_time_timeslots;
@@ -749,10 +670,6 @@ void runExperiment(
 		section_subjects_duration_map[unpacked_first_section_subjects][unpacked_first_section_subjects_duration] = unpacked_second_section_subjects_duration;
 
 		section_num_of_class_block[unpacked_first_section_subjects] += unpacked_second_section_subjects_units == 0 ? work_week : unpacked_second_section_subjects_units;
-
-		if (unpacked_second_section_subjects_units != 0) {
-			insertUnique(section_with_segmented_timeslots, unpacked_first_section_subjects, section_set);
-		}
 	}
 
 	std::cout << "section_with_segmented_timeslots" << std::endl;
@@ -804,20 +721,7 @@ void runExperiment(
 		// below 10 - 1, 2 equal or above
 
 		section_num_breaks[it->first] = num_breaks;
-		section_possible_break_slot[it->first] = calculatePositions(section_subjects_duration_map[it->first], num_breaks);
-
 		total_class_block += num_breaks;
-	}
-
-	std::cout << "section_possible_break_slot" << std::endl;
-	for (auto it = section_possible_break_slot.begin(); it != section_possible_break_slot.end(); it++) {
-		std::cout << it->first << " " << std::endl;
-
-		for (int i = 0; i < it->second.size(); i++) {
-			std::cout << it->second[i] << " ";
-		}
-
-		std::cout << std::endl;
 	}
 
 	// std::cout << "eligible_teachers_in_subject" << std::endl;
@@ -861,7 +765,7 @@ void runExperiment(
 	std::cout << "FIRSTTTTTTTTTTTTT" << std::endl;
 	// bestSolution.timetable.update(gen, work_week, random_field, section_timeslot, section_start_map, random_section, random_workDay, section_subjects_units_map, eligible_teachers_in_subject, section_subjects_duration_map, section_with_segmented_timeslots);
 	// bestSolution.cost = optimizableFunction.evaluate(bestSolution.timetable, true, work_week, section_start_map, section_possible_break_slot, section_subjects_duration_map, max_teacher_work_load);
-	bestSolution.cost = optimizableFunction.evaluate(bestSolution.timetable, false, work_week, section_start_map, section_possible_break_slot, section_subjects_duration_map, max_teacher_work_load);
+	bestSolution.cost = optimizableFunction.evaluate(bestSolution.timetable, false, work_week, section_start_map, section_subjects_duration_map, max_teacher_work_load);
 	// std::cout << bestSolution.cost << std::endl;
 	// printSchoolClasses(bestSolution.timetable.schoolClasses);
 	std::cout << "FIRSTTTTTTTTTTTTT" << std::endl;
@@ -926,7 +830,7 @@ void runExperiment(
 		beesVector[i].timetable.initializeTeachersClass(num_teachers, work_week, ewan);
 		beesVector[i].timetable.initializeRandomTimetable(gen, work_week, eligible_teachers_in_subject, section_timeslot, section_subjects_map, section_start_map, section_subjects_units_map, section_subjects_duration_map, random_workDay);
 
-		beesVector[i].cost = optimizableFunction.evaluate(beesVector[i].timetable, false, work_week, section_start_map, section_possible_break_slot, section_subjects_duration_map, max_teacher_work_load);
+		beesVector[i].cost = optimizableFunction.evaluate(beesVector[i].timetable, false, work_week, section_start_map, section_subjects_duration_map, max_teacher_work_load);
 
 		if (beesVector[i].cost == 0) {
 			std::cout << RED << "JACKPOT " << i << " " << beesVector[i].cost << " size " << RESET << endl;
@@ -983,7 +887,7 @@ void runExperiment(
 			newBee.timetable.update(gen, work_week, random_field, section_timeslot, section_start_map, random_section, random_workDay, section_subjects_units_map, eligible_teachers_in_subject, section_subjects_duration_map, section_with_segmented_timeslots);
 			// print("After");
 			// printSchoolClasses(newBee.timetable.schoolClasses);
-			newBee.cost = optimizableFunction.evaluate(newBee.timetable, false, work_week, section_start_map, section_possible_break_slot, section_subjects_duration_map, max_teacher_work_load);
+			newBee.cost = optimizableFunction.evaluate(newBee.timetable, false, work_week, section_start_map, section_subjects_duration_map, max_teacher_work_load);
 
 			// #pragma omp critical
 			{
@@ -1043,7 +947,7 @@ void runExperiment(
 			newBee.timetable.update(gen, work_week, random_field, section_timeslot, section_start_map, random_section, random_workDay, section_subjects_units_map, eligible_teachers_in_subject, section_subjects_duration_map, section_with_segmented_timeslots);
 			// print("After");
 			// printSchoolClasses(newBee.timetable.schoolClasses);
-			newBee.cost = optimizableFunction.evaluate(newBee.timetable, false, work_week, section_start_map, section_possible_break_slot, section_subjects_duration_map, max_teacher_work_load);
+			newBee.cost = optimizableFunction.evaluate(newBee.timetable, false, work_week, section_start_map, section_subjects_duration_map, max_teacher_work_load);
 
 			// #pragma omp critical
 			{
@@ -1064,7 +968,7 @@ void runExperiment(
 					newBee.timetable.initializeRandomTimetable(gen, work_week, eligible_teachers_in_subject, section_timeslot, section_subjects_map, section_start_map, section_subjects_units_map, section_subjects_duration_map, random_workDay);
 
 					beesVector[i] = newBee;
-					beesVector[i].cost = optimizableFunction.evaluate(beesVector[i].timetable, false, work_week, section_start_map, section_possible_break_slot, section_subjects_duration_map, max_teacher_work_load);
+					beesVector[i].cost = optimizableFunction.evaluate(beesVector[i].timetable, false, work_week, section_start_map, section_subjects_duration_map, max_teacher_work_load);
 
 					abandonedBees[i] = 0;
 				}
@@ -1088,7 +992,7 @@ void runExperiment(
 
 	printSchoolClasses(bestSolution.timetable.schoolClasses);
 
-	optimizableFunction.evaluate(bestSolution.timetable, true, work_week, section_start_map, section_possible_break_slot, section_subjects_duration_map, max_teacher_work_load);
+	optimizableFunction.evaluate(bestSolution.timetable, true, work_week, section_start_map, section_subjects_duration_map, max_teacher_work_load);
 	// std::cout << "Objective function: " << optimizableFunction.evaluate(bestSolution.timetable, true, work_week, section_start_map, section_possible_break_slot, section_subjects_duration_map, max_teacher_work_load) << std::endl;
 	// std::cout << "Objective function: " << optimizableFunction.evaluate(bestSolution.timetable, true, work_week, section_start_map, section_possible_break_slot, section_subjects_duration_map, max_teacher_work_load) << std::endl;
 	// std::cout << "Objective function: " << optimizableFunction.evaluate(bestSolution.timetable, true, work_week, section_start_map, section_possible_break_slot, section_subjects_duration_map, max_teacher_work_load) << std::endl;
