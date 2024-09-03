@@ -11,6 +11,7 @@ import {
 import { setSubjectStatusIdle } from "../features/subjectSlice";
 import { setSectionStatusIdle } from "../features/sectionSlice";
 import { setTeacherStatusIdle } from "../features/teacherSlice";
+import { setProgramStatusIdle } from "../features/programSlice";
 import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
 
@@ -47,6 +48,7 @@ const ExportImportDBButtons = () => {
             .then(() => {
                 dispatch(setSubjectStatusIdle());
                 dispatch(setTeacherStatusIdle());
+                dispatch(setProgramStatusIdle());
                 dispatch(setSectionStatusIdle());
             })
             .then(() => {
