@@ -37,9 +37,9 @@ struct Timetable {
 	std::unordered_map<int16_t, std::unordered_map<int, std::map<int, int>>> teachers_timeslots;
 	// teachers                 days                    min/max timeslot
 	std::vector<int> teachers_class_count;
-	std::map<int16_t, std::unordered_set<int16_t>> section_segmented_timeslot;
+	std::unordered_map<int16_t, std::unordered_set<int16_t>> section_segmented_timeslot;
 
-	void initializeTeachersClass(int teachers, int work_week, int num_time_fragment);
+	void initializeTeachersClass(int teachers);
 
 	void initializeRandomTimetable(
 	    std::mt19937& gen,
@@ -71,8 +71,6 @@ struct Timetable {
 		std::map<int, std::unordered_map<int, SchoolClass>>::iterator itLow,
 		std::map<int, std::unordered_map<int, SchoolClass>>::iterator itUp,
 		bool is_skipping_between,
-		int random_timeslot_1,
-		int random_timeslot_2,
 	    int16_t random_section,
 	    int work_week,
 	    bool is_reset);

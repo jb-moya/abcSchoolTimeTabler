@@ -64,17 +64,20 @@ void test_generate_timetable() {
 	// 	std::cout << "Key: " << it->first << ", Value: " << it->second << std::endl;
 	// }
 
+	// TODO break time in section must be roughly around in the middle
+
 	int max_iterations = 5000;
 	int beesPopulation = 11;
 	int beesEmployed = 5;
 	int beesOnlooker = 5;
 	int beesScout = 1;
-	int limit = 1400;
 	
-	int num_teachers = 5;
-	int total_section = 3;
-	int num_subjects = 5;
+	int num_teachers = 8;
+	int total_section = 5;
+	int num_subjects = 8;
 	
+	int limit = total_section * num_teachers;
+
 	int default_units = 0;  // 0 means everyday
 	int default_duration = 1;
 	int workweek = 1;
