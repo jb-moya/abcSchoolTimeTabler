@@ -39,42 +39,17 @@ void unpackInt32ToInt16(int32_t packed, int16_t& first, int16_t& second) {
 }
 
 void test_generate_timetable() {
-	// std::map<int, std::string> myMap = {
-	//     {0, "zero"},
-	//     {1, "one"},
-	//     {2, "two"},
-	//     {3, "three"},
-	//     {4, "four"},
-	//     {5, "five"}};
-
-	// // Get an iterator pointing to the first element with key >= 2
-	// auto itStart = myMap.lower_bound(3);
-	// // Get an iterator pointing to the first element with key > 4
-	// auto itEnd = myMap.upper_bound(5);
-
-	// // Iterate from key 2 to 4
-	// std::cout << "what: " << itStart->first << ", what: " << itEnd->first << std::endl;
-
-	// for (auto it = itStart; it != itEnd; ++it) {
-	// 	if (it->first == itStart->first + 1 && false) {
-	// 		// Set iterator to the last valid position in the range
-	// 		it = std::prev(itEnd);
-	// 	}
-
-	// 	std::cout << "Key: " << it->first << ", Value: " << it->second << std::endl;
-	// }
-
 	// TODO break time in section must be roughly around in the middle
 
-	int max_iterations = 5000;
+	int max_iterations = 10000;
 	int beesPopulation = 11;
 	int beesEmployed = 5;
 	int beesOnlooker = 5;
 	int beesScout = 1;
 	
-	int num_teachers = 8;
-	int total_section = 5;
-	int num_subjects = 8;
+	int num_teachers = 60;
+	int total_section = 20;
+	int num_subjects = 12;
 	
 	int limit = total_section * num_teachers;
 
