@@ -41,25 +41,29 @@ void unpackInt32ToInt16(int32_t packed, int16_t& first, int16_t& second) {
 void test_generate_timetable() {
 	// TODO break time in section must be roughly around in the middle
 
-	int max_iterations = 10000;
+	int max_iterations = 1000;
 	int beesPopulation = 11;
 	int beesEmployed = 5;
 	int beesOnlooker = 5;
 	int beesScout = 1;
-	
+
 	int num_teachers = 60;
 	int total_section = 20;
 	int num_subjects = 12;
-	
+
+	// 15 30 60
+	// 5  10 20
+	// 3  6  12
+
 	int limit = total_section * num_teachers;
 
 	int default_units = 0;  // 0 means everyday
 	int default_duration = 1;
 	int workweek = 1;
+	int break_time_duration = 1;
 
 	int max_teacher_work_load = 9;
 	int teacher_subjects_length = num_teachers;
-
 
 	int total_section_subjects = total_section * num_subjects;
 
@@ -161,6 +165,7 @@ void test_generate_timetable() {
 	    limit,
 	    workweek,
 	    max_teacher_work_load,
+	    break_time_duration,
 	    result_buff_length,
 	    result);
 }
@@ -171,7 +176,6 @@ int main() {
 	std::cout << "done testing" << std::endl;
 	return 0;
 }
-
 
 // emcc abc.cpp -s -sMODULARIZE=1 -sWASM_BIGINT - sEXPORTED_FUNCTIONS = '_runExperiment', '_malloc', '_free', getValue abc.js
 

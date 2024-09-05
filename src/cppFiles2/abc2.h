@@ -32,14 +32,18 @@ struct SchoolClass {
 
 struct Timetable {
 	static std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>> section_subjects_units;
+
+	//        section                     subject  duration
 	static std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> section_subjects_duration;
 	static std::unordered_map<int16_t, std::vector<int16_t>> eligible_teachers_in_subject;
 	static std::unordered_map<int16_t, std::vector<int16_t>> section_subjects;
 	static std::unordered_map<int16_t, int> section_timeslot;
 	static std::unordered_map<int16_t, int> section_start;
+	static int break_time_duration;
 	static int work_week;
 
-	static std::uniform_int_distribution<int16_t> random_class_block;
+	static std::uniform_int_distribution<int16_t>
+	    random_class_block;
 	static std::uniform_int_distribution<int16_t> random_section;
 	static std::uniform_int_distribution<int8_t> random_workDay;
 	static std::uniform_int_distribution<int16_t> random_field;
@@ -54,7 +58,7 @@ struct Timetable {
 	// section                          timeslot                days  subject/teacher
 	std::unordered_map<int16_t, std::map<int, std::unordered_map<int, SchoolClass>>> schoolClasses;
 	// teachers                 days                    classes (timeslot)
-	std::unordered_map<int16_t, std::unordered_map<int, std::map<int, int>>> teachers_timeslots;
+	std::map<int16_t, std::unordered_map<int, std::map<int, int>>> teachers_timeslots;
 	// section                  timeslot
 	std::unordered_map<int16_t, std::unordered_set<int>> section_segmented_timeslot;
 	std::vector<int> teachers_class_count;
@@ -102,6 +106,7 @@ void runExperiment(
     int limit,
     int workweek,
     int max_teacher_work_load,
+    int break_time_duration,
     int result_buff_length,
     int64_t* result);
 
@@ -132,7 +137,8 @@ struct ObjectiveFunction {
 	    Timetable& timetable,
 	    bool show_penalty,
 	    int& work_week,
-	    int& max_teacher_work_load);
+	    int& max_teacher_work_load,
+	    int& break_time_duration);
 };
 
 #endif  // ABC_H
