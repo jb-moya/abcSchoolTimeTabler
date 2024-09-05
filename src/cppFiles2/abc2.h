@@ -31,51 +31,50 @@ struct SchoolClass {
 };
 
 struct Timetable {
+	static std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>> section_subjects_units;
+
+	//        section                     subject  duration
+	static std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> section_subjects_duration;
+	static std::unordered_map<int16_t, std::vector<int16_t>> eligible_teachers_in_subject;
+	static std::unordered_map<int16_t, std::vector<int16_t>> section_subjects;
+	static std::unordered_map<int16_t, int> section_timeslot;
+	static std::unordered_map<int16_t, int> section_start;
+	static int break_time_duration;
+	static int work_week;
+
+	static std::uniform_int_distribution<int16_t>
+	    random_class_block;
+	static std::uniform_int_distribution<int16_t> random_section;
+	static std::uniform_int_distribution<int8_t> random_workDay;
+	static std::uniform_int_distribution<int16_t> random_field;
+
+	static void initializeRandomClassBlockDistribution(int min, int max);
+	static void initializeRandomSectionDistribution(int min, int max);
+	static void initializeRandomFieldDistribution(int min, int max);
+	static void initializeRandomWorkDayDistribution(int min, int max);
+
+	static void reset();
+
 	// section                          timeslot                days  subject/teacher
 	std::unordered_map<int16_t, std::map<int, std::unordered_map<int, SchoolClass>>> schoolClasses;
 	// teachers                 days                    classes (timeslot)
-	std::unordered_map<int16_t, std::unordered_map<int, std::map<int, int>>> teachers_timeslots;
-	// teachers                 days                    min/max timeslot
+	std::map<int16_t, std::unordered_map<int, std::map<int, int>>> teachers_timeslots;
+	// section                  timeslot
+	std::unordered_map<int16_t, std::unordered_set<int>> section_segmented_timeslot;
 	std::vector<int> teachers_class_count;
-	std::unordered_map<int16_t, std::unordered_set<int16_t>> section_segmented_timeslot;
 
 	void initializeTeachersClass(int teachers);
 
-	void initializeRandomTimetable(
-	    std::mt19937& gen,
-	    int& work_week,
-	    std::unordered_map<int16_t, std::vector<int16_t>>& eligible_teachers_in_subject,
-	    std::unordered_map<int16_t, int>& section_timeslot,
-	    std::unordered_map<int16_t, std::vector<int16_t>>& section_subjects,
-	    std::unordered_map<int16_t, int>& section_start_map,
-	    std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>>& section_subjects_units_map,
-	    std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>>& section_subjects_duration_map,
-	    std::uniform_int_distribution<int8_t>& random_workday);
+	void initializeRandomTimetable();
 
-	void update(
-	    std::mt19937& gen,
-	    int& work_week,
-	    std::uniform_int_distribution<int16_t>& distribution_field,
-	    std::unordered_map<int16_t, int>& section_timeslot,
-	    std::unordered_map<int16_t, int>& section_start_map,
-	    std::uniform_int_distribution<int16_t>& distribution_section,
-	    std::uniform_int_distribution<int8_t>& random_workday,
-	    std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>>& section_subjects_units_map,
-	    std::unordered_map<int16_t, std::vector<int16_t>>& eligible_teachers_in_subject,
-	    std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>>& section_subjects_duration_map,
-	    std::vector<int>& section_with_segmented_timeslots);
+	void update();
 
 	void updateTeachersTimeslots(
-	    std::unordered_map<int16_t, int>& section_start_map,
-	    std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>>& section_subjects_duration_map,
-		std::map<int, std::unordered_map<int, SchoolClass>>::iterator itLow,
-		std::map<int, std::unordered_map<int, SchoolClass>>::iterator itUp,
-		bool is_skipping_between,
+	    std::map<int, std::unordered_map<int, SchoolClass>>::iterator itLow,
+	    std::map<int, std::unordered_map<int, SchoolClass>>::iterator itUp,
+	    bool is_skipping_between,
 	    int16_t random_section,
-	    int work_week,
 	    bool is_reset);
-
-	void updateTeachersMinMaxTimeslots(int16_t teacher, int day, int timeslot);
 };
 
 struct Bee {
@@ -107,6 +106,7 @@ void runExperiment(
     int limit,
     int workweek,
     int max_teacher_work_load,
+    int break_time_duration,
     int result_buff_length,
     int64_t* result);
 
@@ -128,18 +128,17 @@ int extractThird(int combined);
 int64_t pack5IntToInt64(int16_t a, int16_t b, int16_t c, int8_t d, int8_t e);
 int32_t packInt16ToInt32(int16_t first, int16_t second);
 
-void extractSectionSubjects(
-    const std::vector<int32_t>& inputArray,
-    std::unordered_map<int16_t, std::vector<int16_t>>& section_subjects);
+// void extractSectionSubjects(
+//     const std::vector<int32_t>& inputArray,
+//     std::unordered_map<int16_t, std::vector<int16_t>>& section_subjects);
 
 struct ObjectiveFunction {
-	int evaluate(
+	static int evaluate(
 	    Timetable& timetable,
 	    bool show_penalty,
 	    int& work_week,
-	    std::unordered_map<int16_t, int>& section_start_map,
-	    std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>>& section_subjects_duration_map,
-	    int& max_teacher_work_load);
+	    int& max_teacher_work_load,
+	    int& break_time_duration);
 };
 
 #endif  // ABC_H
