@@ -9,11 +9,12 @@ import {
 import debounce from "debounce";
 import { RiEdit2Fill, RiDeleteBin7Line } from "react-icons/ri";
 import SearchableDropdownToggler from "./searchableDropdown";
+import { getTimeSlotIndex, getTimeSlotString } from "./timeSlotMapper";
 import { filterObject } from "../utils/filterObject";
 import escapeRegExp from "../utils/escapeRegExp";
 import { IoAdd, IoSearch } from "react-icons/io5";
 
-const AddProgramContainer = ({ close, reduxField, reduxFunction }) => {
+const AddProgramContainer = ({ close, reduxField, reduxFunction, morningStartTime, afternoonStartTime }) => {
     const inputNameRef = useRef();
     const subjects = useSelector((state) => state.subject.subjects);
     const dispatch = useDispatch();
@@ -25,34 +26,97 @@ const AddProgramContainer = ({ close, reduxField, reduxFunction }) => {
         9: [],
         10: [],
     });
+    const [selectedShifts, setSelectedShifts] = useState({
+        7: 'AM',
+        8: 'AM',
+        9: 'AM',
+        10: 'AM',
+    });
+    const [ startTimes, setStartTimes ] = useState({
+        7: morningStartTime,
+        8: morningStartTime,
+        9: morningStartTime,
+        10: morningStartTime,
+    });
+
+    const handleStartTimeChange = (grade, time) => {
+        setStartTimes((prevTimes) => ({
+            ...prevTimes,
+            [grade]: time,
+        }));
+    };
+
+    const renderTimeOptions = (shift) => {
+        const times = shift === 'AM'
+            ? Array.from({ length: 30 }, (_, i) => {
+                const hours = 6 + Math.floor(i / 6);
+                const minutes = (i % 6) * 10;
+                return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} AM`;
+            })
+            : Array.from({ length: 8 }, (_, i) => {
+                const hours = 1 + i;
+                return `${String(hours).padStart(2, '0')}:00 PM`;
+            });
+
+        return times.map((time) => (
+            <option key={time} value={time}>
+                {time}
+            </option>
+        ));
+    };
 
     const handleInputChange = (e) => {
         setInputValue(e.target.value);
     };
 
     const handleSubjectSelection = (grade, selectedList) => {
-        setSelectedSubjects((prevState) => {
-            const updatedState = {
-                ...prevState,
-                [grade]: selectedList,
-            };
-            return updatedState;
-        });
+        setSelectedSubjects((prevState) => ({
+            ...prevState,
+            [grade]: selectedList,
+        }));
+    };
+
+    const handleShiftSelection = (grade, shift) => {
+        setSelectedShifts((prevState) => ({
+            ...prevState,
+            [grade]: shift,
+        }));
+
+        const defaultTime = shift === 'AM' ? morningStartTime : afternoonStartTime;
+        setStartTimes(prevTimes => ({
+            ...prevTimes,
+            [grade]: defaultTime
+        }));
     };
 
     const handleAddEntry = () => {
         dispatch(
             reduxFunction({
                 [reduxField[0]]: inputValue,
-                7: selectedSubjects[7],
-                8: selectedSubjects[8],
-                9: selectedSubjects[9],
-                10: selectedSubjects[10],
+                7: { 
+                    subjects: selectedSubjects[7], 
+                    shift: selectedShifts[7] === 'AM' ? 0 : 1,
+                    startTime: getTimeSlotIndex(startTimes[7]),
+                },
+                8: { 
+                    subjects: selectedSubjects[8], 
+                    shift: selectedShifts[8] === 'AM' ? 0 : 1,
+                    startTime: getTimeSlotIndex(startTimes[8]), 
+                },
+                9: { 
+                    subjects: selectedSubjects[9], 
+                    shift: selectedShifts[9] === 'AM' ? 0 : 1,
+                    startTime: getTimeSlotIndex(startTimes[9]), 
+                },
+                10: { 
+                    subjects: selectedSubjects[10], 
+                    shift: selectedShifts[10] === 'AM' ? 0 : 1,
+                    startTime: getTimeSlotIndex(startTimes[10]), 
+                },
             })
         );
-
         close();
-    };
+    };    
 
     useEffect(() => {
         if (inputNameRef.current) {
@@ -64,22 +128,9 @@ const AddProgramContainer = ({ close, reduxField, reduxFunction }) => {
         <div className="card bg-base-200 p-4 my-5">
             <div className="flex justify-between">
                 <h1>Add {reduxField[0].toUpperCase()}</h1>
-                <button
-                    className="btn btn-xs btn-circle btn-outline"
-                    onClick={close}
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        className="inline-block w-4 h-4 stroke-current"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M6 18L18 6M6 6l12 12"
-                        ></path>
+                <button className="btn btn-xs btn-circle btn-outline" onClick={close}>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-4 h-4 stroke-current">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
             </div>
@@ -114,14 +165,45 @@ const AddProgramContainer = ({ close, reduxField, reduxFunction }) => {
                             selectedList={selectedSubjects[grade]}
                             setSelectedList={(list) => handleSubjectSelection(grade, list)}
                         />
+
+                        <div className="mt-2">
+                            <label className="mr-2">Shift:</label>
+                            <label className="mr-2">
+                                <input
+                                    type="radio"
+                                    name={`shift-${grade}`}
+                                    value="AM"
+                                    checked={selectedShifts[grade] === 'AM'}
+                                    onChange={() => handleShiftSelection(grade, 'AM')}
+                                />
+                                AM
+                            </label>
+                            <label>
+                                <input
+                                    type="radio"
+                                    name={`shift-${grade}`}
+                                    value="PM"
+                                    checked={selectedShifts[grade] === 'PM'}
+                                    onChange={() => handleShiftSelection(grade, 'PM')}
+                                />
+                                PM
+                            </label>
+                        </div>
+                        <div className="mt-2">
+                            <label className="mr-2">Start Time:</label>
+                            <select
+                                className="input input-bordered"
+                                value={startTimes[grade]}
+                                onChange={(e) => handleStartTimeChange(grade, e.target.value)}
+                            >
+                                {renderTimeOptions(selectedShifts[grade])}
+                            </select>
+                        </div>
                     </div>
                 ))}
             </div>
 
-            <button
-                className="btn btn-primary"
-                onClick={handleAddEntry}
-            >
+            <button className="btn btn-primary" onClick={handleAddEntry}>
                 <div>Add {reduxField[0]}</div>
                 <IoAdd size={20} />
             </button>
@@ -129,7 +211,7 @@ const AddProgramContainer = ({ close, reduxField, reduxFunction }) => {
     );
 };
 
-const ProgramListContainer = () => {
+const ProgramListContainer = ({ morningStartTime, afternoonStartTime }) => {
     const dispatch = useDispatch();
 
     const { programs, status: programStatus } = useSelector(
@@ -148,14 +230,73 @@ const ProgramListContainer = () => {
     const [openAddProgramContainer, setOpenAddProgramContainer] =
         useState(false);
 
+    const [selectedShifts, setSelectedShifts] = useState({
+        7: 'AM',
+        8: 'AM',
+        9: 'AM',
+        10: 'AM',
+    });
+    
+    const [startTimes, setStartTimes] = useState({
+        7: '06:00 AM',
+        8: '06:00 AM',
+        9: '06:00 AM',
+        10: '06:00 AM',
+    });
+
+    const renderTimeOptions = (shift) => {
+        const times = shift === 'AM'
+            ? Array.from({ length: 30 }, (_, i) => {
+                const hours = 6 + Math.floor(i / 6);
+                const minutes = (i % 6) * 10;
+                return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} AM`;
+            })
+            : Array.from({ length: 8 }, (_, i) => {
+                const hours = 1 + i;
+                return `${String(hours).padStart(2, '0')}:00 PM`;
+            });
+
+        return times.map((time) => (
+            <option key={time} value={time}>
+                {time}
+            </option>
+        ));
+    };
+
+    const handleShiftSelection = (grade, shift) => {
+        setSelectedShifts((prevState) => ({
+            ...prevState,
+            [grade]: shift,
+        }));
+
+        const defaultTime = shift === 'AM' ? morningStartTime : afternoonStartTime;
+        setStartTimes((prevState) => ({
+            ...prevState,
+            [grade]: defaultTime
+        }));
+    };    
+
     const handleEditProgramClick = (program) => {
+        // console.log(program);
         setEditProgramId(program.id);
         setEditProgramValue(program.program);
         setEditProgramCurr({
-            7: program[7] || [],
-            8: program[8] || [],
-            9: program[9] || [],
-            10: program[10] || [],
+            7: program[7]?.subjects || [], 
+            8: program[8]?.subjects || [],
+            9: program[9]?.subjects || [],
+            10: program[10]?.subjects || [],
+        });
+        setStartTimes({
+            7: getTimeSlotString(program[7]?.startTime),
+            8: getTimeSlotString(program[8]?.startTime),
+            9: getTimeSlotString(program[9]?.startTime),
+            10: getTimeSlotString(program[10]?.startTime),
+        });
+        setSelectedShifts({
+            7: program[7]?.shift === 0 ? 'AM' : 'PM',
+            8: program[8]?.shift === 0 ? 'AM' : 'PM',
+            9: program[9]?.shift === 0 ? 'AM' : 'PM',
+            10: program[10]?.shift === 0 ? 'AM' : 'PM',
         });
     };
 
@@ -165,16 +306,34 @@ const ProgramListContainer = () => {
                 programId,
                 updatedProgram: {
                     program: editProgramValue,
-                    7: editProgramCurr[7],
-                    8: editProgramCurr[8],
-                    9: editProgramCurr[9],
-                    10: editProgramCurr[10],
+                    7: {
+                        subjects: editProgramCurr[7],
+                        shift: selectedShifts[7] === 'AM' ? 0 : 1,
+                        startTime: getTimeSlotIndex(startTimes[7] || 0),
+                    },
+                    8: {
+                        subjects: editProgramCurr[8],
+                        shift: selectedShifts[8] === 'AM' ? 0 : 1,
+                        startTime: getTimeSlotIndex(startTimes[8] || 0),
+                    },
+                    9: {
+                        subjects: editProgramCurr[9],
+                        shift: selectedShifts[9] === 'AM' ? 0 : 1,
+                        startTime: getTimeSlotIndex(startTimes[9] || 0),
+                    },
+                    10: {
+                        subjects: editProgramCurr[10],
+                        shift: selectedShifts[10] === 'AM' ? 0 : 1,
+                        startTime: getTimeSlotIndex(startTimes[10] || 0),
+                    },
                 },
             })
         );
         setEditProgramId(null);
+        setEditProgramValue("");
+        setEditProgramCurr([]);
     };
-
+    
     const handleCancelProgramEditClick = () => {
         setEditProgramId(null);
         setEditProgramValue("");
@@ -187,9 +346,11 @@ const ProgramListContainer = () => {
                 filterObject(programs, ([, program]) => {
                     if (!searchValue) return true;
 
-                    const programsSubjectsName = program.subjects
-                        .map((subjectID) => subjects[subjectID].subject)
-                        .join(" ");
+                    const programsSubjectsName = Object.values(program)
+                    .filter((gradeData) => Array.isArray(gradeData.subjects)) // Ensure we're working with subjects array for each grade
+                    .flatMap((gradeData) => gradeData.subjects.map((subjectID) => subjects[subjectID]?.subject || ""))
+                    .join(" ");
+
 
                     const escapedSearchValue = escapeRegExp(searchValue)
                         .split("\\*")
@@ -216,6 +377,30 @@ const ProgramListContainer = () => {
             dispatch(fetchPrograms());
         }
     }, [programStatus, dispatch]);
+
+    // useEffect(() => {
+    //     console.log("afternoonStartTime: ", afternoonStartTime);
+    // }, [afternoonStartTime]);
+
+    // useEffect(() => {
+    //     console.log("editProgramId: ", editProgramId);
+    // }, [editProgramId]);
+
+    // useEffect(() => {
+    //     console.log("editProgramValue: ", editProgramValue);
+    // }, [editProgramValue]);
+
+    // useEffect(() => {
+    //     console.log("editProgramCurr: ", editProgramCurr);
+    // }, [editProgramCurr]);
+
+    // useEffect(() => {
+    //     console.log("startTimes: ", startTimes);
+    // }, [startTimes]);
+
+    // useEffect(() => {
+    //     console.log("selectedShifts: ", selectedShifts);
+    // }, [selectedShifts]);
 
     return (
         <React.Fragment>
@@ -278,15 +463,53 @@ const ProgramListContainer = () => {
                                             {editProgramId === program.id ? (
                                                 <>
                                                     {[7, 8, 9, 10].map((grade) => (
-                                                        <div key={grade}>
-                                                            <h3>{`Grade ${grade}`}</h3>
-                                                            <div className="m-1">Selected Subjects: </div>
+                                                        <div key={grade} className="my-2">
+                                                            <h3 className="font-bold">{`Grade ${grade}`}</h3>
+
+                                                            <div className="mt-2">
+                                                                <label className="mr-2">Shift:</label>
+                                                                <label className="mr-2">
+                                                                    <input
+                                                                        type="radio"
+                                                                        name={`shift-${grade}`}
+                                                                        value="AM"
+                                                                        checked={selectedShifts[grade] === 'AM'}
+                                                                        onChange={() => handleShiftSelection(grade, 'AM')}
+                                                                    />
+                                                                    AM
+                                                                </label>
+                                                                <label>
+                                                                    <input
+                                                                        type="radio"
+                                                                        name={`shift-${grade}`}
+                                                                        value="PM"
+                                                                        checked={selectedShifts[grade] === 'PM'}
+                                                                        onChange={() => handleShiftSelection(grade, 'PM')}
+                                                                    />
+                                                                    PM
+                                                                </label>
+                                                            </div>
+
+                                                            <div>
+                                                                <label>Start Time:</label>
+                                                                <select
+                                                                    value={startTimes[grade]}
+                                                                    onChange={(e) => {
+                                                                        const newValue = e.target.value;
+                                                                        setStartTimes((prevState) => ({
+                                                                            ...prevState,
+                                                                            [grade]: newValue,
+                                                                        }));
+                                                                    }}
+                                                                >
+                                                                    {renderTimeOptions(selectedShifts[grade])}
+                                                                </select>
+                                                            </div>
+
+                                                            <div className="m-1">Selected Subjects:</div>
                                                             {editProgramCurr[grade] && Array.isArray(editProgramCurr[grade]) && subjects ? (
                                                                 editProgramCurr[grade].map((subjectID) => (
-                                                                    <div
-                                                                        key={subjectID}
-                                                                        className="badge badge-secondary m-1"
-                                                                    >
+                                                                    <div key={subjectID} className="badge badge-secondary m-1">
                                                                         {subjects[subjectID]?.subject || subjectID}
                                                                     </div>
                                                                 ))
@@ -301,33 +524,40 @@ const ProgramListContainer = () => {
                                                                         ...prevState,
                                                                         [grade]: list,
                                                                     }))
-                                                                }
+                                                                }   
                                                             />
                                                         </div>
                                                     ))}
                                                 </>
                                             ) : (
-                                                <ul>
+                                                <div>
                                                     {[7, 8, 9, 10].map((grade) => (
-                                                        <li key={grade}>
-                                                            <details>
-                                                                <summary>{`Grade ${grade}`}</summary>
-                                                                <div>
-                                                                    {program[`${grade}`].map(
-                                                                        (subjectID) => (
-                                                                            <div
-                                                                                key={subjectID}
-                                                                                className="badge badge-secondary m-1"
-                                                                            >
-                                                                                {subjects[subjectID]?.subject || subjectID}
-                                                                            </div>
-                                                                        )
-                                                                    )}
+                                                        <div key={grade} className="my-4">
+                                                        <h3 className="font-bold">{`Grade ${grade}`}</h3>
+                                                        
+                                                        <div className="flex items-center mt-2">
+                                                            <span className="inline-block bg-blue-500 text-white text-xs font-semibold py-1 px-3 rounded-lg">
+                                                            {program[`${grade}`]?.shift === 0 ? "AM" : "PM"}
+                                                            </span>
+                                                            <span className="ml-2 text-sm font-medium">
+                                                            {getTimeSlotString(program[`${grade}`]?.startTime || 0)}
+                                                            </span>
+                                                        </div>
+                                                        
+                                                        <div className="mt-2">
+                                                            {Array.isArray(program[`${grade}`]?.subjects) && program[`${grade}`].subjects.length > 0 ? (
+                                                            program[`${grade}`].subjects.map((subjectID) => (
+                                                                <div key={subjectID} className="badge badge-secondary m-1">
+                                                                {subjects[subjectID]?.subject || subjectID}
                                                                 </div>
-                                                            </details>
-                                                        </li>
+                                                            ))
+                                                            ) : (
+                                                            <div>No subjects selected</div>
+                                                            )}
+                                                        </div>
+                                                        </div>
                                                     ))}
-                                                </ul>
+                                                </div>
                                             )}
                                         </td>
 
@@ -393,6 +623,8 @@ const ProgramListContainer = () => {
                         close={() => setOpenAddProgramContainer(false)}
                         reduxField={["program", "subjects"]}
                         reduxFunction={addProgram}
+                        morningStartTime={morningStartTime}
+                        afternoonStartTime={afternoonStartTime}
                     />
                 ) : (
                     <div className="flex justify-end mt-3">

@@ -13,7 +13,73 @@ import debounce from "debounce";
 import { filterObject } from "../utils/filterObject";
 import escapeRegExp from "../utils/escapeRegExp";
 
-const SubjectListContainer = () => {
+const AddSubjectContainer = ({ close, reduxFunction, defaultSubjectClassDuration }) => {
+    const dispatch = useDispatch();
+
+    const [subjectName, setSubjectName] = useState("");
+    const [classSubjectDuration, setClassSubjectDuration] = useState(
+        defaultSubjectClassDuration || 10 // Ensure it defaults to 10 if undefined
+    );
+
+    console.log("defaultSubjectClassDuration: ", defaultSubjectClassDuration);
+
+    const handleAddSubject = () => {
+        console.log("subjectName: ", subjectName);
+        console.log("classSubjectDuration: ", classSubjectDuration);
+        if (subjectName.trim()) {
+            dispatch(reduxFunction({ subject: subjectName, classDuration: classSubjectDuration }));
+            close();
+        } else {
+            alert("Subject name cannot be empty");
+        }
+    };
+
+    return (
+        <div className="p-4 border rounded-md shadow-md bg-white">
+            <h3 className="text-lg font-bold mb-4">Add New Subject</h3>
+            <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">Subject Name:</label>
+                <input
+                    type="text"
+                    className="input input-bordered w-full"
+                    value={subjectName}
+                    onChange={(e) => setSubjectName(e.target.value)}
+                    placeholder="Enter subject name"
+                />
+            </div>
+            <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">Class Duration (minutes):</label>
+                <input
+                    type="number"
+                    className="input input-bordered w-full"
+                    value={classSubjectDuration}
+                    onChange={(e) => {
+                        const value = Number(e.target.value);
+                        if (value >= 10 && value <= 120) {
+                            setClassSubjectDuration(value);
+                        } else {
+                            alert("Duration must be between 10 and 120 minutes.");
+                        }
+                    }}
+                    placeholder="Enter class duration"
+                    step="10"
+                    min="10"
+                    max="120"
+                />
+            </div>
+            <div className="flex justify-end space-x-2">
+                <button className="btn btn-secondary" onClick={close}>
+                    Cancel
+                </button>
+                <button className="btn btn-primary" onClick={handleAddSubject}>
+                    Add Subject
+                </button>
+            </div>
+        </div>
+    );
+};
+
+const SubjectListContainer = ({ defaultSubjectClassDuration }) => {
     const dispatch = useDispatch();
     const { subjects, status: subjectStatus } = useSelector(
         (state) => state.subject
@@ -22,42 +88,53 @@ const SubjectListContainer = () => {
     const [editSubjectId, setEditSubjectId] = useState(null);
     const [searchSubjectResult, setSearchSubjectResult] = useState(subjects);
     const [editSubjectValue, setEditSubjectValue] = useState("");
+    const [editClassDuration, setEditClassDuration] = useState(0);
     const [subjectInputValue, setSubjectInputValue] = useState("");
     const [searchSubjectValue, setSearchSubjectValue] = useState("");
 
-    const handleInputChange = (e) => {
-        setSubjectInputValue(e.target.value);
-    };
+    const [openAddSubjectContainer, setOpenAddSubjectContainer] =
+        useState(false);
+
+    // const handleInputChange = (e) => {
+    //     setSubjectInputValue(e.target.value);
+    // };
 
     const handleEditSubjectClick = (subject) => {
         setEditSubjectId(subject.id);
         setEditSubjectValue(subject.subject);
+        setEditClassDuration(subject.classDuration);
     };
 
     const handleSaveSubjectEditClick = (subjectId) => {
         dispatch(
             editSubject({
                 subjectId,
-                updatedSubject: { subject: editSubjectValue },
+                updatedSubject: { 
+                    subject: editSubjectValue,
+                    classDuration: editClassDuration, 
+                },
             })
         );
         setEditSubjectId(null);
+        setEditSubjectValue("");
+        setEditClassDuration(0);
     };
 
     const handleCancelSubjectEditClick = () => {
         setEditSubjectId(null);
         setEditSubjectValue("");
+        setEditClassDuration(0);
     };
 
-    const handleKeyDown = (e) => {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            if (subjectInputValue.trim()) {
-                dispatch(addSubject({ subject: subjectInputValue }));
-                setSubjectInputValue("");
-            }
-        }
-    };
+    // const handleKeyDown = (e) => {
+    //     if (e.key === "Enter") {
+    //         e.preventDefault();
+    //         if (subjectInputValue.trim()) {
+    //             dispatch(addSubject({ subject: subjectInputValue }));
+    //             setSubjectInputValue("");
+    //         }
+    //     }
+    // };
 
     useEffect(() => {
         if (subjectStatus === "idle") {
@@ -86,9 +163,6 @@ const SubjectListContainer = () => {
         debouncedSearch(searchSubjectValue, subjects);
     }, [searchSubjectValue, subjects, debouncedSearch]);
 
-    useEffect(() => {
-        // console.log("searchSubjectResult", searchSubjectResult);
-    }, [searchSubjectResult]);
 
     return (
         <div className="">
@@ -109,6 +183,7 @@ const SubjectListContainer = () => {
                         <th className="w-8">#</th>
                         <th>Subject ID</th>
                         <th>Subject</th>
+                        <th>Class Duration</th>
                         <th className="text-right">Actions</th>
                     </tr>
                 </thead>
@@ -139,6 +214,27 @@ const SubjectListContainer = () => {
                                             />
                                         ) : (
                                             subject.subject
+                                        )}
+                                    </td>
+                                    <td>
+                                        {editSubjectId === subject.id ? (
+                                            <input
+                                                type="number"
+                                                value={editClassDuration}
+                                                onChange={(e) => {
+                                                    const newDuration = Number(e.target.value);
+                                                    if (newDuration >= 10 && newDuration <= 120) {
+                                                        setEditClassDuration(newDuration);
+                                                    }
+                                                }}
+                                                className="input input-bordered input-sm w-full"
+                                                placeholder="Enter class duration"
+                                                step="10"
+                                                min="10"
+                                                max="120"
+                                            />
+                                        ) : (
+                                            `${subject.classDuration} mins`
                                         )}
                                     </td>
                                     <td className="w-28 text-right">
@@ -200,22 +296,23 @@ const SubjectListContainer = () => {
             </table>
 
             <div>
-                <label className="my-2 input input-sm input-bordered flex w-full max-w-xs items-center gap-2  border-secondary">
-                    <input
-                        type="text"
-                        placeholder="add subject"
-                        className="grow"
-                        value={subjectInputValue}
-                        onChange={(e) => {
-                            handleInputChange(e);
-                        }}
-                        onKeyDown={(e) => {
-                            handleKeyDown(e);
-                        }}
+                {openAddSubjectContainer ? (
+                    <AddSubjectContainer
+                        close={() => setOpenAddSubjectContainer(false)}
+                        reduxFunction={addSubject}
+                        defaultSubjectClassDuration={defaultSubjectClassDuration}
                     />
-
-                    <IoAdd size={26} />
-                </label>
+                ) : (
+                    <button
+                        className="btn btn-secondary my-5"
+                        onClick={() => {
+                            setOpenAddSubjectContainer(true);
+                        }}
+                    >
+                        Add Subject
+                        <IoAdd size={26} />
+                    </button>
+                )}
             </div>
         </div>
     );

@@ -8,7 +8,9 @@ import {
     editSection,
     removeSection,
 } from "../features/sectionSlice";
+import { fetchPrograms } from "../features/programSlice";
 import SearchableDropdownToggler from "./searchableDropdown";
+import { getTimeSlotString } from "./timeSlotMapper";
 import { IoAdd, IoSearch } from "react-icons/io5";
 import debounce from "debounce";
 import { filterObject } from "../utils/filterObject";
@@ -64,7 +66,7 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
             const program = Object.values(programs).find((p) => p.id === selectedProgram);
     
             if (program) {
-                setSelectedSubjects(program[selectedYearLevel] || []); // Ensure it accesses the subjects correctly
+                setSelectedSubjects(program[selectedYearLevel].subjects || []); // Ensure it accesses the subjects correctly
             } else {
                 setSelectedSubjects([]);
             }
@@ -83,6 +85,10 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
         if (JSON.stringify(newSubjectUnits) !== JSON.stringify(subjectUnits)) {
             setSubjectUnits(newSubjectUnits);
         }
+    }, [selectedSubjects]);
+
+    useEffect(() => {
+        console.log("selectedSubjects: ", selectedSubjects);
     }, [selectedSubjects]);
 
     return (
@@ -309,7 +315,26 @@ const SectionListContainer = () => {
         setEditSectionSubjects([]);
         setEditSectionUnits({});
     };
+    
+    const getProgramShiftAndTimeSlot = (section) => {
+        const program = Object.values(programs).find((prog) => prog.id === section.program);
 
+        if (!program) {
+            return { shift: null, startTime: null };
+        }
+    
+        const yearData = program[section.year];
+    
+        if (!yearData) {
+            return { shift: null, startTime: null };
+        }
+    
+        return {
+            shift: yearData.shift,   
+            startTime: yearData.startTime
+        };
+    };
+    
     const debouncedSearch = useCallback(
         debounce((searchValue, sections, subjects) => {
             setSearchSectionResult(
@@ -318,25 +343,32 @@ const SectionListContainer = () => {
                         .split("\\*")
                         .join(".*");
     
-                    // Iterate over the keys of section.subjects to get the subject names
                     const sectionSubjectsName = Object.keys(section.subjects)
                         .map((subjectID) => subjects[subjectID]?.subject || "")
                         .join(" ");
     
                     const pattern = new RegExp(escapedSearchValue, "i");
+                    
+                    // Check if program or year level matches the search value
+                    const programMatches = pattern.test(section.program);
+                    const yearLevelMatches = pattern.test(section.year); // Ensure `year` is the correct property name
+    
                     return (
                         pattern.test(section.section) ||
+                        programMatches ||
+                        yearLevelMatches ||
                         pattern.test(sectionSubjectsName)
                     );
                 })
             );
         }, 200),
         []
-    );    
-
+    );
+    
     useEffect(() => {
         debouncedSearch(searchSectionValue, sections, subjects);
     }, [searchSectionValue, sections, debouncedSearch, subjects]);
+    
 
     useEffect(() => {
         if (sectionStatus === "idle") {
@@ -350,6 +382,18 @@ const SectionListContainer = () => {
         }
     }, [sectionStatus, sections]);
 
+    useEffect(() => {
+        if (programStatus === "idle") {
+            dispatch(fetchPrograms());
+        }
+    }, [programStatus, dispatch]);
+
+    useEffect(() => {
+        if (programStatus === "succeeded") {
+            console.log("Fetched programs:", programs);
+        }
+    }, [programStatus, programs]);
+
     return (
         <React.Fragment>
             <div>
@@ -357,7 +401,7 @@ const SectionListContainer = () => {
                     <input
                         type="text"
                         className="grow"
-                        placeholder="Search Section by Name or Subject List"
+                        placeholder="Search Section by Name, Program, Year Level or Subject List"
                         value={searchSectionValue}
                         onChange={(e) => setSearchSectionValue(e.target.value)}
                     />
@@ -399,7 +443,19 @@ const SectionListContainer = () => {
                                                 className="input input-bordered input-sm w-full"
                                             />
                                         ) : (
-                                            section.section
+                                            <>
+                                                <div className="text-base font-bold">
+                                                    {section.section}
+                                                </div>
+                                                <div className="flex items-center mt-2">
+                                                    <span className="inline-block bg-blue-500 text-white text-sm font-semibold py-1 px-3 rounded-lg">
+                                                        {getProgramShiftAndTimeSlot(section).shift === 0 ? 'AM' : 'PM'} {/* Display SHIFT */}
+                                                    </span>
+                                                    <span className="ml-2 text-sm font-medium">
+                                                        {getTimeSlotString(getProgramShiftAndTimeSlot(section).startTime)} {/* Display SECTION STARTING TIME */}
+                                                    </span>
+                                                </div>    
+                                            </>
                                         )}
                                     </td>
                                     <td>
@@ -410,7 +466,7 @@ const SectionListContainer = () => {
                                                     const newProgram = parseInt(e.target.value, 10);
                                                     setEditSectionProg(newProgram);
 
-                                                    const subjectsForProgramAndYear = programs[newProgram][section.year] || [];
+                                                    const subjectsForProgramAndYear = programs[newProgram]?.[section.year]?.subjects || [];
                                                     setEditSectionSubjects(subjectsForProgramAndYear);
 
                                                     const updatedUnits = {};
@@ -439,7 +495,7 @@ const SectionListContainer = () => {
                                                     const newYear = parseInt(e.target.value, 10);
                                                     setEditSectionYear(newYear);
                                                     
-                                                    const subjectsForProgramAndYear = programs[editSectionProg][newYear] || [];
+                                                    const subjectsForProgramAndYear = programs[editSectionProg]?.[newYear]?.subjects || [];
                                                     setEditSectionSubjects(subjectsForProgramAndYear);
 
                                                     const updatedUnits = {};
