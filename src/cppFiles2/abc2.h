@@ -15,6 +15,7 @@
 #include <iostream>
 #include <limits>
 #include <map>
+#include <optional>
 #include <random>
 #include <set>
 #include <tuple>
@@ -30,6 +31,12 @@ struct SchoolClass {
 	int16_t teacher_id;
 };
 
+struct teacherViolation {
+	int class_timeslot_overlap;
+	int teacher_have_no_break;
+	int teacher_exceed_workload;
+};
+
 struct Timetable {
 	static std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>> section_subjects_units;
 
@@ -39,6 +46,7 @@ struct Timetable {
 	static std::unordered_map<int16_t, std::vector<int16_t>> section_subjects;
 	static std::unordered_map<int16_t, int> section_timeslot;
 	static std::unordered_map<int16_t, int> section_start;
+	static std::unordered_set<int> teachers_set;
 	static int break_time_duration;
 	static int work_week;
 
@@ -52,36 +60,48 @@ struct Timetable {
 	static void initializeRandomSectionDistribution(int min, int max);
 	static void initializeRandomFieldDistribution(int min, int max);
 	static void initializeRandomWorkDayDistribution(int min, int max);
-
+	static void initializeTeacherSet(int teachers);
 	static void reset();
 
 	// section                          timeslot                days  subject/teacher
 	std::unordered_map<int16_t, std::map<int, std::unordered_map<int, SchoolClass>>> schoolClasses;
 	// teachers                 days                    classes (timeslot)
-	std::map<int16_t, std::unordered_map<int, std::map<int, int>>> teachers_timeslots;
+	std::unordered_map<int16_t, std::unordered_map<int, std::map<int, int>>> teachers_timeslots;
 	// section                  timeslot
 	std::unordered_map<int16_t, std::unordered_set<int>> section_segmented_timeslot;
 	std::vector<int> teachers_class_count;
 
 	void initializeTeachersClass(int teachers);
 
-	void initializeRandomTimetable();
+	void initializeRandomTimetable(std::unordered_set<int>& affected_teachers);
 
-	void update();
+	void update(std::unordered_set<int>& affected_teachers);
 
 	void updateTeachersTimeslots(
+	    std::unordered_set<int>& affected_teachers,
 	    std::map<int, std::unordered_map<int, SchoolClass>>::iterator itLow,
 	    std::map<int, std::unordered_map<int, SchoolClass>>::iterator itUp,
 	    bool is_skipping_between,
+	    bool is_returning_teachers,
 	    int16_t random_section,
 	    bool is_reset);
 };
 
 struct Bee {
 	Timetable timetable;
-	int cost;
+	std::vector<teacherViolation> teacherViolations;
+	int total_cost;
 
-	Bee() : cost(std::numeric_limits<int16_t>::max()) {}
+	void resetTeacherViolation(int teacher_id) {
+		teacherViolations[teacher_id].class_timeslot_overlap = 0;
+		teacherViolations[teacher_id].teacher_have_no_break = 0;
+		teacherViolations[teacher_id].teacher_exceed_workload = 0;
+	}
+
+	Bee(int num_teachers) : teacherViolations(num_teachers),
+	                        total_cost(std::numeric_limits<int>::max()) {
+		timetable.initializeTeachersClass(num_teachers);
+	}
 };
 
 #ifdef __cplusplus
@@ -133,9 +153,11 @@ int32_t packInt16ToInt32(int16_t first, int16_t second);
 //     std::unordered_map<int16_t, std::vector<int16_t>>& section_subjects);
 
 struct ObjectiveFunction {
-	static int evaluate(
-	    Timetable& timetable,
+	static void evaluate(
+	    Bee& bee,
+	    std::unordered_set<int>& affected_teachers,
 	    bool show_penalty,
+	    bool is_initial,
 	    int& work_week,
 	    int& max_teacher_work_load,
 	    int& break_time_duration);

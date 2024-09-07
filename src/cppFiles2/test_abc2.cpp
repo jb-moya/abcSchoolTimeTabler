@@ -46,21 +46,26 @@ void test_generate_timetable() {
 	int beesEmployed = 5;
 	int beesOnlooker = 5;
 	int beesScout = 1;
+	
+	int num_teachers =  15;
+	int total_section =   5 ;
+	int num_subjects =  3 ;
 
-	int num_teachers = 60;
-	int total_section = 20;
-	int num_subjects = 12;
+	// t 120 sc 40 sb 10 dd 4 w 6 bd 3 - 25sec
 
-	// 15 30 60
-	// 5  10 20
-	// 3  6  12
+	// 9 15 30 60 120
+	// 3 5  10 20 40
+	// 3 3  6  12 10
 
 	int limit = total_section * num_teachers;
 
 	int default_units = 0;  // 0 means everyday
-	int default_duration = 1;
-	int workweek = 1;
-	int break_time_duration = 1;
+	// int default_duration = 1;
+	int default_duration = 4;
+	// int workweek = 1;
+	int workweek = 5;
+	// int break_time_duration = 1;
+	int break_time_duration = 3;
 
 	int max_teacher_work_load = 9;
 	int teacher_subjects_length = num_teachers;

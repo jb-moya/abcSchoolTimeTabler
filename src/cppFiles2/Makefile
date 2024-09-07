@@ -1,6 +1,6 @@
 # Variables
 CXX = g++
-CXXFLAGS = -Wall -Wextra -std=c++11
+CXXFLAGS = -Wall -Wextra -std=c++17
 TARGET = test_abc2
 SRC = abc2.cpp test_abc2.cpp
 HEADERS = abc2.h
