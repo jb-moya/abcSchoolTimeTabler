@@ -4,93 +4,15 @@ import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { useDispatch } from 'react-redux';
 import {
   fetchSubjects,
-  addSubject,
   editSubject,
   removeSubject,
 } from '@features/subjectSlice';
-import { IoAdd, IoSearch } from 'react-icons/io5';
+import { IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 
-const AddSubjectContainer = ({
-  close,
-  reduxFunction,
-  defaultSubjectClassDuration,
-}) => {
-  const dispatch = useDispatch();
-
-  const [subjectName, setSubjectName] = useState('');
-  const [classSubjectDuration, setClassSubjectDuration] = useState(
-    defaultSubjectClassDuration || 10 // Ensure it defaults to 10 if undefined
-  );
-
-  console.log('defaultSubjectClassDuration: ', defaultSubjectClassDuration);
-
-  const handleAddSubject = () => {
-    console.log('subjectName: ', subjectName);
-    console.log('classSubjectDuration: ', classSubjectDuration);
-    if (subjectName.trim()) {
-      dispatch(
-        reduxFunction({
-          subject: subjectName,
-          classDuration: classSubjectDuration,
-        })
-      );
-      close();
-    } else {
-      alert('Subject name cannot be empty');
-    }
-  };
-
-  return (
-    <div className="p-4 border rounded-md shadow-md bg-white">
-      <h3 className="text-lg font-bold mb-4">Add New Subject</h3>
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">Subject Name:</label>
-        <input
-          type="text"
-          className="input input-bordered w-full"
-          value={subjectName}
-          onChange={(e) => setSubjectName(e.target.value)}
-          placeholder="Enter subject name"
-        />
-      </div>
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">
-          Class Duration (minutes):
-        </label>
-        <input
-          type="number"
-          className="input input-bordered w-full"
-          value={classSubjectDuration}
-          onChange={(e) => {
-            const value = Number(e.target.value);
-            if (value >= 10 && value <= 120) {
-              setClassSubjectDuration(value);
-            } else {
-              alert('Duration must be between 10 and 120 minutes.');
-            }
-          }}
-          placeholder="Enter class duration"
-          step="10"
-          min="10"
-          max="120"
-        />
-      </div>
-      <div className="flex justify-end space-x-2">
-        <button className="btn btn-secondary" onClick={close}>
-          Cancel
-        </button>
-        <button className="btn btn-primary" onClick={handleAddSubject}>
-          Add Subject
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const SubjectListContainer = ({ defaultSubjectClassDuration }) => {
+const SubjectListDisplay = () => {
   const dispatch = useDispatch();
   const { subjects, status: subjectStatus } = useSelector(
     (state) => state.subject
@@ -100,10 +22,7 @@ const SubjectListContainer = ({ defaultSubjectClassDuration }) => {
   const [searchSubjectResult, setSearchSubjectResult] = useState(subjects);
   const [editSubjectValue, setEditSubjectValue] = useState('');
   const [editClassDuration, setEditClassDuration] = useState(0);
-  const [subjectInputValue, setSubjectInputValue] = useState('');
   const [searchSubjectValue, setSearchSubjectValue] = useState('');
-
-  const [openAddSubjectContainer, setOpenAddSubjectContainer] = useState(false);
 
   // const handleInputChange = (e) => {
   //     setSubjectInputValue(e.target.value);
@@ -175,7 +94,6 @@ const SubjectListContainer = ({ defaultSubjectClassDuration }) => {
 
   return (
     <div className="">
-      {/* Search Filter */}
       <label className="input input-sm input-bordered flex items-center gap-2">
         <input
           type="text"
@@ -186,7 +104,7 @@ const SubjectListContainer = ({ defaultSubjectClassDuration }) => {
         />
         <IoSearch />
       </label>
-      {/* Table */}
+
       <table className="table table-sm table-zebra">
         <thead>
           <tr>
@@ -280,30 +198,8 @@ const SubjectListContainer = ({ defaultSubjectClassDuration }) => {
           )}
         </tbody>
       </table>
-      {/* Add Button */}
-      <div>
-        {openAddSubjectContainer ? (
-          <AddSubjectContainer
-            close={() => setOpenAddSubjectContainer(false)}
-            reduxFunction={addSubject}
-            defaultSubjectClassDuration={defaultSubjectClassDuration}
-          />
-        ) : (
-          <div className="flex justify-end mt-3">
-            <button
-              className="btn btn-secondary my-5"
-              onClick={() => {
-                setOpenAddSubjectContainer(true);
-              }}
-            >
-              Add Subject
-              <IoAdd size={26} />
-            </button>
-          </div>
-        )}
-      </div>
     </div>
   );
 };
 
-export default SubjectListContainer;
+export default SubjectListDisplay;

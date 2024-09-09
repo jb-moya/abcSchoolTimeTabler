@@ -4,225 +4,17 @@ import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { useDispatch } from 'react-redux';
 import {
   fetchSections,
-  addSection,
   editSection,
   removeSection,
 } from '@features/sectionSlice';
 import { fetchPrograms } from '@features/programSlice';
-import SearchableDropdownToggler from './searchableDropdown';
 import { getTimeSlotString } from './timeSlotMapper';
-import { IoAdd, IoSearch } from 'react-icons/io5';
+import { IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
-import { BiChevronDown, BiChevronUp } from 'react-icons/bi';
 
-const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
-  const inputNameRef = useRef();
-  const subjects = useSelector((state) => state.subject.subjects);
-  const programs = useSelector((state) => state.program.programs);
-  const dispatch = useDispatch();
-
-  const [inputValue, setInputValue] = useState('');
-  const [selectedProgram, setSelectedProgram] = useState('');
-  const [selectedYearLevel, setSelectedYearLevel] = useState('');
-  const [selectedSubjects, setSelectedSubjects] = useState([]);
-  const [subjectUnits, setSubjectUnits] = useState({});
-
-  const handleInputChange = (e) => {
-    setInputValue(e.target.value);
-  };
-
-  const handleAddEntry = () => {
-    const formattedSubjectUnits = {};
-
-    selectedSubjects.forEach((subjectID) => {
-      formattedSubjectUnits[subjectID] = subjectUnits[subjectID] || 0;
-    });
-
-    dispatch(
-      reduxFunction({
-        [reduxField[0]]: inputValue,
-        program: selectedProgram,
-        year: parseInt(selectedYearLevel, 10),
-        subjects: formattedSubjectUnits,
-      })
-    );
-
-    close();
-  };
-
-  useEffect(() => {
-    if (inputNameRef.current) {
-      inputNameRef.current.focus();
-    }
-  }, []);
-
-  useEffect(() => {
-    console.log('Selected Program:', selectedProgram);
-    console.log('Selected Year Level:', selectedYearLevel);
-
-    if (selectedProgram && selectedYearLevel) {
-      const program = Object.values(programs).find(
-        (p) => p.id === selectedProgram
-      );
-
-      if (program) {
-        setSelectedSubjects(program[selectedYearLevel].subjects || []); // Ensure it accesses the subjects correctly
-      } else {
-        setSelectedSubjects([]);
-      }
-    }
-  }, [selectedProgram, selectedYearLevel, programs]);
-
-  useEffect(() => {
-    const newSubjectUnits = {};
-    selectedSubjects.forEach((subject) => {
-      if (!subjectUnits.hasOwnProperty(subject)) {
-        newSubjectUnits[subject] = 5;
-      } else {
-        newSubjectUnits[subject] = subjectUnits[subject];
-      }
-    });
-    if (JSON.stringify(newSubjectUnits) !== JSON.stringify(subjectUnits)) {
-      setSubjectUnits(newSubjectUnits);
-    }
-  }, [selectedSubjects]);
-
-  useEffect(() => {
-    console.log('selectedSubjects: ', selectedSubjects);
-  }, [selectedSubjects]);
-
-  return (
-    <div className="card bg-base-200 p-4 my-5">
-      <div className="flex justify-between">
-        <h1>Add {reduxField[0].toUpperCase()}</h1>
-        <button className="btn btn-xs btn-circle btn-outline" onClick={close}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            className="inline-block w-4 h-4 stroke-current"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M6 18L18 6M6 6l12 12"
-            ></path>
-          </svg>
-        </button>
-      </div>
-
-      <input
-        type="text"
-        ref={inputNameRef}
-        placeholder={`${reduxField[0]} Name`}
-        required
-        className="input input-bordered input-sm w-full max-w-xs"
-        value={inputValue}
-        onChange={handleInputChange}
-      />
-
-      <div className="mt-3">
-        <label className="label">
-          <span className="label-text">Select Program</span>
-        </label>
-        <select
-          className="select select-bordered w-full"
-          value={selectedProgram}
-          onChange={(e) => setSelectedProgram(parseInt(e.target.value, 10))}
-        >
-          <option value="" disabled>
-            Select a Program
-          </option>
-          {Object.keys(programs).map((key) => (
-            <option key={programs[key].id} value={programs[key].id}>
-              {programs[key].program}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="mt-3">
-        <label className="label">
-          <span className="label-text">Select Year Level</span>
-        </label>
-        <select
-          className="select select-bordered w-full"
-          value={selectedYearLevel}
-          onChange={(e) => setSelectedYearLevel(e.target.value)}
-        >
-          <option value="" disabled>
-            Select a Year Level
-          </option>
-          {[7, 8, 9, 10].map((level) => (
-            <option key={level} value={level}>
-              Grade {level}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="mt-4">
-        <div className="m-1">Selected Subjects: </div>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-          {selectedSubjects.map((subjectID) => (
-            <div key={subjectID} className="join">
-              <div className="join-item w-72 bg-primary text-primary-content px-2 text-center content-center text-xs md:text-base leading-3">
-                {subjects[subjectID]?.subject || 'Unknown Subject'}
-              </div>
-              <input
-                type="text"
-                placeholder="Units"
-                className="input w-full join-item"
-                value={subjectUnits[subjectID] ?? 0}
-                onChange={(e) => {
-                  setSubjectUnits({
-                    ...subjectUnits,
-                    [subjectID]: parseInt(e.target.value, 10),
-                  });
-                }}
-              />
-
-              <div className="join join-item join-vertical flex w-20 items-center border-y border-r border-primary">
-                <button
-                  className="join-item h-1/2 w-full bg-secondary hover:brightness-110 flex justify-center"
-                  onClick={() => {
-                    setSubjectUnits({
-                      ...subjectUnits,
-                      [subjectID]: subjectUnits[subjectID] + 1,
-                    });
-                  }}
-                >
-                  <BiChevronUp size={24} />
-                </button>
-                <button
-                  className="join-item h-1/2 w-full bg-secondary hover:brightness-110 flex justify-center"
-                  onClick={() => {
-                    setSubjectUnits({
-                      ...subjectUnits,
-                      [subjectID]: subjectUnits[subjectID] - 1,
-                    });
-                  }}
-                >
-                  <BiChevronDown size={24} />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <button className="btn btn-primary mt-4" onClick={handleAddEntry}>
-        <div>Add {reduxField[0]}</div>
-        <IoAdd size={20} />
-      </button>
-    </div>
-  );
-};
-
-const SectionListContainer = () => {
+const SectionListDisplay = () => {
   const dispatch = useDispatch();
   const { subjects, status: subjectStatus } = useSelector(
     (state) => state.subject
@@ -233,8 +25,6 @@ const SectionListContainer = () => {
   const { programs, status: programStatus } = useSelector(
     (state) => state.program
   );
-
-  const [openAddSectionContainer, setOpenAddSectionContainer] = useState(false);
 
   const [editSectionProg, setEditSectionProg] = useState('');
   const [editSectionYear, setEditSectionYear] = useState('');
@@ -625,31 +415,8 @@ const SectionListContainer = () => {
           </tbody>
         </table>
       </div>
-
-      {/* Add button */}
-      <div>
-        {openAddSectionContainer ? (
-          <AddSectionContainer
-            close={() => setOpenAddSectionContainer(false)}
-            reduxField={['section', 'subjects', 'units']}
-            reduxFunction={addSection}
-          />
-        ) : (
-          <div className="flex justify-end mt-3">
-            <button
-              className="btn btn-secondary my-5"
-              onClick={() => {
-                setOpenAddSectionContainer(true);
-              }}
-            >
-              Add Section
-              <IoAdd size={26} />
-            </button>
-          </div>
-        )}
-      </div>
     </React.Fragment>
   );
 };
 
-export default SectionListContainer;
+export default SectionListDisplay;

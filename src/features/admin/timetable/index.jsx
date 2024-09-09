@@ -1,21 +1,18 @@
-import React, { useState, useEffect } from "react";
-import packInt16ToInt32 from "@utils/packInt16ToInt32";
-import { useSelector } from "react-redux";
-
-import { wrap } from "comlink";
-import WasmWorker from "@src/wasm.worker?worker";
-import SubjectListContainer from "@components/Admin/SubjectListContainer";
-
-import TeacherListContainer from "@components/Admin/TeacherListContainer";
-import SectionListContainer from "@components/Admin/SectionListContainer";
-import ProgramListContainer from "@components/Admin/ProgramListContainer";
-import clsx from "clsx";
-import GeneratedTimetable from "@components/Admin/TimeTable";
-import validateTimetableVariables from "@validation/validateTimetableVariables";
-import { toast } from "sonner";
-import ViolationList from "@components/Admin/ViolationList";
-import findInObject from "@utils/utils";
-import { BiChevronDown, BiChevronUp } from "react-icons/bi";
+import React, { useState, useEffect } from 'react';
+import packInt16ToInt32 from '@utils/packInt16ToInt32';
+import { useSelector } from 'react-redux';
+import { wrap } from 'comlink';
+import WasmWorker from '@src/wasm.worker?worker';
+import TeacherListDisplay from '@components/Admin/TeacherListDisplay';
+import SubjectListDisplay from '@components/Admin/SubjectListDisplay';
+import SectionListDisplay from '@components/Admin/SectionListDisplay';
+import clsx from 'clsx';
+import GeneratedTimetable from '@components/Admin/TimeTable';
+import validateTimetableVariables from '@validation/validateTimetableVariables';
+import { toast } from 'sonner';
+import ViolationList from '@components/Admin/ViolationList';
+import findInObject from '@utils/utils';
+import ProgramListDisplay from '@components/Admin/ProgramListDisplay';
 
 const getTimetable = wrap(new WasmWorker());
 
@@ -28,14 +25,14 @@ function Timetable() {
   const [numOfSchoolDays, setNumOfSchoolDays] = useState(5);
   const [defaultSubjectClassDuration, setDefaultSubjectClassDuration] =
     useState(10);
-  const [morningStartTime, setMorningStartTime] = useState("06:00 AM");
-  const [afternoonStartTime, setAfternoonStartTime] = useState("01:00 PM");
+  const [morningStartTime, setMorningStartTime] = useState('06:00 AM');
+  const [afternoonStartTime, setAfternoonStartTime] = useState('01:00 PM');
 
   const [timetable, setTimetable] = useState([]);
   const [sectionTimetables, setSectionTimetables] = useState({});
   const [teacherTimetables, setTeacherTimetables] = useState({});
   const [timetableGenerationStatus, setTimetableGenerationStatus] =
-    useState("idle");
+    useState('idle');
   const [violations, setViolations] = useState([]);
 
   // Scope and Limitations
@@ -56,10 +53,10 @@ function Timetable() {
           continue;
         }
 
-        const formattedTime = `${String(hour).padStart(2, "0")}:${String(
+        const formattedTime = `${String(hour).padStart(2, '0')}:${String(
           minute
-        ).padStart(2, "0")}`;
-        const period = startHour === 6 ? "AM" : "PM";
+        ).padStart(2, '0')}`;
+        const period = startHour === 6 ? 'AM' : 'PM';
         times.push(`${formattedTime} ${period}`);
       }
     }
@@ -67,21 +64,21 @@ function Timetable() {
   };
 
   const timeSlotMap = {
-    0: "06:00 - 06:40",
-    1: "06:40 - 07:20",
-    2: "07:20 - 08:00",
-    3: "08:00 - 08:40",
-    4: "08:40 - 09:20",
-    5: "09:20 - 10:00",
-    6: "10:00 - 10:40",
-    7: "10:40 - 11:20",
-    8: "11:20 - 12:00",
-    9: "12:00 - 12:40",
-    10: "12:40 - 01:20",
+    0: '06:00 - 06:40',
+    1: '06:40 - 07:20',
+    2: '07:20 - 08:00',
+    3: '08:00 - 08:40',
+    4: '08:40 - 09:20',
+    5: '09:20 - 10:00',
+    6: '10:00 - 10:40',
+    7: '10:40 - 11:20',
+    8: '11:20 - 12:00',
+    9: '12:00 - 12:40',
+    10: '12:40 - 01:20',
   };
 
   const beforeBreakTime = {
-    2: "08:30 - 09:00",
+    2: '08:30 - 09:00',
     // 6: "12:20 - 01:00",
   };
 
@@ -94,10 +91,10 @@ function Timetable() {
     });
 
     if (!canProceed) {
-      if (violations.some((v) => v.type === "emptyDatabase")) {
-        toast.error("One or more tables are empty.");
+      if (violations.some((v) => v.type === 'emptyDatabase')) {
+        toast.error('One or more tables are empty.');
       } else {
-        toast.error("Invalid timetable variables");
+        toast.error('Invalid timetable variables');
       }
       setViolations(violations);
       return false;
@@ -165,7 +162,7 @@ function Timetable() {
     // console.log("subjectMap", subjectMap);
     // console.log("teacherMap", teacherMap);
     // console.log("subjectMapReverse", subjectMapReverse);
-    console.log("sectionMap", sectionMap);
+    console.log('sectionMap', sectionMap);
 
     const sectionSubjectArray = [];
     const sectionSubjectUnitArray = [];
@@ -239,7 +236,7 @@ function Timetable() {
       resultLength: cellCount,
     };
 
-    setTimetableGenerationStatus("running");
+    setTimetableGenerationStatus('running');
     const { timetable, status } = await getTimetable(params);
     setTimetableGenerationStatus(status);
 
@@ -257,7 +254,7 @@ function Timetable() {
 
       const existingSectionEntry = findInObject(
         sectionTimetable[section],
-        ["subject", "teacher", "timeslot"],
+        ['subject', 'teacher', 'timeslot'],
         [subject, teacher, timeslot]
       );
 
@@ -268,7 +265,7 @@ function Timetable() {
         if (Array.isArray(existingSectionEntry.day)) {
           existingSectionEntry.day.push(day);
         } else {
-          console.log("ff", existingSectionEntry.day);
+          console.log('ff', existingSectionEntry.day);
           existingSectionEntry.day = [existingSectionEntry.day, day];
         }
       } else {
@@ -286,7 +283,7 @@ function Timetable() {
 
       const existingTeacherEntry = findInObject(
         teacherTimetable[teacher],
-        ["section", "subject", "timeslot"],
+        ['section', 'subject', 'timeslot'],
         [section, subject, timeslot]
       );
 
@@ -328,18 +325,18 @@ function Timetable() {
   useEffect(() => {
     // Function to handle the beforeunload event
     const handleBeforeUnload = (event) => {
-      if (timetableGenerationStatus === "running") {
+      if (timetableGenerationStatus === 'running') {
         event.preventDefault();
-        event.returnValue = ""; // Legacy for older browsers
+        event.returnValue = ''; // Legacy for older browsers
       }
     };
 
     // Add the event listener
-    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener('beforeunload', handleBeforeUnload);
 
     // Cleanup the event listener when the component unmounts
     return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [timetableGenerationStatus]); // The effect depends on the isProcessRunning state
 
@@ -426,44 +423,42 @@ function Timetable() {
       </div>
 
       <div className="flex gap-4">
-        <div className="w-5/12">
-          <SubjectListContainer
-            defaultSubjectClassDuration={defaultSubjectClassDuration}
-          />
+        <div className="w-6/12">
+          <SubjectListDisplay />
         </div>
-        <div className="w-7/12">
-          <TeacherListContainer />
-        </div>
-      </div>
-      <div className="flex gap-4">
-        <div className="w-12/12">
-          <ProgramListContainer
+        <div className="w-6/12">
+          <ProgramListDisplay
             morningStartTime={morningStartTime}
             afternoonStartTime={afternoonStartTime}
           />
         </div>
       </div>
-      <div className="w-full">
-        <SectionListContainer />
+      <div className="flex gap-4">
+        <div className="w-full">
+          <TeacherListDisplay />
+        </div>
+      </div>
+      <div className="w-full ">
+        <SectionListDisplay />
         <button
-          className={clsx("btn btn-primary w-full", {
-            "cursor-not-allowed": timetableGenerationStatus === "running",
-            "btn-error": timetableGenerationStatus === "error",
+          className={clsx('btn btn-primary w-full', {
+            'cursor-not-allowed': timetableGenerationStatus === 'running',
+            'btn-error': timetableGenerationStatus === 'error',
           })}
           onClick={() => {
             if (validate()) {
               handleButtonClick();
             }
           }}
-          disabled={timetableGenerationStatus === "running"}
+          disabled={timetableGenerationStatus === 'running'}
         >
-          {timetableGenerationStatus == "running" ? (
+          {timetableGenerationStatus == 'running' ? (
             <div className="flex gap-2">
               <span>Generating</span>
               <span className="loading loading-spinner loading-xs"></span>
             </div>
           ) : (
-            "Generate Timetable"
+            'Generate Timetable'
           )}
         </button>
 
@@ -476,22 +471,22 @@ function Timetable() {
         <GeneratedTimetable
           timetables={sectionTimetables}
           collection={sections}
-          field={"section"}
+          field={'section'}
           timeSlotMap={timeSlotMap}
           firstColumnMap={subjects}
           secondColumnMap={teachers}
-          columnField={["subject", "teacher"]}
+          columnField={['subject', 'teacher']}
           beforeBreakTime={beforeBreakTime}
         />
 
         <GeneratedTimetable
           timetables={teacherTimetables}
           collection={teachers}
-          field={"teacher"}
+          field={'teacher'}
           timeSlotMap={timeSlotMap}
           firstColumnMap={sections}
           secondColumnMap={subjects}
-          columnField={["section", "subject"]}
+          columnField={['section', 'subject']}
           beforeBreakTime={beforeBreakTime}
         />
       </div>

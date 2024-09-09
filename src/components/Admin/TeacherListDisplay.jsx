@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import AddEntryContainer from './AddEntryContainer';
 import {
   fetchTeachers,
-  addTeacher,
   editTeacher,
   removeTeacher,
 } from '@features/teacherSlice';
@@ -12,9 +10,9 @@ import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import SearchableDropdownToggler from './searchableDropdown';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
-import { IoAdd, IoSearch } from 'react-icons/io5';
+import { IoSearch } from 'react-icons/io5';
 
-const TeacherListContainer = () => {
+const TeacherListDisplay = () => {
   const dispatch = useDispatch();
 
   const { teachers, status: teacherStatus } = useSelector(
@@ -30,7 +28,6 @@ const TeacherListContainer = () => {
   const [editTeacherCurr, setEditTeacherCurr] = useState([]);
   const [searchTeacherResult, setSearchTeacherResult] = useState(teachers);
   const [searchTeacherValue, setSearcTeacherValue] = useState('');
-  const [openAddTeacherContainer, setOpenAddTeacherContainer] = useState(false);
 
   const handleEditTeacherClick = (teacher) => {
     setEditTeacherId(teacher.id);
@@ -94,8 +91,8 @@ const TeacherListContainer = () => {
 
   return (
     <React.Fragment>
-      <div>
-        <label className="input input-sm input-bordered flex items-center mt-5">
+      <div className="">
+        <label className="input input-sm input-bordered flex items-center gap-2">
           <input
             type="text"
             className="grow"
@@ -200,30 +197,8 @@ const TeacherListContainer = () => {
           </tbody>
         </table>
       </div>
-
-      <div>
-        {openAddTeacherContainer ? (
-          <AddEntryContainer
-            close={() => setOpenAddTeacherContainer(false)}
-            reduxField={['teacher', 'subjects']}
-            reduxFunction={addTeacher}
-          />
-        ) : (
-          <div className="flex justify-end mt-3">
-            <button
-              className="btn btn-secondary my-5"
-              onClick={() => {
-                setOpenAddTeacherContainer(true);
-              }}
-            >
-              Add Teacher
-              <IoAdd size={26} />
-            </button>
-          </div>
-        )}
-      </div>
     </React.Fragment>
   );
 };
 
-export default TeacherListContainer;
+export default TeacherListDisplay;
