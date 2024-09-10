@@ -90,10 +90,14 @@ const AddSubjectContainer = ({
   );
 };
 
-const SubjectListContainer = ({ defaultSubjectClassDuration }) => {
+const SubjectListContainer = () => {
   const dispatch = useDispatch();
   const { subjects, status: subjectStatus } = useSelector(
     (state) => state.subject
+  );
+
+  const defaultSubjectClassDuration = localStorage.getItem(
+    'defaultSubjectClassDuration'
   );
 
   const [editSubjectId, setEditSubjectId] = useState(null);
@@ -104,10 +108,6 @@ const SubjectListContainer = ({ defaultSubjectClassDuration }) => {
   const [searchSubjectValue, setSearchSubjectValue] = useState('');
 
   const [openAddSubjectContainer, setOpenAddSubjectContainer] = useState(false);
-
-  // const handleInputChange = (e) => {
-  //     setSubjectInputValue(e.target.value);
-  // };
 
   const handleEditSubjectClick = (subject) => {
     setEditSubjectId(subject.id);

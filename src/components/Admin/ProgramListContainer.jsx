@@ -231,7 +231,7 @@ const AddProgramContainer = ({
   );
 };
 
-const ProgramListContainer = ({ morningStartTime, afternoonStartTime }) => {
+const ProgramListContainer = () => {
   const dispatch = useDispatch();
 
   const { programs, status: programStatus } = useSelector(
@@ -241,6 +241,9 @@ const ProgramListContainer = ({ morningStartTime, afternoonStartTime }) => {
   const { subjects, status: subjectStatus } = useSelector(
     (state) => state.subject
   );
+
+  const morningStartTime = localStorage.getItem('morningStartTime') || '06:00 AM';
+  const afternoonStartTime = localStorage.getItem('afternoonStartTime') || '01:00 PM';
 
   const [editProgramId, setEditProgramId] = useState(null);
   const [editProgramValue, setEditProgramValue] = useState('');
