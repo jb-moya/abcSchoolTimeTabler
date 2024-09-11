@@ -4,6 +4,7 @@ import {
   fetchPrograms,
   editProgram,
   removeProgram,
+  updateSectionsForProgramYear,
 } from '@features/programSlice';
 import debounce from 'debounce';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
@@ -135,6 +136,39 @@ const ProgramListDisplay = () => {
         },
       })
     );
+
+    console.log("editProgramCurr", editProgramCurr);
+
+    // Dispatch updateSectionsForProgramYear for each year level (7 to 10)
+    dispatch(
+      updateSectionsForProgramYear({
+          programId,
+          yearLevel: 7,
+          newSubjects: editProgramCurr[7], // Subjects for Grade 7
+      })
+    );
+    dispatch(
+        updateSectionsForProgramYear({
+            programId,
+            yearLevel: 8,
+            newSubjects: editProgramCurr[8], // Subjects for Grade 8
+        })
+    );
+    dispatch(
+        updateSectionsForProgramYear({
+            programId,
+            yearLevel: 9,
+            newSubjects: editProgramCurr[9], // Subjects for Grade 9
+        })
+    );
+    dispatch(
+        updateSectionsForProgramYear({
+            programId,
+            yearLevel: 10,
+            newSubjects: editProgramCurr[10], // Subjects for Grade 10
+        })
+    );
+
     setEditProgramId(null);
     setEditProgramValue('');
     setEditProgramCurr([]);

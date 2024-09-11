@@ -161,11 +161,11 @@ const SectionListDisplay = () => {
     }
   }, [sectionStatus, dispatch]);
 
-  useEffect(() => {
-    if (sectionStatus === 'succeeded') {
-      console.log('Fetched sections:', sections);
-    }
-  }, [sectionStatus, sections]);
+  // useEffect(() => {
+  //   if (sectionStatus === 'succeeded') {
+  //     console.log('Fetched sections:', sections);
+  //   }
+  // }, [sectionStatus, sections]);
 
   useEffect(() => {
     if (programStatus === 'idle') {
@@ -173,11 +173,11 @@ const SectionListDisplay = () => {
     }
   }, [programStatus, dispatch]);
 
-  useEffect(() => {
-    if (programStatus === 'succeeded') {
-      console.log('Fetched programs:', programs);
-    }
-  }, [programStatus, programs]);
+  // useEffect(() => {
+  //   if (programStatus === 'succeeded') {
+  //     console.log('Fetched programs:', programs);
+  //   }
+  // }, [programStatus, programs]);
 
   return (
     <React.Fragment>
