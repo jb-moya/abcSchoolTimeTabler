@@ -3,9 +3,6 @@ import packInt16ToInt32 from '@utils/packInt16ToInt32';
 import { useSelector } from 'react-redux';
 import { wrap } from 'comlink';
 import WasmWorker from '@src/wasm.worker?worker';
-import TeacherListDisplay from '@components/Admin/TeacherListDisplay';
-import SubjectListDisplay from '@components/Admin/SubjectListDisplay';
-import SectionListDisplay from '@components/Admin/SectionListDisplay';
 import Configuration from '@components/Admin/Configuration';
 import clsx from 'clsx';
 import GeneratedTimetable from '@components/Admin/TimeTable';
@@ -13,7 +10,14 @@ import validateTimetableVariables from '@validation/validateTimetableVariables';
 import { toast } from 'sonner';
 import ViolationList from '@components/Admin/ViolationList';
 import findInObject from '@utils/utils';
-import ProgramListDisplay from '@components/Admin/ProgramListDisplay';
+import SubjectListContainer from '../../../components/Admin/SubjectListContainer';
+import ProgramListContainer from '../../../components/Admin/ProgramListContainer';
+import TeacherListContainer from '../../../components/Admin/TeacherListContainer';
+import SectionListContainer from '../../../components/Admin/SectionListContainer';
+// import TeacherListDisplay from '@components/Admin/TeacherListDisplay';
+// import SubjectListDisplay from '@components/Admin/SubjectListDisplay';
+// import SectionListDisplay from '@components/Admin/SectionListDisplay';
+// import ProgramListDisplay from '@components/Admin/ProgramListDisplay';
 
 const getTimetable = wrap(new WasmWorker());
 
@@ -326,24 +330,25 @@ function Timetable() {
       <Configuration />
 
       <div className="flex gap-4">
-        <div className="w-6/12">
-          <SubjectListDisplay />
+        <div className="w-4/12">
+          <SubjectListContainer mode={1}/>
         </div>
-        <div className="w-6/12">
-          <ProgramListDisplay />
+        <div className="w-8/12">
+          <ProgramListContainer mode={1}/>  
         </div>
       </div>
-      <div className="flex gap-4">
-        <div className="w-full">
-          <TeacherListDisplay />
+      <div className="mt-4 flex gap-4">
+        <div className="w-9/12">
+          <TeacherListContainer mode={1}/>
         </div>
       </div>
       <div className="w-full ">
-        <SectionListDisplay />
+        <SectionListContainer mode={1}/>
         <button
           className={clsx('btn btn-primary w-full', {
             'cursor-not-allowed': timetableGenerationStatus === 'running',
             'btn-error': timetableGenerationStatus === 'error',
+            'mt-5':true,
           })}
           onClick={() => {
             if (validate()) {

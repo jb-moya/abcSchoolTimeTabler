@@ -222,7 +222,7 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
   );
 };
 
-const SectionListContainer = () => {
+const SectionListContainer = ({ mode }) => {
   const dispatch = useDispatch();
   const { subjects, status: subjectStatus } = useSelector(
     (state) => state.subject
@@ -414,7 +414,7 @@ const SectionListContainer = () => {
               <th>Program</th>
               <th>Year</th>
               <th>Subjects</th>
-              <th className="text-right">Actions</th>
+              {mode === 0 && <th className="text-right">Actions</th>}
             </tr>
           </thead>
           <tbody>
@@ -585,40 +585,43 @@ const SectionListContainer = () => {
                       ))
                     )}
                   </td>
-
-                  <td className="w-28 text-right">
-                    {editSectionId === section.id ? (
-                      <>
-                        <button
-                          className="btn btn-xs btn-ghost text-green-500"
-                          onClick={() => handleSaveSectionEditClick(section.id)}
-                        >
-                          Save
-                        </button>
-                        <button
-                          className="btn btn-xs btn-ghost text-red-500"
-                          onClick={handleCancelSectionEditClick}
-                        >
-                          Cancel
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          className="btn btn-xs btn-ghost text-red-500"
-                          onClick={() => handleEditSectionClick(section)}
-                        >
-                          <RiEdit2Fill size={20} />
-                        </button>
-                        <button
-                          className="btn btn-xs btn-ghost text-red-500"
-                          onClick={() => dispatch(removeSection(section.id))}
-                        >
-                          <RiDeleteBin7Line size={20} />
-                        </button>
-                      </>
-                    )}
-                  </td>
+                  
+                  {mode === 0 
+                    &&
+                    <td className="w-28 text-right">
+                      {editSectionId === section.id ? (
+                        <>
+                          <button
+                            className="btn btn-xs btn-ghost text-green-500"
+                            onClick={() => handleSaveSectionEditClick(section.id)}
+                          >
+                            Save
+                          </button>
+                          <button
+                            className="btn btn-xs btn-ghost text-red-500"
+                            onClick={handleCancelSectionEditClick}
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            className="btn btn-xs btn-ghost text-red-500"
+                            onClick={() => handleEditSectionClick(section)}
+                          >
+                            <RiEdit2Fill size={20} />
+                          </button>
+                          <button
+                            className="btn btn-xs btn-ghost text-red-500"
+                            onClick={() => dispatch(removeSection(section.id))}
+                          >
+                            <RiDeleteBin7Line size={20} />
+                          </button>
+                        </>
+                      )}
+                    </td>
+                  }
                 </tr>
               ))
             )}
@@ -627,27 +630,31 @@ const SectionListContainer = () => {
       </div>
 
       {/* Add button */}
-      <div>
-        {openAddSectionContainer ? (
-          <AddSectionContainer
-            close={() => setOpenAddSectionContainer(false)}
-            reduxField={['section', 'subjects', 'units']}
-            reduxFunction={addSection}
-          />
-        ) : (
-          <div className="flex justify-end mt-3">
-            <button
-              className="btn btn-secondary my-5"
-              onClick={() => {
-                setOpenAddSectionContainer(true);
-              }}
-            >
-              Add Section
-              <IoAdd size={26} />
-            </button>
-          </div>
-        )}
-      </div>
+      {mode === 0 
+        &&
+        <div>
+          {openAddSectionContainer ? (
+            <AddSectionContainer
+              close={() => setOpenAddSectionContainer(false)}
+              reduxField={['section', 'subjects', 'units']}
+              reduxFunction={addSection}
+            />
+          ) : (
+            <div className="flex justify-end mt-3">
+              <button
+                className="btn btn-secondary my-5"
+                onClick={() => {
+                  setOpenAddSectionContainer(true);
+                }}
+              >
+                Add Section
+                <IoAdd size={26} />
+              </button>
+            </div>
+          )}
+        </div>
+      }
+      
     </React.Fragment>
   );
 };

@@ -14,7 +14,7 @@ import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
 
-const TeacherListContainer = () => {
+const TeacherListContainer = ({ mode }) => {
   const dispatch = useDispatch();
 
   const { teachers, status: teacherStatus } = useSelector(
@@ -113,7 +113,7 @@ const TeacherListContainer = () => {
               <th>Teacher ID</th>
               <th>Teacher</th>
               <th>Subject Specialization</th>
-              <th className="text-right">Actions</th>
+              {mode === 0 && <th className="text-right">Actions</th>}
             </tr>
           </thead>
           <tbody>
@@ -160,40 +160,44 @@ const TeacherListContainer = () => {
                       ))
                     )}
                   </td>
-
-                  <td className="w-28 text-right">
-                    {editTeacherId === teacher.id ? (
-                      <>
-                        <button
-                          className="btn btn-xs btn-ghost text-green-500"
-                          onClick={() => handleSaveTeacherEditClick(teacher.id)}
-                        >
-                          Save
-                        </button>
-                        <button
-                          className="btn btn-xs btn-ghost text-red-500"
-                          onClick={() => handleCancelTeacherEditClick()}
-                        >
-                          Cancel
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          className="btn btn-xs btn-ghost text-red-500"
-                          onClick={() => handleEditTeacherClick(teacher)}
-                        >
-                          <RiEdit2Fill size={20} />
-                        </button>
-                        <button
-                          className="btn btn-xs btn-ghost text-red-500"
-                          onClick={() => dispatch(removeTeacher(teacher.id))}
-                        >
-                          <RiDeleteBin7Line size={20} />
-                        </button>
-                      </>
-                    )}
-                  </td>
+                  
+                  {mode === 0 
+                    && 
+                    <td className="w-28 text-right">
+                      {editTeacherId === teacher.id ? (
+                        <>
+                          <button
+                            className="btn btn-xs btn-ghost text-green-500"
+                            onClick={() => handleSaveTeacherEditClick(teacher.id)}
+                          >
+                            Save
+                          </button>
+                          <button
+                            className="btn btn-xs btn-ghost text-red-500"
+                            onClick={() => handleCancelTeacherEditClick()}
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            className="btn btn-xs btn-ghost text-red-500"
+                            onClick={() => handleEditTeacherClick(teacher)}
+                          >
+                            <RiEdit2Fill size={20} />
+                          </button>
+                          <button
+                            className="btn btn-xs btn-ghost text-red-500"
+                            onClick={() => dispatch(removeTeacher(teacher.id))}
+                          >
+                            <RiDeleteBin7Line size={20} />
+                          </button>
+                        </>
+                      )}
+                    </td>
+                  }
+                  
                 </tr>
               ))
             )}
@@ -201,27 +205,31 @@ const TeacherListContainer = () => {
         </table>
       </div>
 
-      <div>
-        {openAddTeacherContainer ? (
-          <AddEntryContainer
-            close={() => setOpenAddTeacherContainer(false)}
-            reduxField={['teacher', 'subjects']}
-            reduxFunction={addTeacher}
-          />
-        ) : (
-          <div className="flex justify-end mt-3">
-            <button
-              className="btn btn-secondary my-5"
-              onClick={() => {
-                setOpenAddTeacherContainer(true);
-              }}
-            >
-              Add Teacher
-              <IoAdd size={26} />
-            </button>
-          </div>
-        )}
-      </div>
+      {mode === 0 
+        && 
+        <div>
+          {openAddTeacherContainer ? (
+            <AddEntryContainer
+              close={() => setOpenAddTeacherContainer(false)}
+              reduxField={['teacher', 'subjects']}
+              reduxFunction={addTeacher}
+            />
+          ) : (
+            <div className="flex justify-end mt-3">
+              <button
+                className="btn btn-secondary my-5"
+                onClick={() => {
+                  setOpenAddTeacherContainer(true);
+                }}
+              >
+                Add Teacher
+                <IoAdd size={26} />
+              </button>
+            </div>
+          )}
+        </div>
+      }
+      
     </React.Fragment>
   );
 };

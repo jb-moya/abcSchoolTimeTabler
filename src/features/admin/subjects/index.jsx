@@ -17,14 +17,15 @@ function Subject() {
     <div className="App container mx-auto px-4 mb-10">
       <Configuration />
       {/* Table */}
-      <div className="flex gap-4">
-        <div className="w-6/12">
-          <SubjectListContainer />
-        </div>
-        <div className="w-6/12">
-          <ProgramListContainer />
-        </div>
+      
+      <div className="w-6/12">
+        <SubjectListContainer mode = {0}/>
       </div>
+      
+      <div className="w-10/12">
+        <ProgramListContainer mode = {0} />
+      </div>
+
     </div>
   );
 }

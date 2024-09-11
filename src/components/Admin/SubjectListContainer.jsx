@@ -90,7 +90,7 @@ const AddSubjectContainer = ({
   );
 };
 
-const SubjectListContainer = () => {
+const SubjectListContainer = ({ mode }) => {
   const dispatch = useDispatch();
   const { subjects, status: subjectStatus } = useSelector(
     (state) => state.subject
@@ -194,7 +194,7 @@ const SubjectListContainer = () => {
             <th>Subject ID</th>
             <th>Subject</th>
             <th>Class Duration</th>
-            <th className="text-right">Actions</th>
+            {mode === 0 && <th className="text-right">Actions</th>}
           </tr>
         </thead>
         <tbody>
@@ -242,66 +242,73 @@ const SubjectListContainer = () => {
                     `${subject.classDuration} mins`
                   )}
                 </td>
-                <td className="w-28 text-right">
-                  {editSubjectId === subject.id ? (
-                    <>
-                      <button
-                        className="btn btn-xs btn-ghost text-green-500"
-                        onClick={() => handleSaveSubjectEditClick(subject.id)}
-                      >
-                        Save
-                      </button>
-                      <button
-                        className="btn btn-xs btn-ghost text-red-500"
-                        onClick={() => handleCancelSubjectEditClick()}
-                      >
-                        Cancel
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        className="btn btn-xs btn-ghost text-red-500"
-                        onClick={() => handleEditSubjectClick(subject)}
-                      >
-                        <RiEdit2Fill size={20} />
-                      </button>
-                      <button
-                        className="btn btn-xs btn-ghost text-red-500"
-                        onClick={() => dispatch(removeSubject(subject.id))}
-                      >
-                        <RiDeleteBin7Line size={20} />
-                      </button>
-                    </>
-                  )}
-                </td>
+                {mode === 0 
+                  && 
+                  <td className="w-28 text-right">
+                    {editSubjectId === subject.id ? (
+                      <>
+                        <button
+                          className="btn btn-xs btn-ghost text-green-500"
+                          onClick={() => handleSaveSubjectEditClick(subject.id)}
+                        >
+                          Save
+                        </button>
+                        <button
+                          className="btn btn-xs btn-ghost text-red-500"
+                          onClick={() => handleCancelSubjectEditClick()}
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          className="btn btn-xs btn-ghost text-red-500"
+                          onClick={() => handleEditSubjectClick(subject)}
+                        >
+                          <RiEdit2Fill size={20} />
+                        </button>
+                        <button
+                          className="btn btn-xs btn-ghost text-red-500"
+                          onClick={() => dispatch(removeSubject(subject.id))}
+                        >
+                          <RiDeleteBin7Line size={20} />
+                        </button>
+                      </>
+                    )}
+                  </td>
+                }
+                
               </tr>
             ))
           )}
         </tbody>
       </table>
       {/* Add Button */}
-      <div>
-        {openAddSubjectContainer ? (
-          <AddSubjectContainer
-            close={() => setOpenAddSubjectContainer(false)}
-            reduxFunction={addSubject}
-            defaultSubjectClassDuration={defaultSubjectClassDuration}
-          />
-        ) : (
-          <div className="flex justify-end mt-3">
-            <button
-              className="btn btn-secondary my-5"
-              onClick={() => {
-                setOpenAddSubjectContainer(true);
-              }}
-            >
-              Add Subject
-              <IoAdd size={26} />
-            </button>
-          </div>
-        )}
-      </div>
+      {mode === 0 && 
+        <div>
+          {openAddSubjectContainer ? (
+            <AddSubjectContainer
+              close={() => setOpenAddSubjectContainer(false)}
+              reduxFunction={addSubject}
+              defaultSubjectClassDuration={defaultSubjectClassDuration}
+            />
+          ) : (
+            <div className="flex justify-end mt-3">
+              <button
+                className="btn btn-secondary my-5"
+                onClick={() => {
+                  setOpenAddSubjectContainer(true);
+                }}
+              >
+                Add Subject
+                <IoAdd size={26} />
+              </button>
+            </div>
+          )}
+        </div>
+      }
+      
     </div>
   );
 };

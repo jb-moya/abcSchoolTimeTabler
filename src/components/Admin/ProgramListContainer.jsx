@@ -232,7 +232,7 @@ const AddProgramContainer = ({
   );
 };
 
-const ProgramListContainer = () => {
+const ProgramListContainer = ({ mode }) => {
   const dispatch = useDispatch();
 
   const { programs, status: programStatus } = useSelector(
@@ -483,7 +483,7 @@ const ProgramListContainer = () => {
               <th>Program ID</th>
               <th>Program</th>
               <th>Subjects</th>
-              <th className="text-right">Actions</th>
+              {mode === 0 && <th className="text-right">Actions</th>}
             </tr>
           </thead>
           <tbody>
@@ -510,7 +510,6 @@ const ProgramListContainer = () => {
                       program.program
                     )}
                   </td>
-
                   <td>
                     {editProgramId === program.id ? (
                       <>
@@ -631,66 +630,73 @@ const ProgramListContainer = () => {
                     )}
                   </td>
 
-                  <td className="flex justify-end gap-2">
-                    {editProgramId === program.id ? (
-                      <>
-                        <button
-                          className="btn btn-sm btn-outline"
-                          onClick={() => handleSaveProgramEditClick(program.id)}
-                        >
-                          Save
-                        </button>
-                        <button
-                          className="btn btn-sm btn-outline"
-                          onClick={handleCancelProgramEditClick}
-                        >
-                          Cancel
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          className="btn btn-sm btn-outline"
-                          onClick={() => handleEditProgramClick(program)}
-                        >
-                          <RiEdit2Fill />
-                        </button>
-                        <button
-                          className="btn btn-sm btn-outline"
-                          onClick={() => dispatch(removeProgram(program.id))}
-                        >
-                          <RiDeleteBin7Line />
-                        </button>
-                      </>
-                    )}
-                  </td>
+                  {mode === 0 
+                    && 
+                    <td className="flex justify-end gap-2">
+                      {editProgramId === program.id ? (
+                        <>
+                          <button
+                            className="btn btn-sm btn-outline"
+                            onClick={() => handleSaveProgramEditClick(program.id)}
+                          >
+                            Save
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline"
+                            onClick={handleCancelProgramEditClick}
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            className="btn btn-sm btn-outline"
+                            onClick={() => handleEditProgramClick(program)}
+                          >
+                            <RiEdit2Fill />
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline"
+                            onClick={() => dispatch(removeProgram(program.id))}
+                          >
+                            <RiDeleteBin7Line />
+                          </button>
+                        </>
+                      )}
+                    </td>
+                  }
+                  
                 </tr>
               ))
             )}
           </tbody>
         </table>
       </div>
-      <div>
-        {openAddProgramContainer ? (
-          <AddProgramContainer
-            close={() => setOpenAddProgramContainer(false)}
-            reduxField={['program', 'subjects']}
-            reduxFunction={addProgram}
-            morningStartTime={morningStartTime}
-            afternoonStartTime={afternoonStartTime}
-          />
-        ) : (
-          <div className="flex justify-end mt-3">
-            <button
-              className="btn btn-secondary my-5"
-              onClick={() => setOpenAddProgramContainer(true)}
-            >
-              Add Program
-              <IoAdd size={26} />
-            </button>
-          </div>
-        )}
-      </div>
+      {mode === 0 
+        && 
+        <div>
+          {openAddProgramContainer ? (
+            <AddProgramContainer
+              close={() => setOpenAddProgramContainer(false)}
+              reduxField={['program', 'subjects']}
+              reduxFunction={addProgram}
+              morningStartTime={morningStartTime}
+              afternoonStartTime={afternoonStartTime}
+            />
+          ) : (
+            <div className="flex justify-end mt-3">
+              <button
+                className="btn btn-secondary my-5"
+                onClick={() => setOpenAddProgramContainer(true)}
+              >
+                Add Program
+                <IoAdd size={26} />
+              </button>
+            </div>
+          )}
+        </div>
+      }
     </React.Fragment>
   );
 };
