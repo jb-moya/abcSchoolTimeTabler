@@ -16,6 +16,10 @@ const timeSlots = [
     "08:00 PM"
 ];
 
+const durations = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120,
+    130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240,
+];
+
 export const getTimeSlotIndex = (timeString) => {
     return timeSlots.indexOf(timeString);
 };
@@ -23,6 +27,18 @@ export const getTimeSlotIndex = (timeString) => {
 export const getTimeSlotString = (index) => {
     if (index >= 0 && index < timeSlots.length) {
         return timeSlots[index];
+    } else {
+        return null;
+    }
+};
+
+export const getDurationIndex = (durationString) => {
+    return durations.indexOf(durationString);
+};
+
+export const getDurationEqualToIndex = (index) => {
+    if (index >= 0 && index < durations.length) {
+        return durations[index];
     } else {
         return null;
     }

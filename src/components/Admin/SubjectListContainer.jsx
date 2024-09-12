@@ -8,6 +8,7 @@ import {
   editSubject,
   removeSubject,
 } from '@features/subjectSlice';
+import { getDurationIndex, getDurationEqualToIndex } from './timeSlotMapper';
 import { IoAdd, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
@@ -25,16 +26,13 @@ const AddSubjectContainer = ({
     defaultSubjectClassDuration || 10 // Ensure it defaults to 10 if undefined
   );
 
-  console.log('defaultSubjectClassDuration: ', defaultSubjectClassDuration);
-
   const handleAddSubject = () => {
-    console.log('subjectName: ', subjectName);
-    console.log('classSubjectDuration: ', classSubjectDuration);
+    const classDuration = parseInt(classSubjectDuration, 10);
     if (subjectName.trim()) {
       dispatch(
         reduxFunction({
           subject: subjectName,
-          classDuration: classSubjectDuration,
+          classDuration: getDurationIndex(classDuration),
         })
       );
       close();
@@ -66,16 +64,16 @@ const AddSubjectContainer = ({
           value={classSubjectDuration}
           onChange={(e) => {
             const value = Number(e.target.value);
-            if (value >= 10 && value <= 120) {
+            if (value >= 10 && value <= 240) {
               setClassSubjectDuration(value);
             } else {
-              alert('Duration must be between 10 and 120 minutes.');
+              alert('Duration must be between 10 and 240 minutes (4 hrs).');
             }
           }}
           placeholder="Enter class duration"
-          step="10"
-          min="10"
-          max="120"
+          step={10}
+          min={10}
+          max={240}
         />
       </div>
       <div className="flex justify-end space-x-2">
@@ -104,7 +102,7 @@ const SubjectListContainer = ({ mode }) => {
   const [searchSubjectResult, setSearchSubjectResult] = useState(subjects);
   const [editSubjectValue, setEditSubjectValue] = useState('');
   const [editClassDuration, setEditClassDuration] = useState(0);
-  const [subjectInputValue, setSubjectInputValue] = useState('');
+  // const [subjectInputValue, setSubjectInputValue] = useState('');
   const [searchSubjectValue, setSearchSubjectValue] = useState('');
 
   const [openAddSubjectContainer, setOpenAddSubjectContainer] = useState(false);
@@ -112,7 +110,7 @@ const SubjectListContainer = ({ mode }) => {
   const handleEditSubjectClick = (subject) => {
     setEditSubjectId(subject.id);
     setEditSubjectValue(subject.subject);
-    setEditClassDuration(subject.classDuration);
+    setEditClassDuration(getDurationEqualToIndex(subject.classDuration));
   };
 
   const handleSaveSubjectEditClick = (subjectId) => {
@@ -121,7 +119,7 @@ const SubjectListContainer = ({ mode }) => {
         subjectId,
         updatedSubject: {
           subject: editSubjectValue,
-          classDuration: editClassDuration,
+          classDuration: getDurationIndex(editClassDuration),
         },
       })
     );
@@ -228,18 +226,18 @@ const SubjectListContainer = ({ mode }) => {
                       value={editClassDuration}
                       onChange={(e) => {
                         const newDuration = Number(e.target.value);
-                        if (newDuration >= 10 && newDuration <= 120) {
+                        if (newDuration >= 10 && newDuration <= 240) {
                           setEditClassDuration(newDuration);
                         }
                       }}
                       className="input input-bordered input-sm w-full"
                       placeholder="Enter class duration"
-                      step="10"
-                      min="10"
-                      max="120"
+                      step={10}
+                      min={10}
+                      max={240}
                     />
                   ) : (
-                    `${subject.classDuration} mins`
+                    `${getDurationEqualToIndex(subject.classDuration)} mins`
                   )}
                 </td>
                 {mode === 0 

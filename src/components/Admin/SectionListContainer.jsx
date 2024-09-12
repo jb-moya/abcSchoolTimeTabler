@@ -9,8 +9,9 @@ import {
   removeSection,
 } from '@features/sectionSlice';
 import { fetchPrograms } from '@features/programSlice';
+import { fetchSubjects } from '@features/subjectSlice';
 import SearchableDropdownToggler from './searchableDropdown';
-import { getTimeSlotString } from './timeSlotMapper';
+import { getTimeSlotString, getTimeSlotIndex } from './timeSlotMapper';
 import { IoAdd, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
@@ -19,14 +20,22 @@ import { BiChevronDown, BiChevronUp } from 'react-icons/bi';
 
 const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
   const inputNameRef = useRef();
-  const subjects = useSelector((state) => state.subject.subjects);
-  const programs = useSelector((state) => state.program.programs);
   const dispatch = useDispatch();
 
+  const { programs, status: programStatus } = useSelector(
+    (state) => state.program
+  );
+
+  const { subjects, status: subjectStatus } = useSelector(
+    (state) => state.subject
+  );
+  
   const [inputValue, setInputValue] = useState('');
   const [selectedProgram, setSelectedProgram] = useState('');
   const [selectedYearLevel, setSelectedYearLevel] = useState('');
   const [selectedSubjects, setSelectedSubjects] = useState([]);
+  const [selectedShift, setSelectedShift] = useState(0);
+  const [selectedStartTime, setSelectedStartTime] = useState(0);
   const [subjectUnits, setSubjectUnits] = useState({});
 
   const handleInputChange = (e) => {
@@ -46,6 +55,8 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
         program: selectedProgram,
         year: parseInt(selectedYearLevel, 10),
         subjects: formattedSubjectUnits,
+        shift: selectedShift,
+        startTime: selectedStartTime,
       })
     );
 
@@ -67,8 +78,12 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
         (p) => p.id === selectedProgram
       );
 
+      // console.log('program[selectedYearLevel].subjects:', program[selectedYearLevel].subjects);
+
       if (program) {
         setSelectedSubjects(program[selectedYearLevel].subjects || []); // Ensure it accesses the subjects correctly
+        setSelectedShift(program[selectedYearLevel].shift || 0);
+        setSelectedStartTime(program[selectedYearLevel].startTime || 0);
       } else {
         setSelectedSubjects([]);
       }
@@ -89,9 +104,18 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
     }
   }, [selectedSubjects]);
 
+
   useEffect(() => {
-    console.log('selectedSubjects: ', selectedSubjects);
-  }, [selectedSubjects]);
+    if (programStatus === 'idle') {
+      dispatch(fetchPrograms());
+    }
+  }, [programStatus, dispatch]);
+
+  useEffect(() => {
+    if (subjectStatus === 'idle') {
+      dispatch(fetchSubjects());
+    }
+  }, [subjectStatus, dispatch]);
 
   return (
     <div className="card bg-base-200 p-4 my-5">
@@ -243,6 +267,9 @@ const SectionListContainer = ({ mode }) => {
   const [editSectionValue, setEditSectionValue] = useState('');
   const [editSectionSubjects, setEditSectionSubjects] = useState([]);
   const [editSectionUnits, setEditSectionUnits] = useState({});
+  const [editSectionShift, setEditSectionShift] = useState(0);
+  const [editSectionStartTime, setEditSectionStartTime] = useState("");
+
   const [searchSectionResult, setSearchSectionResult] = useState(sections);
   const [searchSectionValue, setSearchSectionValue] = useState('');
 
@@ -252,6 +279,9 @@ const SectionListContainer = ({ mode }) => {
 
     setEditSectionProg(section.program);
     setEditSectionYear(section.year);
+
+    setEditSectionShift(section.shift);
+    setEditSectionStartTime(getTimeSlotString(section.startTime));
 
     // console.log("Section ID:", section.id);
 
@@ -265,7 +295,7 @@ const SectionListContainer = ({ mode }) => {
     }));
 
     setEditSectionSubjects(subjectsWithUnits.map(({ id }) => id));
-    console.log('Subjects with units for section:', subjectsWithUnits);
+    // console.log('Subjects with units for section:', subjectsWithUnits);
 
     setEditSectionUnits(
       subjectsWithUnits.reduce((acc, { id, units }) => {
@@ -290,6 +320,8 @@ const SectionListContainer = ({ mode }) => {
           section: editSectionValue,
           subjects: updatedUnits,
           year: editSectionYear,
+          shift: editSectionShift,
+          startTime: getTimeSlotIndex(editSectionStartTime),
         },
       })
     );
@@ -310,25 +342,26 @@ const SectionListContainer = ({ mode }) => {
     setEditSectionUnits({});
   };
 
-  const getProgramShiftAndTimeSlot = (section) => {
-    const program = Object.values(programs).find(
-      (prog) => prog.id === section.program
-    );
+  const renderTimeOptions = () => {
+    const times =
+      editSectionShift === 0
+        ? Array.from({ length: 30 }, (_, i) => {
+            const hours = 6 + Math.floor(i / 6);
+            const minutes = (i % 6) * 10;
+            return `${String(hours).padStart(2, '0')}:${String(
+              minutes
+            ).padStart(2, '0')} AM`;
+          })
+        : Array.from({ length: 8 }, (_, i) => {
+            const hours = 1 + i;
+            return `${String(hours).padStart(2, '0')}:00 PM`;
+          });
 
-    if (!program) {
-      return { shift: null, startTime: null };
-    }
-
-    const yearData = program[section.year];
-
-    if (!yearData) {
-      return { shift: null, startTime: null };
-    }
-
-    return {
-      shift: yearData.shift,
-      startTime: yearData.startTime,
-    };
+    return times.map((time) => (
+      <option key={time} value={time}>
+        {time}
+      </option>
+    ));
   };
 
   const debouncedSearch = useCallback(
@@ -372,22 +405,28 @@ const SectionListContainer = ({ mode }) => {
   }, [sectionStatus, dispatch]);
 
   useEffect(() => {
-    if (sectionStatus === 'succeeded') {
-      console.log('Fetched sections:', sections);
-    }
-  }, [sectionStatus, sections]);
-
-  useEffect(() => {
     if (programStatus === 'idle') {
       dispatch(fetchPrograms());
     }
   }, [programStatus, dispatch]);
 
   useEffect(() => {
-    if (programStatus === 'succeeded') {
-      console.log('Fetched programs:', programs);
+    if (subjectStatus === 'idle') {
+      dispatch(fetchSubjects());
     }
-  }, [programStatus, programs]);
+  }, [subjectStatus, dispatch]);
+
+  // useEffect(() => {
+  //   if (sectionStatus === 'succeeded') {
+  //     console.log('Fetched sections:', sections);
+  //   }
+  // }, [sectionStatus, sections]);
+
+  // useEffect(() => {
+  //   if (programStatus === 'succeeded') {
+  //     console.log('Fetched programs:', programs);
+  //   }
+  // }, [programStatus, programs]);
 
   return (
     <React.Fragment>
@@ -431,12 +470,52 @@ const SectionListContainer = ({ mode }) => {
                   <th>{section.id}</th>
                   <td>
                     {editSectionId === section.id ? (
-                      <input
-                        type="text"
-                        value={editSectionValue}
-                        onChange={(e) => setEditSectionValue(e.target.value)}
-                        className="input input-bordered input-sm w-full"
-                      />
+                      <>
+                        <input
+                          type="text"
+                          value={editSectionValue}
+                          onChange={(e) => setEditSectionValue(e.target.value)}
+                          className="input input-bordered input-sm w-full"
+                        />
+                        hahaha
+                        <div className="mt-2">
+                          <label className="mr-2">Shift:</label>
+                          <label className="mr-2">
+                            <input
+                              type="radio"
+                              value={editSectionShift}
+                              checked={editSectionShift === 0}
+                              onChange={() =>
+                                setEditSectionShift(0)
+                              }
+                            />
+                            AM
+                          </label>
+                          <label>
+                            <input
+                              type="radio"
+                              value={editSectionShift}
+                              checked={editSectionShift === 1}
+                              onChange={() =>
+                                setEditSectionShift(1)
+                              }
+                            />
+                            PM
+                          </label>
+                        </div>
+                        <div>
+                          <label>Start Time:</label>
+                          <select
+                            value={editSectionStartTime}
+                            onChange={(e) => {
+                              const newValue = e.target.value;
+                              setEditSectionStartTime(newValue);
+                            }}
+                          >
+                            {renderTimeOptions()}
+                          </select>
+                        </div>
+                      </>
                     ) : (
                       <>
                         <div className="text-base font-bold">
@@ -444,14 +523,14 @@ const SectionListContainer = ({ mode }) => {
                         </div>
                         <div className="flex items-center mt-2">
                           <span className="inline-block bg-blue-500 text-white text-sm font-semibold py-1 px-3 rounded-lg">
-                            {getProgramShiftAndTimeSlot(section).shift === 0
+                            {section.shift === 0
                               ? 'AM'
                               : 'PM'}{' '}
                             {/* Display SHIFT */}
                           </span>
                           <span className="ml-2 text-sm font-medium">
                             {getTimeSlotString(
-                              getProgramShiftAndTimeSlot(section).startTime
+                              section.startTime
                             )}{' '}
                             {/* Display SECTION STARTING TIME */}
                           </span>
