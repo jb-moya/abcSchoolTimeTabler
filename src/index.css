@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+
+
 .loading-indicator:before {
     content: '';
     background: #00000080;
@@ -30,3 +32,4 @@
     height: 120px;
     animation: spin 2s linear infinite;
 }
+

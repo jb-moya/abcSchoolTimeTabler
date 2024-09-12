@@ -25,6 +25,8 @@ const token = checkAuth();
 
 function App() {
   useEffect(() => {
+     // Set the default theme to light on initial load
+    document.documentElement.setAttribute("data-theme", "light");
     // 👆 daisy UI themes initialization
     themeChange(false);
   }, []);
