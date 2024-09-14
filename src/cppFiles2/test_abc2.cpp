@@ -41,24 +41,27 @@ void unpackInt32ToInt16(int32_t packed, int16_t& first, int16_t& second) {
 void test_generate_timetable() {
 	// TODO break time in section must be roughly around in the middle
 
-	int max_iterations = 1000;
+	int max_iterations = 5000;
 	int beesPopulation = 11;
 	int beesEmployed = 5;
 	int beesOnlooker = 5;
 	int beesScout = 1;
-	
-	int num_teachers =  15;
-	int total_section =   5 ;
-	int num_subjects =  3 ;
+
+	int num_teachers = 30;
+	int total_section = 10;
+	int num_subjects = 6 ;
+
 
 	// t 120 sc 40 sb 10 dd 4 w 6 bd 3 - 25sec
-
-	// 9 15 30 60 120
-	// 3 5  10 20 40
-	// 3 3  6  12 10
+ 
+	// 9 15 30  45  50    60 120
+	// 3 5  10  15  20    20 40
+	// 3 3  6    9  10    12 10
 
 	int limit = total_section * num_teachers;
 
+	// int break_timeslot_allowance = 6;
+	int break_timeslot_allowance = 12;
 	int default_units = 0;  // 0 means everyday
 	// int default_duration = 1;
 	int default_duration = 4;
@@ -171,6 +174,7 @@ void test_generate_timetable() {
 	    workweek,
 	    max_teacher_work_load,
 	    break_time_duration,
+	    break_timeslot_allowance,
 	    result_buff_length,
 	    result);
 }
