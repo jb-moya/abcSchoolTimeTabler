@@ -1,21 +1,21 @@
-import React, { lazy, useEffect } from "react";
-import "./App.css";
+import React, { lazy, useEffect } from 'react';
+import './App.css';
 import {
   BrowserRouter as Router,
   Route,
   Routes,
   Navigate,
-} from "react-router-dom";
-import { themeChange } from "theme-change";
-import checkAuth from "./app/auth";
-import initializeApp from "./app/init";
+} from 'react-router-dom';
+import { themeChange } from 'theme-change';
+import checkAuth from './app/auth';
+import initializeApp from './app/init';
 
 // Importing pages
-const Layout = lazy(() => import("./containers/Layout"));
-const Login = lazy(() => import("./pages/Login.jsx"));
-const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
-const Register = lazy(() => import("./pages/Register"));
-const Documentation = lazy(() => import("./pages/Documentation"));
+const Layout = lazy(() => import('./containers/Layout'));
+const Login = lazy(() => import('./pages/Login.jsx'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const Register = lazy(() => import('./pages/Register'));
+const Documentation = lazy(() => import('./pages/Documentation'));
 
 // Initializing different libraries
 // initializeApp()
@@ -25,8 +25,8 @@ const token = checkAuth();
 
 function App() {
   useEffect(() => {
-     // Set the default theme to light on initial load
-    document.documentElement.setAttribute("data-theme", "light");
+    // Set the default theme to light on initial load
+    document.documentElement.setAttribute('data-theme', 'light');
     // 👆 daisy UI themes initialization
     themeChange(false);
   }, []);
@@ -46,7 +46,7 @@ function App() {
           <Route
             path="*"
             element={
-              <Navigate to={token ? "/app/welcome" : "/login"} replace />
+              <Navigate to={token ? '/app/welcome' : '/login'} replace />
             }
           />
         </Routes>
