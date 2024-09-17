@@ -105,10 +105,11 @@ void Timetable::reset() {
 }
 
 void Timetable::initializeTeachersClass(int teachers) {
-	teachers_class_count.resize(teachers);
-
-	for (int i = 0; i < teachers; ++i) {
-		teachers_class_count[i] = 0;
+	for (int day = 1; day <= work_week; ++day) {
+		teachers_class_count[day].resize(teachers);
+		for (int i = 0; i < teachers; ++i) {
+			teachers_class_count[day][i] = 0;
+		}
 	}
 }
 
@@ -179,7 +180,6 @@ void Timetable::updateTeachersTimeslots(
 						if (is_reset) {
 							// print(is_reset, "is reset", teacher, i, j + start);
 							if (--teacher_timeslot[i][j + start] <= 0) {
-
 								teacher_timeslot[i].erase(j + start);
 
 								if (teacher_timeslot[i].empty()) {
@@ -286,32 +286,34 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 
 		// print("fasjkdljf", timeslot_keys.size(), "Fcv", full_week_day_subjects.size(), "Fcv", special_unit_subjects.size(), "Fcv");
 		for (const auto& subject_id : full_week_day_subjects) {
-			// std::uniform_int_distribution<> dis(0, Timetable::eligible_teachers_in_subject[subject_id].size() - 1);
-			// int16_t selected_teacher = Timetable::eligible_teachers_in_subject[subject_id][dis(randomizer_engine)];
+			std::uniform_int_distribution<> dis(0, Timetable::eligible_teachers_in_subject[subject_id].size() - 1);
+			int16_t selected_teacher = Timetable::eligible_teachers_in_subject[subject_id][dis(randomizer_engine)];
 
-			std::vector<int16_t>& eligible_teachers = eligible_teachers_in_subject[subject_id];
+			// std::vector<int16_t>& eligible_teachers = eligible_teachers_in_subject[subject_id];
 
-			// Find the teacher who has been assigned the fewest sections
-			int min_assignments = 999;  // maximum possible number of sections
-			std::vector<int16_t> least_assigned_teachers;
+			// // Find the teacher who has been assigned the fewest sections
+			// int min_assignments = 999;  // maximum possible number of sections
+			// std::vector<int16_t> least_assigned_teachers;
 
-			// Identify teachers with the minimum number of assignments
-			for (int16_t teacher : eligible_teachers) {
-				int assignment_count = teachers_class_count[teacher];
-				if (assignment_count < min_assignments) {
-					min_assignments = assignment_count;
-					least_assigned_teachers.clear();
-					least_assigned_teachers.push_back(teacher);
-				} else if (assignment_count == min_assignments) {
-					least_assigned_teachers.push_back(teacher);
-				}
+			// // Identify teachers with the minimum number of assignments
+			// for (int16_t teacher : eligible_teachers) {
+			// 	int assignment_count = teachers_class_count[teacher];
+			// 	if (assignment_count < min_assignments) {
+			// 		min_assignments = assignment_count;
+			// 		least_assigned_teachers.clear();
+			// 		least_assigned_teachers.push_back(teacher);
+			// 	} else if (assignment_count == min_assignments) {
+			// 		least_assigned_teachers.push_back(teacher);
+			// 	}
+			// }
+
+			// // Randomly select a teacher from the least assigned list
+			// std::uniform_int_distribution<> dis(0, least_assigned_teachers.size() - 1);
+			// int16_t selected_teacher = least_assigned_teachers[dis(randomizer_engine)];
+
+			for (int day = 1; day <= work_week; ++day) {
+				teachers_class_count[day][selected_teacher]++;
 			}
-
-			// Randomly select a teacher from the least assigned list
-			std::uniform_int_distribution<> dis(0, least_assigned_teachers.size() - 1);
-			int16_t selected_teacher = least_assigned_teachers[dis(randomizer_engine)];
-
-			teachers_class_count[selected_teacher]++;
 
 			int timeslot_key = timeslot_keys.back();
 			timeslot_keys.pop_back();
@@ -331,7 +333,7 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 			int16_t random_teacher = Timetable::eligible_teachers_in_subject[subject_id][dis(randomizer_engine)];
 			int16_t num_unit = units_map.at(subject_id).second;
 
-			teachers_class_count[random_teacher]++;
+			teachers_class_count[day][random_teacher]++;
 
 			for (int iter = 1; iter <= num_unit; ++iter) {
 				auto it = std::find_if(timeslot_keys.rbegin(), timeslot_keys.rend(),
@@ -507,8 +509,10 @@ void Timetable::update(std::unordered_set<int>& update_teachers, std::unordered_
 					random_teacher = eligible_teachers_in_subject[subject_id][dis(randomizer_engine)];
 				} while (random_teacher == old_teacher && eligible_teachers_in_subject[subject_id].size() > 1);
 
-				teachers_class_count[old_teacher]--;
-				teachers_class_count[random_teacher]++;
+				for (int day = 1; day <= work_week; day++) {
+					teachers_class_count[day][old_teacher]--;
+					teachers_class_count[day][random_teacher]++;
+				}
 
 				update_teachers.insert(old_teacher);
 				update_teachers.insert(random_teacher);
@@ -529,8 +533,10 @@ void Timetable::update(std::unordered_set<int>& update_teachers, std::unordered_
 					random_teacher = eligible_teachers_in_subject[subject_id][dis(randomizer_engine)];
 				} while (random_teacher == old_teacher && eligible_teachers_in_subject[subject_id].size() > 1);
 
-				teachers_class_count[old_teacher]--;
-				teachers_class_count[random_teacher]++;
+				for (int day = 1; day <= work_week; day++) {
+					teachers_class_count[day][old_teacher]--;
+					teachers_class_count[day][random_teacher]++;
+				}
 
 				// std::cout << subject_id << " old teacher : " << old_teacher << " <- workday : " << static_cast<int>(workday) << " Randomized: " << random_section << " " << random_timeslot << " " << random_teacher << std::endl;
 				section_timeslot[workday] = SchoolClass{subject_id, random_teacher};
@@ -606,11 +612,11 @@ void ObjectiveFunction::evaluate(
 
 		const auto& teacher_id_and_days = teachers_timetable.at(teacher_id);
 
-		// if (timetable.teachers_class_count[teacher_id] > max_teacher_work_load) {
-		// 	bee.teacherViolations[teacher_id].teacher_exceed_workload++;
-		// }
-
 		for (const auto& [day, timeslot] : teacher_id_and_days) {
+			if (bee.timetable.teachers_class_count[day][teacher_id] > max_teacher_work_load) {
+				bee.teacherViolations[teacher_id].teacher_exceed_workload++;
+			}
+
 			if (show_penalty) {
 				print(YELLOW, "ff day", day, "size timeslot", timeslot.size(), RESET);
 			}
@@ -663,7 +669,7 @@ void ObjectiveFunction::evaluate(
 				}
 			}
 
-			if (bee.timetable.teachers_class_count[teacher_id] <= bee.timetable.teacher_break_threshold) {
+			if (bee.timetable.teachers_class_count[day][teacher_id] <= bee.timetable.teacher_break_threshold) {
 				continue;
 			}
 
@@ -708,8 +714,6 @@ void ObjectiveFunction::evaluate(
 					}
 				}
 			}
-
-			
 
 			if (!break_found) {
 				if (show_penalty) {
@@ -1094,7 +1098,6 @@ void runExperiment(
 	// 	return;
 	// }
 
-
 	vector<Bee> beesVector(beesPopulation, Bee(num_teachers));
 
 	for (int i = 0; i < beesPopulation; i++) {
@@ -1274,7 +1277,7 @@ void runExperiment(
 
 	optimizableFunction.evaluate(bestSolution, Timetable::teachers_set, Timetable::sections_set, false, true, Timetable::work_week, max_teacher_work_load, Timetable::break_time_duration);
 	print(GREEN_B, " -- -- Best solution: cost ", RED_B, bestSolution.total_cost, GREEN_B, " -- -- ", RESET);
-	print(CYAN_BG, BOLD, "EARLY BREAK Best solution: cost ", bestSolution.total_cost, " at ", iteration_count, RESET);
+	print(iteration_count == max_iterations ? RED_BG : CYAN_BG, BOLD, iteration_count == max_iterations ? "MAXIMUM ITERATIONS REACHED" : "EARLY BREAK Best solution: cost ", bestSolution.total_cost, " at ", iteration_count, RESET);
 	print("Time taken: ", duration.count(), "seconds");
 
 	// runExperiment(

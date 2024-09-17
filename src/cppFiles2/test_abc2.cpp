@@ -40,20 +40,20 @@ void unpackInt32ToInt16(int32_t packed, int16_t& first, int16_t& second) {
 
 void test_generate_timetable() {
 	int max_iterations = 10000;
-	int beesPopulation = 11;
-	int beesEmployed = 5;
-	int beesOnlooker = 5;
+	int beesPopulation = 6;
+	int beesEmployed = 3;
+	int beesOnlooker = 3;
 	int beesScout = 1;
 
-	int num_teachers = 36;
-	int total_section = 20;
-	int num_subjects = 12;
+	int num_teachers = 20;
+	int total_section = 10;
+	int num_subjects = 10;
 
 	// t 120 sc 40 sb 10 dd 4 w 6 bd 3 - 25sec
 
-	// 9 15 30  45  50    60 120
-	// 3 5  10  15  20    20 40
-	// 3 3  6    9  10    12 10
+	// 9 15 30  45   50    60 120
+	// 3 5  10  15   20    20 40
+	// 3 3  6    9   10    12 10
 
 	int limit = total_section * num_teachers;
 

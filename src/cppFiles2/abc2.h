@@ -121,7 +121,8 @@ struct Timetable {
 	std::unordered_map<int16_t, std::unordered_map<int, std::map<int, int>>> teachers_timeslots;
 	// section                  timeslot
 	std::unordered_map<int16_t, std::unordered_set<int>> section_segmented_timeslot;
-	std::vector<int> teachers_class_count;
+	// day                      teachers
+	std::unordered_map<int16_t, std::vector<int>> teachers_class_count;
 
 	void initializeTeachersClass(int teachers);
 
