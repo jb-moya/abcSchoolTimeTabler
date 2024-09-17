@@ -97,6 +97,8 @@ struct Timetable {
 	static std::unordered_set<int> sections_set;
 	static std::vector<int> section_num_breaks;
 	static int break_timeslot_allowance;
+	static int teacher_break_threshold;
+	static int default_class_duration;
 	static int break_time_duration;
 	static int work_week;
 
@@ -186,7 +188,10 @@ void runExperiment(
     int max_teacher_work_load,
     int break_time_duration,
     int break_timeslot_allowance,
-    int result_buff_length,
+    int teacher_break_threshold,
+    int min_classes_for_two_breaks,
+    int default_class_duration,
+	int result_buff_length,
     int64_t* result);
 
 #ifdef __cplusplus
@@ -206,10 +211,6 @@ int extractThird(int combined);
 
 int64_t pack5IntToInt64(int16_t a, int16_t b, int16_t c, int8_t d, int8_t e);
 int32_t packInt16ToInt32(int16_t first, int16_t second);
-
-// void extractSectionSubjects(
-//     const std::vector<int32_t>& inputArray,
-//     std::unordered_map<int16_t, std::vector<int16_t>>& section_subjects);
 
 struct ObjectiveFunction {
 	static void evaluate(
