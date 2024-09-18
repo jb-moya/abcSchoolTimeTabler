@@ -8,7 +8,6 @@ import {
   editSubject,
   removeSubject,
 } from '@features/subjectSlice';
-import { getDurationIndex, getDurationEqualToIndex } from './timeSlotMapper';
 import { IoAdd, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
@@ -32,7 +31,7 @@ const AddSubjectContainer = ({
       dispatch(
         reduxFunction({
           subject: subjectName,
-          classDuration: getDurationIndex(classDuration),
+          classDuration: classDuration,
         })
       );
       close();
@@ -64,16 +63,12 @@ const AddSubjectContainer = ({
           value={classSubjectDuration}
           onChange={(e) => {
             const value = Number(e.target.value);
-            if (value >= 10 && value <= 240) {
-              setClassSubjectDuration(value);
-            } else {
-              alert('Duration must be between 10 and 240 minutes (4 hrs).');
-            }
+            setClassSubjectDuration(value);
+            
           }}
           placeholder="Enter class duration"
           step={10}
           min={10}
-          max={240}
         />
       </div>
       <div className="flex justify-end space-x-2">
@@ -110,7 +105,7 @@ const SubjectListContainer = ({ mode }) => {
   const handleEditSubjectClick = (subject) => {
     setEditSubjectId(subject.id);
     setEditSubjectValue(subject.subject);
-    setEditClassDuration(getDurationEqualToIndex(subject.classDuration));
+    setEditClassDuration(subject.classDuration);
   };
 
   const handleSaveSubjectEditClick = (subjectId) => {
@@ -119,7 +114,7 @@ const SubjectListContainer = ({ mode }) => {
         subjectId,
         updatedSubject: {
           subject: editSubjectValue,
-          classDuration: getDurationIndex(editClassDuration),
+          classDuration: editClassDuration,
         },
       })
     );
@@ -226,18 +221,15 @@ const SubjectListContainer = ({ mode }) => {
                       value={editClassDuration}
                       onChange={(e) => {
                         const newDuration = Number(e.target.value);
-                        if (newDuration >= 10 && newDuration <= 240) {
-                          setEditClassDuration(newDuration);
-                        }
+                        setEditClassDuration(newDuration);                       
                       }}
                       className="input input-bordered input-sm w-full"
                       placeholder="Enter class duration"
                       step={10}
                       min={10}
-                      max={240}
                     />
                   ) : (
-                    `${getDurationEqualToIndex(subject.classDuration)} mins`
+                    `${subject.classDuration} mins`
                   )}
                 </td>
                 {mode === 0 
