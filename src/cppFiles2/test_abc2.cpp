@@ -45,9 +45,9 @@ void test_generate_timetable() {
 	int beesOnlooker = 4;
 	int beesScout = 1;
 
-	int num_teachers = 50;
-	int total_section = 20;
-	int num_subjects = 10;
+	int num_teachers = 30;
+	int total_section = 1;
+	int num_subjects = 6;
 
 	// t 120 sc 40 sb 10 dd 4 w 6 bd 3 - 25sec
 
@@ -57,7 +57,6 @@ void test_generate_timetable() {
 
 	int limit = total_section * num_teachers;
 
-	int break_timeslot_allowance = 6;
 	// int break_timeslot_allowance = 12;
 	int default_units = 0;  // 0 means everyday
 	// int default_duration = 1;
@@ -66,6 +65,7 @@ void test_generate_timetable() {
 	// int workweek = 1;
 	int workweek = 5;
 	int break_time_duration = 1;
+	int break_timeslot_allowance = 6;
 
 	int teacher_break_threshold = 4;
 	int min_classes_for_two_breaks = 10;
@@ -137,7 +137,7 @@ void test_generate_timetable() {
 
 	std::cout << "total_class_block: " << total_class_block << std::endl;
 
-	int64_t* result = new (std::nothrow) int64_t[total_class_block];
+	int64_t* result = new (std::nothrow) int64_t[999];
 
 	std::cout << "Running experiment with configuration: ";
 
@@ -148,7 +148,7 @@ void test_generate_timetable() {
 	          << beesScout << ", "
 	          << limit << std::endl;
 
-	int result_buff_length = total_class_block;  // arbitrary
+	int result_buff_length = 999;  // arbitrary
 
 	runExperiment(
 	    max_iterations,
@@ -156,19 +156,22 @@ void test_generate_timetable() {
 	    total_section_subjects,
 	    total_class_block,
 	    total_section,
+
 	    section_subjects,
 	    section_subject_duration,
 	    section_start,
 	    teacher_subjects,
 	    section_subject_units,
 	    teacher_subjects_length,
-	    beesPopulation,
+	    
+		beesPopulation,
 	    beesEmployed,
 	    beesOnlooker,
 	    beesScout,
 	    limit,
 	    workweek,
-	    max_teacher_work_load,
+	    
+		max_teacher_work_load,
 	    break_time_duration,
 	    break_timeslot_allowance,
 	    teacher_break_threshold,
