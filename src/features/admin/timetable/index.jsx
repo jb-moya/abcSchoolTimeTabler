@@ -27,9 +27,7 @@ function Timetable() {
   const { sections } = useSelector((state) => state.section);
   const { programs } = useSelector((state) => state.program);
 
-  const numOfSchoolDays = localStorage.getItem(
-    'numOfSchoolDays'
-  );
+  const numOfSchoolDays = localStorage.getItem('numOfSchoolDays');
 
   const [timetable, setTimetable] = useState([]);
   const [sectionTimetables, setSectionTimetables] = useState({});
@@ -145,12 +143,17 @@ function Timetable() {
     );
 
     // console.log("subjectMap", subjectMap);
-    // console.log("teacherMap", teacherMap);
+    console.log("teacherMap", teacherMap);
     // console.log("subjectMapReverse", subjectMapReverse);
     console.log('sectionMap', sectionMap);
 
+    const defaultClassDuration = 2;
+
     const sectionSubjectArray = [];
     const sectionSubjectUnitArray = [];
+    const sectionSubjectDurationArray = [];
+    const sectionStartArray = [];
+
     let cellCount = 0;
     for (const [sectionKey, { subjects, subjectUnits }] of Object.entries(
       sectionMap
@@ -159,8 +162,8 @@ function Timetable() {
         sectionSubjectArray.push(packInt16ToInt32(sectionKey, subject));
       }
 
-      for (const unit of Object.keys(subjectUnits)) {
-        const unitCount = subjectUnits[unit];
+      for (const subject of Object.keys(subjectUnits)) {
+        const unitCount = subjectUnits[subject];
 
         if (unitCount === 0) {
           cellCount++;
@@ -169,25 +172,35 @@ function Timetable() {
         }
 
         sectionSubjectUnitArray.push(
-          packInt16ToInt32(unit, subjectUnits[unit])
+          packInt16ToInt32(subject, subjectUnits[subject])
+        );
+
+        sectionSubjectDurationArray.push(
+          packInt16ToInt32(subject, defaultClassDuration)
         );
       }
     }
 
     const sectionSubjects = new Int32Array([...sectionSubjectArray]);
     const sectionSubjectUnits = new Int32Array([...sectionSubjectUnitArray]);
+    const sectionSubjectDurations = new Int32Array([
+      ...sectionSubjectDurationArray,
+    ]);
 
     const max_iterations = 10000;
     const beesPopulations = 50;
-    const beesEmployedOptions = 25;
-    const beesOnlookerOptions = 25;
-    const beesScoutOptions = 1;
+    const beesEmployed = 25;
+    const beesOnlooker = 25;
+    const beesScout = 1;
     const limits = 200;
     const numTeachers = Object.keys(teacherMap).length;
-    const numRooms = 7;
-    const num_timeslots = 7;
     const totalSchoolClass = sectionSubjectArray.length;
     const totalSection = Object.keys(sectionMap).length;
+
+    for (let i = 0; i < totalSection; i++) {
+      sectionStartArray[i] = 0;
+    }
+    const sectionStarts = new Int32Array([...sectionStartArray]);
 
     const teacherSubjectArray = [];
 
@@ -199,25 +212,38 @@ function Timetable() {
 
     const teacherSubjects = new Int32Array([...teacherSubjectArray]);
 
+    const breakTimeDuration = 1;
+    const breakTimeslotAllowance = 6;
+    const teacherBreakThreshold = 4;
+    const minClassesForTwoBreaks = 10;
+
     const params = {
       maxIterations: max_iterations,
       numTeachers: numTeachers,
-      numRooms: numRooms,
-      numTimeslots: num_timeslots,
       totalSchoolClass: totalSchoolClass,
       totalCellBlock: cellCount,
       totalSection: totalSection,
+
       sectionSubjects: sectionSubjects,
+      sectionSubjectDurations: sectionSubjectDurations,
+      sectionStarts: sectionStarts,
       teacherSubjects: teacherSubjects,
       sectionSubjectUnits: sectionSubjectUnits,
       teacherSubjectsLength: teacherSubjects.length,
+
       beesPopulation: beesPopulations,
-      beesEmployed: beesEmployedOptions,
-      beesOnlooker: beesOnlookerOptions,
-      beesScout: beesScoutOptions,
+      beesEmployed: beesEmployed,
+      beesOnlooker: beesOnlooker,
+      beesScout: beesScout,
       limits: limits,
       workWeek: numOfSchoolDays,
+
       maxTeacherWorkLoad: 9,
+      breakTimeDuration: breakTimeDuration,
+      breakTimeslotAllowance: breakTimeslotAllowance,
+      teacherBreakThreshold: teacherBreakThreshold,
+      minClassesForTwoBreaks: minClassesForTwoBreaks,
+      defaultClassDuration: defaultClassDuration,
       resultLength: cellCount,
     };
 
@@ -230,10 +256,11 @@ function Timetable() {
     const teacherTimetable = {};
 
     for (const entry of timetable) {
-      // console.log("F", entry, typeof entry[0]);
+      console.log("F", entry, typeof entry[0]);
       const section = sectionMap[entry[0]].id;
-      const subject = subjectMap[entry[1]];
-      const teacher = teacherMap[entry[2]].id;
+      const subject = subjectMap[entry[1]] || null;
+      const teacher = (teacherMap[entry[2]] || { id: null}).id;
+
       const timeslot = entry[3];
       const day = entry[4];
 
@@ -331,24 +358,24 @@ function Timetable() {
 
       <div className="flex gap-4">
         <div className="w-4/12">
-          <SubjectListContainer mode={1}/>
+          <SubjectListContainer mode={1} />
         </div>
         <div className="w-8/12">
-          <ProgramListContainer mode={1}/>  
+          <ProgramListContainer mode={1} />
         </div>
       </div>
       <div className="mt-4 flex gap-4">
         <div className="w-9/12">
-          <TeacherListContainer mode={1}/>
+          <TeacherListContainer mode={1} />
         </div>
       </div>
       <div className="w-full ">
-        <SectionListContainer mode={1}/>
+        <SectionListContainer mode={1} />
         <button
           className={clsx('btn btn-primary w-full', {
             'cursor-not-allowed': timetableGenerationStatus === 'running',
             'btn-error': timetableGenerationStatus === 'error',
-            'mt-5':true,
+            'mt-5': true,
           })}
           onClick={() => {
             if (validate()) {
@@ -383,7 +410,7 @@ function Timetable() {
           columnField={['subject', 'teacher']}
           beforeBreakTime={beforeBreakTime}
         />
-
+{/* 
         <GeneratedTimetable
           timetables={teacherTimetables}
           collection={teachers}
@@ -393,7 +420,7 @@ function Timetable() {
           secondColumnMap={subjects}
           columnField={['section', 'subject']}
           beforeBreakTime={beforeBreakTime}
-        />
+        /> */}
       </div>
     </div>
   );

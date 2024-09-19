@@ -1,6 +1,6 @@
-import { expose } from "comlink";
-import abcWasm from "./cppFiles/abc.js";
-import { unpackIntegers } from "./utils/packInt16ToInt64.js";
+import { expose } from 'comlink';
+import abcWasm from './cppFiles2/abc2.js';
+import { unpackIntegers } from './utils/packInt16ToInt64.js';
 
 // console.log("params.maxIterations", params.maxIterations);
 // console.log("params.numTeachers", params.numTeachers);
@@ -20,86 +20,101 @@ import { unpackIntegers } from "./utils/packInt16ToInt64.js";
 // console.log("params.beesScout", params.beesScout);
 // console.log("params.limits", params.limits);
 
+function allocateAndSetBuffer(wasm, dataArray) {
+  // Calculate buffer size based on data array length and BYTES_PER_ELEMENT
+  const bufferSize = dataArray.length * dataArray.BYTES_PER_ELEMENT;
+
+  // Allocate memory for the buffer
+  const buffer = wasm._malloc(bufferSize);
+
+  // Set data into the allocated memory
+  wasm.HEAP32.set(dataArray, buffer / dataArray.BYTES_PER_ELEMENT);
+
+  return buffer;
+}
+
 const getTimetable = async (params) =>
-    new Promise(async (resolve, reject) => {
-        try {
-            const wasm = await abcWasm();
+  new Promise(async (resolve, reject) => {
+    try {
+      const wasm = await abcWasm();
 
-            console.log("wasm", params.sectionSubjects);
+      console.log('wasm', params.sectionSubjects);
 
-            const sectionSubjectsBuff = wasm._malloc(
-                params.sectionSubjects.length *
-                    params.sectionSubjects.BYTES_PER_ELEMENT
-            );
+      const sectionSubjectsBuff = allocateAndSetBuffer(
+        wasm,
+        params.sectionSubjects
+      );
+      const sectionSubjectUnitsBuff = allocateAndSetBuffer(
+        wasm,
+        params.sectionSubjectUnits
+      );
+      const teacherSubjectsBuff = allocateAndSetBuffer(
+        wasm,
+        params.teacherSubjects
+      );
+      const sectionStartsBuff = allocateAndSetBuffer(
+        wasm,
+        params.sectionStarts
+      );
+      const sectionSubjectDurationsBuff = allocateAndSetBuffer(
+        wasm,
+        params.sectionSubjectDurations
+      );
 
-            wasm.HEAP32.set(
-                params.sectionSubjects,
-                sectionSubjectsBuff / params.sectionSubjects.BYTES_PER_ELEMENT
-            );
+      const resultBuff = wasm._malloc(params.resultLength * 8);
 
-            const sectionSubjectUnitsBuff = wasm._malloc(
-                params.sectionSubjectUnits.length *
-                    params.sectionSubjectUnits.BYTES_PER_ELEMENT
-            );
+      wasm._runExperiment(
+        params.maxIterations,
+        params.numTeachers,
+        params.totalSchoolClass,
+        params.totalCellBlock,
+        params.totalSection,
 
-            wasm.HEAP32.set(
-                params.sectionSubjectUnits,
-                sectionSubjectUnitsBuff /
-                    params.sectionSubjectUnits.BYTES_PER_ELEMENT
-            );
+        sectionSubjectsBuff,
+        sectionSubjectDurationsBuff,
+        sectionStartsBuff,
+        teacherSubjectsBuff,
+        sectionSubjectUnitsBuff,
+        params.teacherSubjectsLength,
 
-            const teacherSubjectsBuff = wasm._malloc(
-                params.teacherSubjects.length *
-                    params.teacherSubjects.BYTES_PER_ELEMENT
-            );
+        params.beesPopulation,
+        params.beesEmployed,
+        params.beesOnlooker,
+        params.beesScout,
+        params.limits,
+        params.workWeek,
 
-            wasm.HEAP32.set(
-                params.teacherSubjects,
-                teacherSubjectsBuff / params.teacherSubjects.BYTES_PER_ELEMENT
-            );
+        params.maxTeacherWorkLoad,
+        params.breakTimeDuration,
+        params.breakTimeslotAllowance,
+        params.teacherBreakThreshold,
+        params.minClassesForTwoBreaks,
+        params.defaultClassDuration,
+        params.resultLength,
 
-            const resultBuff = wasm._malloc(params.resultLength * 8);
+        resultBuff
+      );
 
-            wasm._runExperiment(
-                params.maxIterations,
-                params.numTeachers,
-                params.totalSchoolClass,
-                params.totalCellBlock,
-                params.totalSection,
-                sectionSubjectsBuff,
-                teacherSubjectsBuff,
-                sectionSubjectUnitsBuff,
-                params.teacherSubjectsLength,
-                params.beesPopulation,
-                params.beesEmployed,
-                params.beesOnlooker,
-                params.beesScout,
-                params.limits,
-                params.workWeek,
-                params.resultLength,
-                resultBuff
-            );
+      const timetable = [];
 
-            const timetable = [];
+      for (let i = 0; i < params.resultLength; i++) {
+        let result = wasm.getValue(resultBuff + i * 8, 'i64');
 
-            for (let i = 0; i < params.resultLength; i++) {
-                let result = wasm.getValue(resultBuff + i * 8, "i64");
+        result = unpackIntegers(result);
+        timetable.push(result);
+        // console.log(`Class ${i + 1}: ${result}`, result);
+      }
 
-                result = unpackIntegers(result);
-                timetable.push(result);
-                // console.log(`Class ${i + 1}: ${result}`, result);
-            }
+      // console.log("resultBuff", resultBuff, timetable);
 
-            // console.log("resultBuff", resultBuff, timetable);
+      wasm._free(sectionSubjectsBuff);
+      wasm._free(teacherSubjectsBuff);
+      wasm._free(resultBuff);
 
-            wasm._free(sectionSubjectsBuff);
-            wasm._free(teacherSubjectsBuff);
-            wasm._free(resultBuff);
-
-            resolve({ timetable, status: "success" });
-        } catch (error) {
-            reject({ error, status: "error" });
-        }
-    });
+      resolve({ timetable, status: 'success' });
+    } catch (error) {
+      reject({ error, status: 'error' });
+    }
+  });
 
 expose(getTimetable);

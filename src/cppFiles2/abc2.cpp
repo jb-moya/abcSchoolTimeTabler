@@ -234,7 +234,9 @@ void Timetable::updateTeachersTimeslots(
 }
 
 void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teachers) {
+	// print("hehe");
 	for (const auto& entry : section_subjects) {
+		// print("haha ha");
 		int16_t section_id = entry.first;
 		std::vector<int16_t> random_subjects = entry.second;
 
@@ -247,7 +249,7 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 		int total_duration = 0;
 
 		const auto& units_map = Timetable::section_subjects_units[section_id];
-
+		// print("hzhz hz");
 		for (const auto& subject_id : random_subjects) {
 			if (units_map.at(subject_id).second == 0) {
 				full_week_day_subjects.push_back(subject_id);
@@ -259,23 +261,31 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 
 		std::vector<int> timeslot_keys;
 		for (int i = 0; i < Timetable::section_timeslot[section_id]; ++i) {
+			// print("i i i", i);
 			timeslots[i] = Timetable::work_week;
 			timeslot_keys.push_back(i);
 		}
 
 		int num_breaks = Timetable::section_num_breaks[section_id];
-
+		// print("b b b");
 		for (int i = 0; i < num_breaks; ++i) {
 			std::uniform_int_distribution<> dist(1, timeslot_keys.size() - 2);  // ignore first and last
+			// print("1");
 			int random_index = dist(randomizer_engine);
+			// print("2");
 
 			int timeslot_key = timeslot_keys[random_index];
+			// print("3");
+
 			timeslot_keys.erase(timeslot_keys.begin() + random_index);
+			// print("4");
 
 			schoolClasses[section_id][timeslot_key][0] = SchoolClass{-1, -1};
+			// print("5");
 
 			timeslots.erase(timeslot_key);
 		}
+		// print("tttttttttttt");
 
 		std::shuffle(std::begin(timeslot_keys), std::end(timeslot_keys), randomizer_engine);
 
@@ -825,6 +835,29 @@ int32_t packInt16ToInt32(int16_t first, int16_t second) {
 	return result;
 }
 
+void getResult(Bee& bee, int64_t* result) {
+	int iter = 0;
+	for (const auto& [grade, gradeMap] : bee.timetable.schoolClasses) {
+		// std::cout << BLUE << "--------- - - Section: " << grade << RESET << std::endl;
+		for (const auto& [timeslot, classMap] : gradeMap) {
+			// std::cout << "size :  " << classMap.size() << std::endl;
+			for (const auto& [day, schoolClass] : classMap) {
+				int64_t packed = pack5IntToInt64(
+				    grade,
+				    schoolClass.subject_id,
+				    schoolClass.teacher_id,
+				    static_cast<int8_t>(timeslot),
+				    day);
+				// std::cout << "packed : " << packed << std::endl;
+
+				result[iter] = packed;
+
+				iter++;
+			}
+		}
+	}
+}
+
 extern "C" {
 
 void runExperiment(
@@ -833,11 +866,13 @@ void runExperiment(
     int total_section_subjects,
     int total_class_block,
     int total_section,
+
     int32_t* section_subjects,
     int32_t* section_subject_duration,
     int32_t* section_start,
     int32_t* teacher_subjects,
     int32_t* section_subject_units,
+
     int teacher_subjects_length,
     int beesPopulation,
     int beesEmployed,
@@ -1017,33 +1052,33 @@ void runExperiment(
 			printSchoolClasses(beesVector[i].timetable.schoolClasses);
 			print(RED, GREEN_BG, "JACKPOT ", i, beesVector[i].total_cost, " size ", RESET);
 			system("cls");
-			runExperiment(
-			    max_iterations,
-			    num_teachers,
-			    total_section_subjects,
-			    total_class_block,
-			    total_section,
-			    section_subjects,
-			    section_subject_duration,
-			    section_start,
-			    teacher_subjects,
-			    section_subject_units,
-			    teacher_subjects_length,
-			    beesPopulation,
-			    beesEmployed,
-			    beesOnlooker,
-			    beesScout,
-			    limit,
-			    work_week,
-			    max_teacher_work_load,
-			    break_time_duration,
-			    break_timeslot_allowance,
-			    teacher_break_threshold,
-			    min_classes_for_two_breaks,
-			    default_class_duration,
-			    result_buff_length,
-			    result);
-
+			// runExperiment(
+			//     max_iterations,
+			//     num_teachers,
+			//     total_section_subjects,
+			//     total_class_block,
+			//     total_section,
+			//     section_subjects,
+			//     section_subject_duration,
+			//     section_start,
+			//     teacher_subjects,
+			//     section_subject_units,
+			//     teacher_subjects_length,
+			//     beesPopulation,
+			//     beesEmployed,
+			//     beesOnlooker,
+			//     beesScout,
+			//     limit,
+			//     work_week,
+			//     max_teacher_work_load,
+			//     break_time_duration,
+			//     break_timeslot_allowance,
+			//     teacher_break_threshold,
+			//     min_classes_for_two_breaks,
+			//     default_class_duration,
+			//     result_buff_length,
+			//     result);
+			getResult(beesVector[i], result);
 			return;
 		}
 
@@ -1206,7 +1241,9 @@ void runExperiment(
 	//     result_buff_length,
 	//     result);
 
-	// return;
+
+	getResult(bestSolution, result);
+	return;
 
 	// for (int i = 0; i < result_buff_length; i++) {
 	// 	int64_t packed = pack5IntToInt64(
