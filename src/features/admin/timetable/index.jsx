@@ -10,10 +10,11 @@ import validateTimetableVariables from '@validation/validateTimetableVariables';
 import { toast } from 'sonner';
 import ViolationList from '@components/Admin/ViolationList';
 import findInObject from '@utils/utils';
-import SubjectListContainer from '../../../components/Admin/SubjectListContainer';
-import ProgramListContainer from '../../../components/Admin/ProgramListContainer';
-import TeacherListContainer from '../../../components/Admin/TeacherListContainer';
-import SectionListContainer from '../../../components/Admin/SectionListContainer';
+import SubjectListContainer from '@components/Admin/SubjectListContainer';
+import ProgramListContainer from '@components/Admin/ProgramListContainer';
+import TeacherListContainer from '@components/Admin/TeacherListContainer';
+import SectionListContainer from '@components/Admin/SectionListContainer';
+import ExportImportDBButtons from '@components/Admin/ExportImportDBButtons';
 // import TeacherListDisplay from '@components/Admin/TeacherListDisplay';
 // import SubjectListDisplay from '@components/Admin/SubjectListDisplay';
 // import SectionListDisplay from '@components/Admin/SectionListDisplay';
@@ -354,23 +355,24 @@ function Timetable() {
 
   return (
     <div className="App container mx-auto px-4 mb-10">
+      <ExportImportDBButtons />
       <Configuration />
 
       <div className="flex gap-4">
         <div className="w-4/12">
-          <SubjectListContainer mode={1} />
+          <SubjectListContainer />
         </div>
         <div className="w-8/12">
-          <ProgramListContainer mode={1} />
+          <ProgramListContainer />
         </div>
       </div>
       <div className="mt-4 flex gap-4">
-        <div className="w-9/12">
-          <TeacherListContainer mode={1} />
+        <div className="w-full">
+          <TeacherListContainer />
         </div>
       </div>
       <div className="w-full ">
-        <SectionListContainer mode={1} />
+        <SectionListContainer />
         <button
           className={clsx('btn btn-primary w-full', {
             'cursor-not-allowed': timetableGenerationStatus === 'running',

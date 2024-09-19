@@ -232,7 +232,7 @@ const AddProgramContainer = ({
   );
 };
 
-const ProgramListContainer = ({ mode }) => {
+const ProgramListContainer = ({ editable = false }) => {
   const dispatch = useDispatch();
 
   const { programs, status: programStatus } = useSelector(
@@ -243,8 +243,10 @@ const ProgramListContainer = ({ mode }) => {
     (state) => state.subject
   );
 
-  const morningStartTime = localStorage.getItem('morningStartTime') || '06:00 AM';
-  const afternoonStartTime = localStorage.getItem('afternoonStartTime') || '01:00 PM';
+  const morningStartTime =
+    localStorage.getItem('morningStartTime') || '06:00 AM';
+  const afternoonStartTime =
+    localStorage.getItem('afternoonStartTime') || '01:00 PM';
 
   const [editProgramId, setEditProgramId] = useState(null);
   const [editProgramValue, setEditProgramValue] = useState('');
@@ -359,31 +361,31 @@ const ProgramListContainer = ({ mode }) => {
     // Dispatch updateSectionsForProgramYear for each year level (7 to 10)
     dispatch(
       updateSectionsForProgramYear({
-          programId,
-          yearLevel: 7,
-          newSubjects: editProgramCurr[7], // Subjects for Grade 7
+        programId,
+        yearLevel: 7,
+        newSubjects: editProgramCurr[7], // Subjects for Grade 7
       })
     );
     dispatch(
-        updateSectionsForProgramYear({
-            programId,
-            yearLevel: 8,
-            newSubjects: editProgramCurr[8], // Subjects for Grade 8
-        })
+      updateSectionsForProgramYear({
+        programId,
+        yearLevel: 8,
+        newSubjects: editProgramCurr[8], // Subjects for Grade 8
+      })
     );
     dispatch(
-        updateSectionsForProgramYear({
-            programId,
-            yearLevel: 9,
-            newSubjects: editProgramCurr[9], // Subjects for Grade 9
-        })
+      updateSectionsForProgramYear({
+        programId,
+        yearLevel: 9,
+        newSubjects: editProgramCurr[9], // Subjects for Grade 9
+      })
     );
     dispatch(
-        updateSectionsForProgramYear({
-            programId,
-            yearLevel: 10,
-            newSubjects: editProgramCurr[10], // Subjects for Grade 10
-        })
+      updateSectionsForProgramYear({
+        programId,
+        yearLevel: 10,
+        newSubjects: editProgramCurr[10], // Subjects for Grade 10
+      })
     );
 
     setEditProgramId(null);
@@ -483,7 +485,7 @@ const ProgramListContainer = ({ mode }) => {
               <th>Program ID</th>
               <th>Program</th>
               <th>Subjects</th>
-              {mode === 0 && <th className="text-right">Actions</th>}
+              {editable && <th className="text-right">Actions</th>}
             </tr>
           </thead>
           <tbody>
@@ -630,14 +632,15 @@ const ProgramListContainer = ({ mode }) => {
                     )}
                   </td>
 
-                  {mode === 0 
-                    && 
+                  {editable && (
                     <td className="flex justify-end gap-2">
                       {editProgramId === program.id ? (
                         <>
                           <button
                             className="btn btn-sm btn-outline"
-                            onClick={() => handleSaveProgramEditClick(program.id)}
+                            onClick={() =>
+                              handleSaveProgramEditClick(program.id)
+                            }
                           >
                             Save
                           </button>
@@ -665,16 +668,14 @@ const ProgramListContainer = ({ mode }) => {
                         </>
                       )}
                     </td>
-                  }
-                  
+                  )}
                 </tr>
               ))
             )}
           </tbody>
         </table>
       </div>
-      {mode === 0 
-        && 
+      {editable && (
         <div>
           {openAddProgramContainer ? (
             <AddProgramContainer
@@ -696,7 +697,7 @@ const ProgramListContainer = ({ mode }) => {
             </div>
           )}
         </div>
-      }
+      )}
     </React.Fragment>
   );
 };

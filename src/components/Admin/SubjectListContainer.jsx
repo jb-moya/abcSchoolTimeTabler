@@ -88,7 +88,7 @@ const AddSubjectContainer = ({
   );
 };
 
-const SubjectListContainer = ({ mode }) => {
+const SubjectListContainer = ({ editable = false }) => {
   const dispatch = useDispatch();
   const { subjects, status: subjectStatus } = useSelector(
     (state) => state.subject
@@ -192,7 +192,7 @@ const SubjectListContainer = ({ mode }) => {
             <th>Subject ID</th>
             <th>Subject</th>
             <th>Class Duration</th>
-            {mode === 0 && <th className="text-right">Actions</th>}
+            {editable && <th className="text-right">Actions</th>}
           </tr>
         </thead>
         <tbody>
@@ -240,8 +240,7 @@ const SubjectListContainer = ({ mode }) => {
                     `${getDurationEqualToIndex(subject.classDuration)} mins`
                   )}
                 </td>
-                {mode === 0 
-                  && 
+                {editable && (
                   <td className="w-28 text-right">
                     {editSubjectId === subject.id ? (
                       <>
@@ -275,15 +274,14 @@ const SubjectListContainer = ({ mode }) => {
                       </>
                     )}
                   </td>
-                }
-                
+                )}
               </tr>
             ))
           )}
         </tbody>
       </table>
       {/* Add Button */}
-      {mode === 0 && 
+      {editable && (
         <div>
           {openAddSubjectContainer ? (
             <AddSubjectContainer
@@ -305,8 +303,7 @@ const SubjectListContainer = ({ mode }) => {
             </div>
           )}
         </div>
-      }
-      
+      )}
     </div>
   );
 };
