@@ -31,8 +31,8 @@ const AddTeacherContainer = ({
     if (teacherName.trim()) {
       dispatch(
         reduxFunction({
-            [reduxField[0]]: teacherName,
-            [reduxField[1]]: selectedSubjects,
+          teacher: teacherName,
+          subjects: selectedSubjects,
         })
       );
 
