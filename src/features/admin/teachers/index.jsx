@@ -1,7 +1,7 @@
 import TeacherListContainer from '@components/Admin/TeacherListContainer';
 
 function Teachers() {
-  return <TeacherListContainer mode={0}/>;
+  return <TeacherListContainer editable={true} />;
 }
 
 export default Teachers;
