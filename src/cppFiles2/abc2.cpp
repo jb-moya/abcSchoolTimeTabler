@@ -27,9 +27,6 @@
 
 using namespace std;
 
-// #define TEST_MODE
-#define _DEBUG
-
 std::random_device rd;
 std::mt19937 randomizer_engine(rd());
 
@@ -146,7 +143,6 @@ void Timetable::updateTeachersTimeslots(
     std::unordered_set<int>& update_teachers,
     std::map<int, std::unordered_map<int, SchoolClass>>::iterator itLow,
     std::map<int, std::unordered_map<int, SchoolClass>>::iterator itUp,
-    bool is_skipping_between,
     bool is_returning_teachers,
     int16_t random_section,
     bool is_reset) {
@@ -171,7 +167,6 @@ void Timetable::updateTeachersTimeslots(
 				auto& teacher_timeslot = teachers_timeslots[teacher];
 
 				if (is_returning_teachers) {
-					// print("returning teacher", teacher);
 					update_teachers.insert(teacher);
 				}
 
@@ -357,7 +352,7 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 			}
 		}
 
-		updateTeachersTimeslots(update_teachers, schoolClasses[section_id].begin(), schoolClasses[section_id].end(), false, true, section_id, false);
+		updateTeachersTimeslots(update_teachers, schoolClasses[section_id].begin(), schoolClasses[section_id].end(), true, section_id, false);
 	}
 }
 
@@ -437,39 +432,9 @@ void Timetable::update(std::unordered_set<int>& update_teachers, std::unordered_
 	// print(schoolClasses[random_section][random_timeslot_1])
 
 	// print("Updating teachers timeslots", random_section, random_timeslot_1, random_timeslot_2, itLow->first, std::prev(itUp)->first);
-
-	int16_t random_timeslot_1_max_duration = 0;
-	int16_t random_timeslot_2_max_duration = 0;
-
-	// Compute max duration for random_timeslot_1
-	if (auto itLowDayZero = schoolClasses[random_section][itLow->first].find(0); itLowDayZero != schoolClasses[random_section][itLow->first].end()) {
-		int subject = itLowDayZero->second.subject_id;
-		random_timeslot_1_max_duration = (subject == -1) ? Timetable::break_time_duration : section_subjects_duration[random_section][subject];
-	} else {
-		for (const auto& day : itLow->second) {
-			if (day.second.subject_id != -1) {
-				random_timeslot_1_max_duration = std::max(random_timeslot_1_max_duration, section_subjects_duration[random_section][day.second.subject_id]);
-			}
-		}
-	}
-
-	auto itUpPrev = std::prev(itUp);
-	if (auto itUpDayZero = schoolClasses[random_section][itUpPrev->first].find(0); itUpDayZero != schoolClasses[random_section][itUpPrev->first].end()) {
-		int subject = itUpDayZero->second.subject_id;
-		random_timeslot_2_max_duration = (subject == -1) ? Timetable::break_time_duration : section_subjects_duration[random_section][subject];
-	} else {
-		for (const auto& day : itUpPrev->second) {
-			if (day.second.subject_id != -1) {
-				random_timeslot_2_max_duration = std::max(random_timeslot_2_max_duration, section_subjects_duration[random_section][day.second.subject_id]);
-			}
-		}
-	}
-
-	bool is_skipping_between = (random_timeslot_1_max_duration == random_timeslot_2_max_duration);
-
 	// print("he", itLow->first, itUpPrev->first);
 
-	updateTeachersTimeslots(update_teachers, itLow, itUp, is_skipping_between, false, random_section, true);
+	updateTeachersTimeslots(update_teachers, itLow, itUp, false, random_section, true);
 
 	auto& section = schoolClasses[random_section];
 
@@ -570,7 +535,7 @@ void Timetable::update(std::unordered_set<int>& update_teachers, std::unordered_
 		}
 	}
 
-	updateTeachersTimeslots(update_teachers, itLow, itUp, is_skipping_between, true, random_section, false);
+	updateTeachersTimeslots(update_teachers, itLow, itUp, true, random_section, false);
 };
 
 void ObjectiveFunction::evaluate(
@@ -1020,21 +985,14 @@ void runExperiment(
 
 	print("For function abcTestMine:", max_iterations, "iterations for each experiment.");
 
-	// print(MAGENTA_B, " -- FIRSTTTTTTTTTTTTT -- ", RESET);
-
-	// if (affected_teachers.has_value()) {
-	// 	std::cout << "Affected teachers: ";
-	// 	for (int id : affected_teachers.value()) {
-	// 		std::cout << id << " ";
-	// 	}
-	// 	std::cout << std::endl;
-	// } else {
-	// 	std::cout << "No affected teachers." << std::endl;
-	// }
-
 	Bee bestSolution(num_teachers);
 
 	std::unordered_set<int> affected_teachers;
+	std::unordered_set<int> affected_sections;
+
+	affected_teachers.reserve(num_teachers);
+	affected_sections.reserve(total_section);
+
 	print(MAGENTA_B, " -- FIRSTTTTTTTTTTTTT -- ");
 	bestSolution.timetable.initializeRandomTimetable(affected_teachers);
 	// optimizableFunction.evaluate(bestSolution, affected_teachers, Timetable::sections_set, false, true, Timetable::work_week, max_teacher_work_load, Timetable::break_time_duration);
@@ -1042,66 +1000,12 @@ void runExperiment(
 	printSchoolClasses(bestSolution.timetable.schoolClasses);
 	print(GREEN_B, " -- -- Best solution: cost ", RED_B, bestSolution.total_cost, GREEN_B, " -- -- ", RESET);
 
-	// print(MAGENTA_B, " -- 2nd -- ");
-	// std::unordered_set<int> affected_teachers2;
-
-	// bestSolution.timetable.update(affected_teachers2);
-	// optimizableFunction.evaluate(bestSolution, affected_teachers2, true, false, Timetable::work_week, max_teacher_work_load, Timetable::break_time_duration);
-	// printSchoolClasses(bestSolution.timetable.schoolClasses);
-	// print(bestSolution.total_cost);
-
-	// std::cout << bestSolution.total_cost << std::endl;
-	// printSchoolClasses(bestSolution.timetable.schoolClasses);
-
-	// for (int i = 0; i < bestSolution.teacherViolations.size(); i++) {
-	// 	print("teacher ", i, "class_timeslot_overlap violation ", bestSolution.teacherViolations[i].class_timeslot_overlap);
-	// 	print("teacher ", i, "teacher_exceed_workload violation ", bestSolution.teacherViolations[i].teacher_exceed_workload);
-	// 	print("teacher ", i, "teacher_have_no_break violation ", bestSolution.teacherViolations[i].teacher_have_no_break);
-	// }
-	// print("total cost ", bestSolution.total_cost);
-
-	// return;
-	// return;
-	// return;
 	print("For dfffffffffffffffff.");
-	print("For dfffffffffffffffff.");
-
-	// if (bestSolution.total_cost == 0) {
-	// 	print(RED, GREEN_BG, "JACKPOT F, T, bestSolution.total_cost << ", " << RESET, endl)
-	// printSchoolClasses(bestSolution.timetable.schoolClasses);
-	// 	print(RED, GREEN_BG, "JACKPOT F, T, bestSolution.total_cost << ", " << RESET, endl)
-	// system("cls");
-	// 	runExperiment(
-	// 	    max_iterations,
-	// 	    num_teachers,
-	// 	    total_section_subjects,
-	// 	    total_class_block,
-	// 	    total_section,
-	// 	    section_subjects,
-	// 	    section_subject_duration,
-	// 	    section_start,
-	// 	    teacher_subjects,
-	// 	    section_subject_units,
-	// 	    teacher_subjects_length,
-	// 	    beesPopulation,
-	// 	    beesEmployed,
-	// 	    beesOnlooker,
-	// 	    beesScout,
-	// 	    limit,
-	// 	    work_week,
-	// 	    max_teacher_work_load,
-	// 	    break_time_duration,
-	// 	    break_timeslot_allowance,
-	// 	    result_buff_length,
-	// 	    result);
-
-	// 	return;
-	// }
 
 	vector<Bee> beesVector(beesPopulation, Bee(num_teachers));
 
 	for (int i = 0; i < beesPopulation; i++) {
-		std::unordered_set<int> affected_teachers;
+		affected_teachers.clear();
 
 		beesVector[i].timetable.initializeRandomTimetable(affected_teachers);
 
@@ -1155,7 +1059,8 @@ void runExperiment(
 	auto start = std::chrono::high_resolution_clock::now();
 
 	for (int iter = 0; iter < max_iterations; iter++) {
-		// #pragma omp parallel for
+		int total_cost = 0;
+
 		for (int i = 0; i < beesEmployed; i++) {
 			int randomBeesIndex;
 			do {
@@ -1164,26 +1069,22 @@ void runExperiment(
 
 			Bee newBee = beesVector[randomBeesIndex];
 
-			std::unordered_set<int> affected_teachers;
-			std::unordered_set<int> affected_sections;
+			affected_teachers.clear();
+			affected_sections.clear();
 
 			newBee.timetable.update(affected_teachers, affected_sections);
 			optimizableFunction.evaluate(newBee, affected_teachers, affected_sections, false, false, Timetable::work_week, max_teacher_work_load, Timetable::break_time_duration);
 
-			{
-				if (newBee.total_cost <= beesVector[i].total_cost) {
-					beesVector[i] = newBee;
-				} else {
-					abandonedBees[i]++;
-				}
+			if (newBee.total_cost <= beesVector[i].total_cost) {
+				beesVector[i] = newBee;
+			} else {
+				abandonedBees[i]++;
 			}
+
+			total_cost += beesVector[i].total_cost;
 		}
 
-		double averageCost = 0;
-		for (int i = 0; i < beesEmployed; i++) {
-			averageCost += beesVector[i].total_cost;
-		}
-		averageCost /= beesEmployed;
+		double averageCost = total_cost / beesEmployed;
 
 		vector<double> fitnessValues(beesEmployed, 0);
 		double fSum = 0;
@@ -1210,23 +1111,21 @@ void runExperiment(
 			return static_cast<int>(prob.size() - 1);
 		};
 
-		// #pragma omp parallel for
 		for (int m = 0; m < beesOnlooker; m++) {
 			int i = fitnessProportionateSelection(prob);
 
-			int randomBeesIndex = rand() % beesEmployed;
-			while (randomBeesIndex == i) {
+			int randomBeesIndex;
+			do {
 				randomBeesIndex = rand() % beesEmployed;
-			}
+			} while (randomBeesIndex == i);
 
 			Bee newBee = beesVector[randomBeesIndex];
-			std::unordered_set<int> affected_teachers;
-			std::unordered_set<int> affected_sections;
+			affected_teachers.clear();
+			affected_sections.clear();
 
 			newBee.timetable.update(affected_teachers, affected_sections);
 			optimizableFunction.evaluate(newBee, affected_teachers, affected_sections, false, false, Timetable::work_week, max_teacher_work_load, Timetable::break_time_duration);
 
-			// #pragma omp critical
 			{
 				if (newBee.total_cost <= beesVector[i].total_cost) {
 					beesVector[i] = newBee;
@@ -1241,7 +1140,7 @@ void runExperiment(
 			for (int i = 0; i < beesEmployed; i++) {
 				if (abandonedBees[i] >= limit) {
 					Bee newBee(num_teachers);
-					std::unordered_set<int> affected_teachers;
+					affected_teachers.clear();
 
 					newBee.timetable.initializeRandomTimetable(affected_teachers);
 
