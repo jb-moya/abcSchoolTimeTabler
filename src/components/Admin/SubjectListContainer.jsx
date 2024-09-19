@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { useDispatch } from 'react-redux';
@@ -18,6 +18,7 @@ const AddSubjectContainer = ({
   reduxFunction,
   defaultSubjectClassDuration,
 }) => {
+  const inputNameRef = useRef();
   const dispatch = useDispatch();
 
   const [subjectName, setSubjectName] = useState('');
@@ -34,15 +35,50 @@ const AddSubjectContainer = ({
           classDuration: classDuration,
         })
       );
-      close();
+
+      // setSubjectName('');
+
+      if (inputNameRef.current) {
+        inputNameRef.current.focus();
+        inputNameRef.current.select();
+      }
+      // close();
     } else {
       alert('Subject name cannot be empty');
     }
   };
 
+  const handleReset = () => {
+    setSubjectName('');
+    setClassSubjectDuration(defaultSubjectClassDuration || 10);
+  };
+
+  useEffect(() => {
+    if (inputNameRef.current) {
+        inputNameRef.current.focus();
+    }
+  }, []);
+
   return (
-    <div className="p-4 border rounded-md shadow-md bg-white">
-      <h3 className="text-lg font-bold mb-4">Add New Subject</h3>
+    <div className="mb-3 p-4 border rounded-md shadow-md bg-white w-5/12 h-4/12">
+      <div className="flex justify-between">
+        <h3 className="text-lg font-bold mb-4">Add New Subject</h3>
+        <button className="btn btn-xs btn-circle btn-outline" onClick={close}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              className="inline-block w-4 h-4 stroke-current"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
+            </svg>
+        </button>
+      </div>
       <div className="mb-4">
         <label className="block text-sm font-medium mb-2">Subject Name:</label>
         <input
@@ -71,13 +107,15 @@ const AddSubjectContainer = ({
           min={10}
         />
       </div>
-      <div className="flex justify-end space-x-2">
-        <button className="btn btn-secondary" onClick={close}>
-          Cancel
+      <div className="flex justify-between">
+        <button className="btn btn-info bg-transparent border-0" onClick={handleReset}>
+            Reset
         </button>
-        <button className="btn btn-primary" onClick={handleAddSubject}>
-          Add Subject
-        </button>
+        <div className="flex justify-end space-x-2">
+            <button className="btn btn-primary" onClick={handleAddSubject}>
+                Add Subject
+            </button>
+        </div>
       </div>
     </div>
   );
@@ -97,7 +135,6 @@ const SubjectListContainer = ({ editable = false }) => {
   const [searchSubjectResult, setSearchSubjectResult] = useState(subjects);
   const [editSubjectValue, setEditSubjectValue] = useState('');
   const [editClassDuration, setEditClassDuration] = useState(0);
-  // const [subjectInputValue, setSubjectInputValue] = useState('');
   const [searchSubjectValue, setSearchSubjectValue] = useState('');
 
   const [openAddSubjectContainer, setOpenAddSubjectContainer] = useState(false);
@@ -128,16 +165,6 @@ const SubjectListContainer = ({ editable = false }) => {
     setEditSubjectValue('');
     setEditClassDuration(0);
   };
-
-  // const handleKeyDown = (e) => {
-  //     if (e.key === "Enter") {
-  //         e.preventDefault();
-  //         if (subjectInputValue.trim()) {
-  //             dispatch(addSubject({ subject: subjectInputValue }));
-  //             setSubjectInputValue("");
-  //         }
-  //     }
-  // };
 
   useEffect(() => {
     if (subjectStatus === 'idle') {

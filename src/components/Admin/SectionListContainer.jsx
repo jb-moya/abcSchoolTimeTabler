@@ -10,7 +10,6 @@ import {
 } from '@features/sectionSlice';
 import { fetchPrograms } from '@features/programSlice';
 import { fetchSubjects } from '@features/subjectSlice';
-import SearchableDropdownToggler from './searchableDropdown';
 import { getTimeSlotString, getTimeSlotIndex } from './timeSlotMapper';
 import { IoAdd, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
@@ -60,7 +59,24 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
       })
     );
 
-    close();
+    // setEditSectionValue(''); // Reset section name
+
+    if (inputNameRef.current) {
+      inputNameRef.current.focus();
+      inputNameRef.current.select();
+    }
+
+    // close();
+  };
+
+  const handleReset = () => {
+    setInputValue('');
+    setSelectedProgram('');
+    setSelectedYearLevel('');
+    setSelectedSubjects([]);
+    setSelectedShift(0);
+    setSelectedStartTime(0);
+    setSubjectUnits({});
   };
 
   useEffect(() => {
@@ -104,7 +120,6 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
     }
   }, [selectedSubjects]);
 
-
   useEffect(() => {
     if (programStatus === 'idle') {
       dispatch(fetchPrograms());
@@ -118,9 +133,9 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
   }, [subjectStatus, dispatch]);
 
   return (
-    <div className="card bg-base-200 p-4 my-5">
+    <div className="mb-3 p-4 border rounded-md shadow-md bg-white w-full h-3/12">
       <div className="flex justify-between">
-        <h1>Add {reduxField[0].toUpperCase()}</h1>
+        <h3 className="text-lg font-bold mb-4">ADD NEW {reduxField[0].toUpperCase()}</h3>
         <button className="btn btn-xs btn-circle btn-outline" onClick={close}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -190,7 +205,7 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
 
       <div className="mt-4">
         <div className="m-1">Selected Subjects: </div>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+        <div className="mb-3 grid grid-cols-2 gap-x-4 gap-y-2">
           {selectedSubjects.map((subjectID) => (
             <div key={subjectID} className="join">
               <div className="join-item w-72 bg-primary text-primary-content px-2 text-center content-center text-xs md:text-base leading-3">
@@ -238,10 +253,18 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
         </div>
       </div>
 
-      <button className="btn btn-primary mt-4" onClick={handleAddEntry}>
-        <div>Add {reduxField[0]}</div>
-        <IoAdd size={20} />
-      </button>
+      <div className="flex justify-between">
+          <button className="btn btn-info bg-transparent border-0" onClick={handleReset}>
+              Reset
+          </button>
+        <div className="flex justify-end space-x-2">
+          <button className="btn btn-primary mt-4" onClick={handleAddEntry}>
+            <div>Add {reduxField[0]}</div>
+            <IoAdd size={20} />
+          </button>
+        </div>
+      </div>
+      
     </div>
   );
 };
