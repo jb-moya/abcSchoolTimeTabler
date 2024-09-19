@@ -134,7 +134,6 @@ struct Timetable {
 	    std::unordered_set<int>& affected_teachers,
 	    std::map<int, std::unordered_map<int, SchoolClass>>::iterator itLow,
 	    std::map<int, std::unordered_map<int, SchoolClass>>::iterator itUp,
-	    bool is_skipping_between,
 	    bool is_returning_teachers,
 	    int16_t random_section,
 	    bool is_reset);

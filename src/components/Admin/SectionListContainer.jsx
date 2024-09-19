@@ -246,7 +246,7 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
   );
 };
 
-const SectionListContainer = ({ mode }) => {
+const SectionListContainer = ({ editable = false }) => {
   const dispatch = useDispatch();
   const { subjects, status: subjectStatus } = useSelector(
     (state) => state.subject
@@ -453,7 +453,7 @@ const SectionListContainer = ({ mode }) => {
               <th>Program</th>
               <th>Year</th>
               <th>Subjects</th>
-              {mode === 0 && <th className="text-right">Actions</th>}
+              {editable && <th className="text-right">Actions</th>}
             </tr>
           </thead>
           <tbody>
@@ -665,7 +665,7 @@ const SectionListContainer = ({ mode }) => {
                     )}
                   </td>
                   
-                  {mode === 0 
+                  {editable
                     &&
                     <td className="w-28 text-right">
                       {editSectionId === section.id ? (
@@ -709,7 +709,7 @@ const SectionListContainer = ({ mode }) => {
       </div>
 
       {/* Add button */}
-      {mode === 0 
+      {editable 
         &&
         <div>
           {openAddSectionContainer ? (

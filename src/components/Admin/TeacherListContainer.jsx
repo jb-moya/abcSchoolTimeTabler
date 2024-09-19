@@ -14,7 +14,7 @@ import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
 
-const TeacherListContainer = ({ mode }) => {
+const TeacherListContainer = ({ editable = false }) => {
   const dispatch = useDispatch();
 
   const { teachers, status: teacherStatus } = useSelector(
@@ -113,7 +113,7 @@ const TeacherListContainer = ({ mode }) => {
               <th>Teacher ID</th>
               <th>Teacher</th>
               <th>Subject Specialization</th>
-              {mode === 0 && <th className="text-right">Actions</th>}
+              {editable && <th className="text-right">Actions</th>}
             </tr>
           </thead>
           <tbody>
@@ -146,7 +146,7 @@ const TeacherListContainer = ({ mode }) => {
                       <SearchableDropdownToggler
                         selectedList={editTeacherCurr}
                         setSelectedList={setEditTeacherCurr}
-                        isEditMode={true}
+                        isEditeditable={true}
                       />
                     ) : (
                       subjectStatus === 'succeeded' &&
@@ -160,15 +160,16 @@ const TeacherListContainer = ({ mode }) => {
                       ))
                     )}
                   </td>
-                  
-                  {mode === 0 
-                    && 
+
+                  {editable && (
                     <td className="w-28 text-right">
                       {editTeacherId === teacher.id ? (
                         <>
                           <button
                             className="btn btn-xs btn-ghost text-green-500"
-                            onClick={() => handleSaveTeacherEditClick(teacher.id)}
+                            onClick={() =>
+                              handleSaveTeacherEditClick(teacher.id)
+                            }
                           >
                             Save
                           </button>
@@ -196,8 +197,7 @@ const TeacherListContainer = ({ mode }) => {
                         </>
                       )}
                     </td>
-                  }
-                  
+                  )}
                 </tr>
               ))
             )}
@@ -205,8 +205,7 @@ const TeacherListContainer = ({ mode }) => {
         </table>
       </div>
 
-      {mode === 0 
-        && 
+      {editable && (
         <div>
           {openAddTeacherContainer ? (
             <AddEntryContainer
@@ -228,8 +227,7 @@ const TeacherListContainer = ({ mode }) => {
             </div>
           )}
         </div>
-      }
-      
+      )}
     </React.Fragment>
   );
 };

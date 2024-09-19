@@ -39,14 +39,14 @@ void unpackInt32ToInt16(int32_t packed, int16_t& first, int16_t& second) {
 }
 
 void test_generate_timetable() {
-	int max_iterations = 10000;
-	int beesPopulation = 6;
-	int beesEmployed = 3;
-	int beesOnlooker = 3;
+	int max_iterations = 20000;
+	int beesPopulation = 8;
+	int beesEmployed = 4;
+	int beesOnlooker = 4;
 	int beesScout = 1;
 
-	int num_teachers = 20;
-	int total_section = 10;
+	int num_teachers = 50;
+	int total_section = 20;
 	int num_subjects = 10;
 
 	// t 120 sc 40 sb 10 dd 4 w 6 bd 3 - 25sec
@@ -114,8 +114,9 @@ void test_generate_timetable() {
 		}
 	}
 
-	// section_subject_units[0] = packInt16ToInt32(0, 4);
-	// section_subject_units[1] = packInt16ToInt32(1, 1);
+	section_subject_units[0] = packInt16ToInt32(0, 4);
+	section_subject_units[1] = packInt16ToInt32(1, 1);
+	section_subject_units[2] = packInt16ToInt32(2, 7);
 
 	// section_subject_duration[0] = packInt16ToInt32(0, 5);
 	// section_subject_duration[1] = packInt16ToInt32(1, 1);

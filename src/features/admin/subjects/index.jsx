@@ -17,15 +17,14 @@ function Subject() {
     <div className="App container mx-auto px-4 mb-10">
       <Configuration />
       {/* Table */}
-      
-      <div className="w-6/12">
-        <SubjectListContainer mode = {0}/>
-      </div>
-      
-      <div className="w-10/12">
-        <ProgramListContainer mode = {0} />
+
+      <div className="w-[100%]">
+        <SubjectListContainer editable={true} />
       </div>
 
+      <div className="w-[100%=">
+        <ProgramListContainer editable={true} />
+      </div>
     </div>
   );
 }
