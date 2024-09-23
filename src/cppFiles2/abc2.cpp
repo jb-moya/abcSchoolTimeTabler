@@ -438,127 +438,88 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 	}
 }
 
-int getRandomInRange(int n) {
-	// print("section timeslot", n);
+int Timetable::getRandomInRange(int n) {
 	std::uniform_int_distribution<int> distribution(0, n);
-	// print("v", distribution(engine));
 	return distribution(randomizer_engine);
 }
 
-void Timetable::modify(std::unordered_set<int>& update_teachers, std::unordered_set<int>& update_sections) {
-	int16_t choice = Timetable::s_random_field(randomizer_engine);
-	int16_t selected_section;
+std::pair<int, int> Timetable::pickRandomTimeslots(int selected_section, int field) {
 	int selected_timeslot_1;
 	int selected_timeslot_2;
 
-	// print(RED, "choice ", choice);
-
-	// getting random section
-	if (choice == 2) {
-		// std::cout << GREEN << "CHOICE 2" << RESET << std::endl;
-		// print("size", section_segmented_timeslot.size());
-
-		if (section_segmented_timeslot.size() == 0) {
-			std::uniform_int_distribution<> dis(0, 1);
-			selected_section = Timetable::s_random_section(randomizer_engine);
-			choice = dis(randomizer_engine);
-		} else {
-			// print("eh ?");
-			std::uniform_int_distribution<> dis(0, section_segmented_timeslot.size() - 1);
-			auto it = section_segmented_timeslot.begin();
-			std::advance(it, dis(randomizer_engine));
-
-			selected_section = it->first;
-			// print("random fffffffsection ", selected_section);
-		}
-
-	} else {
-		selected_section = Timetable::s_random_section(randomizer_engine);
-	}
-
-	if (choice == 0) {
-		update_sections.insert(selected_section);
-	}
-
-	// getting random timeslot
-	if (choice == 0) {
-		// int subject_id_1 = NULL;
-		// int subject_id_2 = NULL;
-
+	if (field == 0) {
 		do {
 			selected_timeslot_1 = getRandomInRange(s_section_timeslot[selected_section] - 1);
-			// subject_id_1 = schoolClasses[random_section][random_timeslot_1][0].subject_id;
 			selected_timeslot_2 = getRandomInRange(s_section_timeslot[selected_section] - 1);
-			// subject_id_2 = schoolClasses[random_section][random_timeslot_2][0].subject_id;
-
-			// print("random timeslot 1", random_timeslot_1, "random timeslot 2", random_timeslot_2, "subject id 1", subject_id_1, "subject id 2", subject_id_2);
 		} while (selected_timeslot_1 == selected_timeslot_2);
-
-		// ||
-		//     ((subject_id_1 == -1 || subject_id_2 == -1) && ((random_timeslot_1 == 0 || random_timeslot_1 == section_timeslot[random_section] - 1) ||
-		//                                                     (random_timeslot_2 == 0 || random_timeslot_2 == section_timeslot[random_section] - 1)))
-
-		// print("hehe");
-	} else if (choice == 1) {
+	} else if (field == 1) {
 		selected_timeslot_1 = getRandomInRange(s_section_timeslot[selected_section] - 1);
 		selected_timeslot_2 = selected_timeslot_1;
-	} else if (choice == 2) {
+	} else if (field == 2) {
 		std::vector<int16_t> timeslots;
-
 		for (const auto& entry : section_segmented_timeslot[selected_section]) {
 			timeslots.push_back(entry);
 		}
 
 		std::uniform_int_distribution<> dis2(0, timeslots.size() - 1);
-
-		int timeslot_index_1 = dis2(randomizer_engine);
-		int timeslot_index_2 = dis2(randomizer_engine);
-
-		selected_timeslot_1 = timeslots[timeslot_index_1];
-		selected_timeslot_2 = timeslots[timeslot_index_2];
+		selected_timeslot_1 = timeslots[dis2(randomizer_engine)];
+		selected_timeslot_2 = timeslots[dis2(randomizer_engine)];
 	}
 
+	return {selected_timeslot_1, selected_timeslot_2};
+}
 
+
+int16_t Timetable::pickRandomSection(int choice) {
+	if (choice == 2) {
+		if (section_segmented_timeslot.size() == 0) {
+			return Timetable::s_random_section(randomizer_engine);
+		} else {
+			std::uniform_int_distribution<> dis(0, section_segmented_timeslot.size() - 1);
+			auto it = section_segmented_timeslot.begin();
+			std::advance(it, dis(randomizer_engine));
+
+			return it->first;
+		}
+	}
+
+	return Timetable::s_random_section(randomizer_engine);
+}
+
+int16_t Timetable::pickRandomField() {
+	int16_t choice = Timetable::s_random_field(randomizer_engine);
+	if (choice == 2) {
+		if (section_segmented_timeslot.size() == 0) {
+			std::uniform_int_distribution<> dis(0, 1);
+			return dis(randomizer_engine);
+		}
+	}
+
+	return choice;
+}
+
+void Timetable::modify(std::unordered_set<int>& update_teachers, std::unordered_set<int>& update_sections) {
+	int16_t choice = Timetable::pickRandomField();
+	int16_t selected_section = Timetable::pickRandomSection(choice);
+	// print(RED, "choice ", choice);
+
+	if (choice == 0) {
+		update_sections.insert(selected_section);
+	}
+
+	auto selected_timeslots = pickRandomTimeslots(selected_section, choice);
+
+	int selected_timeslot_1 = selected_timeslots.first;
+	int selected_timeslot_2 = selected_timeslots.second;
 
 	auto itLow = school_classes[selected_section].lower_bound(std::min(selected_timeslot_1, selected_timeslot_2));
 	auto itUp = school_classes[selected_section].upper_bound(std::max(selected_timeslot_1, selected_timeslot_2));
 	auto itUpPrev = std::prev(itUp);
 
-	int16_t random_timeslot_1_max_duration = 0;
-	int16_t random_timeslot_2_max_duration = 0;
+	int duration_1 = school_class_time_range[selected_section][selected_timeslot_1].end - school_class_time_range[selected_section][selected_timeslot_1].start;
+	int duration_2 = school_class_time_range[selected_section][selected_timeslot_2].end - school_class_time_range[selected_section][selected_timeslot_2].start;
 
-	bool is_itLow_break = false;
-	bool is_itUpPrev_break = false;
-
-	if (auto itLowDayZero = school_classes[selected_section][itLow->first].find(0); itLowDayZero != school_classes[selected_section][itLow->first].end()) {
-		int subject = itLowDayZero->second.subject_id;
-
-		if (subject == -1) {
-			is_itLow_break = true;
-		}
-
-		random_timeslot_1_max_duration = is_itLow_break ? Timetable::break_time_duration : s_section_subjects_duration[selected_section][subject];
-	} else {
-		for (const auto& day : itLow->second) {
-			random_timeslot_1_max_duration = std::max(random_timeslot_1_max_duration, s_section_subjects_duration[selected_section][day.second.subject_id]);
-		}
-	}
-
-	if (auto itUpDayZero = school_classes[selected_section][itUpPrev->first].find(0); itUpDayZero != school_classes[selected_section][itUpPrev->first].end()) {
-		int subject = itUpDayZero->second.subject_id;
-
-		if (subject == -1) {
-			is_itUpPrev_break = true;
-		}
-
-		random_timeslot_2_max_duration = is_itUpPrev_break ? Timetable::break_time_duration : s_section_subjects_duration[selected_section][subject];
-	} else {
-		for (const auto& day : itUpPrev->second) {
-			random_timeslot_2_max_duration = std::max(random_timeslot_2_max_duration, s_section_subjects_duration[selected_section][day.second.subject_id]);
-		}
-	}
-
-	bool is_skipping_between = (random_timeslot_1_max_duration == random_timeslot_2_max_duration);
+	bool is_skipping_between = duration_1 == duration_2;
 
 	updateTeachersAndSections(update_teachers, itLow, itUp, false, is_skipping_between, selected_section, true);
 
@@ -570,17 +531,14 @@ void Timetable::modify(std::unordered_set<int>& update_teachers, std::unordered_
 		// std::cout << "swapping " << random_section << " " << random_timeslot_1 << " " << random_timeslot_2 << std::endl;
 		// print("bool", is_itLow_break, "bool", is_itUpPrev_break, "xx", random_timeslot_1, random_timeslot_2);
 
-		if (is_itLow_break && !is_itUpPrev_break) {
-			section_break_slots[selected_section].erase(itLow->first);
-			section_break_slots[selected_section].insert(itUpPrev->first);
+		auto& break_slots = section_break_slots[selected_section];
 
-			// print("erasing", itLow->first, "inserting", itUpPrev->first);
-
-		} else if (is_itUpPrev_break && !is_itLow_break) {
-			section_break_slots[selected_section].erase(itUpPrev->first);
-			section_break_slots[selected_section].insert(itLow->first);
-
-			// print("erasing", itUpPrev->first, "inserting", itLow->first);
+		if (break_slots.find(itLow->first) != break_slots.end() && break_slots.find(itUpPrev->first) == break_slots.end()) {
+			break_slots.erase(itLow->first);
+			break_slots.insert(itUpPrev->first);
+		} else if (break_slots.find(itUpPrev->first) != break_slots.end() && break_slots.find(itLow->first) == break_slots.end()) {
+			break_slots.erase(itUpPrev->first);
+			break_slots.insert(itLow->first);
 		}
 
 		std::swap(section[selected_timeslot_1], section[selected_timeslot_2]);

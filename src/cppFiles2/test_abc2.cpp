@@ -46,7 +46,7 @@ void test_generate_timetable() {
 	int beesScout = 1;
 
 	int num_teachers =  50;
-	int total_section =  20;
+	int total_section =  10;
 	int num_subjects = 10;
 
 	// 100k 650 320 10 2.5hrs

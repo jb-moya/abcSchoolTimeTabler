@@ -122,9 +122,11 @@ struct Timetable {
 	static void initializeTeacherSet(int teachers);
 	static void reset();
 
-	// section                           timeslot                days  subject/teacher
-	std::unordered_map<int16_t, std::map<int, std::unordered_map<int, SchoolClass>>> school_classes;
+	static int getRandomInRange(int n);
 
+	// section                  timeslot      days                    subject/teacher
+	std::unordered_map<int16_t, std::map<int, std::unordered_map<int, SchoolClass>>> school_classes;
+	// section                  timeslot
 	std::unordered_map<int16_t, std::unordered_map<int, ClassStartEnd>> school_class_time_range;
 
 	std::unordered_map<int16_t, std::set<int>> section_break_slots;
@@ -134,6 +136,10 @@ struct Timetable {
 	std::unordered_map<int16_t, std::unordered_set<int>> section_segmented_timeslot;
 	// day                      teachers
 	std::unordered_map<int16_t, std::vector<int>> teachers_class_count;
+
+	std::pair<int, int> pickRandomTimeslots(int selected_section, int field);
+	int16_t pickRandomField();
+	int16_t pickRandomSection(int field);
 
 	void initializeTeachersClass(int teachers);
 
