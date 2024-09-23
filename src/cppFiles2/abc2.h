@@ -74,6 +74,11 @@ struct SchoolClass {
 	int16_t teacher_id;
 };
 
+struct ClassStartEnd {
+	int start;
+	int end;
+};
+
 struct teacherViolation {
 	int class_timeslot_overlap;
 	int teacher_have_no_break;
@@ -91,6 +96,7 @@ struct Timetable {
 	static std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> section_subjects_duration;
 	static std::unordered_map<int16_t, std::vector<int16_t>> eligible_teachers_in_subject;
 	static std::unordered_map<int16_t, std::vector<int16_t>> section_subjects;
+	static std::unordered_map<int16_t, int> section_total_duration;
 	static std::unordered_map<int16_t, int> section_timeslot;
 	static std::unordered_map<int16_t, int> section_start;
 	static std::unordered_set<int> teachers_set;
@@ -117,6 +123,10 @@ struct Timetable {
 
 	// section                           timeslot                days  subject/teacher
 	std::unordered_map<int16_t, std::map<int, std::unordered_map<int, SchoolClass>>> schoolClasses;
+
+	std::unordered_map<int16_t, std::unordered_map<int, ClassStartEnd>> schoolClassStartEnd;
+
+	std::unordered_map<int16_t, std::set<int>> section_break_timeslots;
 	// teachers                 days                    classes (timeslot)
 	std::unordered_map<int16_t, std::unordered_map<int, std::map<int, int>>> teachers_timeslots;
 	// section                  timeslot
@@ -135,6 +145,7 @@ struct Timetable {
 	    std::map<int, std::unordered_map<int, SchoolClass>>::iterator itLow,
 	    std::map<int, std::unordered_map<int, SchoolClass>>::iterator itUp,
 	    bool is_returning_teachers,
+	    bool is_skipping_between,
 	    int16_t random_section,
 	    bool is_reset);
 };
@@ -197,6 +208,7 @@ void runExperiment(
 #ifdef __cplusplus
 }
 #endif
+
 
 std::vector<int> calculatePositions(
     std::vector<std::pair<int16_t, int16_t>> subjects_duration_map,
