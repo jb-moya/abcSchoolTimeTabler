@@ -629,26 +629,30 @@ void Timetable::update(std::unordered_set<int>& update_teachers, std::unordered_
 				section_timeslot[0] = SchoolClass{subject_id, random_teacher};
 			};
 		} else {
-			int8_t workday = Timetable::random_workDay(randomizer_engine);
-			int16_t subject_id = section_timeslot[workday].subject_id;
-			int16_t old_teacher = section_timeslot[workday].teacher_id;
-			std::uniform_int_distribution<> dis(0, eligible_teachers_in_subject[subject_id].size() - 1);
+			std::uniform_int_distribution<> dis_work_day(0, section_timeslot.size() - 1);
 
-			if (subject_id != -1) {
-				int16_t random_teacher;
+			int randomIndex = dis_work_day(randomizer_engine);
 
-				do {
-					random_teacher = eligible_teachers_in_subject[subject_id][dis(randomizer_engine)];
-				} while (random_teacher == old_teacher && eligible_teachers_in_subject[subject_id].size() > 1);
+			auto it = section_timeslot.begin();
+			std::advance(it, randomIndex);
 
-				for (int day = 1; day <= work_week; day++) {
-					teachers_class_count[day][old_teacher]--;
-					teachers_class_count[day][random_teacher]++;
-				}
+			int16_t subject_id = section_timeslot[it->first].subject_id;
+			int16_t old_teacher = section_timeslot[it->first].teacher_id;
 
-				// std::cout << subject_id << " old teacher : " << old_teacher << " <- workday : " << _staticcast<int>(workday) << " Randomized: " << random_section << " " << random_timeslot << " " << random_teacher << std::endl;
-				section_timeslot[workday] = SchoolClass{subject_id, random_teacher};
+			std::uniform_int_distribution<> dis(0, s_eligible_teachers_in_subject[subject_id].size() - 1);
+			int16_t random_teacher;
+
+			do {
+				random_teacher = s_eligible_teachers_in_subject[subject_id][dis(randomizer_engine)];
+			} while (random_teacher == old_teacher && s_eligible_teachers_in_subject[subject_id].size() > 1);
+
+			for (int day = 1; day <= work_week; day++) {
+				teachers_class_count[day][old_teacher]--;
+				teachers_class_count[day][random_teacher]++;
 			}
+
+			// std::cout << subject_id << " old teacher : " << old_teacher << " <- workday : " << _staticcast<int>(workday) << " Randomized: " << random_section << " " << random_timeslot << " " << random_teacher << std::endl;
+			section_timeslot[it->first] = SchoolClass{subject_id, random_teacher};
 		}
 	} else if (choice == 2) {
 		// std::cout << " : ( " << random_section << " " << random_timeslot_1 << " " << random_timeslot_2 << std::endl;
