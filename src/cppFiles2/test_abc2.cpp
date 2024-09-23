@@ -45,9 +45,9 @@ void test_generate_timetable() {
 	int beesOnlooker = 3;
 	int beesScout = 1;
 
-	int num_teachers =  120;
-	int total_section =  40 ;
-	int num_subjects = 10 ;
+	int num_teachers =  50;
+	int total_section =  20;
+	int num_subjects = 10;
 
 	// 100k 650 320 10 2.5hrs
 
@@ -123,8 +123,8 @@ void test_generate_timetable() {
 		}
 	}
 
-	// section_subject_units[0] = packInt16ToInt32(0, 1);
-	// section_subject_units[1] = packInt16ToInt32(1, 1);
+	section_subject_units[0] = packInt16ToInt32(0, 1);
+	section_subject_units[1] = packInt16ToInt32(1, 1);
 	// section_subject_units[2] = packInt16ToInt32(2, 7);
 
 	// section_subject_duration[0] = packInt16ToInt32(0, 5);
