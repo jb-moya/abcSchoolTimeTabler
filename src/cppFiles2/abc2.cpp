@@ -73,14 +73,29 @@ void printSchoolClasses(Timetable& timetable) {
 		std::cout << BLUE << "--------- - - Section: " << grade << RESET << std::endl;
 		int inner_count = 0;
 		for (const auto& [timeslot, classMap] : gradeMap) {
-			// std::cout << "size :  " << classMap.size() << std::endl;
 			for (const auto& [day, schoolClass] : classMap) {
+				int subject_id = schoolClass.subject_id;
+				int teacher_id = schoolClass.teacher_id;
+
 				std::cout << GREEN << "" << std::setw(4) << timeslot << RESET;
-				std::cout << YELLOW << "  d: " << std::setw(4) << day << RESET;
-				std::cout << RED << " s : " << std::setw(4) << schoolClass.subject_id << RESET;
-				std::cout << MAGENTA << " t : " << std::setw(4) << schoolClass.teacher_id << RESET;
-				std::cout << " r : " << std::setw(4) << timetable.schoolClassStartEnd[grade][timeslot].start << "_" << timetable.schoolClassStartEnd[grade][timeslot].end << " ";
-				std::cout << YELLOW_BG << std::setw(4) << ++inner_count << RESET << std::endl;
+				std::cout << YELLOW << DIM << "  d: " << RESET << YELLOW << std::setw(2) << ((day == 0) ? (CYAN + std::to_string(day)) : (std::string(YELLOW) + BOLD + std::to_string(day))) << RESET;
+
+				std::cout << RED << DIM << " s : " << RESET << RED
+				          << std::setw(3)  // Set width for the output
+				          << ((subject_id == -1) ? (std::string(" ") + DIM + std::to_string(subject_id)) : std::to_string(subject_id))
+				          << RESET;
+
+				// For teacher_id
+				std::cout << MAGENTA << DIM << " t : " << RESET << MAGENTA
+				          << std::setw(3)  // Set width for the output
+				          << ((teacher_id == -1) ? (std::string(" ") + DIM + std::to_string(teacher_id)) : std::to_string(teacher_id))
+				          << RESET;
+
+				std::cout << DIM << " r : " << RESET << std::setw(4) << timetable.schoolClassStartEnd[grade][timeslot].start << " ";
+				std::cout << std::setw(4) << timetable.schoolClassStartEnd[grade][timeslot].end << " " << RESET;
+				std::cout << BLUE_B << std::setw(4) << ++inner_count << RESET;
+
+				std::cout << std::endl;
 			}
 		}
 
