@@ -125,7 +125,29 @@ const AddProgramContainer = ({
         },
       })
     );
-    close();
+    // close();
+  };
+
+  const handleReset = () => {
+    setInputValue('');
+    setSelectedSubjects({
+      7: [],
+      8: [],
+      9: [],
+      10: [],
+    });
+    setSelectedShifts({
+      7: 'AM',
+      8: 'AM',
+      9: 'AM',
+      10: 'AM',
+    });
+    setStartTimes({
+      7: morningStartTime,
+      8: morningStartTime,
+      9: morningStartTime,
+      10: morningStartTime,
+    });
   };
 
   useEffect(() => {
@@ -135,9 +157,10 @@ const AddProgramContainer = ({
   }, []);
 
   return (
-    <div className="card bg-base-200 p-4 my-5">
+    <div className="mb-3 p-4 border rounded-md shadow-md bg-white w-7/12 h-3/12">
+      {/* Header section with centered "Add {reduxField}" and close button on the right */}
       <div className="flex justify-between">
-        <h1>Add {reduxField[0].toUpperCase()}</h1>
+        <h3 className="text-lg font-bold mb-4 text-center w-full">ADD {reduxField[0].toUpperCase()}</h3>
         <button className="btn btn-xs btn-circle btn-outline" onClick={close}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -154,24 +177,28 @@ const AddProgramContainer = ({
           </svg>
         </button>
       </div>
+  
+      {/* Input field for name */}
       <input
         type="text"
         ref={inputNameRef}
         placeholder={`${reduxField[0]} Name`}
         required
-        className="input input-bordered input-sm w-full max-w-xs"
+        className="input input-bordered input-sm w-full max-w-xs mb-3"
         value={inputValue}
         onChange={handleInputChange}
       />
-
-      <div className="flex flex-col">
+  
+      {/* Subject and shift management */}
+      <div className="">
         {[7, 8, 9, 10].map((grade) => (
           <div key={grade} className="my-3">
-            <h2>{`Grade ${grade}`}</h2>
+            <h3 className="text-lg font-bold mb-1">{`Grade ${grade}`}</h3>
+  
+            {/* Subject selection */}
             <div className="flex items-center">
               <div className="m-1">Selected Subjects: </div>
-              {selectedSubjects[grade] &&
-              Array.isArray(selectedSubjects[grade]) ? (
+              {selectedSubjects[grade] && Array.isArray(selectedSubjects[grade]) ? (
                 selectedSubjects[grade].map((subjectID) => (
                   <div key={subjectID} className="badge badge-secondary m-1">
                     {subjects[subjectID]?.subject || subjectID}
@@ -181,12 +208,13 @@ const AddProgramContainer = ({
                 <div>No subjects selected</div>
               )}
             </div>
-
+  
             <SearchableDropdownToggler
               selectedList={selectedSubjects[grade]}
               setSelectedList={(list) => handleSubjectSelection(grade, list)}
             />
-
+  
+            {/* Shift selection */}
             <div className="mt-2">
               <label className="mr-2">Shift:</label>
               <label className="mr-2">
@@ -210,6 +238,8 @@ const AddProgramContainer = ({
                 PM
               </label>
             </div>
+  
+            {/* Start time selection */}
             <div className="mt-2">
               <label className="mr-2">Start Time:</label>
               <select
@@ -223,13 +253,24 @@ const AddProgramContainer = ({
           </div>
         ))}
       </div>
-
-      <button className="btn btn-primary" onClick={handleAddEntry}>
-        <div>Add {reduxField[0]}</div>
-        <IoAdd size={20} />
-      </button>
+  
+      {/* Add button centered at the bottom */}
+      <div className="flex justify-between">
+          <button className="btn btn-info bg-transparent border-0" onClick={handleReset}>
+              Reset
+          </button>
+        <div className="flex justify-end space-x-2">
+          <div className="flex justify-center mt-4">
+          <button className="btn btn-primary flex items-center" onClick={handleAddEntry}>
+            <div>Add {reduxField[0]}</div>
+            <IoAdd size={20} className="ml-2" />
+          </button>
+      </div>
+        </div>
+      </div>
+      
     </div>
-  );
+  );  
 };
 
 const ProgramListContainer = ({ editable = false }) => {
