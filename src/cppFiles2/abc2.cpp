@@ -448,10 +448,25 @@ std::pair<int, int> Timetable::pickRandomTimeslots(int selected_section, int fie
 	int selected_timeslot_2;
 
 	if (field == 0) {
+		bool is_timeslot_1_at_start_or_end_of_schedule = false;
+		bool is_timeslot_2_at_start_or_end_of_schedule = false;
+
+		bool is_timeslot_1_break = false;
+		bool is_timeslot_2_break = false;
+
 		do {
 			selected_timeslot_1 = getRandomInRange(s_section_timeslot[selected_section] - 1);
 			selected_timeslot_2 = getRandomInRange(s_section_timeslot[selected_section] - 1);
-		} while (selected_timeslot_1 == selected_timeslot_2);
+
+			is_timeslot_1_at_start_or_end_of_schedule = selected_timeslot_1 == 0 || selected_timeslot_1 == s_section_timeslot[selected_section] - 1;
+			is_timeslot_2_at_start_or_end_of_schedule = selected_timeslot_2 == 0 || selected_timeslot_2 == s_section_timeslot[selected_section] - 1;
+
+			is_timeslot_1_break = section_break_slots[selected_section].find(selected_timeslot_1) != section_break_slots[selected_section].end();
+			is_timeslot_2_break = section_break_slots[selected_section].find(selected_timeslot_2) != section_break_slots[selected_section].end();
+		} while (selected_timeslot_1 == selected_timeslot_2 ||
+		         (is_timeslot_1_at_start_or_end_of_schedule && is_timeslot_2_break) ||
+		         (is_timeslot_2_at_start_or_end_of_schedule && is_timeslot_1_break));
+
 	} else if (field == 1) {
 		selected_timeslot_1 = getRandomInRange(s_section_timeslot[selected_section] - 1);
 		selected_timeslot_2 = selected_timeslot_1;
@@ -469,38 +484,25 @@ std::pair<int, int> Timetable::pickRandomTimeslots(int selected_section, int fie
 	return {selected_timeslot_1, selected_timeslot_2};
 }
 
-
-int16_t Timetable::pickRandomSection(int choice) {
-	if (choice == 2) {
-		if (section_segmented_timeslot.size() == 0) {
-			return Timetable::s_random_section(randomizer_engine);
-		} else {
-			std::uniform_int_distribution<> dis(0, section_segmented_timeslot.size() - 1);
-			auto it = section_segmented_timeslot.begin();
-			std::advance(it, dis(randomizer_engine));
-
-			return it->first;
-		}
-	}
-
+int16_t Timetable::pickRandomSection() {
 	return Timetable::s_random_section(randomizer_engine);
 }
 
-int16_t Timetable::pickRandomField() {
-	int16_t choice = Timetable::s_random_field(randomizer_engine);
-	if (choice == 2) {
-		if (section_segmented_timeslot.size() == 0) {
-			std::uniform_int_distribution<> dis(0, 1);
-			return dis(randomizer_engine);
-		}
-	}
+int16_t Timetable::pickRandomField(int16_t selected_section) {
+	auto it = section_segmented_timeslot.find(selected_section);
 
-	return choice;
+	if (it != section_segmented_timeslot.end()) {
+		return Timetable::s_random_field(randomizer_engine);
+	} else {
+		std::uniform_int_distribution<> dis(0, 1);
+
+		return dis(randomizer_engine);
+	}
 }
 
 void Timetable::modify(std::unordered_set<int>& update_teachers, std::unordered_set<int>& update_sections) {
-	int16_t choice = Timetable::pickRandomField();
-	int16_t selected_section = Timetable::pickRandomSection(choice);
+	int16_t selected_section = Timetable::pickRandomSection();
+	int16_t choice = Timetable::pickRandomField(selected_section);
 	// print(RED, "choice ", choice);
 
 	if (choice == 0) {
@@ -835,11 +837,11 @@ void ObjectiveFunction::evaluate(
 			int break_time = *section_break_time[section_id].begin();
 
 			if (section_class_start_end[section_id][break_time].end > bee.timetable.s_section_total_duration[section_id] - bee.timetable.break_timeslot_allowance) {
-				bee.section_violations[section_id].late_break++;
+				bee.section_violations[section_id].late_break += 1000;
 			}
 
 			if (section_class_start_end[section_id][break_time].start < bee.timetable.break_timeslot_allowance) {
-				bee.section_violations[section_id].early_break++;
+				bee.section_violations[section_id].early_break += 1000;
 			}
 		} else {
 			int first_break_time = *section_break_time[section_id].begin();
@@ -849,17 +851,17 @@ void ObjectiveFunction::evaluate(
 			int last_end = section_class_start_end[section_id][last_break_time].end;
 
 			if (last_end > bee.timetable.s_section_total_duration[section_id] - bee.timetable.break_timeslot_allowance) {
-				bee.section_violations[section_id].late_break++;
+				bee.section_violations[section_id].late_break += 1000;
 			}
 
 			if (first_start < bee.timetable.break_timeslot_allowance) {
-				bee.section_violations[section_id].early_break++;
+				bee.section_violations[section_id].early_break += 1000;
 			}
 
 			// print("DD", section_id, last_end - first_start);
 
 			if (last_end - first_start <= bee.timetable.break_timeslot_allowance) {
-				bee.section_violations[section_id].small_break_gap++;
+				bee.section_violations[section_id].small_break_gap += 1000;
 			}
 		}
 

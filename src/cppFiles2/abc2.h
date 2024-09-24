@@ -138,8 +138,8 @@ struct Timetable {
 	std::unordered_map<int16_t, std::vector<int>> teachers_class_count;
 
 	std::pair<int, int> pickRandomTimeslots(int selected_section, int field);
-	int16_t pickRandomField();
-	int16_t pickRandomSection(int field);
+	int16_t pickRandomField(int16_t section);
+	int16_t pickRandomSection();
 
 	void initializeTeachersClass(int teachers);
 
