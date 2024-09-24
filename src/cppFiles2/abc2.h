@@ -74,10 +74,15 @@ struct SchoolClass {
 	int16_t teacher_id;
 };
 
+struct ClassStartEnd {
+	int start;
+	int end;
+};
+
 struct teacherViolation {
 	int class_timeslot_overlap;
-	int teacher_have_no_break;
-	int teacher_exceed_workload;
+	int no_break;
+	int exceed_workload;
 };
 
 struct sectionViolation {
@@ -87,25 +92,27 @@ struct sectionViolation {
 };
 
 struct Timetable {
-	static std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>> section_subjects_units;
-	static std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> section_subjects_duration;
-	static std::unordered_map<int16_t, std::vector<int16_t>> eligible_teachers_in_subject;
-	static std::unordered_map<int16_t, std::vector<int16_t>> section_subjects;
-	static std::unordered_map<int16_t, int> section_timeslot;
-	static std::unordered_map<int16_t, int> section_start;
-	static std::unordered_set<int> teachers_set;
-	static std::unordered_set<int> sections_set;
-	static std::vector<int> section_num_breaks;
 	static int break_timeslot_allowance;
 	static int teacher_break_threshold;
 	static int default_class_duration;
 	static int break_time_duration;
 	static int work_week;
 
-	static std::uniform_int_distribution<int16_t> random_class_block;
-	static std::uniform_int_distribution<int16_t> random_section;
-	static std::uniform_int_distribution<int8_t> random_workDay;
-	static std::uniform_int_distribution<int16_t> random_field;
+	static std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>> s_section_subjects_units;
+	static std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> s_section_subjects_duration;
+	static std::unordered_map<int16_t, std::vector<int16_t>> s_eligible_teachers_in_subject;
+	static std::unordered_map<int16_t, std::vector<int16_t>> s_section_subjects;
+	static std::unordered_map<int16_t, int> s_section_total_duration;
+	static std::unordered_map<int16_t, int> s_section_timeslot;
+	static std::unordered_map<int16_t, int> s_section_start;
+	static std::unordered_set<int> s_teachers_set;
+	static std::unordered_set<int> s_sections_set;
+	static std::vector<int> s_section_num_breaks;
+
+	static std::uniform_int_distribution<int16_t> s_random_class_block;
+	static std::uniform_int_distribution<int16_t> s_random_section;
+	static std::uniform_int_distribution<int8_t> s_random_workDay;
+	static std::uniform_int_distribution<int16_t> s_random_field;
 
 	static void initializeRandomClassBlockDistribution(int min, int max);
 	static void initializeRandomWorkDayDistribution(int min, int max);
@@ -115,8 +122,14 @@ struct Timetable {
 	static void initializeTeacherSet(int teachers);
 	static void reset();
 
-	// section                           timeslot                days  subject/teacher
-	std::unordered_map<int16_t, std::map<int, std::unordered_map<int, SchoolClass>>> schoolClasses;
+	static int getRandomInRange(int n);
+
+	// section                  timeslot      days                    subject/teacher
+	std::unordered_map<int16_t, std::map<int, std::unordered_map<int, SchoolClass>>> school_classes;
+	// section                  timeslot
+	std::unordered_map<int16_t, std::unordered_map<int, ClassStartEnd>> school_class_time_range;
+
+	std::unordered_map<int16_t, std::set<int>> section_break_slots;
 	// teachers                 days                    classes (timeslot)
 	std::unordered_map<int16_t, std::unordered_map<int, std::map<int, int>>> teachers_timeslots;
 	// section                  timeslot
@@ -124,41 +137,46 @@ struct Timetable {
 	// day                      teachers
 	std::unordered_map<int16_t, std::vector<int>> teachers_class_count;
 
+	std::pair<int, int> pickRandomTimeslots(int selected_section, int field);
+	int16_t pickRandomField(int16_t section);
+	int16_t pickRandomSection();
+
 	void initializeTeachersClass(int teachers);
 
 	void initializeRandomTimetable(std::unordered_set<int>& update_teachers);
 
-	void update(std::unordered_set<int>& affected_teachers, std::unordered_set<int>& affected_sections);
+	void modify(std::unordered_set<int>& affected_teachers, std::unordered_set<int>& affected_sections);
 
-	void updateTeachersTimeslots(
+	void updateTeachersAndSections(
 	    std::unordered_set<int>& affected_teachers,
 	    std::map<int, std::unordered_map<int, SchoolClass>>::iterator itLow,
 	    std::map<int, std::unordered_map<int, SchoolClass>>::iterator itUp,
 	    bool is_returning_teachers,
+	    bool is_skipping_between,
 	    int16_t random_section,
 	    bool is_reset);
 };
 
 struct Bee {
 	Timetable timetable;
-	std::vector<teacherViolation> teacherViolations;
-	std::vector<sectionViolation> sectionViolations;
+	std::vector<teacherViolation> teacher_violations;
+	std::vector<sectionViolation> section_violations;
 	int total_cost;
 
 	void resetTeacherViolation(int teacher_id) {
-		teacherViolations[teacher_id].class_timeslot_overlap = 0;
-		teacherViolations[teacher_id].teacher_have_no_break = 0;
-		teacherViolations[teacher_id].teacher_exceed_workload = 0;
+		teacher_violations[teacher_id].class_timeslot_overlap = 0;
+		teacher_violations[teacher_id].no_break = 0;
+		teacher_violations[teacher_id].exceed_workload = 0;
 	}
 
 	void resetSectionViolation(int section_id) {
-		sectionViolations[section_id].early_break = 0;
-		sectionViolations[section_id].small_break_gap = 0;
-		sectionViolations[section_id].late_break = 0;
+		section_violations[section_id].early_break = 0;
+		section_violations[section_id].small_break_gap = 0;
+		section_violations[section_id].late_break = 0;
 	}
 
-	Bee(int num_teachers) : teacherViolations(num_teachers),
-	                        sectionViolations(num_teachers),
+	Bee(int num_teachers) : teacher_violations(num_teachers),
+	                        section_violations(num_teachers),
 	                        total_cost(std::numeric_limits<int>::max()) {
 		timetable.initializeTeachersClass(num_teachers);
 	}
@@ -179,12 +197,12 @@ void runExperiment(
     int32_t* teacher_subjects,
     int32_t* section_subject_units,
     int teacher_subjects_length,
-    int beesPopulation,
-    int beesEmployed,
-    int beesOnlooker,
-    int beesScout,
+    int bees_population,
+    int bees_employed,
+    int bees_onlooker,
+    int bees_scout,
     int limit,
-    int workweek,
+    int work_week,
     int max_teacher_work_load,
     int break_time_duration,
     int break_timeslot_allowance,
