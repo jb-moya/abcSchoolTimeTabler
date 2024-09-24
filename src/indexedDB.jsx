@@ -1,5 +1,6 @@
 import { openDB } from 'idb';
 import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
 
 export const DB_NAME = 'abcTimetable';
 const DB_VERSION = 1;
@@ -229,26 +230,54 @@ export const downloadData = (jsonData, fileName) => {
   URL.revokeObjectURL(url);
 };
 
-export const loadFile = () => {
+export const loadFile = (format) => {
   return new Promise((resolve, reject) => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'application/json';
-
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = format === "excel" ? ".xlsx, .xls" : ".json";
+    
     input.onchange = (event) => {
       const file = event.target.files[0];
+
+      if (!file) {
+        reject("No file selected");
+        return;
+      }
+
       const reader = new FileReader();
 
       reader.onload = (e) => {
-        resolve(e.target.result);
-      };
-      reader.onerror = () => {
-        reject('Error reading file');
+        const data = e.target.result;
+
+        if (format === "json") {
+          resolve(data);
+        } else if (format === "excel") {
+          try {
+            const workbook = XLSX.read(new Uint8Array(data), { type: "array" });
+            const allSheetsData = {};
+
+            // Iterate over all sheet names in the workbook
+            workbook.SheetNames.forEach((sheetName) => {
+              const sheet = workbook.Sheets[sheetName];
+              const sheetData = XLSX.utils.sheet_to_json(sheet);
+              allSheetsData[sheetName] = sheetData;
+            });
+
+            resolve(allSheetsData);
+          } catch (error) {
+            reject("Invalid Excel file");
+          }
+        }
       };
 
-      reader.readAsText(file);
+      if (format === "json") {
+        reader.readAsText(file);
+      } else if (format === "excel") {
+        reader.readAsArrayBuffer(file);
+      }
     };
 
     input.click();
   });
 };
+
