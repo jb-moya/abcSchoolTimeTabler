@@ -39,29 +39,41 @@ void unpackInt32ToInt16(int32_t packed, int16_t& first, int16_t& second) {
 }
 
 void test_generate_timetable() {
-	int max_iterations = 20000;
-	int beesPopulation = 6;
-	int beesEmployed = 3;
-	int beesOnlooker = 3;
+	int max_iterations = 100000;
+	int beesPopulation = 4;
+	int beesEmployed = 2;
+	int beesOnlooker = 2;
 	int beesScout = 1;
 
-	int num_teachers =  120;
-	int total_section =  40 ;
-	int num_subjects = 10 ;
+	int num_teachers = 50;
+	int total_section = 20;
+	int num_subjects = 10;
+
+	// 700 t - 320 s - 10 sb - 56mins
 
 	// 100k 650 320 10 2.5hrs
 
 	// t 120 sc 40 sb 10 dd 4 w 6 bd 3 - 25sec
 
-	// 640/320/10 56 cost 63 mins
 
+	// 50/20/10: 6 to 19
+
+	// 640/320/10 56 cost 63 mins
+// is there a way to put async function that execute in parallel
 	//
 	//                before  98 - 89 - 48 - 41 - 53 seconds
 	//                now     94 - 60 - 25 - 22 - 23- 27 - 35 - 36 - 39
 	//                        V
-	// 9 15 30  45   50    60 120
-	// 3 5  10  15   20    20 40   320
-	// 3 3  6    9   10    12 10   10
+	// 9 15 30  45  50  50    60 120
+	// 3 5  10  15  5   20    20 40   320
+	// 3 3  6    9  10  10    12 10   10
+
+
+
+	// TODO: something
+
+
+
 
 	// int limit = total_section * num_subjects;
 	int limit = total_section * num_teachers;
@@ -123,7 +135,7 @@ void test_generate_timetable() {
 		}
 	}
 
-	section_subject_units[0] = packInt16ToInt32(0, 1);
+	// section_subject_units[0] = packInt16ToInt32(0, 1);
 	// section_subject_units[1] = packInt16ToInt32(1, 1);
 	// section_subject_units[2] = packInt16ToInt32(2, 7);
 

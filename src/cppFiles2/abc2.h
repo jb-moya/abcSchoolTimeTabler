@@ -92,11 +92,11 @@ struct sectionViolation {
 };
 
 struct Timetable {
-	static int break_timeslot_allowance;
-	static int teacher_break_threshold;
-	static int default_class_duration;
-	static int break_time_duration;
-	static int work_week;
+	static int s_break_timeslot_allowance;
+	static int s_teacher_break_threshold;
+	static int s_default_class_duration;
+	static int s_break_time_duration;
+	static int s_work_week;
 
 	static std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>> s_section_subjects_units;
 	static std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> s_section_subjects_duration;
@@ -149,8 +149,8 @@ struct Timetable {
 
 	void updateTeachersAndSections(
 	    std::unordered_set<int>& affected_teachers,
-	    std::map<int, std::unordered_map<int, SchoolClass>>::iterator itLow,
-	    std::map<int, std::unordered_map<int, SchoolClass>>::iterator itUp,
+	    std::map<int, std::unordered_map<int, SchoolClass>>::iterator iter_start,
+	    std::map<int, std::unordered_map<int, SchoolClass>>::iterator iter_end,
 	    bool is_returning_teachers,
 	    bool is_skipping_between,
 	    int16_t random_section,
