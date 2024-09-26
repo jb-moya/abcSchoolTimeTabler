@@ -82,13 +82,13 @@ void printSchoolClasses(Timetable& timetable) {
 
 				std::cout << RED << DIM << " s : " << RESET << RED
 				          << std::setw(3)  // Set width for the output
-				          << ((subject_id == -1) ? (std::string(" ") + DIM + std::to_string(subject_id)) : std::to_string(subject_id))
+				          << ((subject_id == -1) ? (std::string(" ") + DIM + "/\\") : std::to_string(subject_id))
 				          << RESET;
 
 				// For teacher_id
 				std::cout << MAGENTA << DIM << " t : " << RESET << MAGENTA
 				          << std::setw(3)  // Set width for the output
-				          << ((teacher_id == -1) ? (std::string(" ") + DIM + std::to_string(teacher_id)) : std::to_string(teacher_id))
+				          << ((teacher_id == -1) ? (std::string(" ") + DIM + "/\\") : std::to_string(teacher_id))
 				          << RESET;
 
 				std::cout << DIM << " r : " << RESET << std::setw(4) << timetable.school_class_time_range[grade][timeslot].start << " ";
@@ -127,23 +127,24 @@ std::uniform_int_distribution<int8_t> Timetable::s_random_workDay;
 std::uniform_int_distribution<int16_t> Timetable::s_random_field;
 
 void Timetable::reset() {
-	s_section_subjects_units.clear();
-	s_section_subjects_duration.clear();
 	s_eligible_teachers_in_subject.clear();
+	s_section_subjects_duration.clear();
+	s_section_subjects_units.clear();
+	s_section_num_breaks.clear();
 	s_section_subjects.clear();
 	s_section_timeslot.clear();
 	s_section_start.clear();
 	s_teachers_set.clear();
 	s_sections_set.clear();
-	s_section_num_breaks.clear();
+
 	s_break_time_duration = 0;
 	s_work_week = 0;
 
 	// Reinitialize the distributions with default ranges
 	initializeRandomClassBlockDistribution(0, 0);
 	initializeRandomSectionDistribution(0, 0);
-	initializeRandomFieldDistribution(0, 0);
 	initializeRandomWorkDayDistribution(0, 0);
+	initializeRandomFieldDistribution(0, 0);
 }
 
 void Timetable::initializeTeachersClass(int teachers) {
@@ -326,23 +327,16 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 		int num_breaks = Timetable::s_section_num_breaks[section_id];
 
 		for (int i = 0; i < num_breaks; ++i) {
-			// TODO: have some way of optimizing this
+			int break_slot = (Timetable::s_section_timeslot[section_id] / (num_breaks + 1)) * (i + 1);
 
-			std::uniform_int_distribution<> dist(1, timeslot_keys.size() - 2);  // ignore first and last
-			int random_index = dist(randomizer_engine);
+			timeslot_keys.erase(std::remove(timeslot_keys.begin(), timeslot_keys.end(), break_slot), timeslot_keys.end());
 
-			// int random_index = timeslot_keys.size() / 2;
+			school_classes[section_id][break_slot][0] = SchoolClass{-1, -1};
 
-			int timeslot_key = timeslot_keys[random_index];
-			timeslot_keys.erase(timeslot_keys.begin() + random_index);
+			section_break_slots[section_id].insert(break_slot);
 
-			school_classes[section_id][timeslot_key][0] = SchoolClass{-1, -1};
-
-			section_break_slots[section_id].insert(timeslot_key);
-
-			timeslots.erase(timeslot_key);
+			timeslots.erase(break_slot);
 		}
-		// print("tttttttttttt");
 
 		std::shuffle(timeslot_keys.begin(), timeslot_keys.end(), randomizer_engine);
 

@@ -39,27 +39,42 @@ void unpackInt32ToInt16(int32_t packed, int16_t& first, int16_t& second) {
 }
 
 void test_generate_timetable() {
+	// TODO: dynamic max_iterations base on config'
 	int max_iterations = 100000;
 	int beesPopulation = 4;
 	int beesEmployed = 2;
 	int beesOnlooker = 2;
 	int beesScout = 1;
 
-	int num_teachers = 50;
-	int total_section = 20;
+	int num_teachers = 670;
+	int total_section = 320;
 	int num_subjects = 10;
 
+	// might TODO: make report log upon completion
+
 	// 700 t - 320 s - 10 sb - 56mins
+
+	// --------------------------
+	// with suggested break slot implementation
+	// 700 t - 320 s - 10 sb - 4.5 to 9mins at <12k iteration
+	// no segmented timeslot
+	// 0;
+	// 2;
+	// 5;
+	// 1;
+	// 6;
+	// 4;
+	// 10;
+	// --------------------------
 
 	// 100k 650 320 10 2.5hrs
 
 	// t 120 sc 40 sb 10 dd 4 w 6 bd 3 - 25sec
 
-
 	// 50/20/10: 6 to 19
 
 	// 640/320/10 56 cost 63 mins
-// is there a way to put async function that execute in parallel
+	// is there a way to put async function that execute in parallel
 	//
 	//                before  98 - 89 - 48 - 41 - 53 seconds
 	//                now     94 - 60 - 25 - 22 - 23- 27 - 35 - 36 - 39
@@ -68,18 +83,11 @@ void test_generate_timetable() {
 	// 3 5  10  15  5   20    20 40   320
 	// 3 3  6    9  10  10    12 10   10
 
-
-
-	// TODO: something
-
-
-
-
 	// int limit = total_section * num_subjects;
 	int limit = total_section * num_teachers;
 
 	// int break_timeslot_allowance = 12;
-	int default_units = 0;  // 0 means everyday
+	int default_units = 0;
 	// int default_duration = 1;
 	// int default_duration = 4;
 	int default_class_duration = 2;
