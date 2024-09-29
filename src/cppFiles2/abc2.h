@@ -242,6 +242,10 @@ struct ObjectiveFunction {
 	    std::unordered_set<int>& update_sections,
 	    bool show_penalty,
 	    bool is_initial);
+
+	static void logConflicts(
+	    Bee& bee,
+	    std::ofstream& log_file);
 };
 
 #endif  // ABC_H

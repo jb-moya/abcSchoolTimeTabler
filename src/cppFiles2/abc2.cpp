@@ -744,9 +744,6 @@ void ObjectiveFunction::evaluate(
     std::unordered_set<int>& update_sections,
     bool show_penalty,
     bool is_initial) {
-	// std::cout << "Evaluating ........" << std::endl;
-	// print("titeng bee", bee.total_cost);
-
 	int counter = 0;
 
 	auto& teachers_timetable = bee.timetable.teachers_timeslots;
@@ -756,7 +753,6 @@ void ObjectiveFunction::evaluate(
 	}
 
 	for (const int& teacher_id : update_teachers) {
-		// print("x teacher_id", teacher_id);
 		auto it = teachers_timetable.find(teacher_id);
 
 		if (!is_initial) {
@@ -915,6 +911,129 @@ void ObjectiveFunction::evaluate(
 		bee.total_cost += bee.section_violations[section_id].small_break_gap;
 		bee.total_cost += bee.section_violations[section_id].late_break;
 	}
+};
+
+void ObjectiveFunction::logConflicts(
+    Bee& bee,
+    std::ofstream& log_file) {
+	auto& teachers_timetable = bee.timetable.teachers_timeslots;
+
+	teacherViolation total_teacher_violation = {0, 0, 0};
+	sectionViolation total_section_violation = {0, 0, 0};
+
+	for (const int& teacher_id : bee.timetable.s_teachers_set) {
+		auto it = teachers_timetable.find(teacher_id);
+
+		if (it == teachers_timetable.end()) {
+			continue;
+		}
+
+		const auto& teacher_id_and_days = teachers_timetable.at(teacher_id);
+
+		const int max_teacher_work_load = bee.timetable.s_max_teacher_work_load;
+		const int break_time_duration = bee.timetable.s_break_time_duration;
+
+		for (const auto& [day, timeslot] : teacher_id_and_days) {
+			if (bee.timetable.teachers_class_count[day][teacher_id] > max_teacher_work_load) {
+				total_teacher_violation.exceed_workload++;
+			}
+
+			if (timeslot.size() == 0) {
+				continue;
+			}
+
+			auto it = timeslot.begin();
+			auto nextIt = std::next(it);
+
+			std::set<int> teacher_available_timeslot;
+
+			auto lastElement = --timeslot.end();
+			int middle = (timeslot.begin()->first + lastElement->first) / 2;
+			int min_allowance = middle - bee.timetable.s_default_class_duration;
+			int max_allowance = middle + bee.timetable.s_default_class_duration;
+			bool break_found = false;
+
+			while (it != timeslot.end()) {
+				int timeslot_key = it->first;
+				int class_count = it->second;
+
+				if (nextIt != timeslot.end() && !break_found) {
+					int nextKey = nextIt->first;
+					int difference = nextKey - timeslot_key - 1;
+					if (difference >= break_time_duration) {
+						if ((min_allowance <= timeslot_key + 1 && timeslot_key + 1 <= max_allowance) ||
+						    (min_allowance <= nextKey - 1 && nextKey - 1 <= max_allowance)) {
+							break_found = true;
+						}
+					}
+				}
+
+				if (class_count > 1) {
+					total_teacher_violation.class_timeslot_overlap += class_count;
+				}
+
+				it = nextIt;
+				if (nextIt != timeslot.end()) {
+					++nextIt;
+				}
+			}
+
+			if (!break_found && bee.timetable.teachers_class_count[day][teacher_id] >= bee.timetable.s_teacher_break_threshold) {
+				total_teacher_violation.no_break++;
+			}
+		}
+	}
+
+	auto& sections_timetable = bee.timetable.school_classes;
+	auto& section_class_start_end = bee.timetable.school_class_time_range;
+	auto& section_break_time = bee.timetable.section_break_slots;
+
+	for (const int& section_id : bee.timetable.s_sections_set) {
+		auto it = sections_timetable.find(section_id);
+
+		if (section_break_time[section_id].size() == 1) {
+			int break_time = *section_break_time[section_id].begin();
+
+			if (section_class_start_end[section_id][break_time].end > bee.timetable.s_section_total_duration[section_id] - bee.timetable.s_break_timeslot_allowance) {
+				total_section_violation.late_break++;
+			}
+
+			if (section_class_start_end[section_id][break_time].start < bee.timetable.s_break_timeslot_allowance) {
+				total_section_violation.early_break++;
+			}
+		} else {
+			int first_break_time = *section_break_time[section_id].begin();
+			int last_break_time = *section_break_time[section_id].rbegin();
+
+			int first_start = section_class_start_end[section_id][first_break_time].start;
+			int last_end = section_class_start_end[section_id][last_break_time].end;
+
+			if (last_end > bee.timetable.s_section_total_duration[section_id] - bee.timetable.s_break_timeslot_allowance) {
+				total_section_violation.late_break++;
+			}
+
+			if (first_start < bee.timetable.s_break_timeslot_allowance) {
+				total_section_violation.early_break++;
+			}
+
+			if (last_end - first_start <= bee.timetable.s_break_timeslot_allowance) {
+				total_section_violation.small_break_gap++;
+			}
+		}
+	}
+
+	log_file << "Conflicts: " << std::endl;
+	log_file << "Teacher: " << std::endl;
+	log_file << "class timeslot overlap: " << total_teacher_violation.class_timeslot_overlap << std::endl;
+	log_file << "no break: " << total_teacher_violation.no_break << std::endl;
+	log_file << "exceed workload: " << total_teacher_violation.exceed_workload << std::endl;
+	log_file << std::endl;
+
+	log_file << "Section: " << std::endl;
+	log_file << "late break: " << total_section_violation.late_break << std::endl;
+	log_file << "early break: " << total_section_violation.early_break << std::endl;
+	log_file << "small break gap: " << total_section_violation.small_break_gap << std::endl;
+	log_file << std::endl;
 };
 
 int64_t pack5IntToInt64(int16_t a, int16_t b, int16_t c, int8_t d, int8_t e) {
@@ -1310,7 +1429,7 @@ void runExperiment(
 	if (enable_logging) {
 		std::ofstream txt_file("logs/" + date + "-" + time + "-" + std::to_string(num_teachers) + "-" + std::to_string(total_section) + "-" + std::to_string(best_solution.total_cost) + "timetable.txt");
 		printSchoolClasses(best_solution.timetable, txt_file);
-		printCosts(costs, txt_file);
+		evaluator.logConflicts(best_solution, txt_file);
 		txt_file << "----------------------------------------------------------------------" << std::endl;
 		txt_file << "Best solution: " << std::endl;
 		txt_file << "Total cost: " << best_solution.total_cost << std::endl;
@@ -1327,6 +1446,7 @@ void runExperiment(
 		txt_file << "Time: " << time << std::endl;
 		txt_file << "----------------------------------------------------------------------" << std::endl;
 
+		printCosts(costs, txt_file);
 		txt_file.close();
 	}
 

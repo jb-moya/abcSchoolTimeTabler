@@ -40,18 +40,15 @@ void unpackInt32ToInt16(int32_t packed, int16_t& first, int16_t& second) {
 
 void test_generate_timetable() {
 	// TODO: dynamic max_iterations base on config'
-	int max_iterations = 80000;
+	int max_iterations = 8000;
 	int beesPopulation = 4;
 	int beesEmployed = 2;
 	int beesOnlooker = 2;
 	int beesScout = 1;
-	// test test test test test
-	int num_teachers = 55;
+	
+	int num_teachers = 32;
 	int total_section = 32;
 	int num_subjects = 10;
-
-	// might TODO: make report log upon completion
-	// TODO: log teacher
 
 	// might TODO: even distribute class to teachers (on modify function) (might be more performant)
 
