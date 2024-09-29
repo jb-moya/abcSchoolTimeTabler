@@ -95,6 +95,7 @@ struct Timetable {
 	static int s_break_timeslot_allowance;
 	static int s_teacher_break_threshold;
 	static int s_default_class_duration;
+	static int s_max_teacher_work_load;
 	static int s_break_time_duration;
 	static int s_work_week;
 
@@ -240,10 +241,7 @@ struct ObjectiveFunction {
 	    std::unordered_set<int>& update_teachers,
 	    std::unordered_set<int>& update_sections,
 	    bool show_penalty,
-	    bool is_initial,
-	    int& work_week,
-	    int& max_teacher_work_load,
-	    int& break_time_duration);
+	    bool is_initial);
 };
 
 #endif  // ABC_H

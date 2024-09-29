@@ -46,8 +46,8 @@ void test_generate_timetable() {
 	int beesOnlooker = 2;
 	int beesScout = 1;
 	// test test test test test
-	int num_teachers = 350;
-	int total_section = 320;
+	int num_teachers = 55;
+	int total_section = 32;
 	int num_subjects = 10;
 
 	// might TODO: make report log upon completion

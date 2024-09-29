@@ -212,6 +212,7 @@ std::vector<int> Timetable::s_section_num_breaks;
 int Timetable::s_break_timeslot_allowance;
 int Timetable::s_teacher_break_threshold;
 int Timetable::s_default_class_duration;
+int Timetable::s_max_teacher_work_load;
 int Timetable::s_break_time_duration;
 int Timetable::s_work_week;
 
@@ -742,10 +743,7 @@ void ObjectiveFunction::evaluate(
     std::unordered_set<int>& update_teachers,
     std::unordered_set<int>& update_sections,
     bool show_penalty,
-    bool is_initial,
-    int& work_week,
-    int& max_teacher_work_load,
-    int& break_time_duration) {
+    bool is_initial) {
 	// std::cout << "Evaluating ........" << std::endl;
 	// print("titeng bee", bee.total_cost);
 
@@ -774,6 +772,9 @@ void ObjectiveFunction::evaluate(
 		}
 
 		const auto& teacher_id_and_days = teachers_timetable.at(teacher_id);
+
+		const int max_teacher_work_load = bee.timetable.s_max_teacher_work_load;
+		const int break_time_duration = bee.timetable.s_break_time_duration;
 
 		for (const auto& [day, timeslot] : teacher_id_and_days) {
 			if (bee.timetable.teachers_class_count[day][teacher_id] > max_teacher_work_load) {
@@ -992,14 +993,16 @@ void runExperiment(
 	{
 		std::unordered_map<int, int> section_num_of_class_block;
 
-		Timetable::s_work_week = work_week;
-		Timetable::s_break_time_duration = break_time_duration;
 		Timetable::s_break_timeslot_allowance = break_timeslot_allowance;
 		Timetable::s_teacher_break_threshold = teacher_break_threshold;
 		Timetable::s_default_class_duration = default_class_duration;
-		Timetable::initializeTeacherSet(num_teachers);
-		Timetable::initializeSectionsSet(total_section);
+		Timetable::s_max_teacher_work_load = max_teacher_work_load;
+		Timetable::s_break_time_duration = break_time_duration;
+		Timetable::s_work_week = work_week;
+
 		Timetable::s_section_num_breaks.resize(total_section);
+		Timetable::initializeSectionsSet(total_section);
+		Timetable::initializeTeacherSet(num_teachers);
 
 		for (int i = 0; i < total_section; i++) {
 			Timetable::s_section_start[i] = section_start[i];
@@ -1120,7 +1123,7 @@ void runExperiment(
 	print(MAGENTA_B, " -- FIRSTTTTTTTTTTTTT -- ");
 	best_solution.timetable.initializeRandomTimetable(affected_teachers);
 	// printSchoolClasses(bestSolution.timetable);
-	evaluator.evaluate(best_solution, affected_teachers, Timetable::s_sections_set, false, true, Timetable::s_work_week, max_teacher_work_load, Timetable::s_break_time_duration);
+	evaluator.evaluate(best_solution, affected_teachers, Timetable::s_sections_set, false, true);
 
 	// print(affected_sections.size(), " sections are affected.");
 
@@ -1142,7 +1145,7 @@ void runExperiment(
 
 		bees_vector[i].timetable.initializeRandomTimetable(affected_teachers);
 
-		evaluator.evaluate(bees_vector[i], affected_teachers, Timetable::s_sections_set, false, true, Timetable::s_work_week, max_teacher_work_load, Timetable::s_break_time_duration);
+		evaluator.evaluate(bees_vector[i], affected_teachers, Timetable::s_sections_set, false, true);
 
 		if (bees_vector[i].total_cost == 0) {
 			print(RED, GREEN_BG, "JACKPOT ", i, bees_vector[i].total_cost, " size ", RESET);
@@ -1185,7 +1188,7 @@ void runExperiment(
 			affected_sections.clear();
 
 			new_bee.timetable.modify(affected_teachers, affected_sections);
-			evaluator.evaluate(new_bee, affected_teachers, affected_sections, false, false, Timetable::s_work_week, max_teacher_work_load, Timetable::s_break_time_duration);
+			evaluator.evaluate(new_bee, affected_teachers, affected_sections, false, false);
 
 			if (new_bee.total_cost <= bees_vector[i].total_cost) {
 				bees_vector[i] = new_bee;
@@ -1240,7 +1243,7 @@ void runExperiment(
 			affected_sections.clear();
 
 			new_bee.timetable.modify(affected_teachers, affected_sections);
-			evaluator.evaluate(new_bee, affected_teachers, affected_sections, false, false, Timetable::s_work_week, max_teacher_work_load, Timetable::s_break_time_duration);
+			evaluator.evaluate(new_bee, affected_teachers, affected_sections, false, false);
 
 			if (new_bee.total_cost <= bees_vector[i].total_cost) {
 				bees_vector[i] = new_bee;
@@ -1262,7 +1265,7 @@ void runExperiment(
 				new_bee.timetable.initializeRandomTimetable(affected_teachers);
 
 				bees_vector[i] = new_bee;
-				evaluator.evaluate(bees_vector[i], affected_teachers, Timetable::s_sections_set, false, true, Timetable::s_work_week, max_teacher_work_load, Timetable::s_break_time_duration);
+				evaluator.evaluate(bees_vector[i], affected_teachers, Timetable::s_sections_set, false, true);
 
 				bees_abandoned[i] = 0;
 
@@ -1327,7 +1330,7 @@ void runExperiment(
 		txt_file.close();
 	}
 
-	evaluator.evaluate(best_solution, Timetable::s_teachers_set, Timetable::s_sections_set, false, true, Timetable::s_work_week, max_teacher_work_load, Timetable::s_break_time_duration);
+	evaluator.evaluate(best_solution, Timetable::s_teachers_set, Timetable::s_sections_set, false, true);
 	print(GREEN_B, " -- -- Best solution: cost ", RED_B, best_solution.total_cost, GREEN_B, " -- -- ", RESET);
 	print(iteration_count == max_iterations ? RED_BG : CYAN_BG, BOLD, iteration_count == max_iterations ? "MAXIMUM ITERATIONS REACHED" : "EARLY BREAK Best solution: cost ", best_solution.total_cost, " at ", iteration_count, RESET);
 
