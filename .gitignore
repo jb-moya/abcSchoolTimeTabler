@@ -46,3 +46,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# log files on C++
+*timetable*.txt

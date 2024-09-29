@@ -40,20 +40,20 @@ void unpackInt32ToInt16(int32_t packed, int16_t& first, int16_t& second) {
 
 void test_generate_timetable() {
 	// TODO: dynamic max_iterations base on config'
-	int max_iterations = 10000;
+	int max_iterations = 80000;
 	int beesPopulation = 4;
 	int beesEmployed = 2;
 	int beesOnlooker = 2;
 	int beesScout = 1;
-
-	int num_teachers = 20;
-	int total_section = 10;
+	// test test test test test
+	int num_teachers = 350;
+	int total_section = 320;
 	int num_subjects = 10;
 
 	// might TODO: make report log upon completion
 	// TODO: log teacher
 
-	// might TODO: even distribute class to teachers (might be more performant)
+	// might TODO: even distribute class to teachers (on modify function) (might be more performant)
 
 	// might TODO: modify function: make it more smarter by knowing what and what not to modify
 	// if theres no conflict in section break slot anymore, focus on teacher break slot
@@ -77,7 +77,14 @@ void test_generate_timetable() {
 	//
 	//
 	// 700 t - 320 s - 8 sb - 3 to 4 at <5k iteration
-	//
+
+	// 640 t - 320 s - 320 sb - 10 : 6mins at 8k iteration
+	// 600 t - 320 s - 320 sb - 10 : 8mins at 9k iteration
+	// 580 t - 320 s - 320 sb - 10 : 8mins at 11k iteration
+	// 540 t - 320 s - 320 sb - 10 : 7mins at 9k iteration
+	// 420 t - 320 s - 320 sb - 10 : 10 mins at 9k iteration and 50 costs
+	// 400 t - 320 s - 320 sb - 10 : 14 mins at 22k iteration and 5 costs
+	// 370 t - 320 s - 320 sb - 10 : 14 mins at 30k iteration and 80 costs
 	// 60 t - 50 s - 10 sb - 17s to 1m at <3k iteration
 	// --------------------------
 
@@ -87,7 +94,6 @@ void test_generate_timetable() {
 
 	// 50/20/10: 6 to 19
 
-	// 640/320/10 56 cost 63 mins
 	// is there a way to put async function that execute in parallel
 	//
 	//                before  98 - 89 - 48 - 41 - 53 seconds
@@ -231,38 +237,6 @@ void test_generate_timetable() {
 int main() {
 	test_generate_timetable();
 	// test_calculatePositions();
-
-	int min = 0;
-	int max = 21;
-
-	int start = 11;
-	int end = 15;
-
-	int middle = (min + max) / 2;
-	int min_allowance = middle - 1;
-	int max_allowance = middle + 1;
-
-	std::cout << "middle: " << middle << std::endl;
-	std::cout << "min_allowance: " << min_allowance << std::endl;
-	std::cout << "max_allowance: " << max_allowance << std::endl;
-
-	// if (min_allowance <= start + 1 && start + 1 <= max_allowance) {
-	// 	std::cout << "first" << std::endl;
-	// }
-
-	// if (min_allowance <= start + 1 <= max_allowance) {
-	// 	std::cout << "second" << std::endl;
-	// }
-
-	// if ((min_allowance >= end - 1 >= min_allowance)) {
-	// 	std::cout << "third" << std::endl;
-	// }
-
-	if ((min_allowance <= start && start <= max_allowance) || (min_allowance <= end && end <= max_allowance)) {
-		std::cout << "TRUE" << std::endl;
-	} else {
-		std::cout << "FALSE" << std::endl;
-	}
 
 	std::cout << "done testing" << std::endl;
 	return 0;

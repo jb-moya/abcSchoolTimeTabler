@@ -113,6 +113,8 @@ void printSchoolClasses(Timetable& timetable, std::ofstream& file) {
 	//   teacher                     days          time section
 	std::map<int, std::unordered_map<int, std::map<int, int>>> teacher_class;
 
+	std::unordered_map<int, int> section_breaks_distribution;
+
 	for (const auto& [grade, gradeMap] : timetable.school_classes) {
 		file << "--------- - - Section: " << grade << std::endl;
 		int inner_count = 0;
@@ -136,6 +138,9 @@ void printSchoolClasses(Timetable& timetable, std::ofstream& file) {
 					for (int i = timetable.school_class_time_range[grade][timeslot].start; i < timetable.school_class_time_range[grade][timeslot].end; i++) {
 						teacher_class[teacher_id][day][i] = grade;
 					}
+
+				} else {
+					section_breaks_distribution[timeslot]++;
 				}
 
 				file << " r: " << std::setw(4) << timetable.school_class_time_range[grade][timeslot].start << " ";
@@ -173,6 +178,13 @@ void printSchoolClasses(Timetable& timetable, std::ofstream& file) {
 		}
 
 		file << std::endl;
+	}
+
+	file << std::endl;
+	file << "Breaks Distribution:" << std::endl;
+
+	for (const auto& [timeslot, count] : section_breaks_distribution) {
+		file << "b: " << std::setw(3) << timeslot << " c: " << std::setw(3) << std::to_string(count) << std::endl;
 	}
 
 	file << std::endl;
@@ -773,7 +785,6 @@ void ObjectiveFunction::evaluate(
 			}
 
 			if (timeslot.size() == 0) {
-				// print("no timeslot", teacher_id, day);
 				continue;
 			}
 
@@ -839,8 +850,6 @@ void ObjectiveFunction::evaluate(
 		bee.total_cost += bee.teacher_violations[teacher_id].no_break;
 		bee.total_cost += bee.teacher_violations[teacher_id].exceed_workload;
 	}
-
-	// return;
 
 	auto& sections_timetable = bee.timetable.school_classes;
 	auto& section_class_start_end = bee.timetable.school_class_time_range;
@@ -1283,21 +1292,44 @@ void runExperiment(
 
 	printSchoolClasses(best_solution.timetable);
 
+	auto now = std::chrono::system_clock::now();
+	std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+	std::tm* localTime = std::localtime(&now_time);
+	std::string date = std::to_string(localTime->tm_mday) + "-" + std::to_string(localTime->tm_mon + 1);
+	std::string time = std::to_string(localTime->tm_hour) + "-" + std::to_string(localTime->tm_min) + "-" + std::to_string(localTime->tm_sec);
+
+	int duration_in_seconds = static_cast<int>(duration.count());
+
+	int hours = duration_in_seconds / 3600;
+	int minutes = (duration_in_seconds % 3600) / 60;
+	int seconds = duration_in_seconds % 60;
+
 	if (enable_logging) {
-		std::ofstream txt_file("timetable.txt");
+		std::ofstream txt_file("logs/" + date + "-" + time + "-" + std::to_string(num_teachers) + "-" + std::to_string(total_section) + "-" + std::to_string(best_solution.total_cost) + "timetable.txt");
 		printSchoolClasses(best_solution.timetable, txt_file);
 		printCosts(costs, txt_file);
+		txt_file << "----------------------------------------------------------------------" << std::endl;
+		txt_file << "Best solution: " << std::endl;
+		txt_file << "Total cost: " << best_solution.total_cost << std::endl;
+		txt_file << "Total process duration: " << duration.count() << " seconds (" << hours << "h " << minutes << "m " << seconds << "s)" << std::endl;
+		txt_file << "Iteration count: " << iteration_count << std::endl;
+		txt_file << "Teachers count: " << Timetable::s_teachers_set.size() << std::endl;
+		txt_file << "Sections count: " << Timetable::s_sections_set.size() << std::endl;
+		txt_file << "Work week: " << Timetable::s_work_week << std::endl;
+		txt_file << "Break time duration: " << Timetable::s_break_time_duration << std::endl;
+		txt_file << "Teachers work load: " << max_teacher_work_load << std::endl;
+		txt_file << "Max iterations: " << max_iterations << std::endl;
+
+		txt_file << "Date: " << date << std::endl;
+		txt_file << "Time: " << time << std::endl;
+		txt_file << "----------------------------------------------------------------------" << std::endl;
+
 		txt_file.close();
 	}
 
 	evaluator.evaluate(best_solution, Timetable::s_teachers_set, Timetable::s_sections_set, false, true, Timetable::s_work_week, max_teacher_work_load, Timetable::s_break_time_duration);
 	print(GREEN_B, " -- -- Best solution: cost ", RED_B, best_solution.total_cost, GREEN_B, " -- -- ", RESET);
 	print(iteration_count == max_iterations ? RED_BG : CYAN_BG, BOLD, iteration_count == max_iterations ? "MAXIMUM ITERATIONS REACHED" : "EARLY BREAK Best solution: cost ", best_solution.total_cost, " at ", iteration_count, RESET);
-	int duration_in_seconds = static_cast<int>(duration.count());
-
-	int hours = duration_in_seconds / 3600;
-	int minutes = (duration_in_seconds % 3600) / 60;
-	int seconds = duration_in_seconds % 60;
 
 	print("Time taken: ", duration.count(), "seconds");
 	print("Time taken: ", hours, ":", minutes, ":", seconds);
