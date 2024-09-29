@@ -81,29 +81,110 @@ void printSchoolClasses(Timetable& timetable) {
 				std::cout << GREEN << "" << std::setw(4) << timeslot << RESET;
 				std::cout << YELLOW << DIM << "  d: " << RESET << YELLOW << std::setw(2) << ((day == 0) ? (CYAN + std::to_string(day)) : (std::string(YELLOW) + BOLD + std::to_string(day))) << RESET;
 
-				std::cout << RED << DIM << " s : " << RESET << RED
+				std::cout << RED << DIM << " s: " << RESET << RED
 				          << std::setw(3)  // Set width for the output
 				          << ((subject_id == -1) ? (std::string(" ") + DIM + "/\\") : std::to_string(subject_id))
 				          << RESET;
 
 				// For teacher_id
-				std::cout << MAGENTA << DIM << " t : " << RESET << MAGENTA
+				std::cout << MAGENTA << DIM << " t: " << RESET << MAGENTA
 				          << std::setw(3)  // Set width for the output
 				          << ((teacher_id == -1) ? (std::string(" ") + DIM + "/\\") : std::to_string(teacher_id))
 				          << RESET;
 
-				std::cout << DIM << " r : " << RESET << std::setw(4) << timetable.school_class_time_range[grade][timeslot].start << " ";
+				std::cout << DIM << " r: " << RESET << std::setw(4) << timetable.school_class_time_range[grade][timeslot].start << " ";
 				std::cout << std::setw(4) << timetable.school_class_time_range[grade][timeslot].end << " " << RESET;
 				std::cout << BLUE_B << std::setw(4) << ++inner_count << RESET;
 
 				std::cout << std::endl;
 			}
 		}
-
 		std::cout << RESET << std::endl;
 	}
-
 	std::cout << std::endl;
+}
+
+void printSchoolClasses(Timetable& timetable, std::ofstream& file) {
+	if (!file.is_open()) {
+		print(RED_B, "Error opening file", RESET);
+		return;
+	}
+
+	//   teacher                     days          time section
+	std::map<int, std::unordered_map<int, std::map<int, int>>> teacher_class;
+
+	for (const auto& [grade, gradeMap] : timetable.school_classes) {
+		file << "--------- - - Section: " << grade << std::endl;
+		int inner_count = 0;
+		for (const auto& [timeslot, classMap] : gradeMap) {
+			for (const auto& [day, schoolClass] : classMap) {
+				int subject_id = schoolClass.subject_id;
+				int teacher_id = schoolClass.teacher_id;
+
+				file << "" << std::setw(4) << timeslot;
+				file << "  d: " << std::setw(2) << ((day == 0) ? (std::to_string(day)) : (std::to_string(day)));
+
+				file << " s: "
+				     << std::setw(3)
+				     << ((subject_id == -1) ? (std::string(" ") + "/\\") : std::to_string(subject_id));
+
+				file << " t: "
+				     << std::setw(3)
+				     << ((teacher_id == -1) ? (std::string(" ") + "/\\") : std::to_string(teacher_id));
+
+				if (teacher_id != -1) {
+					for (int i = timetable.school_class_time_range[grade][timeslot].start; i < timetable.school_class_time_range[grade][timeslot].end; i++) {
+						teacher_class[teacher_id][day][i] = grade;
+					}
+				}
+
+				file << " r: " << std::setw(4) << timetable.school_class_time_range[grade][timeslot].start << " ";
+				file << std::setw(4) << timetable.school_class_time_range[grade][timeslot].end << " ";
+				file << std::setw(4) << ++inner_count;
+
+				file << std::endl;
+			}
+		}
+		file << std::endl;
+	}
+
+	for (const auto& [teacher_id, days] : teacher_class) {
+		file << "t: " << std::setw(3) << teacher_id;
+
+		for (const auto& [day, school_class] : days) {
+			file << " d: " << day << " | ";
+
+			int begin = school_class.begin()->first;
+			int end = school_class.rbegin()->first;
+
+			for (int i = begin; i <= end; i++) {
+				bool found = school_class.find(i) != school_class.end();
+
+				if (found) {
+					file << " " << std::setw(4) << " " + std::to_string(i);
+				} else {
+					file << " " << std::setw(4) << "." + std::to_string(i);
+				}
+			}
+
+			// for (const auto& [timeslot, grade] : school_class) {
+			// 	file << " " << std::setw(2) << timeslot;
+			// }
+		}
+
+		file << std::endl;
+	}
+
+	file << std::endl;
+}
+
+void printCosts(std::map<int, int>& nums, std::ofstream& file) {
+	file << std::endl
+	     << "Costs:" << std::endl;
+
+	for (const auto& num : nums) {
+		file << num.first << " : " << num.second << std::endl;
+	}
 }
 
 std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>> Timetable::s_section_subjects_units;
@@ -894,7 +975,9 @@ void runExperiment(
     int min_classes_for_two_breaks,
     int default_class_duration,
     int result_buff_length,
-    int64_t* result) {
+    int64_t* result,
+
+    bool enable_logging) {
 	Timetable::reset();
 	print(CYAN, "RESET", RESET);
 	{
@@ -1072,7 +1155,13 @@ void runExperiment(
 	int iteration_count = max_iterations;
 	auto generation_start = std::chrono::high_resolution_clock::now();
 
+	std::map<int, int> costs;
+
 	for (int iter = 0; iter < max_iterations; iter++) {
+		if (iter % 10 == 0) {
+			costs[best_solution.total_cost]++;
+		}
+
 		int total_cost = 0;
 
 		for (int i = 0; i < bees_employed; i++) {
@@ -1194,43 +1283,24 @@ void runExperiment(
 
 	printSchoolClasses(best_solution.timetable);
 
+	if (enable_logging) {
+		std::ofstream txt_file("timetable.txt");
+		printSchoolClasses(best_solution.timetable, txt_file);
+		printCosts(costs, txt_file);
+		txt_file.close();
+	}
+
 	evaluator.evaluate(best_solution, Timetable::s_teachers_set, Timetable::s_sections_set, false, true, Timetable::s_work_week, max_teacher_work_load, Timetable::s_break_time_duration);
 	print(GREEN_B, " -- -- Best solution: cost ", RED_B, best_solution.total_cost, GREEN_B, " -- -- ", RESET);
 	print(iteration_count == max_iterations ? RED_BG : CYAN_BG, BOLD, iteration_count == max_iterations ? "MAXIMUM ITERATIONS REACHED" : "EARLY BREAK Best solution: cost ", best_solution.total_cost, " at ", iteration_count, RESET);
 	int duration_in_seconds = static_cast<int>(duration.count());
 
-	int hours = duration_in_seconds / 3600;           // 1 hour = 3600 seconds
-	int minutes = (duration_in_seconds % 3600) / 60;  // remaining seconds divided by 60 to get minutes
-	int seconds = duration_in_seconds % 60;           // remaining seconds after hours and minutes
+	int hours = duration_in_seconds / 3600;
+	int minutes = (duration_in_seconds % 3600) / 60;
+	int seconds = duration_in_seconds % 60;
 
 	print("Time taken: ", duration.count(), "seconds");
 	print("Time taken: ", hours, ":", minutes, ":", seconds);
-	// runExperiment(
-	//     max_iterations,
-	//     num_teachers,
-	//     total_section_subjects,
-	//     total_class_block,
-	//     total_section,
-	//     section_subjects,
-	//     section_subject_duration,
-	//     section_start,
-	//     teacher_subjects,
-	//     section_subject_units,
-	//     teacher_subjects_length,
-	//     beesPopulation,
-	//     beesEmployed,
-	//     beesOnlooker,
-	//     beesScout,
-	//     limit,
-	//     work_week,
-	//     max_teacher_work_load,
-	// 	   break_time_duration,
-	//     break_timeslot_allowance,
-	//	   teacher_break_threshold,
-	//     min_classes_for_two_breaks,
-	//     default_class_duration,
-	//     result_buff_length,
-	//     result);
 
 	getResult(best_solution, result);
 	return;

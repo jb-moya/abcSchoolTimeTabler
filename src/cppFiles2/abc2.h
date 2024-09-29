@@ -210,7 +210,9 @@ void runExperiment(
     int min_classes_for_two_breaks,
     int default_class_duration,
     int result_buff_length,
-    int64_t* result);
+    int64_t* result,
+
+    bool enable_logging);
 
 #ifdef __cplusplus
 }

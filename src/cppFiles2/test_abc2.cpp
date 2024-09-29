@@ -193,6 +193,8 @@ void test_generate_timetable() {
 
 	int result_buff_length = 999;  // arbitrary
 
+	bool enable_logging = true;
+
 	runExperiment(
 	    max_iterations,
 	    num_teachers,
@@ -221,12 +223,47 @@ void test_generate_timetable() {
 	    min_classes_for_two_breaks,
 	    default_class_duration,
 	    result_buff_length,
-	    result);
+	    result,
+
+	    enable_logging);
 }
 
 int main() {
 	test_generate_timetable();
 	// test_calculatePositions();
+
+	int min = 0;
+	int max = 21;
+
+	int start = 11;
+	int end = 15;
+
+	int middle = (min + max) / 2;
+	int min_allowance = middle - 1;
+	int max_allowance = middle + 1;
+
+	std::cout << "middle: " << middle << std::endl;
+	std::cout << "min_allowance: " << min_allowance << std::endl;
+	std::cout << "max_allowance: " << max_allowance << std::endl;
+
+	// if (min_allowance <= start + 1 && start + 1 <= max_allowance) {
+	// 	std::cout << "first" << std::endl;
+	// }
+
+	// if (min_allowance <= start + 1 <= max_allowance) {
+	// 	std::cout << "second" << std::endl;
+	// }
+
+	// if ((min_allowance >= end - 1 >= min_allowance)) {
+	// 	std::cout << "third" << std::endl;
+	// }
+
+	if ((min_allowance <= start && start <= max_allowance) || (min_allowance <= end && end <= max_allowance)) {
+		std::cout << "TRUE" << std::endl;
+	} else {
+		std::cout << "FALSE" << std::endl;
+	}
+
 	std::cout << "done testing" << std::endl;
 	return 0;
 }
