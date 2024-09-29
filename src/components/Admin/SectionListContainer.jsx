@@ -10,6 +10,7 @@ import {
 } from '@features/sectionSlice';
 import { fetchPrograms } from '@features/programSlice';
 import { fetchSubjects } from '@features/subjectSlice';
+import { fetchTeachers } from '@features/teacherSlice';
 import { getTimeSlotString, getTimeSlotIndex } from './timeSlotMapper';
 import { IoAdd, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
@@ -24,12 +25,15 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
   const { programs, status: programStatus } = useSelector(
     (state) => state.program
   );
-
   const { subjects, status: subjectStatus } = useSelector(
     (state) => state.subject
   );
+  const { teachers, status: teacherStatus } = useSelector(
+    (state) => state.teacher
+  );
   
   const [inputValue, setInputValue] = useState('');
+  const [selectedAdviser, setSelectedAdviser] = useState('');
   const [selectedProgram, setSelectedProgram] = useState('');
   const [selectedYearLevel, setSelectedYearLevel] = useState('');
   const [selectedSubjects, setSelectedSubjects] = useState([]);
@@ -51,8 +55,9 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
     dispatch(
       reduxFunction({
         [reduxField[0]]: inputValue,
+        teacher: selectedAdviser,
         program: selectedProgram,
-        year: parseInt(selectedYearLevel, 10),
+        year: selectedYearLevel,
         subjects: formattedSubjectUnits,
         shift: selectedShift,
         startTime: selectedStartTime,
@@ -132,6 +137,12 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
     }
   }, [subjectStatus, dispatch]);
 
+  useEffect(() => {
+    if (teacherStatus === 'idle') {
+      dispatch(fetchTeachers());
+    }
+  }, [teacherStatus, dispatch]);
+
   return (
     <div className="mb-3 p-4 border rounded-md shadow-md bg-white w-full h-3/12">
       <div className="flex justify-between">
@@ -165,6 +176,26 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
 
       <div className="mt-3">
         <label className="label">
+          <span className="label-text">Assign Adviser</span>
+        </label>
+        <select
+          className="select select-bordered w-full"
+          value={selectedAdviser}
+          onChange={(e) => setSelectedAdviser(parseInt(e.target.value, 10))}
+        >
+          <option value="" disabled>
+            Assign an adviser
+          </option>
+          {Object.keys(teachers).map((key) => (
+            <option key={teachers[key].id} value={teachers[key].id}>
+              {teachers[key].teacher}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="mt-3">
+        <label className="label">
           <span className="label-text">Select Program</span>
         </label>
         <select
@@ -173,7 +204,7 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
           onChange={(e) => setSelectedProgram(parseInt(e.target.value, 10))}
         >
           <option value="" disabled>
-            Select a Program
+            Select a program
           </option>
           {Object.keys(programs).map((key) => (
             <option key={programs[key].id} value={programs[key].id}>
@@ -190,10 +221,10 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
         <select
           className="select select-bordered w-full"
           value={selectedYearLevel}
-          onChange={(e) => setSelectedYearLevel(e.target.value)}
+          onChange={(e) => setSelectedYearLevel(parseInt(e.target.value, 10))}
         >
           <option value="" disabled>
-            Select a Year Level
+            Select a year level
           </option>
           {[7, 8, 9, 10].map((level) => (
             <option key={level} value={level}>
@@ -280,18 +311,21 @@ const SectionListContainer = ({ editable = false }) => {
   const { programs, status: programStatus } = useSelector(
     (state) => state.program
   );
+  const { teachers, status: teacherStatus } = useSelector(
+    (state) => state.teacher
+  );
 
   const [openAddSectionContainer, setOpenAddSectionContainer] = useState(false);
 
+  const [editSectionAdviser, setEditSectionAdviser] = useState('');
   const [editSectionProg, setEditSectionProg] = useState('');
   const [editSectionYear, setEditSectionYear] = useState('');
-
   const [editSectionId, setEditSectionId] = useState('');
   const [editSectionValue, setEditSectionValue] = useState('');
   const [editSectionSubjects, setEditSectionSubjects] = useState([]);
   const [editSectionUnits, setEditSectionUnits] = useState({});
   const [editSectionShift, setEditSectionShift] = useState(0);
-  const [editSectionStartTime, setEditSectionStartTime] = useState("");
+  const [editSectionStartTime, setEditSectionStartTime] = useState('');
 
   const [searchSectionResult, setSearchSectionResult] = useState(sections);
   const [searchSectionValue, setSearchSectionValue] = useState('');
@@ -299,7 +333,7 @@ const SectionListContainer = ({ editable = false }) => {
   const handleEditSectionClick = (section) => {
     setEditSectionId(section.id);
     setEditSectionValue(section.section);
-
+    setEditSectionAdviser(section.adviser);
     setEditSectionProg(section.program);
     setEditSectionYear(section.year);
 
@@ -339,6 +373,7 @@ const SectionListContainer = ({ editable = false }) => {
         sectionId,
         updatedSection: {
           id: sectionId,
+          teacher: editSectionAdviser,
           program: editSectionProg,
           section: editSectionValue,
           subjects: updatedUnits,
@@ -361,6 +396,9 @@ const SectionListContainer = ({ editable = false }) => {
   const handleCancelSectionEditClick = () => {
     setEditSectionId(null);
     setEditSectionValue('');
+    setEditSectionAdviser('');
+    setEditSectionProg('');
+    setEditSectionYear('');
     setEditSectionSubjects([]);
     setEditSectionUnits({});
   };
@@ -439,17 +477,11 @@ const SectionListContainer = ({ editable = false }) => {
     }
   }, [subjectStatus, dispatch]);
 
-  // useEffect(() => {
-  //   if (sectionStatus === 'succeeded') {
-  //     console.log('Fetched sections:', sections);
-  //   }
-  // }, [sectionStatus, sections]);
-
-  // useEffect(() => {
-  //   if (programStatus === 'succeeded') {
-  //     console.log('Fetched programs:', programs);
-  //   }
-  // }, [programStatus, programs]);
+  useEffect(() => {
+    if (teacherStatus === 'idle') {
+      dispatch(fetchTeachers());
+    }
+  }, [teacherStatus, dispatch]);
 
   return (
     <React.Fragment>
@@ -473,6 +505,7 @@ const SectionListContainer = ({ editable = false }) => {
               <th className="w-8">#</th>
               <th>Section ID</th>
               <th>Section</th>
+              <th>Adviser</th>
               <th>Program</th>
               <th>Year</th>
               <th>Subjects</th>
@@ -500,7 +533,6 @@ const SectionListContainer = ({ editable = false }) => {
                           onChange={(e) => setEditSectionValue(e.target.value)}
                           className="input input-bordered input-sm w-full"
                         />
-                        hahaha
                         <div className="mt-2">
                           <label className="mr-2">Shift:</label>
                           <label className="mr-2">
@@ -559,6 +591,26 @@ const SectionListContainer = ({ editable = false }) => {
                           </span>
                         </div>
                       </>
+                    )}
+                  </td>
+                  <td>
+                    {editSectionId === section.id ? (
+                      <select
+                      className="select select-bordered w-full"
+                      value={editSectionAdviser}
+                      onChange={(e) => setEditSectionAdviser(parseInt(e.target.value, 10))}
+                    >
+                      <option value="" disabled>
+                        Assign an adviser
+                      </option>
+                      {Object.keys(teachers).map((key) => (
+                        <option key={teachers[key].id} value={teachers[key].id}>
+                          {teachers[key].teacher}
+                        </option>
+                      ))}
+                    </select>
+                    ) : (
+                      teachers[section.teacher].teacher || 'Unknown Teacher'
                     )}
                   </td>
                   <td>
@@ -669,22 +721,24 @@ const SectionListContainer = ({ editable = false }) => {
                       </div>
                     ) : (
                       subjectStatus === 'succeeded' &&
-                      Object.keys(section.subjects).map((subjectID) => (
-                        <div
-                          key={subjectID}
-                          className="px-2 flex items-center border border-gray-500 border-opacity-30"
-                        >
-                          <div className="mr-2">
-                            {subjects[subjectID]?.subject || 'Unknown Subject'}
+                      <div className="space-y-2"> {/* This container stacks each subject vertically */}
+                        {Object.keys(section.subjects).map((subjectID) => (
+                          <div
+                            key={subjectID}
+                            className="px-2 py-1 flex items-center border border-gray-500 border-opacity-30"
+                          >
+                            <div className="mr-2">
+                              {subjects[subjectID]?.subject || 'Unknown Subject'}
+                            </div>
+                            <div className="text-xs opacity-75">
+                              <span className="mr-1">
+                                {section.subjects[subjectID]}
+                              </span>
+                              <span>unit(s)</span>
+                            </div>
                           </div>
-                          <div className="text-xs opacity-75">
-                            <span className="mr-1">
-                              {section.subjects[subjectID]}
-                            </span>
-                            <span>unit(s)</span>
-                          </div>
-                        </div>
-                      ))
+                        ))}
+                      </div>
                     )}
                   </td>
                   
