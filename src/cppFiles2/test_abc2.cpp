@@ -40,17 +40,26 @@ void unpackInt32ToInt16(int32_t packed, int16_t& first, int16_t& second) {
 
 void test_generate_timetable() {
 	// TODO: dynamic max_iterations base on config'
-	int max_iterations = 100000;
+	int max_iterations = 10000;
 	int beesPopulation = 4;
 	int beesEmployed = 2;
 	int beesOnlooker = 2;
 	int beesScout = 1;
 
-	int num_teachers = 670;
-	int total_section = 320;
+	int num_teachers = 20;
+	int total_section = 10;
 	int num_subjects = 10;
 
 	// might TODO: make report log upon completion
+	// TODO: log teacher
+
+	// might TODO: even distribute class to teachers (might be more performant)
+
+	// might TODO: modify function: make it more smarter by knowing what and what not to modify
+	// if theres no conflict in section break slot anymore, focus on teacher break slot
+
+	// FIXME: when ignoring consistent subject (same timeslot for every situation),
+	// the calculates of viable break slots becomes inaccurate
 
 	// 700 t - 320 s - 10 sb - 56mins
 
@@ -65,6 +74,11 @@ void test_generate_timetable() {
 	// 6;
 	// 4;
 	// 10;
+	//
+	//
+	// 700 t - 320 s - 8 sb - 3 to 4 at <5k iteration
+	//
+	// 60 t - 50 s - 10 sb - 17s to 1m at <3k iteration
 	// --------------------------
 
 	// 100k 650 320 10 2.5hrs

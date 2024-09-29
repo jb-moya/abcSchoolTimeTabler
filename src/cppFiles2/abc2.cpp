@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <cstdlib>  // For system()
 #include <deque>    // Include deque
+#include <fstream>  // Required for file handling
 #include <iomanip>
 #include <iostream>
 #include <limits>
@@ -140,7 +141,6 @@ void Timetable::reset() {
 	s_break_time_duration = 0;
 	s_work_week = 0;
 
-	// Reinitialize the distributions with default ranges
 	initializeRandomClassBlockDistribution(0, 0);
 	initializeRandomSectionDistribution(0, 0);
 	initializeRandomWorkDayDistribution(0, 0);
@@ -280,7 +280,7 @@ void Timetable::updateTeachersAndSections(
 					}
 				}
 			}
-			//
+
 			if (!is_reset) {
 				school_class_time_range[random_section][it->first].start = start;
 				school_class_time_range[random_section][it->first].end = start + max_duration;
@@ -701,8 +701,11 @@ void ObjectiveFunction::evaluate(
 
 			std::set<int> teacher_available_timeslot;
 
-			int min = std::numeric_limits<int>::max();
-			int max = 0;
+			auto lastElement = --timeslot.end();
+			int middle = (timeslot.begin()->first + lastElement->first) / 2;
+			int min_allowance = middle - bee.timetable.s_default_class_duration;
+			int max_allowance = middle + bee.timetable.s_default_class_duration;
+			bool break_found = false;
 
 			while (it != timeslot.end()) {
 				int timeslot_key = it->first;
@@ -712,19 +715,16 @@ void ObjectiveFunction::evaluate(
 					print(BLUE, "teacher", teacher_id, day, "U timeslot", timeslot_key, class_count, BLUE_B, ++counter, RESET);
 				}
 
-				if (nextIt != timeslot.end()) {
+				if (nextIt != timeslot.end() && !break_found) {
 					int nextKey = nextIt->first;
-					for (int key = timeslot_key + 1; key < nextKey; ++key) {
-						if (show_penalty) {
-							print(MAGENTA_B, "teacher", teacher_id, day, "A timeslot", key, "value", class_count, RESET);
+					int difference = nextKey - timeslot_key - 1;
+					if (difference >= break_time_duration) {
+						if ((min_allowance <= timeslot_key + 1 && timeslot_key + 1 <= max_allowance) ||
+						    (min_allowance <= nextKey - 1 && nextKey - 1 <= max_allowance)) {
+							break_found = true;
 						}
-
-						teacher_available_timeslot.insert(key);
 					}
 				}
-
-				min = std::min(min, timeslot_key);
-				max = std::max(max, timeslot_key);
 
 				if (class_count > 1) {
 					if (show_penalty) {
@@ -739,53 +739,7 @@ void ObjectiveFunction::evaluate(
 				}
 			}
 
-			if (bee.timetable.teachers_class_count[day][teacher_id] <= bee.timetable.s_teacher_break_threshold) {
-				continue;
-			}
-
-			int middle = (min + max) / 2;
-			int allowance = bee.timetable.s_default_class_duration;
-			bool break_found = false;
-
-			if (show_penalty) {
-				// print("middle", middle, middle - allowance, middle + allowance);
-			}
-
-			for (int num : teacher_available_timeslot) {
-				bool consecutive_found = true;
-
-				// Check if there are 'consecutive_required' consecutive slots starting from 'num'
-				for (int i = 0; i < break_time_duration; i++) {
-					if (!teacher_available_timeslot.count(num + i)) {
-						consecutive_found = false;
-						break;
-					}
-				}
-
-				if (consecutive_found) {
-					// if (show_penalty) {
-					// 	for (int i = 0; i < break_time_duration; i++) {
-					// 		print("teacher", teacher_id, num + i);
-					// 	}
-					// }
-
-					// Check if any of the consecutive slots are within the range of the allowance around the middle
-					bool in_allowance_range = false;
-					for (int i = 0; i < break_time_duration; i++) {
-						if (middle - allowance <= num + i && num + i <= middle + allowance) {
-							in_allowance_range = true;
-							break;
-						}
-					}
-
-					if (in_allowance_range) {
-						break_found = true;
-						break;
-					}
-				}
-			}
-
-			if (!break_found) {
+			if (!break_found && bee.timetable.teachers_class_count[day][teacher_id] >= bee.timetable.s_teacher_break_threshold) {
 				if (show_penalty) {
 					print(GREEN_B, "teacher with no break", teacher_id, "day", day, RESET);
 				}
@@ -1076,26 +1030,6 @@ void runExperiment(
 	// printSchoolClasses(bestSolution.timetable);
 	evaluator.evaluate(best_solution, affected_teachers, Timetable::s_sections_set, false, true, Timetable::s_work_week, max_teacher_work_load, Timetable::s_break_time_duration);
 
-	// affected_teachers.clear();
-	// affected_sections.clear();
-
-	// bestSolution.timetable.update(affected_teachers, affected_sections);
-
-	// affected_teachers.clear();
-	// affected_sections.clear();
-
-	// bestSolution.timetable.update(affected_teachers, affected_sections);
-
-	// affected_teachers.clear();
-	// affected_sections.clear();
-
-	// bestSolution.timetable.update(affected_teachers, affected_sections);
-
-	// affected_teachers.clear();
-	// affected_sections.clear();
-
-	// bestSolution.timetable.update(affected_teachers, affected_sections);
-
 	// print(affected_sections.size(), " sections are affected.");
 
 	// optimizableFunction.evaluate(bestSolution, affected_teachers, affected_sections, false, true, Timetable::work_week, max_teacher_work_load, Timetable::break_time_duration);
@@ -1118,39 +1052,10 @@ void runExperiment(
 
 		evaluator.evaluate(bees_vector[i], affected_teachers, Timetable::s_sections_set, false, true, Timetable::s_work_week, max_teacher_work_load, Timetable::s_break_time_duration);
 
-		print(bees_vector[i].total_cost, "Fffff");
 		if (bees_vector[i].total_cost == 0) {
 			print(RED, GREEN_BG, "JACKPOT ", i, bees_vector[i].total_cost, " size ", RESET);
 			printSchoolClasses(bees_vector[i].timetable);
 			print(RED, GREEN_BG, "JACKPOT ", i, bees_vector[i].total_cost, " size ", RESET);
-			// system("cls");
-			// runExperiment(
-			//     max_iterations,
-			//     num_teachers,
-			//     total_section_subjects,
-			//     total_class_block,
-			//     total_section,
-			//     section_subjects,
-			//     section_subject_duration,
-			//     section_start,
-			//     teacher_subjects,
-			//     section_subject_units,
-			//     teacher_subjects_length,
-			//     bees_population,
-			//     bees_employed,
-			//     bees_onlooker,
-			//     bees_scout,
-			//     limit,
-			//     work_week,
-			//     max_teacher_work_load,
-			//     break_time_duration,
-			//     break_timeslot_allowance,
-			//     teacher_break_threshold,
-			//     min_classes_for_two_breaks,
-			//     default_class_duration,
-			//     result_buff_length,
-			//     result);
-			// getResult(beesVector[i], result);
 			return;
 		}
 
