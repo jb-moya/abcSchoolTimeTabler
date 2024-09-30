@@ -725,11 +725,30 @@ void Timetable::modify(std::unordered_set<int>& update_teachers, std::unordered_
 		auto it2 = section_timeslot_2.find(day_2);
 
 		if (it1 != section_timeslot_1.end() && it2 != section_timeslot_2.end()) {
+			int16_t teacher_id_1 = it1->second.teacher_id;
+			int16_t teacher_id_2 = it2->second.teacher_id;
+
+			teachers_class_count[day_1][teacher_id_1]--;
+			teachers_class_count[day_2][teacher_id_1]++;
+
+			teachers_class_count[day_1][teacher_id_2]++;
+			teachers_class_count[day_2][teacher_id_2]--;
+
 			std::swap(it1->second, it2->second);
 		} else if (it1 != section_timeslot_1.end() && it2 == section_timeslot_2.end()) {
+			int16_t teacher_id = it1->second.teacher_id;
+
+			teachers_class_count[day_1][teacher_id]--;
+			teachers_class_count[day_2][teacher_id]++;
+
 			section_timeslot_2[day_2] = std::move(it1->second);
 			section_timeslot_1.erase(it1);
 		} else if (it1 == section_timeslot_1.end() && it2 != section_timeslot_2.end()) {
+			int16_t teacher_id = it2->second.teacher_id;
+
+			teachers_class_count[day_1][teacher_id]++;
+			teachers_class_count[day_2][teacher_id]--;
+
 			section_timeslot_1[day_1] = std::move(it2->second);
 			section_timeslot_2.erase(it2);
 		}

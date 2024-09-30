@@ -58,6 +58,8 @@ void test_generate_timetable() {
 	// FIXME: when ignoring consistent subject (same timeslot for every situation),
 	// the calculates of viable break slots becomes inaccurate
 
+	// might TODO: treat subjects base on whether or not they are consistent or segmented separately
+
 	// 700 t - 320 s - 10 sb - 56mins
 
 	// --------------------------
