@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { CiExport, CiImport } from "react-icons/ci";
 import {
-  downloadData,
   exportIndexedDB,
   loadFile,
   importIndexedDB,
@@ -12,10 +11,10 @@ import * as XLSX from 'xlsx';
 
 import { addSubject, fetchSubjects } from "@features/subjectSlice";
 import { addSection } from "@features/sectionSlice";
-import { addTeacher } from "@features/teacherSlice";
-import { addProgram } from "@features/programSlice";
+import { addTeacher, fetchTeachers } from "@features/teacherSlice";
+import { addProgram, fetchPrograms } from "@features/programSlice";
 
-import { getTimeSlotString } from "./timeSlotMapper";
+import { getTimeSlotString, getTimeSlotIndex } from "./timeSlotMapper";
 import { setSubjectStatusIdle } from "@features/subjectSlice";
 import { setSectionStatusIdle } from "@features/sectionSlice";
 import { setTeacherStatusIdle } from "@features/teacherSlice";
@@ -28,9 +27,23 @@ import { BiUpload } from "react-icons/bi";
 const ExportImportDBButtons = () => {
   const dispatch = useDispatch();
 
+  const { programs, status: programStatus } = useSelector(
+    (state) => state.program
+  );
+
   const { subjects, status: subjectStatus } = useSelector(
     (state) => state.subject
   );
+
+  const { teachers, status: teacherStatus } = useSelector(
+    (state) => state.teacher
+  );
+
+  useEffect(() => {
+    if (programStatus === 'idle') {
+      dispatch(fetchPrograms());
+    }
+  }, [dispatch, programStatus]);
 
   useEffect(() => {
     if (subjectStatus === 'idle') {
@@ -38,12 +51,18 @@ const ExportImportDBButtons = () => {
     }
   }, [dispatch, subjectStatus]);
 
+  useEffect(() => {
+    if (teacherStatus === 'idle') {
+      dispatch(fetchTeachers());
+    }
+  }, [dispatch, teacherStatus]);
+
   const exportDB = (format) => {
     exportIndexedDB(DB_NAME)
       .then((exportData) => {
         if (format === 'json') {
           const jsonData = JSON.stringify(exportData);
-          downloadData(jsonData, `${DB_NAME}.json`);
+          exportToJSON(jsonData, `${DB_NAME}.json`);
         } else if (format === 'excel') {
           // Convert JSON to Excel
           exportToExcel(exportData);
@@ -58,100 +77,6 @@ const ExportImportDBButtons = () => {
         // console.error("Export error:", error);
       });
   };
-  
-  // Helper function to export JSON data to Excel format
-  const exportToExcel = (exportData) => {
-    const wb = XLSX.utils.book_new();
-  
-    const programSubjectMap = {};
-    exportData.subjects.forEach(subject => {
-      programSubjectMap[subject.id] = subject.subject;
-    });
-    const data = [
-      ['program','7', '', '', '8', '', '', '9', '', '', '10', '', '', 'id'],
-      ['', 'subjects', 'shift', 'startTime', 'subjects', 'shift', 'startTime', 'subjects', 'shift', 'startTime', 'subjects', 'shift', 'startTime', '']
-    ];
-    const merges = [
-      { s: { r: 0, c: 0 }, e: { r: 1, c: 0 } },
-      { s: { r: 0, c: 1 }, e: { r: 0, c: 3 } },
-      { s: { r: 0, c: 4 }, e: { r: 0, c: 6 } },
-      { s: { r: 0, c: 7 }, e: { r: 0, c: 9 } },
-      { s: { r: 0, c: 10 }, e: { r: 0, c: 12 } },
-      { s: { r: 0, c: 13 }, e: { r: 1, c: 13 } }, 
-    ];
-    exportData.programs.forEach(program => {
-      // Row for the detailed subjects, shift, and startTime info for each year
-      const detailsRow = [
-        program.program,
-        program[7].subjects.map(subjectId => programSubjectMap[subjectId]).join(', '), // Subjects for Grade 7
-        program[7].shift === 0 ? 'AM' : 'PM', // Shift for Grade 7
-        getTimeSlotString(program[7].startTime), // Start time for Grade 7
-        
-        program[8].subjects.map(subjectId => programSubjectMap[subjectId]).join(', '), // Subjects for Grade 8
-        program[8].shift === 1 ? 'PM' : 'AM', // Shift for Grade 8
-        getTimeSlotString(program[8].startTime), // Start time for Grade 8
-
-        program[9].subjects.map(subjectId => programSubjectMap[subjectId]).join(', '), // Subjects for Grade 9
-        program[9].shift === 1 ? 'PM' : 'AM', // Shift for Grade 9
-        getTimeSlotString(program[9].startTime), // Start time for Grade 9
-
-        program[10].subjects.map(subjectId => programSubjectMap[subjectId]).join(', '), // Subjects for Grade 10
-        program[10].shift === 0 ? 'AM' : 'PM', // Shift for Grade 10
-        getTimeSlotString(program[10].startTime), // Start time for Grade 10
-        program.id,
-      ];
-
-      data.push(detailsRow);
-    });
-
-    const programSheet = XLSX.utils.aoa_to_sheet(data);
-    programSheet['!merges'] = merges;
-    XLSX.utils.book_append_sheet(wb, programSheet, 'Programs');
-  
-    // Create a mapping of subject ID to subject name
-    const sectionSubjectMap = {};
-    exportData.subjects.forEach(subject => {
-      sectionSubjectMap[subject.id] = subject.subject;  // { 1: 'sub1', 2: 'sub2', ... }
-    });
-    // Convert 'sections' to sheet with subject names, shift as AM/PM, and startTime as string
-    const sectionSheetData = exportData.sections.map(section => ({
-      ...section,
-      subjects: Object.keys(section.subjects)
-        .map(subjectId => sectionSubjectMap[subjectId]).join(', '),
-      shift: section.shift === 0 ? 'AM' : 'PM',
-      startTime: getTimeSlotString(section.startTime)
-    }));
-    const sectionSheet = XLSX.utils.json_to_sheet(sectionSheetData);
-    XLSX.utils.book_append_sheet(wb, sectionSheet, 'Sections');
-  
-    // Convert 'subjects' to sheet
-    const subjectSheet = XLSX.utils.json_to_sheet(exportData.subjects);
-    XLSX.utils.book_append_sheet(wb, subjectSheet, 'Subjects');
-    // Create a mapping of subject ID to subject name
-    const subjectMap = {};
-    exportData.subjects.forEach(subject => {
-      subjectMap[subject.id] = subject.subject;  // { 1: 'sub1', 2: 'sub2', ... }
-    });
-
-    // Convert 'teachers' to sheet with subject names instead of IDs
-    const teacherSheetData = exportData.teachers.map(teacher => ({
-      ...teacher,
-      subjects: teacher.subjects.map(subjectId => subjectMap[subjectId]).join(', ') // Convert subject IDs to names
-    }));
-    const teacherSheet = XLSX.utils.json_to_sheet(teacherSheetData);
-    XLSX.utils.book_append_sheet(wb, teacherSheet, 'Teachers');
-
-    // Generate Excel file and trigger download
-    XLSX.writeFile(wb, `TIMETABLE DATA.xlsx`);
-  };
-  
-  const downloadData = (data, filename) => {
-    const blob = new Blob([data], { type: "text/plain;charset=utf-8" });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = filename;
-    link.click();
-  };
 
   const importDB = (format) => {
     loadFile(format)
@@ -162,7 +87,6 @@ const ExportImportDBButtons = () => {
             console.log(message);
           });
         } else if (format === "excel") {
-          // console.log(data);
           importDBfromExcel(data);
         } else {
           // Fail-safe route for unexpected file types
@@ -186,47 +110,326 @@ const ExportImportDBButtons = () => {
         document.getElementById("import-confirmation-modal").close();
       });
   };
+  
+  const exportToJSON = (data, filename) => {
+    const blob = new Blob([data], { type: "text/plain;charset=utf-8" });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+  };
 
-  const importDBfromExcel = (data) => {
-    Object.keys(data).forEach((sheetName) => {
-      const sheetData = data[sheetName];
+  const exportToExcel = (exportData) => {
 
-      if (sheetName.toLowerCase() === 'programs') {
-      } else if (sheetName.toLowerCase() === 'sections') {
-      } else if (sheetName.toLowerCase() === 'subjects') {
-        sheetData.forEach((entry) => {
-          dispatch(
-            addSubject({
-              subject: entry.subject,
-              classDuration: entry.classDuration,
-            })
-          );
-        });
-      } else if (sheetName.toLowerCase() === 'teachers') {
-        sheetData.forEach((entry) => {
-          const subjectIds = [];
-          
-          const subjectsArray = entry.subjects.split(',').map(subject => subject.trim()); 
-          subjectsArray.forEach((subjectName) => {
-            for (const key in subjects) {
-              if (subjects[key].subject === subjectName) {
-                subjectIds.push(subjects[key].id);
-                break;
-              }
-            }
-          });
-          dispatch(
-            addTeacher({
-              teacher: entry.teacher,
-              subjects: subjectIds,
-            })
-          );
-        });
-      } else {
-        console.log(`Unknown sheet: ${sheetName}`);
-      }
+    const subjectsMap = {};
+    const teachersMap = {};
+    const programsMap = {};
+
+    exportData.subjects.forEach(subject => {
+      subjectsMap[subject.id] = subject.subject;
+    })
+
+    exportData.teachers.forEach(teacher => {
+      teachersMap[teacher.id] = teacher.teacher;
+    })
+
+    exportData.programs.forEach(program => {
+      programsMap[program.id] = program.program;
+    })
+
+    const wb = XLSX.utils.book_new();
+  
+    // ---------------------------------------------
+    // ------- EXPORTING SUBJECT TO WORKBOOK ------- 
+    // ---------------------------------------------
+
+    const subjectData = [
+      ['Subject', 'Class Duration'],
+    ];
+
+    exportData.subjects.forEach(subject => {
+      subjectData.push([subject.subject, subject.classDuration]);
     });
 
+    const subjectSheet = XLSX.utils.aoa_to_sheet(subjectData);
+    XLSX.utils.book_append_sheet(wb, subjectSheet, "Subjects");
+
+    // ---------------------------------------------
+    // ------- EXPORTING PROGRAMS TO SUBJECT ------- 
+    // ---------------------------------------------
+
+    const teacherData = [
+      ['Teacher', 'Subjects'],
+    ];
+
+    exportData.teachers.forEach(teacher => {
+      const detailsRow = [
+        teacher.teacher,
+        teacher.subjects.map(subjectId => subjectsMap[subjectId]).join(', '),
+      ];
+      teacherData.push(detailsRow);
+    });
+
+    const teacherSheet = XLSX.utils.aoa_to_sheet(teacherData);
+    XLSX.utils.book_append_sheet(wb, teacherSheet, "Teachers");
+
+    // ----------------------------------------------
+    // ------- EXPORTING PROGRAMS TO WORKBOOK ------- 
+    // ----------------------------------------------
+
+    // Define table headres
+    const programData = [
+      ['Program','7', '', '', '8', '', '', '9', '', '', '10', '', ''],
+      ['', 'Subjects', 'Shift', 'Start Time', 'Subjects', 'Shift', 'Start Time', 'Subjects', 'Shift', 'Start Time', 'Subjects', 'Shift', 'Start Time']
+    ];
+
+    // Define cell merges
+    const merges = [
+      { s: { r: 0, c: 0 }, e: { r: 1, c: 0 } },
+      { s: { r: 0, c: 1 }, e: { r: 0, c: 3 } },
+      { s: { r: 0, c: 4 }, e: { r: 0, c: 6 } },
+      { s: { r: 0, c: 7 }, e: { r: 0, c: 9 } },
+      { s: { r: 0, c: 10 }, e: { r: 0, c: 12 } },
+      { s: { r: 0, c: 13 }, e: { r: 1, c: 13 } }, 
+    ];
+
+    // Define data rows
+    exportData.programs.forEach(program => {
+      const detailsRow = [
+        program.program,
+        program[7].subjects.map(subjectId => subjectsMap[subjectId]).join(', '), // Subjects for Grade 7
+        program[7].shift === 0 ? 'AM' : 'PM', // Shift for Grade 7
+        getTimeSlotString(program[7].startTime), // Start time for Grade 7
+        
+        program[8].subjects.map(subjectId => subjectsMap[subjectId]).join(', '), // Subjects for Grade 8
+        program[8].shift === 1 ? 'PM' : 'AM', // Shift for Grade 8
+        getTimeSlotString(program[8].startTime), // Start time for Grade 8
+
+        program[9].subjects.map(subjectId => subjectsMap[subjectId]).join(', '), // Subjects for Grade 9
+        program[9].shift === 1 ? 'PM' : 'AM', // Shift for Grade 9
+        getTimeSlotString(program[9].startTime), // Start time for Grade 9
+
+        program[10].subjects.map(subjectId => subjectsMap[subjectId]).join(', '), // Subjects for Grade 10
+        program[10].shift === 0 ? 'AM' : 'PM', // Shift for Grade 10
+        getTimeSlotString(program[10].startTime), // Start time for Grade 10
+      ];
+
+      programData.push(detailsRow);
+    });
+
+    // Add programs sheet to workbook
+    const programSheet = XLSX.utils.aoa_to_sheet(programData);
+    programSheet['!merges'] = merges;
+    XLSX.utils.book_append_sheet(wb, programSheet, 'Programs');
+    
+    // -------------------------------------------
+    // ------- EXPORT SECTIONS TO WORKBOOK ------- 
+    // -------------------------------------------
+
+    // Initialize sectionData with headers
+    const sectionData = [
+        ['Section Name', 'Adviser', 'Program', 'Year', 'Subjects', 'Shift', 'Start Time']
+    ];
+
+    // Loop through sections to build data rows
+    exportData.sections.forEach(section => {
+      const subjectNames = Object.entries(section.subjects)  // Get both subject IDs and units
+        .map(([subjectId, units]) => {
+            const subjectName = subjectsMap[subjectId];  // Get the subject name
+            return subjectName ? `${subjectName} (${units})` : 'Unknown Subject';  // Format as 'Name (Units)'
+        })
+        .join(', ');  // Join the subject strings with a comma
+  
+      const sectionRow = [
+          section.section,  // Section Name
+          teachersMap[section.teacher] || 'Unknown Teacher',  // Adviser (Teacher's Name)
+          programsMap[section.program] || 'Unknown Program',  // Program Name
+          section.year,  // Year Level
+          subjectNames,  /// Subjects (names with units, joined as a string)
+          section.shift === 0 ? 'AM' : 'PM',  // Shift (AM/PM)
+          getTimeSlotString(section.startTime)  // Start Time (formatted)
+      ];
+  
+      sectionData.push(sectionRow);
+    });
+
+    // Create worksheet
+    const sectionSheet = XLSX.utils.aoa_to_sheet(sectionData);
+    XLSX.utils.book_append_sheet(wb, sectionSheet, 'Sections');
+
+    // Generate Excel file and trigger download
+    XLSX.writeFile(wb, `TIMETABLE DATA.xlsx`);
+  };
+
+  const importDBfromExcel = (data) => {
+
+    const addedSubjects = [];
+    const addedTeachers = [];
+    const addedPrograms = [];
+
+    const normalizeKeys = (obj) => {
+      const normalizedObj = {};
+    
+      Object.keys(obj).forEach((key) => {
+        const normalizedKey = key.toLowerCase().replace(/\s+/g, '');
+        normalizedObj[normalizedKey] = obj[key];
+      });
+    
+      return normalizedObj;
+    };
+
+    const normalizedData = {};
+  
+    Object.keys(data).forEach((sheetName) => {
+      normalizedData[sheetName] = data[sheetName].map((entry) => normalizeKeys(entry));
+    });
+
+    console.log('normalizedData: ', normalizedData);  
+
+
+    normalizedData['Subjects'].forEach((subject) => {
+      dispatch(
+        addSubject({
+          subject: subject.subject,
+          classDuration: subject.classduration,
+        })
+      );
+
+      addedSubjects.push(subject.subject);
+    });
+
+    normalizedData['Teachers'].forEach((teacher) => {
+      const subjIds = [];
+
+      const subjArray = teacher.subjects.split(',').map(subject => subject.trim());
+      subjArray.forEach((subjectName) => {
+        for (let index = 0; index < addedSubjects.length; index++) {
+          if (addedSubjects[index].toLowerCase() === subjectName.toLowerCase()) {
+            subjIds.push(index + 1);
+            break;
+          }
+        }
+      })
+
+      dispatch(
+        addTeacher({
+          teacher: teacher.teacher,
+          subjects: subjIds,
+        })
+      );
+
+      addedTeachers.push(teacher.teacher);
+    });
+
+    normalizedData['Programs'].slice(1).forEach((program) => {
+      // console.log(`program['']: `, program['']);
+      const subjIds7 = [];
+      const subjIds8 = [];
+      const subjIds9 = [];
+      const subjIds10 = [];
+
+      const subjArray7 = program[7].split(',').map(subject => subject.trim());
+      subjArray7.forEach((subjectName) => {
+        for (let index = 0; index < addedSubjects.length; index++) {
+          if (addedSubjects[index].toLowerCase() === subjectName.toLowerCase()) {
+            subjIds7.push(index + 1);
+            break;
+          }
+        }
+      })
+      const subjArray8 = program[8].split(',').map(subject => subject.trim());
+      subjArray8.forEach((subjectName) => {
+        for (let index = 0; index < addedSubjects.length; index++) {
+          if (addedSubjects[index].toLowerCase() === subjectName.toLowerCase()) {
+            subjIds8.push(index + 1);
+            break;
+          }
+        }
+      })
+      const subjArray9 = program[9].split(',').map(subject => subject.trim());
+      subjArray9.forEach((subjectName) => {
+        for (let index = 0; index < addedSubjects.length; index++) {
+          if (addedSubjects[index].toLowerCase() === subjectName.toLowerCase()) {
+            subjIds9.push(index + 1);
+            break;
+          }
+        }
+      })
+      const subjArray10 = program[10].split(',').map(subject => subject.trim());
+      subjArray10.forEach((subjectName) => {
+        for (let index = 0; index < addedSubjects.length; index++) {
+          if (addedSubjects[index].toLowerCase() === subjectName.toLowerCase()) {
+            subjIds10.push(index + 1);
+            break;
+          }
+        }
+      })
+
+      dispatch(
+        addProgram({
+          program: program.program,
+          7 : {
+            subjects: subjIds7,
+            shift: program[''] === 'AM' ? 0 : 1,
+            startTime: getTimeSlotIndex(program['_1']),
+          },
+          8 : {
+            subjects: subjIds8,
+            shift: program['_2'] === 'AM' ? 0 : 1,
+            startTime: getTimeSlotIndex(program['_3']),
+          },
+          9 : {
+            subjects: subjIds9,
+            shift: program['_4'] === 'AM' ? 0 : 1,
+            startTime: getTimeSlotIndex(program['_5']),
+          },
+          10 : {
+            subjects: subjIds10,
+            shift: program['_6'] === 'AM' ? 0 : 1,
+            startTime: getTimeSlotIndex(program['_7']),
+          },
+        })
+      );
+      addedPrograms.push(program.program);
+    });
+
+    normalizedData['Sections'].forEach((section) => {
+      const formattedSubjectUnits = {};
+
+      const subjArray = section.subjects.split(',').map(subject => subject.trim());
+
+      subjArray.forEach((subjName) => {
+        const match = subjName.match(/(.+?) \((\d+)\)/);
+
+        if (match) {
+          const subjectName = match[1].trim();
+          const units = parseInt(match[2], 10);
+
+          for (let index = 0; index < addedSubjects.length; index++) {
+            if (addedSubjects[index].toLowerCase() === subjectName.toLowerCase()) {
+              formattedSubjectUnits[index + 1] = units;
+              break;
+            }
+          }
+        }
+      })
+
+      const progID = addedPrograms.findIndex(program => program.toLowerCase() === section.program.toLowerCase()) + 1;
+      const advID = addedTeachers.findIndex(teacher => teacher.toLowerCase() === section.adviser.toLowerCase()) + 1;
+
+      dispatch(
+        addSection({
+          section: section.sectionname,
+          teacher: advID,
+          program: progID,
+          year: section.year,
+          subjects: formattedSubjectUnits,
+          shift: section.shift === 'AM' ? 0 : 1,
+          startTime: getTimeSlotIndex(section.starttime),
+        })
+      );
+
+    });
   }
 
   return (
