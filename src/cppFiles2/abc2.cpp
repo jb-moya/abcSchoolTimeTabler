@@ -81,15 +81,15 @@ void printSchoolClasses(Timetable& timetable) {
 				std::cout << GREEN << "" << std::setw(4) << timeslot << RESET;
 				std::cout << YELLOW << DIM << "  d: " << RESET << YELLOW << std::setw(2) << ((day == 0) ? (CYAN + std::to_string(day)) : (std::string(YELLOW) + BOLD + std::to_string(day))) << RESET;
 
-				std::cout << RED << DIM << " s: " << RESET << RED
-				          << std::setw(3)  // Set width for the output
-				          << ((subject_id == -1) ? (std::string(" ") + DIM + "/\\") : std::to_string(subject_id))
-				          << RESET;
-
 				// For teacher_id
 				std::cout << MAGENTA << DIM << " t: " << RESET << MAGENTA
 				          << std::setw(3)  // Set width for the output
 				          << ((teacher_id == -1) ? (std::string(" ") + DIM + "/\\") : std::to_string(teacher_id))
+				          << RESET;
+
+				std::cout << RED << DIM << " s: " << RESET << RED
+				          << std::setw(3)  // Set width for the output
+				          << ((subject_id == -1) ? (std::string(" ") + DIM + "/\\") : std::to_string(subject_id))
 				          << RESET;
 
 				std::cout << DIM << " r: " << RESET << std::setw(4) << timetable.school_class_time_range[grade][timeslot].start << " ";
@@ -154,7 +154,7 @@ void printSchoolClasses(Timetable& timetable, std::ofstream& file) {
 	}
 
 	for (const auto& [teacher_id, days] : teacher_class) {
-		file << "t: " << std::setw(3) << teacher_id;
+		file << "t: " << std::setw(3) << teacher_id << std::endl;
 
 		for (const auto& [day, school_class] : days) {
 			file << " d: " << day << " | ";
@@ -172,12 +172,10 @@ void printSchoolClasses(Timetable& timetable, std::ofstream& file) {
 				}
 			}
 
-			// for (const auto& [timeslot, grade] : school_class) {
-			// 	file << " " << std::setw(2) << timeslot;
-			// }
+			file << std::endl;
 		}
 
-		file << std::endl;
+		file << std::setw(3) << std::endl;
 	}
 
 	file << std::endl;
