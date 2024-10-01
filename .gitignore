@@ -49,3 +49,4 @@ dist-ssr
 
 # log files on C++
 *timetable*.txt
+*app*.exe
