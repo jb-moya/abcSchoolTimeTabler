@@ -333,7 +333,7 @@ const SectionListContainer = ({ editable = false }) => {
   const handleEditSectionClick = (section) => {
     setEditSectionId(section.id);
     setEditSectionValue(section.section);
-    setEditSectionAdviser(section.adviser);
+    setEditSectionAdviser(section.teacher);
     setEditSectionProg(section.program);
     setEditSectionYear(section.year);
 
@@ -403,20 +403,23 @@ const SectionListContainer = ({ editable = false }) => {
     setEditSectionUnits({});
   };
 
-  const renderTimeOptions = () => {
+  const renderTimeOptions = (shift) => {
     const times =
-      editSectionShift === 0
-        ? Array.from({ length: 30 }, (_, i) => {
-            const hours = 6 + Math.floor(i / 6);
-            const minutes = (i % 6) * 10;
-            return `${String(hours).padStart(2, '0')}:${String(
-              minutes
-            ).padStart(2, '0')} AM`;
-          })
-        : Array.from({ length: 8 }, (_, i) => {
-            const hours = 1 + i;
-            return `${String(hours).padStart(2, '0')}:00 PM`;
-          });
+      shift === 'AM'
+        ? Array.from({ length: 36 }, (_, i) => {
+          const hours = 6 + Math.floor(i / 6);
+          const minutes = (i % 6) * 10;
+          return `${String(hours).padStart(2, '0')}:${String(
+            minutes
+          ).padStart(2, '0')} AM`;
+        })
+        : Array.from({ length: 1 }, (_, i) => {
+          const hours = 1 + Math.floor(i / 6);
+          const minutes = (i % 6) * 10;
+          return `${String(hours).padStart(2, '0')}:${String(
+            minutes
+          ).padStart(2, '0')} PM`;
+        });
 
     return times.map((time) => (
       <option key={time} value={time}>
@@ -424,7 +427,7 @@ const SectionListContainer = ({ editable = false }) => {
       </option>
     ));
   };
-
+  
   const debouncedSearch = useCallback(
     debounce((searchValue, sections, subjects) => {
       setSearchSectionResult(
