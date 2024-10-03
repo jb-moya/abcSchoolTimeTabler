@@ -231,30 +231,36 @@ const SubjectListContainer = ({ editable = false }) => {
 
   return (
     <div>
-      {editable && (
-        <div className="flex justify-between items-center mb-5">
-          <div className="flex-grow mr-2">
-            <label className="input input-md input-bordered flex items-center gap-2">
-              <input
-                type="text"
-                className="grow p-4"
-                placeholder="Search Subject"
-                value={searchSubjectValue}
-                onChange={(e) => setSearchSubjectValue(e.target.value)}
-              />
-              <IoSearch />
-            </label>
-          </div>
-          <button
-            className="btn btn-primary"
-            onClick={() => setOpenAddSubjectContainer(true)}
-          >
-            Add Subject
-            <IoAdd size={26} />
-          </button>
-        </div>
-      )}
+     <div className="flex flex-col md:flex-row md:gap-4 justify-between items-center mb-5">
 
+        <div className="flex-grow">
+          <label className="input input-md input-bordered flex items-center gap-2">
+            <input
+              type="text"
+              className="grow p-4"
+              placeholder="Search Subject"
+              value={searchSubjectValue}
+              onChange={(e) => setSearchSubjectValue(e.target.value)}
+            />
+            <IoSearch />
+          </label>
+        </div>
+
+        {editable && (
+          <div className="mb-4 md:mb-0">
+            <button
+              className="btn btn-primary"
+              onClick={() => setOpenAddSubjectContainer(true)}
+            >
+              Add Subject
+              <IoAdd size={26} />
+            </button>
+          </div>
+        )}
+      </div>
+
+
+      
       <Modal isOpen={openAddSubjectContainer} onClose={() => setOpenAddSubjectContainer(false)}>
         <AddSubjectContainer
           close={() => setOpenAddSubjectContainer(false)}
