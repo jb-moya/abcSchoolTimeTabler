@@ -1,48 +1,82 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
-import { useDispatch } from 'react-redux';
-import {
-  fetchSubjects,
-  addSubject,
-  editSubject,
-  removeSubject,
-} from '@features/subjectSlice';
+import { fetchSubjects, addSubject, editSubject, removeSubject } from '@features/subjectSlice';
 import { IoAdd, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 
-const AddSubjectContainer = ({
-  close,
-  reduxFunction,
-  defaultSubjectClassDuration,
-}) => {
+const Modal = ({ isOpen, onClose, children }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+      <div className="bg-base-100 rounded-lg shadow-lg p-6 relative max-w-lg w-full">
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 btn btn-circle btn-outline btn-sm text-gray-600 hover:text-red-500"
+          aria-label="Close modal"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            className="inline-block w-4 h-4 stroke-current"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </button>
+        <div className="modal-content">{children}</div>
+      </div>
+    </div>
+  );
+};
+
+const SuccessModal = ({ isOpen, onClose, message }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+      <div className="bg-white rounded-lg shadow-lg p-6 relative">
+        <h3 className="text-lg font-bold mb-4">Success!</h3>
+        <p>{message}</p>
+        <button
+          onClick={onClose}
+          className="btn btn-circle btn-outline btn-xs text-gray-600 hover:text-red-500 mt-4"
+        >
+          X
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const AddSubjectContainer = ({ close, reduxFunction, defaultSubjectClassDuration, showSuccessModal }) => {
   const inputNameRef = useRef();
   const dispatch = useDispatch();
 
   const [subjectName, setSubjectName] = useState('');
   const [classSubjectDuration, setClassSubjectDuration] = useState(
-    defaultSubjectClassDuration || 10 // Ensure it defaults to 10 if undefined
+    defaultSubjectClassDuration || 10
   );
 
   const handleAddSubject = () => {
     const classDuration = parseInt(classSubjectDuration, 10);
     if (subjectName.trim()) {
-      dispatch(
-        reduxFunction({
-          subject: subjectName,
-          classDuration: classDuration,
-        })
-      );
-
-      // setSubjectName('');
-
+      dispatch(reduxFunction({ subject: subjectName, classDuration }));
+      handleReset();
+      close();
+      showSuccessModal('Subject added successfully.');
       if (inputNameRef.current) {
         inputNameRef.current.focus();
         inputNameRef.current.select();
       }
-      // close();
     } else {
       alert('Subject name cannot be empty');
     }
@@ -55,33 +89,17 @@ const AddSubjectContainer = ({
 
   useEffect(() => {
     if (inputNameRef.current) {
-        inputNameRef.current.focus();
+      inputNameRef.current.focus();
     }
   }, []);
 
   return (
-    <div className="mb-3 p-4 border rounded-md shadow-md bg-white w-5/12 h-4/12">
-      <div className="flex justify-between">
-        <h3 className="text-lg font-bold mb-4">Add New Subject</h3>
-        <button className="btn btn-xs btn-circle btn-outline" onClick={close}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              className="inline-block w-4 h-4 stroke-current"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M6 18L18 6M6 6l12 12"
-              ></path>
-            </svg>
-        </button>
-      </div>
+    <div className="mb-3 p-4">
+      <h3 className="text-lg font-bold mb-4">Add New Subject</h3>
       <div className="mb-4">
         <label className="block text-sm font-medium mb-2">Subject Name:</label>
         <input
+          ref={inputNameRef}
           type="text"
           className="input input-bordered w-full"
           value={subjectName}
@@ -90,31 +108,25 @@ const AddSubjectContainer = ({
         />
       </div>
       <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">
-          Class Duration (minutes):
-        </label>
+        <label className="block text-sm font-medium mb-2">Class Duration (minutes):</label>
         <input
           type="number"
           className="input input-bordered w-full"
           value={classSubjectDuration}
-          onChange={(e) => {
-            const value = Number(e.target.value);
-            setClassSubjectDuration(value);
-            
-          }}
+          onChange={(e) => setClassSubjectDuration(Number(e.target.value))}
           placeholder="Enter class duration"
           step={10}
           min={10}
         />
       </div>
       <div className="flex justify-between">
-        <button className="btn btn-info bg-transparent border-0" onClick={handleReset}>
-            Reset
+        <button className="btn bg-transparent border-0" onClick={handleReset}>
+          Reset
         </button>
         <div className="flex justify-end space-x-2">
-            <button className="btn btn-primary" onClick={handleAddSubject}>
-                Add Subject
-            </button>
+          <button className="btn btn-primary" onClick={handleAddSubject}>
+            Add Subject
+          </button>
         </div>
       </div>
     </div>
@@ -123,21 +135,41 @@ const AddSubjectContainer = ({
 
 const SubjectListContainer = ({ editable = false }) => {
   const dispatch = useDispatch();
-  const { subjects, status: subjectStatus } = useSelector(
-    (state) => state.subject
-  );
-
-  const defaultSubjectClassDuration = localStorage.getItem(
-    'defaultSubjectClassDuration'
-  );
+  const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
+  const defaultSubjectClassDuration = localStorage.getItem('defaultSubjectClassDuration');
 
   const [editSubjectId, setEditSubjectId] = useState(null);
   const [searchSubjectResult, setSearchSubjectResult] = useState(subjects);
   const [editSubjectValue, setEditSubjectValue] = useState('');
   const [editClassDuration, setEditClassDuration] = useState(0);
   const [searchSubjectValue, setSearchSubjectValue] = useState('');
-
   const [openAddSubjectContainer, setOpenAddSubjectContainer] = useState(false);
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
+  const [addSuccessModalOpen, setAddSuccessModalOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  useEffect(() => {
+    if (subjectStatus === 'idle') {
+      dispatch(fetchSubjects());
+    }
+  }, [subjectStatus, dispatch]);
+
+  const debouncedSearch = useCallback(
+    debounce((searchValue, subjects) => {
+      setSearchSubjectResult(
+        filterObject(subjects, ([, subject]) => {
+          const escapedSearchValue = escapeRegExp(searchValue).split('\\*').join('.*');
+          const pattern = new RegExp(escapedSearchValue, 'i');
+          return pattern.test(subject.subject);
+        })
+      );
+    }, 200),
+    []
+  );
+
+  useEffect(() => {
+    debouncedSearch(searchSubjectValue, subjects);
+  }, [searchSubjectValue, subjects, debouncedSearch]);
 
   const handleEditSubjectClick = (subject) => {
     setEditSubjectId(subject.id);
@@ -146,6 +178,11 @@ const SubjectListContainer = ({ editable = false }) => {
   };
 
   const handleSaveSubjectEditClick = (subjectId) => {
+    if (editSubjectValue.trim() === '' || editClassDuration <= 0) {
+      alert('Both subject name and class duration must be valid.');
+      return;
+    }
+
     dispatch(
       editSubject({
         subjectId,
@@ -158,6 +195,7 @@ const SubjectListContainer = ({ editable = false }) => {
     setEditSubjectId(null);
     setEditSubjectValue('');
     setEditClassDuration(0);
+    showSuccessModal('Data has been successfully updated.');
   };
 
   const handleCancelSubjectEditClick = () => {
@@ -166,47 +204,69 @@ const SubjectListContainer = ({ editable = false }) => {
     setEditClassDuration(0);
   };
 
-  useEffect(() => {
-    if (subjectStatus === 'idle') {
-      dispatch(fetchSubjects());
+  const handleEditClassDurationChange = (e) => {
+    const value = Number(e.target.value);
+    if (value % 10 === 0) {
+      setEditClassDuration(value);
+    } else {
+      alert('Class duration must be in increments of 10 minutes.');
     }
-  }, [subjectStatus, dispatch]);
+  };
 
-  const debouncedSearch = useCallback(
-    debounce((searchValue, subjects) => {
-      setSearchSubjectResult(
-        filterObject(subjects, ([, subject]) => {
-          const escapedSearchValue = escapeRegExp(searchValue)
-            .split('\\*')
-            .join('.*');
+  const showSuccessModal = (message) => {
+    setSuccessMessage(message);
+    setSuccessModalOpen(true);
+    setTimeout(() => {
+      setSuccessModalOpen(false);
+    }, 2000); // Automatically close after 2 seconds
+  };
 
-          const pattern = new RegExp(escapedSearchValue, 'i');
-
-          return pattern.test(subject.subject);
-        })
-      );
-    }, 200),
-    []
-  );
-
-  useEffect(() => {
-    debouncedSearch(searchSubjectValue, subjects);
-  }, [searchSubjectValue, subjects, debouncedSearch]);
+  const showAddSuccessModal = (message) => {
+    setSuccessMessage(message);
+    setAddSuccessModalOpen(true);
+    setTimeout(() => {
+      setAddSuccessModalOpen(false);
+    }, 2000);
+  };
 
   return (
-    <div className="">
-      {/* Search Filter */}
-      <label className="input input-sm input-bordered flex items-center gap-2">
-        <input
-          type="text"
-          className="grow"
-          placeholder="Search Subject"
-          value={searchSubjectValue}
-          onChange={(e) => setSearchSubjectValue(e.target.value)}
+    <div>
+      {editable && (
+        <div className="flex justify-between items-center mb-5">
+          <div className="flex-grow mr-2">
+            <label className="input input-md input-bordered flex items-center gap-2">
+              <input
+                type="text"
+                className="grow p-4"
+                placeholder="Search Subject"
+                value={searchSubjectValue}
+                onChange={(e) => setSearchSubjectValue(e.target.value)}
+              />
+              <IoSearch />
+            </label>
+          </div>
+          <button
+            className="btn btn-primary"
+            onClick={() => setOpenAddSubjectContainer(true)}
+          >
+            Add Subject
+            <IoAdd size={26} />
+          </button>
+        </div>
+      )}
+
+      <Modal isOpen={openAddSubjectContainer} onClose={() => setOpenAddSubjectContainer(false)}>
+        <AddSubjectContainer
+          close={() => setOpenAddSubjectContainer(false)}
+          reduxFunction={addSubject}
+          defaultSubjectClassDuration={defaultSubjectClassDuration}
+          showSuccessModal={showAddSuccessModal}
         />
-        <IoSearch />
-      </label>
-      {/* Table */}
+      </Modal>
+
+      <SuccessModal isOpen={successModalOpen} onClose={() => setSuccessModalOpen(false)} message={successMessage} />
+      <SuccessModal isOpen={addSuccessModalOpen} onClose={() => setAddSuccessModalOpen(false)} message="Subject added successfully." />
+
       <table className="table table-sm table-zebra">
         <thead>
           <tr>
@@ -220,7 +280,7 @@ const SubjectListContainer = ({ editable = false }) => {
         <tbody>
           {Object.values(searchSubjectResult).length === 0 ? (
             <tr>
-              <td colSpan="4" className="text-center">
+              <td colSpan="5" className="text-center">
                 No subjects found
               </td>
             </tr>
@@ -246,12 +306,8 @@ const SubjectListContainer = ({ editable = false }) => {
                     <input
                       type="number"
                       value={editClassDuration}
-                      onChange={(e) => {
-                        const newDuration = Number(e.target.value);
-                        setEditClassDuration(newDuration);                       
-                      }}
+                      onChange={handleEditClassDurationChange}
                       className="input input-bordered input-sm w-full"
-                      placeholder="Enter class duration"
                       step={10}
                       min={10}
                     />
@@ -260,18 +316,18 @@ const SubjectListContainer = ({ editable = false }) => {
                   )}
                 </td>
                 {editable && (
-                  <td className="w-28 text-right">
+                  <td className="flex justify-end gap-2">
                     {editSubjectId === subject.id ? (
                       <>
                         <button
-                          className="btn btn-xs btn-ghost text-green-500"
+                          className="btn btn-sm btn-primary" // Green for save
                           onClick={() => handleSaveSubjectEditClick(subject.id)}
                         >
                           Save
                         </button>
                         <button
-                          className="btn btn-xs btn-ghost text-red-500"
-                          onClick={() => handleCancelSubjectEditClick()}
+                          className="btn btn-sm " // Warning for cancel
+                          onClick={handleCancelSubjectEditClick}
                         >
                           Cancel
                         </button>
@@ -279,16 +335,16 @@ const SubjectListContainer = ({ editable = false }) => {
                     ) : (
                       <>
                         <button
-                          className="btn btn-xs btn-ghost text-red-500"
+                          className="btn btn-sm btn-primary" // Green for edit
                           onClick={() => handleEditSubjectClick(subject)}
                         >
-                          <RiEdit2Fill size={20} />
+                          <RiEdit2Fill />
                         </button>
                         <button
-                          className="btn btn-xs btn-ghost text-red-500"
+                          className="btn btn-sm btn-danger" // Red for delete
                           onClick={() => dispatch(removeSubject(subject.id))}
                         >
-                          <RiDeleteBin7Line size={20} />
+                          <RiDeleteBin7Line />
                         </button>
                       </>
                     )}
@@ -299,30 +355,6 @@ const SubjectListContainer = ({ editable = false }) => {
           )}
         </tbody>
       </table>
-      {/* Add Button */}
-      {editable && (
-        <div>
-          {openAddSubjectContainer ? (
-            <AddSubjectContainer
-              close={() => setOpenAddSubjectContainer(false)}
-              reduxFunction={addSubject}
-              defaultSubjectClassDuration={defaultSubjectClassDuration}
-            />
-          ) : (
-            <div className="flex justify-end mt-3">
-              <button
-                className="btn btn-secondary my-5"
-                onClick={() => {
-                  setOpenAddSubjectContainer(true);
-                }}
-              >
-                Add Subject
-                <IoAdd size={26} />
-              </button>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 };

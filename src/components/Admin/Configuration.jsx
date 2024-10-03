@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 
 function Configuration() {
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
-        // Load from local storage if available
         return localStorage.getItem('numOfSchoolDays') || 5;
     });
     const [defaultSubjectClassDuration, setDefaultSubjectClassDuration] = useState(() => {
@@ -15,20 +14,14 @@ function Configuration() {
         return localStorage.getItem('afternoonStartTime') || '01:00 PM';
     });
 
-    const generateTimeOptions = (startHour, endHour) => {
+    const generateTimeOptions = (startHour, endHour, isMorning) => {
         const times = [];
         for (let hour = startHour; hour <= endHour; hour++) {
-          for (let minute = 0; minute < 60; minute += 10) {
-            if (hour === 8 && minute > 0) {
-              continue;
+            for (let minute = 0; minute < 60; minute += 10) {
+                const formattedTime = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+                const period = isMorning ? 'AM' : 'PM';
+                times.push(`${formattedTime} ${period}`);
             }
-    
-            const formattedTime = `${String(hour).padStart(2, '0')}:${String(
-              minute
-            ).padStart(2, '0')}`;
-            const period = startHour === 6 ? 'AM' : 'PM';
-            times.push(`${formattedTime} ${period}`);
-          }
         }
         return times;
     };
@@ -50,79 +43,83 @@ function Configuration() {
     }, [afternoonStartTime]);
 
     return (
-        //   Configuration
         <div className="mb-10">
-            <h1 className="divider">Configuration</h1>
-            <div className="flex flex-col gap-2">
-                <div className="join border border-base-content">
-                <div className="join-item px-2"> Number of Days in week</div>
-                <input
-                    type="number"
-                    placeholder="eg. 5 (mon to fri)"
-                    className="input w-full join-item"
-                    value={numOfSchoolDays}
-                    onChange={(e) => {
-                    setNumOfSchoolDays(e.target.value);
-                    }}
-                />
-                </div>
-                <div className="join border border-base-content">
-                <div className="join-item px-2">Default class duration:</div>
-                <select
-                    className="select w-full join-item"
-                    value={defaultSubjectClassDuration}
-                    onChange={(e) => {
-                    setDefaultSubjectClassDuration(parseInt(e.target.value, 10));
-                    }}
-                >
-                    {Array.from({ length: 12 }, (_, index) => (index + 1) * 10).map(
-                    (duration) => (
-                        <option key={duration} value={duration}>
-                        {duration} mins
-                        </option>
-                    )
-                    )}
-                </select>
+            <h1 className="divider text-xl font-bold">Configuration</h1>
+
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+
+                {/* Number of Days in Week */}
+                <div className="form-control w-full">
+                    <label className="label">
+                        <span className="label-text">Number of Days in Week</span>
+                    </label>
+                    <input
+                        type="number"
+                        placeholder="e.g., 5 (Mon-Fri)"
+                        className="input input-bordered w-full"
+                        value={numOfSchoolDays}
+                        onChange={(e) => setNumOfSchoolDays(e.target.value)}
+                    />
                 </div>
 
-                <div>
-                <label>Morning Start Time:</label>
-                <select
-                    value={morningStartTime}
-                    onChange={(e) => {
-                    const newValue = e.target.value;
-                    setMorningStartTime(newValue);
-                    console.log(typeof newValue);
-                    }}
-                >
-                    {generateTimeOptions(6, 11).map((time) => (
-                    <option key={time} value={time}>
-                        {time}
-                    </option>
-                    ))}
-                </select>
+                {/* Default Class Duration */}
+                <div className="form-control w-full">
+                    <label className="label">
+                        <span className="label-text">Default Class Duration</span>
+                    </label>
+                    <select
+                        className="select select-bordered w-full"
+                        value={defaultSubjectClassDuration}
+                        onChange={(e) => setDefaultSubjectClassDuration(parseInt(e.target.value, 10))}
+                    >
+                        {Array.from({ length: 12 }, (_, index) => (index + 1) * 10).map(duration => (
+                            <option key={duration} value={duration}>
+                                {duration} mins
+                            </option>
+                        ))}
+                    </select>
                 </div>
-                <div>
-                <label>Afternoon Start Time:</label>
-                <select
-                    value={afternoonStartTime}
-                    onChange={(e) => {
-                    const newValue = e.target.value;
-                    setAfternoonStartTime(newValue);
-                    console.log(typeof newValue);
-                    }}
-                >
-                    {generateTimeOptions(1, 8).map((time) => (
-                    <option key={time} value={time}>
-                        {time}
-                    </option>
-                    ))}
-                </select>
+
+                {/* Morning Start Time */}
+                <div className="form-control w-full">
+                    <label className="label">
+                        <span className="label-text">Morning Start Time</span>
+                    </label>
+                    <select
+                        className="select select-bordered w-full"
+                        value={morningStartTime}
+                        onChange={(e) => setMorningStartTime(e.target.value)}
+                    >
+                        {generateTimeOptions(6, 11, true).map(time => (
+                            <option key={time} value={time}>
+                                {time}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Afternoon Start Time */}
+                <div className="form-control w-full">
+                    <label className="label">
+                        <span className="label-text">Afternoon Start Time</span>
+                    </label>
+                    <select
+                        className="select select-bordered w-full"
+                        value={afternoonStartTime}
+                        onChange={(e) => setAfternoonStartTime(e.target.value)}
+                    >
+                        {generateTimeOptions(1, 8, false).map(time => (
+                            <option key={time} value={time}>
+                                {time}
+                            </option>
+                        ))}
+                    </select>
                 </div>
             </div>
+
             <h1 className="divider"></h1>
         </div>
-    )
+    );
 }
 
 export default Configuration;

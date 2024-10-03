@@ -15,15 +15,22 @@ function Subject() {
 
   return (
     <div className="App container mx-auto px-4 mb-10">
-      <Configuration />
-      {/* Table */}
+      {/* Optional Configuration Component */}
+      {/* <Configuration /> */}
 
-      <div className="w-[100%]">
-        <SubjectListContainer editable={true} />
-      </div>
+      {/* Main Content */}
+      <div className="flex flex-col gap-4">
+        <div className="card w-full bg-base-100 shadow-md">
+          <div className="card-body">
+            <SubjectListContainer editable={true} />
+          </div>
+        </div>
 
-      <div className="w-[100%=">
-        <ProgramListContainer editable={true} />
+        <div className="card w-full bg-base-100 shadow-md">
+          <div className="card-body">
+            <ProgramListContainer editable={true} />
+          </div>
+        </div>
       </div>
     </div>
   );

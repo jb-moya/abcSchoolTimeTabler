@@ -354,77 +354,102 @@ function Timetable() {
   }, [timetableGenerationStatus]); // The effect depends on the isProcessRunning state
 
   return (
-    <div className="App container mx-auto px-4 mb-10">
-      <ExportImportDBButtons />
-      <Configuration />
+    <div className="App container mx-auto px-4 py-6">
+  <div className="mb-6 flex justify-end">
+    <ExportImportDBButtons />
+  </div>
 
-      <div className="flex gap-4">
-        <div className="w-4/12">
-          <SubjectListContainer />
-        </div>
-        <div className="w-8/12">
-          <ProgramListContainer />
-        </div>
-      </div>
-      <div className="mt-4 flex gap-4">
-        <div className="w-full">
-          <TeacherListContainer />
-        </div>
-      </div>
-      <div className="w-full ">
-        <SectionListContainer />
-        <button
-          className={clsx('btn btn-primary w-full', {
-            'cursor-not-allowed': timetableGenerationStatus === 'running',
-            'btn-error': timetableGenerationStatus === 'error',
-            'mt-5': true,
-          })}
-          onClick={() => {
-            if (validate()) {
-              handleButtonClick();
-            }
-          }}
-          disabled={timetableGenerationStatus === 'running'}
-        >
-          {timetableGenerationStatus == 'running' ? (
-            <div className="flex gap-2">
-              <span>Generating</span>
-              <span className="loading loading-spinner loading-xs"></span>
-            </div>
-          ) : (
-            'Generate Timetable'
-          )}
-        </button>
+  <div className="mb-6">
+    <Configuration />
+  </div>
 
-        <div>
-          <ViolationList violations={violations} />
-        </div>
-      </div>
+  {/* Responsive card layout for Subject and Teacher Lists */}
+  {/* <div className="flex flex-col lg:flex-row gap-6">
+    <div className="w-full lg:w-4/12 bg-base-100 p-6 rounded-lg shadow-lg">
+      <h2 className="text-lg font-semibold mb-4">Subjects</h2>
+      <SubjectListContainer />
+    </div>
+    <div className="w-full lg:w-8/12 bg-base-100 p-6 rounded-lg shadow-lg">
+      <h2 className="text-lg font-semibold mb-4">Teachers</h2>
+      <TeacherListContainer />
+    </div>
+  </div> */}
 
-      <div className="grid grid-cols-1 col-span-full gap-4 sm:grid-cols-2">
-        <GeneratedTimetable
-          timetables={sectionTimetables}
-          collection={sections}
-          field={'section'}
-          timeSlotMap={timeSlotMap}
-          firstColumnMap={subjects}
-          secondColumnMap={teachers}
-          columnField={['subject', 'teacher']}
-          beforeBreakTime={beforeBreakTime}
-        />
-{/* 
-        <GeneratedTimetable
-          timetables={teacherTimetables}
-          collection={teachers}
-          field={'teacher'}
-          timeSlotMap={timeSlotMap}
-          firstColumnMap={sections}
-          secondColumnMap={subjects}
-          columnField={['section', 'subject']}
-          beforeBreakTime={beforeBreakTime}
-        /> */}
+  <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
+    <h2 className="text-lg font-semibold mb-4">Subjects</h2>
+    <SubjectListContainer />
+  </div>
+
+  <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
+    <h2 className="text-lg font-semibold mb-4">Teachers</h2>
+    <TeacherListContainer />
+  </div>
+
+  {/* Program Lists */}
+  <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
+    <h2 className="text-lg font-semibold mb-4">Programs</h2>
+    <ProgramListContainer />
+  </div>
+
+  {/* Section List with the Generate Timetable Button */}
+  <div className="mt-6">
+    <div className="bg-base-100 p-6 rounded-lg shadow-lg">
+      <h2 className="text-lg font-semibold mb-4">Sections</h2>
+      <SectionListContainer />
+
+      <button
+        className={clsx('btn btn-primary w-full mt-6', {
+          'cursor-not-allowed': timetableGenerationStatus === 'running',
+          'btn-error': timetableGenerationStatus === 'error',
+        })}
+        onClick={() => {
+          if (validate()) {
+            handleButtonClick();
+          }
+        }}
+        disabled={timetableGenerationStatus === 'running'}
+      >
+        {timetableGenerationStatus === 'running' ? (
+          <div className="flex gap-2 items-center">
+            <span>Generating</span>
+            <span className="loading loading-spinner loading-xs"></span>
+          </div>
+        ) : (
+          'Generate Timetable'
+        )}
+      </button>
+
+      <div className="mt-4">
+        <ViolationList violations={violations} />
       </div>
     </div>
+  </div>
+
+  {/* Responsive Timetable Grid */}
+  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 mt-6">
+    <GeneratedTimetable
+      timetables={sectionTimetables}
+      collection={sections}
+      field={'section'}
+      timeSlotMap={timeSlotMap}
+      firstColumnMap={subjects}
+      secondColumnMap={teachers}
+      columnField={['subject', 'teacher']}
+      beforeBreakTime={beforeBreakTime}
+    />
+    {/* Uncomment if needed */}
+    {/* <GeneratedTimetable
+      timetables={teacherTimetables}
+      collection={teachers}
+      field={'teacher'}
+      timeSlotMap={timeSlotMap}
+      firstColumnMap={sections}
+      secondColumnMap={subjects}
+      columnField={['section', 'subject']}
+      beforeBreakTime={beforeBreakTime}
+    /> */}
+  </div>
+</div>
   );
 }
 
