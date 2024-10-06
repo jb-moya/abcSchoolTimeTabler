@@ -80,15 +80,16 @@ struct ClassStartEnd {
 };
 
 struct teacherViolation {
-	int class_timeslot_overlap;
-	int no_break;
-	int exceed_workload;
+	unsigned long long class_timeslot_overlap;
+	unsigned long long no_break;
+	unsigned long long exceed_workload;
+	unsigned long long class_gap;
 };
 
 struct sectionViolation {
-	int early_break;
-	int small_break_gap;
-	int late_break;
+	unsigned long long early_break;
+	unsigned long long small_break_gap;
+	unsigned long long late_break;
 };
 
 struct Timetable {
@@ -162,12 +163,13 @@ struct Bee {
 	Timetable timetable;
 	std::vector<teacherViolation> teacher_violations;
 	std::vector<sectionViolation> section_violations;
-	int total_cost;
+	unsigned long long total_cost;
 
 	void resetTeacherViolation(int teacher_id) {
 		teacher_violations[teacher_id].class_timeslot_overlap = 0;
 		teacher_violations[teacher_id].no_break = 0;
 		teacher_violations[teacher_id].exceed_workload = 0;
+		teacher_violations[teacher_id].class_gap = 0;
 	}
 
 	void resetSectionViolation(int section_id) {

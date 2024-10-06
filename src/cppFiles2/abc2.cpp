@@ -126,13 +126,13 @@ void printSchoolClasses(Timetable& timetable, std::ofstream& file) {
 				file << "" << std::setw(4) << timeslot;
 				file << "  d: " << std::setw(2) << ((day == 0) ? (std::to_string(day)) : (std::to_string(day)));
 
-				file << " s: "
-				     << std::setw(3)
-				     << ((subject_id == -1) ? (std::string(" ") + "/\\") : std::to_string(subject_id));
-
 				file << " t: "
 				     << std::setw(3)
 				     << ((teacher_id == -1) ? (std::string(" ") + "/\\") : std::to_string(teacher_id));
+
+				file << " s: "
+				     << std::setw(3)
+				     << ((subject_id == -1) ? (std::string(" ") + "/\\") : std::to_string(subject_id));
 
 				if (teacher_id != -1) {
 					for (int i = timetable.school_class_time_range[grade][timeslot].start; i < timetable.school_class_time_range[grade][timeslot].end; i++) {
@@ -935,8 +935,11 @@ void ObjectiveFunction::logConflicts(
     std::ofstream& log_file) {
 	auto& teachers_timetable = bee.timetable.teachers_timeslots;
 
-	teacherViolation total_teacher_violation = {0, 0, 0};
-	sectionViolation total_section_violation = {0, 0, 0};
+	teacherViolation overall_total_teacher_violation = {0, 0, 0, 0};
+	sectionViolation overall_total_section_violation = {0, 0, 0};
+
+	std::map<int16_t, teacherViolation> teachers_total_violation;
+	std::map<int16_t, sectionViolation> sections_total_violation;
 
 	for (const int& teacher_id : bee.timetable.s_teachers_set) {
 		auto it = teachers_timetable.find(teacher_id);
@@ -952,7 +955,8 @@ void ObjectiveFunction::logConflicts(
 
 		for (const auto& [day, timeslot] : teacher_id_and_days) {
 			if (bee.timetable.teachers_class_count[day][teacher_id] > max_teacher_work_load) {
-				total_teacher_violation.exceed_workload++;
+				overall_total_teacher_violation.exceed_workload++;
+				teachers_total_violation[teacher_id].exceed_workload++;
 			}
 
 			if (timeslot.size() == 0) {
@@ -968,16 +972,18 @@ void ObjectiveFunction::logConflicts(
 			int middle = (timeslot.begin()->first + lastElement->first) / 2;
 			int min_allowance = middle - bee.timetable.s_default_class_duration;
 			int max_allowance = middle + bee.timetable.s_default_class_duration;
+			// int gap = 0;
 			bool break_found = false;
 
 			while (it != timeslot.end()) {
 				int timeslot_key = it->first;
 				int class_count = it->second;
 
-				if (nextIt != timeslot.end() && !break_found) {
+				if (nextIt != timeslot.end()) {
 					int nextKey = nextIt->first;
 					int difference = nextKey - timeslot_key - 1;
-					if (difference >= break_time_duration) {
+					// gap += difference;
+					if ((difference >= break_time_duration) && !break_found) {
 						if ((min_allowance <= timeslot_key + 1 && timeslot_key + 1 <= max_allowance) ||
 						    (min_allowance <= nextKey - 1 && nextKey - 1 <= max_allowance)) {
 							break_found = true;
@@ -986,7 +992,8 @@ void ObjectiveFunction::logConflicts(
 				}
 
 				if (class_count > 1) {
-					total_teacher_violation.class_timeslot_overlap += class_count;
+					overall_total_teacher_violation.class_timeslot_overlap += class_count;
+					teachers_total_violation[teacher_id].class_timeslot_overlap += class_count;
 				}
 
 				it = nextIt;
@@ -995,8 +1002,13 @@ void ObjectiveFunction::logConflicts(
 				}
 			}
 
+			// if (gap - break_time_duration > 1) {
+			// 	total_teacher_violation.class_gap += gap - break_time_duration;
+			// }
+
 			if (!break_found && bee.timetable.teachers_class_count[day][teacher_id] >= bee.timetable.s_teacher_break_threshold) {
-				total_teacher_violation.no_break++;
+				overall_total_teacher_violation.no_break++;
+				teachers_total_violation[teacher_id].no_break++;
 			}
 		}
 	}
@@ -1012,11 +1024,13 @@ void ObjectiveFunction::logConflicts(
 			int break_time = *section_break_time[section_id].begin();
 
 			if (section_class_start_end[section_id][break_time].end > bee.timetable.s_section_total_duration[section_id] - bee.timetable.s_break_timeslot_allowance) {
-				total_section_violation.late_break++;
+				overall_total_section_violation.late_break++;
+				sections_total_violation[section_id].late_break++;
 			}
 
 			if (section_class_start_end[section_id][break_time].start < bee.timetable.s_break_timeslot_allowance) {
-				total_section_violation.early_break++;
+				overall_total_section_violation.early_break++;
+				sections_total_violation[section_id].early_break++;
 			}
 		} else {
 			int first_break_time = *section_break_time[section_id].begin();
@@ -1026,30 +1040,82 @@ void ObjectiveFunction::logConflicts(
 			int last_end = section_class_start_end[section_id][last_break_time].end;
 
 			if (last_end > bee.timetable.s_section_total_duration[section_id] - bee.timetable.s_break_timeslot_allowance) {
-				total_section_violation.late_break++;
+				overall_total_section_violation.late_break++;
+				sections_total_violation[section_id].late_break++;
 			}
 
 			if (first_start < bee.timetable.s_break_timeslot_allowance) {
-				total_section_violation.early_break++;
+				overall_total_section_violation.early_break++;
+				sections_total_violation[section_id].early_break++;
 			}
 
 			if (last_end - first_start <= bee.timetable.s_break_timeslot_allowance) {
-				total_section_violation.small_break_gap++;
+				overall_total_section_violation.small_break_gap++;
+				sections_total_violation[section_id].small_break_gap++;
 			}
 		}
 	}
 
-	log_file << "Conflicts: " << std::endl;
+	log_file << "- + - + - + - + - TOTAL COST: Conflicts: - + - + - + - + - +" << std::endl;
 	log_file << "Teacher: " << std::endl;
-	log_file << "class timeslot overlap: " << total_teacher_violation.class_timeslot_overlap << std::endl;
-	log_file << "no break: " << total_teacher_violation.no_break << std::endl;
-	log_file << "exceed workload: " << total_teacher_violation.exceed_workload << std::endl;
+	log_file << "class timeslot overlap: " << overall_total_teacher_violation.class_timeslot_overlap << std::endl;
+	log_file << "no break: " << overall_total_teacher_violation.no_break << std::endl;
+	log_file << "exceed workload: " << overall_total_teacher_violation.exceed_workload << std::endl;
+	log_file << "class gap: " << overall_total_teacher_violation.class_gap << std::endl;
 	log_file << std::endl;
 
 	log_file << "Section: " << std::endl;
-	log_file << "late break: " << total_section_violation.late_break << std::endl;
-	log_file << "early break: " << total_section_violation.early_break << std::endl;
-	log_file << "small break gap: " << total_section_violation.small_break_gap << std::endl;
+	log_file << "late break: " << overall_total_section_violation.late_break << std::endl;
+	log_file << "early break: " << overall_total_section_violation.early_break << std::endl;
+	log_file << "small break gap: " << overall_total_section_violation.small_break_gap << std::endl;
+	log_file << "- + - + - + - + - TOTAL COST: Conflicts: - + - + - + - + - +" << std::endl;
+
+	log_file << std::endl
+	         << std::endl
+	         << std::endl
+	         << std::endl;
+
+	log_file << "/ / / / / / / teachers that have violations: / / / / / / / " << std::endl;
+
+	for (const auto& [teacher_id, teacher_violation] : teachers_total_violation) {
+		log_file << "Teacher: " << teacher_id << std::endl;
+
+		if (teacher_violation.class_timeslot_overlap > 0) {
+			log_file << "." << std::setw(4) << " class timeslot overlap: " << teacher_violation.class_timeslot_overlap << std::endl;
+		}
+
+		if (teacher_violation.no_break > 0) {
+			log_file << "." << std::setw(4) << " no break: " << teacher_violation.no_break << std::endl;
+		}
+
+		if (teacher_violation.exceed_workload > 0) {
+			log_file << "." << std::setw(4) << " exceed workload: " << teacher_violation.exceed_workload << std::endl;
+		}
+	}
+
+	log_file << std::endl
+	         << std::endl
+	         << std::endl
+	         << std::endl;
+
+	log_file << "/ / / / / / / sections that have violations: / / / / / / / " << std::endl;
+
+	for (const auto& [section_id, section_violation] : sections_total_violation) {
+		log_file << "Section: " << section_id << std::endl;
+
+		if (section_violation.late_break > 0) {
+			log_file << "." << std::setw(4) << " late break: " << section_violation.late_break << std::endl;
+		}
+
+		if (section_violation.early_break > 0) {
+			log_file << "." << std::setw(4) << " early break: " << section_violation.early_break << std::endl;
+		}
+
+		if (section_violation.small_break_gap > 0) {
+			log_file << "." << std::setw(4) << " small break gap: " << section_violation.small_break_gap << std::endl;
+		}
+	}
+
 	log_file << std::endl;
 };
 
