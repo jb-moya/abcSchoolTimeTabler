@@ -1411,13 +1411,6 @@ void runExperiment(
 
 		evaluator.evaluate(bees_vector[i], affected_teachers, Timetable::s_sections_set, false, true);
 
-		if (bees_vector[i].total_cost == 0) {
-			print(RED, GREEN_BG, "JACKPOT ", i, bees_vector[i].total_cost, " size ", RESET);
-			printSchoolClasses(bees_vector[i].timetable);
-			print(RED, GREEN_BG, "JACKPOT ", i, bees_vector[i].total_cost, " size ", RESET);
-			return;
-		}
-
 		if (bees_vector[i].total_cost <= best_solution.total_cost) {
 			best_solution = bees_vector[i];
 		}
