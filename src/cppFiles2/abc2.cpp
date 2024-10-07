@@ -204,8 +204,8 @@ std::unordered_map<int16_t, std::vector<int16_t>> Timetable::s_section_subjects;
 std::unordered_map<int16_t, int> Timetable::s_section_total_duration;
 std::unordered_map<int16_t, int> Timetable::s_section_timeslot;
 std::unordered_map<int16_t, int> Timetable::s_section_start;
-std::unordered_set<int> Timetable::s_teachers_set;
-std::unordered_set<int> Timetable::s_sections_set;
+std::unordered_set<int16_t> Timetable::s_teachers_set;
+std::unordered_set<int16_t> Timetable::s_sections_set;
 std::vector<int> Timetable::s_section_num_breaks;
 int Timetable::s_break_timeslot_allowance;
 int Timetable::s_teacher_break_threshold;
@@ -278,7 +278,7 @@ void Timetable::initializeRandomWorkDayDistribution(int min, int max) {
 }
 
 void Timetable::updateTeachersAndSections(
-    std::unordered_set<int>& update_teachers,
+    std::unordered_set<int16_t>& update_teachers,
     std::map<int, std::unordered_map<int, SchoolClass>>::iterator itLow,
     std::map<int, std::unordered_map<int, SchoolClass>>::iterator itUp,
     bool is_returning_teachers,
@@ -381,7 +381,7 @@ void Timetable::updateTeachersAndSections(
 	}
 }
 
-void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teachers) {
+void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_teachers) {
 	// print("hehe");
 	for (const auto& entry : s_section_subjects) {
 		// print("haha ha");
@@ -589,7 +589,12 @@ int16_t Timetable::pickRandomField(int16_t selected_section) {
 	}
 }
 
-void Timetable::modify(std::unordered_set<int>& update_teachers, std::unordered_set<int>& update_sections) {
+void Timetable::modify(std::unordered_set<int16_t>& update_teachers, std::unordered_set<int16_t>& update_sections) {
+	// if (sections_with_conflicts.size() >= 1) {
+	// 	print(RED, "j");
+	// 	print(RED, "conflicts count", sections_with_conflicts.size());
+	// }
+
 	int16_t selected_section = Timetable::pickRandomSection();
 	int16_t choice = Timetable::pickRandomField(selected_section);
 	// print(RED, "choice ", choice);
@@ -757,8 +762,8 @@ void Timetable::modify(std::unordered_set<int>& update_teachers, std::unordered_
 
 void ObjectiveFunction::evaluate(
     Bee& bee,
-    std::unordered_set<int>& update_teachers,
-    std::unordered_set<int>& update_sections,
+    std::unordered_set<int16_t>& update_teachers,
+    std::unordered_set<int16_t>& update_sections,
     bool show_penalty,
     bool is_initial) {
 	int counter = 0;
@@ -1316,8 +1321,8 @@ void runExperiment(
 
 	Bee best_solution(num_teachers);
 
-	std::unordered_set<int> affected_teachers;
-	std::unordered_set<int> affected_sections;
+	std::unordered_set<int16_t> affected_teachers;
+	std::unordered_set<int16_t> affected_sections;
 
 	affected_teachers.reserve(num_teachers);
 	affected_sections.reserve(total_section);

@@ -107,8 +107,8 @@ struct Timetable {
 	static std::unordered_map<int16_t, int> s_section_total_duration;
 	static std::unordered_map<int16_t, int> s_section_timeslot;
 	static std::unordered_map<int16_t, int> s_section_start;
-	static std::unordered_set<int> s_teachers_set;
-	static std::unordered_set<int> s_sections_set;
+	static std::unordered_set<int16_t> s_teachers_set;
+	static std::unordered_set<int16_t> s_sections_set;
 	static std::vector<int> s_section_num_breaks;
 
 	static std::uniform_int_distribution<int16_t> s_random_class_block;
@@ -145,12 +145,12 @@ struct Timetable {
 
 	void initializeTeachersClass(int teachers);
 
-	void initializeRandomTimetable(std::unordered_set<int>& update_teachers);
+	void initializeRandomTimetable(std::unordered_set<int16_t>& update_teachers);
 
-	void modify(std::unordered_set<int>& affected_teachers, std::unordered_set<int>& affected_sections);
+	void modify(std::unordered_set<int16_t>& affected_teachers, std::unordered_set<int16_t>& affected_sections);
 
 	void updateTeachersAndSections(
-	    std::unordered_set<int>& affected_teachers,
+	    std::unordered_set<int16_t>& affected_teachers,
 	    std::map<int, std::unordered_map<int, SchoolClass>>::iterator iter_start,
 	    std::map<int, std::unordered_map<int, SchoolClass>>::iterator iter_end,
 	    bool is_returning_teachers,
@@ -240,8 +240,8 @@ void getResult(Bee& bee, int64_t* result);
 struct ObjectiveFunction {
 	static void evaluate(
 	    Bee& bee,
-	    std::unordered_set<int>& update_teachers,
-	    std::unordered_set<int>& update_sections,
+	    std::unordered_set<int16_t>& update_teachers,
+	    std::unordered_set<int16_t>& update_sections,
 	    bool show_penalty,
 	    bool is_initial);
 
