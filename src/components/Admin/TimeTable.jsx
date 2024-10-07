@@ -13,37 +13,37 @@ const GeneratedTimetable = ({ timetables, field, columnField }) => {
                     const { containerName, ...rowTimetable } = timetable;
 
                     return (
-                            <React.Fragment key={timetableID}>
-                                <div className="flex gap-4 font-bold items-center text-center mt-10">
-                                    <div>{field}: </div>
-                                    <div className="text-lg text-accent">
+                        <React.Fragment key={timetableID}>
+                            <div className="flex gap-4 font-bold items-center text-center mt-10">
+                                <div>{field}: </div>
+                                <div className="text-lg text-accent">
                                     {containerName}
+                                </div>
+                            </div>
+                            <div className="flex bg-base-100">
+                                <div className="w-1/12">
+                                    <div className="border border-primary-content">
+                                        Time
                                     </div>
                                 </div>
-                                <div className="flex bg-base-100">
-                                    <div className="w-1/12">
-                                        <div className="border border-primary-content">
-                                            Time
+                                <div className="w-11/12">
+                                    <div className="flex text-center w-full">
+                                        <div className="w-1/5 border border-primary-content">
+                                            Mon
+                                        </div>
+                                        <div className="w-1/5 border border-primary-content">
+                                            Tue
+                                        </div>
+                                        <div className="w-1/5 border border-primary-content">
+                                            Wed
+                                        </div>
+                                        <div className="w-1/5 border border-primary-content">
+                                            Thur
+                                        </div>
+                                        <div className="w-1/5 border border-primary-content">
+                                            Fri
                                         </div>
                                     </div>
-                                    <div className="w-11/12">
-                                        <div className="flex text-center w-full">
-                                            <div className="w-1/5 border border-primary-content">
-                                                Mon
-                                            </div>
-                                            <div className="w-1/5 border border-primary-content">
-                                                Tue
-                                            </div>
-                                            <div className="w-1/5 border border-primary-content">
-                                                Wed
-                                            </div>
-                                            <div className="w-1/5 border border-primary-content">
-                                                Thur
-                                            </div>
-                                            <div className="w-1/5 border border-primary-content">
-                                                Fri
-                                            </div>
-                                        </div>
                                     <div className="flex flex-wrap"></div>
                                 </div>
                             </div>
@@ -55,8 +55,7 @@ const GeneratedTimetable = ({ timetables, field, columnField }) => {
                                         row
                                     );
 
-                                    const consistent =
-                                        Object.keys(row).length === 1;
+                                    const consistent = '0' in row;
 
                                     if (consistent) {
                                         const startTime = convertToTime(
@@ -158,13 +157,14 @@ const GeneratedTimetable = ({ timetables, field, columnField }) => {
                                                                             day
                                                                         }
                                                                     >
-                                                                        - - - - - - -
+                                                                        - - - -
+                                                                        - - -
                                                                     </div>
                                                                 );
                                                             }
                                                         })}
-                                        </div>
-                                    </div>
+                                                    </div>
+                                                </div>
 
                                                 {/* <div className="w-11/12 flex justify-center space-x-3">
                                                     {teacher && subject ? (
@@ -178,12 +178,12 @@ const GeneratedTimetable = ({ timetables, field, columnField }) => {
                                                         </div>
                                                     )}
                                                 </div> */}
-                                </div>
+                                            </div>
                                         );
                                     }
                                 }
                             )}
-                            </React.Fragment>
+                        </React.Fragment>
                     );
                 })}
             </div>
