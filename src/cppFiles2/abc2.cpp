@@ -646,9 +646,7 @@ void Timetable::modify(std::unordered_set<int16_t>& update_teachers, std::unorde
 			// random_section exists, proceed with the logic
 			auto& timeslot_set = it->second;
 
-			if (timeslot_set.count(selected_timeslot_1) > 0 && timeslot_set.count(selected_timeslot_2) > 0) {
-				// Both timeslots exist, do nothing (or return)
-			} else if (timeslot_set.count(selected_timeslot_1) > 0 && timeslot_set.count(selected_timeslot_2) == 0) {
+			if (timeslot_set.count(selected_timeslot_1) > 0 && timeslot_set.count(selected_timeslot_2) == 0) {
 				timeslot_set.erase(selected_timeslot_1);
 				timeslot_set.insert(selected_timeslot_2);
 			} else if (timeslot_set.count(selected_timeslot_2) > 0 && timeslot_set.count(selected_timeslot_1) == 0) {
@@ -874,12 +872,6 @@ void ObjectiveFunction::evaluate(
 	auto& section_class_start_end = bee.timetable.school_class_time_range;
 	auto& section_break_time = bee.timetable.section_break_slots;
 
-	// print("--------------------", update_sections.size());
-	// print("update sections", update_sections.size());
-	// // print("update sections", update_sections.size());
-	// // print("update sections", update_sections.size());
-	// print("--------------------", update_sections.size());
-
 	for (const int& section_id : update_sections) {
 		auto it = sections_timetable.find(section_id);
 
@@ -1073,12 +1065,65 @@ void ObjectiveFunction::logConflicts(
 	log_file << "late break: " << overall_total_section_violation.late_break << std::endl;
 	log_file << "early break: " << overall_total_section_violation.early_break << std::endl;
 	log_file << "small break gap: " << overall_total_section_violation.small_break_gap << std::endl;
-	log_file << "- + - + - + - + - TOTAL COST: Conflicts: - + - + - + - + - +" << std::endl;
+	log_file << "- + - + - + - + - + - + - + - + - + - + - + - + - + - + - + - +" << std::endl;
 
-	log_file << std::endl
-	         << std::endl
-	         << std::endl
-	         << std::endl;
+	log_file << "\n\n\n\n\n\n\n";
+
+	log_file << "............................teachers total class:....................." << std::endl;
+
+	std::vector<int16_t> days;
+	for (const auto& [day, _] : bee.timetable.teachers_class_count) {
+		days.push_back(day);
+	}
+
+	// Output column headers (the days)
+	log_file << std::setw(6) << "id";
+	for (const auto& day : days) {
+		log_file << std::setw(6) << "d " + std::to_string(day);
+	}
+	log_file << std::endl;
+
+	// Find the maximum number of teachers to iterate over.
+	int max_teacher_count = 0;
+	for (const auto& [_, teacher] : bee.timetable.teachers_class_count) {
+		if (teacher.size() > max_teacher_count) {
+			max_teacher_count = teacher.size();
+		}
+	}
+
+	// Output each teacher and their class count for each day.
+	for (int teacher_id = 0; teacher_id < max_teacher_count; ++teacher_id) {
+		log_file << std::endl;
+		log_file << std::setw(6) << teacher_id;  // Print teacher ID in the first column.
+
+		bool is_consistent = true;
+		int first_day_count = -1;  // Initialize to an invalid value for comparison.
+
+		// For each day, print the corresponding class count for this teacher.
+		for (const auto& day : days) {
+			const auto& teachers = bee.timetable.teachers_class_count.at(day);
+
+			if (teacher_id < teachers.size()) {
+				int current_count = teachers[teacher_id];
+
+				// Check if this is the first valid count we're seeing for this teacher.
+				if (first_day_count == -1) {
+					first_day_count = current_count;  // Set first day's class count.
+				} else if (current_count != first_day_count) {
+					is_consistent = false;  // Inconsistent if current count doesn't match the first day.
+				}
+
+				log_file << std::setw(6) << current_count;
+			} else {
+				log_file << std::setw(6) << "-";  // Print a dash if no teacher exists for this day.
+			}
+		}
+
+		log_file << std::setw(6) << " | " << (is_consistent ? "Consistent" : "not consistent") << std::endl;
+		log_file << std::endl;
+	}
+
+	log_file << "......................................................................" << std::endl;
 
 	log_file << "/ / / / / / / teachers that have violations: / / / / / / / " << std::endl;
 
@@ -1098,10 +1143,9 @@ void ObjectiveFunction::logConflicts(
 		}
 	}
 
-	log_file << std::endl
-	         << std::endl
-	         << std::endl
-	         << std::endl;
+	log_file << "/ / / / / / / / / / / / / / / / / / / / / / / / / / / / / " << std::endl;
+
+	log_file << "\n\n\n\n\n\n\n";
 
 	log_file << "/ / / / / / / sections that have violations: / / / / / / / " << std::endl;
 
@@ -1241,7 +1285,7 @@ void runExperiment(
 
 			Timetable::s_section_subjects[unpacked_first_section_subjects].push_back(unpacked_second_section_subjects);
 
-			std::cout << "a : " << unpacked_first_section_subjects << " b : " << unpacked_second_section_subjects << std::endl;
+			// std::cout << "a : " << unpacked_first_section_subjects << " b : " << unpacked_second_section_subjects << std::endl;
 
 			Timetable::s_section_subjects_units[unpacked_first_section_subjects].push_back(std::make_pair(unpacked_first_section_subjects_units, unpacked_second_section_subjects_units));
 			Timetable::s_section_subjects_duration[unpacked_first_section_subjects][unpacked_first_section_subjects_duration] = unpacked_second_section_subjects_duration;
@@ -1249,43 +1293,43 @@ void runExperiment(
 			section_num_of_class_block[unpacked_first_section_subjects] += unpacked_second_section_subjects_units == 0 ? work_week : unpacked_second_section_subjects_units;
 		}
 
-		std::cout << "section_subjects_units_map" << std::endl;
+		// std::cout << "section_subjects_units_map" << std::endl;
 		for (auto it = Timetable::s_section_subjects_units.begin(); it != Timetable::s_section_subjects_units.end(); it++) {
-			std::cout << it->first << " g: ";
+			// std::cout << it->first << " g: ";
 			for (int i = 0; i < it->second.size(); i++) {
-				std::cout << it->second[i].first << " h: " << it->second[i].second << " ";
+				// std::cout << it->second[i].first << " h: " << it->second[i].second << " ";
 			}
 
-			std::cout << std::endl;
+			// std::cout << std::endl;
 		}
 
 		// cout all class_num_of_subjects
-		std::cout << "class_num_of_subjects" << std::endl;
+		// std::cout << "class_num_of_subjects" << std::endl;
 		for (auto it = section_num_of_class_block.begin(); it != section_num_of_class_block.end(); it++) {
-			std::cout << it->first << " " << it->second << std::endl;
+			// std::cout << it->first << " " << it->second << std::endl;
 		}
 		// std::cout << "class_num_of_subjects end" << std::endl;
 
-		std::cout << " duplicated " << std::endl;
+		// std::cout << " duplicated " << std::endl;
 		for (int16_t i = 0; i < Timetable::s_section_subjects.size(); i++) {
 			for (int j = 0; j < Timetable::s_section_subjects[i].size(); j++) {
-				std::cout << Timetable::s_section_subjects[i][j] << " ";
+				// std::cout << Timetable::s_section_subjects[i][j] << " ";
 			}
 
-			std::cout << std::endl;
+			// std::cout << std::endl;
 		}
 
 		// std::cout << "class_timeslot_distributions" << std::endl;
-		std::cout << "class_timeslot_distributions" << std::endl;
+		// std::cout << "class_timeslot_distributions" << std::endl;
 
 		// FUTURE FEAUTRE: THIS CAN BE TURNED ON/OFF
 		for (auto it = section_num_of_class_block.begin(); it != section_num_of_class_block.end(); it++) {
-			std::cout << it->first << " " << it->second << std::endl;
+			// std::cout << it->first << " " << it->second << std::endl;
 
-			std::cout << " xx x xxxxxxxxxxxf : " << (((it->second + work_week - 1) / work_week)) << std::endl;
+			// std::cout << " xx x xxxxxxxxxxxf : " << (((it->second + work_week - 1) / work_week)) << std::endl;
 			int timeslots = (((it->second + work_week - 1) / work_week));
 			int num_breaks = timeslots < min_classes_for_two_breaks ? 1 : 2;
-			std::cout << "ehhe " << timeslots << " " << num_breaks << " " << timeslots + num_breaks << std::endl;
+			// std::cout << "ehhe " << timeslots << " " << num_breaks << " " << timeslots + num_breaks << std::endl;
 			Timetable::s_section_timeslot[it->first] = timeslots + num_breaks;
 			// below 10 - 1, 2 equal or above
 
@@ -1331,19 +1375,10 @@ void runExperiment(
 	best_solution.timetable.initializeRandomTimetable(affected_teachers);
 	// printSchoolClasses(bestSolution.timetable);
 	evaluator.evaluate(best_solution, affected_teachers, Timetable::s_sections_set, false, true);
-
-	// print(affected_sections.size(), " sections are affected.");
-
-	// optimizableFunction.evaluate(bestSolution, affected_teachers, affected_sections, false, true, Timetable::work_week, max_teacher_work_load, Timetable::break_time_duration);
-	// affected_teachers.clear();
-	// affected_sections.clear();
-	// bestSolution.timetable.update(affected_teachers, affected_sections);
-	// optimizableFunction.evaluate(bestSolution, affected_teachers, affected_sections, false, true, Timetable::work_week, max_teacher_work_load, Timetable::break_time_duration);
-	printSchoolClasses(best_solution.timetable);
 	print(GREEN_B, " -- -- Best solution: cost ", RED_B, best_solution.total_cost, GREEN_B, " -- -- ", RESET);
+	// return;
 
 	print("For dfffffffffffffffff.");
-	// return;
 
 	vector<Bee> bees_vector(bees_population, Bee(num_teachers));
 
@@ -1463,7 +1498,6 @@ void runExperiment(
 			}
 		}
 
-		// #pragma omp parallel for
 		for (int itScout = 0; itScout < bees_scout; itScout++) {
 			for (const int i : above_limit_abandoned_bees) {
 				Bee new_bee(num_teachers);
@@ -1500,12 +1534,10 @@ void runExperiment(
 	print(GREEN_B, " -- -- Best solution: cost ", RED_B, best_solution.total_cost, GREEN_B, " -- -- ", RESET);
 	print(GREEN_B, " -- -- -- -- -- -- -- -- -- -- -- -- -- -- ", RESET);
 
-	printSchoolClasses(best_solution.timetable);
-
 	auto now = std::chrono::system_clock::now();
 	std::time_t now_time = std::chrono::system_clock::to_time_t(now);
 	std::tm* localTime = std::localtime(&now_time);
-	std::string date = std::to_string(localTime->tm_mday) + "-" + std::to_string(localTime->tm_mon + 1);
+	std::string date = std::to_string(localTime->tm_year - 100) + "-" + std::to_string(localTime->tm_mon + 1) + "-" + std::to_string(localTime->tm_mday);
 	std::string time = std::to_string(localTime->tm_hour) + "-" + std::to_string(localTime->tm_min) + "-" + std::to_string(localTime->tm_sec);
 
 	int duration_in_seconds = static_cast<int>(duration.count());
@@ -1513,9 +1545,13 @@ void runExperiment(
 	int hours = duration_in_seconds / 3600;
 	int minutes = (duration_in_seconds % 3600) / 60;
 	int seconds = duration_in_seconds % 60;
+	
+	printSchoolClasses(best_solution.timetable);
 
 	if (enable_logging) {
-		std::ofstream txt_file("logs/" + date + "-" + time + "-" + std::to_string(num_teachers) + "-" + std::to_string(total_section) + "-" + std::to_string(best_solution.total_cost) + "timetable.txt");
+		std::string name_file = std::string(LOG_FOLDER) + std::string(date) + "-" + time + "---" +
+		                        std::to_string(num_teachers) + "_" + std::to_string(total_section) + "_" + std::to_string(best_solution.total_cost) + "---" + "timetable.txt";
+		std::ofstream txt_file(name_file);
 		printSchoolClasses(best_solution.timetable, txt_file);
 		evaluator.logConflicts(best_solution, txt_file);
 		txt_file << "----------------------------------------------------------------------" << std::endl;
@@ -1535,6 +1571,11 @@ void runExperiment(
 		txt_file << "----------------------------------------------------------------------" << std::endl;
 
 		printCosts(costs, txt_file);
+
+		print("----------------------------");
+		print("result log file: ", name_file);
+		print("----------------------------");
+
 		txt_file.close();
 	}
 

@@ -66,14 +66,6 @@ void test_generate_timetable() {
 	// with suggested break slot implementation
 	// 700 t - 320 s - 10 sb - 4.5 to 9mins at <12k iteration
 	// no segmented timeslot
-	// 0;
-	// 2;
-	// 5;
-	// 1;
-	// 6;
-	// 4;
-	// 10;
-	//
 	//
 	// 700 t - 320 s - 8 sb - 3 to 4 at <5k iteration
 
@@ -94,31 +86,16 @@ void test_generate_timetable() {
 	// 50/20/10: 6 to 19
 
 	// is there a way to put async function that execute in parallel
-	//
-	//                before  98 - 89 - 48 - 41 - 53 seconds
-	//                now     94 - 60 - 25 - 22 - 23- 27 - 35 - 36 - 39
-	//                        V
-	// 9 15 30  45  50  50    60 120
-	// 3 5  10  15  5   20    20 40   320
-	// 3 3  6    9  10  10    12 10   10
 
-	// int limit = total_section * num_subjects;
 	int limit = total_section * num_teachers;
 
-	// int break_timeslot_allowance = 12;
 	int default_units = 0;
-	// int default_duration = 1;
-	// int default_duration = 4;
-	int default_class_duration = 2;
-	// int workweek = 1;
+	int default_class_duration = 4;
+	int break_time_duration = 3;
 	int workweek = 5;
-	int break_time_duration = 1;
 	int break_timeslot_allowance = 6;
-
 	int teacher_break_threshold = 4;
 	int min_classes_for_two_breaks = 10;
-	// int break_time_duration = 3;
-
 	int max_teacher_work_load = 9;
 	int teacher_subjects_length = num_teachers;
 
@@ -183,7 +160,7 @@ void test_generate_timetable() {
 	// 	total_class_block += 2;
 	// }
 
-	std::cout << "total_class_block: " << total_class_block << std::endl;
+	// std::cout << "total_class_block: " << total_class_block << std::endl;
 
 	int64_t* result = new (std::nothrow) int64_t[999];
 
@@ -235,7 +212,6 @@ void test_generate_timetable() {
 
 int main() {
 	test_generate_timetable();
-	// test_calculatePositions();
 
 	std::cout << "done testing" << std::endl;
 	return 0;
