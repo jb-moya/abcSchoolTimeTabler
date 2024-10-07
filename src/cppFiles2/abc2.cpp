@@ -718,9 +718,13 @@ void Timetable::modify(std::unordered_set<int16_t>& update_teachers, std::unorde
 		do {
 			day_1 = Timetable::s_random_workDay(randomizer_engine);
 			day_2 = Timetable::s_random_workDay(randomizer_engine);
-		} while ((day_1 == day_2 && selected_timeslot_1 == selected_timeslot_2) ||
-		         (section_timeslot_1.find(day_1) == section_timeslot_1.end() &&
-		          section_timeslot_2.find(day_2) == section_timeslot_2.end()));
+
+			// REMINDER:
+
+			// } while ((day_1 == day_2 && selected_timeslot_1 == selected_timeslot_2) ||
+			//          (section_timeslot_1.find(day_1) == section_timeslot_1.end() &&
+			//           section_timeslot_2.find(day_2) == section_timeslot_2.end()));
+		} while ((day_1 == day_2 && selected_timeslot_1 == selected_timeslot_2));
 
 		auto it1 = section_timeslot_1.find(day_1);
 		auto it2 = section_timeslot_2.find(day_2);
