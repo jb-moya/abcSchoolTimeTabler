@@ -57,11 +57,6 @@ export const updateSectionsForProgramYear = createAsyncThunk(
     const state = getState(); // Get the entire state
     const sections = state.section.sections; // Access sections from the state
 
-    // console.log("sections: ", sections);
-    // console.log("programId: ", programId);
-    // console.log("yearLevel: ", yearLevel);
-    // console.log("newSubjects: ", newSubjects);
-
     // Filter sections that belong to the updated program and year level
     const updatedSectionsArray = Object.values(sections).map((section) => {
       if (section.program === programId && section.year === yearLevel) {
@@ -94,8 +89,6 @@ export const updateSectionsForProgramYear = createAsyncThunk(
       return section;
     });
 
-    console.log('updatedSectionsArray: ', updatedSectionsArray);
-
     const updatedSections = updatedSectionsArray.reduce((acc, section) => {
       acc[section.id] = section; // Assuming `id` is unique
       return acc;
@@ -109,7 +102,7 @@ export const updateSectionsForProgramYear = createAsyncThunk(
             updatedSection: {
               id: section.id,
               program: section.program,
-              section: section.section, // Assuming you have a section name
+              section: section.section,
               subjects: section.subjects,
               year: section.year,
             },
@@ -117,8 +110,6 @@ export const updateSectionsForProgramYear = createAsyncThunk(
         );
       }
     });
-
-    // console.log("updatedSections: ", updatedSections);
   }
 );
 

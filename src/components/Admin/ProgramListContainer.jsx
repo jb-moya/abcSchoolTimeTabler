@@ -483,30 +483,6 @@ const ProgramListContainer = ({ editable = false }) => {
     }
   }, [programStatus, dispatch]);
 
-  // useEffect(() => {
-  //     console.log("afternoonStartTime: ", afternoonStartTime);
-  // }, [afternoonStartTime]);
-
-  // useEffect(() => {
-  //     console.log("editProgramId: ", editProgramId);
-  // }, [editProgramId]);
-
-  // useEffect(() => {
-  //     console.log("editProgramValue: ", editProgramValue);
-  // }, [editProgramValue]);
-
-  // useEffect(() => {
-  //     console.log("editProgramCurr: ", editProgramCurr);
-  // }, [editProgramCurr]);
-
-  // useEffect(() => {
-  //     console.log("startTimes: ", startTimes);
-  // }, [startTimes]);
-
-  // useEffect(() => {
-  //     console.log("selectedShifts: ", selectedShifts);
-  // }, [selectedShifts]);
-
   return (
     <React.Fragment>
       <div className="">
@@ -698,13 +674,13 @@ const ProgramListContainer = ({ editable = false }) => {
                       ) : (
                         <>
                           <button
-                            className="btn btn-sm btn-outline"
+                            className="btn btn-sm btn-primary"
                             onClick={() => handleEditProgramClick(program)}
                           >
                             <RiEdit2Fill />
                           </button>
                           <button
-                            className="btn btn-sm btn-outline"
+                            className="btn btn-sm btn-danger"
                             onClick={() => dispatch(removeProgram(program.id))}
                           >
                             <RiDeleteBin7Line />

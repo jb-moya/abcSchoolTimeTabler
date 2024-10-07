@@ -73,58 +73,71 @@ export const removeEntityFromDB = async (storeName, entityId) => {
   try {
     const db = await initDB();
 
+    const tx = db.transaction([STORE_NAMES.TEACHERS, STORE_NAMES.SECTIONS, STORE_NAMES.PROGRAMS, storeName], 'readonly');
+    const teachersStore = tx.objectStore(STORE_NAMES.TEACHERS);
+    const sectionsStore = tx.objectStore(STORE_NAMES.SECTIONS);
+    const programsStore = tx.objectStore(STORE_NAMES.PROGRAMS);
+
     if (storeName === STORE_NAMES.SUBJECTS) {
-      const teachersTx = db.transaction(STORE_NAMES.TEACHERS, 'readonly');
-      const teachersStore = teachersTx.objectStore(STORE_NAMES.TEACHERS);
       const teachers = await teachersStore.getAll();
       const teacherDependent = teachers.find((teacher) =>
         teacher.subjects.includes(entityId)
       );
 
-      const sectionsTx = db.transaction(STORE_NAMES.SECTIONS, 'readonly');
-      const sectionsStore = sectionsTx.objectStore(STORE_NAMES.SECTIONS);
       const sections = await sectionsStore.getAll();
       const sectionDependent = sections.find((section) =>
-        section.subjects.includes(entityId)
+        Object.keys(section.subjects).includes(entityId.toString())
       );
 
-      const programsTx = db.transaction(STORE_NAMES.PROGRAMS, 'readonly');
-      const programsStore = programsTx.objectStore(STORE_NAMES.PROGRAMS);
       const programs = await programsStore.getAll();
       const programDependent = programs.find((program) =>
-        program.subjects.includes(entityId)
+        Object.values(program).some((gradeLevel) => {
+          if (gradeLevel.subjects && Array.isArray(gradeLevel.subjects)) {
+            return gradeLevel.subjects.includes(entityId);
+          }
+          return false;
+        })
       );
 
       if (teacherDependent || sectionDependent || programDependent) {
         toast.error(
-          'Cannot delete subject as it is referenced by teachers or sections.'
+          'Cannot delete subject as it is referenced by teachers, sections, or programs.'
         );
         throw new Error(
-          'Dependency Error: Subject is referenced by teachers or sections.'
+          'Dependency Error: Subject is referenced by teachers, sections, or programs.'
         );
       }
-    }
-
-    if (storeName === STORE_NAMES.PROGRAMS) {
-      const sectionsTx = db.transaction(STORE_NAMES.SECTIONS, 'readonly');
-      const sectionsStore = sectionsTx.objectStore(STORE_NAMES.SECTIONS);
+    } else if (storeName === STORE_NAMES.PROGRAMS) {
       const sections = await sectionsStore.getAll();
-      const sectionDependent = sections.find(
-        (section) => section.program === entityId
+      const sectionDependent = sections.find((section) =>
+        Object.keys(section.subjects).includes(entityId.toString())
       );
 
       if (sectionDependent) {
         toast.error('Cannot delete program as it is referenced by sections.');
         throw new Error('Dependency Error: Program is referenced by sections.');
       }
+      
+    } else if (storeName === STORE_NAMES.TEACHERS) {
+      const sections = await sectionsStore.getAll();
+      const sectionDependent = sections.find((section) =>
+        Object.keys(section.subjects).includes(entityId.toString())
+      );
+
+      if (sectionDependent) {
+        toast.error('Cannot delete teacher as it is referenced by sections.');
+        throw new Error('Dependency Error: Teacher is referenced by sections.');
+      }
+      
     }
 
-    const tx = db.transaction(storeName, 'readwrite');
-    const store = tx.objectStore(storeName);
+    const deleteTx = db.transaction(storeName, 'readwrite');
+    const store = deleteTx.objectStore(storeName);
     await store.delete(entityId);
 
     toast.success('Entity removed successfully');
     return true;
+
   } catch (error) {
     if (error.message.includes('Dependency Error')) {
       console.warn('Dependency error: ', error.message);
