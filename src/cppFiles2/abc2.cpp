@@ -521,7 +521,7 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_te
 			}
 		}
 
-		Timetable::s_section_total_duration[section_id] = class_start;
+		Timetable::s_section_total_duration[section_id] = class_start - Timetable::s_section_start[section_id];
 
 		updateTeachersAndSections(update_teachers, school_classes[section_id].begin(), school_classes[section_id].end(), true, false, section_id, false);
 	}
