@@ -199,6 +199,12 @@ const TeacherListContainer = ({ editable = false }) => {
     }
   }, [teacherStatus, dispatch]);
 
+  useEffect(() => {
+    if (subjectStatus === 'idle') {
+      dispatch(fetchSubjects());
+    }
+  }, [subjectStatus, dispatch]);
+
   return (
     <React.Fragment>
       <div>
