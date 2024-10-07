@@ -54,6 +54,9 @@ using namespace std;
 std::random_device rd;
 std::mt19937 randomizer_engine(rd());
 
+// #define LOG_FOLDER = "logs/";
+#define LOG_FOLDER "logs2/"
+
 void print() {
 	// No parameters left to print
 }
