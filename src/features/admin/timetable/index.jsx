@@ -451,30 +451,19 @@ params
     </div>
   </div>
 
-  {/* Responsive Timetable Grid */}
-  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 mt-6">
-    <GeneratedTimetable
+      <GeneratedTimetable
       timetables={sectionTimetables}
-      collection={sections}
-      field={'section'}
-      timeSlotMap={timeSlotMap}
-      firstColumnMap={subjects}
-      secondColumnMap={teachers}
-      columnField={['subject', 'teacher']}
-      beforeBreakTime={beforeBreakTime}
-    />
-    {/* Uncomment if needed */}
-    {/* <GeneratedTimetable
+            field={'section'}
+            columnField={['teacher', 'subject']}
+          />
+    
+<GeneratedTimetable
       timetables={teacherTimetables}
-      collection={teachers}
-      field={'teacher'}
-      timeSlotMap={timeSlotMap}
-      firstColumnMap={sections}
-      secondColumnMap={subjects}
-      columnField={['section', 'subject']}
-      beforeBreakTime={beforeBreakTime}
-    /> */}
-  </div>
+            field={'teacher'}
+      columnField={['subject', 'section']}
+            />
+
+            {/* <div className="grid grid-cols-1 col-span-full gap-4 sm:grid-cols-2"></div> */}
 </div>
   );
 }
