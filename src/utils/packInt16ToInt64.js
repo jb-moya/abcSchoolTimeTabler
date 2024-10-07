@@ -1,4 +1,4 @@
-import bigInt from "big-integer";
+import bigInt from 'big-integer';
 
 function packToInt64(first, second, third, fourth, fifth) {
     let result = bigInt(0);
@@ -19,7 +19,7 @@ function unpackIntegers(packed64) {
     let fourth = bigPacked64.shiftRight(8).and(0xff).toJSNumber(); // Shift right by 8
     let fifth = bigPacked64.and(0xff).toJSNumber();
 
-    console.log("hays : ", first, second, third, fourth, fifth);
+    //   console.log('hays : ', first, second, third, fourth, fifth);
     return [first, second, third, fourth, fifth];
 }
 

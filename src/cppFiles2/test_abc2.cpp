@@ -99,6 +99,10 @@ void test_generate_timetable() {
 	int max_teacher_work_load = 9;
 	int teacher_subjects_length = num_teachers;
 
+	int offset = 2;
+	default_class_duration -= offset;
+	break_time_duration -= offset;
+
 	int total_section_subjects = total_section * num_subjects;
 
 	int32_t* section_subjects = allocate(total_section_subjects);
@@ -163,6 +167,7 @@ void test_generate_timetable() {
 	// std::cout << "total_class_block: " << total_class_block << std::endl;
 
 	int64_t* result = new (std::nothrow) int64_t[999];
+	int64_t* result_2 = new (std::nothrow) int64_t[999];
 
 	std::cout << "Running experiment with configuration: ";
 
@@ -173,7 +178,7 @@ void test_generate_timetable() {
 	          << beesScout << ", "
 	          << limit << std::endl;
 
-	int result_buff_length = 999;  // arbitrary
+	int result_buff_length = 9999;  // arbitrary
 
 	bool enable_logging = true;
 
@@ -205,7 +210,9 @@ void test_generate_timetable() {
 	    min_classes_for_two_breaks,
 	    default_class_duration,
 	    result_buff_length,
+		offset,
 	    result,
+	    result_2,
 
 	    enable_logging);
 }

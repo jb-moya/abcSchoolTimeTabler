@@ -62,6 +62,9 @@ const getTimetable = async (params) =>
       );
 
       const resultBuff = wasm._malloc(params.resultLength * 8);
+            const resultBuff_2 = wasm._malloc(params.resultLength * 8);
+
+            const enable_logging = false;
 
       wasm._runExperiment(
         params.maxIterations,
@@ -75,8 +78,8 @@ const getTimetable = async (params) =>
         sectionStartsBuff,
         teacherSubjectsBuff,
         sectionSubjectUnitsBuff,
-        params.teacherSubjectsLength,
 
+        params.teacherSubjectsLength,
         params.beesPopulation,
         params.beesEmployed,
         params.beesOnlooker,
@@ -91,18 +94,24 @@ const getTimetable = async (params) =>
         params.minClassesForTwoBreaks,
         params.defaultClassDuration,
         params.resultLength,
+params.offset,
+                resultBuff,
+                resultBuff_2,
 
-        resultBuff
+        enable_logging
       );
 
       const timetable = [];
 
       for (let i = 0; i < params.resultLength; i++) {
         let result = wasm.getValue(resultBuff + i * 8, 'i64');
+                let result_2 = wasm.getValue(resultBuff_2 + i * 8, 'i64');
 
         result = unpackIntegers(result);
-        timetable.push(result);
-        // console.log(`Class ${i + 1}: ${result}`, result);
+                result_2 = unpackIntegers(result_2);
+
+                let combined = result.concat(result_2);
+                timetable.push(combined);
       }
 
       // console.log("resultBuff", resultBuff, timetable);
@@ -110,6 +119,7 @@ const getTimetable = async (params) =>
       wasm._free(sectionSubjectsBuff);
       wasm._free(teacherSubjectsBuff);
       wasm._free(resultBuff);
+            wasm._free(resultBuff_2);
 
       resolve({ timetable, status: 'success' });
     } catch (error) {

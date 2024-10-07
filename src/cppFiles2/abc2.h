@@ -23,7 +23,6 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
-
 #define BLACK "\033[30m"
 #define RED "\033[31m"
 #define GREEN "\033[32m"
@@ -213,7 +212,9 @@ void runExperiment(
     int min_classes_for_two_breaks,
     int default_class_duration,
     int result_buff_length,
+	int offset_duration,
     int64_t* result,
+	int64_t* result_2,
 
     bool enable_logging);
 
@@ -235,7 +236,7 @@ int extractThird(int combined);
 int64_t pack5IntToInt64(int16_t a, int16_t b, int16_t c, int8_t d, int8_t e);
 int32_t packInt16ToInt32(int16_t first, int16_t second);
 
-void getResult(Bee& bee, int64_t* result);
+void getResult(Bee& bee, int64_t* result, int64_t* result_2, int offset_duration);
 
 struct ObjectiveFunction {
 	static void evaluate(

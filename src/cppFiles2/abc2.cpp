@@ -1194,13 +1194,18 @@ int32_t packInt16ToInt32(int16_t first, int16_t second) {
 	return result;
 }
 
-void getResult(Bee& bee, int64_t* result) {
+void getResult(Bee& bee, int64_t* result, int64_t* result_2, int offset_duration) {
 	int iter = 0;
 	for (const auto& [grade, gradeMap] : bee.timetable.school_classes) {
-		// std::cout << BLUE << "--------- - - Section: " << grade << RESET << std::endl;
-		for (const auto& [timeslot, classMap] : gradeMap) {
-			// std::cout << "size :  " << classMap.size() << std::endl;
-			for (const auto& [day, schoolClass] : classMap) {
+				for (const auto& [timeslot, classMap] : gradeMap) {
+						for (const auto& [day, schoolClass] : classMap) {
+// print("class xx",
+				//       grade,
+				//       schoolClass.subject_id,
+				//       schoolClass.teacher_id,
+				//       static_cast<int8_t>(timeslot),
+				//       day);
+
 				int64_t packed = pack5IntToInt64(
 				    grade,
 				    schoolClass.subject_id,
@@ -1209,7 +1214,11 @@ void getResult(Bee& bee, int64_t* result) {
 				    day);
 				// std::cout << "packed : " << packed << std::endl;
 
+				int start = bee.timetable.school_class_time_range[grade][timeslot].start + offset_duration * timeslot;
+				int end = bee.timetable.school_class_time_range[grade][timeslot].end + offset_duration * (timeslot + 1);
+
 				result[iter] = packed;
+result_2[iter] = pack5IntToInt64(start, end, 0, 0, 0);
 
 				iter++;
 			}
@@ -1247,7 +1256,9 @@ void runExperiment(
     int min_classes_for_two_breaks,
     int default_class_duration,
     int result_buff_length,
+    int offset_duration,
     int64_t* result,
+    int64_t* result_2,
 
     bool enable_logging) {
 	Timetable::reset();
@@ -1597,7 +1608,7 @@ void runExperiment(
 	print("Time taken: ", duration.count(), "seconds");
 	print("Time taken: ", hours, ":", minutes, ":", seconds);
 
-	getResult(best_solution, result);
+	getResult(best_solution, result, result_2, offset_duration);
 	return;
 }
 }

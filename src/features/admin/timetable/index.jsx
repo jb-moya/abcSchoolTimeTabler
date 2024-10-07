@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import packInt16ToInt32 from '@utils/packInt16ToInt32';
 import { useSelector } from 'react-redux';
 import { wrap } from 'comlink';
@@ -9,28 +9,22 @@ import GeneratedTimetable from '@components/Admin/TimeTable';
 import validateTimetableVariables from '@validation/validateTimetableVariables';
 import { toast } from 'sonner';
 import ViolationList from '@components/Admin/ViolationList';
-import findInObject from '@utils/utils';
 import SubjectListContainer from '@components/Admin/SubjectListContainer';
 import ProgramListContainer from '@components/Admin/ProgramListContainer';
 import TeacherListContainer from '@components/Admin/TeacherListContainer';
 import SectionListContainer from '@components/Admin/SectionListContainer';
 import ExportImportDBButtons from '@components/Admin/ExportImportDBButtons';
-// import TeacherListDisplay from '@components/Admin/TeacherListDisplay';
-// import SubjectListDisplay from '@components/Admin/SubjectListDisplay';
-// import SectionListDisplay from '@components/Admin/SectionListDisplay';
-// import ProgramListDisplay from '@components/Admin/ProgramListDisplay';
 
 const getTimetable = wrap(new WasmWorker());
 
 function Timetable() {
-  const { subjects } = useSelector((state) => state.subject);
-  const { teachers } = useSelector((state) => state.teacher);
-  const { sections } = useSelector((state) => state.section);
-  const { programs } = useSelector((state) => state.program);
+    const { subjects: subjectsStore } = useSelector((state) => state.subject);
+    const { teachers: teachersStore } = useSelector((state) => state.teacher);
+    const { sections: sectionsStore } = useSelector((state) => state.section);
+    const { programs: programsStore } = useSelector((state) => state.program);
 
-  const numOfSchoolDays = localStorage.getItem('numOfSchoolDays');
+    const numOfSchoolDays = Number(localStorage.getItem('numOfSchoolDays'));
 
-  const [timetable, setTimetable] = useState([]);
   const [sectionTimetables, setSectionTimetables] = useState({});
   const [teacherTimetables, setTeacherTimetables] = useState({});
   const [timetableGenerationStatus, setTimetableGenerationStatus] =
@@ -47,31 +41,12 @@ function Timetable() {
   // Standardized Class Start and Break Times: The start time for the first class and the timing of breaks are
   // standardized across all sections and teachers, ensuring uniformity in the daily schedule.
 
-  const timeSlotMap = {
-    0: '06:00 - 06:40',
-    1: '06:40 - 07:20',
-    2: '07:20 - 08:00',
-    3: '08:00 - 08:40',
-    4: '08:40 - 09:20',
-    5: '09:20 - 10:00',
-    6: '10:00 - 10:40',
-    7: '10:40 - 11:20',
-    8: '11:20 - 12:00',
-    9: '12:00 - 12:40',
-    10: '12:40 - 01:20',
-  };
-
-  const beforeBreakTime = {
-    2: '08:30 - 09:00',
-    // 6: "12:20 - 01:00",
-  };
-
   const validate = () => {
     const { canProceed, violations } = validateTimetableVariables({
-      sections,
-      teachers,
-      subjects,
-      programs,
+            sections: sectionsStore,
+            teachers: teachersStore,
+            subjects: subjectsStore,
+            programs: programsStore,
     });
 
     if (!canProceed) {
@@ -89,7 +64,7 @@ function Timetable() {
   };
 
   const handleButtonClick = async () => {
-    const subjectMap = Object.entries(subjects).reduce(
+        const subjectMap = Object.entries(subjectsStore).reduce(
       (acc, [, value], index) => {
         acc[index] = value.id;
         return acc;
@@ -97,7 +72,7 @@ function Timetable() {
       {}
     );
 
-    const subjectMapReverse = Object.entries(subjects).reduce(
+        const subjectMapReverse = Object.entries(subjectsStore).reduce(
       (acc, [, value], index) => {
         acc[value.id] = index;
         return acc;
@@ -105,7 +80,7 @@ function Timetable() {
       {}
     );
 
-    const teacherMap = Object.entries(teachers).reduce(
+        const teacherMap = Object.entries(teachersStore).reduce(
       (acc, [, value], index) => {
         acc[index] = {
           subjects: value.subjects.map(
@@ -118,14 +93,16 @@ function Timetable() {
       {}
     );
 
-    const sectionMap = Object.entries(sections).reduce(
+        const sectionMap = Object.entries(sectionsStore).reduce(
       (acc, [, value], index) => {
         // Assuming value.subjects is an object with subject IDs as keys
         const subjectIDs = Object.keys(value.subjects);
 
         acc[index] = {
           // Map over the subject IDs to transform them using subjectMapReverse
-          subjects: subjectIDs.map((subjectID) => subjectMapReverse[subjectID]),
+                    subjects: subjectIDs.map(
+                        (subjectID) => subjectMapReverse[subjectID]
+                    ),
           // Process the units associated with each subject
           subjectUnits: Object.keys(value.subjects).reduce(
             (unitAcc, subjectID) => {
@@ -143,55 +120,102 @@ function Timetable() {
       {}
     );
 
-    // console.log("subjectMap", subjectMap);
-    console.log("teacherMap", teacherMap);
-    // console.log("subjectMapReverse", subjectMapReverse);
+    console.log('subjectMap', subjectMap);
+    console.log('subjectMapReverse', subjectMapReverse);
+console.log('teacherMap', teacherMap);
     console.log('sectionMap', sectionMap);
 
-    const defaultClassDuration = 2;
+    let defaultClassDuration = 4;
+        let breakTimeDuration = 3;
 
     const sectionSubjectArray = [];
     const sectionSubjectUnitArray = [];
     const sectionSubjectDurationArray = [];
     const sectionStartArray = [];
 
+        let lowestSubjectDuration = breakTimeDuration;
+
+        console.log('🚀 ~ handleButtonClick ~ subjectsStore:', subjectsStore);
+
+        Object.entries(subjectsStore).forEach(([key, value]) => {
+            console.log(`Key: ${key}, Value: ${value}`);
+
+            if (value.classDuration < lowestSubjectDuration) {
+                lowestSubjectDuration = value.classDuration;
+            }
+        });
+
+        let offset = lowestSubjectDuration - 1;
+        breakTimeDuration -= offset;
+
+        console.log(
+            '🚀 ~ handleButtonClick ~ lowestSubjectDuration:',
+            lowestSubjectDuration
+        );
+
     let cellCount = 0;
     for (const [sectionKey, { subjects, subjectUnits }] of Object.entries(
       sectionMap
     )) {
+let rowCount = 0;
+
       for (const subject of subjects) {
         sectionSubjectArray.push(packInt16ToInt32(sectionKey, subject));
       }
 
       for (const subject of Object.keys(subjectUnits)) {
+console.log('🚀 ~ handleButtonClick ~ subject:', subject);
         const unitCount = subjectUnits[subject];
 
         if (unitCount === 0) {
           cellCount++;
+rowCount += numOfSchoolDays;
+                    // console.log("🚀 ~ handleButtonClick ~ numOfSchoolDays:", typeof numOfSchoolDays)
         } else {
           cellCount += unitCount;
+rowCount += unitCount;
+                    // console.log("🚀 ~ handleButtonClick ~ unitCount:", unitCount)
         }
 
         sectionSubjectUnitArray.push(
           packInt16ToInt32(subject, subjectUnits[subject])
         );
 
+                // TODO: might there be code smell on how it stores
+
         sectionSubjectDurationArray.push(
-          packInt16ToInt32(subject, defaultClassDuration)
+          packInt16ToInt32(
+                        subject,
+                        subjectsStore[subjectMap[subject]].classDuration / 10 -
+                            offset
+                    )
+                );
+
+                console.log(
+                    '🚀 ~ handleButtonClick ~ subjectMap[subject].classDuration:',
+                    subjectMap[subject].classDuration,
+                    typeof subjectMap[subject].classDuration
         );
       }
+
+            console.log('🚀 ~ handleButtonClick ~ rowCount:', rowCount);
+            rowCount = Math.trunc(rowCount / numOfSchoolDays);
+            let numOfBreak = rowCount < 10 ? 1 : 2;
+            cellCount += numOfBreak;
     }
 
     const sectionSubjects = new Int32Array([...sectionSubjectArray]);
-    const sectionSubjectUnits = new Int32Array([...sectionSubjectUnitArray]);
+    const sectionSubjectUnits = new Int32Array([
+...sectionSubjectUnitArray,
+]);
     const sectionSubjectDurations = new Int32Array([
       ...sectionSubjectDurationArray,
     ]);
 
     const max_iterations = 10000;
-    const beesPopulations = 50;
-    const beesEmployed = 25;
-    const beesOnlooker = 25;
+    const beesPopulations = 4;
+    const beesEmployed = 2;
+    const beesOnlooker = 2;
     const beesScout = 1;
     const limits = 200;
     const numTeachers = Object.keys(teacherMap).length;
@@ -213,8 +237,7 @@ function Timetable() {
 
     const teacherSubjects = new Int32Array([...teacherSubjectArray]);
 
-    const breakTimeDuration = 1;
-    const breakTimeslotAllowance = 6;
+        const breakTimeslotAllowance = 6;
     const teacherBreakThreshold = 4;
     const minClassesForTwoBreaks = 10;
 
@@ -246,91 +269,94 @@ function Timetable() {
       minClassesForTwoBreaks: minClassesForTwoBreaks,
       defaultClassDuration: defaultClassDuration,
       resultLength: cellCount,
+
+            offset: offset,
     };
 
     setTimetableGenerationStatus('running');
-    const { timetable, status } = await getTimetable(params);
+    const { timetable: generatedTimetable, status } = await getTimetable(
+params
+);
     setTimetableGenerationStatus(status);
 
-    const timetableMap = [];
+        // const timetableMap = [];
     const sectionTimetable = {};
     const teacherTimetable = {};
 
-    for (const entry of timetable) {
-      console.log("F", entry, typeof entry[0]);
-      const section = sectionMap[entry[0]].id;
-      const subject = subjectMap[entry[1]] || null;
-      const teacher = (teacherMap[entry[2]] || { id: null}).id;
+    function ensureNestedObject(obj, keys) {
+            let current = obj;
+            for (let key of keys) {
+                if (!current[key]) {
+                    current[key] = {}; // Initialize the nested object if it doesn't exist
+                }
+                current = current[key];
+            }
+            return current;
+        }
 
+        for (const entry of generatedTimetable) {
+      console.log('🚀 ~ handleButtonClick ~ entry of timetable:', entry);
+
+      const section_id = sectionMap[entry[0]].id;
+      const subject_id = subjectMap[entry[1]] || null;
+      const teacher_id = (teacherMap[entry[2]] || { id: null }).id;
       const timeslot = entry[3];
       const day = entry[4];
 
-      const existingSectionEntry = findInObject(
-        sectionTimetable[section],
-        ['subject', 'teacher', 'timeslot'],
-        [subject, teacher, timeslot]
-      );
+      const start = entry[5];
+            const end = entry[6];
 
-      // const existingSectionEntry = false;
+            // Ensure sectionTimetable nested structure exists
+            let sectionEntry = ensureNestedObject(sectionTimetable, [
+                section_id,
+                timeslot,
+                day,
+            ]);
 
-      if (existingSectionEntry) {
-        // If it exists, push the day to the existing entry's day array
-        if (Array.isArray(existingSectionEntry.day)) {
-          existingSectionEntry.day.push(day);
-        } else {
-          console.log('ff', existingSectionEntry.day);
-          existingSectionEntry.day = [existingSectionEntry.day, day];
-        }
-      } else {
-        // If it doesn't exist, create a new entry
-        sectionTimetable[section] = sectionTimetable[section] || {};
-        sectionTimetable[section][timeslot] =
-          sectionTimetable[section][timeslot] || [];
-        sectionTimetable[section][timeslot].push({
-          subject: subject,
-          teacher: teacher,
-          timeslot: timeslot,
-          day: [day],
-        });
-      }
+            sectionTimetable[section_id].containerName =
+                sectionsStore[section_id]?.section;
 
-      const existingTeacherEntry = findInObject(
-        teacherTimetable[teacher],
-        ['section', 'subject', 'timeslot'],
-        [section, subject, timeslot]
-      );
+            // Now you can safely assign values to the final nested object
+            sectionEntry.subject = subjectsStore[subject_id]?.subject || null;
+            sectionEntry.sectionID = section_id || null;
 
-      if (existingTeacherEntry) {
-        if (Array.isArray(existingTeacherEntry.day)) {
-          existingTeacherEntry.day.push(day);
-        } else {
-          existingTeacherEntry.day = [existingTeacherEntry.day, day];
-        }
-      } else {
-        teacherTimetable[teacher] = teacherTimetable[teacher] || {};
-        teacherTimetable[teacher][timeslot] =
-          teacherTimetable[teacher][timeslot] || [];
-        teacherTimetable[teacher][timeslot].push({
-          section: section,
-          subject: subject,
-          timeslot: timeslot,
-          day: [day],
-        });
-      }
+            sectionEntry.teacher = teachersStore[teacher_id]?.teacher || null;
+            sectionEntry.teacherID = teacher_id || null;
 
-      // Sort teacherTimetable by timeslot and day
-      // teacherTimetable[teacher] = sortObjectByTimeslotAndDay(
-      //     teacherTimetable[teacher]
-      // );
+            sectionEntry.start = start;
+            sectionEntry.end = end;
+
+      if (teacher_id == null) {
+                continue;
+            }
+
+            // Ensure teacherTimetable nested structure exists
+            let teacherEntry = ensureNestedObject(teacherTimetable, [
+                teacher_id,
+                timeslot,
+                day,
+            ]);
+
+        teacherTimetable[teacher_id].containerName =
+                teachersStore[teacher_id]?.teacher;
+
+            // Now you can safely assign values to the final nested object
+            teacherEntry.subject = subjectsStore[subject_id]?.subject || null;
+            teacherEntry.subjectID = subject_id || null;
+
+            teacherEntry.section = sectionsStore[section_id]?.section || null;
+            teacherEntry.sectionID = section_id;
+
+            teacherEntry.start = start;
+            teacherEntry.end = end;
     }
 
     // setTimetable(timetable);
     // console.log("timetable", timetableMap);
-    // console.log("section timetable", sectionTimetable);
-    // console.log("teacher timetable", teacherTimetable);
-    // return;
-
-    setTimetable(timetableMap);
+    console.log('section timetable', sectionTimetable);
+    console.log('teacher timetable', teacherTimetable);
+    
+        // setTimetable(timetableMap);
     setSectionTimetables(sectionTimetable);
     setTeacherTimetables(teacherTimetable);
   };
@@ -375,7 +401,8 @@ function Timetable() {
         <SectionListContainer />
         <button
           className={clsx('btn btn-primary w-full', {
-            'cursor-not-allowed': timetableGenerationStatus === 'running',
+                        'cursor-not-allowed':
+                            timetableGenerationStatus === 'running',
             'btn-error': timetableGenerationStatus === 'error',
             'mt-5': true,
           })}
@@ -401,29 +428,19 @@ function Timetable() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 col-span-full gap-4 sm:grid-cols-2">
-        <GeneratedTimetable
+              <GeneratedTimetable
           timetables={sectionTimetables}
-          collection={sections}
-          field={'section'}
-          timeSlotMap={timeSlotMap}
-          firstColumnMap={subjects}
-          secondColumnMap={teachers}
-          columnField={['subject', 'teacher']}
-          beforeBreakTime={beforeBreakTime}
-        />
-{/* 
+                    field={'section'}
+                    columnField={['teacher', 'subject']}
+                  />
+ 
         <GeneratedTimetable
           timetables={teacherTimetables}
-          collection={teachers}
-          field={'teacher'}
-          timeSlotMap={timeSlotMap}
-          firstColumnMap={sections}
-          secondColumnMap={subjects}
-          columnField={['section', 'subject']}
-          beforeBreakTime={beforeBreakTime}
-        /> */}
-      </div>
+                    field={'teacher'}
+          columnField={['subject', 'section']}
+            />
+
+            {/* <div className="grid grid-cols-1 col-span-full gap-4 sm:grid-cols-2"></div> */}
     </div>
   );
 }
