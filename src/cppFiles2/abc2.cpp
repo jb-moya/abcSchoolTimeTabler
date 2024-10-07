@@ -1169,7 +1169,9 @@ void ObjectiveFunction::logConflicts(
 		}
 	}
 
-	log_file << std::endl;
+	log_file << "/ / / / / / / / / / / / / / / / / / / / / / / / / / / / / " << std::endl;
+
+	log_file << "\n\n\n\n\n\n\n";
 };
 
 int64_t pack5IntToInt64(int16_t a, int16_t b, int16_t c, int8_t d, int8_t e) {
