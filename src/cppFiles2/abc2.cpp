@@ -890,13 +890,15 @@ void ObjectiveFunction::evaluate(
 
 		bee.resetSectionViolation(section_id);
 
+		int max_time = bee.timetable.s_section_start[section_id] + bee.timetable.s_section_total_duration[section_id];
+
 		if (section_break_time[section_id].size() == 1) {
 			// print("TITEEEEEEEEEEEEEEEE", section_id);
 
 			int break_time = *section_break_time[section_id].begin();
 
-			if (section_class_start_end[section_id][break_time].end > bee.timetable.s_section_total_duration[section_id] - bee.timetable.s_break_timeslot_allowance) {
-				bee.section_violations[section_id].late_break += 1000;
+			if (section_class_start_end[section_id][break_time].end > max_time - bee.timetable.s_break_timeslot_allowance) {
+				bee.section_violations[section_id].late_break += 100000;
 			}
 
 			if (section_class_start_end[section_id][break_time].start < bee.timetable.s_break_timeslot_allowance) {
@@ -909,8 +911,8 @@ void ObjectiveFunction::evaluate(
 			int first_start = section_class_start_end[section_id][first_break_time].start;
 			int last_end = section_class_start_end[section_id][last_break_time].end;
 
-			if (last_end > bee.timetable.s_section_total_duration[section_id] - bee.timetable.s_break_timeslot_allowance) {
-				bee.section_violations[section_id].late_break += 1000;
+			if (last_end > max_time - bee.timetable.s_break_timeslot_allowance) {
+				bee.section_violations[section_id].late_break += 100000;
 			}
 
 			if (first_start < bee.timetable.s_break_timeslot_allowance) {
