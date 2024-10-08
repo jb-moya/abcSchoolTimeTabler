@@ -121,7 +121,7 @@ export const removeEntityFromDB = async (storeName, entityId) => {
     } else if (storeName === STORE_NAMES.TEACHERS) {
       const sections = await sectionsStore.getAll();
       const sectionDependent = sections.find((section) =>
-        Object.keys(section.subjects).includes(entityId.toString())
+        section.teacher === entityId
       );
 
       if (sectionDependent) {
@@ -131,9 +131,13 @@ export const removeEntityFromDB = async (storeName, entityId) => {
       
     }
 
+    console.log("pumupunta pa rin ba rito?");
+
     const deleteTx = db.transaction(storeName, 'readwrite');
     const store = deleteTx.objectStore(storeName);
     await store.delete(entityId);
+
+    console.log("eh dito?");
 
     toast.success('Entity removed successfully');
     return true;

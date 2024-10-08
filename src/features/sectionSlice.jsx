@@ -44,9 +44,18 @@ export const editSection = createAsyncThunk(
 
 export const removeSection = createAsyncThunk(
     "section/removeSection",
-    async (sectionId, { dispatch }) => {
-        await removeEntityFromDB(STORE_NAMES.SECTIONS, sectionId);
-        dispatch(sectionSlice.actions.removeSectionSync(sectionId));
+    async (sectionId, { dispatch, rejectWithValue }) => {
+        try {
+            const success = await removeEntityFromDB(
+                STORE_NAMES.SECTIONS,
+                sectionId
+            );
+            if (success) {
+                dispatch(sectionSlice.actions.removeSectionSync(sectionId));
+            }
+        } catch (error) {
+            return rejectWithValue(error.message);
+        }
     }
 );
 

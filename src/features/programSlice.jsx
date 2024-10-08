@@ -45,10 +45,19 @@ export const editProgram = createAsyncThunk(
 
 export const removeProgram = createAsyncThunk(
   'program/removeProgram',
-  async (programId, { dispatch }) => {
-    await removeEntityFromDB(STORE_NAMES.PROGRAMS, programId);
-    dispatch(programSlice.actions.removeProgramSync(programId));
-  }
+    async (programId, { dispatch, rejectWithValue }) => {
+      try {
+        const success = await removeEntityFromDB(
+          STORE_NAMES.PROGRAMS,
+          programId
+        );
+        if (success) {
+          dispatch(programSlice.actions.removeProgramSync(programId));
+        }
+      } catch (error) {
+        return rejectWithValue(error.message);
+      }
+    }
 );
 
 export const updateSectionsForProgramYear = createAsyncThunk(
