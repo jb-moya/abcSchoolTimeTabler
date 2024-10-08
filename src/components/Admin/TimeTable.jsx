@@ -8,7 +8,7 @@ const GeneratedTimetable = ({ timetables, field, columnField }) => {
         <div className="">
             <div className="overflow-x-auto">
                 {Object.entries(timetables).map(([timetableID, timetable]) => {
-                    console.log('timetable rows', timetable);
+                    // console.log('timetable rows', timetable);
 
                     const { containerName, ...rowTimetable } = timetable;
 
@@ -50,10 +50,10 @@ const GeneratedTimetable = ({ timetables, field, columnField }) => {
 
                             {Object.entries(rowTimetable).map(
                                 ([timeslot, row]) => {
-                                    console.log(
-                                        '🚀 ~ {Object.entries ~ row:',
-                                        row
-                                    );
+                                    // console.log(
+                                    //     '🚀 ~ {Object.entries ~ row:',
+                                    //     row
+                                    // );
 
                                     const consistent = '0' in row;
 

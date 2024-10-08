@@ -5,6 +5,7 @@ import { wrap } from 'comlink';
 import WasmWorker from '@src/wasm.worker?worker';
 import Configuration from '@components/Admin/Configuration';
 import clsx from 'clsx';
+import * as XLSX from 'xlsx';
 import GeneratedTimetable from '@components/Admin/TimeTable';
 import validateTimetableVariables from '@validation/validateTimetableVariables';
 import { toast } from 'sonner';
@@ -15,15 +16,17 @@ import TeacherListContainer from '@components/Admin/TeacherListContainer';
 import SectionListContainer from '@components/Admin/SectionListContainer';
 import ExportImportDBButtons from '@components/Admin/ExportImportDBButtons';
 
+import { getTimeSlotString } from '../../../components/Admin/timeSlotMapper';
+
 const getTimetable = wrap(new WasmWorker());
 
 function Timetable() {
-    const { subjects: subjectsStore } = useSelector((state) => state.subject);
-    const { teachers: teachersStore } = useSelector((state) => state.teacher);
-    const { sections: sectionsStore } = useSelector((state) => state.section);
-    const { programs: programsStore } = useSelector((state) => state.program);
+  const { subjects: subjectsStore } = useSelector((state) => state.subject);
+  const { teachers: teachersStore } = useSelector((state) => state.teacher);
+  const { sections: sectionsStore } = useSelector((state) => state.section);
+  const { programs: programsStore } = useSelector((state) => state.program);
 
-    const numOfSchoolDays = Number(localStorage.getItem('numOfSchoolDays'));
+  const numOfSchoolDays = Number(localStorage.getItem('numOfSchoolDays'));
 
   const [sectionTimetables, setSectionTimetables] = useState({});
   const [teacherTimetables, setTeacherTimetables] = useState({});
@@ -361,6 +364,184 @@ params
     setTeacherTimetables(teacherTimetable);
   };
 
+  const handleSchedExport = () => {
+    const sectionWorkbook = XLSX.utils.book_new();
+    const teacherWorkbook = XLSX.utils.book_new();
+
+    Object.keys(sectionTimetables).forEach((sectionKey) => {
+      const sectionSchedules = sectionTimetables[sectionKey];
+      const setSched = [];
+      const rows = [
+        ['Section', sectionTimetables[sectionKey].containerName, '', '', '', ''],
+        ['Time', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
+      ];
+      const merges = [
+        { s: { r: 0, c: 1 }, e: { r: 0, c: 5 } },
+      ];
+      
+      Object.keys(sectionSchedules).forEach((dayKey) => {
+        const timeSchedules = sectionSchedules[dayKey];
+
+        const slotKeys = Object.keys(timeSchedules);
+  
+        if (slotKeys.length === 1) {
+          const slotKey = slotKeys[0];
+          const schedule = timeSchedules[slotKey];
+          
+          if (schedule.subject !== null && schedule.subject !== undefined) {
+            const schedData = getTimeSlotString(schedule.start) + ' - ' + getTimeSlotString(schedule.end);
+            
+            if (setSched.indexOf(schedData) === -1) {
+              setSched.push(schedData);
+              
+              const newRow1 = [schedData, '', '', schedule.subject, '', ''];
+              const newRow2 = ['', '', '', schedule.teacher, '', ''];
+              rows.push(newRow1);
+              rows.push(newRow2);
+            }
+          }
+        } else {
+          const sched = timeSchedules[slotKeys[0]];
+
+          const subjects = [];
+          const teachers = [''];
+          let schedData = '';
+
+          if (sched.subject !== null && sched.subject !== undefined) {
+            schedData = getTimeSlotString(sched.start) + ' - ' + getTimeSlotString(sched.end);
+            subjects.push(schedData);
+          }
+
+          let prevSlotKey = 0;
+          slotKeys.forEach((slotKey) => {
+            const schedule = timeSchedules[slotKey];
+            
+            if (schedule.subject !== null && schedule.subject !== undefined) {
+              subjects.push(schedule.subject);
+              teachers.push(schedule.teacher);
+            }
+
+            const gap = slotKey - prevSlotKey - 1;
+
+            for (let i = 0; i < gap; i++) {
+                subjects.push('');
+                sections.push('');
+            }
+
+            prevSlotKey = slotKey;
+          });
+
+          if (setSched.indexOf(schedData) === -1) {
+            setSched.push(schedData);
+            
+            rows.push(subjects);
+            rows.push(teachers);
+          }
+        }
+      });
+      const worksheet = XLSX.utils.aoa_to_sheet(rows);
+
+      worksheet['!merges'] = merges;
+      worksheet['!cols'] = [
+        { wch: 20 },
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 15 }
+      ];
+
+      XLSX.utils.book_append_sheet(sectionWorkbook, worksheet, `${sectionTimetables[sectionKey].containerName}`);
+    });
+
+    Object.keys(teacherTimetables).forEach((teacherKey) => {
+      const teacherSchedules = teacherTimetables[teacherKey];
+      const setSched = [];
+      const rows = [
+        ['Teacher', teacherTimetables[teacherKey].containerName, '', '', '', ''],
+        ['Time', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
+      ];
+      const merges = [
+        { s: { r: 0, c: 1 }, e: { r: 0, c: 5 } },
+      ];
+      
+      Object.keys(teacherSchedules).forEach((dayKey) => {
+        const timeSchedules = teacherSchedules[dayKey];
+        const slotKeys = Object.keys(timeSchedules);
+  
+        if (slotKeys.length === 1) {
+          const slotKey = slotKeys[0];
+          const schedule = timeSchedules[slotKey];
+          const schedData = getTimeSlotString(schedule.start) + ' - ' + getTimeSlotString(schedule.end);
+          
+          if (setSched.indexOf(schedData) === -1) {
+            setSched.push(schedData);
+            
+            const newRow1 = [schedData, '', '', schedule.subject, '', ''];
+            const newRow2 = ['', '', '', schedule.section, '', ''];
+            rows.push(newRow1);
+            rows.push(newRow2);
+          }
+        } else {
+          const sched = timeSchedules[slotKeys[0]];
+
+          const subjects = [];
+          const sections = [''];
+          let schedData = '';
+
+          if (sched.subject !== null && sched.subject !== undefined) {
+            schedData = getTimeSlotString(sched.start) + ' - ' + getTimeSlotString(sched.end);
+            subjects.push(schedData);
+          }
+
+          let prevSlotKey = 0;
+          slotKeys.forEach((slotKey) => {
+            const schedule = timeSchedules[slotKey];
+
+            const gap = slotKey - prevSlotKey - 1;
+
+            for (let i = 0; i < gap; i++) {
+                subjects.push('');
+                sections.push('');
+            }
+            
+            if (schedule.subject !== null && schedule.subject !== undefined) {
+              subjects.push(schedule.subject);
+              sections.push(schedule.section);
+            }
+
+            if (setSched.indexOf(schedData) === -1) {
+              setSched.push(schedData);
+              
+              rows.push(subjects);
+              rows.push(sections);
+            }
+            prevSlotKey = slotKey;
+          });
+          
+        }         
+      });
+      const worksheet = XLSX.utils.aoa_to_sheet(rows);
+
+      worksheet['!merges'] = merges;
+      worksheet['!cols'] = [
+        { wch: 20 },
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 15 }
+      ];
+
+      XLSX.utils.book_append_sheet(teacherWorkbook, worksheet, `${teacherTimetables[teacherKey].containerName}`);
+    
+    });
+
+    XLSX.writeFile(sectionWorkbook, 'section_schedules.xlsx');
+    XLSX.writeFile(teacherWorkbook, 'teacher_schedules.xlsx');
+
+  };
+  
   useEffect(() => {
     // Function to handle the beforeunload event
     const handleBeforeUnload = (event) => {
@@ -380,91 +561,98 @@ params
   }, [timetableGenerationStatus]); // The effect depends on the isProcessRunning state
 
   return (
-    <div className="App container mx-auto px-4 py-6">
-  <div className="mb-6 flex justify-end">
-    <ExportImportDBButtons />
-  </div>
-
-  <div className="mb-6">
-    <Configuration />
-  </div>
-
-  {/* Responsive card layout for Subject and Teacher Lists */}
-  {/* <div className="flex flex-col lg:flex-row gap-6">
-    <div className="w-full lg:w-4/12 bg-base-100 p-6 rounded-lg shadow-lg">
-      <h2 className="text-lg font-semibold mb-4">Subjects</h2>
-      <SubjectListContainer />
-    </div>
-    <div className="w-full lg:w-8/12 bg-base-100 p-6 rounded-lg shadow-lg">
-      <h2 className="text-lg font-semibold mb-4">Teachers</h2>
-      <TeacherListContainer />
-    </div>
-  </div> */}
-
-  <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
-    <h2 className="text-lg font-semibold mb-4">Subjects</h2>
-    <SubjectListContainer />
-  </div>
-
-  <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
-    <h2 className="text-lg font-semibold mb-4">Teachers</h2>
-    <TeacherListContainer />
-  </div>
-
-  {/* Program Lists */}
-  <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
-    <h2 className="text-lg font-semibold mb-4">Programs</h2>
-    <ProgramListContainer />
-  </div>
-
-  {/* Section List with the Generate Timetable Button */}
-  <div className="mt-6">
-    <div className="bg-base-100 p-6 rounded-lg shadow-lg">
-      <h2 className="text-lg font-semibold mb-4">Sections</h2>
-      <SectionListContainer />
-
-      <button
-        className={clsx('btn btn-primary w-full mt-6', {
-          'cursor-not-allowed': timetableGenerationStatus === 'running',
-          'btn-error': timetableGenerationStatus === 'error',
-        })}
-        onClick={() => {
-          if (validate()) {
-            handleButtonClick();
-          }
-        }}
-        disabled={timetableGenerationStatus === 'running'}
-      >
-        {timetableGenerationStatus === 'running' ? (
-          <div className="flex gap-2 items-center">
-            <span>Generating</span>
-            <span className="loading loading-spinner loading-xs"></span>
-          </div>
-        ) : (
-          'Generate Timetable'
-        )}
-      </button>
-
-      <div className="mt-4">
-        <ViolationList violations={violations} />
+      <div className="App container mx-auto px-4 py-6">
+      <div className="mb-6 flex justify-end">
+        <ExportImportDBButtons />
       </div>
-    </div>
-  </div>
+
+      <div className="mb-6">
+        <Configuration />
+      </div>
+
+      {/* Responsive card layout for Subject and Teacher Lists */}
+      {/* <div className="flex flex-col lg:flex-row gap-6">
+        <div className="w-full lg:w-4/12 bg-base-100 p-6 rounded-lg shadow-lg">
+          <h2 className="text-lg font-semibold mb-4">Subjects</h2>
+          <SubjectListContainer />
+        </div>
+        <div className="w-full lg:w-8/12 bg-base-100 p-6 rounded-lg shadow-lg">
+          <h2 className="text-lg font-semibold mb-4">Teachers</h2>
+          <TeacherListContainer />
+        </div>
+      </div> */}
+
+      <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
+        <h2 className="text-lg font-semibold mb-4">Subjects</h2>
+        <SubjectListContainer />
+      </div>
+
+      <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
+        <h2 className="text-lg font-semibold mb-4">Teachers</h2>
+        <TeacherListContainer />
+      </div>
+
+      {/* Program Lists */}
+      <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
+        <h2 className="text-lg font-semibold mb-4">Programs</h2>
+        <ProgramListContainer />
+      </div>
+
+      {/* Section List with the Generate Timetable Button */}
+      <div className="mt-6">
+        <div className="bg-base-100 p-6 rounded-lg shadow-lg">
+          <h2 className="text-lg font-semibold mb-4">Sections</h2>
+          <SectionListContainer />
+
+          <button
+            className={clsx('btn btn-primary w-full mt-6', {
+              'cursor-not-allowed': timetableGenerationStatus === 'running',
+              'btn-error': timetableGenerationStatus === 'error',
+            })}
+            onClick={() => {
+              if (validate()) {
+                handleButtonClick();
+              }
+            }}
+            disabled={timetableGenerationStatus === 'running'}
+          >
+            {timetableGenerationStatus === 'running' ? (
+              <div className="flex gap-2 items-center">
+                <span>Generating</span>
+                <span className="loading loading-spinner loading-xs"></span>
+              </div>
+            ) : (
+              'Generate Timetable'
+            )}
+          </button>
+
+          <div className="mt-4">
+            <ViolationList violations={violations} />
+          </div>
+        </div>
+      </div>
+
+      {Object.keys(sectionTimetables).length > 0 &&
+        Object.keys(teacherTimetables).length > 0 && (
+          <button 
+          className="btn btn-secondary bg-red-500 w-32 mt-6" 
+          onClick={handleSchedExport}>EXPORT SCHEDULES</button>
+        )}
 
       <GeneratedTimetable
-      timetables={sectionTimetables}
-            field={'section'}
-            columnField={['teacher', 'subject']}
-          />
-    
-<GeneratedTimetable
-      timetables={teacherTimetables}
-            field={'teacher'}
-      columnField={['subject', 'section']}
-            />
+        timetables={sectionTimetables}
+          field={'section'}
+          columnField={['teacher', 'subject']}
+        />
+        
+      <GeneratedTimetable
+        timetables={teacherTimetables}
+          field={'teacher'}
+          columnField={['subject', 'section']}
+        />
 
-            {/* <div className="grid grid-cols-1 col-span-full gap-4 sm:grid-cols-2"></div> */}
-</div>
+                {/* <div className="grid grid-cols-1 col-span-full gap-4 sm:grid-cols-2"></div> */}
+    </div>
   );
 }
 
