@@ -25,117 +25,117 @@ function Timetable() {
 
     const numOfSchoolDays = Number(localStorage.getItem('numOfSchoolDays'));
 
-  const [sectionTimetables, setSectionTimetables] = useState({});
-  const [teacherTimetables, setTeacherTimetables] = useState({});
-  const [timetableGenerationStatus, setTimetableGenerationStatus] =
-    useState('idle');
-  const [violations, setViolations] = useState([]);
+    const [sectionTimetables, setSectionTimetables] = useState({});
+    const [teacherTimetables, setTeacherTimetables] = useState({});
+    const [timetableGenerationStatus, setTimetableGenerationStatus] =
+        useState('idle');
+    const [violations, setViolations] = useState([]);
 
-  // Scope and Limitations
-  // Room-Section Relationship: Each room is uniquely assigned to a specific subject, establishing a 1:1 relationship.
-  // Due to this strict pairing, room allocation is not a factor in timetable generation.
+    // Scope and Limitations
+    // Room-Section Relationship: Each room is uniquely assigned to a specific subject, establishing a 1:1 relationship.
+    // Due to this strict pairing, room allocation is not a factor in timetable generation.
 
-  // Curriculum-Driven Course Selection: Students are required to follow a predefined curriculum.
-  // They do not have the option to select subjects independently.
+    // Curriculum-Driven Course Selection: Students are required to follow a predefined curriculum.
+    // They do not have the option to select subjects independently.
 
-  // Standardized Class Start and Break Times: The start time for the first class and the timing of breaks are
-  // standardized across all sections and teachers, ensuring uniformity in the daily schedule.
+    // Standardized Class Start and Break Times: The start time for the first class and the timing of breaks are
+    // standardized across all sections and teachers, ensuring uniformity in the daily schedule.
 
-  const validate = () => {
-    const { canProceed, violations } = validateTimetableVariables({
+    const validate = () => {
+        const { canProceed, violations } = validateTimetableVariables({
             sections: sectionsStore,
             teachers: teachersStore,
             subjects: subjectsStore,
             programs: programsStore,
-    });
+        });
 
-    if (!canProceed) {
-      if (violations.some((v) => v.type === 'emptyDatabase')) {
-        toast.error('One or more tables are empty.');
-      } else {
-        toast.error('Invalid timetable variables');
-      }
-      setViolations(violations);
-      return false;
-    }
+        if (!canProceed) {
+            if (violations.some((v) => v.type === 'emptyDatabase')) {
+                toast.error('One or more tables are empty.');
+            } else {
+                toast.error('Invalid timetable variables');
+            }
+            setViolations(violations);
+            return false;
+        }
 
-    setViolations([]);
-    return true;
-  };
+        setViolations([]);
+        return true;
+    };
 
-  const handleButtonClick = async () => {
+    const handleButtonClick = async () => {
         const subjectMap = Object.entries(subjectsStore).reduce(
-      (acc, [, value], index) => {
-        acc[index] = value.id;
-        return acc;
-      },
-      {}
-    );
+            (acc, [, value], index) => {
+                acc[index] = value.id;
+                return acc;
+            },
+            {}
+        );
 
         const subjectMapReverse = Object.entries(subjectsStore).reduce(
-      (acc, [, value], index) => {
-        acc[value.id] = index;
-        return acc;
-      },
-      {}
-    );
+            (acc, [, value], index) => {
+                acc[value.id] = index;
+                return acc;
+            },
+            {}
+        );
 
         const teacherMap = Object.entries(teachersStore).reduce(
-      (acc, [, value], index) => {
-        acc[index] = {
-          subjects: value.subjects.map(
-            (subjectID) => subjectMapReverse[subjectID]
-          ),
-          id: value.id,
-        };
-        return acc;
-      },
-      {}
-    );
+            (acc, [, value], index) => {
+                acc[index] = {
+                    subjects: value.subjects.map(
+                        (subjectID) => subjectMapReverse[subjectID]
+                    ),
+                    id: value.id,
+                };
+                return acc;
+            },
+            {}
+        );
 
         const sectionMap = Object.entries(sectionsStore).reduce(
-      (acc, [, value], index) => {
-        // Assuming value.subjects is an object with subject IDs as keys
-        const subjectIDs = Object.keys(value.subjects);
+            (acc, [, value], index) => {
+                // Assuming value.subjects is an object with subject IDs as keys
+                const subjectIDs = Object.keys(value.subjects);
 
-        acc[index] = {
-          // Map over the subject IDs to transform them using subjectMapReverse
+                acc[index] = {
+                    // Map over the subject IDs to transform them using subjectMapReverse
                     subjects: subjectIDs.map(
                         (subjectID) => subjectMapReverse[subjectID]
                     ),
-          // Process the units associated with each subject
-          subjectUnits: Object.keys(value.subjects).reduce(
-            (unitAcc, subjectID) => {
-              let mappedKey = subjectMapReverse[subjectID];
-              unitAcc[mappedKey] = value.subjects[subjectID]; // Use value.subjects[subjectID] to get the number of units
-              return unitAcc;
+                    // Process the units associated with each subject
+                    subjectUnits: Object.keys(value.subjects).reduce(
+                        (unitAcc, subjectID) => {
+                            let mappedKey = subjectMapReverse[subjectID];
+                            unitAcc[mappedKey] = value.subjects[subjectID]; // Use value.subjects[subjectID] to get the number of units
+                            return unitAcc;
+                        },
+                        {}
+                    ),
+                    id: value.id,
+                };
+
+                return acc;
             },
             {}
-          ),
-          id: value.id,
-        };
+        );
 
-        return acc;
-      },
-      {}
-    );
+        console.log('subjectMap', subjectMap);
+        console.log('subjectMapReverse', subjectMapReverse);
+        console.log('teacherMap', teacherMap);
+        console.log('sectionMap', sectionMap);
 
-    console.log('subjectMap', subjectMap);
-    console.log('subjectMapReverse', subjectMapReverse);
-console.log('teacherMap', teacherMap);
-    console.log('sectionMap', sectionMap);
-
-    let defaultClassDuration = 4;
+        let defaultClassDuration = 4;
         let breakTimeDuration = 3;
 
-    const sectionSubjectArray = [];
-    const sectionSubjectUnitArray = [];
-    const sectionSubjectDurationArray = [];
-    const sectionStartArray = [];
+        const sectionSubjectArray = [];
+        const sectionSubjectUnitArray = [];
+        const sectionSubjectDurationArray = [];
+        const sectionStartArray = [];
 
         let lowestSubjectDuration = breakTimeDuration;
 
-// console.log('🚀 ~ handleButtonClick ~ subjectsStore:', subjectsStore);
+        // console.log('🚀 ~ handleButtonClick ~ subjectsStore:', subjectsStore);
 
         Object.entries(subjectsStore).forEach(([key, value]) => {
             console.log(`Key: ${key}, Value: ${value}`);
@@ -148,142 +148,142 @@ console.log('teacherMap', teacherMap);
         let offset = lowestSubjectDuration - 1;
         breakTimeDuration -= offset;
 
-// console.log(
-//     '🚀 ~ handleButtonClick ~ lowestSubjectDuration:',
-//     lowestSubjectDuration
-// );
+        // console.log(
+        //     '🚀 ~ handleButtonClick ~ lowestSubjectDuration:',
+        //     lowestSubjectDuration
+        // );
 
-    let cellCount = 0;
-    for (const [sectionKey, { subjects, subjectUnits }] of Object.entries(
-      sectionMap
-    )) {
-let rowCount = 0;
+        let cellCount = 0;
+        for (const [sectionKey, { subjects, subjectUnits }] of Object.entries(
+            sectionMap
+        )) {
+            let rowCount = 0;
 
-      for (const subject of subjects) {
-        sectionSubjectArray.push(packInt16ToInt32(sectionKey, subject));
-      }
+            for (const subject of subjects) {
+                sectionSubjectArray.push(packInt16ToInt32(sectionKey, subject));
+            }
 
-      for (const subject of Object.keys(subjectUnits)) {
-// console.log('🚀 ~ handleButtonClick ~ subject:', subject);
-        const unitCount = subjectUnits[subject];
+            for (const subject of Object.keys(subjectUnits)) {
+                // console.log('🚀 ~ handleButtonClick ~ subject:', subject);
+                const unitCount = subjectUnits[subject];
 
-        if (unitCount === 0) {
-          cellCount++;
-rowCount += numOfSchoolDays;
+                if (unitCount === 0) {
+                    cellCount++;
+                    rowCount += numOfSchoolDays;
                     // console.log("🚀 ~ handleButtonClick ~ numOfSchoolDays:", typeof numOfSchoolDays)
-        } else {
-          cellCount += unitCount;
-rowCount += unitCount;
+                } else {
+                    cellCount += unitCount;
+                    rowCount += unitCount;
                     // console.log("🚀 ~ handleButtonClick ~ unitCount:", unitCount)
-        }
+                }
 
-        sectionSubjectUnitArray.push(
-          packInt16ToInt32(subject, subjectUnits[subject])
-        );
+                sectionSubjectUnitArray.push(
+                    packInt16ToInt32(subject, subjectUnits[subject])
+                );
 
                 // TODO: might there be code smell on how it stores
 
-        sectionSubjectDurationArray.push(
-          packInt16ToInt32(
+                sectionSubjectDurationArray.push(
+                    packInt16ToInt32(
                         subject,
                         subjectsStore[subjectMap[subject]].classDuration / 10 -
                             offset
                     )
                 );
 
-// console.log(
-//     '🚀 ~ handleButtonClick ~ subjectMap[subject].classDuration:',
-//     subjectMap[subject].classDuration,
-//     typeof subjectMap[subject].classDuration
-// );
-      }
+                // console.log(
+                //     '🚀 ~ handleButtonClick ~ subjectMap[subject].classDuration:',
+                //     subjectMap[subject].classDuration,
+                //     typeof subjectMap[subject].classDuration
+                // );
+            }
 
-// console.log('🚀 ~ handleButtonClick ~ rowCount:', rowCount);
+            // console.log('🚀 ~ handleButtonClick ~ rowCount:', rowCount);
             rowCount = Math.trunc(rowCount / numOfSchoolDays);
             let numOfBreak = rowCount < 10 ? 1 : 2;
             cellCount += numOfBreak;
-    }
+        }
 
-    const sectionSubjects = new Int32Array([...sectionSubjectArray]);
-    const sectionSubjectUnits = new Int32Array([
-...sectionSubjectUnitArray,
-]);
-    const sectionSubjectDurations = new Int32Array([
-      ...sectionSubjectDurationArray,
-    ]);
+        const sectionSubjects = new Int32Array([...sectionSubjectArray]);
+        const sectionSubjectUnits = new Int32Array([
+            ...sectionSubjectUnitArray,
+        ]);
+        const sectionSubjectDurations = new Int32Array([
+            ...sectionSubjectDurationArray,
+        ]);
 
-    const max_iterations = 10000;
-    const beesPopulations = 4;
-    const beesEmployed = 2;
-    const beesOnlooker = 2;
-    const beesScout = 1;
-    const limits = 200;
-    const numTeachers = Object.keys(teacherMap).length;
-    const totalSchoolClass = sectionSubjectArray.length;
-    const totalSection = Object.keys(sectionMap).length;
+        const max_iterations = 10000;
+        const beesPopulations = 4;
+        const beesEmployed = 2;
+        const beesOnlooker = 2;
+        const beesScout = 1;
+        const limits = 200;
+        const numTeachers = Object.keys(teacherMap).length;
+        const totalSchoolClass = sectionSubjectArray.length;
+        const totalSection = Object.keys(sectionMap).length;
 
-    for (let i = 0; i < totalSection; i++) {
-      sectionStartArray[i] = 0;
-    }
-    const sectionStarts = new Int32Array([...sectionStartArray]);
+        for (let i = 0; i < totalSection; i++) {
+            sectionStartArray[i] = 0;
+        }
+        const sectionStarts = new Int32Array([...sectionStartArray]);
 
-    const teacherSubjectArray = [];
+        const teacherSubjectArray = [];
 
-    for (const [teacherKey, { subjects }] of Object.entries(teacherMap)) {
-      for (const subject of subjects) {
-        teacherSubjectArray.push(packInt16ToInt32(teacherKey, subject));
-      }
-    }
+        for (const [teacherKey, { subjects }] of Object.entries(teacherMap)) {
+            for (const subject of subjects) {
+                teacherSubjectArray.push(packInt16ToInt32(teacherKey, subject));
+            }
+        }
 
-    const teacherSubjects = new Int32Array([...teacherSubjectArray]);
+        const teacherSubjects = new Int32Array([...teacherSubjectArray]);
 
         const breakTimeslotAllowance = 6;
-    const teacherBreakThreshold = 4;
-    const minClassesForTwoBreaks = 10;
+        const teacherBreakThreshold = 4;
+        const minClassesForTwoBreaks = 10;
 
-    const params = {
-      maxIterations: max_iterations,
-      numTeachers: numTeachers,
-      totalSchoolClass: totalSchoolClass,
-      totalCellBlock: cellCount,
-      totalSection: totalSection,
+        const params = {
+            maxIterations: max_iterations,
+            numTeachers: numTeachers,
+            totalSchoolClass: totalSchoolClass,
+            totalCellBlock: cellCount,
+            totalSection: totalSection,
 
-      sectionSubjects: sectionSubjects,
-      sectionSubjectDurations: sectionSubjectDurations,
-      sectionStarts: sectionStarts,
-      teacherSubjects: teacherSubjects,
-      sectionSubjectUnits: sectionSubjectUnits,
-      teacherSubjectsLength: teacherSubjects.length,
+            sectionSubjects: sectionSubjects,
+            sectionSubjectDurations: sectionSubjectDurations,
+            sectionStarts: sectionStarts,
+            teacherSubjects: teacherSubjects,
+            sectionSubjectUnits: sectionSubjectUnits,
+            teacherSubjectsLength: teacherSubjects.length,
 
-      beesPopulation: beesPopulations,
-      beesEmployed: beesEmployed,
-      beesOnlooker: beesOnlooker,
-      beesScout: beesScout,
-      limits: limits,
-      workWeek: numOfSchoolDays,
+            beesPopulation: beesPopulations,
+            beesEmployed: beesEmployed,
+            beesOnlooker: beesOnlooker,
+            beesScout: beesScout,
+            limits: limits,
+            workWeek: numOfSchoolDays,
 
-      maxTeacherWorkLoad: 9,
-      breakTimeDuration: breakTimeDuration,
-      breakTimeslotAllowance: breakTimeslotAllowance,
-      teacherBreakThreshold: teacherBreakThreshold,
-      minClassesForTwoBreaks: minClassesForTwoBreaks,
-      defaultClassDuration: defaultClassDuration,
-      resultLength: cellCount,
+            maxTeacherWorkLoad: 9,
+            breakTimeDuration: breakTimeDuration,
+            breakTimeslotAllowance: breakTimeslotAllowance,
+            teacherBreakThreshold: teacherBreakThreshold,
+            minClassesForTwoBreaks: minClassesForTwoBreaks,
+            defaultClassDuration: defaultClassDuration,
+            resultLength: cellCount,
 
             offset: offset,
-    };
+        };
 
-    setTimetableGenerationStatus('running');
-    const { timetable: generatedTimetable, status } = await getTimetable(
-params
-);
-    setTimetableGenerationStatus(status);
+        setTimetableGenerationStatus('running');
+        const { timetable: generatedTimetable, status } = await getTimetable(
+            params
+        );
+        setTimetableGenerationStatus(status);
 
         // const timetableMap = [];
-    const sectionTimetable = {};
-    const teacherTimetable = {};
+        const sectionTimetable = {};
+        const teacherTimetable = {};
 
-    function ensureNestedObject(obj, keys) {
+        function ensureNestedObject(obj, keys) {
             let current = obj;
             for (let key of keys) {
                 if (!current[key]) {
@@ -295,15 +295,15 @@ params
         }
 
         for (const entry of generatedTimetable) {
-// console.log('🚀 ~ handleButtonClick ~ entry of timetable:', entry);
+            // console.log('🚀 ~ handleButtonClick ~ entry of timetable:', entry);
 
-      const section_id = sectionMap[entry[0]].id;
-      const subject_id = subjectMap[entry[1]] || null;
-      const teacher_id = (teacherMap[entry[2]] || { id: null }).id;
-      const timeslot = entry[3];
-      const day = entry[4];
+            const section_id = sectionMap[entry[0]].id;
+            const subject_id = subjectMap[entry[1]] || null;
+            const teacher_id = (teacherMap[entry[2]] || { id: null }).id;
+            const timeslot = entry[3];
+            const day = entry[4];
 
-      const start = entry[5];
+            const start = entry[5];
             const end = entry[6];
 
             // Ensure sectionTimetable nested structure exists
@@ -326,7 +326,7 @@ params
             sectionEntry.start = start;
             sectionEntry.end = end;
 
-      if (teacher_id == null) {
+            if (teacher_id == null) {
                 continue;
             }
 
@@ -337,7 +337,7 @@ params
                 day,
             ]);
 
-        teacherTimetable[teacher_id].containerName =
+            teacherTimetable[teacher_id].containerName =
                 teachersStore[teacher_id]?.teacher;
 
             // Now you can safely assign values to the final nested object
@@ -349,48 +349,48 @@ params
 
             teacherEntry.start = start;
             teacherEntry.end = end;
-    }
+        }
 
-    // setTimetable(timetable);
-    // console.log("timetable", timetableMap);
-    console.log('section timetable', sectionTimetable);
-    console.log('teacher timetable', teacherTimetable);
-    
+        // setTimetable(timetable);
+        // console.log("timetable", timetableMap);
+        console.log('section timetable', sectionTimetable);
+        console.log('teacher timetable', teacherTimetable);
+
         // setTimetable(timetableMap);
-    setSectionTimetables(sectionTimetable);
-    setTeacherTimetables(teacherTimetable);
-  };
-
-  useEffect(() => {
-    // Function to handle the beforeunload event
-    const handleBeforeUnload = (event) => {
-      if (timetableGenerationStatus === 'running') {
-        event.preventDefault();
-        event.returnValue = ''; // Legacy for older browsers
-      }
+        setSectionTimetables(sectionTimetable);
+        setTeacherTimetables(teacherTimetable);
     };
 
-    // Add the event listener
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    useEffect(() => {
+        // Function to handle the beforeunload event
+        const handleBeforeUnload = (event) => {
+            if (timetableGenerationStatus === 'running') {
+                event.preventDefault();
+                event.returnValue = ''; // Legacy for older browsers
+            }
+        };
 
-    // Cleanup the event listener when the component unmounts
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [timetableGenerationStatus]); // The effect depends on the isProcessRunning state
+        // Add the event listener
+        window.addEventListener('beforeunload', handleBeforeUnload);
 
-  return (
-    <div className="App container mx-auto px-4 py-6">
-  <div className="mb-6 flex justify-end">
-    <ExportImportDBButtons />
-  </div>
+        // Cleanup the event listener when the component unmounts
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, [timetableGenerationStatus]); // The effect depends on the isProcessRunning state
 
-  <div className="mb-6">
-    <Configuration />
-  </div>
+    return (
+        <div className="App container mx-auto px-4 py-6">
+            <div className="mb-6 flex justify-end">
+                <ExportImportDBButtons />
+            </div>
 
-  {/* Responsive card layout for Subject and Teacher Lists */}
-  {/* <div className="flex flex-col lg:flex-row gap-6">
+            <div className="mb-6">
+                <Configuration />
+            </div>
+
+            {/* Responsive card layout for Subject and Teacher Lists */}
+            {/* <div className="flex flex-col lg:flex-row gap-6">
     <div className="w-full lg:w-4/12 bg-base-100 p-6 rounded-lg shadow-lg">
       <h2 className="text-lg font-semibold mb-4">Subjects</h2>
       <SubjectListContainer />
@@ -401,72 +401,72 @@ params
     </div>
   </div> */}
 
-  <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
-    <h2 className="text-lg font-semibold mb-4">Subjects</h2>
-    <SubjectListContainer />
-  </div>
+            <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
+                <h2 className="text-lg font-semibold mb-4">Subjects</h2>
+                <SubjectListContainer />
+            </div>
 
-  <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
-    <h2 className="text-lg font-semibold mb-4">Teachers</h2>
-    <TeacherListContainer />
-  </div>
+            <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
+                <h2 className="text-lg font-semibold mb-4">Teachers</h2>
+                <TeacherListContainer />
+            </div>
 
-  {/* Program Lists */}
-  <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
-    <h2 className="text-lg font-semibold mb-4">Programs</h2>
-    <ProgramListContainer />
-  </div>
+            {/* Program Lists */}
+            <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
+                <h2 className="text-lg font-semibold mb-4">Programs</h2>
+                <ProgramListContainer />
+            </div>
 
-  {/* Section List with the Generate Timetable Button */}
-  <div className="mt-6">
-    <div className="bg-base-100 p-6 rounded-lg shadow-lg">
-      <h2 className="text-lg font-semibold mb-4">Sections</h2>
-      <SectionListContainer />
+            {/* Section List with the Generate Timetable Button */}
+            <div className="mt-6">
+                <div className="bg-base-100 p-6 rounded-lg shadow-lg">
+                    <h2 className="text-lg font-semibold mb-4">Sections</h2>
+                    <SectionListContainer />
 
-      <button
-        className={clsx('btn btn-primary w-full mt-6', {
-          'cursor-not-allowed':
-timetableGenerationStatus === 'running',
-          'btn-error': timetableGenerationStatus === 'error',
-        })}
-        onClick={() => {
-          if (validate()) {
-            handleButtonClick();
-          }
-        }}
-        disabled={timetableGenerationStatus === 'running'}
-      >
-        {timetableGenerationStatus === 'running' ? (
-          <div className="flex gap-2 items-center">
-            <span>Generating</span>
-            <span className="loading loading-spinner loading-xs"></span>
-          </div>
-        ) : (
-          'Generate Timetable'
-        )}
-      </button>
+                    <button
+                        className={clsx('btn btn-primary w-full mt-6', {
+                            'cursor-not-allowed':
+                                timetableGenerationStatus === 'running',
+                            'btn-error': timetableGenerationStatus === 'error',
+                        })}
+                        onClick={() => {
+                            if (validate()) {
+                                handleButtonClick();
+                            }
+                        }}
+                        disabled={timetableGenerationStatus === 'running'}
+                    >
+                        {timetableGenerationStatus === 'running' ? (
+                            <div className="flex gap-2 items-center">
+                                <span>Generating</span>
+                                <span className="loading loading-spinner loading-xs"></span>
+                            </div>
+                        ) : (
+                            'Generate Timetable'
+                        )}
+                    </button>
 
-      <div className="mt-4">
-        <ViolationList violations={violations} />
-      </div>
-    </div>
-  </div>
+                    <div className="mt-4">
+                        <ViolationList violations={violations} />
+                    </div>
+                </div>
+            </div>
 
-      <GeneratedTimetable
-      timetables={sectionTimetables}
-            field={'section'}
-            columnField={['teacher', 'subject']}
-          />
-    
-<GeneratedTimetable
-      timetables={teacherTimetables}
-            field={'teacher'}
-      columnField={['subject', 'section']}
+            <GeneratedTimetable
+                timetables={sectionTimetables}
+                field={'section'}
+                columnField={['teacher', 'subject']}
+            />
+
+            <GeneratedTimetable
+                timetables={teacherTimetables}
+                field={'teacher'}
+                columnField={['subject', 'section']}
             />
 
             {/* <div className="grid grid-cols-1 col-span-full gap-4 sm:grid-cols-2"></div> */}
-</div>
-  );
+        </div>
+    );
 }
 
 export default Timetable;
