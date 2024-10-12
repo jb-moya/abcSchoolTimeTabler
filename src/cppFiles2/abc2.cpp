@@ -1253,7 +1253,7 @@ void runExperiment(
     int break_time_duration,
     int break_timeslot_allowance,
     int teacher_break_threshold,
-    int min_classes_for_two_breaks,
+    int min_total_class_duration_for_two_breaks,
     int default_class_duration,
     int result_buff_length,
     int offset_duration,
@@ -1350,8 +1350,17 @@ void runExperiment(
 
 			// std::cout << " xx x xxxxxxxxxxxf : " << (((it->second + work_week - 1) / work_week)) << std::endl;
 			int timeslots = (((it->second + work_week - 1) / work_week));
-			int num_breaks = timeslots < min_classes_for_two_breaks ? 1 : 2;
-			// std::cout << "ehhe " << timeslots << " " << num_breaks << " " << timeslots + num_breaks << std::endl;
+
+			int section_total_duration = 0;
+
+			for (auto it2 = Timetable::s_section_subjects_duration[it->first].begin(); it2 != Timetable::s_section_subjects_duration[it->first].end(); it2++) {
+				section_total_duration += it2->second;
+			}
+
+			// int num_breaks = section_total_duration < min
+
+			int num_breaks = section_total_duration <= min_total_class_duration_for_two_breaks ? 1 : 2;
+			// std::cout << "ehhe " << section_total_duration << " " << timeslots << " " << num_breaks << " " << timeslots + num_breaks << std::endl;
 			Timetable::s_section_timeslot[it->first] = timeslots + num_breaks;
 			// below 10 - 1, 2 equal or above
 

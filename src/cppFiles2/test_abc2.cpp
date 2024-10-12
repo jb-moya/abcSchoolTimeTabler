@@ -95,13 +95,15 @@ void test_generate_timetable() {
 	int workweek = 5;
 	int break_timeslot_allowance = 6;
 	int teacher_break_threshold = 4;
-	int min_classes_for_two_breaks = 10;
+	int common_subject_count = 9;
+	int min_total_class_duration_for_two_breaks = common_subject_count * default_class_duration;
 	int max_teacher_work_load = 9;
 	int teacher_subjects_length = num_teachers;
 
 	int offset = 2;
 	default_class_duration -= offset;
 	break_time_duration -= offset;
+	min_total_class_duration_for_two_breaks /= offset;
 
 	int total_section_subjects = total_section * num_subjects;
 
@@ -207,7 +209,7 @@ void test_generate_timetable() {
 	    break_time_duration,
 	    break_timeslot_allowance,
 	    teacher_break_threshold,
-	    min_classes_for_two_breaks,
+	    min_total_class_duration_for_two_breaks,
 	    default_class_duration,
 	    result_buff_length,
 		offset,
