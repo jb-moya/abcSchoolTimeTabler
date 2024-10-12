@@ -8,7 +8,7 @@ const GeneratedTimetable = ({ timetables, field, columnField }) => {
         <div className="">
             <div className="overflow-x-auto">
                 {Object.entries(timetables).map(([timetableID, timetable]) => {
-                    console.log('timetable rows', timetable);
+// console.log('timetable rows', timetable);
 
                     const { containerName, ...rowTimetable } = timetable;
 
@@ -27,33 +27,31 @@ const GeneratedTimetable = ({ timetables, field, columnField }) => {
                                     </div>
                                 </div>
                                 <div className="w-11/12">
-                                    <div className="flex text-center w-full">
-                                        <div className="w-1/5 border border-primary-content">
-                                            Mon
+                                    <div className="flex text-center w-full border border-primary-content">
+                                            {[
+                                            'Mon',
+                                            'Tue',
+                                            'Wed',
+                                            'Thu',
+                                            'Fri',
+                                        ].map((day, index) => (
+                                            <div
+                                                key={index}
+                                                className="flex-1 border-r  border-primary-content"
+                                            >
+                                                {day}
                                         </div>
-                                        <div className="w-1/5 border border-primary-content">
-                                            Tue
-                                        </div>
-                                        <div className="w-1/5 border border-primary-content">
-                                            Wed
-                                        </div>
-                                        <div className="w-1/5 border border-primary-content">
-                                            Thur
-                                        </div>
-                                        <div className="w-1/5 border border-primary-content">
-                                            Fri
-                                        </div>
+                                        ))}
                                     </div>
-                                    <div className="flex flex-wrap"></div>
-                                </div>
+                                                                    </div>
                             </div>
 
                             {Object.entries(rowTimetable).map(
                                 ([timeslot, row]) => {
-                                    console.log(
-                                        '🚀 ~ {Object.entries ~ row:',
-                                        row
-                                    );
+// console.log(
+//     '🚀 ~ {Object.entries ~ row:',
+//     row
+// );
 
                                     const consistent = '0' in row;
 
@@ -165,19 +163,6 @@ const GeneratedTimetable = ({ timetables, field, columnField }) => {
                                                         })}
                                                     </div>
                                                 </div>
-
-                                                {/* <div className="w-11/12 flex justify-center space-x-3">
-                                                    {teacher && subject ? (
-                                                        <>
-                                                            <div>{subject}</div>
-                                                            <div>{teacher}</div>
-                                                        </>
-                                                    ) : (
-                                                        <div className="opacity-50">
-                                                            Break Time
-                                                        </div>
-                                                    )}
-                                                </div> */}
                                             </div>
                                         );
                                     }

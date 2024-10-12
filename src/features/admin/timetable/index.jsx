@@ -135,7 +135,7 @@ console.log('teacherMap', teacherMap);
 
         let lowestSubjectDuration = breakTimeDuration;
 
-        console.log('🚀 ~ handleButtonClick ~ subjectsStore:', subjectsStore);
+// console.log('🚀 ~ handleButtonClick ~ subjectsStore:', subjectsStore);
 
         Object.entries(subjectsStore).forEach(([key, value]) => {
             console.log(`Key: ${key}, Value: ${value}`);
@@ -148,10 +148,10 @@ console.log('teacherMap', teacherMap);
         let offset = lowestSubjectDuration - 1;
         breakTimeDuration -= offset;
 
-        console.log(
-            '🚀 ~ handleButtonClick ~ lowestSubjectDuration:',
-            lowestSubjectDuration
-        );
+// console.log(
+//     '🚀 ~ handleButtonClick ~ lowestSubjectDuration:',
+//     lowestSubjectDuration
+// );
 
     let cellCount = 0;
     for (const [sectionKey, { subjects, subjectUnits }] of Object.entries(
@@ -164,7 +164,7 @@ let rowCount = 0;
       }
 
       for (const subject of Object.keys(subjectUnits)) {
-console.log('🚀 ~ handleButtonClick ~ subject:', subject);
+// console.log('🚀 ~ handleButtonClick ~ subject:', subject);
         const unitCount = subjectUnits[subject];
 
         if (unitCount === 0) {
@@ -191,14 +191,14 @@ rowCount += unitCount;
                     )
                 );
 
-                console.log(
-                    '🚀 ~ handleButtonClick ~ subjectMap[subject].classDuration:',
-                    subjectMap[subject].classDuration,
-                    typeof subjectMap[subject].classDuration
-        );
+// console.log(
+//     '🚀 ~ handleButtonClick ~ subjectMap[subject].classDuration:',
+//     subjectMap[subject].classDuration,
+//     typeof subjectMap[subject].classDuration
+// );
       }
 
-            console.log('🚀 ~ handleButtonClick ~ rowCount:', rowCount);
+// console.log('🚀 ~ handleButtonClick ~ rowCount:', rowCount);
             rowCount = Math.trunc(rowCount / numOfSchoolDays);
             let numOfBreak = rowCount < 10 ? 1 : 2;
             cellCount += numOfBreak;
@@ -295,7 +295,7 @@ params
         }
 
         for (const entry of generatedTimetable) {
-      console.log('🚀 ~ handleButtonClick ~ entry of timetable:', entry);
+// console.log('🚀 ~ handleButtonClick ~ entry of timetable:', entry);
 
       const section_id = sectionMap[entry[0]].id;
       const subject_id = subjectMap[entry[1]] || null;
@@ -425,7 +425,8 @@ params
 
       <button
         className={clsx('btn btn-primary w-full mt-6', {
-          'cursor-not-allowed': timetableGenerationStatus === 'running',
+          'cursor-not-allowed':
+timetableGenerationStatus === 'running',
           'btn-error': timetableGenerationStatus === 'error',
         })}
         onClick={() => {
