@@ -45,9 +45,18 @@ export const editTeacher = createAsyncThunk(
 
 export const removeTeacher = createAsyncThunk(
     "teacher/removeTeacher",
-    async (teacherId, { dispatch }) => {
-        await removeEntityFromDB(STORE_NAMES.TEACHERS, teacherId);
-        dispatch(teacherSlice.actions.removeTeacherSync(teacherId));
+    async (teacherId, { dispatch, rejectWithValue }) => {
+        try {
+            const success = await removeEntityFromDB(
+                STORE_NAMES.TEACHERS,
+                teacherId
+            );
+            if (success) {
+                dispatch(teacherSlice.actions.removeTeacherSync(teacherId));
+            }
+        } catch (error) {
+            return rejectWithValue(error.message);
+        }
     }
 );
 
