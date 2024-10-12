@@ -298,7 +298,7 @@ params
         }
 
         for (const entry of generatedTimetable) {
-      console.log('🚀 ~ handleButtonClick ~ entry of timetable:', entry);
+      // console.log('🚀 ~ handleButtonClick ~ entry of timetable:', entry);
 
       const section_id = sectionMap[entry[0]].id;
       const subject_id = subjectMap[entry[1]] || null;
@@ -368,16 +368,37 @@ params
     const sectionWorkbook = XLSX.utils.book_new();
     const teacherWorkbook = XLSX.utils.book_new();
 
+    const cs1 = {
+      fill: {
+        fgColor: { rgb: "FFFF00" }
+      },
+      font: {
+        bold: true
+      }
+    };
+
+    
     Object.keys(sectionTimetables).forEach((sectionKey) => {
       const sectionSchedules = sectionTimetables[sectionKey];
+
+      const sectionAdviserId = sectionsStore[sectionKey] ? sectionsStore[sectionKey].teacher : -1;
+      console.log('sectionAdviserId', sectionAdviserId);
+      const sectionAdviserName = sectionAdviserId && teachersStore[sectionAdviserId]
+      ? teachersStore[sectionAdviserId].teacher
+      : 'N/A';
+
       const setSched = [];
       const rows = [
         ['Section', sectionTimetables[sectionKey].containerName, '', '', '', ''],
+        ['Adviser', sectionAdviserName, '', '', '', ''],
         ['Time', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
       ];
+      const singleRows = [];
       const merges = [
         { s: { r: 0, c: 1 }, e: { r: 0, c: 5 } },
+        { s: { r: 1, c: 1 }, e: { r: 1, c: 5 } },
       ];
+      let secRow = 4;
       
       Object.keys(sectionSchedules).forEach((dayKey) => {
         const timeSchedules = sectionSchedules[dayKey];
@@ -398,7 +419,16 @@ params
               const newRow2 = ['', '', '', schedule.teacher, '', ''];
               rows.push(newRow1);
               rows.push(newRow2);
+              singleRows.push(secRow);
             }
+          }
+
+          if (schedule.subject === null && schedule.teacher === null && schedule.teacherID === null) {
+            const schedData = getTimeSlotString(schedule.start) + ' - ' + getTimeSlotString(schedule.end);
+            const newRow1 = [schedData, '', '', 'BREAK', '', ''];
+            const newRow2 = ['', '', '', '', '', ''];
+            rows.push(newRow1);
+            rows.push(newRow2);
           }
         } else {
           const sched = timeSchedules[slotKeys[0]];
@@ -438,8 +468,18 @@ params
             rows.push(teachers);
           }
         }
+        secRow = secRow + 2;
       });
       const worksheet = XLSX.utils.aoa_to_sheet(rows);
+
+      // singleRows.forEach((row) => {
+      //   let cellRefs = [`B${row}`, `C${row}`, `D${row}`, `E${row}`, `F${row}`, 
+      //                   `B${row + 1}`, `C${row + 1}`, `D${row + 1}`,`E${row + 1}`,`F${row + 1}`];
+      //   cellRefs.forEach(cellRef => {
+      //     console.log(cellRef);
+      //     worksheet[cellRef].s = cs1;
+      //   });
+      // });
 
       worksheet['!merges'] = merges;
       worksheet['!cols'] = [
@@ -472,15 +512,18 @@ params
         if (slotKeys.length === 1) {
           const slotKey = slotKeys[0];
           const schedule = timeSchedules[slotKey];
-          const schedData = getTimeSlotString(schedule.start) + ' - ' + getTimeSlotString(schedule.end);
           
-          if (setSched.indexOf(schedData) === -1) {
-            setSched.push(schedData);
+          if (schedule.subject !== null && schedule.subject !== undefined) {
+            const schedData = getTimeSlotString(schedule.start) + ' - ' + getTimeSlotString(schedule.end);
             
-            const newRow1 = [schedData, '', '', schedule.subject, '', ''];
-            const newRow2 = ['', '', '', schedule.section, '', ''];
-            rows.push(newRow1);
-            rows.push(newRow2);
+            if (setSched.indexOf(schedData) === -1) {
+              setSched.push(schedData);
+              
+              const newRow1 = [schedData, '', '', schedule.subject, '', ''];
+              const newRow2 = ['', '', '', schedule.section, '', ''];
+              rows.push(newRow1);
+              rows.push(newRow2);
+            }
           }
         } else {
           const sched = timeSchedules[slotKeys[0]];
