@@ -21,12 +21,12 @@ import { getTimeSlotString } from '../../../components/Admin/timeSlotMapper';
 const getTimetable = wrap(new WasmWorker());
 
 function Timetable() {
-  const { subjects: subjectsStore } = useSelector((state) => state.subject);
-  const { teachers: teachersStore } = useSelector((state) => state.teacher);
-  const { sections: sectionsStore } = useSelector((state) => state.section);
-  const { programs: programsStore } = useSelector((state) => state.program);
+    const { subjects: subjectsStore } = useSelector((state) => state.subject);
+    const { teachers: teachersStore } = useSelector((state) => state.teacher);
+    const { sections: sectionsStore } = useSelector((state) => state.section);
+    const { programs: programsStore } = useSelector((state) => state.program);
 
-  const numOfSchoolDays = Number(localStorage.getItem('numOfSchoolDays'));
+    const numOfSchoolDays = Number(localStorage.getItem('numOfSchoolDays'));
 
     const [sectionTimetables, setSectionTimetables] = useState({});
     const [teacherTimetables, setTeacherTimetables] = useState({});
@@ -298,7 +298,7 @@ function Timetable() {
         }
 
         for (const entry of generatedTimetable) {
-      console.log('🚀 ~ handleButtonClick ~ entry of timetable:', entry);
+            console.log('🚀 ~ handleButtonClick ~ entry of timetable:', entry);
 
             const section_id = sectionMap[entry[0]].id;
             const subject_id = subjectMap[entry[1]] || null;
@@ -360,241 +360,321 @@ function Timetable() {
         console.log('teacher timetable', teacherTimetable);
 
         // setTimetable(timetableMap);
-    setSectionTimetables(sectionTimetable);
-    setTeacherTimetables(teacherTimetable);
-  };
-
-  const handleSchedExport = () => {
-    const sectionWorkbook = XLSX.utils.book_new();
-    const teacherWorkbook = XLSX.utils.book_new();
-
-    const cs1 = {
-      fill: {
-        fgColor: { rgb: "FFFF00" }
-      },
-      font: {
-        bold: true
-      }
-    };
-
-    
-    Object.keys(sectionTimetables).forEach((sectionKey) => {
-      const sectionSchedules = sectionTimetables[sectionKey];
-
-      const sectionAdviserId = sectionsStore[sectionKey] ? sectionsStore[sectionKey].teacher : -1;
-      console.log('sectionAdviserId', sectionAdviserId);
-      const sectionAdviserName = sectionAdviserId && teachersStore[sectionAdviserId]
-      ? teachersStore[sectionAdviserId].teacher
-      : 'N/A';
-
-      const setSched = [];
-      const rows = [
-        ['Section', sectionTimetables[sectionKey].containerName, '', '', '', ''],
-        ['Adviser', sectionAdviserName, '', '', '', ''],
-        ['Time', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
-      ];
-      const singleRows = [];
-      const merges = [
-        { s: { r: 0, c: 1 }, e: { r: 0, c: 5 } },
-        { s: { r: 1, c: 1 }, e: { r: 1, c: 5 } },
-      ];
-      let secRow = 4;
-      
-      Object.keys(sectionSchedules).forEach((dayKey) => {
-        const timeSchedules = sectionSchedules[dayKey];
-
-        const slotKeys = Object.keys(timeSchedules);
-  
-        if (slotKeys.length === 1) {
-          const slotKey = slotKeys[0];
-          const schedule = timeSchedules[slotKey];
-          
-          if (schedule.subject !== null && schedule.subject !== undefined) {
-            const schedData = getTimeSlotString(schedule.start) + ' - ' + getTimeSlotString(schedule.end);
-            
-            if (setSched.indexOf(schedData) === -1) {
-              setSched.push(schedData);
-              
-              const newRow1 = [schedData, '', '', schedule.subject, '', ''];
-              const newRow2 = ['', '', '', schedule.teacher, '', ''];
-              rows.push(newRow1);
-              rows.push(newRow2);
-              singleRows.push(secRow);
-            }
-          }
-
-          if (schedule.subject === null && schedule.teacher === null && schedule.teacherID === null) {
-            const schedData = getTimeSlotString(schedule.start) + ' - ' + getTimeSlotString(schedule.end);
-            const newRow1 = [schedData, '', '', 'BREAK', '', ''];
-            const newRow2 = ['', '', '', '', '', ''];
-            rows.push(newRow1);
-            rows.push(newRow2);
-          }
-        } else {
-          const sched = timeSchedules[slotKeys[0]];
-
-          const subjects = [];
-          const teachers = [''];
-          let schedData = '';
-
-          if (sched.subject !== null && sched.subject !== undefined) {
-            schedData = getTimeSlotString(sched.start) + ' - ' + getTimeSlotString(sched.end);
-            subjects.push(schedData);
-          }
-
-          let prevSlotKey = 0;
-          slotKeys.forEach((slotKey) => {
-            const schedule = timeSchedules[slotKey];
-            
-            if (schedule.subject !== null && schedule.subject !== undefined) {
-              subjects.push(schedule.subject);
-              teachers.push(schedule.teacher);
-            }
-
-            const gap = slotKey - prevSlotKey - 1;
-
-            for (let i = 0; i < gap; i++) {
-                subjects.push('');
-                sections.push('');
-            }
-
-            prevSlotKey = slotKey;
-          });
-
-          if (setSched.indexOf(schedData) === -1) {
-            setSched.push(schedData);
-            
-            rows.push(subjects);
-            rows.push(teachers);
-          }
-        }
-        secRow = secRow + 2;
-      });
-      const worksheet = XLSX.utils.aoa_to_sheet(rows);
-
-      // singleRows.forEach((row) => {
-      //   let cellRefs = [`B${row}`, `C${row}`, `D${row}`, `E${row}`, `F${row}`, 
-      //                   `B${row + 1}`, `C${row + 1}`, `D${row + 1}`,`E${row + 1}`,`F${row + 1}`];
-      //   cellRefs.forEach(cellRef => {
-      //     console.log(cellRef);
-      //     worksheet[cellRef].s = cs1;
-      //   });
-      // });
-
-      worksheet['!merges'] = merges;
-      worksheet['!cols'] = [
-        { wch: 20 },
-        { wch: 15 },
-        { wch: 15 },
-        { wch: 15 },
-        { wch: 15 },
-        { wch: 15 }
-      ];
-
-      XLSX.utils.book_append_sheet(sectionWorkbook, worksheet, `${sectionTimetables[sectionKey].containerName}`);
-    });
-
-    Object.keys(teacherTimetables).forEach((teacherKey) => {
-      const teacherSchedules = teacherTimetables[teacherKey];
-      const setSched = [];
-      const rows = [
-        ['Teacher', teacherTimetables[teacherKey].containerName, '', '', '', ''],
-        ['Time', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
-      ];
-      const merges = [
-        { s: { r: 0, c: 1 }, e: { r: 0, c: 5 } },
-      ];
-      
-      Object.keys(teacherSchedules).forEach((dayKey) => {
-        const timeSchedules = teacherSchedules[dayKey];
-        const slotKeys = Object.keys(timeSchedules);
-  
-        if (slotKeys.length === 1) {
-          const slotKey = slotKeys[0];
-          const schedule = timeSchedules[slotKey];
-          
-          if (schedule.subject !== null && schedule.subject !== undefined) {
-            const schedData = getTimeSlotString(schedule.start) + ' - ' + getTimeSlotString(schedule.end);
-            
-            if (setSched.indexOf(schedData) === -1) {
-              setSched.push(schedData);
-              
-              const newRow1 = [schedData, '', '', schedule.subject, '', ''];
-              const newRow2 = ['', '', '', schedule.section, '', ''];
-              rows.push(newRow1);
-              rows.push(newRow2);
-            }
-          }
-        } else {
-          const sched = timeSchedules[slotKeys[0]];
-
-          const subjects = [];
-          const sections = [''];
-          let schedData = '';
-
-          if (sched.subject !== null && sched.subject !== undefined) {
-            schedData = getTimeSlotString(sched.start) + ' - ' + getTimeSlotString(sched.end);
-            subjects.push(schedData);
-          }
-
-          let prevSlotKey = 0;
-          slotKeys.forEach((slotKey) => {
-            const schedule = timeSchedules[slotKey];
-
-            const gap = slotKey - prevSlotKey - 1;
-
-            for (let i = 0; i < gap; i++) {
-                subjects.push('');
-                sections.push('');
-            }
-            
-            if (schedule.subject !== null && schedule.subject !== undefined) {
-              subjects.push(schedule.subject);
-              sections.push(schedule.section);
-            }
-
-            if (setSched.indexOf(schedData) === -1) {
-              setSched.push(schedData);
-              
-              rows.push(subjects);
-              rows.push(sections);
-            }
-            prevSlotKey = slotKey;
-          });
-          
-        }         
-      });
-      const worksheet = XLSX.utils.aoa_to_sheet(rows);
-
-      worksheet['!merges'] = merges;
-      worksheet['!cols'] = [
-        { wch: 20 },
-        { wch: 15 },
-        { wch: 15 },
-        { wch: 15 },
-        { wch: 15 },
-        { wch: 15 }
-      ];
-
-      XLSX.utils.book_append_sheet(teacherWorkbook, worksheet, `${teacherTimetables[teacherKey].containerName}`);
-    
-    });
-
-    XLSX.writeFile(sectionWorkbook, 'section_schedules.xlsx');
-    XLSX.writeFile(teacherWorkbook, 'teacher_schedules.xlsx');
-
-  };
-  
-  useEffect(() => {
-    // Function to handle the beforeunload event
-    const handleBeforeUnload = (event) => {
-      if (timetableGenerationStatus === 'running') {
-        event.preventDefault();
-        event.returnValue = ''; // Legacy for older browsers
-      }
-    };
         setSectionTimetables(sectionTimetable);
         setTeacherTimetables(teacherTimetable);
+    };
+
+    const handleSchedExport = () => {
+        const sectionWorkbook = XLSX.utils.book_new();
+        const teacherWorkbook = XLSX.utils.book_new();
+
+        const cs1 = {
+            fill: {
+                fgColor: { rgb: 'FFFF00' },
+            },
+            font: {
+                bold: true,
+            },
+        };
+
+        Object.keys(sectionTimetables).forEach((sectionKey) => {
+            const sectionSchedules = sectionTimetables[sectionKey];
+
+            const sectionAdviserId = sectionsStore[sectionKey]
+                ? sectionsStore[sectionKey].teacher
+                : -1;
+            console.log('sectionAdviserId', sectionAdviserId);
+            const sectionAdviserName =
+                sectionAdviserId && teachersStore[sectionAdviserId]
+                    ? teachersStore[sectionAdviserId].teacher
+                    : 'N/A';
+
+            const setSched = [];
+            const rows = [
+                [
+                    'Section',
+                    sectionTimetables[sectionKey].containerName,
+                    '',
+                    '',
+                    '',
+                    '',
+                ],
+                ['Adviser', sectionAdviserName, '', '', '', ''],
+                [
+                    'Time',
+                    'MONDAY',
+                    'TUESDAY',
+                    'WEDNESDAY',
+                    'THURSDAY',
+                    'FRIDAY',
+                ],
+            ];
+            const singleRows = [];
+            const merges = [
+                { s: { r: 0, c: 1 }, e: { r: 0, c: 5 } },
+                { s: { r: 1, c: 1 }, e: { r: 1, c: 5 } },
+            ];
+            let secRow = 4;
+
+            Object.keys(sectionSchedules).forEach((dayKey) => {
+                const timeSchedules = sectionSchedules[dayKey];
+
+                const slotKeys = Object.keys(timeSchedules);
+
+                if (slotKeys.length === 1) {
+                    const slotKey = slotKeys[0];
+                    const schedule = timeSchedules[slotKey];
+
+                    if (
+                        schedule.subject !== null &&
+                        schedule.subject !== undefined
+                    ) {
+                        const schedData =
+                            getTimeSlotString(schedule.start) +
+                            ' - ' +
+                            getTimeSlotString(schedule.end);
+
+                        if (setSched.indexOf(schedData) === -1) {
+                            setSched.push(schedData);
+
+                            const newRow1 = [
+                                schedData,
+                                '',
+                                '',
+                                schedule.subject,
+                                '',
+                                '',
+                            ];
+                            const newRow2 = [
+                                '',
+                                '',
+                                '',
+                                schedule.teacher,
+                                '',
+                                '',
+                            ];
+                            rows.push(newRow1);
+                            rows.push(newRow2);
+                            singleRows.push(secRow);
+                        }
+                    }
+
+                    if (
+                        schedule.subject === null &&
+                        schedule.teacher === null &&
+                        schedule.teacherID === null
+                    ) {
+                        const schedData =
+                            getTimeSlotString(schedule.start) +
+                            ' - ' +
+                            getTimeSlotString(schedule.end);
+                        const newRow1 = [schedData, '', '', 'BREAK', '', ''];
+                        const newRow2 = ['', '', '', '', '', ''];
+                        rows.push(newRow1);
+                        rows.push(newRow2);
+                    }
+                } else {
+                    const sched = timeSchedules[slotKeys[0]];
+
+                    const subjects = [];
+                    const teachers = [''];
+                    let schedData = '';
+
+                    if (sched.subject !== null && sched.subject !== undefined) {
+                        schedData =
+                            getTimeSlotString(sched.start) +
+                            ' - ' +
+                            getTimeSlotString(sched.end);
+                        subjects.push(schedData);
+                    }
+
+                    let prevSlotKey = 0;
+                    slotKeys.forEach((slotKey) => {
+                        const schedule = timeSchedules[slotKey];
+
+                        if (
+                            schedule.subject !== null &&
+                            schedule.subject !== undefined
+                        ) {
+                            subjects.push(schedule.subject);
+                            teachers.push(schedule.teacher);
+                        }
+
+                        const gap = slotKey - prevSlotKey - 1;
+
+                        for (let i = 0; i < gap; i++) {
+                            subjects.push('');
+                            sections.push('');
+                        }
+
+                        prevSlotKey = slotKey;
+                    });
+
+                    if (setSched.indexOf(schedData) === -1) {
+                        setSched.push(schedData);
+
+                        rows.push(subjects);
+                        rows.push(teachers);
+                    }
+                }
+                secRow = secRow + 2;
+            });
+            const worksheet = XLSX.utils.aoa_to_sheet(rows);
+
+            // singleRows.forEach((row) => {
+            //   let cellRefs = [`B${row}`, `C${row}`, `D${row}`, `E${row}`, `F${row}`,
+            //                   `B${row + 1}`, `C${row + 1}`, `D${row + 1}`,`E${row + 1}`,`F${row + 1}`];
+            //   cellRefs.forEach(cellRef => {
+            //     console.log(cellRef);
+            //     worksheet[cellRef].s = cs1;
+            //   });
+            // });
+
+            worksheet['!merges'] = merges;
+            worksheet['!cols'] = [
+                { wch: 20 },
+                { wch: 15 },
+                { wch: 15 },
+                { wch: 15 },
+                { wch: 15 },
+                { wch: 15 },
+            ];
+
+            XLSX.utils.book_append_sheet(
+                sectionWorkbook,
+                worksheet,
+                `${sectionTimetables[sectionKey].containerName}`
+            );
+        });
+
+        Object.keys(teacherTimetables).forEach((teacherKey) => {
+            const teacherSchedules = teacherTimetables[teacherKey];
+            const setSched = [];
+            const rows = [
+                [
+                    'Teacher',
+                    teacherTimetables[teacherKey].containerName,
+                    '',
+                    '',
+                    '',
+                    '',
+                ],
+                [
+                    'Time',
+                    'MONDAY',
+                    'TUESDAY',
+                    'WEDNESDAY',
+                    'THURSDAY',
+                    'FRIDAY',
+                ],
+            ];
+            const merges = [{ s: { r: 0, c: 1 }, e: { r: 0, c: 5 } }];
+
+            Object.keys(teacherSchedules).forEach((dayKey) => {
+                const timeSchedules = teacherSchedules[dayKey];
+                const slotKeys = Object.keys(timeSchedules);
+
+                if (slotKeys.length === 1) {
+                    const slotKey = slotKeys[0];
+                    const schedule = timeSchedules[slotKey];
+
+                    if (
+                        schedule.subject !== null &&
+                        schedule.subject !== undefined
+                    ) {
+                        const schedData =
+                            getTimeSlotString(schedule.start) +
+                            ' - ' +
+                            getTimeSlotString(schedule.end);
+
+                        if (setSched.indexOf(schedData) === -1) {
+                            setSched.push(schedData);
+
+                            const newRow1 = [
+                                schedData,
+                                '',
+                                '',
+                                schedule.subject,
+                                '',
+                                '',
+                            ];
+                            const newRow2 = [
+                                '',
+                                '',
+                                '',
+                                schedule.section,
+                                '',
+                                '',
+                            ];
+                            rows.push(newRow1);
+                            rows.push(newRow2);
+                        }
+                    }
+                } else {
+                    const sched = timeSchedules[slotKeys[0]];
+
+                    const subjects = [];
+                    const sections = [''];
+                    let schedData = '';
+
+                    if (sched.subject !== null && sched.subject !== undefined) {
+                        schedData =
+                            getTimeSlotString(sched.start) +
+                            ' - ' +
+                            getTimeSlotString(sched.end);
+                        subjects.push(schedData);
+                    }
+
+                    let prevSlotKey = 0;
+                    slotKeys.forEach((slotKey) => {
+                        const schedule = timeSchedules[slotKey];
+
+                        const gap = slotKey - prevSlotKey - 1;
+
+                        for (let i = 0; i < gap; i++) {
+                            subjects.push('');
+                            sections.push('');
+                        }
+
+                        if (
+                            schedule.subject !== null &&
+                            schedule.subject !== undefined
+                        ) {
+                            subjects.push(schedule.subject);
+                            sections.push(schedule.section);
+                        }
+
+                        if (setSched.indexOf(schedData) === -1) {
+                            setSched.push(schedData);
+
+                            rows.push(subjects);
+                            rows.push(sections);
+                        }
+                        prevSlotKey = slotKey;
+                    });
+                }
+            });
+            const worksheet = XLSX.utils.aoa_to_sheet(rows);
+
+            worksheet['!merges'] = merges;
+            worksheet['!cols'] = [
+                { wch: 20 },
+                { wch: 15 },
+                { wch: 15 },
+                { wch: 15 },
+                { wch: 15 },
+                { wch: 15 },
+            ];
+
+            XLSX.utils.book_append_sheet(
+                teacherWorkbook,
+                worksheet,
+                `${teacherTimetables[teacherKey].containerName}`
+            );
+        });
+
+        XLSX.writeFile(sectionWorkbook, 'section_schedules.xlsx');
+        XLSX.writeFile(teacherWorkbook, 'teacher_schedules.xlsx');
     };
 
     useEffect(() => {
@@ -630,8 +710,8 @@ function Timetable() {
     <div className="w-full lg:w-4/12 bg-base-100 p-6 rounded-lg shadow-lg">
       <h2 className="text-lg font-semibold mb-4">Subjects</h2>
       <SubjectListContainer />
-    </div>
-    <div className="w-full lg:w-8/12 bg-base-100 p-6 rounded-lg shadow-lg">
+      </div>
+      <div className="w-full lg:w-8/12 bg-base-100 p-6 rounded-lg shadow-lg">
       <h2 className="text-lg font-semibold mb-4">Teachers</h2>
       <TeacherListContainer />
     </div>
@@ -682,18 +762,21 @@ function Timetable() {
                         )}
                     </button>
 
-          <div className="mt-4">
-            <ViolationList violations={violations} />
-          </div>
-        </div>
-      </div>
+                    <div className="mt-4">
+                        <ViolationList violations={violations} />
+                    </div>
+                </div>
+            </div>
 
-      {Object.keys(sectionTimetables).length > 0 &&
-        Object.keys(teacherTimetables).length > 0 && (
-          <button 
-          className="btn btn-secondary bg-red-500 w-32 mt-6" 
-          onClick={handleSchedExport}>EXPORT SCHEDULES</button>
-        )}
+            {Object.keys(sectionTimetables).length > 0 &&
+                Object.keys(teacherTimetables).length > 0 && (
+                    <button
+                        className="btn btn-secondary bg-red-500 w-32 mt-6"
+                        onClick={handleSchedExport}
+                    >
+                        EXPORT SCHEDULES
+                    </button>
+                )}
 
             <GeneratedTimetable
                 timetables={sectionTimetables}
