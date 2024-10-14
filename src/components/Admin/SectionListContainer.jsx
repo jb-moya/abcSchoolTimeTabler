@@ -144,35 +144,25 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
   }, [teacherStatus, dispatch]);
 
   return (
-    <div className="mb-3 p-4 border rounded-md shadow-md bg-white w-full h-3/12">
-      <div className="flex justify-between">
-        <h3 className="text-lg font-bold mb-4">ADD NEW {reduxField[0].toUpperCase()}</h3>
-        <button className="btn btn-xs btn-circle btn-outline" onClick={close}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            className="inline-block w-4 h-4 stroke-current"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M6 18L18 6M6 6l12 12"
-            ></path>
-          </svg>
-        </button>
+    <div>
+      <div className="flex justify-center">
+        <h3 className="text-lg font-bold mb-4">Add New Section</h3>
       </div>
 
-      <input
-        type="text"
-        ref={inputNameRef}
-        placeholder={`${reduxField[0]} Name`}
-        required
-        className="input input-bordered input-sm w-full max-w-xs"
-        value={inputValue}
-        onChange={handleInputChange}
-      />
+      <div className="mb-4">
+          <label className="label">
+          <span className="label-text">Section Name</span>
+        </label>
+          <input
+            type="text"
+            ref={inputNameRef}
+            placeholder={`${reduxField[0]} Name`}
+            required
+            className="input input-bordered input-sm w-full "
+            value={inputValue}
+            onChange={handleInputChange}
+          />
+      </div>
 
       <div className="mt-3">
         <label className="label">
@@ -488,18 +478,51 @@ const SectionListContainer = ({ editable = false }) => {
 
   return (
     <React.Fragment>
-      <div>
-        {/* Search Filter */}
-        <label className="input input-sm input-bordered flex items-center mt-5">
-          <input
-            type="text"
-            className="grow"
-            placeholder="Search Section by Name, Program, Year Level or Subject List"
-            value={searchSectionValue}
-            onChange={(e) => setSearchSectionValue(e.target.value)}
-          />
-          <IoSearch />
-        </label>
+      <div className='w-full'>
+
+      <div className="flex flex-col md:flex-row md:gap-4 justify-between items-center mb-5">
+        <div className="flex-grow w-full">
+          <label className="input input-bordered flex items-center gap-2 h-12 w-full">
+            <input
+              type="text"
+              className="grow p-4 text-sm w-full"
+              placeholder="Search Section"
+              value={searchSectionValue}
+              onChange={(e) => setSearchSectionValue(e.target.value)}
+            />
+            <IoSearch className="text-xl" />
+          </label>
+        </div>
+
+        {editable && (
+          <div className="w-full mt-4 md:mt-0 md:w-auto">
+            <button
+              className="btn btn-primary h-12 flex items-center justify-center w-full md:w-44"
+              onClick={() => document.getElementById('add_section_modal').showModal()}
+            >
+              Add Section <IoAdd size={20} className="ml-2" />
+            </button>
+
+            <dialog id="add_section_modal" className="modal modal-bottom sm:modal-middle">
+              <div className="modal-box">
+                <AddSectionContainer
+                  close={() => document.getElementById('add_section_modal').close()}
+                  reduxField={['section', 'subjects', 'units']}
+                  reduxFunction={addSection}
+                />
+                <div className="modal-action">
+                  <button
+                    className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                    onClick={() => document.getElementById('add_section_modal').close()}
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            </dialog>
+          </div>
+        )}
+      </div>
 
         {/* Table */}
         <table className="table table-sm table-zebra">
@@ -788,31 +811,7 @@ const SectionListContainer = ({ editable = false }) => {
         </table>
       </div>
 
-      {/* Add button */}
-      {editable 
-        &&
-        <div>
-          {openAddSectionContainer ? (
-            <AddSectionContainer
-              close={() => setOpenAddSectionContainer(false)}
-              reduxField={['section', 'subjects', 'units']}
-              reduxFunction={addSection}
-            />
-          ) : (
-            <div className="flex justify-end mt-3">
-              <button
-                className="btn btn-secondary my-5"
-                onClick={() => {
-                  setOpenAddSectionContainer(true);
-                }}
-              >
-                Add Section
-                <IoAdd size={26} />
-              </button>
-            </div>
-          )}
-        </div>
-      }
+     
       
     </React.Fragment>
   );
