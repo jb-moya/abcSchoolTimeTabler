@@ -13,6 +13,34 @@ import SearchableDropdownToggler from './searchableDropdown';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
+import Lottie from 'lottie-react';
+import animationData from '/public/SuccessAnimation.json'
+
+const SuccessModal = ({ message, onClose }) => {
+  return (
+    <div className="modal modal-open flex items-center justify-center">
+      <div className="modal-box flex flex-col items-center justify-center p-4"> {/* Added padding */}
+        <div className="lottie-animation w-48 h-48">
+          <Lottie
+            animationData={
+              animationData
+            } // Replace with your Lottie JSON
+            loop={false} // Ensures the animati on does not loop
+          />
+        </div>
+        <h2 className="font-bold text-lg text-center">{message}</h2> {/* Center text */}
+        <div className="modal-action">
+          <button
+            className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+            onClick={onClose}
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const AddTeacherContainer = ({
   close,
@@ -64,60 +92,62 @@ const AddTeacherContainer = ({
   }, [dispatch, subjectStatus]);
 
   return (
-    <div className="mb-3 p-4 border rounded-md shadow-md bg-white w-7/12 h-4/12">
-      <div className="flex justify-between">
-        <h3 className="text-lg font-bold mb-4">Add New Teacher</h3>
-        <button className="btn btn-xs btn-circle btn-outline" onClick={close}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            className="inline-block w-4 h-4 stroke-current"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M6 18L18 6M6 6l12 12"
-            ></path>
-          </svg>
-        </button>
-      </div>
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">Teacher Name:</label>
-        <input
-          type="text"
-          className="input input-bordered w-full"
-          value={teacherName}
-          onChange={(e) => setTeacherName(e.target.value)}
-          placeholder="Enter teacher name"
-        />
-      </div>
-      <div className="flex items-center">
-          <div className="m-1">Selected Subjects: </div>
-          {selectedSubjects.map((subjectID) => (
-              <div key={subjectID} className="badge badge-secondary mb-3">
-                  {subjects[subjectID].subject}
-              </div>
-          ))}
-      </div>
-
-      <SearchableDropdownToggler
-        selectedList={selectedSubjects}
-        setSelectedList={setSelectedSubjects}
-      />
-
-      <div className="flex justify-between">
-        <button className="btn btn-info bg-transparent border-0" onClick={handleReset}>
-            Reset
-        </button>
-        <div className="flex justify-end space-x-2">
-            <button className="btn btn-primary" onClick={handleAddTeacher}>
-                Add Subject
-            </button>
+    <div>
+        <div className="flex justify-center mb-4">
+          <h3 className="text-xl font-bold">Add New Teacher</h3>
         </div>
-    </div>
-    </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-1" htmlFor="teacherName">Teacher Name:</label>
+          <input
+            id="teacherName"
+            type="text"
+            className="input input-bordered w-full"
+            value={teacherName}
+            onChange={(e) => setTeacherName(e.target.value)}
+            placeholder="Enter teacher name"
+            aria-label="Teacher Name"
+          />
+        </div>
+
+        <div className="mb-4">
+
+        <div className="flex flex-col md:flex-row mb-20 space-x-4">
+          
+                <SearchableDropdownToggler
+                  selectedList={selectedSubjects}
+                  setSelectedList={setSelectedSubjects}
+                />
+                  <div className="flex gap-2 flex-wrap ml-4 max-w-72">
+                {selectedSubjects.length === 0 ? (
+                  <span className="text-gray-500">No subjects selected</span>
+                ) : (
+                  selectedSubjects.map((subjectID) => (
+                    <div key={subjectID} className="badge badge-secondary mb-2">
+                      {subjects[subjectID].subject}
+                    </div>
+                  ))
+                )}
+              </div>
+
+        
+        </div>
+
+
+
+          
+        </div>
+     
+        <div className="flex justify-center gap-4 mt-4">
+          <button className="btn btn-secondary" onClick={handleReset}>
+            Reset
+          </button>
+          <button className="btn btn-primary" onClick={handleAddTeacher}>
+            Add Teacher
+          </button>
+        </div>
+      </div>
+
   );
 };
 
@@ -138,6 +168,7 @@ const TeacherListContainer = ({ editable = false }) => {
   const [searchTeacherResult, setSearchTeacherResult] = useState(teachers);
   const [searchTeacherValue, setSearcTeacherValue] = useState('');
   const [openAddTeacherContainer, setOpenAddTeacherContainer] = useState(false);
+  const [editSubjectCurr, setEditSubjectCurr] = useState([]);
 
   const handleEditTeacherClick = (teacher) => {
     setEditTeacherId(teacher.id);
@@ -205,142 +236,195 @@ const TeacherListContainer = ({ editable = false }) => {
     }
   }, [subjectStatus, dispatch]);
 
+  
+  const handleCloseModal = () => {
+    setShowSuccessModal(false);
+  };
+
+
+  const itemsPerPage = 10; // Change this to adjust the number of items per page
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Calculate total pages
+  const totalPages = Math.ceil(Object.values(searchTeacherResult).length / itemsPerPage);
+
+  // Get current items
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = Object.entries(searchTeacherResult).slice(indexOfFirstItem, indexOfLastItem);
+
+
   return (
     <React.Fragment>
-      <div>
-        <label className="input input-sm input-bordered flex items-center mt-5">
-          <input
-            type="text"
-            className="grow"
-            placeholder="Search Teacher by Name or Subject Specialization"
-            value={searchTeacherValue}
-            onChange={(e) => setSearcTeacherValue(e.target.value)}
-          />
-          <IoSearch />
-        </label>
+    <div className="w-full">
+      <div className="flex flex-col md:flex-row md:gap-4 justify-between items-center mb-5">
+        <div className="flex-grow w-full">
+          <label className="input input-bordered flex items-center gap-2 h-12 w-full">
+            <input
+              type="text"
+              className="grow p-4 text-sm w-full"
+              placeholder="Search Teacher"
+              value={searchTeacherValue}
+              onChange={(e) => setSearchTeacherValue(e.target.value)}
+            />
+            <IoSearch className="text-xl" />
+          </label>
+        </div>
 
-        <table className="table table-sm table-zebra">
-          <thead>
+        {editable && (
+          <div className="w-full mt-4 md:mt-0 md:w-auto">
+            <button
+              className="btn btn-primary h-12 flex items-center justify-center w-full md:w-44"
+              onClick={() => document.getElementById('add_teacher_modal').showModal()}
+            >
+              Add Teacher <IoAdd size={20} className="ml-2" />
+            </button>
+
+            <dialog id="add_teacher_modal" className="modal modal-bottom sm:modal-middle">
+              <div className="modal-box">
+                <AddTeacherContainer
+                  close={() => document.getElementById('add_teacher_modal').close()}
+                  reduxFunction={addTeacher}
+                />
+                <div className="modal-action">
+                  <button
+                    className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                    onClick={() => document.getElementById('add_teacher_modal').close()}
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            </dialog>
+          </div>
+        )}
+      </div>
+
+      <table className="table table-sm table-zebra">
+        <thead>
+          <tr>
+            <th className="w-8">#</th>
+            <th>Teacher ID</th>
+            <th>Teacher</th>
+            <th className="w-[600px]">Subject Specialization</th>
+            {editable && <th className="text-right">Actions</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {currentItems.length === 0 ? (
             <tr>
-              <th className="w-8">#</th>
-              <th>Teacher ID</th>
-              <th>Teacher</th>
-              <th>Subject Specialization</th>
-              {editable && <th className="text-right">Actions</th>}
+              <td colSpan="5" className="text-center">
+                No teachers found
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {Object.values(searchTeacherResult).length === 0 ? (
-              <tr>
-                <td colSpan="5" className="text-center">
-                  No teachers found
+          ) : (
+            currentItems.map(([, teacher], index) => (
+              <tr key={teacher.id} className="group hover">
+                <td>{index + indexOfFirstItem + 1}</td>
+                <th>{teacher.id}</th>
+                <td>
+                  {editTeacherId === teacher.id ? (
+                    <input
+                      type="text"
+                      className="input input-bordered input-sm w-full"
+                      value={editTeacherValue}
+                      onChange={(e) => setEditTeacherValue(e.target.value)}
+                    />
+                  ) : (
+                    teacher.teacher
+                  )}
                 </td>
-              </tr>
-            ) : (
-              Object.entries(searchTeacherResult).map(([, teacher], index) => (
-                <tr key={teacher.id} className="group hover">
-                  <td>{index + 1}</td>
-                  <th>{teacher.id}</th>
-                  <td>
-                    {editTeacherId === teacher.id ? (
-                      <input
-                        type="text"
-                        className="input input-bordered input-sm w-full"
-                        value={editTeacherValue}
-                        onChange={(e) => setEditTeacherValue(e.target.value)}
-                      />
-                    ) : (
-                      teacher.teacher
-                    )}
-                  </td>
-
-                  <td className="flex gap-1 flex-wrap">
-                    {editTeacherId === teacher.id ? (
+                <td className="flex gap-1 flex-wrap">
+                  {editTeacherId === teacher.id ? (
+                    <>
+                      <div className="m-1">Selected Subjects:</div>
+                      {editTeacherCurr && Array.isArray(editTeacherCurr) && subjects ? (
+                        editTeacherCurr.map((subjectID) => (
+                          <div key={subjectID} className="badge badge-secondary m-1">
+                            {subjects[subjectID]?.subject || subjectID}
+                          </div>
+                        ))
+                      ) : (
+                        <div>No subjects selected</div>
+                      )}
                       <SearchableDropdownToggler
                         selectedList={editTeacherCurr}
                         setSelectedList={setEditTeacherCurr}
-                        isEditeditable={true}
+                        isEditable={true}
                       />
-                    ) : (
-                      subjectStatus === 'succeeded' &&
-                      teacher.subjects.map((subject) => (
-                        <div
-                          key={subject}
-                          className="px-2 border border-gray-500 border-opacity-30"
+                    </>
+                  ) : (
+                    subjectStatus === 'succeeded' &&
+                    teacher.subjects.map((subject) => (
+                      <div key={subject} className="badge badge-secondary m-1">
+                        {subjects[subject].subject}
+                      </div>
+                    ))
+                  )}
+                </td>
+                {editable && (
+                  <td className="w-28 text-right">
+                    {editTeacherId === teacher.id ? (
+                      <>
+                        <button
+                          className="btn btn-xs btn-ghost text-green-500"
+                          onClick={() => handleSaveTeacherEditClick(teacher.id)}
                         >
-                          {subjects[subject].subject}
-                        </div>
-                      ))
+                          Save
+                        </button>
+                        <button
+                          className="btn btn-xs btn-ghost text-red-500"
+                          onClick={() => handleCancelTeacherEditClick()}
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          className="btn btn-xs btn-ghost text-blue-500"
+                          onClick={() => handleEditTeacherClick(teacher)}
+                        >
+                          <RiEdit2Fill size={20} />
+                        </button>
+                        <button
+                          className="btn btn-xs btn-ghost text-red-500"
+                          onClick={() => dispatch(removeTeacher(teacher.id))}
+                        >
+                          <RiDeleteBin7Line size={20} />
+                        </button>
+                      </>
                     )}
                   </td>
-
-                  {editable && (
-                    <td className="w-28 text-right">
-                      {editTeacherId === teacher.id ? (
-                        <>
-                          <button
-                            className="btn btn-xs btn-ghost text-green-500"
-                            onClick={() =>
-                              handleSaveTeacherEditClick(teacher.id)
-                            }
-                          >
-                            Save
-                          </button>
-                          <button
-                            className="btn btn-xs btn-ghost text-red-500"
-                            onClick={() => handleCancelTeacherEditClick()}
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            className="btn btn-xs btn-ghost text-red-500"
-                            onClick={() => handleEditTeacherClick(teacher)}
-                          >
-                            <RiEdit2Fill size={20} />
-                          </button>
-                          <button
-                            className="btn btn-xs btn-ghost text-red-500"
-                            onClick={() => dispatch(removeTeacher(teacher.id))}
-                          >
-                            <RiDeleteBin7Line size={20} />
-                          </button>
-                        </>
-                      )}
-                    </td>
-                  )}
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {editable && (
-        <div>
-          {openAddTeacherContainer ? (
-            <AddTeacherContainer
-              close={() => setOpenAddTeacherContainer(false)}
-              reduxFunction={addTeacher}
-            />
-          ) : (
-            <div className="flex justify-end mt-3">
-              <button
-                className="btn btn-secondary my-5"
-                onClick={() => {
-                  setOpenAddTeacherContainer(true);
-                }}
-              >
-                Add Teacher
-                <IoAdd size={26} />
-              </button>
-            </div>
+                )}
+              </tr>
+            ))
           )}
-        </div>
-      )}
-    </React.Fragment>
+        </tbody>
+      </table>
+
+      {/* Pagination */}
+      <div className="join mt-4 flex justify-center">
+        <button
+          className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
+          onClick={() => setCurrentPage(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          «
+        </button>
+        <button className="join-item btn">
+          Page {currentPage} of {totalPages}
+        </button>
+        <button
+          className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
+          onClick={() => setCurrentPage(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          »
+        </button>
+      </div>
+    </div>
+  </React.Fragment>
   );
 };
 

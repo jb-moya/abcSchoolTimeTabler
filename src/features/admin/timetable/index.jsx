@@ -134,6 +134,7 @@ function Timetable() {
         const sectionSubjectArray = [];
         const sectionSubjectUnitArray = [];
         const sectionSubjectDurationArray = [];
+        const sectionSubjectOrderArray = [];
         const sectionStartArray = [];
 
         let lowestSubjectDuration = breakTimeDuration;
@@ -148,8 +149,18 @@ function Timetable() {
             }
         });
 
+        const commonSubjectCount = 9;
+
+        const defaultOrder = 0;
+
         let offset = lowestSubjectDuration - 1;
+
+        let minTotalClassDurationForTwoBreaks =
+            commonSubjectCount * defaultClassDuration;
+
+        defaultClassDuration -= offset;
         breakTimeDuration -= offset;
+        minTotalClassDurationForTwoBreaks /= offset;
 
         // console.log(
         //     '🚀 ~ handleButtonClick ~ lowestSubjectDuration:',
@@ -194,6 +205,10 @@ function Timetable() {
                     )
                 );
 
+                sectionSubjectOrderArray.push(
+                    packInt16ToInt32(subject, defaultOrder)
+                );
+
                 // console.log(
                 //     '🚀 ~ handleButtonClick ~ subjectMap[subject].classDuration:',
                 //     subjectMap[subject].classDuration,
@@ -214,16 +229,21 @@ function Timetable() {
         const sectionSubjectDurations = new Int32Array([
             ...sectionSubjectDurationArray,
         ]);
+        const sectionSubjectOrders = new Int32Array([
+            ...sectionSubjectOrderArray,
+        ]);
 
-        const max_iterations = 10000;
+        const max_iterations = 15000;
         const beesPopulations = 4;
         const beesEmployed = 2;
         const beesOnlooker = 2;
         const beesScout = 1;
-        const limits = 200;
         const numTeachers = Object.keys(teacherMap).length;
         const totalSchoolClass = sectionSubjectArray.length;
         const totalSection = Object.keys(sectionMap).length;
+        
+        const limits = numTeachers * totalSection;
+
 
         for (let i = 0; i < totalSection; i++) {
             sectionStartArray[i] = 0;
@@ -242,17 +262,16 @@ function Timetable() {
 
         const breakTimeslotAllowance = 6;
         const teacherBreakThreshold = 4;
-        const minClassesForTwoBreaks = 10;
 
         const params = {
             maxIterations: max_iterations,
             numTeachers: numTeachers,
             totalSchoolClass: totalSchoolClass,
-            totalCellBlock: cellCount,
             totalSection: totalSection,
 
             sectionSubjects: sectionSubjects,
             sectionSubjectDurations: sectionSubjectDurations,
+            sectionSubjectOrders: sectionSubjectOrders,
             sectionStarts: sectionStarts,
             teacherSubjects: teacherSubjects,
             sectionSubjectUnits: sectionSubjectUnits,
@@ -269,9 +288,11 @@ function Timetable() {
             breakTimeDuration: breakTimeDuration,
             breakTimeslotAllowance: breakTimeslotAllowance,
             teacherBreakThreshold: teacherBreakThreshold,
-            minClassesForTwoBreaks: minClassesForTwoBreaks,
+            minTotalClassDurationForTwoBreaks:
+                minTotalClassDurationForTwoBreaks,
             defaultClassDuration: defaultClassDuration,
-            resultLength: cellCount,
+            // resultLength: cellCount,
+            resultLength: 9999,
 
             offset: offset,
         };
@@ -298,7 +319,7 @@ function Timetable() {
         }
 
         for (const entry of generatedTimetable) {
-            console.log('🚀 ~ handleButtonClick ~ entry of timetable:', entry);
+            // console.log('🚀 ~ handleButtonClick ~ entry of timetable:', entry);
 
             const section_id = sectionMap[entry[0]].id;
             const subject_id = subjectMap[entry[1]] || null;

@@ -22,7 +22,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
-#include <vector>
+#include <vector> 
 #define BLACK "\033[30m"
 #define RED "\033[31m"
 #define GREEN "\033[32m"
@@ -101,21 +101,22 @@ struct Timetable {
 
 	static std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>> s_section_subjects_units;
 	static std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> s_section_subjects_duration;
+	static std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> s_section_subjects_order;
 	static std::unordered_map<int16_t, std::vector<int16_t>> s_eligible_teachers_in_subject;
+	static std::unordered_set<int16_t> s_section_dynamic_subject_consistent_duration;
 	static std::unordered_map<int16_t, std::vector<int16_t>> s_section_subjects;
 	static std::unordered_map<int16_t, int> s_section_total_duration;
+	static std::unordered_map<int16_t, int> s_section_fixed_subject;
 	static std::unordered_map<int16_t, int> s_section_timeslot;
 	static std::unordered_map<int16_t, int> s_section_start;
 	static std::unordered_set<int16_t> s_teachers_set;
 	static std::unordered_set<int16_t> s_sections_set;
 	static std::vector<int> s_section_num_breaks;
 
-	static std::uniform_int_distribution<int16_t> s_random_class_block;
 	static std::uniform_int_distribution<int16_t> s_random_section;
 	static std::uniform_int_distribution<int8_t> s_random_workDay;
 	static std::uniform_int_distribution<int16_t> s_random_field;
 
-	static void initializeRandomClassBlockDistribution(int min, int max);
 	static void initializeRandomWorkDayDistribution(int min, int max);
 	static void initializeRandomSectionDistribution(int min, int max);
 	static void initializeRandomFieldDistribution(int min, int max);
@@ -137,6 +138,12 @@ struct Timetable {
 	std::unordered_map<int16_t, std::unordered_set<int>> section_segmented_timeslot;
 	// day                      teachers
 	std::unordered_map<int16_t, std::vector<int>> teachers_class_count;
+
+	// section								// timeslot     days
+	std::unordered_map<int16_t, std::unordered_map<int, std::set<int>>> section_fixed_timeslot_day;
+
+	std::unordered_set<int16_t> sections_with_conflicts;
+	std::unordered_set<int16_t> teachers_with_conflicts;
 
 	std::pair<int, int> pickRandomTimeslots(int selected_section, int field);
 	int16_t pickRandomField(int16_t section);
@@ -191,10 +198,10 @@ void runExperiment(
     int max_iterations,
     int num_teachers,
     int total_section_subjects,
-    int total_class_block,
     int total_section,
     int32_t* section_subjects,
     int32_t* section_subject_duration,
+    int32_t* section_subject_order,
     int32_t* section_start,
     int32_t* teacher_subjects,
     int32_t* section_subject_units,
@@ -209,18 +216,20 @@ void runExperiment(
     int break_time_duration,
     int break_timeslot_allowance,
     int teacher_break_threshold,
-    int min_classes_for_two_breaks,
+    int min_total_class_duration_for_two_breaks,
     int default_class_duration,
     int result_buff_length,
-	int offset_duration,
+    int offset_duration,
     int64_t* result,
-	int64_t* result_2,
+    int64_t* result_2,
 
     bool enable_logging);
 
 #ifdef __cplusplus
 }
 #endif
+
+std::vector<std::vector<int>> getAllBreaksCombination(int slot_count, int break_count, int gap);
 
 std::vector<int> calculatePositions(
     std::vector<std::pair<int16_t, int16_t>> subjects_duration_map,
