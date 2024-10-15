@@ -435,7 +435,7 @@ const ExportImportDBButtons = () => {
   return (
     <div className="flex gap-2">     
       <button
-        className="btn btn-sm btn-primary"
+        className="btn btn-secondary"
         onClick={() => {
           document.getElementById("export-format-modal").showModal();
         }}
@@ -444,7 +444,7 @@ const ExportImportDBButtons = () => {
       </button>
       
       <button
-        className="btn btn-sm btn-primary"
+        className="btn btn-secondary"
         onClick={() => {
           document.getElementById("import-confirmation-modal").showModal();
         }}
