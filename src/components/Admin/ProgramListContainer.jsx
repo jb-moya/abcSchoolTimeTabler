@@ -56,18 +56,15 @@ const AddProgramContainer = ({
   const renderTimeOptions = (shift) => {
     const times =
       shift === 'AM'
-        ? Array.from({ length: 30 }, (_, i) => {
-            const hours = 6 + Math.floor(i / 6);
-            const minutes = (i % 6) * 10;
-            return `${String(hours).padStart(2, '0')}:${String(
-              minutes
-            ).padStart(2, '0')} AM`;
-          })
-        : Array.from({ length: 8 }, (_, i) => {
-            const hours = 1 + i;
-            return `${String(hours).padStart(2, '0')}:00 PM`;
-          });
-
+        ? Array.from({ length: 36 }, (_, i) => {
+          const hours = 6 + Math.floor(i / 6);
+          const minutes = (i % 6) * 10;
+          return `${String(hours).padStart(2, '0')}:${String(
+            minutes
+          ).padStart(2, '0')} AM`;
+        })
+        : ['01:00 PM'];
+  
     return times.map((time) => (
       <option key={time} value={time}>
         {time}
@@ -436,7 +433,6 @@ const ProgramListContainer = ({ editable = false }) => {
     setEditProgramValue('');
     setEditProgramCurr([]);
   };
-
   const handleCancelProgramEditClick = () => {
     setEditProgramId(null);
     setEditProgramValue('');
