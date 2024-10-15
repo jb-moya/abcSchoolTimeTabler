@@ -43,7 +43,7 @@ const routes = [
       {
         path: '/app/admin/modify-subjects', //url
         icon: <UserIcon className={submenuIconClasses} />, // icon component
-        name: 'Modify Subjects', // name that appear in Sidebar
+        name: 'Modify Subjects and Programs', // name that appear in Sidebar
       },
       {
         path: '/app/admin/modify-teachers',

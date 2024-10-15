@@ -1,6 +1,7 @@
 import SubjectListContainer from '@components/Admin/SubjectListContainer';
 import ProgramListContainer from '@components/Admin/ProgramListContainer';
 import Configuration from '@components/Admin/Configuration';
+import Breadcrumbs from '@components/Admin/Breadcrumbs';
 
 function Subject() {
   // Scope and Limitations
@@ -13,10 +14,17 @@ function Subject() {
   // Standardized Class Start and Break Times: The start time for the first class and the timing of breaks are
   // standardized across all sections and teachers, ensuring uniformity in the daily schedule.
 
+  const links = [
+    { name: 'Home', href: '/' },
+    // { name: 'Modify Subjects', href: '/modify-subjects' },
+  ];
+
   return (
     <div className="App container mx-auto px-4 mb-10">
       {/* Optional Configuration Component */}
       {/* <Configuration /> */}
+
+      <Breadcrumbs title="Modify Subjects and Programs" links={links} />
 
       {/* Main Content */}
       <div className="flex flex-col gap-4">

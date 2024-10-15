@@ -157,121 +157,109 @@ const AddProgramContainer = ({
   }, []);
 
   return (
-    <div className="mb-3 p-4 border rounded-md shadow-md bg-white w-7/12 h-3/12">
-      {/* Header section with centered "Add {reduxField}" and close button on the right */}
-      <div className="flex justify-between">
-        <h3 className="text-lg font-bold mb-4 text-center w-full">ADD {reduxField[0].toUpperCase()}</h3>
-        <button className="btn btn-xs btn-circle btn-outline" onClick={close}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            className="inline-block w-4 h-4 stroke-current"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M6 18L18 6M6 6l12 12"
-            ></path>
-          </svg>
-        </button>
-      </div>
+    <div className="p-6">
+    {/* Header section with centered "Add {reduxField}" */}
+    <div className="flex justify-between mb-4">
+      <h3 className="text-lg font-bold text-center w-full">
+        Add New {reduxField[0].charAt(0).toUpperCase() + reduxField[0].slice(1).toLowerCase()}
+      </h3>
+    </div>
   
-      {/* Input field for name */}
+    {/* Input field for program name */}
+    <div className="mb-4">
+      <label className="block text-sm font-medium mb-2">Program Name:</label>
       <input
         type="text"
         ref={inputNameRef}
-        placeholder={`${reduxField[0]} Name`}
-        required
-        className="input input-bordered input-sm w-full max-w-xs mb-3"
+        className="input input-bordered w-full"
         value={inputValue}
         onChange={handleInputChange}
+        placeholder="Enter Program name"
       />
-  
-      {/* Subject and shift management */}
-      <div className="">
-        {[7, 8, 9, 10].map((grade) => (
-          <div key={grade} className="my-3">
-            <h3 className="text-lg font-bold mb-1">{`Grade ${grade}`}</h3>
-  
-            {/* Subject selection */}
-            <div className="flex items-center">
-              <div className="m-1">Selected Subjects: </div>
-              {selectedSubjects[grade] && Array.isArray(selectedSubjects[grade]) ? (
-                selectedSubjects[grade].map((subjectID) => (
-                  <div key={subjectID} className="badge badge-secondary m-1">
-                    {subjects[subjectID]?.subject || subjectID}
-                  </div>
-                ))
-              ) : (
-                <div>No subjects selected</div>
-              )}
-            </div>
-  
-            <SearchableDropdownToggler
-              selectedList={selectedSubjects[grade]}
-              setSelectedList={(list) => handleSubjectSelection(grade, list)}
-            />
-  
-            {/* Shift selection */}
-            <div className="mt-2">
-              <label className="mr-2">Shift:</label>
-              <label className="mr-2">
-                <input
-                  type="radio"
-                  name={`shift-${grade}`}
-                  value="AM"
-                  checked={selectedShifts[grade] === 'AM'}
-                  onChange={() => handleShiftSelection(grade, 'AM')}
-                />
-                AM
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name={`shift-${grade}`}
-                  value="PM"
-                  checked={selectedShifts[grade] === 'PM'}
-                  onChange={() => handleShiftSelection(grade, 'PM')}
-                />
-                PM
-              </label>
-            </div>
-  
-            {/* Start time selection */}
-            <div className="mt-2">
-              <label className="mr-2">Start Time:</label>
-              <select
-                className="input input-bordered"
-                value={startTimes[grade]}
-                onChange={(e) => handleStartTimeChange(grade, e.target.value)}
-              >
-                {renderTimeOptions(selectedShifts[grade])}
-              </select>
-            </div>
-          </div>
-        ))}
-      </div>
-  
-      {/* Add button centered at the bottom */}
-      <div className="flex justify-between">
-          <button className="btn btn-info bg-transparent border-0" onClick={handleReset}>
-              Reset
-          </button>
-        <div className="flex justify-end space-x-2">
-          <div className="flex justify-center mt-4">
-          <button className="btn btn-primary flex items-center" onClick={handleAddEntry}>
-            <div>Add {reduxField[0]}</div>
-            <IoAdd size={20} className="ml-2" />
-          </button>
-      </div>
-        </div>
-      </div>
-      
     </div>
+  
+    {/* Subject and shift management */}
+    <div className="flex flex-col space-y-4">
+      {[7, 8, 9, 10].map((grade) => (
+        <div key={grade} className="bg-white shadow-md rounded-lg p-4">
+          <h3 className="text-lg font-bold mb-2">{`Grade ${grade}`}</h3>
+  
+          {/* Subject selection */}
+          <div className="flex items-center mb-2 py-4 flex-wrap">
+            <div className="m-1">
+              <SearchableDropdownToggler
+                selectedList={selectedSubjects[grade]}
+                setSelectedList={(list) => handleSubjectSelection(grade, list)}
+              />
+            </div>
+            {selectedSubjects[grade] && Array.isArray(selectedSubjects[grade]) ? (
+              selectedSubjects[grade].map((subjectID) => (
+                <div key={subjectID} className="badge badge-secondary m-1 whitespace-nowrap">
+                  {subjects[subjectID]?.subject || subjectID}
+                </div>
+              ))
+            ) : (
+              <div>No subjects selected</div>
+            )}
+          </div>
+  
+          {/* Shift selection */}
+          <div className="mt-2 mb-2">
+            <label className="mr-2">Shift:</label>
+            <label className="mr-2">
+              <input
+                type="radio"
+                name={`shift-${grade}`}
+                value="AM"
+                checked={selectedShifts[grade] === 'AM'}
+                onChange={() => handleShiftSelection(grade, 'AM')}
+              />
+              AM
+            </label>
+            <label>
+              <input
+                type="radio"
+                name={`shift-${grade}`}
+                value="PM"
+                checked={selectedShifts[grade] === 'PM'}
+                onChange={() => handleShiftSelection(grade, 'PM')}
+              />
+              PM
+            </label>
+          </div>
+  
+          {/* Start time selection */}
+          <div className="mt-2">
+            <label className="mr-2">Start Time:</label>
+            <select
+              className="input input-bordered"
+              value={startTimes[grade]}
+              onChange={(e) => handleStartTimeChange(grade, e.target.value)}
+            >
+              {renderTimeOptions(selectedShifts[grade])}
+            </select>
+          </div>
+        </div>
+      ))}
+    </div>
+  
+    {/* Add button centered at the bottom */}
+    <div className="flex mt-6 justify-center gap-2">
+      <button className="btn btn-secondary" onClick={handleReset}>
+        Reset
+      </button>
+      <div className="flex justify-end space-x-2">
+        <button className="btn btn-primary flex items-center" onClick={handleAddEntry}>
+          <div>Add {reduxField[0]}</div>
+          <IoAdd size={20} className="ml-2" />
+        </button>
+      </div>
+    </div>
+  </div>
+  
   );  
 };
+ 
 
 const ProgramListContainer = ({ editable = false }) => {
   const dispatch = useDispatch();
@@ -483,11 +471,14 @@ const ProgramListContainer = ({ editable = false }) => {
     }
   }, [programStatus, dispatch]);
 
+  
+
   return (
     <React.Fragment>
       <div className="">
+
         {/* Search Filter */}
-        <label className="input input-sm input-bordered flex items-center gap-2">
+        {/* <label className="input input-sm input-bordered flex items-center gap-2">
           <input
             type="text"
             className="grow"
@@ -497,205 +488,8 @@ const ProgramListContainer = ({ editable = false }) => {
           />
           <IoSearch />
         </label>
-        {/* Table */}
-        <table className="table table-sm table-zebra">
-          <thead>
-            <tr>
-              <th className="w-8">#</th>
-              <th>Program ID</th>
-              <th>Program</th>
-              <th>Subjects</th>
-              {editable && <th className="text-right">Actions</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {Object.values(searchProgramResult).length === 0 ? (
-              <tr>
-                <td colSpan="5" className="text-center">
-                  No programs found
-                </td>
-              </tr>
-            ) : (
-              Object.entries(searchProgramResult).map(([, program], index) => (
-                <tr key={program.id} className="group hover">
-                  <td>{index + 1}</td>
-                  <th>{program.id}</th>
-                  <td>
-                    {editProgramId === program.id ? (
-                      <input
-                        type="text"
-                        className="input input-bordered input-sm w-full"
-                        value={editProgramValue}
-                        onChange={(e) => setEditProgramValue(e.target.value)}
-                      />
-                    ) : (
-                      program.program
-                    )}
-                  </td>
-                  <td>
-                    {editProgramId === program.id ? (
-                      <>
-                        {[7, 8, 9, 10].map((grade) => (
-                          <div key={grade} className="my-2">
-                            <h3 className="font-bold">{`Grade ${grade}`}</h3>
 
-                            <div className="mt-2">
-                              <label className="mr-2">Shift:</label>
-                              <label className="mr-2">
-                                <input
-                                  type="radio"
-                                  name={`shift-${grade}`}
-                                  value="AM"
-                                  checked={selectedShifts[grade] === 'AM'}
-                                  onChange={() =>
-                                    handleShiftSelection(grade, 'AM')
-                                  }
-                                />
-                                AM
-                              </label>
-                              <label>
-                                <input
-                                  type="radio"
-                                  name={`shift-${grade}`}
-                                  value="PM"
-                                  checked={selectedShifts[grade] === 'PM'}
-                                  onChange={() =>
-                                    handleShiftSelection(grade, 'PM')
-                                  }
-                                />
-                                PM
-                              </label>
-                            </div>
-
-                            <div>
-                              <label>Start Time:</label>
-                              <select
-                                value={startTimes[grade]}
-                                onChange={(e) => {
-                                  const newValue = e.target.value;
-                                  setStartTimes((prevState) => ({
-                                    ...prevState,
-                                    [grade]: newValue,
-                                  }));
-                                }}
-                              >
-                                {renderTimeOptions(selectedShifts[grade])}
-                              </select>
-                            </div>
-
-                            <div className="m-1">Selected Subjects:</div>
-                            {editProgramCurr[grade] &&
-                            Array.isArray(editProgramCurr[grade]) &&
-                            subjects ? (
-                              editProgramCurr[grade].map((subjectID) => (
-                                <div
-                                  key={subjectID}
-                                  className="badge badge-secondary m-1"
-                                >
-                                  {subjects[subjectID]?.subject || subjectID}
-                                </div>
-                              ))
-                            ) : (
-                              <div>No subjects selected</div>
-                            )}
-
-                            <SearchableDropdownToggler
-                              selectedList={editProgramCurr[grade]}
-                              setSelectedList={(list) =>
-                                setEditProgramCurr((prevState) => ({
-                                  ...prevState,
-                                  [grade]: list,
-                                }))
-                              }
-                            />
-                          </div>
-                        ))}
-                      </>
-                    ) : (
-                      <div>
-                        {[7, 8, 9, 10].map((grade) => (
-                          <div key={grade} className="my-4">
-                            <h3 className="font-bold">{`Grade ${grade}`}</h3>
-
-                            <div className="flex items-center mt-2">
-                              <span className="inline-block bg-blue-500 text-white text-xs font-semibold py-1 px-3 rounded-lg">
-                                {program[`${grade}`]?.shift === 0 ? 'AM' : 'PM'}
-                              </span>
-                              <span className="ml-2 text-sm font-medium">
-                                {getTimeSlotString(
-                                  program[`${grade}`]?.startTime || 0
-                                )}
-                              </span>
-                            </div>
-
-                            <div className="mt-2">
-                              {Array.isArray(program[`${grade}`]?.subjects) &&
-                              program[`${grade}`].subjects.length > 0 ? (
-                                program[`${grade}`].subjects.map(
-                                  (subjectID) => (
-                                    <div
-                                      key={subjectID}
-                                      className="badge badge-secondary m-1"
-                                    >
-                                      {subjects[subjectID]?.subject ||
-                                        subjectID}
-                                    </div>
-                                  )
-                                )
-                              ) : (
-                                <div>No subjects selected</div>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </td>
-
-                  {editable && (
-                    <td className="flex justify-end gap-2">
-                      {editProgramId === program.id ? (
-                        <>
-                          <button
-                            className="btn btn-sm btn-outline"
-                            onClick={() =>
-                              handleSaveProgramEditClick(program.id)
-                            }
-                          >
-                            Save
-                          </button>
-                          <button
-                            className="btn btn-sm btn-outline"
-                            onClick={handleCancelProgramEditClick}
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            className="btn btn-sm btn-primary"
-                            onClick={() => handleEditProgramClick(program)}
-                          >
-                            <RiEdit2Fill />
-                          </button>
-                          <button
-                            className="btn btn-sm btn-danger"
-                            onClick={() => dispatch(removeProgram(program.id))}
-                          >
-                            <RiDeleteBin7Line />
-                          </button>
-                        </>
-                      )}
-                    </td>
-                  )}
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-      {editable && (
+        {editable && (
         <div>
           {openAddProgramContainer ? (
             <AddProgramContainer
@@ -717,7 +511,252 @@ const ProgramListContainer = ({ editable = false }) => {
             </div>
           )}
         </div>
-      )}
+      )} */}
+
+      <div className="flex flex-col md:flex-row md:gap-4 justify-between items-center mb-5">
+        {/* Search Filter */}
+        <div className="flex-grow w-full">
+          <label className="input input-bordered flex items-center gap-2 h-12 w-full">
+            <input
+              type="text"
+              className="grow p-4 text-sm w-full"
+              placeholder="Search Program"
+              value={searchProgramValue}
+              onChange={(e) => setSearchProgramValue(e.target.value)}
+            />
+            <IoSearch className="text-xl" />
+          </label>
+        </div>
+  
+        {editable && (
+          <div className="w-full mt-4 md:mt-0 md:w-auto">
+            <button
+              className="btn btn-primary  h-12 flex items-center justify-center w-full md:w-44"
+              onClick={() => document.getElementById('add_program_modal').showModal()}
+            >
+              Add Program <IoAdd size={20} className="ml-2" />
+            </button>
+  
+            <dialog id="add_program_modal" className="modal">
+                <div className="modal-box w-11/12 max-w-xl" >
+                  <AddProgramContainer
+                    close={() => document.getElementById('add_program_modal').close()}
+                    reduxField={['program', 'subjects']}
+                    reduxFunction={addProgram}
+                    morningStartTime={morningStartTime}
+                    afternoonStartTime={afternoonStartTime}
+                  />
+                  {/* Modal close button */}
+                  <div className="modal-action">
+                    <button
+                      className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                      onClick={() => document.getElementById('add_program_modal').close()}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              </dialog>
+
+          </div>
+        )}
+      </div>
+      
+        {/* Responsive Table */}
+    <div className="overflow-x-auto">
+      <table className="table table-sm table-zebra w-full">
+        <thead>
+          <tr>
+            <th className="w-8">#</th>
+            <th className="w-20">Program ID</th>
+            <th className="w-48">Program</th>
+            <th>Subjects</th> {/* Set a wider width for the subjects column */}
+            {editable && <th className="w-32">Actions</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {Object.values(searchProgramResult).length === 0 ? (
+            <tr>
+              <td colSpan="5" className="text-center">
+                No programs found
+              </td>
+            </tr>
+          ) : (
+            Object.entries(searchProgramResult).map(([, program], index) => (
+              <tr key={program.id} className="group hover">
+                <td>{index + 1}</td>
+                <th>{program.id}</th>
+                <td className='max-w-28'>
+                  {editProgramId === program.id ? (
+                    <input
+                      type="text"
+                      className="input input-bordered input-sm w-full"
+                      value={editProgramValue}
+                      onChange={(e) => setEditProgramValue(e.target.value)}
+                    />
+                  ) : (
+                    program.program
+                  )}
+                </td>
+                <td className=''> {/* This can remain as is for additional styling */}
+                  {editProgramId === program.id ? (
+                    <>
+                      {[7, 8, 9, 10].map((grade) => (
+                        <div key={grade} className="my-2">
+                          <h3 className="font-bold">{`Grade ${grade}`}</h3>
+                          <div className="mt-2">
+                            <label className="mr-2">Shift:</label>
+                            <label className="mr-2">
+                              <input
+                                type="radio"
+                                name={`shift-${grade}`}
+                                value="AM"
+                                checked={selectedShifts[grade] === 'AM'}
+                                onChange={() =>
+                                  handleShiftSelection(grade, 'AM')
+                                }
+                              />
+                              AM
+                            </label>
+                            <label>
+                              <input
+                                type="radio"
+                                name={`shift-${grade}`}
+                                value="PM"
+                                checked={selectedShifts[grade] === 'PM'}
+                                onChange={() =>
+                                  handleShiftSelection(grade, 'PM')
+                                }
+                              />
+                              PM
+                            </label>
+                          </div>
+                          <div>
+                            <label>Start Time:</label>
+                            <select
+                              value={startTimes[grade]}
+                              onChange={(e) => {
+                                const newValue = e.target.value;
+                                setStartTimes((prevState) => ({
+                                  ...prevState,
+                                  [grade]: newValue,
+                                }));
+                              }}
+                            >
+                              {renderTimeOptions(selectedShifts[grade])}
+                            </select>
+                          </div>
+                          <div className="m-1">Selected Subjects:</div>
+                          {editProgramCurr[grade] &&
+                          Array.isArray(editProgramCurr[grade]) &&
+                          subjects ? (
+                            editProgramCurr[grade].map((subjectID) => (
+                              <div
+                                key={subjectID}
+                                className="badge badge-secondary m-1"
+                              >
+                                   {subjects[subjectID]?.subject || subjectID}
+                              </div>
+                            ))
+                          ) : (
+                            <div>No subjects selected</div>
+                          )}
+                          
+                          <SearchableDropdownToggler
+                            selectedList={editProgramCurr[grade]}
+                            setSelectedList={(list) =>
+                              setEditProgramCurr((prevState) => ({
+                                ...prevState,
+                                [grade]: list,
+                              }))
+                            }
+                          />
+                        </div>
+                      ))}
+                    </>
+                  ) : (
+                    <div>
+                      {[7, 8, 9, 10].map((grade) => (
+                        <div key={grade} className="my-4">
+                          <h3 className="font-bold">{`Grade ${grade}`}</h3>
+                          <div className="flex items-center mt-2">
+                            <span className="inline-block bg-blue-500 text-white text-xs font-semibold py-1 px-3 rounded-lg">
+                              {program[`${grade}`]?.shift === 0 ? 'AM' : 'PM'}
+                            </span>
+                            <span className="ml-2 text-sm font-medium">
+                              {getTimeSlotString(
+                                program[`${grade}`]?.startTime || 0
+                              )}
+                            </span>
+                          </div>
+                          <div className="mt-2">
+                            {Array.isArray(program[`${grade}`]?.subjects) &&
+                            program[`${grade}`].subjects.length > 0 ? (
+                              program[`${grade}`].subjects.map(
+                                (subjectID) => (
+                                  <div
+                                    key={subjectID}
+                                    className="badge badge-secondary m-1"
+                                  >
+                                    {subjects[subjectID]?.subject || subjectID}
+                                  </div>
+                                )
+                              )
+                            ) : (
+                              <div>No subjects selected</div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </td>
+
+                {editable && (
+                  <td>
+                    {editProgramId === program.id ? (
+                      <>
+                        <button
+                          className="btn btn-sm btn-outline"
+                          onClick={() =>
+                            handleSaveProgramEditClick(program.id)
+                          }
+                        >
+                          Save
+                        </button>
+                        <button
+                          className="btn btn-sm btn-outline"
+                          onClick={handleCancelProgramEditClick}
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          className="btn btn-xs btn-ghost text-blue-500"
+                          onClick={() => handleEditProgramClick(program)}
+                        >
+                          <RiEdit2Fill size={20} />
+                        </button>
+                        <button
+                          className="btn btn-xs btn-ghost text-red-500"
+                          onClick={() => dispatch(removeProgram(program.id))}
+                        >
+                          <RiDeleteBin7Line size={20} />
+                        </button>
+                      </>
+                    )}
+                  </td>
+                )}
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+</div>
+
+      </div>
     </React.Fragment>
   );
 };

@@ -7,7 +7,7 @@ function InternalPage() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(setPageTitle({ title: 'Modify Subjects' }));
+    dispatch(setPageTitle({ title: 'Modify Subjects and Programs' }));
   }, []);
 
   return <ModifySubjects />;

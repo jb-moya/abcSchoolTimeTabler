@@ -1,85 +1,92 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
-import { fetchSubjects, addSubject, editSubject, removeSubject } from '@features/subjectSlice';
+import { useDispatch } from 'react-redux';
+import {
+  fetchSubjects,
+  addSubject,
+  editSubject,
+  removeSubject,
+} from '@features/subjectSlice';
 import { IoAdd, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
+import Lottie from 'lottie-react';
+import animationData from '/public/SuccessAnimation.json'
 
-const Modal = ({ isOpen, onClose, children }) => {
-  if (!isOpen) return null;
 
+const SuccessModal = ({ message, onClose }) => {
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-      <div className="bg-base-100 rounded-lg shadow-lg p-6 relative max-w-lg w-full">
-        <button
-          onClick={onClose}
-          className="absolute top-2 right-2 btn btn-circle btn-outline btn-sm text-gray-600 hover:text-red-500"
-          aria-label="Close modal"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            className="inline-block w-4 h-4 stroke-current"
+    <div className="modal modal-open flex items-center justify-center">
+      <div className="modal-box flex flex-col items-center justify-center p-4"> {/* Added padding */}
+        <div className="lottie-animation w-48 h-48">
+          <Lottie
+            animationData={
+              animationData
+            } // Replace with your Lottie JSON
+            loop={false} // Ensures the animati on does not loop
+          />
+        </div>
+        <h2 className="font-bold text-lg text-center">{message}</h2> {/* Center text */}
+        <div className="modal-action">
+          <button
+            className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+            onClick={onClose}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M6 18L18 6M6 6l12 12"
-            ></path>
-          </svg>
-        </button>
-        <div className="modal-content">{children}</div>
+            ✕
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
-const SuccessModal = ({ isOpen, onClose, message }) => {
-  if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-lg p-6 relative">
-        <h3 className="text-lg font-bold mb-4">Success!</h3>
-        <p>{message}</p>
-        <button
-          onClick={onClose}
-          className="btn btn-circle btn-outline btn-xs text-gray-600 hover:text-red-500 mt-4"
-        >
-          X
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const AddSubjectContainer = ({ close, reduxFunction, defaultSubjectClassDuration, showSuccessModal }) => {
+const AddSubjectContainer = ({
+  close,
+  reduxFunction,
+  defaultSubjectClassDuration,
+}) => {
   const inputNameRef = useRef();
   const dispatch = useDispatch();
 
   const [subjectName, setSubjectName] = useState('');
   const [classSubjectDuration, setClassSubjectDuration] = useState(
-    defaultSubjectClassDuration || 10
+    defaultSubjectClassDuration || 10 // Ensure it defaults to 10 if undefined
   );
+
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
 
   const handleAddSubject = () => {
     const classDuration = parseInt(classSubjectDuration, 10);
     if (subjectName.trim()) {
-      dispatch(reduxFunction({ subject: subjectName, classDuration }));
-      handleReset();
-      close();
-      showSuccessModal('Subject added successfully.');
+      dispatch(
+        reduxFunction({
+          subject: subjectName,
+          classDuration: classDuration,
+        })
+      );
+
+      // Set success message and show the modal
+      setModalMessage('Subject added successfully!');
+      setShowSuccessModal(true);
+
+      // Reset input fields
+      setSubjectName('');
+      setClassSubjectDuration(defaultSubjectClassDuration || 10);
+
       if (inputNameRef.current) {
         inputNameRef.current.focus();
-        inputNameRef.current.select();
       }
     } else {
       alert('Subject name cannot be empty');
     }
+  };
+
+  const handleCloseModal = () => {
+    setShowSuccessModal(false);
   };
 
   const handleReset = () => {
@@ -94,33 +101,40 @@ const AddSubjectContainer = ({ close, reduxFunction, defaultSubjectClassDuration
   }, []);
 
   return (
-    <div className="mb-3 p-4">
-      <h3 className="text-lg font-bold mb-4">Add New Subject</h3>
+    <div>
+      <div>
+        <h3 className="text-lg font-bold mb-4">Add New Subject</h3>
+      </div>
       <div className="mb-4">
         <label className="block text-sm font-medium mb-2">Subject Name:</label>
         <input
-          ref={inputNameRef}
           type="text"
           className="input input-bordered w-full"
           value={subjectName}
           onChange={(e) => setSubjectName(e.target.value)}
           placeholder="Enter subject name"
+          ref={inputNameRef}
         />
       </div>
       <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">Class Duration (minutes):</label>
+        <label className="block text-sm font-medium mb-2">
+          Class Duration (minutes):
+        </label>
         <input
           type="number"
           className="input input-bordered w-full"
           value={classSubjectDuration}
-          onChange={(e) => setClassSubjectDuration(Number(e.target.value))}
+          onChange={(e) => {
+            const value = Number(e.target.value);
+            setClassSubjectDuration(value);
+          }}
           placeholder="Enter class duration"
           step={10}
           min={10}
         />
       </div>
-      <div className="flex justify-between">
-        <button className="btn bg-transparent border-0" onClick={handleReset}>
+      <div className="flex justify-center gap-2">
+        <button className="btn btn-secondary border-0" onClick={handleReset}>
           Reset
         </button>
         <div className="flex justify-end space-x-2">
@@ -129,13 +143,23 @@ const AddSubjectContainer = ({ close, reduxFunction, defaultSubjectClassDuration
           </button>
         </div>
       </div>
+
+      {/* Render SuccessModal if showSuccessModal is true */}
+      {showSuccessModal && (
+        <SuccessModal
+          message={modalMessage}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 };
 
+
 const SubjectListContainer = ({ editable = false }) => {
   const dispatch = useDispatch();
   const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
+
   const defaultSubjectClassDuration = localStorage.getItem('defaultSubjectClassDuration');
 
   const [editSubjectId, setEditSubjectId] = useState(null);
@@ -144,9 +168,42 @@ const SubjectListContainer = ({ editable = false }) => {
   const [editClassDuration, setEditClassDuration] = useState(0);
   const [searchSubjectValue, setSearchSubjectValue] = useState('');
   const [openAddSubjectContainer, setOpenAddSubjectContainer] = useState(false);
-  const [successModalOpen, setSuccessModalOpen] = useState(false);
-  const [addSuccessModalOpen, setAddSuccessModalOpen] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
+
+  // State for success modal
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+
+  const handleEditSubjectClick = (subject) => {
+    setEditSubjectId(subject.id);
+    setEditSubjectValue(subject.subject);
+    setEditClassDuration(subject.classDuration);
+  };
+
+  const handleSaveSubjectEditClick = (subjectId) => {
+    dispatch(
+      editSubject({
+        subjectId,
+        updatedSubject: {
+          subject: editSubjectValue,
+          classDuration: editClassDuration,
+        },
+      })
+    );
+
+    // Set success message and show the modal
+    setModalMessage('Data Updated Successfully!');
+    setShowSuccessModal(true);
+
+    setEditSubjectId(null);
+    setEditSubjectValue('');
+    setEditClassDuration(0);
+  };
+
+  const handleCancelSubjectEditClick = () => {
+    setEditSubjectId(null);
+    setEditSubjectValue('');
+    setEditClassDuration(0);
+  };
 
   useEffect(() => {
     if (subjectStatus === 'idle') {
@@ -158,8 +215,12 @@ const SubjectListContainer = ({ editable = false }) => {
     debounce((searchValue, subjects) => {
       setSearchSubjectResult(
         filterObject(subjects, ([, subject]) => {
-          const escapedSearchValue = escapeRegExp(searchValue).split('\\*').join('.*');
+          const escapedSearchValue = escapeRegExp(searchValue)
+            .split('\\*')
+            .join('.*');
+
           const pattern = new RegExp(escapedSearchValue, 'i');
+
           return pattern.test(subject.subject);
         })
       );
@@ -171,196 +232,191 @@ const SubjectListContainer = ({ editable = false }) => {
     debouncedSearch(searchSubjectValue, subjects);
   }, [searchSubjectValue, subjects, debouncedSearch]);
 
-  const handleEditSubjectClick = (subject) => {
-    setEditSubjectId(subject.id);
-    setEditSubjectValue(subject.subject);
-    setEditClassDuration(subject.classDuration);
-  };
+  const itemsPerPage = 10; // Change this to adjust the number of items per page
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const handleSaveSubjectEditClick = (subjectId) => {
-    if (editSubjectValue.trim() === '' || editClassDuration <= 0) {
-      alert('Both subject name and class duration must be valid.');
-      return;
-    }
+  // Calculate total pages
+  const totalPages = Math.ceil(Object.values(searchSubjectResult).length / itemsPerPage);
 
-    dispatch(
-      editSubject({
-        subjectId,
-        updatedSubject: {
-          subject: editSubjectValue,
-          classDuration: editClassDuration,
-        },
-      })
-    );
-    setEditSubjectId(null);
-    setEditSubjectValue('');
-    setEditClassDuration(0);
-    showSuccessModal('Data has been successfully updated.');
-  };
+  // Get current items
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = Object.entries(searchSubjectResult).slice(indexOfFirstItem, indexOfLastItem);
 
-  const handleCancelSubjectEditClick = () => {
-    setEditSubjectId(null);
-    setEditSubjectValue('');
-    setEditClassDuration(0);
-  };
-
-  const handleEditClassDurationChange = (e) => {
-    const value = Number(e.target.value);
-    if (value % 10 === 0) {
-      setEditClassDuration(value);
-    } else {
-      alert('Class duration must be in increments of 10 minutes.');
-    }
-  };
-
-  const showSuccessModal = (message) => {
-    setSuccessMessage(message);
-    setSuccessModalOpen(true);
-    setTimeout(() => {
-      setSuccessModalOpen(false);
-    }, 2000); // Automatically close after 2 seconds
-  };
-
-  const showAddSuccessModal = (message) => {
-    setSuccessMessage(message);
-    setAddSuccessModalOpen(true);
-    setTimeout(() => {
-      setAddSuccessModalOpen(false);
-    }, 2000);
+  const handleCloseModal = () => {
+    setShowSuccessModal(false);
   };
 
   return (
-    <div>
-     <div className="flex flex-col md:flex-row md:gap-4 justify-between items-center mb-5">
-
-        <div className="flex-grow">
-          <label className="input input-md input-bordered flex items-center gap-2">
+    <div className="w-full">
+      <div className="flex flex-col md:flex-row md:gap-4 justify-between items-center mb-5">
+        {/* Search Filter */}
+        <div className="flex-grow w-full">
+          <label className="input input-bordered flex items-center gap-2 h-12 w-full">
             <input
               type="text"
-              className="grow p-4"
+              className="grow p-4 text-sm w-full"
               placeholder="Search Subject"
               value={searchSubjectValue}
               onChange={(e) => setSearchSubjectValue(e.target.value)}
             />
-            <IoSearch />
+            <IoSearch className="text-xl" />
           </label>
         </div>
 
         {editable && (
-          <div className="mb-4 md:mb-0">
+          <div className="w-full mt-4 md:mt-0 md:w-auto">
             <button
-              className="btn btn-primary"
-              onClick={() => setOpenAddSubjectContainer(true)}
+              className="btn btn-primary h-12 flex items-center justify-center w-full md:w-40"
+              onClick={() => document.getElementById('add_subject_modal').showModal()}
             >
-              Add Subject
-              <IoAdd size={26} />
+              Add Subject <IoAdd size={20} className="ml-2" />
             </button>
+
+            <dialog id="add_subject_modal" className="modal modal-bottom sm:modal-middle">
+              <div className="modal-box">
+                <AddSubjectContainer
+                  close={() => document.getElementById('add_subject_modal').close()}
+                  reduxFunction={addSubject}
+                  defaultSubjectClassDuration={defaultSubjectClassDuration}
+                />
+
+                {/* Modal close button */}
+                <div className="modal-action">
+                  <button
+                    className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                    onClick={() => document.getElementById('add_subject_modal').close()}
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            </dialog>
           </div>
         )}
       </div>
 
-
-      
-      <Modal isOpen={openAddSubjectContainer} onClose={() => setOpenAddSubjectContainer(false)}>
-        <AddSubjectContainer
-          close={() => setOpenAddSubjectContainer(false)}
-          reduxFunction={addSubject}
-          defaultSubjectClassDuration={defaultSubjectClassDuration}
-          showSuccessModal={showAddSuccessModal}
-        />
-      </Modal>
-
-      <SuccessModal isOpen={successModalOpen} onClose={() => setSuccessModalOpen(false)} message={successMessage} />
-      <SuccessModal isOpen={addSuccessModalOpen} onClose={() => setAddSuccessModalOpen(false)} message="Subject added successfully." />
-
-      <table className="table table-sm table-zebra">
-        <thead>
-          <tr>
-            <th className="w-8">#</th>
-            <th>Subject ID</th>
-            <th>Subject</th>
-            <th>Class Duration</th>
-            {editable && <th className="text-right">Actions</th>}
-          </tr>
-        </thead>
-        <tbody>
-          {Object.values(searchSubjectResult).length === 0 ? (
+      {/* Table */}
+      <div className="overflow-x-auto">
+        <table className="table table-sm table-zebra md:table-md w-full">
+          <thead>
             <tr>
-              <td colSpan="5" className="text-center">
-                No subjects found
-              </td>
+              <th className="w-8">#</th>
+              <th>Subject ID</th>
+              <th>Subject</th>
+              <th>Class Duration</th>
+              {editable && <th className="text-left">Actions</th>}
             </tr>
-          ) : (
-            Object.entries(searchSubjectResult).map(([, subject], index) => (
-              <tr key={subject.id} className="group hover">
-                <td>{index + 1}</td>
-                <th>{subject.id}</th>
-                <td>
-                  {editSubjectId === subject.id ? (
-                    <input
-                      type="text"
-                      value={editSubjectValue}
-                      onChange={(e) => setEditSubjectValue(e.target.value)}
-                      className="input input-bordered input-sm w-full"
-                    />
-                  ) : (
-                    subject.subject
-                  )}
+          </thead>
+          <tbody>
+            {currentItems.length === 0 ? (
+              <tr>
+                <td colSpan="5" className="text-center">
+                  No subjects found
                 </td>
-                <td>
-                  {editSubjectId === subject.id ? (
-                    <input
-                      type="number"
-                      value={editClassDuration}
-                      onChange={handleEditClassDurationChange}
-                      className="input input-bordered input-sm w-full"
-                      step={10}
-                      min={10}
-                    />
-                  ) : (
-                    `${subject.classDuration} mins`
-                  )}
-                </td>
-                {editable && (
-                  <td className="flex justify-end gap-2">
+              </tr>
+            ) : (
+              currentItems.map(([, subject], index) => (
+                <tr key={subject.id} className="group hover">
+                  <td>{index + indexOfFirstItem + 1}</td>
+                  <th>{subject.id}</th>
+                  <td>
                     {editSubjectId === subject.id ? (
-                      <>
-                        <button
-                          className="btn btn-sm btn-primary" // Green for save
-                          onClick={() => handleSaveSubjectEditClick(subject.id)}
-                        >
-                          Save
-                        </button>
-                        <button
-                          className="btn btn-sm " // Warning for cancel
-                          onClick={handleCancelSubjectEditClick}
-                        >
-                          Cancel
-                        </button>
-                      </>
+                      <input
+                        type="text"
+                        value={editSubjectValue}
+                        onChange={(e) => setEditSubjectValue(e.target.value)}
+                        className="input input-bordered input-sm w-full"
+                      />
                     ) : (
-                      <>
-                        <button
-                          className="btn btn-sm btn-primary" // Green for edit
-                          onClick={() => handleEditSubjectClick(subject)}
-                        >
-                          <RiEdit2Fill />
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger" // Red for delete
-                          onClick={() => dispatch(removeSubject(subject.id))}
-                        >
-                          <RiDeleteBin7Line />
-                        </button>
-                      </>
+                      subject.subject
                     )}
                   </td>
-                )}
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+                  <td>
+                    {editSubjectId === subject.id ? (
+                      <input
+                        type="number"
+                        value={editClassDuration}
+                        onChange={(e) => {
+                          const newDuration = Number(e.target.value);
+                          setEditClassDuration(newDuration);
+                        }}
+                        className="input input-bordered input-sm w-full"
+                        placeholder="Enter class duration"
+                        step={10}
+                        min={10}
+                      />
+                    ) : (
+                      `${subject.classDuration} mins`
+                    )}
+                  </td>
+                  {editable && (
+                    <td className="w-28 text-right">
+                      {editSubjectId === subject.id ? (
+                        <>
+                          <button
+                            className="btn btn-xs btn-ghost text-green-500"
+                            onClick={() => handleSaveSubjectEditClick(subject.id)}
+                          >
+                            Save
+                          </button>
+                          <button
+                            className="btn btn-xs btn-ghost text-red-500"
+                            onClick={() => handleCancelSubjectEditClick()}
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            className="btn btn-xs btn-ghost text-blue-500"
+                            onClick={() => handleEditSubjectClick(subject)}
+                          >
+                            <RiEdit2Fill size={20} />
+                          </button>
+                          <button
+                            className="btn btn-xs btn-ghost text-red-500"
+                            onClick={() => dispatch(removeSubject(subject.id))}
+                          >
+                            <RiDeleteBin7Line size={20} />
+                          </button>
+                        </>
+                      )}
+                    </td>
+                  )}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+
+        {showSuccessModal && (
+          <SuccessModal
+            message={modalMessage}
+            onClose={handleCloseModal}
+          />
+        )}
+      </div>
+
+      {/* Pagination */}
+      <div className="join mt-4 flex justify-center">
+        <button
+          className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
+          onClick={() => setCurrentPage(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          «
+        </button>
+        <button className="join-item btn">Page {currentPage} of {totalPages}</button>
+        <button
+          className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
+          onClick={() => setCurrentPage(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          »
+        </button>
+      </div>
     </div>
   );
 };

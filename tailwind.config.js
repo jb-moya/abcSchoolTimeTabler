@@ -39,36 +39,46 @@
 
 // }
 
-/** @type {import('tailwindcss').Config} */
+/** /** @type {import('tailwindcss').Config} */
+const { dark } = require('daisyui/src/theming/themes');
 const defaultTheme = require('tailwindcss/defaultTheme');
 
 module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
-    "./node_modules/react-tailwindcss-datepicker/dist/index.esm.js"
+    "./node_modules/react-tailwindcss-datepicker/dist/index.esm.js",
   ],
-  darkMode: ["class", '[data-theme="dark"]'],
-  
+  darkMode: ["class", '[data-theme="dark"]'], // Enabling dark mode via class and data-theme attribute
+
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Poppins', 'sans-serif'], // Define Poppins as the default sans font
-      },
+        sans: ['Poppins', 'sans-serif'], // Poppins as the default sans font
+      },  
     },
   },
 
-  plugins: [require("@tailwindcss/typography"), require("daisyui")],
+  plugins: [
+    require("@tailwindcss/typography"), 
+    require("daisyui")
+  ],
 
   daisyui: {
     themes: [
       {
         light: {
-          ...require("daisyui/src/theming/themes")["light"],
-          primary: "#074683",
-        }
+          ...require("daisyui/src/theming/themes")["light"], // Spreading the default light theme
+          primary: "#074683", // Custom primary color
+          secondary: "#4CAF50", // Custom secondary color from your extension
+        },
+
+        dark: {
+          ...require("daisyui/src/theming/themes")["dark"], // Spreading the default light theme
+          primary: "#074683", // Custom primary color
+          secondary: "#4CAF50", // Custom secondary color from your extension
+        },
       },
-      "dark",
+      "dark", // The default dark theme
     ],
   },
 };
-  
