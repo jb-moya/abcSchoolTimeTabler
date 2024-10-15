@@ -356,6 +356,44 @@ void Timetable::updateTeachersAndSections(
 	}
 }
 
+std::vector<std::vector<int>> getAllBreaksCombination(int slot_count, int break_count, int gap) {
+	std::set<int> breaks;
+	std::set<int> possible_breaks;
+
+	for (int i = gap; i < slot_count - gap; ++i) {
+		// std::cout << "zz" << i << std::endl;
+		possible_breaks.insert(i);
+	}
+
+	// print("break count", break_count);
+
+	if (break_count == 1) {
+		std::vector<std::vector<int>> combinations;
+
+		for (auto it = possible_breaks.begin(); it != possible_breaks.end(); ++it) {
+			combinations.push_back({*it});
+		}
+
+		return combinations;
+	}
+
+	std::vector<std::vector<int>> combinations;
+
+	for (auto it = possible_breaks.begin(); it != possible_breaks.end(); ++it) {
+		// std::cout << "allowed_break " << *it << std::endl;
+		int first = *it;
+
+		for (auto it2 = it; it2 != possible_breaks.end(); ++it2) {
+			if (std::abs(first + 1 - *it2) >= gap) {
+				// std::cout << "combination : " << first << " " << *it2 << std::endl;
+				combinations.push_back({first, *it2});
+			}
+		}
+	}
+
+	return combinations;
+}
+
 void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_teachers) {
 	// print("hehe");
 	for (const auto& entry : s_section_subjects) {
@@ -392,16 +430,20 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_te
 		}
 
 		int num_breaks = Timetable::s_section_num_breaks[section_id];
+int not_allowed_break_gap = Timetable::s_section_timeslot[section_id] > 10 ? 3 : 2;
 
-		for (int i = 0; i < num_breaks; ++i) {
-			int break_slot = (Timetable::s_section_timeslot[section_id] / (num_breaks + 1)) * (i + 1);
+		std::vector<std::vector<int>>
+breaks_combination = getAllBreaksCombination(Timetable::s_section_timeslot[section_id], num_breaks, not_allowed_break_gap);  // will not work on special program
+		std::uniform_int_distribution<> dis_break_combination(0, breaks_combination.size() - 1);
 
+			int random_index = dis_break_combination(randomizer_engine);
+
+for (size_t i = 0; i < breaks_combination[random_index].size(); ++i) {
+			int break_slot = breaks_combination[random_index][i];
+			// print("break slot : ", break_slot);
 			timeslot_keys.erase(std::remove(timeslot_keys.begin(), timeslot_keys.end(), break_slot), timeslot_keys.end());
-
 			school_classes[section_id][break_slot][0] = SchoolClass{-1, -1};
-
 			section_break_slots[section_id].insert(break_slot);
-
 			timeslots.erase(break_slot);
 		}
 
