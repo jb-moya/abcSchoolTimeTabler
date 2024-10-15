@@ -101,9 +101,12 @@ struct Timetable {
 
 	static std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>> s_section_subjects_units;
 	static std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> s_section_subjects_duration;
+static std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> s_section_subjects_order;
 	static std::unordered_map<int16_t, std::vector<int16_t>> s_eligible_teachers_in_subject;
+static std::unordered_set<int16_t> s_section_dynamic_subject_consistent_duration;
 	static std::unordered_map<int16_t, std::vector<int16_t>> s_section_subjects;
 	static std::unordered_map<int16_t, int> s_section_total_duration;
+static std::unordered_map<int16_t, int> s_section_fixed_subject;
 	static std::unordered_map<int16_t, int> s_section_timeslot;
 	static std::unordered_map<int16_t, int> s_section_start;
 	static std::unordered_set<int16_t> s_teachers_set;
@@ -192,6 +195,7 @@ void runExperiment(
     int total_section,
     int32_t* section_subjects,
     int32_t* section_subject_duration,
+    int32_t* section_subject_order,
     int32_t* section_start,
     int32_t* teacher_subjects,
     int32_t* section_subject_units,
@@ -218,6 +222,8 @@ void runExperiment(
 #ifdef __cplusplus
 }
 #endif
+
+std::vector<std::vector<int>> getAllBreaksCombination(int slot_count, int break_count, int gap);
 
 std::vector<int> calculatePositions(
     std::vector<std::pair<int16_t, int16_t>> subjects_duration_map,
