@@ -155,19 +155,6 @@ void test_generate_timetable() {
 	// section_subject_units[2] = packInt16ToInt32(2, 1);
 	// section_subject_units[3] = packInt16ToInt32(3, 4);
 
-	int total_class_block = 0;
-	for (int i = 0; i < total_section_subjects; ++i) {
-		int16_t unpackedFirst, unpackedSecond;
-		unpackInt32ToInt16(section_subject_units[i], unpackedFirst, unpackedSecond);
-		total_class_block += unpackedSecond == 0 ? 1 : unpackedSecond;
-	}
-
-	// for (int i = 0; i < total_section; ++i) {
-	// 	total_class_block += 2;
-	// }
-
-	// std::cout << "total_class_block: " << total_class_block << std::endl;
-
 	int64_t* result = new (std::nothrow) int64_t[999];
 	int64_t* result_2 = new (std::nothrow) int64_t[999];
 
@@ -188,7 +175,6 @@ void test_generate_timetable() {
 	    max_iterations,
 	    num_teachers,
 	    total_section_subjects,
-	    total_class_block,
 	    total_section,
 
 	    section_subjects,

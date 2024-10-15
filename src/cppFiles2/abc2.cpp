@@ -29,28 +29,6 @@
 
 using namespace std;
 
-// std::vector<int16_t>& eligible_teachers = eligible_teachers_in_subject[subject_id];
-
-// // Find the teacher who has been assigned the fewest sections
-// int min_assignments = 999;  // maximum possible number of sections
-// std::vector<int16_t> least_assigned_teachers;
-
-// // Identify teachers with the minimum number of assignments
-// for (int16_t teacher : eligible_teachers) {
-// 	int assignment_count = teachers_class_count[teacher];
-// 	if (assignment_count < min_assignments) {
-// 		min_assignments = assignment_count;
-// 		least_assigned_teachers.clear();
-// 		least_assigned_teachers.push_back(teacher);
-// 	} else if (assignment_count == min_assignments) {
-// 		least_assigned_teachers.push_back(teacher);
-// 	}
-// }
-
-// // Randomly select a teacher from the least assigned list
-// std::uniform_int_distribution<> dis(0, least_assigned_teachers.size() - 1);
-// int16_t selected_teacher = least_assigned_teachers[dis(randomizer_engine)];
-
 std::random_device rd;
 std::mt19937 randomizer_engine(rd());
 
@@ -217,7 +195,6 @@ int Timetable::s_max_teacher_work_load;
 int Timetable::s_break_time_duration;
 int Timetable::s_work_week;
 
-std::uniform_int_distribution<int16_t> Timetable::s_random_class_block;
 std::uniform_int_distribution<int16_t> Timetable::s_random_section;
 std::uniform_int_distribution<int8_t> Timetable::s_random_workDay;
 std::uniform_int_distribution<int16_t> Timetable::s_random_field;
@@ -236,7 +213,6 @@ void Timetable::reset() {
 	s_break_time_duration = 0;
 	s_work_week = 0;
 
-	initializeRandomClassBlockDistribution(0, 0);
 	initializeRandomSectionDistribution(0, 0);
 	initializeRandomWorkDayDistribution(0, 0);
 	initializeRandomFieldDistribution(0, 0);
@@ -265,10 +241,6 @@ void Timetable::initializeSectionsSet(int sections) {
 	for (int i = 0; i < sections; ++i) {
 		s_sections_set.insert(i);
 	}
-}
-
-void Timetable::initializeRandomClassBlockDistribution(int min, int max) {
-	s_random_class_block = std::uniform_int_distribution<int16_t>(min, max);
 }
 void Timetable::initializeRandomSectionDistribution(int min, int max) {
 	s_random_section = std::uniform_int_distribution<int16_t>(min, max);
@@ -409,7 +381,7 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_te
 		int total_duration = 0;
 
 		const auto& units_map = Timetable::s_section_subjects_units[section_id];
-		// print("hzhz hz");
+
 		for (const auto& subject_id : random_subjects) {
 			if (units_map.at(subject_id).second == 0) {
 				full_week_day_subjects.push_back(subject_id);
@@ -926,10 +898,6 @@ void ObjectiveFunction::evaluate(
 			}
 		}
 
-		// print("early_break", bee.sectionViolations[section_id].early_break);
-		// print("small_break_gap", bee.sectionViolations[section_id].small_break_gap);
-		// print("late_break", bee.sectionViolations[section_id].late_break);
-
 		bee.total_cost += bee.section_violations[section_id].early_break;
 		bee.total_cost += bee.section_violations[section_id].small_break_gap;
 		bee.total_cost += bee.section_violations[section_id].late_break;
@@ -1019,7 +987,7 @@ void ObjectiveFunction::logConflicts(
 		}
 	}
 
-	auto& sections_timetable = bee.timetable.school_classes;
+	// auto& sections_timetable = bee.timetable.school_classes;
 	auto& section_class_start_end = bee.timetable.school_class_time_range;
 	auto& section_break_time = bee.timetable.section_break_slots;
 
@@ -1232,7 +1200,6 @@ void runExperiment(
     int max_iterations,
     int num_teachers,
     int total_section_subjects,
-    int total_class_block,
     int total_section,
 
     int32_t* section_subjects,
@@ -1341,9 +1308,6 @@ void runExperiment(
 			// std::cout << std::endl;
 		}
 
-		// std::cout << "class_timeslot_distributions" << std::endl;
-		// std::cout << "class_timeslot_distributions" << std::endl;
-
 		// FUTURE FEAUTRE: THIS CAN BE TURNED ON/OFF
 		for (auto it = section_num_of_class_block.begin(); it != section_num_of_class_block.end(); it++) {
 			// std::cout << it->first << " " << it->second << std::endl;
@@ -1357,15 +1321,12 @@ void runExperiment(
 				section_total_duration += it2->second;
 			}
 
-			// int num_breaks = section_total_duration < min
-
 			int num_breaks = section_total_duration <= min_total_class_duration_for_two_breaks ? 1 : 2;
 			// std::cout << "ehhe " << section_total_duration << " " << timeslots << " " << num_breaks << " " << timeslots + num_breaks << std::endl;
 			Timetable::s_section_timeslot[it->first] = timeslots + num_breaks;
 			// below 10 - 1, 2 equal or above
 
 			Timetable::s_section_num_breaks[it->first] = num_breaks;
-			total_class_block += num_breaks;
 		}
 	}
 
@@ -1385,7 +1346,6 @@ void runExperiment(
 	// std::cout << "eligible_teachers_in_subject end" << std::endl;
 	// std::cout << "ff : " << eligible_teachers_in_subject.size() - 1 << std::endl;
 
-	Timetable::initializeRandomClassBlockDistribution(0, total_class_block - 1);
 	Timetable::initializeRandomSectionDistribution(0, total_section - 1);
 	Timetable::initializeRandomFieldDistribution(0, 2);
 	Timetable::initializeRandomWorkDayDistribution(1, work_week);

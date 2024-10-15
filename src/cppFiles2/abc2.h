@@ -110,12 +110,10 @@ struct Timetable {
 	static std::unordered_set<int16_t> s_sections_set;
 	static std::vector<int> s_section_num_breaks;
 
-	static std::uniform_int_distribution<int16_t> s_random_class_block;
 	static std::uniform_int_distribution<int16_t> s_random_section;
 	static std::uniform_int_distribution<int8_t> s_random_workDay;
 	static std::uniform_int_distribution<int16_t> s_random_field;
 
-	static void initializeRandomClassBlockDistribution(int min, int max);
 	static void initializeRandomWorkDayDistribution(int min, int max);
 	static void initializeRandomSectionDistribution(int min, int max);
 	static void initializeRandomFieldDistribution(int min, int max);
@@ -191,7 +189,6 @@ void runExperiment(
     int max_iterations,
     int num_teachers,
     int total_section_subjects,
-    int total_class_block,
     int total_section,
     int32_t* section_subjects,
     int32_t* section_subject_duration,
@@ -209,7 +206,7 @@ void runExperiment(
     int break_time_duration,
     int break_timeslot_allowance,
     int teacher_break_threshold,
-    int min_classes_for_two_breaks,
+    int min_total_class_duration_for_two_breaks,
     int default_class_duration,
     int result_buff_length,
 	int offset_duration,
