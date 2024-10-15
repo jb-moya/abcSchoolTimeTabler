@@ -751,13 +751,18 @@ void ObjectiveFunction::evaluate(
 		bee.total_cost = 0;
 	}
 
-	for (const int& teacher_id : update_teachers) {
+	// for (const int& teacher_id : update_teachers) {
+	for (const int16_t& teacher_id_16 : update_teachers) {
+		int teacher_id = static_cast<int>(teacher_id_16);
+		// Now you can use teacher_id as an int
+
 		auto it = teachers_timetable.find(teacher_id);
 
 		if (!is_initial) {
 			bee.total_cost -= bee.teacher_violations[teacher_id].class_timeslot_overlap;
 			bee.total_cost -= bee.teacher_violations[teacher_id].no_break;
 			bee.total_cost -= bee.teacher_violations[teacher_id].exceed_workload;
+			bee.total_cost -= bee.teacher_violations[teacher_id].class_gap;
 		}
 
 		bee.resetTeacherViolation(teacher_id);
@@ -840,6 +845,7 @@ void ObjectiveFunction::evaluate(
 			print("a", bee.teacher_violations[teacher_id].class_timeslot_overlap);
 			print("a", bee.teacher_violations[teacher_id].no_break);
 			print("a", bee.teacher_violations[teacher_id].exceed_workload);
+			print("a", bee.teacher_violations[teacher_id].class_gap);
 		}
 
 		bee.total_cost += bee.teacher_violations[teacher_id].class_timeslot_overlap;
@@ -847,12 +853,16 @@ void ObjectiveFunction::evaluate(
 		bee.total_cost += bee.teacher_violations[teacher_id].exceed_workload;
 	}
 
-	auto& sections_timetable = bee.timetable.school_classes;
+	// auto& sections_timetable = bee.timetable.school_classes;
 	auto& section_class_start_end = bee.timetable.school_class_time_range;
 	auto& section_break_time = bee.timetable.section_break_slots;
 
-	for (const int& section_id : update_sections) {
-		auto it = sections_timetable.find(section_id);
+	for (const int16_t& section_id_16 : update_sections) {
+		int section_id = static_cast<int>(section_id_16);
+		// for (const int& section_id : update_sections) {
+
+		// auto it = sections_timetable.find(section_id);
+		// print(BOLD, "section", section_id, "size", it->second.size());
 
 		if (!is_initial) {
 			bee.total_cost -= bee.section_violations[section_id].early_break;
@@ -915,7 +925,9 @@ void ObjectiveFunction::logConflicts(
 	std::map<int16_t, teacherViolation> teachers_total_violation;
 	std::map<int16_t, sectionViolation> sections_total_violation;
 
-	for (const int& teacher_id : bee.timetable.s_teachers_set) {
+	for (const int16_t& teacher_id_16 : bee.timetable.s_teachers_set) {
+		const int teacher_id = static_cast<int>(teacher_id_16);
+
 		auto it = teachers_timetable.find(teacher_id);
 
 		if (it == teachers_timetable.end()) {
@@ -991,8 +1003,8 @@ void ObjectiveFunction::logConflicts(
 	auto& section_class_start_end = bee.timetable.school_class_time_range;
 	auto& section_break_time = bee.timetable.section_break_slots;
 
-	for (const int& section_id : bee.timetable.s_sections_set) {
-		auto it = sections_timetable.find(section_id);
+	for (const int16_t& section_id_16 : bee.timetable.s_sections_set) {
+		const int section_id = static_cast<int>(section_id_16);
 
 		if (section_break_time[section_id].size() == 1) {
 			int break_time = *section_break_time[section_id].begin();
@@ -1063,8 +1075,8 @@ void ObjectiveFunction::logConflicts(
 	// Find the maximum number of teachers to iterate over.
 	int max_teacher_count = 0;
 	for (const auto& [_, teacher] : bee.timetable.teachers_class_count) {
-		if (teacher.size() > max_teacher_count) {
-			max_teacher_count = teacher.size();
+		if (static_cast<int>(teacher.size()) > max_teacher_count) {
+			max_teacher_count = static_cast<int>(teacher.size());
 		}
 	}
 
@@ -1080,7 +1092,7 @@ void ObjectiveFunction::logConflicts(
 		for (const auto& day : days) {
 			const auto& teachers = bee.timetable.teachers_class_count.at(day);
 
-			if (teacher_id < teachers.size()) {
+			if (teacher_id < static_cast<int>(teachers.size())) {
 				int current_count = teachers[teacher_id];
 
 				// Check if this is the first valid count we're seeing for this teacher.
@@ -1447,7 +1459,7 @@ void runExperiment(
 			std::uniform_real_distribution<> dis(0.0, 1.0);
 			double r = dis(randomizer_engine);
 			double cumulative = 0.0;
-			for (int i = 0; i < prob.size(); i++) {
+			for (int i = 0; i < static_cast<int>(prob.size()); i++) {
 				cumulative += prob[i];
 				if (r <= cumulative) {
 					return i;
