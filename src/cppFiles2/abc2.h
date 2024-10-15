@@ -22,7 +22,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
-#include <vector>
+#include <vector> 
 #define BLACK "\033[30m"
 #define RED "\033[31m"
 #define GREEN "\033[32m"
@@ -101,12 +101,12 @@ struct Timetable {
 
 	static std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>> s_section_subjects_units;
 	static std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> s_section_subjects_duration;
-static std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> s_section_subjects_order;
+	static std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> s_section_subjects_order;
 	static std::unordered_map<int16_t, std::vector<int16_t>> s_eligible_teachers_in_subject;
-static std::unordered_set<int16_t> s_section_dynamic_subject_consistent_duration;
+	static std::unordered_set<int16_t> s_section_dynamic_subject_consistent_duration;
 	static std::unordered_map<int16_t, std::vector<int16_t>> s_section_subjects;
 	static std::unordered_map<int16_t, int> s_section_total_duration;
-static std::unordered_map<int16_t, int> s_section_fixed_subject;
+	static std::unordered_map<int16_t, int> s_section_fixed_subject;
 	static std::unordered_map<int16_t, int> s_section_timeslot;
 	static std::unordered_map<int16_t, int> s_section_start;
 	static std::unordered_set<int16_t> s_teachers_set;
@@ -138,6 +138,12 @@ static std::unordered_map<int16_t, int> s_section_fixed_subject;
 	std::unordered_map<int16_t, std::unordered_set<int>> section_segmented_timeslot;
 	// day                      teachers
 	std::unordered_map<int16_t, std::vector<int>> teachers_class_count;
+
+	// section								// timeslot     days
+	std::unordered_map<int16_t, std::unordered_map<int, std::set<int>>> section_fixed_timeslot_day;
+
+	std::unordered_set<int16_t> sections_with_conflicts;
+	std::unordered_set<int16_t> teachers_with_conflicts;
 
 	std::pair<int, int> pickRandomTimeslots(int selected_section, int field);
 	int16_t pickRandomField(int16_t section);
@@ -213,9 +219,9 @@ void runExperiment(
     int min_total_class_duration_for_two_breaks,
     int default_class_duration,
     int result_buff_length,
-	int offset_duration,
+    int offset_duration,
     int64_t* result,
-	int64_t* result_2,
+    int64_t* result_2,
 
     bool enable_logging);
 
