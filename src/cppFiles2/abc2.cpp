@@ -1523,18 +1523,19 @@ void runExperiment(
 		}
 
 		for (int itScout = 0; itScout < bees_scout; itScout++) {
-			for (const int i : above_limit_abandoned_bees) {
+			for (auto it = above_limit_abandoned_bees.begin(); it != above_limit_abandoned_bees.end();) {
 				Bee new_bee(num_teachers);
 				affected_teachers.clear();
 
 				new_bee.timetable.initializeRandomTimetable(affected_teachers);
 
-				bees_vector[i] = new_bee;
-				evaluator.evaluate(bees_vector[i], affected_teachers, Timetable::s_sections_set, false, true);
+				bees_vector[*it] = new_bee;
+				
+				evaluator.evaluate(bees_vector[*it], affected_teachers, Timetable::s_sections_set, false, true);
 
-				bees_abandoned[i] = 0;
+bees_abandoned[*it] = 0;
 
-				above_limit_abandoned_bees.erase(i);
+				it = above_limit_abandoned_bees.erase(it);
 			}
 		}
 
