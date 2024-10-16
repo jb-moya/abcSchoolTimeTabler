@@ -1589,6 +1589,9 @@ void getResult(Bee& bee, int64_t* result, int64_t* result_2, int offset_duration
 		}
 	}
 
+	result[iter] = pack5IntToInt64(-1, -1, -1, -1, -1);
+	result_2[iter] = pack5IntToInt64(-1, -1, -1, -1, -1);
+
 	print("...Done getting result!");
 }
 

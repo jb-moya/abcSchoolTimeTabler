@@ -292,7 +292,10 @@ function Timetable() {
                 minTotalClassDurationForTwoBreaks,
             defaultClassDuration: defaultClassDuration,
             // resultLength: cellCount,
-            resultLength: 9999,
+            resultLength:
+                totalSection *
+                Object.entries(subjectsStore).length *
+                numOfSchoolDays,
 
             offset: offset,
         };
