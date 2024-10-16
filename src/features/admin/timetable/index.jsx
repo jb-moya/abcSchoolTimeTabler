@@ -123,6 +123,8 @@ function Timetable() {
                         },
                         {}
                     ),
+
+                    startTime: value.startTime,
                     id: value.id,
                 };
 
@@ -176,9 +178,11 @@ function Timetable() {
         // );
 
         let cellCount = 0;
-        for (const [sectionKey, { subjects, subjectUnits }] of Object.entries(
-            sectionMap
-        )) {
+        for (const [
+            sectionKey,
+            { subjects, startTime, subjectUnits },
+        ] of Object.entries(sectionMap)) {
+            // console.log('🚀 ~ handleButtonClick ~ startTime:', startTime);
             let rowCount = 0;
 
             for (const subject of subjects) {
@@ -202,6 +206,8 @@ function Timetable() {
                 sectionSubjectUnitArray.push(
                     packInt16ToInt32(subject, subjectUnits[subject][0])
                 );
+
+                sectionStartArray[sectionKey] = startTime;
 
                 // TODO: might there be code smell on how it stores
 
@@ -246,10 +252,10 @@ function Timetable() {
         
         const limits = numTeachers * totalSection;
 
+        // for (let i = 0; i < totalSection; i++) {
+        //     sectionStartArray[i] = 0;
+        // }
 
-        for (let i = 0; i < totalSection; i++) {
-            sectionStartArray[i] = 0;
-        }
         const sectionStarts = new Int32Array([...sectionStartArray]);
 
         const teacherSubjectArray = [];
