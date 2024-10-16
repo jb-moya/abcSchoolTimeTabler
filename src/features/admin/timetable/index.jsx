@@ -187,7 +187,7 @@ function Timetable() {
 
             for (const subject of Object.keys(subjectUnits)) {
                 // console.log('🚀 ~ handleButtonClick ~ subject:', subject);
-                const unitCount = subjectUnits[subject];
+                const unitCount = subjectUnits[subject][0];
 
                 if (unitCount === 0) {
                     cellCount++;

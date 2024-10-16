@@ -42,7 +42,6 @@ const SuccessModal = ({ message, onClose }) => {
   );
 };
 
-
 const AddSubjectContainer = ({
   close,
   reduxFunction,
@@ -154,7 +153,6 @@ const AddSubjectContainer = ({
     </div>
   );
 };
-
 
 const SubjectListContainer = ({ editable = false }) => {
   const dispatch = useDispatch();
