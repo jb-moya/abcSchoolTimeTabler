@@ -200,7 +200,7 @@ function Timetable() {
                 }
 
                 sectionSubjectUnitArray.push(
-                    packInt16ToInt32(subject, subjectUnits[subject])
+                    packInt16ToInt32(subject, subjectUnits[subject][0])
                 );
 
                 // TODO: might there be code smell on how it stores
@@ -214,14 +214,8 @@ function Timetable() {
                 );
 
                 sectionSubjectOrderArray.push(
-                    packInt16ToInt32(subject, defaultOrder)
+                    packInt16ToInt32(subject, subjectUnits[subject][1])
                 );
-
-                // console.log(
-                //     '🚀 ~ handleButtonClick ~ subjectMap[subject].classDuration:',
-                //     subjectMap[subject].classDuration,
-                //     typeof subjectMap[subject].classDuration
-                // );
             }
 
             // console.log('🚀 ~ handleButtonClick ~ rowCount:', rowCount);
