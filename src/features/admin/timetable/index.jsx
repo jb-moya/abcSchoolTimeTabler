@@ -17,10 +17,18 @@ import SectionListContainer from '@components/Admin/SectionListContainer';
 import ExportImportDBButtons from '@components/Admin/ExportImportDBButtons';
 
 import { getTimeSlotString } from '../../../components/Admin/timeSlotMapper';
+import Breadcrumbs from '@components/Admin/Breadcrumbs';
+
 
 const getTimetable = wrap(new WasmWorker());
 
 function Timetable() {
+
+    const links = [
+        { name: 'Home', href: '/' },
+        // { name: 'Modify Subjects', href: '/modify-subjects' },
+      ];
+
     const { subjects: subjectsStore } = useSelector((state) => state.subject);
     const { teachers: teachersStore } = useSelector((state) => state.teacher);
     const { sections: sectionsStore } = useSelector((state) => state.section);
@@ -721,8 +729,37 @@ function Timetable() {
 
     return (
         <div className="App container mx-auto px-4 py-6">
-            <div className="mb-6 flex justify-end">
-                <ExportImportDBButtons />
+
+        
+
+            <div className="mb-6 flex justify-between items-center">
+                    <Breadcrumbs title="Timetable" links={links} /> 
+                    <div className="flex items-center gap-2">
+
+                        <ExportImportDBButtons />   
+                            <button
+                                className={clsx('btn btn-primary', {
+                                    'cursor-not-allowed': timetableGenerationStatus === 'running',
+                                    'btn-error': timetableGenerationStatus === 'error',
+                                })}
+                                onClick={() => {
+                                    if (validate()) {
+                                    handleButtonClick();
+                                    }
+                                }}
+                                disabled={timetableGenerationStatus === 'running'}
+                                >
+                                {timetableGenerationStatus === 'running' ? (
+                                    <div className="flex gap-2 items-center">
+                                    <span>Generating</span>
+                                    <span className="loading loading-spinner loading-xs"></span>
+                                    </div>
+                                ) : (
+                                    'Generate Timetable'
+                                )}
+                                </button>
+                    </div>
+                   
             </div>
 
             <div className="mb-6">
@@ -762,30 +799,6 @@ function Timetable() {
                 <div className="bg-base-100 p-6 rounded-lg shadow-lg">
                     <h2 className="text-lg font-semibold mb-4">Sections</h2>
                     <SectionListContainer />
-
-                    <button
-                        className={clsx('btn btn-primary w-full mt-6', {
-                            'cursor-not-allowed':
-                                timetableGenerationStatus === 'running',
-                            'btn-error': timetableGenerationStatus === 'error',
-                        })}
-                        onClick={() => {
-                            if (validate()) {
-                                handleButtonClick();
-                            }
-                        }}
-                        disabled={timetableGenerationStatus === 'running'}
-                    >
-                        {timetableGenerationStatus === 'running' ? (
-                            <div className="flex gap-2 items-center">
-                                <span>Generating</span>
-                                <span className="loading loading-spinner loading-xs"></span>
-                            </div>
-                        ) : (
-                            'Generate Timetable'
-                        )}
-                    </button>
-
                     <div className="mt-4">
                         <ViolationList violations={violations} />
                     </div>

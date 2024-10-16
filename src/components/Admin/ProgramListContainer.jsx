@@ -15,6 +15,36 @@ import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
 
+import Lottie from 'lottie-react';
+import animationData from '/public/SuccessAnimation.json'
+
+// const SuccessModal = ({ message, onClose }) => {
+//   return (
+//     <div className="modal modal-open flex items-center h-full w-full justify-center">
+//       <div className="modal-box flex flex-col items-center justify-center p-4"> {/* Added padding */}
+//         <div className="lottie-animation w-48 h-48">
+//           <Lottie
+//             animationData={
+//               animationData
+//             } // Replace with your Lottie JSON
+//             loop={false} // Ensures the animati on does not loop
+//           />
+//         </div>
+//         <h2 className="font-bold text-lg text-center">{message}</h2> {/* Center text */}
+//         <div className="modal-action">
+//           <button
+//             className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+//             onClick={onClose}
+//           >
+//             ✕
+//           </button>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+
 const AddProgramContainer = ({
   close,
   reduxField,
@@ -25,6 +55,9 @@ const AddProgramContainer = ({
   const inputNameRef = useRef();
   const subjects = useSelector((state) => state.subject.subjects);
   const dispatch = useDispatch();
+
+  // const [showSuccessModal, setShowSuccessModal] = useState(false);
+  // const [modalMessage, setModalMessage] = useState('');
 
   const [inputValue, setInputValue] = useState('');
   const [selectedSubjects, setSelectedSubjects] = useState({
@@ -125,6 +158,9 @@ const AddProgramContainer = ({
         },
       })
     );
+     // Set success message and show the modal
+    //  setModalMessage('Program added successfully!');
+    //  setShowSuccessModal(true);
     // close();
   };
 
@@ -155,6 +191,10 @@ const AddProgramContainer = ({
       inputNameRef.current.focus();
     }
   }, []);
+
+  const handleCloseModal = () => {
+    setShowSuccessModal(false);
+  };
 
   return (
     <div className="p-6">
@@ -255,6 +295,15 @@ const AddProgramContainer = ({
         </button>
       </div>
     </div>
+
+      {/* Render SuccessModal if showSuccessModal is true */}
+      {/* {showSuccessModal && (
+        <SuccessModal
+          message={modalMessage}
+          onClose={handleCloseModal}
+        />
+      )} */}
+
   </div>
   
   );  
@@ -471,47 +520,22 @@ const ProgramListContainer = ({ editable = false }) => {
     }
   }, [programStatus, dispatch]);
 
+
+  const itemsPerPage = 3; // Change this to adjust the number of items per page
+  const [currentPage, setCurrentPage] = useState(1);
   
-
+  // Calculate total pages
+  const totalPages = Math.ceil(Object.values(searchProgramResult).length / itemsPerPage);
+  
+  // Get current items
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = Object.entries(searchProgramResult).slice(indexOfFirstItem, indexOfLastItem);
+  
   return (
+
     <React.Fragment>
-      <div className="">
-
-        {/* Search Filter */}
-        {/* <label className="input input-sm input-bordered flex items-center gap-2">
-          <input
-            type="text"
-            className="grow"
-            placeholder="Search Program by Name or Subjects"
-            value={searchProgramValue}
-            onChange={(e) => setSearchProgramValue(e.target.value)}
-          />
-          <IoSearch />
-        </label>
-
-        {editable && (
-        <div>
-          {openAddProgramContainer ? (
-            <AddProgramContainer
-              close={() => setOpenAddProgramContainer(false)}
-              reduxField={['program', 'subjects']}
-              reduxFunction={addProgram}
-              morningStartTime={morningStartTime}
-              afternoonStartTime={afternoonStartTime}
-            />
-          ) : (
-            <div className="flex justify-end mt-3">
-              <button
-                className="btn btn-secondary my-5"
-                onClick={() => setOpenAddProgramContainer(true)}
-              >
-                Add Program
-                <IoAdd size={26} />
-              </button>
-            </div>
-          )}
-        </div>
-      )} */}
+    <div className="">
 
       <div className="flex flex-col md:flex-row md:gap-4 justify-between items-center mb-5">
         {/* Search Filter */}
@@ -531,74 +555,73 @@ const ProgramListContainer = ({ editable = false }) => {
         {editable && (
           <div className="w-full mt-4 md:mt-0 md:w-auto">
             <button
-              className="btn btn-primary  h-12 flex items-center justify-center w-full md:w-44"
+              className="btn btn-primary h-12 flex items-center justify-center w-full md:w-44"
               onClick={() => document.getElementById('add_program_modal').showModal()}
             >
               Add Program <IoAdd size={20} className="ml-2" />
             </button>
-  
-            <dialog id="add_program_modal" className="modal">
-                <div className="modal-box w-11/12 max-w-xl" >
-                  <AddProgramContainer
-                    close={() => document.getElementById('add_program_modal').close()}
-                    reduxField={['program', 'subjects']}
-                    reduxFunction={addProgram}
-                    morningStartTime={morningStartTime}
-                    afternoonStartTime={afternoonStartTime}
-                  />
-                  {/* Modal close button */}
-                  <div className="modal-action">
-                    <button
-                      className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                      onClick={() => document.getElementById('add_program_modal').close()}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                </div>
-              </dialog>
 
+            <dialog id="add_program_modal" className="modal">
+              <div className="modal-box w-11/12 max-w-xl">
+                <AddProgramContainer
+                  close={() => document.getElementById('add_program_modal').close()}
+                  reduxField={['program', 'subjects']}
+                  reduxFunction={addProgram}
+                  morningStartTime={morningStartTime}
+                  afternoonStartTime={afternoonStartTime}
+                />
+                {/* Modal close button */}
+                <div className="modal-action">
+                  <button
+                    className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                    onClick={() => document.getElementById('add_program_modal').close()}
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            </dialog>
           </div>
         )}
       </div>
-      
-        {/* Responsive Table */}
-    <div className="overflow-x-auto">
-      <table className="table table-sm table-zebra w-full">
-        <thead>
-          <tr>
-            <th className="w-8">#</th>
-            <th className="w-20">Program ID</th>
-            <th className="w-48">Program</th>
-            <th>Subjects</th> {/* Set a wider width for the subjects column */}
-            {editable && <th className="w-32">Actions</th>}
-          </tr>
-        </thead>
-        <tbody>
-          {Object.values(searchProgramResult).length === 0 ? (
+
+      {/* Responsive Table */}
+      <div className="overflow-x-auto">
+        <table className="table table-sm table-zebra w-full">
+          <thead>
             <tr>
-              <td colSpan="5" className="text-center">
-                No programs found
-              </td>
+              <th className="w-8">#</th>
+              <th className="w-20">Program ID</th>
+              <th className="w-48">Program</th>
+              <th>Subjects</th>
+              {editable && <th className="w-32">Actions</th>}
             </tr>
-          ) : (
-            Object.entries(searchProgramResult).map(([, program], index) => (
-              <tr key={program.id} className="group hover">
-                <td>{index + 1}</td>
-                <th>{program.id}</th>
-                <td className='max-w-28'>
-                  {editProgramId === program.id ? (
-                    <input
-                      type="text"
-                      className="input input-bordered input-sm w-full"
-                      value={editProgramValue}
-                      onChange={(e) => setEditProgramValue(e.target.value)}
-                    />
-                  ) : (
-                    program.program
-                  )}
+          </thead>
+          <tbody>
+            {Object.values(searchProgramResult).length === 0 ? (
+              <tr>
+                <td colSpan="5" className="text-center">
+                  No programs found
                 </td>
-                <td className=''> {/* This can remain as is for additional styling */}
+              </tr>
+            ) : (
+              currentItems.map(([, program], index) => (
+                <tr key={program.id} className="group hover">
+                  <td>{index + 1 + indexOfFirstItem}</td>
+                  <th>{program.id}</th>
+                  <td className='max-w-28'>
+                    {editProgramId === program.id ? (
+                      <input
+                        type="text"
+                        className="input input-bordered input-sm w-full"
+                        value={editProgramValue}
+                        onChange={(e) => setEditProgramValue(e.target.value)}
+                      />
+                    ) : (
+                      program.program
+                    )}
+                  </td>
+                  <td className=''> {/* This can remain as is for additional styling */}
                   {editProgramId === program.id ? (
                     <>
                       {[7, 8, 9, 10].map((grade) => (
@@ -711,53 +734,72 @@ const ProgramListContainer = ({ editable = false }) => {
                     </div>
                   )}
                 </td>
-
-                {editable && (
-                  <td>
-                    {editProgramId === program.id ? (
-                      <>
-                        <button
-                          className="btn btn-sm btn-outline"
-                          onClick={() =>
-                            handleSaveProgramEditClick(program.id)
-                          }
-                        >
-                          Save
-                        </button>
-                        <button
-                          className="btn btn-sm btn-outline"
-                          onClick={handleCancelProgramEditClick}
-                        >
-                          Cancel
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          className="btn btn-xs btn-ghost text-blue-500"
-                          onClick={() => handleEditProgramClick(program)}
-                        >
-                          <RiEdit2Fill size={20} />
-                        </button>
-                        <button
-                          className="btn btn-xs btn-ghost text-red-500"
-                          onClick={() => dispatch(removeProgram(program.id))}
-                        >
-                          <RiDeleteBin7Line size={20} />
-                        </button>
-                      </>
-                    )}
-                  </td>
-                )}
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-</div>
-
+                  {editable && (
+                    <td>
+                      {editProgramId === program.id ? (
+                        <>
+                          <button
+                            className="btn btn-sm btn-outline"
+                            onClick={() => handleSaveProgramEditClick(program.id)}
+                          >
+                            Save
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline"
+                            onClick={handleCancelProgramEditClick}
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            className="btn btn-xs btn-ghost text-blue-500"
+                            onClick={() => handleEditProgramClick(program)}
+                          >
+                            <RiEdit2Fill size={20} />
+                          </button>
+                          <button
+                            className="btn btn-xs btn-ghost text-red-500"
+                            onClick={() => dispatch(removeProgram(program.id))}
+                          >
+                            <RiDeleteBin7Line size={20} />
+                          </button>
+                        </>
+                      )}
+                    </td>
+                  )}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
-    </React.Fragment>
+
+      {/* Pagination */}
+      {currentItems.length > 0 && (
+          <div className="join mt-4 flex justify-center">
+            <button
+              className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              «
+            </button>
+            <button className="join-item btn">
+              Page {currentPage} of {totalPages}
+            </button>
+            <button
+              className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              »
+            </button>
+          </div>
+      )}
+    </div>
+  </React.Fragment>
   );
 };
 
