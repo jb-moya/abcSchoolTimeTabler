@@ -50,27 +50,41 @@ const AddTeacherContainer = ({
   const { subjects, status: subjectStatus } = useSelector(
     (state) => state.subject
   );
+  const { teachers } = useSelector((state) => state.teacher);
   const dispatch = useDispatch();
 
   const [teacherName, setTeacherName] = useState('');
   const [selectedSubjects, setSelectedSubjects] = useState([]);
 
   const handleAddTeacher = () => {
-    if (teacherName.trim()) {
+
+    if (!teacherName.trim()) {
+      alert('Teacher name cannot be empty.');
+      return;
+    } else if (selectedSubjects.length === 0) {
+      alert('Please assign subject specialization');
+      return;
+    }
+
+    const duplicateTeacher = Object.values(teachers).find(
+      (teacher) => teacher.teacher.trim().toLowerCase() === teacherName.trim().toLowerCase()
+    );
+
+    if (duplicateTeacher) {
+      alert('Teacher already exists.');
+      return;
+    } else {
       dispatch(
         reduxFunction({
           teacher: teacherName,
           subjects: selectedSubjects,
         })
       );
+    }
 
-      if (inputNameRef.current) {
-          inputNameRef.current.focus();
-          inputNameRef.current.select();
-      }
-      // close();
-    } else {
-      alert('Teacher name cannot be empty');
+    if (inputNameRef.current) {
+      inputNameRef.current.focus();
+      inputNameRef.current.select();
     }
   };
 
@@ -178,16 +192,51 @@ const TeacherListContainer = ({ editable = false }) => {
   };
 
   const handleSaveTeacherEditClick = (teacherId) => {
-    dispatch(
-      editTeacher({
-        teacherId,
-        updatedTeacher: {
-          teacher: editTeacherValue,
-          subjects: editTeacherCurr,
-        },
-      })
-    );
-    setEditTeacherId(null);
+
+    if (!editTeacherValue.trim() || editTeacherCurr.length === 0) {
+      alert('All fields are required.');
+      return;
+    }
+
+    const currentTeacher = teachers[teacherId]?.teacher || '';
+
+    if (editTeacherValue.trim().toLowerCase() === currentTeacher.trim().toLowerCase()) {
+      dispatch(
+        editTeacher({
+          teacherId,
+          updatedTeacher: {
+            teacher: editTeacherValue,
+            subjects: editTeacherCurr,
+          },
+        })
+      );
+
+      setEditTeacherId(null);
+      setEditTeacherValue('');
+      setEditTeacherCurr([]);
+    } else {
+      const duplicateTeacher = Object.values(teachers).find(
+        (teacher) => teacher.teacher.trim().toLowerCase() === editTeacherValue.trim().toLowerCase()
+      );
+
+      if (duplicateTeacher) {
+        alert('Teacher already exists.');
+        return;
+      } else {
+        dispatch(
+          editTeacher({
+            teacherId,
+            updatedTeacher: {
+              teacher: editTeacherValue,
+              subjects: editTeacherCurr,
+            },
+          })
+        );
+        setEditTeacherId(null);
+        setEditTeacherValue('');
+        setEditTeacherCurr([]);
+      }
+    }
   };
 
   const handleCancelTeacherEditClick = () => {

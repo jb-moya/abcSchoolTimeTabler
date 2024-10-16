@@ -503,6 +503,7 @@ function Timetable() {
                     const sched = timeSchedules[slotKeys[0]];
 
                     const subjects = [];
+                    const sections = [];
                     const teachers = [''];
                     let schedData = '';
 
@@ -546,15 +547,6 @@ function Timetable() {
                 secRow = secRow + 2;
             });
             const worksheet = XLSX.utils.aoa_to_sheet(rows);
-
-            // singleRows.forEach((row) => {
-            //   let cellRefs = [`B${row}`, `C${row}`, `D${row}`, `E${row}`, `F${row}`,
-            //                   `B${row + 1}`, `C${row + 1}`, `D${row + 1}`,`E${row + 1}`,`F${row + 1}`];
-            //   cellRefs.forEach(cellRef => {
-            //     console.log(cellRef);
-            //     worksheet[cellRef].s = cs1;
-            //   });
-            // });
 
             worksheet['!merges'] = merges;
             worksheet['!cols'] = [
@@ -640,7 +632,7 @@ function Timetable() {
                     const sched = timeSchedules[slotKeys[0]];
 
                     const subjects = [];
-                    const sections = [''];
+                    const sections = [];
                     let schedData = '';
 
                     if (sched.subject !== null && sched.subject !== undefined) {

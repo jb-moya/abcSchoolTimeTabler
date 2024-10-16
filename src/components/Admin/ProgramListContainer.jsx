@@ -54,6 +54,7 @@ const AddProgramContainer = ({
 }) => {
   const inputNameRef = useRef();
   const subjects = useSelector((state) => state.subject.subjects);
+  const programs = useSelector((state) => state.program.programs);
   const dispatch = useDispatch();
 
   // const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -67,10 +68,10 @@ const AddProgramContainer = ({
     10: [],
   });
   const [selectedShifts, setSelectedShifts] = useState({
-    7: 'AM',
-    8: 'AM',
-    9: 'AM',
-    10: 'AM',
+    7: 0, // 0 for AM, 1 for PM
+    8: 0,
+    9: 0,
+    10: 0,
   });
   const [startTimes, setStartTimes] = useState({
     7: morningStartTime,
@@ -88,7 +89,7 @@ const AddProgramContainer = ({
 
   const renderTimeOptions = (shift) => {
     const times =
-      shift === 'AM'
+      shift === 0
         ? Array.from({ length: 36 }, (_, i) => {
           const hours = 6 + Math.floor(i / 6);
           const minutes = (i % 6) * 10;
@@ -122,7 +123,7 @@ const AddProgramContainer = ({
       [grade]: shift,
     }));
 
-    const defaultTime = shift === 'AM' ? morningStartTime : afternoonStartTime;
+    const defaultTime = shift === 0 ? morningStartTime : afternoonStartTime;
     setStartTimes((prevTimes) => ({
       ...prevTimes,
       [grade]: defaultTime,
@@ -130,35 +131,72 @@ const AddProgramContainer = ({
   };
 
   const handleAddEntry = () => {
-    dispatch(
-      reduxFunction({
-        [reduxField[0]]: inputValue,
-        7: {
-          subjects: selectedSubjects[7],
-          shift: selectedShifts[7] === 'AM' ? 0 : 1,
-          startTime: getTimeSlotIndex(startTimes[7]),
-        },
-        8: {
-          subjects: selectedSubjects[8],
-          shift: selectedShifts[8] === 'AM' ? 0 : 1,
-          startTime: getTimeSlotIndex(startTimes[8]),
-        },
-        9: {
-          subjects: selectedSubjects[9],
-          shift: selectedShifts[9] === 'AM' ? 0 : 1,
-          startTime: getTimeSlotIndex(startTimes[9]),
-        },
-        10: {
-          subjects: selectedSubjects[10],
-          shift: selectedShifts[10] === 'AM' ? 0 : 1,
-          startTime: getTimeSlotIndex(startTimes[10]),
-        },
-      })
+    if (!inputValue.trim()) {
+      alert('Program name cannot be empty');
+      return;
+    } else if (selectedSubjects[7].length === 0) {
+      alert('Select at least one subject for grade 7');
+      return;
+    } else if (selectedShifts[7] === undefined || !startTimes[7]) {
+      alert('Select shift and start time for grade 7');
+      return;
+    } else if (selectedSubjects[8].length === 0) {  
+      alert('Select at least one subject for grade 8'); 
+      return;
+    } else if (selectedShifts[8] === undefined || !startTimes[8]) {
+      alert('Select shift and start time for grade 8');
+      return;
+    } else if (selectedSubjects[9].length === 0) {  
+      alert('Select at least one subject for grade 9'); 
+      return;
+    } else if (selectedShifts[9] === undefined || !startTimes[9]) {
+      alert('Select shift and start time for grade 9');
+      return;
+    } else if (selectedSubjects[10].length === 0) {  
+      alert('Select at least one subject for grade 10'); 
+      return;
+    } else if (selectedShifts[10] === undefined || !startTimes[10]) {
+      alert('Select shift and start time for grade 10');
+      return;
+    }
+
+    const duplicateProgram = Object.values(programs).find(
+      (program) => program.program.trim().toLowerCase() === inputValue.trim().toLowerCase()
     );
-     // Set success message and show the modal
-    //  setModalMessage('Program added successfully!');
-    //  setShowSuccessModal(true);
-    // close();
+
+    if (duplicateProgram) {
+      alert('A program with this name already exists.');
+    } else {
+      dispatch(
+        reduxFunction({
+          [reduxField[0]]: inputValue,
+          7: {
+            subjects: selectedSubjects[7],
+            shift: selectedShifts[7],
+            startTime: getTimeSlotIndex(startTimes[7]),
+          },
+          8: {
+            subjects: selectedSubjects[8],
+            shift: selectedShifts[8],
+            startTime: getTimeSlotIndex(startTimes[8]),
+          },
+          9: {
+            subjects: selectedSubjects[9],
+            shift: selectedShifts[9],
+            startTime: getTimeSlotIndex(startTimes[9]),
+          },
+          10: {
+            subjects: selectedSubjects[10],
+            shift: selectedShifts[10],
+            startTime: getTimeSlotIndex(startTimes[10]),
+          },
+        })
+      );
+      // Set success message and show the modal
+      //  setModalMessage('Program added successfully!');
+      //  setShowSuccessModal(true);
+      // close();
+    }
   };
 
   const handleReset = () => {
@@ -170,10 +208,10 @@ const AddProgramContainer = ({
       10: [],
     });
     setSelectedShifts({
-      7: 'AM',
-      8: 'AM',
-      9: 'AM',
-      10: 'AM',
+      7: 0,
+      8: 0,
+      9: 0,
+      10: 0,
     });
     setStartTimes({
       7: morningStartTime,
@@ -195,117 +233,113 @@ const AddProgramContainer = ({
 
   return (
     <div className="p-6">
-    {/* Header section with centered "Add {reduxField}" */}
-    <div className="flex justify-between mb-4">
-      <h3 className="text-lg font-bold text-center w-full">
-        Add New {reduxField[0].charAt(0).toUpperCase() + reduxField[0].slice(1).toLowerCase()}
-      </h3>
-    </div>
-  
-    {/* Input field for program name */}
-    <div className="mb-4">
-      <label className="block text-sm font-medium mb-2">Program Name:</label>
-      <input
-        type="text"
-        ref={inputNameRef}
-        className="input input-bordered w-full"
-        value={inputValue}
-        onChange={handleInputChange}
-        placeholder="Enter Program name"
-      />
-    </div>
-  
-    {/* Subject and shift management */}
-    <div className="flex flex-col space-y-4">
-      {[7, 8, 9, 10].map((grade) => (
-        <div key={grade} className="bg-white shadow-md rounded-lg p-4">
-          <h3 className="text-lg font-bold mb-2">{`Grade ${grade}`}</h3>
-  
-          {/* Subject selection */}
-          <div className="flex items-center mb-2 py-4 flex-wrap">
-            <div className="m-1">
-              <SearchableDropdownToggler
-                selectedList={selectedSubjects[grade]}
-                setSelectedList={(list) => handleSubjectSelection(grade, list)}
-              />
-            </div>
-            {selectedSubjects[grade] && Array.isArray(selectedSubjects[grade]) ? (
-              selectedSubjects[grade].map((subjectID) => (
-                <div key={subjectID} className="badge badge-secondary m-1 whitespace-nowrap">
-                  {subjects[subjectID]?.subject || subjectID}
-                </div>
-              ))
-            ) : (
-              <div>No subjects selected</div>
-            )}
-          </div>
-  
-          {/* Shift selection */}
-          <div className="mt-2 mb-2">
-            <label className="mr-2">Shift:</label>
-            <label className="mr-2">
-              <input
-                type="radio"
-                name={`shift-${grade}`}
-                value="AM"
-                checked={selectedShifts[grade] === 'AM'}
-                onChange={() => handleShiftSelection(grade, 'AM')}
-              />
-              AM
-            </label>
-            <label>
-              <input
-                type="radio"
-                name={`shift-${grade}`}
-                value="PM"
-                checked={selectedShifts[grade] === 'PM'}
-                onChange={() => handleShiftSelection(grade, 'PM')}
-              />
-              PM
-            </label>
-          </div>
-  
-          {/* Start time selection */}
-          <div className="mt-2">
-            <label className="mr-2">Start Time:</label>
-            <select
-              className="input input-bordered"
-              value={startTimes[grade]}
-              onChange={(e) => handleStartTimeChange(grade, e.target.value)}
-            >
-              {renderTimeOptions(selectedShifts[grade])}
-            </select>
-          </div>
-        </div>
-      ))}
-    </div>
-  
-    {/* Add button centered at the bottom */}
-    <div className="flex mt-6 justify-center gap-2">
-      <button className="btn btn-secondary" onClick={handleReset}>
-        Reset
-      </button>
-      <div className="flex justify-end space-x-2">
-        <button className="btn btn-primary flex items-center" onClick={handleAddEntry}>
-          <div>Add {reduxField[0]}</div>
-          <IoAdd size={20} className="ml-2" />
-        </button>
+      {/* Header section with centered "Add {reduxField}" */}
+      <div className="flex justify-between mb-4">
+        <h3 className="text-lg font-bold text-center w-full">
+          Add New {reduxField[0].charAt(0).toUpperCase() + reduxField[0].slice(1).toLowerCase()}
+        </h3>
       </div>
-    </div>
-
-      {/* Render SuccessModal if showSuccessModal is true */}
-      {/* {showSuccessModal && (
-        <SuccessModal
-          message={modalMessage}
-          onClose={handleCloseModal}
+    
+      {/* Input field for program name */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-2">Program Name:</label>
+        <input
+          type="text"
+          ref={inputNameRef}
+          className="input input-bordered w-full"
+          value={inputValue}
+          onChange={handleInputChange}
+          placeholder="Enter Program name"
         />
-      )} */}
+      </div>
+    
+      {/* Subject and shift management */}
+      <div className="flex flex-col space-y-4">
+        {[7, 8, 9, 10].map((grade) => (
+          <div key={grade} className="bg-white shadow-md rounded-lg p-4">
+            <h3 className="text-lg font-bold mb-2">{`Grade ${grade}`}</h3>
+    
+            {/* Subject selection */}
+            <div className="flex items-center mb-2 py-4 flex-wrap">
+              <div className="m-1">
+                <SearchableDropdownToggler
+                  selectedList={selectedSubjects[grade]}
+                  setSelectedList={(list) => handleSubjectSelection(grade, list)}
+                />
+              </div>
+              {selectedSubjects[grade] && Array.isArray(selectedSubjects[grade]) ? (
+                selectedSubjects[grade].map((subjectID) => (
+                  <div key={subjectID} className="badge badge-secondary m-1 whitespace-nowrap">
+                    {subjects[subjectID]?.subject || subjectID}
+                  </div>
+                ))
+              ) : (
+                <div>No subjects selected</div>
+              )}
+            </div>
+    
+            {/* Shift selection */}
+            <div className="mt-2 mb-2">
+              <label className="mr-2">Shift:</label>
+              <label className="mr-2">
+                <input
+                  type="radio"
+                  value={selectedShifts[grade]}
+                  checked={selectedShifts[grade] === 0}
+                  onChange={() => handleShiftSelection(grade, 0)}
+                />
+                AM
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  value={selectedShifts[grade]}
+                  checked={selectedShifts[grade] === 1}
+                  onChange={() => handleShiftSelection(grade, 1)}
+                />
+                PM
+              </label>
+            </div>
+    
+            {/* Start time selection */}
+            <div className="mt-2">
+              <label className="mr-2">Start Time:</label>
+              <select
+                className="input input-bordered"
+                value={startTimes[grade]}
+                onChange={(e) => handleStartTimeChange(grade, e.target.value)}
+              >
+                {renderTimeOptions(selectedShifts[grade])}
+              </select>
+            </div>
+          </div>
+        ))}
+      </div>
+    
+      {/* Add button centered at the bottom */}
+      <div className="flex mt-6 justify-center gap-2">
+        <button className="btn btn-secondary" onClick={handleReset}>
+          Reset
+        </button>
+        <div className="flex justify-end space-x-2">
+          <button className="btn btn-primary flex items-center" onClick={handleAddEntry}>
+            <div>Add {reduxField[0]}</div>
+            <IoAdd size={20} className="ml-2" />
+          </button>
+        </div>
+      </div>
 
-  </div>
+        {/* Render SuccessModal if showSuccessModal is true */}
+        {/* {showSuccessModal && (
+          <SuccessModal
+            message={modalMessage}
+            onClose={handleCloseModal}
+          />
+        )} */}
+    </div>
   
   );  
 };
- 
 
 const ProgramListContainer = ({ editable = false }) => {
   const dispatch = useDispatch();
@@ -331,10 +365,10 @@ const ProgramListContainer = ({ editable = false }) => {
   const [openAddProgramContainer, setOpenAddProgramContainer] = useState(false);
 
   const [selectedShifts, setSelectedShifts] = useState({
-    7: 'AM',
-    8: 'AM',
-    9: 'AM',
-    10: 'AM',
+    7: 0,
+    8: 0,
+    9: 0,
+    10: 0,
   });
 
   const [startTimes, setStartTimes] = useState({
@@ -346,7 +380,7 @@ const ProgramListContainer = ({ editable = false }) => {
 
   const renderTimeOptions = (shift) => {
     const times =
-      shift === 'AM'
+      shift === 0
         ? Array.from({ length: 36 }, (_, i) => {
           const hours = 6 + Math.floor(i / 6);
           const minutes = (i % 6) * 10;
@@ -354,14 +388,8 @@ const ProgramListContainer = ({ editable = false }) => {
             minutes
           ).padStart(2, '0')} AM`;
         })
-        : Array.from({ length: 1 }, (_, i) => {
-          const hours = 1 + Math.floor(i / 6);
-          const minutes = (i % 6) * 10;
-          return `${String(hours).padStart(2, '0')}:${String(
-            minutes
-          ).padStart(2, '0')} PM`;
-        });
-
+        : ['01:00 PM'];
+  
     return times.map((time) => (
       <option key={time} value={time}>
         {time}
@@ -375,7 +403,7 @@ const ProgramListContainer = ({ editable = false }) => {
       [grade]: shift,
     }));
 
-    const defaultTime = shift === 'AM' ? morningStartTime : afternoonStartTime;
+    const defaultTime = shift === 0 ? morningStartTime : afternoonStartTime;
     setStartTimes((prevState) => ({
       ...prevState,
       [grade]: defaultTime,
@@ -383,7 +411,6 @@ const ProgramListContainer = ({ editable = false }) => {
   };
 
   const handleEditProgramClick = (program) => {
-    // console.log(program);
     setEditProgramId(program.id);
     setEditProgramValue(program.program);
     setEditProgramCurr({
@@ -393,87 +420,202 @@ const ProgramListContainer = ({ editable = false }) => {
       10: program[10]?.subjects || [],
     });
     setStartTimes({
-      7: getTimeSlotString(program[7]?.startTime),
-      8: getTimeSlotString(program[8]?.startTime),
-      9: getTimeSlotString(program[9]?.startTime),
-      10: getTimeSlotString(program[10]?.startTime),
+      7: getTimeSlotString(program[7]?.startTime || 0),
+      8: getTimeSlotString(program[8]?.startTime || 0),
+      9: getTimeSlotString(program[9]?.startTime || 0),
+      10: getTimeSlotString(program[10]?.startTime || 0),
     });
     setSelectedShifts({
-      7: program[7]?.shift === 0 ? 'AM' : 'PM',
-      8: program[8]?.shift === 0 ? 'AM' : 'PM',
-      9: program[9]?.shift === 0 ? 'AM' : 'PM',
-      10: program[10]?.shift === 0 ? 'AM' : 'PM',
+      7: program[7]?.shift || 0,
+      8: program[8]?.shift || 0,
+      9: program[9]?.shift || 0,
+      10: program[10]?.shift || 0,
     });
   };
 
   const handleSaveProgramEditClick = (programId) => {
-    dispatch(
-      editProgram({
-        programId,
-        updatedProgram: {
-          program: editProgramValue,
-          7: {
-            subjects: editProgramCurr[7],
-            shift: selectedShifts[7] === 'AM' ? 0 : 1,
-            startTime: getTimeSlotIndex(startTimes[7] || 0),
-          },
-          8: {
-            subjects: editProgramCurr[8],
-            shift: selectedShifts[8] === 'AM' ? 0 : 1,
-            startTime: getTimeSlotIndex(startTimes[8] || 0),
-          },
-          9: {
-            subjects: editProgramCurr[9],
-            shift: selectedShifts[9] === 'AM' ? 0 : 1,
-            startTime: getTimeSlotIndex(startTimes[9] || 0),
-          },
-          10: {
-            subjects: editProgramCurr[10],
-            shift: selectedShifts[10] === 'AM' ? 0 : 1,
-            startTime: getTimeSlotIndex(startTimes[10] || 0),
-          },
-        },
-      })
-    );
 
-    // Dispatch updateSectionsForProgramYear for each year level (7 to 10)
-    dispatch(
-      updateSectionsForProgramYear({
-        programId,
-        yearLevel: 7,
-        newSubjects: editProgramCurr[7], // Subjects for Grade 7
-      })
-    );
-    dispatch(
-      updateSectionsForProgramYear({
-        programId,
-        yearLevel: 8,
-        newSubjects: editProgramCurr[8], // Subjects for Grade 8
-      })
-    );
-    dispatch(
-      updateSectionsForProgramYear({
-        programId,
-        yearLevel: 9,
-        newSubjects: editProgramCurr[9], // Subjects for Grade 9
-      })
-    );
-    dispatch(
-      updateSectionsForProgramYear({
-        programId,
-        yearLevel: 10,
-        newSubjects: editProgramCurr[10], // Subjects for Grade 10
-      })
-    );
+    if (!editProgramValue.trim()) {
+      alert('Program name cannot be empty');
+      return;
+    } else if (editProgramCurr[7].length === 0) {
+      alert('Select at least one subject for grade 7');
+      return;
+    } else if (selectedShifts[7] === undefined || !startTimes[7]) {
+      alert('Select shift and start time for grade 7');
+      return;
+    } else if (editProgramCurr[8].length === 0) {  
+      alert('Select at least one subject for grade 8'); 
+      return;
+    } else if (selectedShifts[8] === undefined || !startTimes[8]) {
+      alert('Select shift and start time for grade 8');
+      return;
+    } else if (editProgramCurr[9].length === 0) {  
+      alert('Select at least one subject for grade 9'); 
+      return;
+    } else if (selectedShifts[9] === undefined || !startTimes[9]) {
+      alert('Select shift and start time for grade 9');
+      return;
+    } else if (editProgramCurr[10].length === 0) {  
+      alert('Select at least one subject for grade 10'); 
+      return;
+    } else if (selectedShifts[10] === undefined || !startTimes[10]) {
+      alert('Select shift and start time for grade 10');
+      return;
+    }
 
-    setEditProgramId(null);
-    setEditProgramValue('');
-    setEditProgramCurr([]);
+    const currentProgram = programs[programId]?.program || '';
+    
+    if (editProgramValue.trim().toLowerCase() === currentProgram.trim().toLowerCase()) {
+      dispatch(
+        editProgram({
+          programId,
+          updatedProgram: {
+            program: editProgramValue,
+            7: {
+              subjects: editProgramCurr[7],
+              shift: selectedShifts[7],
+              startTime: getTimeSlotIndex(startTimes[7] || '06:00 AM'),
+            },
+            8: {
+              subjects: editProgramCurr[8],
+              shift: selectedShifts[8],
+              startTime: getTimeSlotIndex(startTimes[8] || '06:00 AM'),
+            },
+            9: {
+              subjects: editProgramCurr[9],
+              shift: selectedShifts[9],
+              startTime: getTimeSlotIndex(startTimes[9] || '06:00 AM'),
+            },
+            10: {
+              subjects: editProgramCurr[10],
+              shift: selectedShifts[10],
+              startTime: getTimeSlotIndex(startTimes[10] || '06:00 AM'),
+            },
+          },
+        })
+      );
+      dispatch(
+        updateSectionsForProgramYear({
+          programId,
+          yearLevel: 7,
+          newSubjects: editProgramCurr[7], // Subjects for Grade 7
+        })
+      );
+      dispatch(
+        updateSectionsForProgramYear({
+          programId,
+          yearLevel: 8,
+          newSubjects: editProgramCurr[8], // Subjects for Grade 8
+        })
+      );
+      dispatch(
+        updateSectionsForProgramYear({
+          programId,
+          yearLevel: 9,
+          newSubjects: editProgramCurr[9], // Subjects for Grade 9
+        })
+      );
+      dispatch(
+        updateSectionsForProgramYear({
+          programId,
+          yearLevel: 10,
+          newSubjects: editProgramCurr[10], // Subjects for Grade 10
+        })
+      );
+  
+      setEditProgramId(null);
+      setEditProgramValue('');
+      setEditProgramCurr([]);
+    } else {
+      const duplicateProgram = Object.values(programs).find(
+        (program) => program.program.trim().toLowerCase() === editProgramValue.trim().toLowerCase()
+      );
+
+      if (duplicateProgram) {
+        alert('A program with this name already exists!');
+      } else if (editProgramValue.trim()) {
+        dispatch(
+          editProgram({
+            programId,
+            updatedProgram: {
+              program: editProgramValue,
+              7: {
+                subjects: editProgramCurr[7],
+                shift: selectedShifts[7],
+                startTime: getTimeSlotIndex(startTimes[7] || '06:00 AM'),
+              },
+              8: {
+                subjects: editProgramCurr[8],
+                shift: selectedShifts[8],
+                startTime: getTimeSlotIndex(startTimes[8] || '06:00 AM'),
+              },
+              9: {
+                subjects: editProgramCurr[9],
+                shift: selectedShifts[9],
+                startTime: getTimeSlotIndex(startTimes[9] || '06:00 AM'),
+              },
+              10: {
+                subjects: editProgramCurr[10],
+                shift: selectedShifts[10],
+                startTime: getTimeSlotIndex(startTimes[10] || '06:00 AM'),
+              },
+            },
+          })
+        );
+        dispatch(
+          updateSectionsForProgramYear({
+            programId,
+            yearLevel: 7,
+            newSubjects: editProgramCurr[7], // Subjects for Grade 7
+          })
+        );
+        dispatch(
+          updateSectionsForProgramYear({
+            programId,
+            yearLevel: 8,
+            newSubjects: editProgramCurr[8], // Subjects for Grade 8
+          })
+        );
+        dispatch(
+          updateSectionsForProgramYear({
+            programId,
+            yearLevel: 9,
+            newSubjects: editProgramCurr[9], // Subjects for Grade 9
+          })
+        );
+        dispatch(
+          updateSectionsForProgramYear({
+            programId,
+            yearLevel: 10,
+            newSubjects: editProgramCurr[10], // Subjects for Grade 10
+          })
+        );
+    
+        setEditProgramId(null);
+        setEditProgramValue('');
+        setEditProgramCurr([]);
+      }
+    }
+
   };
+
   const handleCancelProgramEditClick = () => {
     setEditProgramId(null);
     setEditProgramValue('');
     setEditProgramCurr([]);
+    setStartTimes({
+      7: '06:00 AM',
+      8: '06:00 AM',
+      9: '06:00 AM',
+      10: '06:00 AM',
+    });
+    setSelectedShifts({
+      7: 0,
+      8: 0,
+      9: 0,
+      10: 0,
+    });
   };
 
   const debouncedSearch = useCallback(
@@ -516,7 +658,6 @@ const ProgramListContainer = ({ editable = false }) => {
     }
   }, [programStatus, dispatch]);
 
-
   const itemsPerPage = 3; // Change this to adjust the number of items per page
   const [currentPage, setCurrentPage] = useState(1);
   
@@ -529,7 +670,6 @@ const ProgramListContainer = ({ editable = false }) => {
   const currentItems = Object.entries(searchProgramResult).slice(indexOfFirstItem, indexOfLastItem);
   
   return (
-
     <React.Fragment>
     <div className="">
 
@@ -628,11 +768,10 @@ const ProgramListContainer = ({ editable = false }) => {
                             <label className="mr-2">
                               <input
                                 type="radio"
-                                name={`shift-${grade}`}
-                                value="AM"
-                                checked={selectedShifts[grade] === 'AM'}
+                                value={selectedShifts[grade]}
+                                checked={selectedShifts[grade] === 0}
                                 onChange={() =>
-                                  handleShiftSelection(grade, 'AM')
+                                  handleShiftSelection(grade, 0)
                                 }
                               />
                               AM
@@ -640,11 +779,10 @@ const ProgramListContainer = ({ editable = false }) => {
                             <label>
                               <input
                                 type="radio"
-                                name={`shift-${grade}`}
-                                value="PM"
-                                checked={selectedShifts[grade] === 'PM'}
+                                value={selectedShifts[grade]}
+                                checked={selectedShifts[grade] === 1}
                                 onChange={() =>
-                                  handleShiftSelection(grade, 'PM')
+                                  handleShiftSelection(grade, 1)
                                 }
                               />
                               PM
@@ -729,7 +867,7 @@ const ProgramListContainer = ({ editable = false }) => {
                       ))}
                     </div>
                   )}
-                </td>
+                  </td>
                   {editable && (
                     <td>
                       {editProgramId === program.id ? (

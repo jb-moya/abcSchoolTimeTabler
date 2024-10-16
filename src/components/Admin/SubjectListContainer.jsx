@@ -50,6 +50,8 @@ const AddSubjectContainer = ({
   const inputNameRef = useRef();
   const dispatch = useDispatch();
 
+  const subjects = useSelector((state) => state.subject.subjects);
+
   const [subjectName, setSubjectName] = useState('');
   const [classSubjectDuration, setClassSubjectDuration] = useState(
     defaultSubjectClassDuration || 10 // Ensure it defaults to 10 if undefined
@@ -59,28 +61,42 @@ const AddSubjectContainer = ({
   const [modalMessage, setModalMessage] = useState('');
 
   const handleAddSubject = () => {
+
+    if (!subjectName.trim()) {
+      alert('Subject name cannot be empty');
+      return;
+    } else if (!classSubjectDuration) {
+      alert('Class duration cannot be empty');
+      return;
+    }
+
     const classDuration = parseInt(classSubjectDuration, 10);
-    if (subjectName.trim()) {
+
+    const duplicateSubject = Object.values(subjects).find(
+      (subject) => subject.subject.trim().toLowerCase() === subjectName.trim().toLowerCase()
+    );
+  
+    if (duplicateSubject) {
+      alert('A subject with this name already exists.');
+    } else {
       dispatch(
         reduxFunction({
           subject: subjectName,
           classDuration: classDuration,
         })
       );
-
+  
       // Set success message and show the modal
       setModalMessage('Subject added successfully!');
       setShowSuccessModal(true);
-
+  
       // Reset input fields
       setSubjectName('');
       setClassSubjectDuration(defaultSubjectClassDuration || 10);
-
+  
       if (inputNameRef.current) {
         inputNameRef.current.focus();
       }
-    } else {
-      alert('Subject name cannot be empty');
     }
   };
 
@@ -178,24 +194,61 @@ const SubjectListContainer = ({ editable = false }) => {
   };
 
   const handleSaveSubjectEditClick = (subjectId) => {
-    dispatch(
-      editSubject({
-        subjectId,
-        updatedSubject: {
-          subject: editSubjectValue,
-          classDuration: editClassDuration,
-        },
-      })
-    );
 
-    // Set success message and show the modal
-    setModalMessage('Data Updated Successfully!');
-    setShowSuccessModal(true);
+    if (!editSubjectValue.trim()) {
+      alert('Subject name cannot be empty');
+      return;
+    } else if (!editClassDuration) {
+      alert('Class duration cannot be empty');
+      return;
+    }
 
-    setEditSubjectId(null);
-    setEditSubjectValue('');
-    setEditClassDuration(0);
-  };
+    const currentSubject = subjects[subjectId]?.subject || '';
+  
+    if (editSubjectValue.trim().toLowerCase() === currentSubject.toLowerCase()) {
+      dispatch(
+        editSubject({
+          subjectId,
+          updatedSubject: {
+            subject: editSubjectValue,
+            classDuration: editClassDuration,
+          },
+        })
+      );
+  
+      setModalMessage('Data Updated Successfully!');
+      setShowSuccessModal(true);
+  
+      setEditSubjectId(null);
+      setEditSubjectValue('');
+      setEditClassDuration(0);
+    } else {
+      const duplicateSubject = Object.values(subjects).find(
+        (subject) => subject.subject.trim().toLowerCase() === editSubjectValue.trim().toLowerCase()
+      );
+  
+      if (duplicateSubject) {
+        alert('A subject with this name already exists.');
+      } else if (editSubjectValue.trim()) {
+        dispatch(
+          editSubject({
+            subjectId,
+            updatedSubject: {
+              subject: editSubjectValue,
+              classDuration: editClassDuration,
+            },
+          })
+        );
+
+        setModalMessage('Data Updated Successfully!');
+        setShowSuccessModal(true);
+  
+        setEditSubjectId(null);
+        setEditSubjectValue('');
+        setEditClassDuration(0);
+      }
+    }
+  };  
 
   const handleCancelSubjectEditClick = () => {
     setEditSubjectId(null);
