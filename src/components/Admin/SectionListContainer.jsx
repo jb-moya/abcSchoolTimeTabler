@@ -330,17 +330,14 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
 
 
 
-      <div className="flex justify-between">
-          <button className="btn btn-info bg-transparent border-0" onClick={handleReset}>
-              Reset
+      <div className="flex justify-center gap-4 mt-4">
+          <button className="btn btn-secondary" onClick={handleReset}>
+            Reset
           </button>
-        <div className="flex justify-end space-x-2">
-          <button className="btn btn-primary mt-4" onClick={handleAddEntry}>
-            <div>Add {reduxField[0]}</div>
-            <IoAdd size={20} />
+          <button className="btn btn-primary" onClick={handleAddEntry}>
+            Add Section
           </button>
         </div>
-      </div>
       
     </div>
   );
@@ -530,18 +527,10 @@ const SectionListContainer = ({ editable = false }) => {
     }
   }, [teacherStatus, dispatch]);
 
-  useEffect(() => {
-    console.log("editSectionShift: ",editSectionShift);
-  }, [editSectionShift]);
-
-  useEffect(() => {
-    console.log("editSectionStartTime: ",editSectionStartTime);
-  }, [editSectionStartTime]);
-
   return (
     <React.Fragment>
-      <div className='w-full'>
-
+    <div className="w-full">
+      {/* Search Bar and Add Section Button */}
       <div className="flex flex-col md:flex-row md:gap-4 justify-between items-center mb-5">
         <div className="flex-grow w-full">
           <label className="input input-bordered flex items-center gap-2 h-12 w-full">
@@ -628,10 +617,9 @@ const SectionListContainer = ({ editable = false }) => {
                               type="radio"
                               value={editSectionShift}
                               checked={editSectionShift === 0}
-                              onChange={() => {
-                                setEditSectionShift(0);
-                                setEditSectionStartTime('06:00 AM');
-                              }}
+                              onChange={() =>
+                                setEditSectionShift(0)
+                              }
                             />
                             AM
                           </label>
@@ -640,10 +628,9 @@ const SectionListContainer = ({ editable = false }) => {
                               type="radio"
                               value={editSectionShift}
                               checked={editSectionShift === 1}
-                              onChange={() => {
-                                setEditSectionShift(1);
-                                setEditSectionStartTime('01:00 PM');
-                              }}
+                              onChange={() =>
+                                setEditSectionShift(1)
+                              }
                             />
                             PM
                           </label>
@@ -657,7 +644,7 @@ const SectionListContainer = ({ editable = false }) => {
                               setEditSectionStartTime(newValue);
                             }}
                           >
-                            {renderTimeOptions(editSectionShift === 0 ? 'AM' : 'PM')}
+                            {renderTimeOptions()}
                           </select>
                         </div>
                       </>
@@ -700,7 +687,7 @@ const SectionListContainer = ({ editable = false }) => {
                       ))}
                     </select>
                     ) : (
-                      teachers[section.teacher]?.teacher || 'Unknown Teacher'
+                      teachers[section.teacher].teacher || 'Unknown Teacher'
                     )}
                   </td>
                   <td>
@@ -720,7 +707,7 @@ const SectionListContainer = ({ editable = false }) => {
                           subjectsForProgramAndYear.forEach((subjectId) => {
                             updatedUnits[subjectId] = 0;
                           });
-                          setEditSectionUnitsandPriority(updatedUnits);
+                          setEditSectionUnits(updatedUnits);
                         }}
                         className="select select-bordered"
                       >
@@ -751,7 +738,7 @@ const SectionListContainer = ({ editable = false }) => {
                           subjectsForProgramAndYear.forEach((subjectId) => {
                             updatedUnits[subjectId] = 0;
                           });
-                          setEditSectionUnitsandPriority(updatedUnits);
+                          setEditSectionUnits(updatedUnits);
                         }}
                         className="select select-bordered"
                       >
@@ -779,32 +766,17 @@ const SectionListContainer = ({ editable = false }) => {
                             </div>
                             <input
                               type="number"
-                              value={editSectionUnitsandPriority[subjectId][0] || 0}
+                              value={editSectionUnits[subjectId] || 0}
                               onChange={(e) =>
-                                setEditSectionUnitsandPriority({
-                                  ...editSectionUnitsandPriority,
+                                setEditSectionUnits({
+                                  ...editSectionUnits,
                                   [subjectId]: parseInt(e.target.value, 10),
                                 })
                               }
                               className="input input-xs w-16"
                             />
                             <span className="text-xs ml-1">unit(s)</span>
-                            <input
-                              type="number"
-                              value={editSectionUnitsandPriority[subjectId][1] || 0} // Priority input
-                              onChange={(e) =>
-                                setEditSectionUnitsandPriority({
-                                  ...editSectionUnitsandPriority,
-                                  [subjectId]: [
-                                    editSectionUnitsandPriority[subjectId]?.[0] || 0, // Preserve units
-                                    parseInt(e.target.value, 10) || 0, // Set priority
-                                  ],
-                                })
-                              }
-                              className="input input-xs w-16 ml-2" // Add some margin for spacing
-                            />
-                            <span className="text-xs ml-1">priority</span>
-                            {/* <button
+                            <button
                               className="btn btn-xs btn-outline ml-2"
                               onClick={() => {
                                 setEditSectionSubjects(
@@ -813,14 +785,14 @@ const SectionListContainer = ({ editable = false }) => {
                                   )
                                 );
                                 const updatedUnits = {
-                                  ...editSectionUnitsandPriority,
+                                  ...editSectionUnits,
                                 };
                                 delete updatedUnits[subjectId];
-                                setEditSectionUnitsandPriority(updatedUnits);
+                                setEditSectionUnits(updatedUnits);
                               }}
                             >
                               Remove
-                            </button> */}
+                            </button>
                           </div>
                         ))}
                       </div>
@@ -837,7 +809,7 @@ const SectionListContainer = ({ editable = false }) => {
                             </div>
                             <div className="text-xs opacity-75">
                               <span className="mr-1">
-                                {section.subjects[subjectID][0]}
+                                {section.subjects[subjectID]}
                               </span>
                               <span>unit(s)</span>
                               <span>  </span>
@@ -849,55 +821,76 @@ const SectionListContainer = ({ editable = false }) => {
                           </div>
                         ))}
                       </div>
+                    )
+                  )}
+                </td>
+
+                {editable && (
+                  <td className="w-28 text-right">
+                    {editSectionId === section.id ? (
+                      <>
+                        <button
+                          className="btn btn-xs btn-ghost text-green-500"
+                          onClick={() => handleSaveSectionEditClick(section.id)}
+                        >
+                          Save
+                        </button>
+                        <button
+                          className="btn btn-xs btn-ghost text-red-500"
+                          onClick={() => handleCancelSectionEditClick()}
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          className="btn btn-xs btn-ghost text-blue-500"
+                          onClick={() => handleEditSectionClick(section)}
+                        >
+                          <RiEdit2Fill />
+                        </button>
+                        <button
+                          className="btn btn-xs btn-ghost text-red-500"
+                          onClick={() => dispatch(removeSection(section.id))}
+                        >
+                          <RiDeleteBin7Line />
+                        </button>
+                      </>
                     )}
                   </td>
-                  
-                  {editable
-                    &&
-                    <td className="w-28 text-right">
-                      {editSectionId === section.id ? (
-                        <>
-                          <button
-                            className="btn btn-xs btn-ghost text-green-500"
-                            onClick={() => handleSaveSectionEditClick(section.id)}
-                          >
-                            Save
-                          </button>
-                          <button
-                            className="btn btn-xs btn-ghost text-red-500"
-                            onClick={handleCancelSectionEditClick}
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            className="btn btn-xs btn-ghost text-red-500"
-                            onClick={() => handleEditSectionClick(section)}
-                          >
-                            <RiEdit2Fill size={20} />
-                          </button>
-                          <button
-                            className="btn btn-xs btn-ghost text-red-500"
-                            onClick={() => dispatch(removeSection(section.id))}
-                          >
-                            <RiDeleteBin7Line size={20} />
-                          </button>
-                        </>
-                      )}
-                    </td>
-                  }
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+                )}
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
 
-     
-      
-    </React.Fragment>
+      {/* Pagination */}
+      {currentItems.length > 0 && (
+        <div className="join mt-4 flex justify-center">
+          <button
+            className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
+            onClick={() => setCurrentPage(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            «
+          </button>
+          <button className="join-item btn">
+            Page {currentPage} of {totalPages}
+          </button>
+          <button
+            className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
+            onClick={() => setCurrentPage(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            »
+          </button>
+        </div>
+      )}
+    </div>
+    
+  </React.Fragment>
   );
 };
 

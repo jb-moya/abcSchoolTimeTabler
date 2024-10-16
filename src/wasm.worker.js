@@ -119,10 +119,19 @@ const getTimetable = async (params) =>
                 let result = wasm.getValue(resultBuff + i * 8, 'i64');
                 let result_2 = wasm.getValue(resultBuff_2 + i * 8, 'i64');
 
-                result = unpackIntegers(result);
-                result_2 = unpackIntegers(result_2);
+                let resultArray = unpackIntegers(result);
+                let resultArray_2 = unpackIntegers(result_2);
 
-                let combined = result.concat(result_2);
+                if (
+                    resultArray_2[2] == -1 &&
+                    resultArray_2[3] == -1 &&
+                    resultArray_2[4] == -1
+                ) {
+                    break;
+                }
+
+                let combined = resultArray.concat(resultArray_2);
+
                 timetable.push(combined);
             }
 

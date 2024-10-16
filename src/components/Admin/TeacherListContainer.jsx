@@ -107,6 +107,7 @@ const AddTeacherContainer = ({
             onChange={(e) => setTeacherName(e.target.value)}
             placeholder="Enter teacher name"
             aria-label="Teacher Name"
+            ref={inputNameRef} 
           />
         </div>
 
@@ -265,7 +266,7 @@ const TeacherListContainer = ({ editable = false }) => {
               className="grow p-4 text-sm w-full"
               placeholder="Search Teacher"
               value={searchTeacherValue}
-              onChange={(e) => setSearchTeacherValue(e.target.value)}
+              onChange={(e) => setSearcTeacherValue(e.target.value)}
             />
             <IoSearch className="text-xl" />
           </label>
@@ -404,6 +405,7 @@ const TeacherListContainer = ({ editable = false }) => {
       </table>
 
       {/* Pagination */}
+      {currentItems.length > 0 && (
       <div className="join mt-4 flex justify-center">
         <button
           className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
@@ -423,6 +425,7 @@ const TeacherListContainer = ({ editable = false }) => {
           »
         </button>
       </div>
+      )}
     </div>
   </React.Fragment>
   );

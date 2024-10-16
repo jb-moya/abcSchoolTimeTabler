@@ -19,6 +19,11 @@ function unpackIntegers(packed64) {
     let fourth = bigPacked64.shiftRight(8).and(0xff).toJSNumber(); // Shift right by 8
     let fifth = bigPacked64.and(0xff).toJSNumber();
 
+    if (first > 0x7fff) first -= 0x10000; // Sign extend for 16-bit signed integers
+    if (second > 0x7fff) second -= 0x10000;
+    if (third > 0x7fff) third -= 0x10000;
+    if (fourth > 0x7f) fourth -= 0x100; // Sign extend for 8-bit signed integers
+    if (fifth > 0x7f) fifth -= 0x100;
     //   console.log('hays : ', first, second, third, fourth, fifth);
     return [first, second, third, fourth, fifth];
 }

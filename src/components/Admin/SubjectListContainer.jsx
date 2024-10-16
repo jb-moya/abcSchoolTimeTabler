@@ -18,7 +18,7 @@ import animationData from '/public/SuccessAnimation.json'
 
 const SuccessModal = ({ message, onClose }) => {
   return (
-    <div className="modal modal-open flex items-center justify-center">
+    <div className="modal modal-open flex items-center justify-center z-10">
       <div className="modal-box flex flex-col items-center justify-center p-4"> {/* Added padding */}
         <div className="lottie-animation w-48 h-48">
           <Lottie
@@ -283,7 +283,11 @@ const SubjectListContainer = ({ editable = false }) => {
                 <div className="modal-action">
                   <button
                     className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                    onClick={() => document.getElementById('add_subject_modal').close()}
+                    onClick={() => {
+                      document.getElementById('add_subject_modal').close();
+                      handleReset();
+                    }}
+                    
                   >
                     ✕
                   </button>
@@ -398,6 +402,7 @@ const SubjectListContainer = ({ editable = false }) => {
       </div>
 
       {/* Pagination */}
+      {currentItems.length > 0 && (
       <div className="join mt-4 flex justify-center">
         <button
           className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
@@ -415,6 +420,7 @@ const SubjectListContainer = ({ editable = false }) => {
           »
         </button>
       </div>
+        )}
     </div>
   );
 };

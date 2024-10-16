@@ -18,7 +18,7 @@ function Sections() {
     <div className="flex flex-col gap-4">
       <div className="card w-full bg-base-100 shadow-md">
         <div className="card-body">
-           <SectionListContainer editable={true} />;
+           <SectionListContainer editable={true} />
         </div>
       </div>
   
