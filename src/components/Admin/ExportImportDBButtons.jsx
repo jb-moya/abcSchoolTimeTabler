@@ -155,7 +155,7 @@ const ExportImportDBButtons = () => {
     XLSX.utils.book_append_sheet(wb, subjectSheet, "Subjects");
 
     // ---------------------------------------------
-    // ------- EXPORTING PROGRAMS TO SUBJECT ------- 
+    // ------- EXPORTING TEACHERS TO WORKBOOK ------ 
     // ---------------------------------------------
 
     const teacherData = [
@@ -233,25 +233,27 @@ const ExportImportDBButtons = () => {
 
     // Loop through sections to build data rows
     exportData.sections.forEach(section => {
-      const subjectNames = Object.entries(section.subjects)  // Get both subject IDs and units
-        .map(([subjectId, units]) => {
+      const subjectNames = Object.entries(section.subjects)  // Get both subject IDs and [units, priority]
+        .map(([subjectId, [units, priority]]) => {  // Destructure the array to get units and priority
             const subjectName = subjectsMap[subjectId];  // Get the subject name
-            return subjectName ? `${subjectName} (${units})` : 'Unknown Subject';  // Format as 'Name (Units)'
+            return subjectName 
+                ? `${subjectName} (${units})(${priority})`  // Format as 'Name (Units)(Priority)'
+                : 'Unknown Subject';  // Handle case where subject name is not found
         })
         .join(', ');  // Join the subject strings with a comma
-  
+    
       const sectionRow = [
           section.section,  // Section Name
           teachersMap[section.teacher] || 'Unknown Teacher',  // Adviser (Teacher's Name)
           programsMap[section.program] || 'Unknown Program',  // Program Name
           section.year,  // Year Level
-          subjectNames,  /// Subjects (names with units, joined as a string)
+          subjectNames,  // Subjects (names with units and priority, joined as a string)
           section.shift === 0 ? 'AM' : 'PM',  // Shift (AM/PM)
           getTimeSlotString(section.startTime)  // Start Time (formatted)
       ];
   
       sectionData.push(sectionRow);
-    });
+    });  
 
     // Create worksheet
     const sectionSheet = XLSX.utils.aoa_to_sheet(sectionData);
@@ -395,40 +397,47 @@ const ExportImportDBButtons = () => {
 
     normalizedData['Sections'].forEach((section) => {
       const formattedSubjectUnits = {};
-
+  
+      // Split the subjects string and trim each subject
       const subjArray = section.subjects.split(',').map(subject => subject.trim());
-
+  
+      // Iterate over each subject in the array
       subjArray.forEach((subjName) => {
-        const match = subjName.match(/(.+?) \((\d+)\)/);
-
-        if (match) {
-          const subjectName = match[1].trim();
-          const units = parseInt(match[2], 10);
-
-          for (let index = 0; index < addedSubjects.length; index++) {
-            if (addedSubjects[index].toLowerCase() === subjectName.toLowerCase()) {
-              formattedSubjectUnits[index + 1] = units;
-              break;
-            }
+          // Match the subject name, units, and priority using regex
+          const match = subjName.match(/(.+?) \((\d+)\)\s?\((\-?\d+)\)/);
+  
+          if (match) {
+              const subjectName = match[1].trim(); // Extract the subject name
+              const units = parseInt(match[2], 10); // Extract the units
+              const priority = parseInt(match[3], 10); // Extract the priority
+  
+              // Find the subject's ID in the addedSubjects array
+              for (let index = 0; index < addedSubjects.length; index++) {
+                  if (addedSubjects[index].toLowerCase() === subjectName.toLowerCase()) {
+                      // Save the subject ID with its corresponding [units, priority] array
+                      formattedSubjectUnits[index + 1] = [units, priority];
+                      break;
+                  }
+              }
           }
-        }
-      })
-
+      });
+  
+      // Get the program and teacher IDs
       const progID = addedPrograms.findIndex(program => program.toLowerCase() === section.program.toLowerCase()) + 1;
       const advID = addedTeachers.findIndex(teacher => teacher.toLowerCase() === section.adviser.toLowerCase()) + 1;
-
+  
+      // Dispatch the updated section data
       dispatch(
-        addSection({
-          section: section.sectionname,
-          teacher: advID,
-          program: progID,
-          year: section.year,
-          subjects: formattedSubjectUnits,
-          shift: section.shift === 'AM' ? 0 : 1,
-          startTime: getTimeSlotIndex(section.starttime),
-        })
+          addSection({
+              section: section.sectionname,
+              teacher: advID,
+              program: progID,
+              year: section.year,
+              subjects: formattedSubjectUnits, // Updated subjects with units and priority
+              shift: section.shift === 'AM' ? 0 : 1,
+              startTime: getTimeSlotIndex(section.starttime),
+          })
       );
-
     });
   }
 
