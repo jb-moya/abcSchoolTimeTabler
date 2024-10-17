@@ -5,7 +5,7 @@ import {
   loadFile,
   importIndexedDB,
   DB_NAME,
-  clearAllEntriesAcrossStores,
+  clearAllEntriesAndResetIDs,
 } from "@src/indexedDB";
 import * as XLSX from 'xlsx';
 
@@ -24,7 +24,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import { BiUpload } from "react-icons/bi";
 
-const ExportImportDBButtons = () => {
+const ExportImportDBButtons = ({ onClear }) => {
   const dispatch = useDispatch();
 
   const { programs, status: programStatus } = useSelector(
@@ -56,6 +56,7 @@ const ExportImportDBButtons = () => {
       dispatch(fetchTeachers());
     }
   }, [dispatch, teacherStatus]);
+
 
   const exportDB = (format) => {
     exportIndexedDB(DB_NAME)
@@ -286,159 +287,161 @@ const ExportImportDBButtons = () => {
       normalizedData[sheetName] = data[sheetName].map((entry) => normalizeKeys(entry));
     });
 
-    console.log('normalizedData: ', normalizedData);  
+    // Check if sheets exist before adding entries
+    if (normalizedData['Subjects']) {
+      normalizedData['Subjects'].forEach((subject) => {
+          dispatch(
+              addSubject({
+                  subject: subject.subject,
+                  classDuration: subject.classduration,
+              })
+          );
 
+          addedSubjects.push(subject.subject);
+      });
+    }
 
-    normalizedData['Subjects'].forEach((subject) => {
-      dispatch(
-        addSubject({
-          subject: subject.subject,
-          classDuration: subject.classduration,
-        })
-      );
+    if (normalizedData['Teachers']) {
+      normalizedData['Teachers'].forEach((teacher) => {
+          const subjIds = [];
 
-      addedSubjects.push(subject.subject);
-    });
-
-    normalizedData['Teachers'].forEach((teacher) => {
-      const subjIds = [];
-
-      const subjArray = teacher.subjects.split(',').map(subject => subject.trim());
-      subjArray.forEach((subjectName) => {
-        for (let index = 0; index < addedSubjects.length; index++) {
-          if (addedSubjects[index].toLowerCase() === subjectName.toLowerCase()) {
-            subjIds.push(index + 1);
-            break;
-          }
-        }
-      })
-
-      dispatch(
-        addTeacher({
-          teacher: teacher.teacher,
-          subjects: subjIds,
-        })
-      );
-
-      addedTeachers.push(teacher.teacher);
-    });
-
-    normalizedData['Programs'].slice(1).forEach((program) => {
-      // console.log(`program['']: `, program['']);
-      const subjIds7 = [];
-      const subjIds8 = [];
-      const subjIds9 = [];
-      const subjIds10 = [];
-
-      const subjArray7 = program[7].split(',').map(subject => subject.trim());
-      subjArray7.forEach((subjectName) => {
-        for (let index = 0; index < addedSubjects.length; index++) {
-          if (addedSubjects[index].toLowerCase() === subjectName.toLowerCase()) {
-            subjIds7.push(index + 1);
-            break;
-          }
-        }
-      })
-      const subjArray8 = program[8].split(',').map(subject => subject.trim());
-      subjArray8.forEach((subjectName) => {
-        for (let index = 0; index < addedSubjects.length; index++) {
-          if (addedSubjects[index].toLowerCase() === subjectName.toLowerCase()) {
-            subjIds8.push(index + 1);
-            break;
-          }
-        }
-      })
-      const subjArray9 = program[9].split(',').map(subject => subject.trim());
-      subjArray9.forEach((subjectName) => {
-        for (let index = 0; index < addedSubjects.length; index++) {
-          if (addedSubjects[index].toLowerCase() === subjectName.toLowerCase()) {
-            subjIds9.push(index + 1);
-            break;
-          }
-        }
-      })
-      const subjArray10 = program[10].split(',').map(subject => subject.trim());
-      subjArray10.forEach((subjectName) => {
-        for (let index = 0; index < addedSubjects.length; index++) {
-          if (addedSubjects[index].toLowerCase() === subjectName.toLowerCase()) {
-            subjIds10.push(index + 1);
-            break;
-          }
-        }
-      })
-
-      dispatch(
-        addProgram({
-          program: program.program,
-          7 : {
-            subjects: subjIds7,
-            shift: program[''] === 'AM' ? 0 : 1,
-            startTime: getTimeSlotIndex(program['_1']),
-          },
-          8 : {
-            subjects: subjIds8,
-            shift: program['_2'] === 'AM' ? 0 : 1,
-            startTime: getTimeSlotIndex(program['_3']),
-          },
-          9 : {
-            subjects: subjIds9,
-            shift: program['_4'] === 'AM' ? 0 : 1,
-            startTime: getTimeSlotIndex(program['_5']),
-          },
-          10 : {
-            subjects: subjIds10,
-            shift: program['_6'] === 'AM' ? 0 : 1,
-            startTime: getTimeSlotIndex(program['_7']),
-          },
-        })
-      );
-      addedPrograms.push(program.program);
-    });
-
-    normalizedData['Sections'].forEach((section) => {
-      const formattedSubjectUnits = {};
-  
-      // Split the subjects string and trim each subject
-      const subjArray = section.subjects.split(',').map(subject => subject.trim());
-  
-      // Iterate over each subject in the array
-      subjArray.forEach((subjName) => {
-          // Match the subject name, units, and priority using regex
-          const match = subjName.match(/(.+?) \((\d+)\)\s?\((\-?\d+)\)/);
-  
-          if (match) {
-              const subjectName = match[1].trim(); // Extract the subject name
-              const units = parseInt(match[2], 10); // Extract the units
-              const priority = parseInt(match[3], 10); // Extract the priority
-  
-              // Find the subject's ID in the addedSubjects array
+          const subjArray = teacher.subjects.split(',').map(subject => subject.trim());
+          subjArray.forEach((subjectName) => {
               for (let index = 0; index < addedSubjects.length; index++) {
                   if (addedSubjects[index].toLowerCase() === subjectName.toLowerCase()) {
-                      // Save the subject ID with its corresponding [units, priority] array
-                      formattedSubjectUnits[index + 1] = [units, priority];
+                      subjIds.push(index + 1);
                       break;
                   }
               }
-          }
+          });
+
+          dispatch(
+              addTeacher({
+                  teacher: teacher.teacher,
+                  subjects: subjIds,
+              })
+          );
+
+          addedTeachers.push(teacher.teacher);
       });
-  
-      // Get the program and teacher IDs
-      const progID = addedPrograms.findIndex(program => program.toLowerCase() === section.program.toLowerCase()) + 1;
-      const advID = addedTeachers.findIndex(teacher => teacher.toLowerCase() === section.adviser.toLowerCase()) + 1;
-  
-      // Dispatch the updated section data
-      dispatch(
-          addSection({
-              section: section.sectionname,
-              teacher: advID,
-              program: progID,
-              year: section.year,
-              subjects: formattedSubjectUnits, // Updated subjects with units and priority
-              shift: section.shift === 'AM' ? 0 : 1,
-              startTime: getTimeSlotIndex(section.starttime),
-          })
-      );
-    });
+    }
+
+    if (normalizedData['Programs']) {
+      normalizedData['Programs'].slice(1).forEach((program) => {
+          const subjIds7 = [];
+          const subjIds8 = [];
+          const subjIds9 = [];
+          const subjIds10 = [];
+
+          const subjArray7 = program[7].split(',').map(subject => subject.trim());
+          subjArray7.forEach((subjectName) => {
+              for (let index = 0; index < addedSubjects.length; index++) {
+                  if (addedSubjects[index].toLowerCase() === subjectName.toLowerCase()) {
+                      subjIds7.push(index + 1);
+                      break;
+                  }
+              }
+          });
+
+          const subjArray8 = program[8].split(',').map(subject => subject.trim());
+          subjArray8.forEach((subjectName) => {
+              for (let index = 0; index < addedSubjects.length; index++) {
+                  if (addedSubjects[index].toLowerCase() === subjectName.toLowerCase()) {
+                      subjIds8.push(index + 1);
+                      break;
+                  }
+              }
+          });
+
+          const subjArray9 = program[9].split(',').map(subject => subject.trim());
+          subjArray9.forEach((subjectName) => {
+              for (let index = 0; index < addedSubjects.length; index++) {
+                  if (addedSubjects[index].toLowerCase() === subjectName.toLowerCase()) {
+                      subjIds9.push(index + 1);
+                      break;
+                  }
+              }
+          });
+
+          const subjArray10 = program[10].split(',').map(subject => subject.trim());
+          subjArray10.forEach((subjectName) => {
+              for (let index = 0; index < addedSubjects.length; index++) {
+                  if (addedSubjects[index].toLowerCase() === subjectName.toLowerCase()) {
+                      subjIds10.push(index + 1);
+                      break;
+                  }
+              }
+          });
+
+          dispatch(
+              addProgram({
+                  program: program.program,
+                  7: {
+                      subjects: subjIds7,
+                      shift: program[''] === 'AM' ? 0 : 1,
+                      startTime: getTimeSlotIndex(program['_1']),
+                  },
+                  8: {
+                      subjects: subjIds8,
+                      shift: program['_2'] === 'AM' ? 0 : 1,
+                      startTime: getTimeSlotIndex(program['_3']),
+                  },
+                  9: {
+                      subjects: subjIds9,
+                      shift: program['_4'] === 'AM' ? 0 : 1,
+                      startTime: getTimeSlotIndex(program['_5']),
+                  },
+                  10: {
+                      subjects: subjIds10,
+                      shift: program['_6'] === 'AM' ? 0 : 1,
+                      startTime: getTimeSlotIndex(program['_7']),
+                  },
+              })
+          );
+          addedPrograms.push(program.program);
+      });
+    }
+
+    if (normalizedData['Sections']) {
+      normalizedData['Sections'].forEach((section) => {
+          const formattedSubjectUnits = {};
+
+          const subjArray = section.subjects.split(',').map(subject => subject.trim());
+
+          subjArray.forEach((subjName) => {
+              const match = subjName.match(/(.+?) \((\d+)\)\s?\((\-?\d+)\)/);
+
+              if (match) {
+                  const subjectName = match[1].trim();
+                  const units = parseInt(match[2], 10);
+                  const priority = parseInt(match[3], 10);
+
+                  for (let index = 0; index < addedSubjects.length; index++) {
+                      if (addedSubjects[index].toLowerCase() === subjectName.toLowerCase()) {
+                          formattedSubjectUnits[index + 1] = [units, priority];
+                          break;
+                      }
+                  }
+              }
+          });
+
+          const progID = addedPrograms.findIndex(program => program.toLowerCase() === section.program.toLowerCase()) + 1;
+          const advID = addedTeachers.findIndex(teacher => teacher.toLowerCase() === section.adviser.toLowerCase()) + 1;
+
+          dispatch(
+              addSection({
+                  section: section.sectionname,
+                  teacher: advID,
+                  program: progID,
+                  year: section.year,
+                  subjects: formattedSubjectUnits,
+                  shift: section.shift === 'AM' ? 0 : 1,
+                  startTime: getTimeSlotIndex(section.starttime),
+              })
+          );
+      });
+    }
+
   }
 
   return (
@@ -509,10 +512,10 @@ const ExportImportDBButtons = () => {
             <button
               className="btn btn-primary"
               onClick={() => {
-                clearAllEntriesAcrossStores();
+                onClear();
                 document.getElementById("import-confirmation-modal").close();
                 document.getElementById("import-format-modal").showModal();
-              }}
+              }}              
             >
               Upload Data File <BiUpload size={20} />
             </button>

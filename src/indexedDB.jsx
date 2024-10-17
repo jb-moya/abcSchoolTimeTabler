@@ -168,14 +168,22 @@ export const getAllEntitiesFromDB = async (storeName) => {
   return entity;
 };
 
-export const clearAllEntriesAcrossStores = async () => {
+export const clearAllEntriesAndResetIDs = async () => {
+
   const db = await initDB();
-  const storeNames = Object.values(STORE_NAMES);
-  for (const storeName of storeNames) {
-    const tx = db.transaction(storeName, 'readwrite');
-    const store = tx.objectStore(storeName);
-    await store.clear();
-  }
+  db.close();
+  
+  const dbName = 'abcTimetable';
+  const request = indexedDB.deleteDatabase(dbName);
+
+  request.onsuccess = function () {
+    console.log(`Database ${dbName} successfully deleted.`);
+    initDB();
+  };
+
+  request.onerror = function () {
+    console.error(`Failed to delete the database ${dbName}.`);
+  };
 };
 
 export const exportIndexedDB = (dbName) => {
