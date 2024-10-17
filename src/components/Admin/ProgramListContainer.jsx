@@ -737,7 +737,7 @@ const ProgramListContainer = ({ editable = false }) => {
             {Object.values(searchProgramResult).length === 0 ? (
               <tr>
                 <td colSpan="5" className="text-center">
-                  No programs found
+                  No Programs Found
                 </td>
               </tr>
             ) : (
@@ -912,25 +912,39 @@ const ProgramListContainer = ({ editable = false }) => {
 
       {/* Pagination */}
       {currentItems.length > 0 && (
-          <div className="join mt-4 flex justify-center">
-            <button
-              className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
-              onClick={() => setCurrentPage(currentPage - 1)}
-              disabled={currentPage === 1}
-            >
-              «
-            </button>
-            <button className="join-item btn">
-              Page {currentPage} of {totalPages}
-            </button>
-            <button
-              className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
-              onClick={() => setCurrentPage(currentPage + 1)}
-              disabled={currentPage === totalPages}
-            >
-              »
-            </button>
-          </div>
+        <div className="join mt-4 flex justify-center">
+          <button
+            className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
+            onClick={() => {
+              if (currentPage > 1) {
+                setCurrentPage(currentPage - 1);
+              }
+            }}
+            disabled={currentPage === 1}
+          >
+            «
+          </button>
+          <button className="join-item btn">
+            Page {currentPage} of {totalPages}
+          </button>
+          <button
+            className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
+            onClick={() => {
+              if (currentPage < totalPages) {
+                setCurrentPage(currentPage + 1);
+              }
+            }}
+            disabled={currentPage === totalPages}
+          >
+            »
+          </button>
+        </div>
+      )}
+
+      {currentItems.length === 0 && currentPage > 1 && (
+        <div className="hidden">
+          {setCurrentPage(currentPage - 1)}
+        </div>
       )}
     </div>
   </React.Fragment>
