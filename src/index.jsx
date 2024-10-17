@@ -11,7 +11,37 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   // <React.StrictMode>
   <Provider store={store}>
     {/* <WasmProvider> */}
-    <Toaster richColors />
+    <Toaster
+      richColors
+      toastOptions={{
+        style: {
+          backgroundColor: "#1E40AF", 
+          color: "#ffffff",
+          borderRadius: "0.375rem", 
+          boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.2)", 
+        },
+        success: {
+          style: {
+            backgroundColor: "#10B981", // Success color (green)
+          },
+        },
+        error: {
+          style: {
+            backgroundColor: "#EF4444", // Error color (red)
+          },
+        },
+        info: {
+          style: {
+            backgroundColor: "#2563EB", // Info color (blue)
+          },
+        },
+        loading: {
+          style: {
+            backgroundColor: "#F59E0B", // Loading color (yellow)
+          },
+        },
+      }}
+    />
     <App />
     {/* </WasmProvider> */}
   </Provider>
