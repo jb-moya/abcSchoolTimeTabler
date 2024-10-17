@@ -629,13 +629,52 @@ const currentItems = Object.entries(searchSectionResult).slice(indexOfFirstItem,
   return (
     <React.Fragment>
     <div className="w-full">
-      {/* Search Bar and Add Section Button */}
-      <div className="flex flex-col md:flex-row md:gap-4 justify-between items-center mb-5">
-        <div className="flex-grow w-full">
-          <label className="input input-bordered flex items-center gap-2 h-12 w-full">
+      <div className="flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5">
+
+      {/* Pagination */}
+      {currentItems.length > 0 && (
+        <div className="join flex justify-center mb-4 md:mb-0">
+          <button
+            className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
+            onClick={() => {
+              if (currentPage > 1) {
+                setCurrentPage(currentPage - 1);
+              }
+              handleCancelSectionEditClick();
+            }}
+            disabled={currentPage === 1}
+          >
+            «
+          </button>
+          <button className="join-item btn">
+            Page {currentPage} of {totalPages}
+          </button>
+          <button
+            className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
+            onClick={() => {
+              if (currentPage < totalPages) {
+                setCurrentPage(currentPage + 1);
+              }
+              handleCancelSectionEditClick();
+            }}
+            disabled={currentPage === totalPages}
+          >
+            »
+          </button>
+        </div>
+      )}
+
+      {currentItems.length === 0 && currentPage > 1 && (
+        <div className="hidden">
+          {setCurrentPage(currentPage - 1)}
+        </div>
+      )}
+        {/* Search Section */}
+        <div className="flex-grow w-full md:w-1/3 lg:w-1/4">
+          <label className="input input-bordered flex items-center gap-2 w-full">
             <input
               type="text"
-              className="grow p-4 text-sm w-full"
+              className="grow p-3 text-sm w-full"
               placeholder="Search Section"
               value={searchSectionValue}
               onChange={(e) => setSearchSectionValue(e.target.value)}
@@ -647,7 +686,7 @@ const currentItems = Object.entries(searchSectionResult).slice(indexOfFirstItem,
         {editable && (
           <div className="w-full mt-4 md:mt-0 md:w-auto">
             <button
-              className="btn btn-primary h-12 flex items-center justify-center w-full md:w-44"
+              className="btn btn-primary h-12 flex items-center justify-center w-full md:w-52"
               onClick={() => document.getElementById('add_section_modal').showModal()}
             >
               Add Section <IoAdd size={20} className="ml-2" />
@@ -674,301 +713,282 @@ const currentItems = Object.entries(searchSectionResult).slice(indexOfFirstItem,
         )}
       </div>
 
-      {/* Section Table */}
-      <table className="table table-sm table-zebra">
-        <thead>
-          <tr>
-            <th className="w-8">#</th>
-            <th>Section ID</th>
-            <th>Section</th>
-            <th>Adviser</th>
-            <th>Program</th>
-            <th>Year</th>
-            <th>Subjects</th>
-            {editable && <th className="text-right">Actions</th>}
-          </tr>
-        </thead>
-        <tbody>
-           {currentItems.length === 0 ? (
-            <tr>
-              <td colSpan="7" className="text-center">
-                No sections found
-              </td>
-            </tr>
-          ) : (
-            currentItems.map(([, section], index) => (
-              <tr key={section.id} className="group hover">
-                <td>{index + indexOfFirstItem + 1}</td>
-                <th>{section.id}</th>
-                <td>
-                  {editSectionId === section.id ? (
-                    <>
+     {/* Section Table */}
+  <div className="overflow-x-auto">
+  <table className="table table-sm table-zebra min-w-full">
+    <thead>
+      <tr>
+        <th className="w-8">#</th>
+        <th>Section ID</th>
+        <th>Section</th>
+        <th>Adviser</th>
+        <th>Program</th>
+        <th>Year</th>
+        <th>Subjects</th>
+        {editable && <th className="text-right">Actions</th>}
+      </tr>
+    </thead>
+    <tbody>
+      {currentItems.length === 0 ? (
+        <tr>
+          <td colSpan="7" className="text-center">
+            No sections found
+          </td>
+        </tr>
+      ) : (
+        currentItems.map(([, section], index) => (
+          <tr key={section.id} className="group hover">
+            <td>{index + indexOfFirstItem + 1}</td>
+            <th>{section.id}</th>
+            <td>
+              {editSectionId === section.id ? (
+                <>
+                  <input
+                    type="text"
+                    value={editSectionValue}
+                    onChange={(e) => setEditSectionValue(e.target.value)}
+                    className="input input-bordered input-sm w-full"
+                  />
+                  <div className="mt-2">
+                    <label className="mr-2">Shift:</label>
+                    <label className="mr-2">
                       <input
-                        type="text"
-                        value={editSectionValue}
-                        onChange={(e) => setEditSectionValue(e.target.value)}
-                        className="input input-bordered input-sm w-full"
+                        type="radio"
+                        value={editSectionShift}
+                        checked={editSectionShift === 0}
+                        onChange={() => {
+                          setEditSectionShift(0);  // PM shift
+                          setEditSectionStartTime('06:00 AM');  // Reset to default AM start time
+                        }}
                       />
-                      <div className="mt-2">
-                        <label className="mr-2">Shift:</label>
-                        <label className="mr-2">
-                          <input
-                            type="radio"
-                            value={editSectionShift}
-                            checked={editSectionShift === 0}
-                            onChange={() => {
-                              setEditSectionShift(0);  // PM shift
-                              setEditSectionStartTime('06:00 AM');  // Reset to default AM start time
-                            }}
-                          />
-                          AM
-                        </label>
-                        <label>
-                          <input
-                            type="radio"
-                            value={editSectionShift}
-                            checked={editSectionShift === 1}
-                            onChange={() => {
-                              setEditSectionShift(1);  // PM shift
-                              setEditSectionStartTime('01:00 PM');  // Reset to default PM start time
-                            }}
-                          />
-                          PM
-                        </label>
-                      </div>
-                      <div>
-                        <label>Start Time:</label>
-                        <select
-                          value={editSectionStartTime}
-                          onChange={(e) => setEditSectionStartTime(e.target.value)}
-                        >
-                          {renderTimeOptions()}
-                        </select>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="text-base font-bold">{section.section}</div>
-                      <div className="flex items-center mt-2">
-                        <span className="inline-block bg-blue-500 text-white text-sm font-semibold py-1 px-3 rounded-lg">
-                          {section.shift === 0 ? 'AM' : 'PM'}
-                        </span>
-                        <span className="ml-2 text-sm font-medium">
-                          {getTimeSlotString(section.startTime)}
-                        </span>
-                      </div>
-                    </>
-                  )}
-                </td>
-                <td>
-                  {editSectionId === section.id ? (
-                    <select
-                      className="select select-bordered w-full"
-                      value={editSectionAdviser}
-                      onChange={(e) => setEditSectionAdviser(parseInt(e.target.value, 10))}
-                    >
-                      <option value="" disabled>
-                        Assign an adviser
-                      </option>
-                      {Object.keys(teachers).map((key) => (
-                        <option key={teachers[key].id} value={teachers[key].id}>
-                          {teachers[key].teacher}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    teachers[section.teacher]?.teacher || 'Unknown Teacher'
-                  )}
-                </td>
-                <td>
-                  {editSectionId === section.id ? (
-                    <select
-                      value={editSectionProg}
-                      onChange={(e) => {
-                        const newProgram = parseInt(e.target.value, 10);
-                        setEditSectionProg(newProgram);
-                        const subjectsForProgramAndYear =
-                          programs[newProgram]?.[section.year]?.subjects || [];
-                        setEditSectionSubjects(subjectsForProgramAndYear);
-                        const updatedUnits = {};
-                        subjectsForProgramAndYear.forEach((subjectId) => {
-                          updatedUnits[subjectId] = 0;
-                        });
-                        setEditSectionUnitsAndPriority(updatedUnits);
-                      }}
-                      className="select select-bordered"
-                    >
-                      {Object.entries(programs).map(([key, program]) => (
-                        <option key={key} value={key}>
-                          {program.program}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    programs[section.program]?.program || 'Unknown Program'
-                  )}
-                </td>
-                <td>
-                  {editSectionId === section.id ? (
-                    <select
-                      value={editSectionYear}
-                      onChange={(e) => {
-                        const newYear = parseInt(e.target.value, 10);
-                        setEditSectionYear(newYear);
-                        const subjectsForProgramAndYear =
-                          programs[editSectionProg]?.[newYear]?.subjects || [];
-                        setEditSectionSubjects(subjectsForProgramAndYear);
-                        const updatedUnits = {};
-                        subjectsForProgramAndYear.forEach((subjectId) => {
-                          updatedUnits[subjectId] = 0;
-                        });
-                        setEditSectionUnitsAndPriority(updatedUnits);
-                      }}
-                      className="select select-bordered"
-                    >
-                      {[7, 8, 9, 10].map((year) => (
-                        <option key={year} value={year}>
-                          {year}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    section.year
-                  )}
-                </td>
-                <td className="flex gap-1 flex-wrap">
-                {editSectionId === section.id ? (
+                      AM
+                    </label>
+                    <label>
+                      <input
+                        type="radio"
+                        value={editSectionShift}
+                        checked={editSectionShift === 1}
+                        onChange={() => {
+                          setEditSectionShift(1);  // PM shift
+                          setEditSectionStartTime('01:00 PM');  // Reset to default PM start time
+                        }}
+                      />
+                      PM
+                    </label>
+                  </div>
                   <div>
-                    {editSectionSubjects.map((subjectId) => (
+                    <label>Start Time:</label>
+                    <select
+                      value={editSectionStartTime}
+                      onChange={(e) => setEditSectionStartTime(e.target.value)}
+                    >
+                      {renderTimeOptions()}
+                    </select>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-base font-bold">{section.section}</div>
+                  <div className="flex items-center mt-2">
+                    <span className="inline-block bg-blue-500 text-white text-sm font-semibold py-1 px-3 rounded-lg">
+                      {section.shift === 0 ? 'AM' : 'PM'}
+                    </span>
+                    <span className="ml-2 text-sm font-medium">
+                      {getTimeSlotString(section.startTime)}
+                    </span>
+                  </div>
+                </>
+              )}
+            </td>
+            <td>
+              {editSectionId === section.id ? (
+                <select
+                  className="select select-bordered w-full"
+                  value={editSectionAdviser}
+                  onChange={(e) => setEditSectionAdviser(parseInt(e.target.value, 10))}
+                >
+                  <option value="" disabled>
+                    Assign an adviser
+                  </option>
+                  {Object.keys(teachers).map((key) => (
+                    <option key={teachers[key].id} value={teachers[key].id}>
+                      {teachers[key].teacher}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                teachers[section.teacher]?.teacher || 'Unknown Teacher'
+              )}
+            </td>
+            <td>
+              {editSectionId === section.id ? (
+                <select
+                  value={editSectionProg}
+                  onChange={(e) => {
+                    const newProgram = parseInt(e.target.value, 10);
+                    setEditSectionProg(newProgram);
+                    const subjectsForProgramAndYear =
+                      programs[newProgram]?.[section.year]?.subjects || [];
+                    setEditSectionSubjects(subjectsForProgramAndYear);
+                    const updatedUnits = {};
+                    subjectsForProgramAndYear.forEach((subjectId) => {
+                      updatedUnits[subjectId] = 0;
+                    });
+                    setEditSectionUnitsAndPriority(updatedUnits);
+                  }}
+                  className="select select-bordered"
+                >
+                  {Object.entries(programs).map(([key, program]) => (
+                    <option key={key} value={key}>
+                      {program.program}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                programs[section.program]?.program || 'Unknown Program'
+              )}
+            </td>
+            <td>
+              {editSectionId === section.id ? (
+                <select
+                  value={editSectionYear}
+                  onChange={(e) => {
+                    const newYear = parseInt(e.target.value, 10);
+                    setEditSectionYear(newYear);
+                    const subjectsForProgramAndYear =
+                      programs[editSectionProg]?.[newYear]?.subjects || [];
+                    setEditSectionSubjects(subjectsForProgramAndYear);
+                    const updatedUnits = {};
+                    subjectsForProgramAndYear.forEach((subjectId) => {
+                      updatedUnits[subjectId] = 0;
+                    });
+                    setEditSectionUnitsAndPriority(updatedUnits);
+                  }}
+                  className="select select-bordered"
+                >
+                  {[7, 8, 9, 10].map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                section.year
+              )}
+            </td>
+            <td className="flex gap-1 flex-wrap">
+              {editSectionId === section.id ? (
+                <div className="space-y-2">
+                  {editSectionSubjects.map((subjectId) => (
+                    <div
+                      key={subjectId}
+                      className="px-2 flex items-center border border-gray-500 border-opacity-30"
+                    >
+                      <div className="mr-2">
+                        {subjects[subjectId]?.subject || 'Unknown Subject'}
+                      </div>
+                      <input
+                        type="number"
+                        value={editSectionUnitsAndPriority[subjectId][0] || 0}
+                        onChange={(e) =>
+                          setEditSectionUnitsAndPriority({
+                            ...editSectionUnitsAndPriority,
+                            [subjectId]: [
+                              parseInt(e.target.value, 10) || 0, // Set units
+                              editSectionUnitsAndPriority[subjectId]?.[1] || 0, // Preserve priority
+                            ],
+                          })
+                        }
+                        className="input input-xs w-16"
+                      />
+                      <span className="text-xs ml-1">unit(s)</span>
+
+                      <input
+                        type="number"
+                        value={editSectionUnitsAndPriority[subjectId][1] || 0} // Priority input
+                        onChange={(e) =>
+                          setEditSectionUnitsAndPriority({
+                            ...editSectionUnitsAndPriority,
+                            [subjectId]: [
+                              editSectionUnitsAndPriority[subjectId]?.[0] || 0, // Preserve units
+                              parseInt(e.target.value, 10) || 0, // Set priority
+                            ],
+                          })
+                        }
+                        className="input input-xs w-16 ml-2" // Add some margin for spacing
+                      />
+                      <span className="text-xs ml-1">priority</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                subjectStatus === 'succeeded' && (
+                  <div className="space-y-2">
+                    {Object.keys(section.subjects).map((subjectID) => (
                       <div
-                        key={subjectId}
-                        className="px-2 flex items-center border border-gray-500 border-opacity-30"
+                        key={subjectID}
+                        className="px-2 py-1 flex items-center border border-gray-500 border-opacity-30"
                       >
                         <div className="mr-2">
-                          {subjects[subjectId]?.subject || 'Unknown Subject'}
+                          {subjects[subjectID]?.subject || 'Unknown Subject'}
                         </div>
-                        <input
-                          type="number"
-                          value={editSectionUnitsAndPriority[subjectId][0] || 0}
-                          onChange={(e) =>
-                            setEditSectionUnitsAndPriority({
-                              ...editSectionUnitsAndPriority,
-                              [subjectId]: [
-                                parseInt(e.target.value, 10) || 0, // Set units
-                                editSectionUnitsAndPriority[subjectId]?.[1] || 0, // Preserve priority
-                              ],
-                            })
-                          }
-                          className="input input-xs w-16"
-                        />
-                        <span className="text-xs ml-1">unit(s)</span>
-
-                        <input
-                          type="number"
-                          value={editSectionUnitsAndPriority[subjectId][1] || 0} // Priority input
-                          onChange={(e) =>
-                            setEditSectionUnitsAndPriority({
-                              ...editSectionUnitsAndPriority,
-                              [subjectId]: [
-                                editSectionUnitsAndPriority[subjectId]?.[0] || 0, // Preserve units
-                                parseInt(e.target.value, 10) || 0, // Set priority
-                              ],
-                            })
-                          }
-                          className="input input-xs w-16 ml-2" // Add some margin for spacing
-                        />
-                        <span className="text-xs ml-1">priority</span>
+                        <div className="text-xs opacity-75">
+                          <span className="mr-1">{section.subjects[subjectID][0]}</span>
+                          <span>unit(s)</span>
+                          <span> </span>
+                          <span>priority</span>
+                          <span className="mr-1">({section.subjects[subjectID][1]})</span>    
+                        </div>
                       </div>
                     ))}
                   </div>
+                )
+              )}
+            </td>
+
+            {editable && (
+              <td className="w-28 text-right">
+                {editSectionId === section.id ? (
+                  <>
+                    <button
+                      className="btn btn-xs btn-ghost text-green-500"
+                      onClick={() => handleSaveSectionEditClick(section.id)}
+                    >
+                      Save
+                    </button>
+                    <button
+                      className="btn btn-xs btn-ghost text-red-500"
+                      onClick={() => handleCancelSectionEditClick()}
+                    >
+                      Cancel
+                    </button>
+                  </>
                 ) : (
-                    subjectStatus === 'succeeded' && (
-                      <div className="space-y-2">
-                        {Object.keys(section.subjects).map((subjectID) => (
-                          <div
-                            key={subjectID}
-                            className="px-2 py-1 flex items-center border border-gray-500 border-opacity-30"
-                          >
-                            <div className="mr-2">
-                              {subjects[subjectID]?.subject || 'Unknown Subject'}
-                            </div>
-                            <div className="text-xs opacity-75">
-                              <span className="mr-1">{section.subjects[subjectID][0]}</span>
-                              <span>unit(s)</span>
-                              <span> </span>
-                              <span>priority</span>
-                              <span className="mr-1">({section.subjects[subjectID][1]})</span>    
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )
-                  )}
-                </td>
-
-                {editable && (
-                  <td className="w-28 text-right">
-                    {editSectionId === section.id ? (
-                      <>
-                        <button
-                          className="btn btn-xs btn-ghost text-green-500"
-                          onClick={() => handleSaveSectionEditClick(section.id)}
-                        >
-                          Save
-                        </button>
-                        <button
-                          className="btn btn-xs btn-ghost text-red-500"
-                          onClick={() => handleCancelSectionEditClick()}
-                        >
-                          Cancel
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          className="btn btn-xs btn-ghost text-blue-500"
-                          onClick={() => handleEditSectionClick(section)}
-                        >
-                          <RiEdit2Fill />
-                        </button>
-                        <button
-                          className="btn btn-xs btn-ghost text-red-500"
-                          onClick={() => dispatch(removeSection(section.id))}
-                        >
-                          <RiDeleteBin7Line />
-                        </button>
-                      </>
-                    )}
-                  </td>
+                  <>
+                    <button
+                      className="btn btn-xs btn-ghost text-blue-500"
+                      onClick={() => handleEditSectionClick(section)}
+                    >
+                      <RiEdit2Fill />
+                    </button>
+                    <button
+                      className="btn btn-xs btn-ghost text-red-500"
+                      onClick={() => dispatch(removeSection(section.id))}
+                    >
+                      <RiDeleteBin7Line />
+                    </button>
+                  </>
                 )}
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-
-      {/* Pagination */}
-      {currentItems.length > 0 && (
-        <div className="join mt-4 flex justify-center">
-          <button
-            className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
-            onClick={() => setCurrentPage(currentPage - 1)}
-            disabled={currentPage === 1}
-          >
-            «
-          </button>
-          <button className="join-item btn">
-            Page {currentPage} of {totalPages}
-          </button>
-          <button
-            className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
-            onClick={() => setCurrentPage(currentPage + 1)}
-            disabled={currentPage === totalPages}
-          >
-            »
-          </button>
-        </div>
+              </td>
+            )}
+          </tr>
+        ))
       )}
+    </tbody>
+  </table>
+</div>
+
+
     </div>
     
   </React.Fragment>

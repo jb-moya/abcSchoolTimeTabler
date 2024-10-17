@@ -300,55 +300,92 @@ const SubjectListContainer = ({ editable = false }) => {
 
   return (
     <div className="w-full">
-      <div className="flex flex-col md:flex-row md:gap-4 justify-between items-center mb-5">
-        {/* Search Filter */}
-        <div className="flex-grow w-full">
-          <label className="input input-bordered flex items-center gap-2 h-12 w-full">
-            <input
-              type="text"
-              className="grow p-4 text-sm w-full"
-              placeholder="Search Subject"
-              value={searchSubjectValue}
-              onChange={(e) => setSearchSubjectValue(e.target.value)}
-            />
-            <IoSearch className="text-xl" />
-          </label>
+
+      <div className="flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5">
+      {/* Pagination */}
+      {currentItems.length > 0 && (
+        <div className="join flex justify-center  mb-4 md:mb-0">
+          <button
+            className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
+            onClick={() => {
+              if (currentPage > 1) {
+                setCurrentPage(currentPage - 1);
+              }
+              handleCancelSubjectEditClick();
+            }}
+            disabled={currentPage === 1}
+          >
+            «
+          </button>
+          <button className="join-item btn">
+            Page {currentPage} of {totalPages}
+          </button>
+          <button
+            className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
+            onClick={() => {
+              if (currentPage < totalPages) {
+                setCurrentPage(currentPage + 1);
+              }
+              handleCancelSubjectEditClick();
+            }}
+            disabled={currentPage === totalPages}
+          >
+            »
+          </button>
         </div>
+      )}
 
-        {editable && (
-          <div className="w-full mt-4 md:mt-0 md:w-auto">
-            <button
-              className="btn btn-primary h-12 flex items-center justify-center w-full md:w-40"
-              onClick={() => document.getElementById('add_subject_modal').showModal()}
-            >
-              Add Subject <IoAdd size={20} className="ml-2" />
-            </button>
+      {currentItems.length === 0 && currentPage > 1 && (
+        <div className="hidden">
+          {setCurrentPage(currentPage - 1)}
+        </div>
+      )}
 
-            <dialog id="add_subject_modal" className="modal modal-bottom sm:modal-middle">
-              <div className="modal-box">
-                <AddSubjectContainer
-                  close={() => document.getElementById('add_subject_modal').close()}
-                  reduxFunction={addSubject}
-                  defaultSubjectClassDuration={defaultSubjectClassDuration}
-                />
+      {/* Search Subject */}
+      <div className="flex-grow w-full md:w-1/3 lg:w-1/4">
+        <label className="input input-bordered flex items-center gap-2 w-full">
+          <input
+            type="text"
+            className="grow p-3 text-sm w-full"
+            placeholder="Search Subject"
+            value={searchSubjectValue}
+            onChange={(e) => setSearchSubjectValue(e.target.value)}
+          />
+          <IoSearch className="text-xl" />
+        </label>
+      </div>
 
-                {/* Modal close button */}
-                <div className="modal-action">
-                  <button
-                    className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                    onClick={() => {
-                      document.getElementById('add_subject_modal').close();
-                      handleReset();
-                    }}
-                    
-                  >
-                    ✕
-                  </button>
-                </div>
+      {/* Add Subject Button (only when editable) */}
+      {editable && (
+        <div className="w-full mt-4 md:mt-0 md:w-auto">
+          <button
+            className="btn btn-primary h-12 flex items-center justify-center w-full md:w-52"
+            onClick={() => document.getElementById('add_subject_modal').showModal()}
+          >
+            Add Subject <IoAdd size={20} className="ml-2" />
+          </button>
+
+          {/* Modal for adding subject */}
+          <dialog id="add_subject_modal" className="modal modal-bottom sm:modal-middle">
+            <div className="modal-box">
+              <AddSubjectContainer
+                close={() => document.getElementById('add_subject_modal').close()}
+                reduxFunction={addSubject}
+                defaultSubjectClassDuration={defaultSubjectClassDuration}
+              />
+              <div className="modal-action">
+                <button
+                  className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                  onClick={() => document.getElementById('add_subject_modal').close()}
+                >
+                  ✕
+                </button>
               </div>
-            </dialog>
-          </div>
-        )}
+            </div>
+          </dialog>
+        </div>
+      )}
+
       </div>
 
       {/* Table */}
@@ -454,42 +491,6 @@ const SubjectListContainer = ({ editable = false }) => {
         )}
       </div>
 
-      {/* Pagination */}
-      {currentItems.length > 0 && (
-        <div className="join mt-4 flex justify-center">
-          <button
-            className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
-            onClick={() => {
-              if (currentPage > 1) {
-                setCurrentPage(currentPage - 1);
-              }
-            }}
-            disabled={currentPage === 1}
-          >
-            «
-          </button>
-          <button className="join-item btn">
-            Page {currentPage} of {totalPages}
-          </button>
-          <button
-            className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
-            onClick={() => {
-              if (currentPage < totalPages) {
-                setCurrentPage(currentPage + 1);
-              }
-            }}
-            disabled={currentPage === totalPages}
-          >
-            »
-          </button>
-        </div>
-      )}
-
-      {currentItems.length === 0 && currentPage > 1 && (
-        <div className="hidden">
-          {setCurrentPage(currentPage - 1)}
-        </div>
-      )}
     </div>
   );
 };

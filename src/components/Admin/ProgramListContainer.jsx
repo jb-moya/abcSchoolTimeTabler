@@ -673,13 +673,51 @@ const ProgramListContainer = ({ editable = false }) => {
     <React.Fragment>
     <div className="">
 
-      <div className="flex flex-col md:flex-row md:gap-4 justify-between items-center mb-5">
-        {/* Search Filter */}
-        <div className="flex-grow w-full">
-          <label className="input input-bordered flex items-center gap-2 h-12 w-full">
+    <div className="flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5">
+      {/* Pagination */}
+      {currentItems.length > 0 && (
+        <div className="join flex justify-center mb-4 md:mb-0">
+          <button
+            className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
+            onClick={() => {
+              if (currentPage > 1) {
+                setCurrentPage(currentPage - 1);
+              }
+              handleCancelProgramEditClick();
+            }}
+            disabled={currentPage === 1}
+          >
+            «
+          </button>
+          <button className="join-item btn">
+            Page {currentPage} of {totalPages}
+          </button>
+          <button
+            className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
+            onClick={() => {
+              if (currentPage < totalPages) {
+                setCurrentPage(currentPage + 1);
+              }
+              handleCancelProgramEditClick();
+            }}
+            disabled={currentPage === totalPages}
+          >
+            »
+          </button>
+        </div>
+      )}
+
+      {currentItems.length === 0 && currentPage > 1 && (
+        <div className="hidden">
+          {setCurrentPage(currentPage - 1)}
+        </div>
+      )}
+        {/* Search Program */}
+        <div className="flex-grow w-full md:w-1/3 lg:w-1/4">
+          <label className="input input-bordered flex items-center gap-2 w-full">
             <input
               type="text"
-              className="grow p-4 text-sm w-full"
+              className="grow p-3 text-sm w-full"
               placeholder="Search Program"
               value={searchProgramValue}
               onChange={(e) => setSearchProgramValue(e.target.value)}
@@ -687,18 +725,18 @@ const ProgramListContainer = ({ editable = false }) => {
             <IoSearch className="text-xl" />
           </label>
         </div>
-  
+
         {editable && (
           <div className="w-full mt-4 md:mt-0 md:w-auto">
             <button
-              className="btn btn-primary h-12 flex items-center justify-center w-full md:w-44"
+              className="btn btn-primary h-12 flex items-center justify-center w-full md:w-52"
               onClick={() => document.getElementById('add_program_modal').showModal()}
             >
-              Add Program <IoAdd size={20} className="ml-2" />
+              Add Section <IoAdd size={20} className="ml-2" />
             </button>
 
-            <dialog id="add_program_modal" className="modal">
-              <div className="modal-box w-11/12 max-w-xl">
+            <dialog id="add_program_modal" className="modal modal-bottom sm:modal-middle">
+              <div className="modal-box">
                 <AddProgramContainer
                   close={() => document.getElementById('add_program_modal').close()}
                   reduxField={['program', 'subjects']}
@@ -706,7 +744,6 @@ const ProgramListContainer = ({ editable = false }) => {
                   morningStartTime={morningStartTime}
                   afternoonStartTime={afternoonStartTime}
                 />
-                {/* Modal close button */}
                 <div className="modal-action">
                   <button
                     className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
@@ -910,42 +947,6 @@ const ProgramListContainer = ({ editable = false }) => {
         </table>
       </div>
 
-      {/* Pagination */}
-      {currentItems.length > 0 && (
-        <div className="join mt-4 flex justify-center">
-          <button
-            className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
-            onClick={() => {
-              if (currentPage > 1) {
-                setCurrentPage(currentPage - 1);
-              }
-            }}
-            disabled={currentPage === 1}
-          >
-            «
-          </button>
-          <button className="join-item btn">
-            Page {currentPage} of {totalPages}
-          </button>
-          <button
-            className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
-            onClick={() => {
-              if (currentPage < totalPages) {
-                setCurrentPage(currentPage + 1);
-              }
-            }}
-            disabled={currentPage === totalPages}
-          >
-            »
-          </button>
-        </div>
-      )}
-
-      {currentItems.length === 0 && currentPage > 1 && (
-        <div className="hidden">
-          {setCurrentPage(currentPage - 1)}
-        </div>
-      )}
     </div>
   </React.Fragment>
   );
