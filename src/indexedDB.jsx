@@ -168,22 +168,25 @@ export const getAllEntitiesFromDB = async (storeName) => {
   return entity;
 };
 
-export const clearAllEntriesAndResetIDs = async () => {
+export const clearAllEntriesAndResetIDs = () => {
+  return new Promise(async (resolve, reject) => {
+      const db = await initDB();
+      db.close();
 
-  const db = await initDB();
-  db.close();
-  
-  const dbName = 'abcTimetable';
-  const request = indexedDB.deleteDatabase(dbName);
+      const dbName = 'abcTimetable';
+      const request = indexedDB.deleteDatabase(dbName);
 
-  request.onsuccess = function () {
-    console.log(`Database ${dbName} successfully deleted.`);
-    initDB();
-  };
+      request.onsuccess = function () {
+          console.log(`Database ${dbName} successfully deleted.`);
+          initDB();  // Reinitialize the database
+          resolve();  // Resolve the Promise when done
+      };
 
-  request.onerror = function () {
-    console.error(`Failed to delete the database ${dbName}.`);
-  };
+      request.onerror = function () {
+          console.error(`Failed to delete the database ${dbName}.`);
+          reject(new Error(`Failed to delete the database ${dbName}.`));  // Reject the Promise if there's an error
+      };
+  });
 };
 
 export const exportIndexedDB = (dbName) => {

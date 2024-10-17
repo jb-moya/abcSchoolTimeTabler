@@ -31,6 +31,7 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
   const { teachers, status: teacherStatus } = useSelector(
     (state) => state.teacher
   );
+  const { sections } = useSelector((state) => state.section);
   
   const [inputValue, setInputValue] = useState('');
   const [selectedAdviser, setSelectedAdviser] = useState('');
@@ -40,48 +41,81 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
   const [selectedShift, setSelectedShift] = useState(0);
   const [selectedStartTime, setSelectedStartTime] = useState(0);
   const [subjectUnits, setSubjectUnits] = useState({});
+  const [subjectPriorities, setSubjectPriorities] = useState({});
 
   const handleInputChange = (e) => {
     setInputValue(e.target.value);
   };
 
   const handleAddEntry = () => {
-    const formattedSubjectUnits = {};
 
-    selectedSubjects.forEach((subjectID) => {
-      formattedSubjectUnits[subjectID] = subjectUnits[subjectID] || 0;
-    });
+    if (inputValue === '' || selectedAdviser === '' || selectedProgram === '' || selectedYearLevel === '' || selectedSubjects.length === 0 || subjectUnits.length === 0 || subjectPriorities.length === 0) {
+      alert('All fields are required.');
+      return;
+    }
 
-    dispatch(
-      reduxFunction({
-        [reduxField[0]]: inputValue,
-        teacher: selectedAdviser,
-        program: selectedProgram,
-        year: selectedYearLevel,
-        subjects: formattedSubjectUnits,
-        shift: selectedShift,
-        startTime: selectedStartTime,
-      })
+    const duplicateSection = Object.values(sections).find(
+      (section) => section.section.trim().toLowerCase() === inputValue.trim().toLowerCase()
     );
 
-    // setEditSectionValue(''); // Reset section name
+    const duplicateAdviser = Object.values(sections).find(
+      (section) => section.teacher === selectedAdviser
+    );
 
+    if (duplicateSection) {
+      alert('Section already exists.');
+      return;
+    } else if (duplicateAdviser) {
+      alert(`Teacher is already assigned as adviser of section '${duplicateAdviser.section}'`);
+      return;
+    } else {
+      const formattedSubjects = {}; // New object for subjects
+  
+      selectedSubjects.forEach((subjectID) => {
+        formattedSubjects[subjectID] = [
+          subjectUnits[subjectID] || 0,          // units
+          subjectPriorities[subjectID] || 0,     // priority
+        ];
+      });
+    
+      dispatch(
+        reduxFunction({
+          [reduxField[0]]: inputValue,
+          teacher: selectedAdviser,
+          program: selectedProgram,
+          year: selectedYearLevel,
+          subjects: formattedSubjects,
+          shift: selectedShift,
+          startTime: selectedStartTime,
+        })
+      );
+    
+      setInputValue('');
+      setSelectedProgram('');
+      setSelectedYearLevel('');
+      setSelectedSubjects([]);
+      setSelectedShift(0);
+      setSelectedStartTime(0);
+      setSubjectUnits({});
+      setSubjectPriorities({});
+    }
+  
     if (inputNameRef.current) {
       inputNameRef.current.focus();
       inputNameRef.current.select();
     }
-
-    // close();
   };
 
   const handleReset = () => {
     setInputValue('');
     setSelectedProgram('');
     setSelectedYearLevel('');
+    setSelectedAdviser('');
     setSelectedSubjects([]);
     setSelectedShift(0);
     setSelectedStartTime(0);
     setSubjectUnits({});
+    setSubjectPriorities({});
   };
 
   useEffect(() => {
@@ -91,8 +125,8 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
   }, []);
 
   useEffect(() => {
-    console.log('Selected Program:', selectedProgram);
-    console.log('Selected Year Level:', selectedYearLevel);
+    // console.log('Selected Program:', selectedProgram);
+    // console.log('Selected Year Level:', selectedYearLevel);
 
     if (selectedProgram && selectedYearLevel) {
       const program = Object.values(programs).find(
@@ -115,7 +149,7 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
     const newSubjectUnits = {};
     selectedSubjects.forEach((subject) => {
       if (!subjectUnits.hasOwnProperty(subject)) {
-        newSubjectUnits[subject] = 5;
+        newSubjectUnits[subject] = 0;
       } else {
         newSubjectUnits[subject] = subjectUnits[subject];
       }
@@ -224,34 +258,44 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
         </select>
       </div>
 
-      <div className="mt-4">
-        <div className="m-1">Selected Subjects: </div>
-        <div className="mb-3 grid grid-cols-2 gap-x-4 gap-y-2">
-          {selectedSubjects.map((subjectID) => (
-            <div key={subjectID} className="join">
-              <div className="join-item w-72 bg-primary text-primary-content px-2 text-center content-center text-xs md:text-base leading-3">
-                {subjects[subjectID]?.subject || 'Unknown Subject'}
-              </div>
+      <div className="mt-4 text-sm">
+        <div className="m-1">Selected Subjects:</div>
+        {/* Header */}
+        <div className="grid grid-cols-3 gap-4 bg-gray-200 border border-gray-300 px-4 py-2">
+          <div className="text-left">Subjects</div>
+          <div className="text-left">Units</div>
+          <div className="text-left">Priority</div>
+        </div>
+
+        {/* Selected Subjects Display */}
+        {selectedSubjects.map((subjectID) => (
+          <div key={subjectID} className="grid grid-cols-3 gap-4 border-b border-gray-300 px-4 py-2">
+            {/* Subject Name */}
+            <div>
+              {subjects[subjectID]?.subject || 'Unknown Subject'}
+            </div>
+
+            {/* Units Input */}
+            <div className="flex items-center">
               <input
                 type="text"
                 placeholder="Units"
-                className="input w-full join-item"
+                className="input w-full"
                 value={subjectUnits[subjectID] ?? 0}
                 onChange={(e) => {
                   setSubjectUnits({
                     ...subjectUnits,
-                    [subjectID]: parseInt(e.target.value, 10),
+                    [subjectID]: parseInt(e.target.value, 10) || 0,
                   });
                 }}
               />
-
-              <div className="join join-item join-vertical flex w-20 items-center border-y border-r border-primary">
+              <div className="join join-item join-vertical flex w-20 items-center border-l border-gray-300">
                 <button
                   className="join-item h-1/2 w-full bg-secondary hover:brightness-110 flex justify-center"
                   onClick={() => {
                     setSubjectUnits({
                       ...subjectUnits,
-                      [subjectID]: subjectUnits[subjectID] + 1,
+                      [subjectID]: (subjectUnits[subjectID] || 0) + 1,
                     });
                   }}
                 >
@@ -262,7 +306,7 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
                   onClick={() => {
                     setSubjectUnits({
                       ...subjectUnits,
-                      [subjectID]: subjectUnits[subjectID] - 1,
+                      [subjectID]: Math.max((subjectUnits[subjectID] || 0) - 1, 0),
                     });
                   }}
                 >
@@ -270,8 +314,48 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
                 </button>
               </div>
             </div>
-          ))}
-        </div>
+
+            {/* Priority Input */}
+            <div className="flex items-center">
+              <input
+                type="text"
+                placeholder="Priority"
+                className="input w-full"
+                value={subjectPriorities[subjectID] ?? 0}
+                onChange={(e) => {
+                  setSubjectPriorities({
+                    ...subjectPriorities,
+                    [subjectID]: parseInt(e.target.value, 10) || 0,
+                  });
+                }}
+              />
+              <div className="join join-item join-vertical flex w-20 items-center border-l border-gray-300">
+                <button
+                  className="join-item h-1/2 w-full bg-secondary hover:brightness-110 flex justify-center"
+                  onClick={() => {
+                    setSubjectPriorities({
+                      ...subjectPriorities,
+                      [subjectID]: (subjectPriorities[subjectID] || 0) + 1,
+                    });
+                  }}
+                >
+                  <BiChevronUp size={24} />
+                </button>
+                <button
+                  className="join-item h-1/2 w-full bg-secondary hover:brightness-110 flex justify-center"
+                  onClick={() => {
+                    setSubjectPriorities({
+                      ...subjectPriorities,
+                      [subjectID]: Math.max((subjectPriorities[subjectID] || 0) - 1),
+                    });
+                  }}
+                >
+                  <BiChevronDown size={24} />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="flex justify-center gap-4 mt-4">
@@ -281,7 +365,7 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
           <button className="btn btn-primary" onClick={handleAddEntry}>
             Add Section
           </button>
-        </div>
+      </div>
       
     </div>
   );
@@ -310,7 +394,7 @@ const SectionListContainer = ({ editable = false }) => {
   const [editSectionId, setEditSectionId] = useState('');
   const [editSectionValue, setEditSectionValue] = useState('');
   const [editSectionSubjects, setEditSectionSubjects] = useState([]);
-  const [editSectionUnits, setEditSectionUnits] = useState({});
+  const [editSectionUnitsAndPriority, setEditSectionUnitsAndPriority] = useState({});
   const [editSectionShift, setEditSectionShift] = useState(0);
   const [editSectionStartTime, setEditSectionStartTime] = useState('');
 
@@ -327,57 +411,118 @@ const SectionListContainer = ({ editable = false }) => {
     setEditSectionShift(section.shift);
     setEditSectionStartTime(getTimeSlotString(section.startTime));
 
-    // console.log("Section ID:", section.id);
-
     // Convert section.subjects object keys to an array
-    const subjectsArray = Object.keys(section.subjects); // Get the subject IDs from the object
+    const subjectsArray = Object.keys(section.subjects);
 
-    const subjectsWithUnits = subjectsArray.map((subjectId) => ({
-      id: subjectId,
-      name: subjects[subjectId]?.subject || 'Unknown Subject',
-      units: section.subjects[subjectId] || 0,
-    }));
-
-    setEditSectionSubjects(subjectsWithUnits.map(({ id }) => id));
-    // console.log('Subjects with units for section:', subjectsWithUnits);
-
-    setEditSectionUnits(
-      subjectsWithUnits.reduce((acc, { id, units }) => {
-        acc[id] = units;
+    const subjectsWithUnitsAndPriority = subjectsArray.map((subjectId) => {
+      const [units, priority] = section.subjects[subjectId] || [0, 0]; // Destructure units and priority
+      return {
+        id: subjectId,
+        name: subjects[subjectId]?.subject || 'Unknown Subject',
+        units,
+        priority, // Include priority
+      };
+    });
+  
+    setEditSectionSubjects(subjectsWithUnitsAndPriority.map(({ id }) => id));
+  
+    setEditSectionUnitsAndPriority(
+      subjectsWithUnitsAndPriority.reduce((acc, { id, units, priority }) => {
+        acc[id] = [units, priority];
         return acc;
       }, {})
     );
   };
 
   const handleSaveSectionEditClick = (sectionId) => {
-    const updatedUnits = {};
-    editSectionSubjects.forEach((subjectId) => {
-      updatedUnits[subjectId] = editSectionUnits[subjectId] || 0;
-    });
 
-    dispatch(
-      editSection({
-        sectionId,
-        updatedSection: {
-          id: sectionId,
-          teacher: editSectionAdviser,
-          program: editSectionProg,
-          section: editSectionValue,
-          subjects: updatedUnits,
-          year: editSectionYear,
-          shift: editSectionShift,
-          startTime: getTimeSlotIndex(editSectionStartTime),
-        },
-      })
-    );
+    if (!editSectionAdviser || !editSectionValue || !editSectionProg || !editSectionYear || editSectionSubjects.length === 0 || editSectionUnitsAndPriority.length === 0) {
+      alert('Please fill out all required fields.');
+      return;
+    }
 
-    // Reset the editing state
-    setEditSectionId('');
-    setEditSectionValue('');
-    setEditSectionProg('');
-    setEditSectionYear('');
-    setEditSectionSubjects([]);
-    setEditSectionUnits({});
+    const currentSection = sections[sectionId]?.section || '';
+    const currentSectionAdviser = sections[sectionId]?.teacher || '';
+
+    if (editSectionValue.trim().toLowerCase() === currentSection.trim().toLowerCase()
+      && editSectionAdviser === currentSectionAdviser) {
+      const updatedUnits = {};
+      editSectionSubjects.forEach((subjectId) => {
+        updatedUnits[subjectId] = editSectionUnitsAndPriority[subjectId] || [0, 0];
+      });
+
+      dispatch(
+        editSection({
+          sectionId,
+          updatedSection: {
+            id: sectionId,
+            teacher: editSectionAdviser,
+            program: editSectionProg,
+            section: editSectionValue,
+            subjects: updatedUnits,
+            year: editSectionYear,
+            shift: editSectionShift,
+            startTime: getTimeSlotIndex(editSectionStartTime),
+          },
+        })
+      );
+
+      // Reset the editing state
+      setEditSectionId('');
+      setEditSectionValue('');
+      setEditSectionProg('');
+      setEditSectionYear('');
+      setEditSectionSubjects([]);
+      setEditSectionUnitsAndPriority({});
+    } else {
+      const duplicateSection = Object.values(sections).find(
+        (section) => section.section.trim().toLowerCase() === editSectionValue.trim().toLowerCase()
+      );
+
+      const duplicateAdviser = Object.values(sections).find(
+        (section) => section.teacher === editSectionAdviser
+      );
+
+      // console.log('duplicateAdviser: ', duplicateAdviser);
+
+      if (duplicateSection) {
+        alert('Section name already taken.');
+        return;
+      } else if (duplicateAdviser) {
+        alert(`Adviser already assigned to section '${duplicateAdviser.section}'`);
+        return;
+      } else {
+        const updatedUnits = {};
+        editSectionSubjects.forEach((subjectId) => {
+          updatedUnits[subjectId] = editSectionUnitsAndPriority[subjectId] || [0, 0];
+        });
+
+        dispatch(
+          editSection({
+            sectionId,
+            updatedSection: {
+              id: sectionId,
+              teacher: editSectionAdviser,
+              program: editSectionProg,
+              section: editSectionValue,
+              subjects: updatedUnits,
+              year: editSectionYear,
+              shift: editSectionShift,
+              startTime: getTimeSlotIndex(editSectionStartTime),
+            },
+          })
+        );
+
+        // Reset the editing state
+        setEditSectionId('');
+        setEditSectionValue('');
+        setEditSectionProg('');
+        setEditSectionYear('');
+        setEditSectionSubjects([]);
+        setEditSectionUnitsAndPriority({});
+      }
+    }
+
   };
 
   const handleCancelSectionEditClick = () => {
@@ -387,34 +532,26 @@ const SectionListContainer = ({ editable = false }) => {
     setEditSectionProg('');
     setEditSectionYear('');
     setEditSectionSubjects([]);
-    setEditSectionUnits({});
+    setEditSectionUnitsAndPriority({});
   };
 
-  const renderTimeOptions = (shift) => {
+  const renderTimeOptions = () => {
     const times =
-      shift === 'AM'
+      editSectionShift === 0
         ? Array.from({ length: 36 }, (_, i) => {
-          const hours = 6 + Math.floor(i / 6);
-          const minutes = (i % 6) * 10;
-          return `${String(hours).padStart(2, '0')}:${String(
-            minutes
-          ).padStart(2, '0')} AM`;
-        })
-        : Array.from({ length: 1 }, (_, i) => {
-          const hours = 1 + Math.floor(i / 6);
-          const minutes = (i % 6) * 10;
-          return `${String(hours).padStart(2, '0')}:${String(
-            minutes
-          ).padStart(2, '0')} PM`;
-        });
-
+            const hours = 6 + Math.floor(i / 6);
+            const minutes = (i % 6) * 10;
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} AM`;
+          })
+        : ['01:00 PM']; // Only one option for PM
+  
     return times.map((time) => (
       <option key={time} value={time}>
         {time}
       </option>
     ));
   };
-  
+   
   const debouncedSearch = useCallback(
     debounce((searchValue, sections, subjects) => {
       setSearchSectionResult(
@@ -472,6 +609,10 @@ const SectionListContainer = ({ editable = false }) => {
       dispatch(fetchTeachers());
     }
   }, [teacherStatus, dispatch]);
+
+  useEffect(() => {
+    console.log('editSectionAdviser: ', editSectionAdviser);
+  }, [editSectionAdviser]);
 
 
 const itemsPerPage = 10; // Adjust this to change items per page
@@ -575,7 +716,10 @@ const currentItems = Object.entries(searchSectionResult).slice(indexOfFirstItem,
                             type="radio"
                             value={editSectionShift}
                             checked={editSectionShift === 0}
-                            onChange={() => setEditSectionShift(0)}
+                            onChange={() => {
+                              setEditSectionShift(0);  // PM shift
+                              setEditSectionStartTime('06:00 AM');  // Reset to default AM start time
+                            }}
                           />
                           AM
                         </label>
@@ -584,7 +728,10 @@ const currentItems = Object.entries(searchSectionResult).slice(indexOfFirstItem,
                             type="radio"
                             value={editSectionShift}
                             checked={editSectionShift === 1}
-                            onChange={() => setEditSectionShift(1)}
+                            onChange={() => {
+                              setEditSectionShift(1);  // PM shift
+                              setEditSectionStartTime('01:00 PM');  // Reset to default PM start time
+                            }}
                           />
                           PM
                         </label>
@@ -647,7 +794,7 @@ const currentItems = Object.entries(searchSectionResult).slice(indexOfFirstItem,
                         subjectsForProgramAndYear.forEach((subjectId) => {
                           updatedUnits[subjectId] = 0;
                         });
-                        setEditSectionUnits(updatedUnits);
+                        setEditSectionUnitsAndPriority(updatedUnits);
                       }}
                       className="select select-bordered"
                     >
@@ -675,7 +822,7 @@ const currentItems = Object.entries(searchSectionResult).slice(indexOfFirstItem,
                         subjectsForProgramAndYear.forEach((subjectId) => {
                           updatedUnits[subjectId] = 0;
                         });
-                        setEditSectionUnits(updatedUnits);
+                        setEditSectionUnitsAndPriority(updatedUnits);
                       }}
                       className="select select-bordered"
                     >
@@ -690,45 +837,51 @@ const currentItems = Object.entries(searchSectionResult).slice(indexOfFirstItem,
                   )}
                 </td>
                 <td className="flex gap-1 flex-wrap">
-                  {editSectionId === section.id ? (
-                    <div>
-                      {editSectionSubjects.map((subjectId) => (
-                        <div
-                          key={subjectId}
-                          className="px-2 flex items-center border border-gray-500 border-opacity-30"
-                        >
-                          <div className="mr-2">
-                            {subjects[subjectId]?.subject || 'Unknown Subject'}
-                          </div>
-                          <input
-                            type="number"
-                            value={editSectionUnits[subjectId] || 0}
-                            onChange={(e) =>
-                              setEditSectionUnits({
-                                ...editSectionUnits,
-                                [subjectId]: parseInt(e.target.value, 10),
-                              })
-                            }
-                            className="input input-xs w-16"
-                          />
-                          <span className="text-xs ml-1">unit(s)</span>
-                          <button
-                            className="btn btn-xs btn-outline ml-2"
-                            onClick={() => {
-                              setEditSectionSubjects(
-                                editSectionSubjects.filter((id) => id !== subjectId)
-                              );
-                              const updatedUnits = { ...editSectionUnits };
-                              delete updatedUnits[subjectId];
-                              setEditSectionUnits(updatedUnits);
-                            }}
-                          >
-                            Remove
-                          </button>
+                {editSectionId === section.id ? (
+                  <div>
+                    {editSectionSubjects.map((subjectId) => (
+                      <div
+                        key={subjectId}
+                        className="px-2 flex items-center border border-gray-500 border-opacity-30"
+                      >
+                        <div className="mr-2">
+                          {subjects[subjectId]?.subject || 'Unknown Subject'}
                         </div>
-                      ))}
-                    </div>
-                  ) : (
+                        <input
+                          type="number"
+                          value={editSectionUnitsAndPriority[subjectId][0] || 0}
+                          onChange={(e) =>
+                            setEditSectionUnitsAndPriority({
+                              ...editSectionUnitsAndPriority,
+                              [subjectId]: [
+                                parseInt(e.target.value, 10) || 0, // Set units
+                                editSectionUnitsAndPriority[subjectId]?.[1] || 0, // Preserve priority
+                              ],
+                            })
+                          }
+                          className="input input-xs w-16"
+                        />
+                        <span className="text-xs ml-1">unit(s)</span>
+
+                        <input
+                          type="number"
+                          value={editSectionUnitsAndPriority[subjectId][1] || 0} // Priority input
+                          onChange={(e) =>
+                            setEditSectionUnitsAndPriority({
+                              ...editSectionUnitsAndPriority,
+                              [subjectId]: [
+                                editSectionUnitsAndPriority[subjectId]?.[0] || 0, // Preserve units
+                                parseInt(e.target.value, 10) || 0, // Set priority
+                              ],
+                            })
+                          }
+                          className="input input-xs w-16 ml-2" // Add some margin for spacing
+                        />
+                        <span className="text-xs ml-1">priority</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
                     subjectStatus === 'succeeded' && (
                       <div className="space-y-2">
                         {Object.keys(section.subjects).map((subjectID) => (
@@ -740,8 +893,11 @@ const currentItems = Object.entries(searchSectionResult).slice(indexOfFirstItem,
                               {subjects[subjectID]?.subject || 'Unknown Subject'}
                             </div>
                             <div className="text-xs opacity-75">
-                              <span className="mr-1">{section.subjects[subjectID]}</span>
+                              <span className="mr-1">{section.subjects[subjectID][0]}</span>
                               <span>unit(s)</span>
+                              <span> </span>
+                              <span>priority</span>
+                              <span className="mr-1">({section.subjects[subjectID][1]})</span>    
                             </div>
                           </div>
                         ))}
@@ -791,15 +947,12 @@ const currentItems = Object.entries(searchSectionResult).slice(indexOfFirstItem,
         </tbody>
       </table>
 
+      {/* Pagination */}
       {currentItems.length > 0 && (
         <div className="join mt-4 flex justify-center">
           <button
             className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
-            onClick={() => {
-              if (currentPage > 1) {
-                setCurrentPage(currentPage - 1);
-              }
-            }}
+            onClick={() => setCurrentPage(currentPage - 1)}
             disabled={currentPage === 1}
           >
             «
@@ -809,21 +962,11 @@ const currentItems = Object.entries(searchSectionResult).slice(indexOfFirstItem,
           </button>
           <button
             className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
-            onClick={() => {
-              if (currentPage < totalPages) {
-                setCurrentPage(currentPage + 1);
-              }
-            }}
+            onClick={() => setCurrentPage(currentPage + 1)}
             disabled={currentPage === totalPages}
           >
             »
           </button>
-        </div>
-      )}
-
-      {currentItems.length === 0 && currentPage > 1 && (
-        <div className="hidden">
-          {setCurrentPage(currentPage - 1)}
         </div>
       )}
     </div>

@@ -511,8 +511,8 @@ const ExportImportDBButtons = ({ onClear }) => {
           <div className="modal-action">
             <button
               className="btn btn-primary"
-              onClick={() => {
-                onClear();
+              onClick={async () => {
+                await onClear();  // Wait for the onClear function to complete
                 document.getElementById("import-confirmation-modal").close();
                 document.getElementById("import-format-modal").showModal();
               }}              
