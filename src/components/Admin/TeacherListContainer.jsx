@@ -42,6 +42,7 @@ const SuccessModal = ({ message, onClose }) => {
   );
 };
 
+
 const AddTeacherContainer = ({
   close,
   reduxFunction,
@@ -105,6 +106,10 @@ const AddTeacherContainer = ({
     }
   }, [dispatch, subjectStatus]);
 
+  const handleSuccessClick = ({ message }) => {
+    toast.success(message);
+  };
+
   return (
     <div>
         <div className="flex justify-center mb-4">
@@ -147,8 +152,6 @@ const AddTeacherContainer = ({
 
         
         </div>
-
-
 
           
         </div>
