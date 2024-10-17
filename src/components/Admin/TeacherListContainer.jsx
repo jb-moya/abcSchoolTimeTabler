@@ -407,7 +407,7 @@ const TeacherListContainer = ({ editable = false }) => {
                     subjectStatus === 'succeeded' &&
                     teacher.subjects.map((subject) => (
                       <div key={subject} className="badge badge-secondary m-1">
-                        {subjects[subject].subject}
+                        {subjects[subject]?.subject || 'Unknown Subject'}
                       </div>
                     ))
                   )}

@@ -18,6 +18,9 @@ import ExportImportDBButtons from '@components/Admin/ExportImportDBButtons';
 
 import { getTimeSlotString } from '../../../components/Admin/timeSlotMapper';
 import Breadcrumbs from '@components/Admin/Breadcrumbs';
+import {
+    clearAllEntriesAndResetIDs,
+} from "@src/indexedDB";
 
 
 const getTimetable = wrap(new WasmWorker());
@@ -41,6 +44,8 @@ function Timetable() {
     const [timetableGenerationStatus, setTimetableGenerationStatus] =
         useState('idle');
     const [violations, setViolations] = useState([]);
+
+    const [refreshKey, setRefreshKey] = useState(0);
 
     // Scope and Limitations
     // Room-Section Relationship: Each room is uniquely assigned to a specific subject, establishing a 1:1 relationship.
@@ -701,6 +706,13 @@ function Timetable() {
         XLSX.writeFile(teacherWorkbook, 'teacher_schedules.xlsx');
     };
 
+    const handleClearAndRefresh = () => {
+        // clearAllEntriesAndResetIDs().then(() => {
+        //     setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey to trigger re-render
+        // });
+        clearAllEntriesAndResetIDs();
+    };
+
     useEffect(() => {
         // Function to handle the beforeunload event
         const handleBeforeUnload = (event) => {
@@ -721,14 +733,11 @@ function Timetable() {
 
     return (
         <div className="App container mx-auto px-4 py-6">
-
-        
-
             <div className="mb-6 flex justify-between items-center">
                     <Breadcrumbs title="Timetable" links={links} /> 
                     <div className="flex items-center gap-2">
 
-                        <ExportImportDBButtons />   
+                        <ExportImportDBButtons onClear={handleClearAndRefresh} />   
                             <button
                                 className={clsx('btn btn-primary', {
                                     'cursor-not-allowed': timetableGenerationStatus === 'running',
@@ -769,34 +778,35 @@ function Timetable() {
       <TeacherListContainer />
     </div>
   </div> */}
+            <div >
+                <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
+                    <h2 className="text-lg font-semibold mb-4">Subjects</h2>
+                    <SubjectListContainer/>
+                </div>
 
-            <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
-                <h2 className="text-lg font-semibold mb-4">Subjects</h2>
-                <SubjectListContainer />
-            </div>
+                <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
+                    <h2 className="text-lg font-semibold mb-4">Teachers</h2>
+                    <TeacherListContainer />
+                </div>
 
-            <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
-                <h2 className="text-lg font-semibold mb-4">Teachers</h2>
-                <TeacherListContainer />
-            </div>
+                {/* Program Lists */}
+                <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
+                    <h2 className="text-lg font-semibold mb-4">Programs</h2>
+                    <ProgramListContainer />
+                </div>
 
-            {/* Program Lists */}
-            <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
-                <h2 className="text-lg font-semibold mb-4">Programs</h2>
-                <ProgramListContainer />
-            </div>
-
-            {/* Section List with the Generate Timetable Button */}
-            <div className="mt-6">
-                <div className="bg-base-100 p-6 rounded-lg shadow-lg">
-                    <h2 className="text-lg font-semibold mb-4">Sections</h2>
-                    <SectionListContainer />
-                    <div className="mt-4">
-                        <ViolationList violations={violations} />
+                {/* Section List with the Generate Timetable Button */}
+                <div className="mt-6">
+                    <div className="bg-base-100 p-6 rounded-lg shadow-lg">
+                        <h2 className="text-lg font-semibold mb-4">Sections</h2>
+                        <SectionListContainer />
+                        <div className="mt-4">
+                            <ViolationList violations={violations} />
+                        </div>
                     </div>
                 </div>
             </div>
-
+            
             {Object.keys(sectionTimetables).length > 0 &&
                 Object.keys(teacherTimetables).length > 0 && (
                     <button
