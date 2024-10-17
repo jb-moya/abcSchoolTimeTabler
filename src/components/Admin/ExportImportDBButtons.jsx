@@ -269,6 +269,12 @@ const ExportImportDBButtons = ({ onClear }) => {
     const addedSubjects = [];
     const addedTeachers = [];
     const addedPrograms = [];
+    const addedSections = [];
+
+    const unaddedSubjects = [];
+    const unaddedTeachers = [];
+    const unaddedPrograms = [];
+    const unaddedSections = [];
 
     const normalizeKeys = (obj) => {
       const normalizedObj = {};
@@ -290,157 +296,306 @@ const ExportImportDBButtons = ({ onClear }) => {
     // Check if sheets exist before adding entries
     if (normalizedData['Subjects']) {
       normalizedData['Subjects'].forEach((subject) => {
-          dispatch(
-              addSubject({
-                  subject: subject.subject,
-                  classDuration: subject.classduration,
-              })
-          );
+        if (subject.subject === '' || subject.subject === null || subject.subject === undefined
+            || subject.classduration === '' || subject.classduration === null || subject.classduration === undefined
+        ) {
+            unaddedSubjects.push([0, subject]);
+            return;
+        }
 
-          addedSubjects.push(subject.subject);
+        const isDuplicateSub = addedSubjects.find((sub) => sub.subject.trim().toLowerCase() === subject.subject.trim().toLowerCase());
+
+        if (isDuplicateSub) {
+          // console.log(subject);
+          unaddedSubjects.push([1, subject]);
+          return;
+        } else {
+          dispatch(
+            addSubject({
+                subject: subject.subject,
+                classDuration: subject.classduration,
+            })
+          );
+          addedSubjects.push(subject);
+        }
       });
     }
 
     if (normalizedData['Teachers']) {
       normalizedData['Teachers'].forEach((teacher) => {
+
+        if (teacher.teacher === '' || teacher.teacher === null || teacher.teacher === undefined
+            || teacher.subjects === '' || teacher.subjects === null || teacher.subjects === undefined
+        ) {
+          unaddedTeachers.push([0, teacher]);
+          return;
+        }
+
+        const isDuplicateTeacher = addedTeachers.find((t) => t.trim().toLowerCase() === teacher.teacher.trim().toLowerCase());
+
+        if (isDuplicateTeacher) {
+          unaddedTeachers.push([1, teacher]);
+          return;
+        } else {
           const subjIds = [];
 
           const subjArray = teacher.subjects.split(',').map(subject => subject.trim());
           subjArray.forEach((subjectName) => {
-              for (let index = 0; index < addedSubjects.length; index++) {
-                  if (addedSubjects[index].toLowerCase() === subjectName.toLowerCase()) {
-                      subjIds.push(index + 1);
-                      break;
-                  }
-              }
+            let found = false;
+
+            for (let index = 0; index < addedSubjects.length; index++) {
+                if (addedSubjects[index]['subject'].trim().toLowerCase() === subjectName.trim().toLowerCase()) {
+                    subjIds.push(index + 1);
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+              subjIds.push(-1);
+            }
           });
 
-          dispatch(
+          if (subjIds.includes(-1)) {
+            unaddedTeachers.push([2, teacher]);
+            return;
+          } else {
+            dispatch(
               addTeacher({
                   teacher: teacher.teacher,
                   subjects: subjIds,
               })
-          );
+            );
 
-          addedTeachers.push(teacher.teacher);
+            addedTeachers.push(teacher.teacher);
+          }
+          
+        }
       });
     }
 
     if (normalizedData['Programs']) {
       normalizedData['Programs'].slice(1).forEach((program) => {
-          const subjIds7 = [];
-          const subjIds8 = [];
-          const subjIds9 = [];
-          const subjIds10 = [];
+          if (program.program === '' || program.program === null || program.program === undefined
+              || program[7] === '' || program[7] === null || program[7] === undefined
+              || program[8] === '' || program[8] === null || program[8] === undefined
+              || program[9] === '' || program[9] === null || program[9] === undefined
+              || program[10] === '' || program[10] === null || program[10] === undefined
+              || program[''] === '' || program[''] === null || program[''] === undefined
+              || program['_1'] === '' || program['_1'] === null || program['_1'] === undefined
+              || program['_2'] === '' || program['_2'] === null || program['_2'] === undefined
+              || program['_3'] === '' || program['_3'] === null || program['_3'] === undefined
+              || program['_4'] === '' || program['_4'] === null || program['_4'] === undefined
+              || program['_5'] === '' || program['_5'] === null || program['_5'] === undefined
+              || program['_6'] === '' || program['_6'] === null || program['_6'] === undefined
+              || program['_7'] === '' || program['_7'] === null || program['_7'] === undefined
+          ) {
+            unaddedPrograms.push([0, program]);
+            return;
+          }
 
-          const subjArray7 = program[7].split(',').map(subject => subject.trim());
-          subjArray7.forEach((subjectName) => {
+          const isDuplicateProgram = addedPrograms.find((p) => p.program.trim().toLowerCase() === program.program.trim().toLowerCase());
+
+          if (isDuplicateProgram) { 
+            unaddedPrograms.push([1, program]);
+            return;
+          } else {
+            const subjIds7 = [];
+            const subjIds8 = [];
+            const subjIds9 = [];
+            const subjIds10 = [];
+
+            const subjArray7 = program[7].split(',').map(subject => subject.trim());
+            subjArray7.forEach((subjectName) => {
+              let found = false; // Flag to track if the subject was found
+
               for (let index = 0; index < addedSubjects.length; index++) {
-                  if (addedSubjects[index].toLowerCase() === subjectName.toLowerCase()) {
+                  if (addedSubjects[index]['subject'].trim().toLowerCase() === subjectName.trim().toLowerCase()) {
                       subjIds7.push(index + 1);
+                      found = true;
                       break;
                   }
               }
-          });
+          
+              if (!found) {
+                  subjIds7.push(-1);
+              }
+            });
 
-          const subjArray8 = program[8].split(',').map(subject => subject.trim());
-          subjArray8.forEach((subjectName) => {
+            const subjArray8 = program[8].split(',').map(subject => subject.trim());
+            subjArray8.forEach((subjectName) => {
+              let found = false;
+
               for (let index = 0; index < addedSubjects.length; index++) {
-                  if (addedSubjects[index].toLowerCase() === subjectName.toLowerCase()) {
+                  if (addedSubjects[index]['subject'].trim().toLowerCase() === subjectName.trim().toLowerCase()) {
                       subjIds8.push(index + 1);
+                      found = true;
                       break;
                   }
               }
-          });
+          
+              if (!found) {
+                  subjIds8.push(-1);
+              }
+            });
 
-          const subjArray9 = program[9].split(',').map(subject => subject.trim());
-          subjArray9.forEach((subjectName) => {
+            const subjArray9 = program[9].split(',').map(subject => subject.trim());
+            subjArray9.forEach((subjectName) => {
+              let found = false; // Flag to track if the subject was found
+
               for (let index = 0; index < addedSubjects.length; index++) {
-                  if (addedSubjects[index].toLowerCase() === subjectName.toLowerCase()) {
+                  if (addedSubjects[index]['subject'].trim().toLowerCase() === subjectName.trim().toLowerCase()) {
                       subjIds9.push(index + 1);
+                      found = true;
                       break;
                   }
               }
-          });
+          
+              if (!found) {
+                  subjIds9.push(-1);
+              }
+            });
 
-          const subjArray10 = program[10].split(',').map(subject => subject.trim());
-          subjArray10.forEach((subjectName) => {
+            const subjArray10 = program[10].split(',').map(subject => subject.trim());
+            subjArray10.forEach((subjectName) => {
+              let found = false; // Flag to track if the subject was found
+
               for (let index = 0; index < addedSubjects.length; index++) {
-                  if (addedSubjects[index].toLowerCase() === subjectName.toLowerCase()) {
+                  if (addedSubjects[index]['subject'].trim().toLowerCase() === subjectName.trim().toLowerCase()) {
                       subjIds10.push(index + 1);
+                      found = true;
                       break;
                   }
               }
-          });
+          
+              if (!found) {
+                  subjIds10.push(-1);
+              }
+            });
 
-          dispatch(
-              addProgram({
-                  program: program.program,
-                  7: {
-                      subjects: subjIds7,
-                      shift: program[''] === 'AM' ? 0 : 1,
-                      startTime: getTimeSlotIndex(program['_1']),
-                  },
-                  8: {
-                      subjects: subjIds8,
-                      shift: program['_2'] === 'AM' ? 0 : 1,
-                      startTime: getTimeSlotIndex(program['_3']),
-                  },
-                  9: {
-                      subjects: subjIds9,
-                      shift: program['_4'] === 'AM' ? 0 : 1,
-                      startTime: getTimeSlotIndex(program['_5']),
-                  },
-                  10: {
-                      subjects: subjIds10,
-                      shift: program['_6'] === 'AM' ? 0 : 1,
-                      startTime: getTimeSlotIndex(program['_7']),
-                  },
-              })
-          );
-          addedPrograms.push(program.program);
+            if (subjIds7.includes(-1) || subjIds8.includes(-1) || subjIds9.includes(-1) || subjIds10.includes(-1)) {
+              unaddedPrograms.push([2, program]);
+              return;
+            } else {
+              dispatch(
+                addProgram({
+                    program: program.program,
+                    7: {
+                        subjects: subjIds7,
+                        shift: program[''] === 'AM' ? 0 : 1,
+                        startTime: getTimeSlotIndex(program['_1']),
+                    },
+                    8: {
+                        subjects: subjIds8,
+                        shift: program['_2'] === 'AM' ? 0 : 1,
+                        startTime: getTimeSlotIndex(program['_3']),
+                    },
+                    9: {
+                        subjects: subjIds9,
+                        shift: program['_4'] === 'AM' ? 0 : 1,
+                        startTime: getTimeSlotIndex(program['_5']),
+                    },
+                    10: {
+                        subjects: subjIds10,
+                        shift: program['_6'] === 'AM' ? 0 : 1,
+                        startTime: getTimeSlotIndex(program['_7']),
+                    },
+                })
+              );
+              addedPrograms.push(program);
+            }
+          }
       });
     }
 
     if (normalizedData['Sections']) {
+      const assignedAdviser = [];
+
       normalizedData['Sections'].forEach((section) => {
-          const formattedSubjectUnits = {};
 
-          const subjArray = section.subjects.split(',').map(subject => subject.trim());
+          if(section.sectionname === '' || section.sectionname === null || section.sectionname === undefined
+              || section.program === '' || section.program === null || section.program === undefined
+              || section.adviser === '' || section.adviser === null || section.adviser === undefined
+              || section.year === '' || section.year === null || section.year === undefined
+              || section.subjects === '' || section.subjects === null || section.subjects === undefined 
+              || section.shift == '' || section.shift === null || section.shift === undefined
+              || section.starttime == '' || section.starttime === null || section.starttime === undefined
+          ) {
+            unaddedSections.push([0, section]);
+            return;
+          }
 
-          subjArray.forEach((subjName) => {
-              const match = subjName.match(/(.+?) \((\d+)\)\s?\((\-?\d+)\)/);
+          const isDuplicateSection = addedSections.find((s) => s['sectionname'].trim().toLowerCase() === section.sectionname.trim().toLowerCase());
+          if (isDuplicateSection) {
+            unaddedSections.push([1, section]);
+            return;
+          } else {
+            const formattedSubjectUnits = {};
+            const isUnknownSubject = [];
 
-              if (match) {
-                  const subjectName = match[1].trim();
-                  const units = parseInt(match[2], 10);
-                  const priority = parseInt(match[3], 10);
+            const subjArray = section.subjects.split(',').map(subject => subject.trim());
 
-                  for (let index = 0; index < addedSubjects.length; index++) {
-                      if (addedSubjects[index].toLowerCase() === subjectName.toLowerCase()) {
-                          formattedSubjectUnits[index + 1] = [units, priority];
-                          break;
-                      }
-                  }
-              }
-          });
+            subjArray.forEach((subjName) => {
+                const match = subjName.match(/(.+?) \((\d+)\)\s?\((\-?\d+)\)/);
+                let found = false;
 
-          const progID = addedPrograms.findIndex(program => program.toLowerCase() === section.program.toLowerCase()) + 1;
-          const advID = addedTeachers.findIndex(teacher => teacher.toLowerCase() === section.adviser.toLowerCase()) + 1;
+                if (match) {
+                    const subjectName = match[1].trim();
+                    const units = parseInt(match[2], 10);
+                    const priority = parseInt(match[3], 10);
 
-          dispatch(
-              addSection({
-                  section: section.sectionname,
-                  teacher: advID,
-                  program: progID,
-                  year: section.year,
-                  subjects: formattedSubjectUnits,
-                  shift: section.shift === 'AM' ? 0 : 1,
-                  startTime: getTimeSlotIndex(section.starttime),
-              })
-          );
+                    for (let index = 0; index < addedSubjects.length; index++) {
+                        if (addedSubjects[index]['subject'].toLowerCase() === subjectName.toLowerCase()) {
+                            formattedSubjectUnits[index + 1] = [units, priority];
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found) {
+                      isUnknownSubject.push(-1);
+                    }
+                }
+            });
+
+            const progID = addedPrograms.findIndex(program => program['program'].trim().toLowerCase() === section.program.trim().toLowerCase()) + 1;
+            const advID = addedTeachers.findIndex(teacher => teacher.trim().toLowerCase() === section.adviser.trim().toLowerCase()) + 1;
+
+            if (isUnknownSubject.length > 0) {
+              unaddedSections.push([2, section]);
+              return;
+            } else if (progID === 0 || advID === 0) {
+              unaddedSections.push([3, section]);
+              return;
+            } else if (assignedAdviser.includes(advID)) {
+              unaddedSections.push([4, section]);
+              return;
+            } else {
+              dispatch(
+                addSection({
+                    section: section.sectionname,
+                    teacher: advID,
+                    program: progID,
+                    year: section.year,
+                    subjects: formattedSubjectUnits,
+                    shift: section.shift === 'AM' ? 0 : 1,
+                    startTime: getTimeSlotIndex(section.starttime),
+                })
+              );
+
+              addedSections.push(section);
+              assignedAdviser.push(advID);
+            }
+          }
       });
     }
+
+    console.log('Violation 0 is for empty fields\nViolation 1 is for duplicate entries (any database)\nViolation 2 is for unknown subject\nViolation 3 is for unknown program or adviser\nViolation 4 is for multiple advisorship');
+
+    console.log('unaddedSubjects', unaddedSubjects);
+    console.log('unaddedTeachers', unaddedTeachers);
+    console.log('unaddedPrograms', unaddedPrograms);
+    console.log('unaddedSections', unaddedSections);
 
   }
 
