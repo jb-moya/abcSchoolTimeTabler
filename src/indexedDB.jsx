@@ -8,6 +8,7 @@ const DB_VERSION = 1;
 export const STORE_NAMES = {
   SUBJECTS: 'subjects',
   TEACHERS: 'teachers',
+  RANKS: 'ranks',
   SECTIONS: 'sections',
   PROGRAMS: 'programs',
 };
@@ -38,6 +39,7 @@ export const addEntityToDB = async (storeName, entity) => {
 
     return key;
   } catch (error) {
+    console.log(error);
     toast.error('Failed to add entity to DB');
   }
 };

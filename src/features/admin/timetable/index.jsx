@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import ViolationList from '@components/Admin/ViolationList';
 import SubjectListContainer from '@components/Admin/SubjectListContainer';
 import ProgramListContainer from '@components/Admin/ProgramListContainer';
-import TeacherListContainer from '@components/Admin/TeacherListContainer';
+import TeacherListContainer from '@components/Admin/Teacher/TeacherListContainer';
 import SectionListContainer from '@components/Admin/SectionListContainer';
 import ExportImportDBButtons from '@components/Admin/ExportImportDBButtons';
 

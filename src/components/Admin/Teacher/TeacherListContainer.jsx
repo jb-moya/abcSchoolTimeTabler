@@ -7,9 +7,10 @@ import {
   removeTeacher,
 } from '@features/teacherSlice';
 import { fetchSubjects } from '@features/subjectSlice';
+import { fetchRanks } from '@features/rankSlice';
 import debounce from 'debounce';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
-import SearchableDropdownToggler from './searchableDropdown';
+import SearchableDropdownToggler from '../searchableDropdown';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
@@ -42,30 +43,42 @@ const SuccessModal = ({ message, onClose }) => {
   );
 };
 
-
 const AddTeacherContainer = ({
   close,
   reduxFunction,
 }) => {
   const inputNameRef = useRef();
+
   const { subjects, status: subjectStatus } = useSelector(
     (state) => state.subject
   );
+  const { ranks, status: rankStatus } = useSelector(
+    (state) => state.rank
+  );
   const { teachers } = useSelector((state) => state.teacher);
+
   const dispatch = useDispatch();
 
   const [teacherName, setTeacherName] = useState('');
+  const [teacherRank, setTeacherRank] = useState(null);
   const [selectedSubjects, setSelectedSubjects] = useState([]);
-
+  const [assignedYearLevels, setAssignedYearLevels] = useState([]);
+  
   const handleAddTeacher = () => {
 
     if (!teacherName.trim()) {
       alert('Teacher name cannot be empty.');
       return;
-    } else if (selectedSubjects.length === 0) {
-      alert('Please assign subject specialization');
+    } else if (teacherRank === null) {
+      alert('Please assign teacher rank.');
       return;
-    }
+    } else if (selectedSubjects.length === 0) {
+      alert('Please assign subject specialization(s).');
+      return;
+    } else if (assignedYearLevels.length === 0) {
+      alert('Please assign year level assignment(s).');
+      return;
+    } 
 
     const duplicateTeacher = Object.values(teachers).find(
       (teacher) => teacher.teacher.trim().toLowerCase() === teacherName.trim().toLowerCase()
@@ -78,7 +91,9 @@ const AddTeacherContainer = ({
       dispatch(
         reduxFunction({
           teacher: teacherName,
+          rank: teacherRank,
           subjects: selectedSubjects,
+          yearLevels: assignedYearLevels,
         })
       );
     }
@@ -89,9 +104,25 @@ const AddTeacherContainer = ({
     }
   };
 
+  const handleRankChange = (event) => {
+    setTeacherRank(parseInt(event.target.value));
+  };
+
+  const handleYearLevelChange = (yearLevel) => {
+    setAssignedYearLevels((prevLevels) => {
+      if (prevLevels.includes(yearLevel)) {
+        return prevLevels.filter((level) => level !== yearLevel);
+      } else {
+        return [...prevLevels, yearLevel];
+      }
+    });
+  };
+
   const handleReset = () => {
     setTeacherName('');
     setSelectedSubjects([]);
+    setAssignedYearLevels([]);
+    setTeacherRank(null);
   };
 
   useEffect(() => {
@@ -106,65 +137,148 @@ const AddTeacherContainer = ({
     }
   }, [dispatch, subjectStatus]);
 
+  useEffect(() => {
+    if (rankStatus === 'idle') {
+      dispatch(fetchRanks());
+    }
+  }, [dispatch, rankStatus]);
+
+  useEffect(() => {
+    console.log(ranks);
+  }, [ranks]);
+
   const handleSuccessClick = ({ message }) => {
     toast.success(message);
   };
 
   return (
-    <div>
-        <div className="flex justify-center mb-4">
-          <h3 className="text-xl font-bold">Add New Teacher</h3>
+    <div className="justify-left">
+      <div className="flex justify-center mb-4">
+        <h3 className="text-xl font-bold">Add New Teacher</h3>
+      </div>
+
+      {/* Teacher Name */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-1" htmlFor="teacherName">Teacher Name:</label>
+        <input
+          id="teacherName"
+          type="text"
+          className="input input-bordered w-full"
+          value={teacherName}
+          onChange={(e) => setTeacherName(e.target.value)}
+          placeholder="Enter teacher name"
+          aria-label="Teacher Name"
+          ref={inputNameRef} 
+        />
+      </div>
+
+      {/* Teacher Rank */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-1" htmlFor="teacherRank">Select Rank:</label>
+        <select
+          id="teacherRank"
+          className="input input-bordered w-full"
+          value={teacherRank || ''}
+          onChange={handleRankChange}
+        >
+          <option value="" disabled>
+            Select rank
+          </option>
+          {ranks && Object.keys(ranks).length > 0 ? (
+            Object.values(ranks).map((rank) => (
+              <option key={rank.id} value={rank.id}>
+                {rank.rank} - Load: {rank.load}
+              </option>
+            ))
+          ) : (
+            <option disabled>No ranks available</option>
+          )}
+        </select>
+      </div>
+
+      {/* Assigning of Subjects */}
+      <div className="mt-5">
+        <div>
+          <h4 className="font-bold align-right">Selected Subjects:</h4>
+          <div className="flex gap-2 flex-wrap">
+            {selectedSubjects.length === 0 ? (
+              <span className="text-gray-500 mt-1">No subjects selected</span>
+            ) : (
+              selectedSubjects.map((subjectID) => (
+                <div key={subjectID} className="badge badge-secondary mb-2">
+                  {subjects[subjectID].subject}
+                </div>
+              ))
+            )}
+          </div>
         </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1" htmlFor="teacherName">Teacher Name:</label>
-          <input
-            id="teacherName"
-            type="text"
-            className="input input-bordered w-full"
-            value={teacherName}
-            onChange={(e) => setTeacherName(e.target.value)}
-            placeholder="Enter teacher name"
-            aria-label="Teacher Name"
-            ref={inputNameRef} 
-          />
-        </div>
-
-        <div className="mb-4">
-
-        <div className="flex flex-col md:flex-row mb-20 space-x-4">
-          
-                <SearchableDropdownToggler
-                  selectedList={selectedSubjects}
-                  setSelectedList={setSelectedSubjects}
-                />
-                  <div className="flex gap-2 flex-wrap ml-4 max-w-72">
-                {selectedSubjects.length === 0 ? (
-                  <span className="text-gray-500">No subjects selected</span>
-                ) : (
-                  selectedSubjects.map((subjectID) => (
-                    <div key={subjectID} className="badge badge-secondary mb-2">
-                      {subjects[subjectID].subject}
-                    </div>
-                  ))
-                )}
-              </div>
-
-        
-        </div>
-
-          
-        </div>
-     
-        <div className="flex justify-center gap-4 mt-4">
-          <button className="btn btn-secondary" onClick={handleReset}>
-            Reset
-          </button>
-          <button className="btn btn-primary" onClick={handleAddTeacher}>
-            Add Teacher
-          </button>
+        <div className="flex flex-col md:flex-row mt-3 justify-center space-x-4">
+          <div>
+            <SearchableDropdownToggler
+              selectedList={selectedSubjects}
+              setSelectedList={setSelectedSubjects}
+            />
+          </div>
         </div>
       </div>
+
+      {/* Assigning of Year Levels to Teach */}
+      <div className="mt-5">
+        <h3 className="font-bold">Select Year Levels:</h3>
+        <div>
+          <label>
+            <input
+              type="checkbox"
+              checked={assignedYearLevels.includes(0)}
+              onChange={() => handleYearLevelChange(0)}
+            />
+            Grade 7
+          </label>
+        </div>
+
+        <div>
+          <label>
+            <input
+              type="checkbox"
+              checked={assignedYearLevels.includes(1)}
+              onChange={() => handleYearLevelChange(1)}
+            />
+            Grade 8
+          </label>
+        </div>
+
+        <div>
+          <label>
+            <input
+              type="checkbox"
+              checked={assignedYearLevels.includes(2)}
+              onChange={() => handleYearLevelChange(2)}
+            />
+            Grade 9
+          </label>
+        </div>
+
+        <div>
+          <label>
+            <input
+              type="checkbox"
+              checked={assignedYearLevels.includes(3)}
+              onChange={() => handleYearLevelChange(3)}
+            />
+            Grade 10
+          </label>
+        </div>
+      </div>
+    
+      <div className="flex justify-center gap-4 mt-4">
+        <button className="btn btn-secondary" onClick={handleReset}>
+          Reset
+        </button>
+        <button className="btn btn-primary" onClick={handleAddTeacher}>
+          Add Teacher
+        </button>
+      </div>
+    </div>
 
   );
 };
@@ -180,23 +294,32 @@ const TeacherListContainer = ({ editable = false }) => {
     (state) => state.subject
   );
 
+  const { ranks, status: rankStatus } = useSelector(
+    (state) => state.rank
+  );
+
   const [editTeacherId, setEditTeacherId] = useState(null);
+  const [editTeacherRank, setEditTeacherRank] = useState(0);
   const [editTeacherValue, setEditTeacherValue] = useState('');
   const [editTeacherCurr, setEditTeacherCurr] = useState([]);
+  const [editTeacherYearLevels, setEditTeacherYearLevels] = useState([]);
+
   const [searchTeacherResult, setSearchTeacherResult] = useState(teachers);
   const [searchTeacherValue, setSearcTeacherValue] = useState('');
-  const [openAddTeacherContainer, setOpenAddTeacherContainer] = useState(false);
-  const [editSubjectCurr, setEditSubjectCurr] = useState([]);
+  // const [openAddTeacherContainer, setOpenAddTeacherContainer] = useState(false);
+  // const [editSubjectCurr, setEditSubjectCurr] = useState([]);
 
   const handleEditTeacherClick = (teacher) => {
     setEditTeacherId(teacher.id);
+    setEditTeacherRank(teacher.rank);
     setEditTeacherValue(teacher.teacher);
     setEditTeacherCurr(teacher.subjects);
+    setEditTeacherYearLevels(teacher.yearLevels);
   };
 
   const handleSaveTeacherEditClick = (teacherId) => {
 
-    if (!editTeacherValue.trim() || editTeacherCurr.length === 0) {
+    if (!editTeacherValue.trim() || editTeacherRank === 0 || editTeacherCurr.length === 0 || editTeacherYearLevels.length === 0) {
       alert('All fields are required.');
       return;
     }
@@ -209,14 +332,18 @@ const TeacherListContainer = ({ editable = false }) => {
           teacherId,
           updatedTeacher: {
             teacher: editTeacherValue,
+            rank: editTeacherRank,
             subjects: editTeacherCurr,
+            yearLevels: editTeacherYearLevels,
           },
         })
       );
 
       setEditTeacherId(null);
+      setEditTeacherRank(0);
       setEditTeacherValue('');
       setEditTeacherCurr([]);
+      setEditTeacherYearLevels([]);
     } else {
       const duplicateTeacher = Object.values(teachers).find(
         (teacher) => teacher.teacher.trim().toLowerCase() === editTeacherValue.trim().toLowerCase()
@@ -231,21 +358,39 @@ const TeacherListContainer = ({ editable = false }) => {
             teacherId,
             updatedTeacher: {
               teacher: editTeacherValue,
+              rank: editTeacherRank,
               subjects: editTeacherCurr,
+              yearLevels: editTeacherYearLevels,
             },
           })
         );
         setEditTeacherId(null);
+        setEditTeacherRank(0);
         setEditTeacherValue('');
         setEditTeacherCurr([]);
+        setEditTeacherYearLevels([]);
       }
     }
   };
 
   const handleCancelTeacherEditClick = () => {
     setEditTeacherId(null);
+    setEditTeacherRank(0);
     setEditTeacherValue('');
     setEditTeacherCurr([]);
+    setEditTeacherYearLevels([]);
+  };
+
+  const handleRankChange = (event) => {
+    setEditTeacherRank(parseInt(event.target.value));
+  };
+
+  const handleYearLevelChange = (level) => {
+    if (editTeacherYearLevels.includes(level)) {
+      setEditTeacherYearLevels(editTeacherYearLevels.filter((l) => l !== level));
+    } else {
+      setEditTeacherYearLevels([...editTeacherYearLevels, level]);
+    }
   };
 
   const debouncedSearch = useCallback(
@@ -289,11 +434,15 @@ const TeacherListContainer = ({ editable = false }) => {
     }
   }, [subjectStatus, dispatch]);
 
-  
+  useEffect(() => {
+    if (rankStatus === 'idle') {
+      dispatch(fetchRanks());
+    }
+  }, [rankStatus, dispatch]);
+
   const handleCloseModal = () => {
     setShowSuccessModal(false);
   };
-
 
   const itemsPerPage = 10; // Change this to adjust the number of items per page
   const [currentPage, setCurrentPage] = useState(1);
@@ -402,7 +551,9 @@ const TeacherListContainer = ({ editable = false }) => {
               <th className="w-8">#</th>
               <th className="whitespace-nowrap">Teacher ID</th>
               <th className="whitespace-nowrap">Teacher</th>
+              <th className="whitespace-nowrap">Rank</th>
               <th className="whitespace-nowrap max-w-xs">Subject Specialization</th>
+              <th className="whitespace-nowrap max-w-xs">Assigned Year Level(s)</th>
               {editable && <th className="w-28 text-right">Actions</th>}
             </tr>
           </thead>
@@ -428,6 +579,33 @@ const TeacherListContainer = ({ editable = false }) => {
                       />
                     ) : (
                       teacher.teacher
+                    )}
+                  </td>
+                  <td>
+                    {editTeacherId === teacher.id ? (
+                      <div>
+                        <select
+                          id="teacherRank"
+                          className="input input-bordered input-sm w-full"
+                          value={editTeacherRank || ''}
+                          onChange={handleRankChange}
+                        >
+                          <option value="" disabled>
+                            Select rank
+                          </option>
+                          {ranks && Object.keys(ranks).length > 0 ? (
+                            Object.values(ranks).map((rank) => (
+                              <option key={rank.id} value={rank.id}>
+                                {rank.rank}
+                              </option>
+                            ))
+                          ) : (
+                            <option disabled>No ranks available</option>
+                          )}
+                        </select>
+                      </div>
+                    ) : (
+                      ranks[teacher.rank]?.rank || "Unknown Rank"
                     )}
                   </td>
                   <td className="flex gap-1 flex-wrap">
@@ -456,6 +634,85 @@ const TeacherListContainer = ({ editable = false }) => {
                           {subjects[subject]?.subject || 'Unknown Subject'}
                         </div>
                       ))
+                    )}
+                  </td>
+                  <td>
+                    {editTeacherId === teacher.id ? (
+                      <div>
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={editTeacherYearLevels.includes(0)}
+                            onChange={() => handleYearLevelChange(0)}
+                          />
+                          Grade 7
+                        </label>
+                        <br />
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={editTeacherYearLevels.includes(1)}
+                            onChange={() => handleYearLevelChange(1)}
+                          />
+                          Grade 8
+                        </label>
+                        <br />
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={editTeacherYearLevels.includes(2)}
+                            onChange={() => handleYearLevelChange(2)}
+                          />
+                          Grade 9
+                        </label>
+                        <br />
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={editTeacherYearLevels.includes(3)}
+                            onChange={() => handleYearLevelChange(3)}
+                          />
+                          Grade 10
+                        </label>
+                      </div>
+                    ) : (
+                      <div>
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={teacher.yearLevels.includes(0)}
+                            readOnly
+                          />
+                          Grade 7
+                        </label>
+                        <br />
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={teacher.yearLevels.includes(1)}
+                            readOnly
+                          />
+                          Grade 8
+                        </label>
+                        <br />
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={teacher.yearLevels.includes(2)}
+                            readOnly
+                          />
+                          Grade 9
+                        </label>
+                        <br />
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={teacher.yearLevels.includes(3)}
+                            readOnly
+                          />
+                          Grade 10
+                        </label>
+                      </div>
                     )}
                   </td>
                   {editable && (
