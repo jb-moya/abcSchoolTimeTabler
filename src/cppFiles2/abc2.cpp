@@ -1876,17 +1876,48 @@ void runExperiment(
 			total_cost += bees_vector[i].total_cost;
 		}
 
-		double averageCost = total_cost / bees_employed;
+		// double averageCost = (total_cost / bees_employed) + 1e-6;  // Add small constant to avoid division by zero
+		double averageCost = (total_cost / bees_employed);
+		if (averageCost < 1e-6) {
+			averageCost = 1e-6;  // Ensure averageCost is never too small
+		}
+
+		// print("averageCost", averageCost);
 
 		vector<double> fitness_values(bees_employed, 0);
 		double fSum = 0;
 		for (int i = 0; i < bees_employed; i++) {
-			fitness_values[i] = exp(-bees_vector[i].total_cost / averageCost);
+			// print("bees_vector[i].total_cost", bees_vector[i].total_cost);
+			// print("averageCost", averageCost);
+			// print("bees_vector[i].total_cost / averageCost", bees_vector[i].total_cost / averageCost);
+			fitness_values[i] = 1.0 / (1.0 + (bees_vector[i].total_cost / averageCost));
+			// fitness_values[i] = exp(-(bees_vector[i].total_cost / averageCost));
+
+			// Add a check to avoid overflow or other numerical issues
+			if (std::isinf(fitness_values[i]) || std::isnan(fitness_values[i])) {
+				print("Numerical issue with fitness value", i);
+				exit(1);
+			}
+
+			// if (std::isinf(fitness_values[i])) {
+			// 	print("x", std::isinf(fitness_values[i]));
+			// 	exit(1);
+			// }
+
 			fSum += fitness_values[i];
 		}
 
-		vector<double> prob(bees_employed, 0);
+		if (fSum < 1e-6) {
+			print("fSum too small, potential issue with cost values");
+			exit(1);
+		}
+
+		// print("fSum", fSum);
+
+		vector<double>
+		    prob(bees_employed, 0);
 		for (int i = 0; i < bees_employed; i++) {
+			// print("fitness_values[i] / fSum", fitness_values[i] / fSum);
 			prob[i] = fitness_values[i] / fSum;
 		}
 
@@ -1906,12 +1937,7 @@ void runExperiment(
 		for (int m = 0; m < bees_onlooker; m++) {
 			int i = fitness_proportionate_selection(prob);
 
-			int random_bee;
-			do {
-				random_bee = rand() % bees_employed;
-			} while (random_bee == i);
-
-			Bee new_bee = bees_vector[random_bee];
+			Bee new_bee = bees_vector[i];
 			affected_teachers.clear();
 			affected_sections.clear();
 
