@@ -68,10 +68,13 @@
 
 // using namespace std;
 
-struct SchoolClass {
-	int16_t subject_id;
-	int16_t teacher_id;
-};
+#define CLASS_TIMESLOT_OVERLAP_INT 1
+#define NO_BREAK_INT 2
+#define EXCEED_WORKLOAD_INT 3
+#define CLASS_GAP_INT 4
+#define EARLY_BREAK_INT 5
+#define SMALL_BREAK_GAP_INT 6
+#define LATE_BREAK_INT 7
 
 struct ClassStartEnd {
 	int start;
@@ -91,6 +94,44 @@ struct sectionViolation {
 	unsigned long long late_break;
 };
 
+// struct Subject {
+// 	int16_t id;
+
+// 	static std::vector<int16_t> s_eligible_teachers;
+// };
+
+struct Teacher {
+	int16_t id;
+
+	int max_work_load;
+	std::unordered_map<int, std::map<int, int>> utilized_time;
+	std::unordered_map<int, int> class_count;
+
+	bool has_violation;
+
+	void initializeClass(int work_week);
+};
+
+struct SchoolClass {
+	int16_t subject_id;
+	int16_t teacher_id;
+};
+
+struct Section {
+	int16_t id;
+
+	std::map<int, std::unordered_map<int, SchoolClass>> classes;
+
+	std::unordered_map<int, ClassStartEnd> time_range;
+	std::set<int> break_slots;
+
+	std::unordered_set<int> segmented_timeslot;
+	std::unordered_map<int, std::set<int>> fixed_timeslot_day;
+	std::unordered_set<int16_t> utilized_teachers;
+
+	bool has_violation;
+};
+
 struct Timetable {
 	static int s_break_timeslot_allowance;
 	static int s_teacher_break_threshold;
@@ -104,14 +145,19 @@ struct Timetable {
 	static std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> s_section_subjects_order;
 	static std::unordered_map<int16_t, std::vector<int16_t>> s_eligible_teachers_in_subject;
 	static std::unordered_set<int16_t> s_section_dynamic_subject_consistent_duration;
+static std::unordered_map<int16_t, int> s_section_not_allowed_breakslot_gap;
 	static std::unordered_map<int16_t, std::vector<int16_t>> s_section_subjects;
 	static std::unordered_map<int16_t, int> s_section_total_duration;
-	static std::unordered_map<int16_t, int> s_section_fixed_subject;
+// // static std::unordered_map<int16_t, int> s_section_fixed_subject;  // TODO: remove
 	static std::unordered_map<int16_t, int> s_section_timeslot;
 	static std::unordered_map<int16_t, int> s_section_start;
+
 	static std::unordered_set<int16_t> s_teachers_set;
 	static std::unordered_set<int16_t> s_sections_set;
+
 	static std::vector<int> s_section_num_breaks;
+
+	// static std::unordered_map<int16_t, int> s_section_break_slot;
 
 	static std::uniform_int_distribution<int16_t> s_random_section;
 	static std::uniform_int_distribution<int8_t> s_random_workDay;
@@ -126,21 +172,12 @@ struct Timetable {
 
 	static int getRandomInRange(int n);
 
+	static int16_t getRandomTeacher(int16_t subject_id);
+
 	// section                  timeslot      days                    subject/teacher
-	std::unordered_map<int16_t, std::map<int, std::unordered_map<int, SchoolClass>>> school_classes;
-	// section                  timeslot
-	std::unordered_map<int16_t, std::unordered_map<int, ClassStartEnd>> school_class_time_range;
-
-	std::unordered_map<int16_t, std::set<int>> section_break_slots;
-	// teachers                 days                    classes (timeslot)
-	std::unordered_map<int16_t, std::unordered_map<int, std::map<int, int>>> teachers_timeslots;
-	// section                  timeslot
-	std::unordered_map<int16_t, std::unordered_set<int>> section_segmented_timeslot;
-	// day                      teachers
-	std::unordered_map<int16_t, std::vector<int>> teachers_class_count;
-
-	// section								// timeslot     days
-	std::unordered_map<int16_t, std::unordered_map<int, std::set<int>>> section_fixed_timeslot_day;
+// std::unordered_map<int16_t, std::map<int, std::unordered_map<int, SchoolClass>>> school_classes;
+		std::unordered_map<int16_t, Section> sections;
+	std::unordered_map<int16_t, Teacher> teachers;
 
 	std::unordered_set<int16_t> sections_with_conflicts;
 	std::unordered_set<int16_t> teachers_with_conflicts;
@@ -149,7 +186,7 @@ struct Timetable {
 	int16_t pickRandomField(int16_t section);
 	int16_t pickRandomSection();
 
-	void initializeTeachersClass(int teachers);
+// void initializeTeachersClass(int teachers);
 
 	void initializeRandomTimetable(std::unordered_set<int16_t>& update_teachers);
 
@@ -184,10 +221,14 @@ struct Bee {
 		section_violations[section_id].late_break = 0;
 	}
 
-	Bee(int num_teachers) : teacher_violations(num_teachers),
+	Bee(int num_teachers,
+	    std::unordered_map<int16_t, Section> sections,
+	    std::unordered_map<int16_t, Teacher> teachers) : teacher_violations(num_teachers),
 	                        section_violations(num_teachers),
 	                        total_cost(std::numeric_limits<int>::max()) {
-		timetable.initializeTeachersClass(num_teachers);
+// timetable.initializeTeachersClass(num_teachers);
+timetable.sections = sections;
+		timetable.teachers = teachers;
 	}
 };
 
@@ -220,8 +261,9 @@ void runExperiment(
     int default_class_duration,
     int result_buff_length,
     int offset_duration,
-    int64_t* result,
-    int64_t* result_2,
+    int64_t* result_timetable,
+    int64_t* result_timetable_2,
+int64_t* result_violation,
 
     bool enable_logging);
 
@@ -231,21 +273,11 @@ void runExperiment(
 
 std::vector<std::vector<int>> getAllBreaksCombination(int slot_count, int break_count, int gap);
 
-std::vector<int> calculatePositions(
-    std::vector<std::pair<int16_t, int16_t>> subjects_duration_map,
-    int divisions = 1);
-
-int combine(int first, int second);
-int combine(int first, int second, int third);
-
-int extractFirst(int combined);
-int extractSecond(int combined);
-int extractThird(int combined);
-
 int64_t pack5IntToInt64(int16_t a, int16_t b, int16_t c, int8_t d, int8_t e);
 int32_t packInt16ToInt32(int16_t first, int16_t second);
 
-void getResult(Bee& bee, int64_t* result, int64_t* result_2, int offset_duration);
+void getResult(Bee& bee, int64_t* result_timetable, int64_t* result_timetable_2, int offset_duration);
+void getViolation(Bee& bee, int64_t* result_violation);
 
 struct ObjectiveFunction {
 	static void evaluate(
