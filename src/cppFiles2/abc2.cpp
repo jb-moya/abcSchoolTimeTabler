@@ -420,6 +420,40 @@ std::vector<std::vector<int>> getAllBreaksCombination(int slot_count, int break_
 	return combinations;
 }
 
+int16_t Timetable::getRandomTeacher(int16_t subject_id) {
+	std::uniform_int_distribution<> dis(0, Timetable::s_eligible_teachers_in_subject[subject_id].size() - 1);
+	return Timetable::s_eligible_teachers_in_subject[subject_id][dis(randomizer_engine)];
+
+	// std::vector<int16_t>& eligible_teachers = Timetable::s_eligible_teachers_in_subject[subject_id];
+
+	// // Find the teacher who has been assigned the fewest sections
+	// int min_assignments = 999;  // maximum possible number of sections
+	// std::vector<int16_t> least_assigned_teachers;
+
+	// // // Identify teachers with the minimum number of assignments
+	// for (int16_t teacher : eligible_teachers) {
+	// 	int assignment_count = 0;
+
+	// 	for (int day = 1; day <= s_work_week; ++day) {
+	// 		if (assignment_count < teachers_class_count[day][teacher]) {
+	// 			assignment_count = teachers_class_count[day][teacher];
+	// 		}
+	// 	}
+
+	// 	if (assignment_count < min_assignments) {
+	// 		min_assignments = assignment_count;
+	// 		least_assigned_teachers.clear();
+	// 		least_assigned_teachers.push_back(teacher);
+	// 	} else if (assignment_count == min_assignments) {
+	// 		least_assigned_teachers.push_back(teacher);
+	// 	}
+	// }
+
+	// // // Randomly select a teacher from the least assigned list
+	// std::uniform_int_distribution<> dis(0, least_assigned_teachers.size() - 1);
+	// return selected_teacher = least_assigned_teachers[dis(randomizer_engine)];
+}
+
 void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_teachers) {
 	// print("initializaing");
 	// print("1");
@@ -557,44 +591,12 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_te
 
 		// print("fasjkdljf", timeslot_keys.size(), "Fcv", full_week_day_subjects.size(), "Fcv", special_unit_subjects.size(), "Fcv");
 		for (const auto& subject_id : full_week_day_subjects) {
-			// std::uniform_int_distribution<> dis(0, Timetable::s_eligible_teachers_in_subject[subject_id].size() - 1);
-			// int16_t selected_teacher = Timetable::s_eligible_teachers_in_subject[subject_id][dis(randomizer_engine)];
 			int order = Timetable::s_section_subjects_order[section_id][subject_id];
 
-			std::vector<int16_t>& eligible_teachers = Timetable::s_eligible_teachers_in_subject[subject_id];
+			int16_t selected_teacher = getRandomTeacher(subject_id);
 
-			// print("5.a");
-
-			// // Find the teacher who has been assigned the fewest sections
-			int min_assignments = 999;  // maximum possible number of sections
-			std::vector<int16_t> least_assigned_teachers;
-
-			// // Identify teachers with the minimum number of assignments
-			for (int16_t teacher : eligible_teachers) {
-				int assignment_count = 0;
-
-				for (int day = 1; day <= s_work_week; ++day) {
-					if (assignment_count < teachers_class_count[day][teacher]) {
-						assignment_count = teachers_class_count[day][teacher];
-					}
-				}
-
-				if (assignment_count < min_assignments) {
-					min_assignments = assignment_count;
-					least_assigned_teachers.clear();
-					least_assigned_teachers.push_back(teacher);
-				} else if (assignment_count == min_assignments) {
-					least_assigned_teachers.push_back(teacher);
-				}
-			}
-
-			// print("5.b", subject_id, least_assigned_teachers.size());
-
-			// // Randomly select a teacher from the least assigned list
-			std::uniform_int_distribution<> dis(0, least_assigned_teachers.size() - 1);
-			int16_t selected_teacher = least_assigned_teachers[dis(randomizer_engine)];
-
-			// print("selected: ", selected_teacher, " subject: ", subject_id, least_assigned_teachers.size());
+			section_teachers[section_id]
+			    .insert(selected_teacher);
 
 			for (int day = 1; day <= s_work_week; ++day) {
 				teachers_class_count[day][selected_teacher]++;
@@ -646,36 +648,12 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_te
 		for (const auto& subject_id : special_unit_subjects) {
 			int order = Timetable::s_section_subjects_order[section_id][subject_id];
 
-			// print(BLUE, "W H A T", RESET);
-			// std::uniform_int_distribution<> dis(0, Timetable::s_eligible_teachers_in_subject[subject_id].size() - 1);
-			// int16_t random_teacher = Timetable::s_eligible_teachers_in_subject[subject_id][dis(randomizer_engine)];
-
-			std::vector<int16_t>& eligible_teachers = Timetable::s_eligible_teachers_in_subject[subject_id];
-
-			// // Find the teacher who has been assigned the fewest sections
-			int min_assignments = 999;  // maximum possible number of sections
-			std::vector<int16_t> least_assigned_teachers;
-
-			// // Identify teachers with the minimum number of assignments
-			for (int16_t teacher : eligible_teachers) {
-				int assignment_count = teachers_class_count[day][teacher];
-
-				if (assignment_count < min_assignments) {
-					min_assignments = assignment_count;
-					least_assigned_teachers.clear();
-					least_assigned_teachers.push_back(teacher);
-				} else if (assignment_count == min_assignments) {
-					least_assigned_teachers.push_back(teacher);
-				}
-			}
-
-			// // Randomly select a teacher from the least assigned list
-			std::uniform_int_distribution<> dis(0, least_assigned_teachers.size() - 1);
-			int16_t selected_teacher = least_assigned_teachers[dis(randomizer_engine)];
-
 			int16_t num_unit = units_map.at(subject_id).second;
 
+			int16_t selected_teacher = getRandomTeacher(subject_id);
 			teachers_class_count[day][selected_teacher]++;
+
+			section_teachers[section_id].insert(selected_teacher);
 
 			for (int iter = 1; iter <= num_unit; ++iter) {
 				if (order == 0) {
