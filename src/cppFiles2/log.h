@@ -31,4 +31,8 @@ void logResults(std::ofstream& txt_file,
                 int offset_duration,
                 bool enable_logging);
 
+void logConflicts(
+    Bee& bee,
+    std::ofstream& log_file);
+
 #endif  // LOG_H
