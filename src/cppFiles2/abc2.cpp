@@ -1,7 +1,8 @@
 #include "abc2.h"
+
+#include "TimeManager.h"
 #include "log.h"
 #include "print.h"
-#include "TimeManager.h"
 
 using namespace std;
 
@@ -1862,30 +1863,6 @@ void runExperiment(
 	evaluator.evaluate(best_solution, affected_teachers, Timetable::s_sections_set, false, true);
 	print(GREEN_B, " -- -- Best solution: cost ", RED_B, best_solution.total_cost, GREEN_B, " -- -- ", RESET);
 
-	{
-		print("Configuration: ");
-		print("max_iterations", max_iterations);
-		print("num_teachers", num_teachers);
-		print("total_section_subjects", total_section_subjects);
-		print("total_section", total_section);
-		print("teacher_subjects_length", teacher_subjects_length);
-		print("bees_population", bees_population);
-		print("bees_employed", bees_employed);
-		print("bees_onlooker", bees_onlooker);
-		print("bees_scout", bees_scout);
-		print("limit", limit);
-		print("work_week", work_week);
-		print("max_teacher_work_load", max_teacher_work_load);
-		print("break_time_duration", break_time_duration);
-		print("break_timeslot_allowance", break_timeslot_allowance);
-		print("teacher_break_threshold", teacher_break_threshold);
-		print("min_total_class_duration_for_two_breaks", min_total_class_duration_for_two_breaks);
-		print("default_class_duration", default_class_duration);
-		print("result_buff_length", result_buff_length);
-		print("offset_duration", offset_duration);
-		print("enable_logging", enable_logging);
-	}
-
 	vector<Bee>
 	    bees_vector(bees_population, Bee(num_teachers, sections, teachers));
 
@@ -1912,6 +1889,10 @@ void runExperiment(
 
 	TimeManager tm;
 	tm.startTimer();
+
+	printConfiguration(max_iterations, num_teachers, total_section_subjects, total_section, teacher_subjects_length,
+	                   bees_population, bees_employed, bees_onlooker, bees_scout, limit, work_week, max_teacher_work_load,
+	                   break_time_duration, break_timeslot_allowance, teacher_break_threshold, min_total_class_duration_for_two_breaks, default_class_duration, result_buff_length, offset_duration, enable_logging, tm.getStartTime());
 
 	std::map<int, int> costs;
 
@@ -1952,33 +1933,20 @@ void runExperiment(
 			total_cost += bees_vector[i].total_cost;
 		}
 
-		// double averageCost = (total_cost / bees_employed) + 1e-6;  // Add small constant to avoid division by zero
 		double averageCost = (total_cost / bees_employed);
 		if (averageCost < 1e-6) {
 			averageCost = 1e-6;  // Ensure averageCost is never too small
 		}
 
-		// print("averageCost", averageCost);
-
 		vector<double> fitness_values(bees_employed, 0);
 		double fSum = 0;
 		for (int i = 0; i < bees_employed; i++) {
-			// print("bees_vector[i].total_cost", bees_vector[i].total_cost);
-			// print("averageCost", averageCost);
-			// print("bees_vector[i].total_cost / averageCost", bees_vector[i].total_cost / averageCost);
 			fitness_values[i] = 1.0 / (1.0 + (bees_vector[i].total_cost / averageCost));
-			// fitness_values[i] = exp(-(bees_vector[i].total_cost / averageCost));
 
-			// Add a check to avoid overflow or other numerical issues
 			if (std::isinf(fitness_values[i]) || std::isnan(fitness_values[i])) {
 				print("Numerical issue with fitness value", i);
 				exit(1);
 			}
-
-			// if (std::isinf(fitness_values[i])) {
-			// 	print("x", std::isinf(fitness_values[i]));
-			// 	exit(1);
-			// }
 
 			fSum += fitness_values[i];
 		}
@@ -1988,12 +1956,9 @@ void runExperiment(
 			exit(1);
 		}
 
-		// print("fSum", fSum);
-
 		vector<double>
 		    prob(bees_employed, 0);
 		for (int i = 0; i < bees_employed; i++) {
-			// print("fitness_values[i] / fSum", fitness_values[i] / fSum);
 			prob[i] = fitness_values[i] / fSum;
 		}
 
@@ -2070,41 +2035,12 @@ void runExperiment(
 		std::string name_file = std::string(LOG_FOLDER) + "c" + tm.getStartDate() + "-" + tm.getStartTime() + "---" +
 		                        std::to_string(num_teachers) + "_" + std::to_string(total_section) + "_" + std::to_string(best_solution.total_cost) + "---" + "timetable.txt";
 		std::ofstream txt_file(name_file);
-		txt_file << "----------------------------------------------------------------------" << std::endl;
-		txt_file << "Best solution: " << std::endl;
-		txt_file << "Total cost: " << best_solution.total_cost << std::endl;
-		txt_file << "Total process duration: " << tm.getTimelapse() << std::endl;
-		txt_file << "Iteration count: " << iteration_count << std::endl;
-		txt_file << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << max_iterations << std::endl;
-		txt_file << "max_iterations: " << max_iterations << std::endl;
-		txt_file << "num_teachers: " << num_teachers << std::endl;
-		txt_file << "total_section_subjects: " << total_section_subjects << std::endl;
-		txt_file << "total_section: " << total_section << std::endl;
-		txt_file << "teacher_subjects_length: " << teacher_subjects_length << std::endl;
-		txt_file << "bees_population: " << bees_population << std::endl;
-		txt_file << "bees_employed: " << bees_employed << std::endl;
-		txt_file << "bees_onlooker: " << bees_onlooker << std::endl;
-		txt_file << "bees_scout: " << bees_scout << std::endl;
-		txt_file << "limit: " << limit << std::endl;
-		txt_file << "work_week: " << work_week << std::endl;
-		txt_file << "max_teacher_work_load: " << max_teacher_work_load << std::endl;
-		txt_file << "break_time_duration: " << break_time_duration << std::endl;
-		txt_file << "break_timeslot_allowance: " << break_timeslot_allowance << std::endl;
-		txt_file << "teacher_break_threshold: " << teacher_break_threshold << std::endl;
-		txt_file << "min_total_class_duration_for_two_breaks: " << min_total_class_duration_for_two_breaks << std::endl;
-		txt_file << "default_class_duration: " << default_class_duration << std::endl;
-		txt_file << "result_buff_length: " << result_buff_length << std::endl;
-		txt_file << "offset_duration: " << offset_duration << std::endl;
-		txt_file << "enable_logging: " << enable_logging << std::endl;
-
-		txt_file << "Date: " << tm.getStartDate() << std::endl;
-		txt_file << "Time: " << tm.getStartTime() << std::endl;
-		txt_file << "----------------------------------------------------------------------" << std::endl;
+		logResults(txt_file, best_solution.total_cost, tm.getTimelapse(), tm.getStartDate(), tm.getStartTime(), iteration_count, max_iterations, num_teachers, total_section_subjects,
+		           total_section, teacher_subjects_length, bees_population, bees_employed, bees_onlooker, bees_scout, limit, work_week, max_teacher_work_load, break_time_duration,
+		           break_timeslot_allowance, teacher_break_threshold, min_total_class_duration_for_two_breaks, default_class_duration, result_buff_length, offset_duration, enable_logging);
 
 		logCosts(costs, txt_file);
-
 		evaluator.logConflicts(best_solution, txt_file);
-
 		logSchoolClasses(best_solution.timetable, txt_file);
 
 		print("----------------------------");

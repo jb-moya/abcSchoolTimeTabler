@@ -1,7 +1,6 @@
 // print.cpp
 #include "print.h"
 
-
 void print() {
 	// No parameters left to print, base case for variadic template recursion
 }
@@ -39,4 +38,49 @@ void printSchoolClasses(Timetable& timetable) {
 		std::cout << RESET << std::endl;
 	}
 	std::cout << std::endl;
+}
+
+void printConfiguration(int max_iterations,
+                        int num_teachers,
+                        int total_section_subjects,
+                        int total_section,
+                        int teacher_subjects_length,
+                        int bees_population,
+                        int bees_employed,
+                        int bees_onlooker,
+                        int bees_scout,
+                        int limit,
+                        int work_week,
+                        int max_teacher_work_load,
+                        int break_time_duration,
+                        int break_timeslot_allowance,
+                        int teacher_break_threshold,
+                        int min_total_class_duration_for_two_breaks,
+                        int default_class_duration,
+                        int result_buff_length,
+                        int offset_duration,
+                        bool enable_logging,
+                        std::string time_issued) {
+	print("Configuration: ");
+	print("max_iterations", max_iterations);
+	print("num_teachers", num_teachers);
+	print("total_section_subjects", total_section_subjects);
+	print("total_section", total_section);
+	print("teacher_subjects_length", teacher_subjects_length);
+	print("bees_population", bees_population);
+	print("bees_employed", bees_employed);
+	print("bees_onlooker", bees_onlooker);
+	print("bees_scout", bees_scout);
+	print("limit", limit);
+	print("work_week", work_week);
+	print("max_teacher_work_load", max_teacher_work_load);
+	print("break_time_duration", break_time_duration);
+	print("break_timeslot_allowance", break_timeslot_allowance);
+	print("teacher_break_threshold", teacher_break_threshold);
+	print("min_total_class_duration_for_two_breaks", min_total_class_duration_for_two_breaks);
+	print("default_class_duration", default_class_duration);
+	print("result_buff_length", result_buff_length);
+	print("offset_duration", offset_duration);
+	print("enable_logging", enable_logging);
+	print("time_issued", time_issued);
 }
