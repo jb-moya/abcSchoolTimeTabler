@@ -1,6 +1,7 @@
 #include "abc2.h"
 #include "log.h"
 #include "print.h"
+#include "TimeManager.h"
 
 using namespace std;
 
@@ -1908,7 +1909,9 @@ void runExperiment(
 	    dist_bees_employed(0, bees_employed - 1);
 
 	int iteration_count = max_iterations;
-	auto generation_start = std::chrono::high_resolution_clock::now();
+
+	TimeManager tm;
+	tm.startTimer();
 
 	std::map<int, int> costs;
 
@@ -2055,35 +2058,22 @@ void runExperiment(
 		}
 	}
 
-	auto generation_end = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<double> duration = generation_end - generation_start;
+	tm.stopTimer();
 
 	print(GREEN_B, " -- -- -- -- -- -- -- -- -- -- -- -- -- -- ", RESET);
 	print(GREEN_B, " -- -- Best solution: cost ", RED_B, best_solution.total_cost, GREEN_B, " -- -- ", RESET);
 	print(GREEN_B, " -- -- -- -- -- -- -- -- -- -- -- -- -- -- ", RESET);
 
-	auto now = std::chrono::system_clock::now();
-	std::time_t now_time = std::chrono::system_clock::to_time_t(now);
-	std::tm* localTime = std::localtime(&now_time);
-	std::string date = std::to_string(localTime->tm_year - 100) + "-" + std::to_string(localTime->tm_mon + 1) + "-" + std::to_string(localTime->tm_mday);
-	std::string time = std::to_string(localTime->tm_hour) + "-" + std::to_string(localTime->tm_min) + "-" + std::to_string(localTime->tm_sec);
-
-	int duration_in_seconds = static_cast<int>(duration.count());
-
-	int hours = duration_in_seconds / 3600;
-	int minutes = (duration_in_seconds % 3600) / 60;
-	int seconds = duration_in_seconds % 60;
-
 	printSchoolClasses(best_solution.timetable);
 
 	if (enable_logging) {
-		std::string name_file = std::string(LOG_FOLDER) + "c" + std::string(date) + "-" + time + "---" +
+		std::string name_file = std::string(LOG_FOLDER) + "c" + tm.getStartDate() + "-" + tm.getStartTime() + "---" +
 		                        std::to_string(num_teachers) + "_" + std::to_string(total_section) + "_" + std::to_string(best_solution.total_cost) + "---" + "timetable.txt";
 		std::ofstream txt_file(name_file);
 		txt_file << "----------------------------------------------------------------------" << std::endl;
 		txt_file << "Best solution: " << std::endl;
 		txt_file << "Total cost: " << best_solution.total_cost << std::endl;
-		txt_file << "Total process duration: " << duration.count() << " seconds (" << hours << "h " << minutes << "m " << seconds << "s)" << std::endl;
+		txt_file << "Total process duration: " << tm.getTimelapse() << std::endl;
 		txt_file << "Iteration count: " << iteration_count << std::endl;
 		txt_file << "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -" << max_iterations << std::endl;
 		txt_file << "max_iterations: " << max_iterations << std::endl;
@@ -2107,8 +2097,8 @@ void runExperiment(
 		txt_file << "offset_duration: " << offset_duration << std::endl;
 		txt_file << "enable_logging: " << enable_logging << std::endl;
 
-		txt_file << "Date: " << date << std::endl;
-		txt_file << "Time: " << time << std::endl;
+		txt_file << "Date: " << tm.getStartDate() << std::endl;
+		txt_file << "Time: " << tm.getStartTime() << std::endl;
 		txt_file << "----------------------------------------------------------------------" << std::endl;
 
 		logCosts(costs, txt_file);
@@ -2128,8 +2118,7 @@ void runExperiment(
 	print(GREEN_B, " -- -- Best solution: cost ", RED_B, best_solution.total_cost, GREEN_B, " -- -- ", RESET);
 	print(iteration_count == max_iterations ? RED_BG : CYAN_BG, BOLD, iteration_count == max_iterations ? "MAXIMUM ITERATIONS REACHED" : "EARLY BREAK Best solution: cost ", best_solution.total_cost, " at ", iteration_count, RESET);
 
-	print("Time taken: ", duration.count(), "seconds");
-	print("Time taken: ", hours, ":", minutes, ":", seconds);
+	print("Time taken: ", tm.getTimelapse());
 
 	getResult(best_solution, result_timetable, result_timetable_2, offset_duration);
 	getViolation(best_solution, result_violation);

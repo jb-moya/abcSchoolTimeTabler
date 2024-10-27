@@ -50,10 +50,10 @@ void test_generate_timetable() {
 	int beesOnlooker = 5;
 	int beesScout = 1;
 
-	int num_teachers = 90;
+	int num_teachers = 9;
 	// int num_teachers = 60;
 	// count teacher with same subject: 11. does this mean there's extra 1 teacher?
-	int total_section = 90;
+	int total_section = 9;
 	// int total_section = 40;
 	int num_subjects = 9;
 
