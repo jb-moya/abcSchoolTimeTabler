@@ -2,6 +2,8 @@
 #define ABC2_H
 
 #include <math.h>
+
+// #include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -11,62 +13,18 @@
 #include <chrono>
 #include <cmath>
 #include <cstdint>
+#include <cstdlib> 
+#include <deque>   
+#include <fstream> 
 #include <iomanip>
 #include <iostream>
-#include <limits>
 #include <map>
-#include <optional>
 #include <random>
 #include <set>
-#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
-#include <vector> 
-#define BLACK "\033[30m"
-#define RED "\033[31m"
-#define GREEN "\033[32m"
-#define YELLOW "\033[33m"
-#define BLUE "\033[34m"
-#define MAGENTA "\033[35m"
-#define CYAN "\033[36m"
-#define WHITE "\033[37m"
-#define BLACK_B "\033[90m"
-#define RED_B "\033[91m"
-#define GREEN_B "\033[92m"
-#define YELLOW_B "\033[93m"
-#define BLUE_B "\033[94m"
-#define MAGENTA_B "\033[95m"
-#define CYAN_B "\033[96m"
-#define WHITE_B "\033[97m"
-
-#define BLACK_BG "\033[40m"
-#define RED_BG "\033[41m"
-#define GREEN_BG "\033[42m"
-#define YELLOW_BG "\033[43m"
-#define BLUE_BG "\033[44m"
-#define MAGENTA_BG "\033[45m"
-#define CYAN_BG "\033[46m"
-#define WHITE_BG "\033[47m"
-#define BLACK_BG_B "\033[100m"
-#define RED_BG_B "\033[101m"
-#define GREEN_BG_B "\033[102m"
-#define YELLOW_BG_B "\033[103m"
-#define BLUE_BG_B "\033[104m"
-#define MAGENTA_BG_B "\033[105m"
-#define CYAN_BG_B "\033[106m"
-#define WHITE_BG_B "\033[107m"
-
-#define BOLD "\033[1m"
-#define DIM "\033[2m"
-#define UNDERLINE "\033[4m"
-#define BLINK "\033[5m"
-#define REVERSE "\033[7m"
-#define HIDDEN "\033[8m"
-#define STRIKETHROUGH "\033[9m"
-#define RESET "\033[0m"
-
-// using namespace std;
+#include <vector>
 
 #define CLASS_TIMESLOT_OVERLAP_INT 1
 #define NO_BREAK_INT 2
@@ -145,10 +103,10 @@ struct Timetable {
 	static std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> s_section_subjects_order;
 	static std::unordered_map<int16_t, std::vector<int16_t>> s_eligible_teachers_in_subject;
 	static std::unordered_set<int16_t> s_section_dynamic_subject_consistent_duration;
-static std::unordered_map<int16_t, int> s_section_not_allowed_breakslot_gap;
+	static std::unordered_map<int16_t, int> s_section_not_allowed_breakslot_gap;
 	static std::unordered_map<int16_t, std::vector<int16_t>> s_section_subjects;
 	static std::unordered_map<int16_t, int> s_section_total_duration;
-// // static std::unordered_map<int16_t, int> s_section_fixed_subject;  // TODO: remove
+	// // static std::unordered_map<int16_t, int> s_section_fixed_subject;  // TODO: remove
 	static std::unordered_map<int16_t, int> s_section_timeslot;
 	static std::unordered_map<int16_t, int> s_section_start;
 
@@ -175,8 +133,8 @@ static std::unordered_map<int16_t, int> s_section_not_allowed_breakslot_gap;
 	static int16_t getRandomTeacher(int16_t subject_id);
 
 	// section                  timeslot      days                    subject/teacher
-// std::unordered_map<int16_t, std::map<int, std::unordered_map<int, SchoolClass>>> school_classes;
-		std::unordered_map<int16_t, Section> sections;
+	// std::unordered_map<int16_t, std::map<int, std::unordered_map<int, SchoolClass>>> school_classes;
+	std::unordered_map<int16_t, Section> sections;
 	std::unordered_map<int16_t, Teacher> teachers;
 
 	std::unordered_set<int16_t> sections_with_conflicts;
@@ -186,7 +144,7 @@ static std::unordered_map<int16_t, int> s_section_not_allowed_breakslot_gap;
 	int16_t pickRandomField(int16_t section);
 	int16_t pickRandomSection();
 
-// void initializeTeachersClass(int teachers);
+	// void initializeTeachersClass(int teachers);
 
 	void initializeRandomTimetable(std::unordered_set<int16_t>& update_teachers);
 
@@ -224,10 +182,10 @@ struct Bee {
 	Bee(int num_teachers,
 	    std::unordered_map<int16_t, Section> sections,
 	    std::unordered_map<int16_t, Teacher> teachers) : teacher_violations(num_teachers),
-	                        section_violations(num_teachers),
-	                        total_cost(std::numeric_limits<int>::max()) {
-// timetable.initializeTeachersClass(num_teachers);
-timetable.sections = sections;
+	                                                     section_violations(num_teachers),
+	                                                     total_cost(std::numeric_limits<int>::max()) {
+		// timetable.initializeTeachersClass(num_teachers);
+		timetable.sections = sections;
 		timetable.teachers = teachers;
 	}
 };
@@ -263,7 +221,7 @@ void runExperiment(
     int offset_duration,
     int64_t* result_timetable,
     int64_t* result_timetable_2,
-int64_t* result_violation,
+    int64_t* result_violation,
 
     bool enable_logging);
 
