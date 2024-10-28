@@ -1637,10 +1637,14 @@ void runExperiment(
 
 			if (new_bee.total_cost <= bees_vector[i].total_cost) {
 				bees_vector[i] = new_bee;
+
+				bees_abandoned[i] = 0;
 			} else {
 				bees_abandoned[i]++;
 
 				if (bees_abandoned[i] >= limit) {
+print("employ abandoning bee", iter, i);
+
 					above_limit_abandoned_bees.insert(i);
 				}
 			}
@@ -1702,11 +1706,14 @@ void runExperiment(
 
 			if (new_bee.total_cost <= bees_vector[i].total_cost) {
 				bees_vector[i] = new_bee;
+bees_abandoned[i] = 0;
 			} else {
 				bees_abandoned[i]++;
 
 				if (bees_abandoned[i] >= limit) {
-					print("abandoning bee", i);
+					print("abandoning bee", iter, i);
+					// printSchoolClasses(bees_vector[i].timetable);
+					// exit(1);
 					above_limit_abandoned_bees.insert(i);
 				}
 			}
