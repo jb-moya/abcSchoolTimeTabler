@@ -18,19 +18,15 @@ import ExportImportDBButtons from '@components/Admin/ExportImportDBButtons';
 
 import { getTimeSlotString } from '../../../components/Admin/timeSlotMapper';
 import Breadcrumbs from '@components/Admin/Breadcrumbs';
-import {
-    clearAllEntriesAndResetIDs,
-} from "@src/indexedDB";
-
+import { clearAllEntriesAndResetIDs } from '@src/indexedDB';
 
 const getTimetable = wrap(new WasmWorker());
 
 function Timetable() {
-
     const links = [
         { name: 'Home', href: '/' },
         // { name: 'Modify Subjects', href: '/modify-subjects' },
-      ];
+    ];
 
     const { subjects: subjectsStore } = useSelector((state) => state.subject);
     const { teachers: teachersStore } = useSelector((state) => state.teacher);
@@ -166,7 +162,7 @@ function Timetable() {
 
         const commonSubjectCount = 9;
 
-        const defaultOrder = 0;
+        // const defaultOrder = 0;
 
         let offset = lowestSubjectDuration - 1;
 
@@ -177,18 +173,13 @@ function Timetable() {
         breakTimeDuration -= offset;
         minTotalClassDurationForTwoBreaks /= offset;
 
-        // console.log(
-        //     '🚀 ~ handleButtonClick ~ lowestSubjectDuration:',
-        //     lowestSubjectDuration
-        // );
-
-        let cellCount = 0;
+        // let cellCount = 0;
         for (const [
             sectionKey,
             { subjects, startTime, subjectUnits },
         ] of Object.entries(sectionMap)) {
             // console.log('🚀 ~ handleButtonClick ~ startTime:', startTime);
-            let rowCount = 0;
+            // let rowCount = 0;
 
             for (const subject of subjects) {
                 sectionSubjectArray.push(packInt16ToInt32(sectionKey, subject));
@@ -199,13 +190,12 @@ function Timetable() {
                 const unitCount = subjectUnits[subject][0];
 
                 if (unitCount === 0) {
-                    cellCount++;
-                    rowCount += numOfSchoolDays;
+                    // cellCount++;
+                    // rowCount += numOfSchoolDays;
                     // console.log("🚀 ~ handleButtonClick ~ numOfSchoolDays:", typeof numOfSchoolDays)
                 } else {
-                    cellCount += unitCount;
-                    rowCount += unitCount;
-                    // console.log("🚀 ~ handleButtonClick ~ unitCount:", unitCount)
+                    // cellCount += unitCount;
+                    // rowCount += unitCount;
                 }
 
                 sectionSubjectUnitArray.push(
@@ -230,9 +220,9 @@ function Timetable() {
             }
 
             // console.log('🚀 ~ handleButtonClick ~ rowCount:', rowCount);
-            rowCount = Math.trunc(rowCount / numOfSchoolDays);
-            let numOfBreak = rowCount < 10 ? 1 : 2;
-            cellCount += numOfBreak;
+            // rowCount = Math.trunc(rowCount / numOfSchoolDays);
+            // let numOfBreak = rowCount < 10 ? 1 : 2;
+            // cellCount += numOfBreak;
         }
 
         const sectionSubjects = new Int32Array([...sectionSubjectArray]);
@@ -246,16 +236,16 @@ function Timetable() {
             ...sectionSubjectOrderArray,
         ]);
 
-        const max_iterations = 15000;
+        const maxIterations = 100;
         const beesPopulations = 4;
         const beesEmployed = 2;
         const beesOnlooker = 2;
         const beesScout = 1;
-        const numTeachers = Object.keys(teacherMap).length;
+        const totalTeachers = Object.keys(teacherMap).length;
         const totalSchoolClass = sectionSubjectArray.length;
-        const totalSection = Object.keys(sectionMap).length;
-        
-        const limits = numTeachers * totalSection;
+        const totalSections = Object.keys(sectionMap).length;
+
+        const limits = totalTeachers * totalSections;
 
         // for (let i = 0; i < totalSection; i++) {
         //     sectionStartArray[i] = 0;
@@ -276,11 +266,13 @@ function Timetable() {
         const breakTimeslotAllowance = 6;
         const teacherBreakThreshold = 4;
 
+        const numOfViolationType = 7;
+
         const params = {
-            maxIterations: max_iterations,
-            numTeachers: numTeachers,
+            maxIterations: maxIterations,
+            numTeachers: totalTeachers,
             totalSchoolClass: totalSchoolClass,
-            totalSection: totalSection,
+            totalSection: totalSections,
 
             sectionSubjects: sectionSubjects,
             sectionSubjectDurations: sectionSubjectDurations,
@@ -305,10 +297,13 @@ function Timetable() {
                 minTotalClassDurationForTwoBreaks,
             defaultClassDuration: defaultClassDuration,
             // resultLength: cellCount,
-            resultLength:
-                totalSection *
+            resultTimetableLength:
+                totalSections *
                 Object.entries(subjectsStore).length *
                 numOfSchoolDays,
+            resultViolationLength:
+                numOfViolationType * totalSections +
+                numOfViolationType * totalTeachers,
 
             offset: offset,
         };
@@ -320,22 +315,53 @@ function Timetable() {
         setTimetableGenerationStatus(status);
 
         // const timetableMap = [];
-        const sectionTimetable = {};
-        const teacherTimetable = {};
+        const sectionTimetable = new Map();
+        const teacherTimetable = new Map();
+        const teacherTakenTime = new Map();
 
-        function ensureNestedObject(obj, keys) {
-            let current = obj;
-            for (let key of keys) {
-                if (!current[key]) {
-                    current[key] = {}; // Initialize the nested object if it doesn't exist
-                }
-                current = current[key];
-            }
-            return current;
+        function addToMap(map, key, value) {
+            map.push([key, value]);
+            map.sort((a, b) => a[0] - b[0]);
         }
+
+        const addTimeslotToTimetable = (
+            timetableMap,
+            section_id,
+            subject_id,
+            teacher_id,
+            start,
+            end,
+            day,
+            fieldName1,
+            fieldName2,
+            containerName
+        ) => {
+            const timeslotData = {
+                section: section_id,
+                subject: subject_id,
+                teacher: teacher_id,
+                fieldName1: fieldName1,
+                fieldName2: fieldName2,
+                day: day,
+                end: end,
+            };
+
+            if (timetableMap.has(section_id)) {
+                const timetable = timetableMap.get(section_id);
+                addToMap(timetable.get('timetable'), start, timeslotData);
+            } else {
+                const timetable = new Map();
+                timetable.set('containerName', containerName);
+                timetable.set('timetable', []);
+                addToMap(timetable.get('timetable'), start, timeslotData);
+                timetableMap.set(section_id, timetable);
+            }
+        };
 
         for (const entry of generatedTimetable) {
             // console.log('🚀 ~ handleButtonClick ~ entry of timetable:', entry);
+
+            // console.log('x', teacher_id, start, end);
 
             const section_id = sectionMap[entry[0]].id;
             const subject_id = subjectMap[entry[1]] || null;
@@ -343,60 +369,105 @@ function Timetable() {
             const timeslot = entry[3];
             const day = entry[4];
 
-            const start = entry[5];
-            const end = entry[6];
+            const start = Number(entry[5]);
+            const end = Number(entry[6]);
 
-            // Ensure sectionTimetable nested structure exists
-            let sectionEntry = ensureNestedObject(sectionTimetable, [
+            addTimeslotToTimetable(
+                sectionTimetable,
                 section_id,
-                timeslot,
+                subject_id,
+                teacher_id,
+                start,
+                end,
                 day,
-            ]);
-
-            sectionTimetable[section_id].containerName =
-                sectionsStore[section_id]?.section;
-
-            // Now you can safely assign values to the final nested object
-            sectionEntry.subject = subjectsStore[subject_id]?.subject || null;
-            sectionEntry.sectionID = section_id || null;
-
-            sectionEntry.teacher = teachersStore[teacher_id]?.teacher || null;
-            sectionEntry.teacherID = teacher_id || null;
-
-            sectionEntry.start = start;
-            sectionEntry.end = end;
+                subjectsStore[subject_id]?.subject || null,
+                teachersStore[teacher_id]?.teacher || null,
+                sectionsStore[section_id]?.section
+            );
 
             if (teacher_id == null) {
                 continue;
             }
 
-            // Ensure teacherTimetable nested structure exists
-            let teacherEntry = ensureNestedObject(teacherTimetable, [
+            if (teacherTakenTime.has(teacher_id)) {
+                for (let time = start; time < end; time++) {
+                    teacherTakenTime.get(teacher_id).add(time);
+                }
+            } else {
+                let takenTime = [];
+
+                for (let time = start; time < end; time++) {
+                    takenTime.push(time);
+                }
+
+                teacherTakenTime.set(teacher_id, new Set(takenTime));
+            }
+
+            addTimeslotToTimetable(
+                teacherTimetable,
                 teacher_id,
-                timeslot,
+                subject_id,
+                section_id,
+                start,
+                end,
                 day,
-            ]);
-
-            teacherTimetable[teacher_id].containerName =
-                teachersStore[teacher_id]?.teacher;
-
-            // Now you can safely assign values to the final nested object
-            teacherEntry.subject = subjectsStore[subject_id]?.subject || null;
-            teacherEntry.subjectID = subject_id || null;
-
-            teacherEntry.section = sectionsStore[section_id]?.section || null;
-            teacherEntry.sectionID = section_id;
-
-            teacherEntry.start = start;
-            teacherEntry.end = end;
+                sectionsStore[section_id]?.section,
+                subjectsStore[subject_id]?.subject,
+                teachersStore[teacher_id]?.teacher
+            );
         }
 
-        // setTimetable(timetable);
+        teacherTakenTime.forEach((timeSet, teacher_id) => {
+            let timeArray = Array.from(timeSet);
+            timeArray.sort((a, b) => a - b);
+
+            console.log('b teacher_id: ', teacher_id, timeArray);
+
+            teacherTakenTime.set(teacher_id, timeArray); // Update the map correctly using set()
+        });
+
+        // console.log('teacherTakenTime: ', teacherTakenTime);
+        teacherTakenTime.forEach((set, key) => {
+            console.log('c key: ', key, set);
+
+            let teacherStartTime = 0;
+            let currentTime = teacherStartTime;
+
+            set.forEach((value) => {
+                if (value - currentTime > 1) {
+                    const result = [];
+
+                    for (let i = currentTime; i <= value; i++) {
+                        result.push(i + 1);
+                    }
+
+                    const teacher = teacherTimetable.get(key).get('timetable');
+                    teacher.push([
+                        currentTime == 0 ? currentTime : currentTime + 1,
+                        {
+                            section: null,
+                            subject: null,
+                            teacher: null,
+                            fieldName1: null,
+                            fieldName2: null,
+                            day: null,
+                            end: value,
+                        },
+                    ]);
+
+                    // console.log('🚀 ~ s', teacher);
+                    // console.log('🚀 ~ set.forEach ~ teacher:', teacher);
+                }
+
+                currentTime = value;
+            });
+        });
+
         // console.log("timetable", timetableMap);
         console.log('section timetable', sectionTimetable);
         console.log('teacher timetable', teacherTimetable);
 
-        // setTimetable(timetableMap);
+        // // setTimetable(timetableMap);
         setSectionTimetables(sectionTimetable);
         setTeacherTimetables(teacherTimetable);
     };
@@ -734,33 +805,32 @@ function Timetable() {
     return (
         <div className="App container mx-auto px-4 py-6">
             <div className="mb-6 flex justify-between items-center">
-                    <Breadcrumbs title="Timetable" links={links} /> 
-                    <div className="flex items-center gap-2">
-
-                        <ExportImportDBButtons onClear={handleClearAndRefresh} />   
-                            <button
-                                className={clsx('btn btn-primary', {
-                                    'cursor-not-allowed': timetableGenerationStatus === 'running',
-                                    'btn-error': timetableGenerationStatus === 'error',
-                                })}
-                                onClick={() => {
-                                    if (validate()) {
-                                    handleButtonClick();
-                                    }
-                                }}
-                                disabled={timetableGenerationStatus === 'running'}
-                                >
-                                {timetableGenerationStatus === 'running' ? (
-                                    <div className="flex gap-2 items-center">
-                                    <span>Generating</span>
-                                    <span className="loading loading-spinner loading-xs"></span>
-                                    </div>
-                                ) : (
-                                    'Generate Timetable'
-                                )}
-                                </button>
-                    </div>
-                   
+                <Breadcrumbs title="Timetable" links={links} />
+                <div className="flex items-center gap-2">
+                    <ExportImportDBButtons onClear={handleClearAndRefresh} />
+                    <button
+                        className={clsx('btn btn-primary', {
+                            'cursor-not-allowed':
+                                timetableGenerationStatus === 'running',
+                            'btn-error': timetableGenerationStatus === 'error',
+                        })}
+                        onClick={() => {
+                            if (validate()) {
+                                handleButtonClick();
+                            }
+                        }}
+                        disabled={timetableGenerationStatus === 'running'}
+                    >
+                        {timetableGenerationStatus === 'running' ? (
+                            <div className="flex gap-2 items-center">
+                                <span>Generating</span>
+                                <span className="loading loading-spinner loading-xs"></span>
+                            </div>
+                        ) : (
+                            'Generate Timetable'
+                        )}
+                    </button>
+                </div>
             </div>
 
             <div className="mb-6">
@@ -778,10 +848,10 @@ function Timetable() {
       <TeacherListContainer />
     </div>
   </div> */}
-            <div >
+            <div>
                 <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
                     <h2 className="text-lg font-semibold mb-4">Subjects</h2>
-                    <SubjectListContainer/>
+                    <SubjectListContainer />
                 </div>
 
                 <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
@@ -806,7 +876,7 @@ function Timetable() {
                     </div>
                 </div>
             </div>
-            
+
             {Object.keys(sectionTimetables).length > 0 &&
                 Object.keys(teacherTimetables).length > 0 && (
                     <button
@@ -817,16 +887,14 @@ function Timetable() {
                     </button>
                 )}
 
-            <GeneratedTimetable
+            {/* <GeneratedTimetable
                 timetables={sectionTimetables}
                 field={'section'}
-                columnField={['teacher', 'subject']}
-            />
+            /> */}
 
             <GeneratedTimetable
                 timetables={teacherTimetables}
                 field={'teacher'}
-                columnField={['subject', 'section']}
             />
 
             {/* <div className="grid grid-cols-1 col-span-full gap-4 sm:grid-cols-2"></div> */}
