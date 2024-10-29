@@ -280,29 +280,49 @@ int16_t Timetable::getRandomTeacher(int16_t subject_id) {
 }
 
 void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_teachers) {
+print("Just started");
 	if (sections.size() == 0) {
 		print("no sections");
 		exit(1);
 	}
 
 	for (auto& [section_id, section] : sections) {
-		// int16_t section_id = section_id;
-		std::vector<int16_t> random_subjects = s_section_subjects[section_id];
-		// print("random_subjects", random_subjects.size());
+				std::vector<int16_t> random_subjects = s_section_subjects[section_id];
+		
+		auto& classes = section.classes;
+
+		// what if subject priority empties possible break slot?
+		int break_slot = 4;
+
+		classes[break_slot][0] = SchoolClass{-1, -1};
+		section.break_slots.insert(break_slot);
+
+		int int_section_id = static_cast<int>(section_id);
+
+		int offset = (int_section_id % (s_section_timeslot[section_id] - 1)) >= break_slot ? 1 : 0;
+		int rotation_offset = section_id % (s_section_timeslot[section_id] - 1);
+		// print("rotation_offset", section_id, rotation_offset);
+
+		// print("ff", "offset", offset, int_section_id, int_section_id % (s_section_timeslot[section_id] - 1));
+
+		std::deque<int>
+		    timeslot_keys;
 		std::map<int, int>
 		    timeslots;
 
-		auto& classes = section.classes;
+				for (int j = 0; j < s_section_timeslot[section_id]; ++j) {
+			int i = (j + (rotation_offset + offset)) % (s_section_timeslot[section_id]);
 
-		// std::vector<int> timeslot_keys;
-		std::deque<int> timeslot_keys;
-		for (int i = 0; i < s_section_timeslot[section_id]; ++i) {
-			// print("i i i", i);
+			if (i == break_slot) {
+				continue;
+			}
+
 			timeslots[i] = Timetable::s_work_week;
 			timeslot_keys.push_back(i);
-		}
-		// print("3");
 
+			// print("i i i", i);
+		}
+		
 		std::vector<int16_t> full_week_day_subjects;
 		std::vector<int16_t> special_unit_subjects;
 
@@ -310,8 +330,6 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_te
 		std::set<int> non_dynamic_order_start;
 		std::set<int> non_dynamic_order_end;
 		std::set<int> reserved_timeslots;
-
-		std::shuffle(random_subjects.begin(), random_subjects.end(), randomizer_engine);
 
 		const auto& units_map = Timetable::s_section_subjects_units[section_id];
 
@@ -321,6 +339,7 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_te
 			if (units_map.at(subject_id).second == 0) {
 				if (order != 0) {
 					full_week_day_subjects.insert(full_week_day_subjects.begin(), subject_id);
+print("subject_id", subject_id);
 
 					if (order < 0) {
 						non_dynamic_order_start.insert(order);
@@ -330,11 +349,13 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_te
 
 				} else {
 					full_week_day_subjects.push_back(subject_id);
+print("subject_id", subject_id);
 				}
 
 			} else {
 				if (order != 0) {
 					special_unit_subjects.insert(special_unit_subjects.begin(), subject_id);
+print("subject_id", subject_id);
 
 					if (order < 0) {
 						non_dynamic_order_start.insert(order);
@@ -343,6 +364,7 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_te
 					}
 				} else {
 					special_unit_subjects.push_back(subject_id);
+print("subject_id", subject_id);
 				}
 			}
 		}
@@ -360,26 +382,26 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_te
 		// }
 
 		// print("1");
-		int num_breaks = Timetable::s_section_num_breaks[section_id];
+// int num_breaks = Timetable::s_section_num_breaks[section_id];
 
-		std::vector<std::vector<int>>
-		    breaks_combination = getAllBreaksCombination(s_section_timeslot[section_id], num_breaks, s_section_not_allowed_breakslot_gap[section_id]);  // will not work on special program
-		std::uniform_int_distribution<> dis_break_combination(0, breaks_combination.size() - 1);
+// std::vector<std::vector<int>>
+//     breaks_combination = getAllBreaksCombination(s_section_timeslot[section_id], num_breaks, s_section_not_allowed_breakslot_gap[section_id]);  // will not work on special program
+// std::uniform_int_distribution<> dis_break_combination(0, breaks_combination.size() - 1);
 
-		int random_index = dis_break_combination(randomizer_engine);
+// int random_index = dis_break_combination(randomizer_engine);
 
-		for (size_t i = 0; i < breaks_combination[random_index].size(); ++i) {
-			int break_slot = breaks_combination[random_index][i];
+// for (size_t i = 0; i < breaks_combination[random_index].size(); ++i) {
+// 	int break_slot = breaks_combination[random_index][i];
 
-			break_slot = 3;
+// 	break_slot = 3;
 
-			// print("break slot : ", break_slot);
-			timeslot_keys.erase(std::remove(timeslot_keys.begin(), timeslot_keys.end(), break_slot), timeslot_keys.end());
-			classes[break_slot][0] = SchoolClass{-1, -1};
+// 	// print("break slot : ", break_slot);
+// 	timeslot_keys.erase(std::remove(timeslot_keys.begin(), timeslot_keys.end(), break_slot), timeslot_keys.end());
+// 	classes[break_slot][0] = SchoolClass{-1, -1};
 
-			section.break_slots.insert(break_slot);
-			timeslots.erase(break_slot);
-		}
+// 	section.break_slots.insert(break_slot);
+// 	timeslots.erase(break_slot);
+// }
 
 		// {
 		// 	int break_slot = Timetable::s_section_break_slot[section_id];
@@ -399,35 +421,18 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_te
 		}
 
 		auto timeslot_it_reverse = timeslot_keys.rbegin();
-		for (auto it = non_dynamic_order_end.rbegin(); it != non_dynamic_order_end.rend(); ++it) {
-			fixed_subject_order[*it] = *timeslot_it_reverse;
+		for (auto itr = non_dynamic_order_end.rbegin(); itr != non_dynamic_order_end.rend(); ++itr) {
+			fixed_subject_order[*itr] = *timeslot_it_reverse;
 			reserved_timeslots.insert(*timeslot_it_reverse);
 			print("F 2 ", *timeslot_it_reverse);
 			++timeslot_it_reverse;
 		}
 
-		// std::unordered_set<int> used_break_slots;  // To keep track of already assigned break slots
-		// for (int i = 0; i < num_breaks; ++i) {
-		// 	int break_slot;
-		// 	std::uniform_int_distribution<> dis(1, Timetable::s_section_timeslot[section_id] - 1);  // ignore first and last
-		// 	// Generate a unique break_slot
-		// 	do {
-		// 		break_slot = dis(randomizer_engine);
-		// 	} while (used_break_slots.find(break_slot) != used_break_slots.end());  // Repeat if break_slot is already used
-		// 	// Now we have a unique break_slot
-		// 	used_break_slots.insert(break_slot);  // Mark this break_slot as used
-		// 	// Remove the selected timeslot key
-		// 	timeslot_keys.erase(std::remove(timeslot_keys.begin(), timeslot_keys.end(), break_slot), timeslot_keys.end());
-		// 	// Assign the break slot to the timetable
-		// 	school_classes[section_id][break_slot][0] = SchoolClass{-1, -1};  // Mark as break
-		// 	section_break_slots[section_id].insert(break_slot);               // Store this break slot
-		// 	timeslots.erase(break_slot);                                      // Remove from available timeslots
-		// }
-		// print("5");
+		for (const auto timeslot : reserved_timeslots) {
+timeslot_keys.erase(std::remove(timeslot_keys.begin(), timeslot_keys.end(), timeslot), timeslot_keys.end());
+		timeslots.erase(timeslot);
+		}
 
-		std::shuffle(timeslot_keys.begin(), timeslot_keys.end(), randomizer_engine);
-
-		// print("fasjkdljf", timeslot_keys.size(), "Fcv", full_week_day_subjects.size(), "Fcv", special_unit_subjects.size(), "Fcv");
 		for (const auto& subject_id : full_week_day_subjects) {
 			int order = Timetable::s_section_subjects_order[section_id][subject_id];
 
@@ -441,19 +446,7 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_te
 			// print("5.c");
 
 			if (order == 0) {
-				// int timeslot_key = timeslot_keys.back();
-
-				// print("xxx timeslot key: ", timeslot_key);
-
-				// timeslot_keys.pop_back();
-
-				std::uniform_int_distribution<> dist(0, timeslot_keys.size() - 1);
-				int timeslot_key = timeslot_keys[dist(randomizer_engine)];
-
-				// TODO: a way to optimize this?
-				do {
-					timeslot_key = timeslot_keys[dist(randomizer_engine)];
-				} while (reserved_timeslots.find(timeslot_key) != reserved_timeslots.end());
+				int timeslot_key = timeslot_keys.front();
 
 				timeslot_keys.erase(std::remove(timeslot_keys.begin(), timeslot_keys.end(), timeslot_key), timeslot_keys.end());
 
@@ -494,10 +487,10 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_te
 
 			for (int iter = 1; iter <= num_unit; ++iter) {
 				if (order == 0) {
-					auto it = std::find_if(timeslot_keys.rbegin(), timeslot_keys.rend(),
+					auto it = std::find_if(timeslot_keys.begin(), timeslot_keys.end(),
 					                       [&timeslots](int key) { return timeslots[key] > 0; });
 
-					if (it == timeslot_keys.rend()) {
+					if (it == timeslot_keys.end()) {
 						// print("no more timeslots");
 						break;
 					}
@@ -510,8 +503,8 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_te
 					section.segmented_timeslot.insert(timeslot);
 
 					if (--timeslots[timeslot] == 0) {
-						auto regularIt = it.base();
-						timeslot_keys.erase(--regularIt);
+						// Erase the element in timeslot_keys and timeslots
+						timeslot_keys.erase(it);  // it is a regular iterator, so no need for conversion
 						timeslots.erase(timeslot);
 					}
 				} else {
