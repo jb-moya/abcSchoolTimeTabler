@@ -347,7 +347,6 @@ print("Just started");
 			if (units_map.at(subject_id).second == 0) {
 				if (order != 0) {
 					full_week_day_subjects.insert(full_week_day_subjects.begin(), subject_id);
-print("subject_id", subject_id);
 
 					if (order < 0) {
 						non_dynamic_order_start.insert(order);
@@ -357,13 +356,11 @@ print("subject_id", subject_id);
 
 				} else {
 					full_week_day_subjects.push_back(subject_id);
-print("subject_id", subject_id);
 				}
 
 			} else {
 				if (order != 0) {
 					special_unit_subjects.insert(special_unit_subjects.begin(), subject_id);
-print("subject_id", subject_id);
 
 					if (order < 0) {
 						non_dynamic_order_start.insert(order);
@@ -372,53 +369,9 @@ print("subject_id", subject_id);
 					}
 				} else {
 					special_unit_subjects.push_back(subject_id);
-print("subject_id", subject_id);
 				}
 			}
 		}
-
-		// for (int i = 0; i < num_breaks; ++i) {
-		// 	// TODO: have some way of optimizing this
-		// 	// int break_slot = (Timetable::s_section_timeslot[section_id] / (num_breaks + 1)) * (i + 1);
-		// 	std::uniform_int_distribution<> dist(1, timeslot_keys.size() - 2);  // ignore first and last
-		// 	int random_index = dist(randomizer_engine);
-		// 	int timeslot_key = timeslot_keys[random_index];
-		// 	timeslot_keys.erase(timeslot_keys.begin() + random_index);
-		// 	school_classes[section_id][timeslot_key][0] = SchoolClass{-1, -1};
-		// 	section_break_slots[section_id].insert(timeslot_key);
-		// 	timeslots.erase(timeslot_key);
-		// }
-
-		// print("1");
-// int num_breaks = Timetable::s_section_num_breaks[section_id];
-
-// std::vector<std::vector<int>>
-//     breaks_combination = getAllBreaksCombination(s_section_timeslot[section_id], num_breaks, s_section_not_allowed_breakslot_gap[section_id]);  // will not work on special program
-// std::uniform_int_distribution<> dis_break_combination(0, breaks_combination.size() - 1);
-
-// int random_index = dis_break_combination(randomizer_engine);
-
-// for (size_t i = 0; i < breaks_combination[random_index].size(); ++i) {
-// 	int break_slot = breaks_combination[random_index][i];
-
-// 	break_slot = 3;
-
-// 	// print("break slot : ", break_slot);
-// 	timeslot_keys.erase(std::remove(timeslot_keys.begin(), timeslot_keys.end(), break_slot), timeslot_keys.end());
-// 	classes[break_slot][0] = SchoolClass{-1, -1};
-
-// 	section.break_slots.insert(break_slot);
-// 	timeslots.erase(break_slot);
-// }
-
-		// {
-		// 	int break_slot = Timetable::s_section_break_slot[section_id];
-		// 	// print("break slot : ", break_slot);
-		// 	timeslot_keys.erase(std::remove(timeslot_keys.begin(), timeslot_keys.end(), break_slot), timeslot_keys.end());
-		// 	school_classes[section_id][break_slot][0] = SchoolClass{-1, -1};
-		// 	section_break_slots[section_id].insert(break_slot);
-		// 	timeslots.erase(break_slot);
-		// }
 
 		auto timeslot_it = timeslot_keys.begin();
 		for (auto itr : non_dynamic_order_start) {
@@ -1552,22 +1505,6 @@ void runExperiment(
 			}
 		}
 	}
-
-	// return;
-
-	// std::cout << "eligible_teachers_in_subject" << std::endl;
-	// for (auto it = eligible_teachers_in_subject.begin(); it != eligible_teachers_in_subject.end(); it++) {
-	// 	std::cout << it->first << " ";
-
-	// 	for (int i = 0; i < it->second.size(); i++) {
-	// 		std::cout << it->second[i] << " ";
-	// 	}
-
-	// 	std::cout << std::endl;
-	// }
-
-	// std::cout << "eligible_teachers_in_subject end" << std::endl;
-	// std::cout << "ff : " << eligible_teachers_in_subject.size() - 1 << std::endl;
 
 	Timetable::initializeRandomSectionDistribution(0, total_section - 1);
 	Timetable::initializeRandomFieldDistribution(0, 2);

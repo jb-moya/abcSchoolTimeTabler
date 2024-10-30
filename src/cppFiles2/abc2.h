@@ -134,9 +134,7 @@ struct Timetable {
 
 	static int16_t getRandomTeacher(int16_t subject_id);
 
-	// section                  timeslot      days                    subject/teacher
-	// std::unordered_map<int16_t, std::map<int, std::unordered_map<int, SchoolClass>>> school_classes;
-	std::unordered_map<int16_t, Section> sections;
+		std::unordered_map<int16_t, Section> sections;
 	std::unordered_map<int16_t, Teacher> teachers;
 
 	std::unordered_set<int16_t> sections_with_conflicts;
