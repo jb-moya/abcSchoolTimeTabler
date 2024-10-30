@@ -1505,7 +1505,7 @@ void runExperiment(
 			int section_total_duration = 0;
 
 			for (auto it2 = Timetable::s_section_subjects_duration[it->first].begin(); it2 != Timetable::s_section_subjects_duration[it->first].end(); it2++) {
-				section_total_duration += it2->second;
+				section_total_duration += it2->second + offset_duration;
 			}
 
 			int num_breaks = section_total_duration <= min_total_class_duration_for_two_breaks ? 1 : 2;
