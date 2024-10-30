@@ -207,16 +207,13 @@ void Timetable::updateTeachersAndSections(
 	}
 }
 
-std::vector<std::vector<int>> getAllBreaksCombination(int slot_count, int break_count, int gap) {
+std::vector<std::vector<int>> getAllBreaksCombination(int slot_count, int break_count, int gap, int end_gap) {
 	std::set<int> breaks;
 	std::set<int> possible_breaks;
 
-	for (int i = gap; i < slot_count - (gap + 1); ++i) {  // leaving one behind
-		// std::cout << "zz" << i << std::endl;
+	for (int i = gap; i < slot_count - end_gap; ++i) {
 		possible_breaks.insert(i);
 	}
-
-	// print("break count", break_count);
 
 	if (break_count == 1) {
 		std::vector<std::vector<int>> combinations;
@@ -231,18 +228,20 @@ std::vector<std::vector<int>> getAllBreaksCombination(int slot_count, int break_
 	std::vector<std::vector<int>> combinations;
 
 	for (auto it = possible_breaks.begin(); it != possible_breaks.end(); ++it) {
-		// std::cout << "allowed_break " << *it << std::endl;
-		int first = *it;
+				int first = *it;
 
 		for (auto it2 = it; it2 != possible_breaks.end(); ++it2) {
 			if (std::abs(first + 1 - *it2) >= gap) {
-				// std::cout << "combination : " << first << " " << *it2 << std::endl;
-				combinations.push_back({first, *it2});
+								combinations.push_back({first, *it2});
 			}
 		}
 	}
 
 	return combinations;
+}
+
+std::vector<int> getDefaultBreaksCombination(std::vector<std::vector<int>>& breaks_combination) {
+	return breaks_combination[breaks_combination.size() / 2];
 }
 
 int16_t Timetable::getRandomTeacher(int16_t subject_id) {
@@ -279,7 +278,7 @@ int16_t Timetable::getRandomTeacher(int16_t subject_id) {
 	// return least_assigned_teachers[dis(randomizer_engine)];
 }
 
-void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_teachers) {
+void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_teachers, RotaryTimeslot& rotary_timeslot) {
 print("Just started");
 	if (sections.size() == 0) {
 		print("no sections");
@@ -291,37 +290,46 @@ print("Just started");
 		
 		auto& classes = section.classes;
 
-		// what if subject priority empties possible break slot?
-		int break_slot = 4;
+		int num_breaks = s_section_num_breaks[section_id];
+		int gap = s_section_not_allowed_breakslot_gap[section_id];
+		int total_timeslot = s_section_total_timeslot[section_id];
 
+		std::vector<std::vector<int>> possible_breaks = getAllBreaksCombination(
+		    total_timeslot,
+		    num_breaks,
+		    gap,
+		    num_breaks == 1 ? gap + 1 : gap);
+
+		std::vector<int> breaks = getDefaultBreaksCombination(possible_breaks);
+
+		for (int break_slot : breaks) {
+			print("break_slot", break_slot);
 		classes[break_slot][0] = SchoolClass{-1, -1};
 		section.break_slots.insert(break_slot);
+}
 
-		int int_section_id = static_cast<int>(section_id);
+		rotary_timeslot.adjustPosition(total_timeslot);
+		std::vector<int> timeslot = rotary_timeslot.getTimeslot(total_timeslot, breaks);
+		rotary_timeslot.incrementShift();
 
-		int offset = (int_section_id % (s_section_timeslot[section_id] - 1)) >= break_slot ? 1 : 0;
-		int rotation_offset = section_id % (s_section_timeslot[section_id] - 1);
-		// print("rotation_offset", section_id, rotation_offset);
+		// for (int break_slot : breaks) {
+		// 	timeslot.erase(std::remove(timeslot.begin(), timeslot.end(), break_slot), timeslot.end());
+		// }
 
-		// print("ff", "offset", offset, int_section_id, int_section_id % (s_section_timeslot[section_id] - 1));
+		// print("fffffffff");
+		// for (int num : timeslot) {
+		// 	std::cout << std::setw(3) << num << " ";
+		// }
+		// std::cout << std::endl;
 
 		std::deque<int>
-		    timeslot_keys;
+		    timeslot_keys(timeslot.begin(), timeslot.end());
 		std::map<int, int>
 		    timeslots;
 
-				for (int j = 0; j < s_section_timeslot[section_id]; ++j) {
-			int i = (j + (rotation_offset + offset)) % (s_section_timeslot[section_id]);
-
-			if (i == break_slot) {
-				continue;
-			}
-
-			timeslots[i] = Timetable::s_work_week;
-			timeslot_keys.push_back(i);
-
-			// print("i i i", i);
-		}
+				for (size_t i = 0; i < timeslot_keys.size(); ++i) {
+			timeslots[timeslot_keys[i]] = Timetable::s_work_week;
+					}
 		
 		std::vector<int16_t> full_week_day_subjects;
 		std::vector<int16_t> special_unit_subjects;
@@ -1576,11 +1584,15 @@ void runExperiment(
 	affected_teachers.reserve(num_teachers);
 	affected_sections.reserve(total_section);
 
-	best_solution.timetable.initializeRandomTimetable(affected_teachers);
+RotaryTimeslot rotary_timeslot;
+
+	best_solution.timetable.initializeRandomTimetable(affected_teachers, rotary_timeslot);
 	printSchoolClasses(best_solution.timetable);
 	print(MAGENTA_B, " -- FIRSTTTTTTTTTTTTT -- ");
 	evaluator.evaluate(best_solution, affected_teachers, Timetable::s_sections_set, false, true);
 	print(GREEN_B, " -- -- Best solution: cost ", RED_B, best_solution.total_cost, GREEN_B, " -- -- ", RESET);
+
+	// return;
 
 	vector<Bee>
 	    bees_vector(bees_population, Bee(num_teachers, sections, teachers));
@@ -1588,7 +1600,9 @@ void runExperiment(
 	for (int i = 0; i < bees_population; i++) {
 		affected_teachers.clear();
 
-		bees_vector[i].timetable.initializeRandomTimetable(affected_teachers);
+		bees_vector[i].timetable.initializeRandomTimetable(affected_teachers, rotary_timeslot);
+
+		// return;
 
 		evaluator.evaluate(bees_vector[i], affected_teachers, Timetable::s_sections_set, false, true);
 
@@ -1612,6 +1626,8 @@ void runExperiment(
 	printConfiguration(max_iterations, num_teachers, total_section_subjects, total_section, teacher_subjects_length,
 	                   bees_population, bees_employed, bees_onlooker, bees_scout, limit, work_week, max_teacher_work_load,
 	                   break_time_duration, break_timeslot_allowance, teacher_break_threshold, min_total_class_duration_for_two_breaks, default_class_duration, result_buff_length, offset_duration, enable_logging, tm.getStartTime());
+
+// return;
 
 	std::map<int, int> costs;
 
@@ -1727,7 +1743,7 @@ bees_abandoned[i] = 0;
 			for (auto it = above_limit_abandoned_bees.begin(); it != above_limit_abandoned_bees.end();) {
 				Bee new_bee(num_teachers, sections, teachers);
 				affected_teachers.clear();
-				new_bee.timetable.initializeRandomTimetable(affected_teachers);
+				new_bee.timetable.initializeRandomTimetable(affected_teachers, rotary_timeslot);
 				bees_vector[*it] = new_bee;
 				evaluator.evaluate(bees_vector[*it], affected_teachers, Timetable::s_sections_set, false, true);
 				bees_abandoned[*it] = 0;

@@ -26,6 +26,8 @@
 #include <utility>
 #include <vector>
 
+#include "RotaryTimeslot.h"
+
 #define CLASS_TIMESLOT_OVERLAP_INT 1
 #define NO_BREAK_INT 2
 #define EXCEED_WORKLOAD_INT 3
@@ -107,7 +109,7 @@ struct Timetable {
 	static std::unordered_map<int16_t, std::vector<int16_t>> s_section_subjects;
 	static std::unordered_map<int16_t, int> s_section_total_duration;
 	// // static std::unordered_map<int16_t, int> s_section_fixed_subject;  // TODO: remove
-	static std::unordered_map<int16_t, int> s_section_timeslot;
+	static std::unordered_map<int16_t, int> s_section_total_timeslot;
 	static std::unordered_map<int16_t, int> s_section_start;
 
 	static std::unordered_set<int16_t> s_teachers_set;
@@ -146,7 +148,7 @@ struct Timetable {
 
 	// void initializeTeachersClass(int teachers);
 
-	void initializeRandomTimetable(std::unordered_set<int16_t>& update_teachers);
+	void initializeRandomTimetable(std::unordered_set<int16_t>& update_teachers, RotaryTimeslot& rotary_timeslot);
 
 	void modify(std::unordered_set<int16_t>& affected_teachers, std::unordered_set<int16_t>& affected_sections);
 
@@ -229,7 +231,8 @@ void runExperiment(
 }
 #endif
 
-std::vector<std::vector<int>> getAllBreaksCombination(int slot_count, int break_count, int gap);
+std::vector<std::vector<int>> getAllBreaksCombination(int slot_count, int break_count, int gap, int end_gap);
+std::vector<int> getDefaultBreaksCombination(std::vector<std::vector<int>>& breaks_combination);
 
 int64_t pack5IntToInt64(int16_t a, int16_t b, int16_t c, int8_t d, int8_t e);
 int32_t packInt16ToInt32(int16_t first, int16_t second);
