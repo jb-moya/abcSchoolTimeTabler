@@ -21,7 +21,7 @@ std::unordered_map<int16_t, std::vector<int16_t>> Timetable::s_section_subjects;
 std::unordered_map<int16_t, int> Timetable::s_section_not_allowed_breakslot_gap;
 std::unordered_map<int16_t, int> Timetable::s_section_total_duration;
 // std::unordered_map<int16_t, int> Timetable::s_section_fixed_subject;
-std::unordered_map<int16_t, int> Timetable::s_section_timeslot;
+std::unordered_map<int16_t, int> Timetable::s_section_total_timeslot;
 std::unordered_map<int16_t, int> Timetable::s_section_start;
 std::unordered_set<int16_t> Timetable::s_teachers_set;
 std::unordered_set<int16_t> Timetable::s_sections_set;
@@ -43,7 +43,7 @@ void Timetable::reset() {
 	s_section_subjects_units.clear();
 	s_section_num_breaks.clear();
 	s_section_subjects.clear();
-	s_section_timeslot.clear();
+	s_section_total_timeslot.clear();
 	s_section_start.clear();
 	s_teachers_set.clear();
 	s_sections_set.clear();
@@ -580,7 +580,7 @@ std::pair<int, int> Timetable::pickRandomTimeslots(int selected_section, int fie
 
 	auto& section = sections[selected_section];
 
-	int timeslots = s_section_timeslot[selected_section];
+	int timeslots = s_section_total_timeslot[selected_section];
 	auto& section_break_slots = section.break_slots;
 	auto& fixed_timeslot_day = section.fixed_timeslot_day;
 
@@ -598,11 +598,11 @@ std::pair<int, int> Timetable::pickRandomTimeslots(int selected_section, int fie
 		bool is_consistent_duration = Timetable::s_section_dynamic_subject_consistent_duration.find(selected_section) != Timetable::s_section_dynamic_subject_consistent_duration.end();
 
 		do {
-			selected_timeslot_1 = getRandomInRange(s_section_timeslot[selected_section] - 1);
-			selected_timeslot_2 = getRandomInRange(s_section_timeslot[selected_section] - 1);
+			selected_timeslot_1 = getRandomInRange(s_section_total_timeslot[selected_section] - 1);
+			selected_timeslot_2 = getRandomInRange(s_section_total_timeslot[selected_section] - 1);
 
-			is_timeslot_1_at_start_or_end_of_schedule = selected_timeslot_1 == 0 || selected_timeslot_1 == s_section_timeslot[selected_section] - 1;
-			is_timeslot_2_at_start_or_end_of_schedule = selected_timeslot_2 == 0 || selected_timeslot_2 == s_section_timeslot[selected_section] - 1;
+			is_timeslot_1_at_start_or_end_of_schedule = selected_timeslot_1 == 0 || selected_timeslot_1 == s_section_total_timeslot[selected_section] - 1;
+			is_timeslot_2_at_start_or_end_of_schedule = selected_timeslot_2 == 0 || selected_timeslot_2 == s_section_total_timeslot[selected_section] - 1;
 
 			is_timeslot_1_break = section_break_slots.find(selected_timeslot_1) != section_break_slots.end();
 			is_timeslot_2_break = section_break_slots.find(selected_timeslot_2) != section_break_slots.end();
@@ -1509,8 +1509,8 @@ void runExperiment(
 			}
 
 			int num_breaks = section_total_duration <= min_total_class_duration_for_two_breaks ? 1 : 2;
-			// std::cout << "ehhe " << section_total_duration << " " << timeslots << " " << num_breaks << " " << timeslots + num_breaks << std::endl;
-			Timetable::s_section_timeslot[it->first] = timeslots + num_breaks;
+			std::cout << "ehhe " << section_total_duration << " ff " << min_total_class_duration_for_two_breaks << " " << timeslots << " " << num_breaks << " " << timeslots + num_breaks << std::endl;
+			Timetable::s_section_total_timeslot[it->first] = timeslots + num_breaks;
 			// below 10 - 1, 2 equal or above
 
 			// sections[it->first].num_breaks = num_breaks;
