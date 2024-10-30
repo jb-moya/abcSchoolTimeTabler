@@ -19,6 +19,7 @@
 #include <utility>
 #include <vector>
 
+#include "RotaryTimeslot.h"
 #include "abc2.h"
 
 using namespace std;
@@ -61,12 +62,13 @@ void test_generate_timetable() {
 
 
 	// oct 19, 2024
-	// 20, 20, 4 is fine
-	// 45, 45, 9 is fine if break slot is consistent
-	// 60, 54, 10 is fine
 
 	// 80 section with 10 need 100
 	// might TODO: even distribute class to teachers (on modify function) (might be more performant)
+	// oct 28 tried. this might not be beneficial at all
+
+	// FIXME: LIMIT NOT REACHING
+
 	// might TODO: modify function: make it more smarter by knowing what and what not to modify
 	// if theres no conflict in section break slot anymore, focus on teacher break slot
 
@@ -196,7 +198,9 @@ void test_generate_timetable() {
 	// section_subject_units[1] = packInt16ToInt32(1, 1);
 	// section_subject_order[0] = packInt16ToInt32(0, 1);
 	// section_subject_order[1] = packInt16ToInt32(1, 1);
-	// section_subject_order[2] = packInt16ToInt32(2, 2);
+	// section_subject_order[0] = packInt16ToInt32(0, 2);
+	// section_subject_order[1] = packInt16ToInt32(1, 3);
+	// section_subject_order[2] = packInt16ToInt32(2, 4);
 	// section_subject_duration[2] = packInt16ToInt32(2, 10);
 
 	// section_subject_order[1] = packInt16ToInt32(1, -2);
@@ -263,30 +267,66 @@ void test_generate_timetable() {
 	// }
 }
 
+void printVector(const std::vector<int>& vec) {
+	for (int num : vec) {
+		std::cout << std::setw(3) << num << " ";
+	}
+	std::cout << std::endl;
+}
+
 int main() {
-	// double test = exp(-1.0 / 1);
-
-	// std::cout << "test : " << test << std::endl;
-
-	// return 0;
-
-	for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 1000; i++) {
 		test_generate_timetable();
 	}
 	std::cout << "done testing" << std::endl;
 	return 0;
 
-	std::vector<std::vector<int>> breaks_combination = getAllBreaksCombination(11, 2, 3);
+	// std::vector<std::vector<int>> breaks_combination = getAllBreaksCombination(12, 2, 3, 3);
 
-	for (auto it = breaks_combination.begin(); it != breaks_combination.end(); ++it) {
-		std::cout << "{";
-		for (auto it2 = it->begin(); it2 != it->end(); ++it2) {
-			std::cout << *it2;
-			if (std::next(it2) != it->end()) {
-				std::cout << ", ";
-			}
-		}
-		std::cout << "}\n";
+	// for (auto it = breaks_combination.begin(); it != breaks_combination.end(); ++it) {
+	// 	std::cout << "{";
+	// 	for (auto it2 = it->begin(); it2 != it->end(); ++it2) {
+	// 		std::cout << *it2;
+	// 		if (std::next(it2) != it->end()) {
+				// 			std::cout << ", ";
+	// 		}
+	// 	}
+	// 	std::cout << "}\n";
+	// }
+
+	// int size = 7;
+	// int shift = 6;
+
+	// std::vector<int> vec;
+	// for (int i = 0; i < size; i++) {
+	// 	vec.push_back(i);
+	// }
+
+	// std::rotate(vec.rbegin(), vec.rbegin() + shift, vec.rend());  // Rotate by one
+
+	// std::cout << "Rotated vector: ";
+	// for (int num : vec) {
+	// 	std::cout << num << " ";  // Output: 5 1 2 3 4
+	// }
+
+	RotaryTimeslot rotary_timeslot;
+
+	// Example sizes to get timeslots
+	// std::vector<int> sizes = {9, 9, 9, 9, 9, 9, 5, 7, 9, 11, 13, 15, 10, 10, 10, 10, 10, 10, 10, 10, 3, 3, 3, 4, 4, 5, 4, 5, 6, 10, 12, 14, 16, 18, 9, 7, 10, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25};
+	// std::vector<int> sizes = {10, 10, 10, 10, 10, 10, 10, 10, 13, 13, 13, 13, 10, 12, 11};
+	std::vector<int> sizes = {10, 10, 9, 8, 7, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
+
+	std::vector<std::vector<int>> skip = {{3}, {3}, {3}, {3}, {3}, {3}, {3}, {3}, {3}, {3}, {3}, {3, 7}, {3, 7}, {3, 7}, {3, 7}, {3, 7}, {3, 7}, {3}, {3}};
+
+	// Loop to demonstrate getting timeslots and incrementing shift
+	int i = 0;
+	for (int size : sizes) {
+		rotary_timeslot.adjustPosition(size - skip[i].size());
+		std::vector<int> timeslot = rotary_timeslot.getTimeslot(size, skip[i]);
+		printVector(timeslot);           
+		rotary_timeslot.incrementShift();
+
+		i++;
 	}
 
 	std::cout << "done testing" << std::endl;

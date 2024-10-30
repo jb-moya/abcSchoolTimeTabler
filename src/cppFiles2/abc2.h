@@ -108,7 +108,6 @@ struct Timetable {
 	static std::unordered_map<int16_t, int> s_section_not_allowed_breakslot_gap;
 	static std::unordered_map<int16_t, std::vector<int16_t>> s_section_subjects;
 	static std::unordered_map<int16_t, int> s_section_total_duration;
-	// // static std::unordered_map<int16_t, int> s_section_fixed_subject;  // TODO: remove
 	static std::unordered_map<int16_t, int> s_section_total_timeslot;
 	static std::unordered_map<int16_t, int> s_section_start;
 
@@ -116,8 +115,6 @@ struct Timetable {
 	static std::unordered_set<int16_t> s_sections_set;
 
 	static std::vector<int> s_section_num_breaks;
-
-	// static std::unordered_map<int16_t, int> s_section_break_slot;
 
 	static std::uniform_int_distribution<int16_t> s_random_section;
 	static std::uniform_int_distribution<int8_t> s_random_workDay;
