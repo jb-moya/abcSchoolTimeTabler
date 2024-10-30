@@ -778,6 +778,8 @@ void Timetable::modify(std::unordered_set<int16_t>& update_teachers, std::unorde
 				section_timeslot[0] = SchoolClass{subject_id, random_teacher};
 			};
 		} else {
+// TODO: same teacher on same subject DONE
+			// TODO: CHECK IF THIS iS WORKING
 			std::uniform_int_distribution<> dis_work_day(0, section_timeslot.size() - 1);
 
 			int randomIndex = dis_work_day(randomizer_engine);
@@ -785,23 +787,32 @@ void Timetable::modify(std::unordered_set<int16_t>& update_teachers, std::unorde
 			auto it = section_timeslot.begin();
 			std::advance(it, randomIndex);
 
-			int16_t subject_id = section_timeslot[it->first].subject_id;
+			int16_t selected_timeslot_subject_id = section_timeslot[it->first].subject_id;
 			int16_t old_teacher = section_timeslot[it->first].teacher_id;
 
-			std::uniform_int_distribution<> dis(0, s_eligible_teachers_in_subject[subject_id].size() - 1);
+			std::uniform_int_distribution<> dis(0, s_eligible_teachers_in_subject[selected_timeslot_subject_id].size() - 1);
 			int16_t random_teacher;
 
 			do {
-				random_teacher = s_eligible_teachers_in_subject[subject_id][dis(randomizer_engine)];
-			} while (random_teacher == old_teacher && s_eligible_teachers_in_subject[subject_id].size() > 1);
+				random_teacher = s_eligible_teachers_in_subject[selected_timeslot_subject_id][dis(randomizer_engine)];
+			} while (random_teacher == old_teacher && s_eligible_teachers_in_subject[selected_timeslot_subject_id].size() > 1);
 
+for (auto it = section_timeslot.begin(); it != section_timeslot.end(); it++) {
+				int16_t subject_id = section_timeslot[it->first].subject_id;
+
+				if (subject_id == selected_timeslot_subject_id) {
+					section_timeslot[it->first] = SchoolClass{subject_id, random_teacher};
+				}
+			}
+
+			// FIXME: only date that are affected
 			for (int day = 1; day <= s_work_week; day++) {
 				teachers[old_teacher].class_count[day]--;
 				teachers[random_teacher].class_count[day]++;
 			}
 
 			// std::cout << subject_id << " old teacher : " << old_teacher << " <- workday : " << _staticcast<int>(workday) << " Randomized: " << random_section << " " << random_timeslot << " " << random_teacher << std::endl;
-			section_timeslot[it->first] = SchoolClass{subject_id, random_teacher};
+			section_timeslot[it->first] = SchoolClass{selected_timeslot_subject_id, random_teacher};
 		}
 	} else if (choice == 2) {
 		// std::cout << " : ( " << random_section << " " << random_timeslot_1 << " " << random_timeslot_2 << std::endl;
