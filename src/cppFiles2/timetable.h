@@ -1,5 +1,5 @@
-#ifndef ABC2_H
-#define ABC2_H
+#ifndef TIMETABLE_H
+#define TIMETABLE_H
 
 #include <math.h>
 
@@ -13,9 +13,9 @@
 #include <chrono>
 #include <cmath>
 #include <cstdint>
-#include <cstdlib> 
-#include <deque>   
-#include <fstream> 
+#include <cstdlib>
+#include <deque>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <map>
@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "RotaryTimeslot.h"
+
 
 #define CLASS_TIMESLOT_OVERLAP_INT 1
 #define NO_BREAK_INT 2
@@ -86,6 +87,7 @@ struct Section {
 	std::set<int> break_slots;
 
 	std::unordered_set<int> segmented_timeslot;
+	std::unordered_set<int> dynamic_timeslot;
 	std::unordered_map<int, std::set<int>> fixed_timeslot_day;
 	std::unordered_set<int16_t> utilized_teachers;
 
@@ -100,6 +102,7 @@ struct Timetable {
 	static int s_break_time_duration;
 	static int s_work_week;
 
+	static std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> s_section_subjects_fixed_teacher;
 	static std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>> s_section_subjects_units;
 	static std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> s_section_subjects_duration;
 	static std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> s_section_subjects_order;
@@ -131,7 +134,7 @@ struct Timetable {
 
 	static int16_t getRandomTeacher(int16_t subject_id);
 
-		std::unordered_map<int16_t, Section> sections;
+	std::unordered_map<int16_t, Section> sections;
 	std::unordered_map<int16_t, Teacher> teachers;
 
 	std::unordered_set<int16_t> sections_with_conflicts;
@@ -244,4 +247,4 @@ struct ObjectiveFunction {
 	    bool is_initial);
 };
 
-#endif  // ABC_H
+#endif  // TIMETABLE_H

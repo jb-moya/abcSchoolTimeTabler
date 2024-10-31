@@ -2,7 +2,7 @@
 #ifndef PRINT_H
 #define PRINT_H
 // #include <iostream>
-#include "abc2.h"
+#include "timetable.h"
 
 #define BLACK "\033[30m"
 #define RED "\033[31m"

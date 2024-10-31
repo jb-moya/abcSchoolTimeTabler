@@ -20,7 +20,7 @@
 #include <vector>
 
 #include "RotaryTimeslot.h"
-#include "abc2.h"
+#include "timetable.h"
 
 using namespace std;
 
