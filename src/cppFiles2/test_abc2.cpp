@@ -20,7 +20,9 @@
 #include <vector>
 
 #include "RotaryTimeslot.h"
+#include "SubjectTeacherQueue.h"
 #include "timetable.h"
+#include "print.h"
 
 using namespace std;
 
@@ -309,25 +311,50 @@ int main() {
 	// 	std::cout << num << " ";  // Output: 5 1 2 3 4
 	// }
 
-	RotaryTimeslot rotary_timeslot;
+// RotaryTimeslot rotary_timeslot;
 
-	// Example sizes to get timeslots
-	// std::vector<int> sizes = {9, 9, 9, 9, 9, 9, 5, 7, 9, 11, 13, 15, 10, 10, 10, 10, 10, 10, 10, 10, 3, 3, 3, 4, 4, 5, 4, 5, 6, 10, 12, 14, 16, 18, 9, 7, 10, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25};
-	// std::vector<int> sizes = {10, 10, 10, 10, 10, 10, 10, 10, 13, 13, 13, 13, 10, 12, 11};
-	std::vector<int> sizes = {10, 10, 9, 8, 7, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
+// // Example sizes to get timeslots
+// // std::vector<int> sizes = {9, 9, 9, 9, 9, 9, 5, 7, 9, 11, 13, 15, 10, 10, 10, 10, 10, 10, 10, 10, 3, 3, 3, 4, 4, 5, 4, 5, 6, 10, 12, 14, 16, 18, 9, 7, 10, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25};
+// // std::vector<int> sizes = {10, 10, 10, 10, 10, 10, 10, 10, 13, 13, 13, 13, 10, 12, 11};
+// std::vector<int> sizes = {10, 10, 9, 8, 7, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
 
-	std::vector<std::vector<int>> skip = {{3}, {3}, {3}, {3}, {3}, {3}, {3}, {3}, {3}, {3}, {3}, {3, 7}, {3, 7}, {3, 7}, {3, 7}, {3, 7}, {3, 7}, {3}, {3}};
+// std::vector<std::vector<int>> skip = {{3}, {3}, {3}, {3}, {3}, {3}, {3}, {3}, {3}, {3}, {3}, {3, 7}, {3, 7}, {3, 7}, {3, 7}, {3, 7}, {3, 7}, {3}, {3}};
 
-	// Loop to demonstrate getting timeslots and incrementing shift
-	int i = 0;
-	for (int size : sizes) {
-		rotary_timeslot.adjustPosition(size - skip[i].size());
-		std::vector<int> timeslot = rotary_timeslot.getTimeslot(size, skip[i]);
-		printVector(timeslot);           
-		rotary_timeslot.incrementShift();
+// // Loop to demonstrate getting timeslots and incrementing shift
+// int i = 0;
+// for (int size : sizes) {
+// 	rotary_timeslot.adjustPosition(size - skip[i].size());
+// 	std::vector<int> timeslot = rotary_timeslot.getTimeslot(size, skip[i]);
+// 	printVector(timeslot);           
+// 	rotary_timeslot.incrementShift();
 
-		i++;
-	}
+// 	i++;
+	// }
+
+	SubjectTeacherQueue subject_teacher_queue;
+
+	subject_teacher_queue.addTeacher(1, 1, 10);
+	subject_teacher_queue.addTeacher(1, 2, 10);
+	subject_teacher_queue.addTeacher(1, 3, 10);
+	subject_teacher_queue.addTeacher(2, 4, 10);
+	subject_teacher_queue.addTeacher(3, 4, 2);
+
+	print("ff", subject_teacher_queue.getTeacher(1, 5));
+	print("ff", subject_teacher_queue.getTeacher(1, 5));
+	print("ff", subject_teacher_queue.getTeacher(1, 5));
+	print("ff", subject_teacher_queue.getTeacher(1, 5));
+	print("ff", subject_teacher_queue.getTeacher(1, 5));
+	print("ff", subject_teacher_queue.getTeacher(1, 4));
+	print("ff", subject_teacher_queue.getTeacher(1, 1));
+	print("ff", subject_teacher_queue.getTeacher(1, 1));
+	print("ff", subject_teacher_queue.getTeacher(2, 1));
+	print("ff", subject_teacher_queue.getTeacher(2, 9));
+	print("ff", subject_teacher_queue.getTeacher(2, 1));
+	print("ff", subject_teacher_queue.getTeacher(3, 1));
+	print("ff", subject_teacher_queue.getTeacher(3, 1));
+	print("ff", subject_teacher_queue.getTeacher(3, 1));
+
+	subject_teacher_queue.resetQueue();
 
 	std::cout << "done testing" << std::endl;
 

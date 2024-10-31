@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "RotaryTimeslot.h"
+#include "SubjectTeacherQueue.h"
 
 #define CLASS_TIMESLOT_OVERLAP_INT 1
 #define NO_BREAK_INT 2
@@ -121,6 +122,7 @@ struct Timetable {
 	static std::uniform_int_distribution<int16_t> s_random_field;
 
 	static RotaryTimeslot s_rotary_timeslot;
+	static SubjectTeacherQueue s_subject_teacher_queue;
 
 	static void initializeRandomWorkDayDistribution(int min, int max);
 	static void initializeRandomSectionDistribution(int min, int max);

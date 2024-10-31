@@ -6,8 +6,8 @@ TARGET = zapp_test_abc2
 SUFFIX = ""  # Default suffix is empty
 FOLDER = exeFolder/
 OUTPUT = $(FOLDER)$(TARGET)$(SUFFIX)  # Output filename with folder and suffix
-SRC = timetable.cpp test_abc2.cpp print.cpp log.cpp TimeManager.cpp RotaryTimeslot.cpp
-HEADERS = timetable.h print.h log.h TimeManager.h RotaryTimeslot.h
+SRC = timetable.cpp test_abc2.cpp print.cpp log.cpp TimeManager.cpp RotaryTimeslot.cpp SubjectTeacherQueue.cpp
+HEADERS = timetable.h print.h log.h TimeManager.h RotaryTimeslot.h SubjectTeacherQueue.h
 OBJ = $(SRC:.cpp=.o)
 
 # Rule to build the final executable

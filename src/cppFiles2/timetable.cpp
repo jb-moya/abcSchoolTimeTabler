@@ -26,6 +26,7 @@ std::unordered_set<int16_t> Timetable::s_sections_set;
 std::vector<int> Timetable::s_section_num_breaks;
 
 RotaryTimeslot Timetable::s_rotary_timeslot;
+SubjectTeacherQueue Timetable::s_subject_teacher_queue;
 int Timetable::s_break_timeslot_allowance;
 int Timetable::s_teacher_break_threshold;
 int Timetable::s_default_class_duration;
@@ -260,9 +261,9 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_te
 			section.break_slots.insert(break_slot);
 		}
 
-s_rotary_timeslot.adjustPosition(total_timeslot);
+		s_rotary_timeslot.adjustPosition(total_timeslot);
 		std::vector<int> timeslot = s_rotary_timeslot.getTimeslot(total_timeslot, breaks);
-s_rotary_timeslot.incrementShift();
+		s_rotary_timeslot.incrementShift();
 
 		std::deque<int>
 		    timeslot_keys(timeslot.begin(), timeslot.end());
@@ -339,7 +340,9 @@ s_rotary_timeslot.incrementShift();
 		for (const auto& subject_id : full_week_day_subjects) {
 			int order = Timetable::s_section_subjects_order[section_id][subject_id];
 
-			int16_t selected_teacher = getRandomTeacher(subject_id);
+			int subject_duration = Timetable::s_section_subjects_duration[section_id][subject_id] * Timetable::s_work_week;
+			int queued_teacher = Timetable::s_subject_teacher_queue.getTeacher(subject_id, subject_duration);
+			int16_t selected_teacher = queued_teacher != -1 ? queued_teacher : getRandomTeacher(subject_id);
 
 			section.utilized_teachers.insert(selected_teacher);
 
@@ -868,12 +871,12 @@ void ObjectiveFunction::evaluate(
 			print("a", bee.teacher_violations[teacher_id].class_timeslot_overlap);
 			print("a", bee.teacher_violations[teacher_id].no_break);
 			print("a", bee.teacher_violations[teacher_id].exceed_workload);
-					}
+		}
 
 		bee.total_cost += bee.teacher_violations[teacher_id].class_timeslot_overlap;
 		bee.total_cost += bee.teacher_violations[teacher_id].no_break;
 		bee.total_cost += bee.teacher_violations[teacher_id].exceed_workload;
-		
+
 		if (bee.teacher_violations[teacher_id].class_timeslot_overlap == 0 &&
 		    bee.teacher_violations[teacher_id].no_break == 0 &&
 		    bee.teacher_violations[teacher_id].exceed_workload == 0) {
@@ -1226,6 +1229,8 @@ void runExperiment(
 			teacher = static_cast<int16_t>(teacher_subjects[i] >> 16);
 			subject = static_cast<int16_t>(teacher_subjects[i] & 0xFFFF);
 			Timetable::s_eligible_teachers_in_subject[subject].push_back(teacher);
+
+			Timetable::s_subject_teacher_queue.addTeacher(subject, teacher, 90);
 		}
 
 		for (int i = 0; i < total_section_subjects; i++) {
@@ -1336,6 +1341,7 @@ void runExperiment(
 	for (int i = 0; i < bees_population; i++) {
 		affected_teachers.clear();
 
+		Timetable::s_subject_teacher_queue.resetQueue();
 		bees_vector[i].timetable.initializeRandomTimetable(affected_teachers);
 
 		evaluator.evaluate(bees_vector[i], affected_teachers, Timetable::s_sections_set, false, true);
@@ -1473,6 +1479,7 @@ void runExperiment(
 			for (auto it = above_limit_abandoned_bees.begin(); it != above_limit_abandoned_bees.end();) {
 				Bee new_bee(num_teachers, sections, teachers);
 				affected_teachers.clear();
+				Timetable::s_subject_teacher_queue.resetQueue();
 				new_bee.timetable.initializeRandomTimetable(affected_teachers);
 				bees_vector[*it] = new_bee;
 				evaluator.evaluate(bees_vector[*it], affected_teachers, Timetable::s_sections_set, false, true);
