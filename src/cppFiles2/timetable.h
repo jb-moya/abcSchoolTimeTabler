@@ -32,7 +32,6 @@
 #define CLASS_TIMESLOT_OVERLAP_INT 1
 #define NO_BREAK_INT 2
 #define EXCEED_WORKLOAD_INT 3
-#define CLASS_GAP_INT 4
 #define EARLY_BREAK_INT 5
 #define SMALL_BREAK_GAP_INT 6
 #define LATE_BREAK_INT 7
@@ -46,7 +45,6 @@ struct teacherViolation {
 	unsigned long long class_timeslot_overlap;
 	unsigned long long no_break;
 	unsigned long long exceed_workload;
-	unsigned long long class_gap;
 };
 
 struct sectionViolation {
@@ -170,7 +168,6 @@ struct Bee {
 		teacher_violations[teacher_id].class_timeslot_overlap = 0;
 		teacher_violations[teacher_id].no_break = 0;
 		teacher_violations[teacher_id].exceed_workload = 0;
-		teacher_violations[teacher_id].class_gap = 0;
 	}
 
 	void resetSectionViolation(int section_id) {
