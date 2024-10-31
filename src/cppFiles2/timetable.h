@@ -28,7 +28,6 @@
 
 #include "RotaryTimeslot.h"
 
-
 #define CLASS_TIMESLOT_OVERLAP_INT 1
 #define NO_BREAK_INT 2
 #define EXCEED_WORKLOAD_INT 3
@@ -121,6 +120,8 @@ struct Timetable {
 	static std::uniform_int_distribution<int8_t> s_random_workDay;
 	static std::uniform_int_distribution<int16_t> s_random_field;
 
+	static RotaryTimeslot s_rotary_timeslot;
+
 	static void initializeRandomWorkDayDistribution(int min, int max);
 	static void initializeRandomSectionDistribution(int min, int max);
 	static void initializeRandomFieldDistribution(int min, int max);
@@ -144,7 +145,7 @@ struct Timetable {
 
 	// void initializeTeachersClass(int teachers);
 
-	void initializeRandomTimetable(std::unordered_set<int16_t>& update_teachers, RotaryTimeslot& rotary_timeslot);
+	void initializeRandomTimetable(std::unordered_set<int16_t>& update_teachers);
 
 	void modify(std::unordered_set<int16_t>& affected_teachers, std::unordered_set<int16_t>& affected_sections);
 

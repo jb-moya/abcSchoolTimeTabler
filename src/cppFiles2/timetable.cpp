@@ -24,6 +24,8 @@ std::unordered_map<int16_t, int> Timetable::s_section_start;
 std::unordered_set<int16_t> Timetable::s_teachers_set;
 std::unordered_set<int16_t> Timetable::s_sections_set;
 std::vector<int> Timetable::s_section_num_breaks;
+
+RotaryTimeslot Timetable::s_rotary_timeslot;
 int Timetable::s_break_timeslot_allowance;
 int Timetable::s_teacher_break_threshold;
 int Timetable::s_default_class_duration;
@@ -230,7 +232,7 @@ int16_t Timetable::getRandomTeacher(int16_t subject_id) {
 	return Timetable::s_eligible_teachers_in_subject[subject_id][dis(randomizer_engine)];
 }
 
-void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_teachers, RotaryTimeslot& rotary_timeslot) {
+void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_teachers) {
 	if (sections.size() == 0) {
 		print("no sections");
 		exit(1);
@@ -258,9 +260,9 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_te
 			section.break_slots.insert(break_slot);
 		}
 
-		rotary_timeslot.adjustPosition(total_timeslot);
-		std::vector<int> timeslot = rotary_timeslot.getTimeslot(total_timeslot, breaks);
-		rotary_timeslot.incrementShift();
+s_rotary_timeslot.adjustPosition(total_timeslot);
+		std::vector<int> timeslot = s_rotary_timeslot.getTimeslot(total_timeslot, breaks);
+s_rotary_timeslot.incrementShift();
 
 		std::deque<int>
 		    timeslot_keys(timeslot.begin(), timeslot.end());
@@ -872,7 +874,6 @@ void ObjectiveFunction::evaluate(
 		bee.total_cost += bee.teacher_violations[teacher_id].no_break;
 		bee.total_cost += bee.teacher_violations[teacher_id].exceed_workload;
 		
-
 		if (bee.teacher_violations[teacher_id].class_timeslot_overlap == 0 &&
 		    bee.teacher_violations[teacher_id].no_break == 0 &&
 		    bee.teacher_violations[teacher_id].exceed_workload == 0) {
@@ -1323,9 +1324,7 @@ void runExperiment(
 	affected_teachers.reserve(num_teachers);
 	affected_sections.reserve(total_section);
 
-	RotaryTimeslot rotary_timeslot;
-
-	best_solution.timetable.initializeRandomTimetable(affected_teachers, rotary_timeslot);
+	best_solution.timetable.initializeRandomTimetable(affected_teachers);
 	printSchoolClasses(best_solution.timetable);
 	print(MAGENTA_B, " -- FIRSTTTTTTTTTTTTT -- ");
 	evaluator.evaluate(best_solution, affected_teachers, Timetable::s_sections_set, false, true);
@@ -1337,7 +1336,7 @@ void runExperiment(
 	for (int i = 0; i < bees_population; i++) {
 		affected_teachers.clear();
 
-		bees_vector[i].timetable.initializeRandomTimetable(affected_teachers, rotary_timeslot);
+		bees_vector[i].timetable.initializeRandomTimetable(affected_teachers);
 
 		evaluator.evaluate(bees_vector[i], affected_teachers, Timetable::s_sections_set, false, true);
 
@@ -1346,6 +1345,8 @@ void runExperiment(
 		}
 	}
 
+	Timetable::s_rotary_timeslot = RotaryTimeslot();
+	// initialization, evaluator, and modify
 	// return;
 
 	vector<int> bees_abandoned(bees_population, 0);
@@ -1472,7 +1473,7 @@ void runExperiment(
 			for (auto it = above_limit_abandoned_bees.begin(); it != above_limit_abandoned_bees.end();) {
 				Bee new_bee(num_teachers, sections, teachers);
 				affected_teachers.clear();
-				new_bee.timetable.initializeRandomTimetable(affected_teachers, rotary_timeslot);
+				new_bee.timetable.initializeRandomTimetable(affected_teachers);
 				bees_vector[*it] = new_bee;
 				evaluator.evaluate(bees_vector[*it], affected_teachers, Timetable::s_sections_set, false, true);
 				bees_abandoned[*it] = 0;
