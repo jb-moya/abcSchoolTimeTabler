@@ -233,6 +233,41 @@ int16_t Timetable::getRandomTeacher(int16_t subject_id) {
 	return Timetable::s_eligible_teachers_in_subject[subject_id][dis(randomizer_engine)];
 }
 
+void Timetable::setClasstimeslot(Section& section) {
+	int class_start = Timetable::s_section_start[section.id];
+
+	for (const auto& [timeslot, day_school_class] : section.classes) {
+		if (day_school_class.count(0)) {
+			const SchoolClass& schoolClass = day_school_class.at(0);
+			int16_t subject_id = schoolClass.subject_id;
+
+			int duration = (subject_id == -1) ? Timetable::s_break_time_duration : Timetable::s_section_subjects_duration[section.id][subject_id];
+
+			section.time_range[timeslot] = ClassStartEnd{class_start, class_start + duration};
+			class_start += duration;
+
+		} else {
+			int max_duration = 0;
+
+			for (int i = 1; i <= s_work_week; ++i) {
+				if (day_school_class.count(i)) {
+					int subject_id = day_school_class.at(i).subject_id;
+
+					if (Timetable::s_section_subjects_duration[section.id][subject_id] > max_duration) {
+						max_duration = Timetable::s_section_subjects_duration[section.id][subject_id];
+					}
+				}
+			}
+
+			section.time_range[timeslot] = ClassStartEnd{class_start, class_start + max_duration};
+
+			class_start += max_duration;
+		}
+	}
+
+	Timetable::s_section_total_duration[section.id] = class_start - Timetable::s_section_start[section.id];
+}
+
 void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_teachers) {
 	if (sections.size() == 0) {
 		print("no sections");
@@ -420,39 +455,7 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_te
 			}
 		}
 
-		int class_start = Timetable::s_section_start[section_id];
-
-		for (const auto& [timeslot, day_school_class] : classes) {
-			if (day_school_class.count(0)) {
-				const SchoolClass& schoolClass = day_school_class.at(0);
-				int16_t subject_id = schoolClass.subject_id;
-
-				int duration = (subject_id == -1) ? Timetable::s_break_time_duration : Timetable::s_section_subjects_duration[section_id][subject_id];
-
-				section.time_range[timeslot] = ClassStartEnd{class_start, class_start + duration};
-				class_start += duration;
-
-			} else {
-				int max_duration = 0;
-
-				for (int i = 1; i <= s_work_week; ++i) {
-					if (day_school_class.count(i)) {
-						int subject_id = day_school_class.at(i).subject_id;
-
-						if (Timetable::s_section_subjects_duration[section_id][subject_id] > max_duration) {
-							max_duration = Timetable::s_section_subjects_duration[section_id][subject_id];
-						}
-					}
-				}
-
-				section.time_range[timeslot] = ClassStartEnd{class_start, class_start + max_duration};
-
-				class_start += max_duration;
-			}
-		}
-
-		Timetable::s_section_total_duration[section_id] = class_start - Timetable::s_section_start[section_id];
-
+		setClasstimeslot(section);
 		updateTeachersAndSections(update_teachers, classes.begin(), classes.end(), true, false, section_id, false);
 	}
 }

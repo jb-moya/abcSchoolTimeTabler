@@ -131,6 +131,8 @@ struct Timetable {
 	static void initializeTeacherSet(int teachers);
 	static void reset();
 
+	void setClasstimeslot(Section& section);
+
 	static int getRandomInRange(int n);
 
 	static int16_t getRandomTeacher(int16_t subject_id);
