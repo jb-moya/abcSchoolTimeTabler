@@ -1321,7 +1321,7 @@ void runExperiment(
 	ObjectiveFunction evaluator;
 
 	print("For function abcTestMine:", max_iterations, "iterations for each experiment.");
-	Bee best_solution(num_teachers, sections, teachers);
+	Bee best_solution(num_teachers, total_section, sections, teachers);
 
 	std::unordered_set<int16_t> affected_teachers;
 	std::unordered_set<int16_t> affected_sections;
@@ -1336,7 +1336,7 @@ void runExperiment(
 	print(GREEN_B, " -- -- Best solution: cost ", RED_B, best_solution.total_cost, GREEN_B, " -- -- ", RESET);
 
 	vector<Bee>
-	    bees_vector(bees_population, Bee(num_teachers, sections, teachers));
+	    bees_vector(bees_population, Bee(num_teachers, total_section, sections, teachers));
 
 	for (int i = 0; i < bees_population; i++) {
 		affected_teachers.clear();
@@ -1477,7 +1477,7 @@ void runExperiment(
 
 		for (int itScout = 0; itScout < bees_scout; itScout++) {
 			for (auto it = above_limit_abandoned_bees.begin(); it != above_limit_abandoned_bees.end();) {
-				Bee new_bee(num_teachers, sections, teachers);
+				Bee new_bee(num_teachers, total_section, sections, teachers);
 				affected_teachers.clear();
 				Timetable::s_subject_teacher_queue.resetQueue();
 				new_bee.timetable.initializeRandomTimetable(affected_teachers);
