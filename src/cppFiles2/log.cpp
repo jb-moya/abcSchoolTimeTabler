@@ -159,7 +159,7 @@ void logConflicts(
     std::ofstream& log_file) {
 	auto& teachers_timetable = bee.timetable.teachers;
 
-	teacherViolation overall_total_teacher_violation = {0, 0, 0, 0};
+	teacherViolation overall_total_teacher_violation = {0, 0, 0};
 	sectionViolation overall_total_section_violation = {0, 0, 0};
 
 	std::map<int16_t, teacherViolation> teachers_total_violation;
@@ -289,7 +289,6 @@ void logConflicts(
 	log_file << "class timeslot overlap: " << overall_total_teacher_violation.class_timeslot_overlap << std::endl;
 	log_file << "no break: " << overall_total_teacher_violation.no_break << std::endl;
 	log_file << "exceed workload: " << overall_total_teacher_violation.exceed_workload << std::endl;
-	log_file << "class gap: " << overall_total_teacher_violation.class_gap << std::endl;
 	log_file << std::endl;
 
 	log_file << "Section: " << std::endl;
