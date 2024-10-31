@@ -251,7 +251,7 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_te
 		    gap,
 		    num_breaks == 1 ? gap + 1 : gap);
 
-		std::vector<int> breaks = getDefaultBreaksCombination(possible_breaks);
+		std::vector<int> breaks = possible_breaks[section_id % possible_breaks.size()];
 
 		for (int break_slot : breaks) {
 			classes[break_slot][0] = SchoolClass{-1, -1};
