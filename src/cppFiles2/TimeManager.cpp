@@ -1,4 +1,4 @@
-#include "TimeManager.h"
+#include "timeManager.h"
 
 void TimeManager::startTimer() {
 	start_time = std::chrono::high_resolution_clock::now();
@@ -24,7 +24,7 @@ std::string TimeManager::getStartDate() {
 	       std::to_string(localStartTime->tm_mday);
 }
 
-// Function to get the start time as a string
+// Function to get the start time as a string.
 std::string TimeManager::getStartTime() {
 	auto start_time_t = std::chrono::high_resolution_clock::to_time_t(start_time);
 	std::tm* localStartTime = std::localtime(&start_time_t);

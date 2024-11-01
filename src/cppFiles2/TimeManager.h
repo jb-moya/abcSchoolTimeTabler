@@ -24,4 +24,4 @@ class TimeManager {
 	std::string getTimelapse();
 };
 
-#endif  // TIMEMANAGER_H
+#endif  // TIMEMANAGER_H.

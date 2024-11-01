@@ -1,4 +1,4 @@
-#include "RotaryTimeslot.h"
+#include "rotaryTimeslot.h"
 
 void RotaryTimeslot::incrementShift(int increment) {
 	total_shift += increment;
@@ -16,7 +16,7 @@ std::vector<int> RotaryTimeslot::getTimeslot(int size, std::vector<int> skip) {
 
 	total_shift = total_shift % (size - skip.size());
 
-	// std::cout << "total_shift " << shift << ", shift: " << std::endl;
+	// std::cout << "total_shift " << shift << ", shift: " << std::endl;.
 	std::rotate(timeslot.rbegin(), timeslot.rbegin() + total_shift, timeslot.rend());
 
 	for (size_t i = 0; i < skip.size(); i++) {

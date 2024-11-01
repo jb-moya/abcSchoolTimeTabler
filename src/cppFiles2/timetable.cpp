@@ -1,13 +1,11 @@
-#include "timetable.h"
-
-#include "TimeManager.h"
+#include "abc.h"
 #include "log.h"
 #include "print.h"
+#include "random_util.h"
+#include "rotaryTimeslot.h"
+#include "timeManager.h"
 
 using namespace std;
-
-std::random_device rd;
-std::mt19937 randomizer_engine(rd());
 
 #define LOG_FOLDER "logs2/"
 
@@ -99,7 +97,6 @@ void Timetable::updateTeachersAndSections(
 	auto itUpPrev = std::prev(itUp);
 
 	auto section = sections[selected_section];
-	;
 
 	auto timeslot_begin = sections[selected_section].classes.begin();
 
@@ -169,7 +166,7 @@ void Timetable::updateTeachersAndSections(
 				for (int j = 0; j < duration; ++j) {
 					if (is_reset) {
 						if (--utilized_time[day.first][start + j] <= 0) {
-							// can i use: std::optional<T>::swap on this
+							// can i use: std::optional<T>::swap on this.
 
 							utilized_time[day.first].erase(start + j);
 
@@ -377,7 +374,8 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_te
 
 			int subject_duration = Timetable::s_section_subjects_duration[section_id][subject_id] * Timetable::s_work_week;
 			int queued_teacher = Timetable::s_subject_teacher_queue.getTeacher(subject_id, subject_duration);
-			int16_t selected_teacher = queued_teacher != -1 ? queued_teacher : getRandomTeacher(subject_id);
+			// int16_t selected_teacher = queued_teacher != -1 ? queued_teacher : getRandomTeacher(subject_id);
+			int16_t selected_teacher = getRandomTeacher(subject_id);
 
 			section.utilized_teachers.insert(selected_teacher);
 
@@ -766,396 +764,6 @@ int32_t packInt16ToInt32(int16_t first, int16_t second) {
 	return result;
 }
 
-void ObjectiveFunction::evaluate(
-    Bee& bee,
-    std::unordered_set<int16_t>& update_teachers,
-    std::unordered_set<int16_t>& update_sections,
-    bool show_penalty,
-    bool is_initial) {
-	int counter = 0;
-
-	auto& teachers_timetable = bee.timetable.teachers;
-
-	if (is_initial) {
-		bee.total_cost = 0;
-	}
-
-	for (const int16_t& teacher_id_16 : update_teachers) {
-		int teacher_id = static_cast<int>(teacher_id_16);
-
-		if (!is_initial) {
-			bee.total_cost -= bee.teacher_violations[teacher_id].class_timeslot_overlap;
-			bee.total_cost -= bee.teacher_violations[teacher_id].no_break;
-			bee.total_cost -= bee.teacher_violations[teacher_id].exceed_workload;
-		}
-
-		bee.resetTeacherViolation(teacher_id);
-
-		const auto& teacher_id_and_days = teachers_timetable.at(teacher_id).utilized_time;
-		const auto& class_count = teachers_timetable.at(teacher_id).class_count;
-
-		const int max_teacher_work_load = bee.timetable.s_max_teacher_work_load;
-		const int break_time_duration = bee.timetable.s_break_time_duration;
-
-		for (const auto& [day, timeslot] : teacher_id_and_days) {
-			if (class_count.at(day) > max_teacher_work_load) {
-				bee.teacher_violations[teacher_id].exceed_workload += 5;
-			}
-
-			if (show_penalty) {
-				print(YELLOW, "ff day", day, "size timeslot", timeslot.size(), RESET);
-			}
-
-			if (timeslot.size() == 0) {
-				continue;
-			}
-
-			auto it = timeslot.begin();
-			auto nextIt = std::next(it);
-
-			std::set<int> teacher_available_timeslot;
-
-			auto lastElement = --timeslot.end();
-			float middle = (timeslot.begin()->first + lastElement->first) / 2;
-
-			int allowance_multiplier = 2;
-
-			float min_allowance = middle - (bee.timetable.s_default_class_duration * allowance_multiplier);
-			float max_allowance = middle + (bee.timetable.s_default_class_duration * allowance_multiplier);
-
-			int rounded_min_allowance = static_cast<int>(std::floor(min_allowance));
-			int rounded_max_allowance = static_cast<int>(std::ceil(max_allowance));
-
-			bool break_found = false;
-
-			while (it != timeslot.end()) {
-				int timeslot_key = it->first;
-				int class_count = it->second;
-
-				if (show_penalty) {
-					print(BLUE, "teacher", teacher_id, day, "U timeslot", timeslot_key, class_count, BLUE_B, ++counter, RESET);
-				};
-				if (nextIt != timeslot.end()) {
-					int nextKey = nextIt->first;
-					int difference = nextKey - 1 - timeslot_key;
-					// gap += difference;
-					if ((difference >= break_time_duration) && !break_found) {
-						if ((rounded_min_allowance <= timeslot_key + 1 && timeslot_key + 1 <= rounded_max_allowance) ||
-						    (rounded_min_allowance <= nextKey - 1 && nextKey - 1 <= rounded_max_allowance)) {
-							break_found = true;
-						}
-					}
-				}
-
-				if (class_count > 1) {
-					if (show_penalty) {
-						print(RED, "teacher", teacher_id, "day", day, "timeslot", it->first, "value", class_count, RESET);
-					}
-
-					bee.teacher_violations[teacher_id].class_timeslot_overlap += class_count * 5;
-				}
-
-				it = nextIt;
-				if (nextIt != timeslot.end()) {
-					++nextIt;
-				}
-			}
-
-			if (!break_found && class_count.at(day) >= bee.timetable.s_teacher_break_threshold) {
-				if (show_penalty) {
-					print(GREEN_B, "teacher with no break", teacher_id, "day", day, RESET);
-				}
-				bee.teacher_violations[teacher_id].no_break += 1;
-			}
-		}
-
-		if (show_penalty) {
-			print("teacher", teacher_id);
-			print("a", bee.teacher_violations[teacher_id].class_timeslot_overlap);
-			print("a", bee.teacher_violations[teacher_id].no_break);
-			print("a", bee.teacher_violations[teacher_id].exceed_workload);
-		}
-
-		bee.total_cost += bee.teacher_violations[teacher_id].class_timeslot_overlap;
-		bee.total_cost += bee.teacher_violations[teacher_id].no_break;
-		bee.total_cost += bee.teacher_violations[teacher_id].exceed_workload;
-
-		if (bee.teacher_violations[teacher_id].class_timeslot_overlap == 0 &&
-		    bee.teacher_violations[teacher_id].no_break == 0 &&
-		    bee.teacher_violations[teacher_id].exceed_workload == 0) {
-			bee.timetable.teachers_with_conflicts.erase(static_cast<int16_t>(teacher_id));
-		} else {
-			bee.timetable.teachers_with_conflicts.insert(static_cast<int16_t>(teacher_id));
-		}
-	}
-
-	return;
-
-	for (const int16_t& section_id_16 : update_sections) {
-		int section_id = static_cast<int>(section_id_16);
-		// if (bee.timetable.Timetable::s_section_dynamic_subject_consistent_duration.find(section_id) != bee.timetable.Timetable::s_section_dynamic_subject_consistent_duration.end()) {
-		// 	// print("ppp");
-		// 	continue;
-		// } else {
-		// 	// print("hehe");
-		// }
-		auto& section = bee.timetable.sections[section_id];
-
-		int early_not_allowed_break_duration_gap = Timetable::s_section_not_allowed_breakslot_gap[section_id] * Timetable::s_default_class_duration;
-		int late_not_allowed_break_duration_gap = (Timetable::s_section_not_allowed_breakslot_gap[section_id] + 1) * Timetable::s_default_class_duration;
-
-		if (!is_initial) {
-			bee.total_cost -= bee.section_violations[section_id].early_break;
-			bee.total_cost -= bee.section_violations[section_id].small_break_gap;
-			bee.total_cost -= bee.section_violations[section_id].late_break;
-		}
-
-		bee.resetSectionViolation(section_id);
-
-		int max_time = bee.timetable.s_section_start[section_id] + bee.timetable.s_section_total_duration[section_id];
-
-		if (section.break_slots.size() == 1) {
-			int break_time = *section.break_slots.begin();
-
-			if (section.time_range[break_time].end > max_time - late_not_allowed_break_duration_gap) {
-				bee.section_violations[section_id].late_break += 10000;
-			}
-
-			if (section.time_range[break_time].start < early_not_allowed_break_duration_gap) {
-				bee.section_violations[section_id].early_break += 10000;
-			}
-		} else {
-			int first_break_time = *section.break_slots.begin();
-			int last_break_time = *section.break_slots.rbegin();
-
-			int first_start = section.time_range[first_break_time].start;
-			int last_end = section.time_range[last_break_time].end;
-
-			if (last_end > max_time - late_not_allowed_break_duration_gap) {
-				bee.section_violations[section_id].late_break += 10000;
-			}
-
-			if (first_start < early_not_allowed_break_duration_gap) {
-				bee.section_violations[section_id].early_break += 10000;
-			}
-
-			if (last_end - first_start <= early_not_allowed_break_duration_gap) {
-				bee.section_violations[section_id].small_break_gap += 10000;
-			}
-		}
-
-		bee.total_cost += bee.section_violations[section_id].early_break;
-		bee.total_cost += bee.section_violations[section_id].small_break_gap;
-		bee.total_cost += bee.section_violations[section_id].late_break;
-
-		bool has_teacher_with_conflicts = false;
-
-		for (const int16_t& teacher : section.utilized_teachers) {
-			if (bee.timetable.teachers_with_conflicts.find(teacher) != bee.timetable.teachers_with_conflicts.end()) {
-				has_teacher_with_conflicts = true;
-				break;
-			}
-		}
-
-		if (bee.section_violations[section_id].early_break == 0 &&
-		    bee.section_violations[section_id].small_break_gap == 0 &&
-		    bee.section_violations[section_id].late_break == 0 &&
-		    has_teacher_with_conflicts == false) {
-			bee.timetable.sections_with_conflicts.erase(static_cast<int16_t>(section_id));
-		} else {
-			bee.timetable.sections_with_conflicts.insert(static_cast<int16_t>(section_id));
-		}
-	}
-};
-
-// TODO: SEPARATE GETTING RESULT DETAILS
-
-void getViolation(
-    Bee& bee, int64_t* result_violation) {
-	auto& teachers_timetable = bee.timetable.teachers;
-
-	std::unordered_map<int, std::unordered_map<int16_t, int>> teacher_violations;
-	std::unordered_map<int, std::unordered_map<int16_t, int>> section_violations;
-
-	for (const int16_t& teacher_id_16 : bee.timetable.s_teachers_set) {
-		const int teacher_id = static_cast<int>(teacher_id_16);
-
-		const auto& teacher_id_and_days = teachers_timetable.at(teacher_id).utilized_time;
-		const auto& class_count = teachers_timetable.at(teacher_id).class_count;
-
-		const int max_teacher_work_load = bee.timetable.s_max_teacher_work_load;
-		const int break_time_duration = bee.timetable.s_break_time_duration;
-
-		for (const auto& [day, timeslot] : teacher_id_and_days) {
-			if (class_count.at(day) > max_teacher_work_load) {
-				teacher_violations[EXCEED_WORKLOAD_INT][teacher_id]++;
-			}
-
-			if (timeslot.size() == 0) {
-				continue;
-			}
-
-			auto it = timeslot.begin();
-			auto nextIt = std::next(it);
-
-			std::set<int> teacher_available_timeslot;
-
-			auto lastElement = --timeslot.end();
-			float middle = (timeslot.begin()->first + lastElement->first) / 2;
-
-			int allowance_multiplier = 2;
-
-			float min_allowance = middle - (bee.timetable.s_default_class_duration * allowance_multiplier);
-			float max_allowance = middle + (bee.timetable.s_default_class_duration * allowance_multiplier);
-
-			int rounded_min_allowance = static_cast<int>(std::floor(min_allowance));
-			int rounded_max_allowance = static_cast<int>(std::ceil(max_allowance));
-
-			bool break_found = false;
-
-			while (it != timeslot.end()) {
-				int timeslot_key = it->first;
-				int class_count = it->second;
-
-				if (nextIt != timeslot.end()) {
-					int nextKey = nextIt->first;
-					int difference = nextKey - timeslot_key - 1;
-					if ((difference >= break_time_duration) && !break_found) {
-						if ((rounded_min_allowance <= timeslot_key + 1 && timeslot_key + 1 <= rounded_max_allowance) ||
-						    (rounded_min_allowance <= nextKey - 1 && nextKey - 1 <= rounded_max_allowance)) {
-							break_found = true;
-						}
-					}
-				}
-
-				if (class_count > 1) {
-					teacher_violations[CLASS_TIMESLOT_OVERLAP_INT][teacher_id]++;
-				}
-
-				it = nextIt;
-				if (nextIt != timeslot.end()) {
-					++nextIt;
-				}
-			}
-
-			if (!break_found && class_count.at(day) >= bee.timetable.s_teacher_break_threshold) {
-				teacher_violations[NO_BREAK_INT][teacher_id]++;
-			}
-		}
-	}
-
-	for (const int16_t& section_id_16 : bee.timetable.s_sections_set) {
-		const int section_id = static_cast<int>(section_id_16);
-
-		// if (bee.timetable.Timetable::s_section_dynamic_subject_consistent_duration.find(section_id) != bee.timetable.Timetable::s_section_dynamic_subject_consistent_duration.end()) {
-		// 	// print("ppp");
-		// 	continue;
-		// } else {
-		// 	// print("hehe");
-		// }
-
-		auto& section = bee.timetable.sections[section_id];
-
-		int early_not_allowed_break_duration_gap = Timetable::s_section_not_allowed_breakslot_gap[section_id] * Timetable::s_default_class_duration;
-		int late_not_allowed_break_duration_gap = (Timetable::s_section_not_allowed_breakslot_gap[section_id] + 1) * Timetable::s_default_class_duration;
-
-		int max_time = Timetable::s_section_start[section_id] + Timetable::s_section_total_duration[section_id];
-
-		if (section.break_slots.size() == 1) {
-			int break_time = *section.break_slots.begin();
-
-			if (section.time_range[break_time].end > max_time - late_not_allowed_break_duration_gap) {
-				section_violations[LATE_BREAK_INT][section_id]++;
-			}
-
-			if (section.time_range[break_time].start < early_not_allowed_break_duration_gap) {
-				section_violations[EARLY_BREAK_INT][section_id]++;
-			}
-		} else {
-			int first_break_time = *section.break_slots.begin();
-			int last_break_time = *section.break_slots.rbegin();
-
-			int first_start = section.time_range[first_break_time].start;
-			int last_end = section.time_range[last_break_time].end;
-
-			if (last_end > max_time - late_not_allowed_break_duration_gap) {
-				section_violations[LATE_BREAK_INT][section_id]++;
-			}
-
-			if (first_start < early_not_allowed_break_duration_gap) {
-				section_violations[EARLY_BREAK_INT][section_id]++;
-			}
-
-			if (last_end - first_start <= early_not_allowed_break_duration_gap) {
-				section_violations[SMALL_BREAK_GAP_INT][section_id]++;
-			}
-		}
-	}
-
-	int iter = 0;
-	for (const auto& [violation_type, teacher_violation_count] : teacher_violations) {
-		for (const auto& [teacher_id, violation_count] : teacher_violation_count) {
-			print("violation_type", violation_type, teacher_id, violation_count);
-			int64_t packed = pack5IntToInt64(violation_type, teacher_id, violation_count, 0, 0);
-
-			result_violation[iter++] = packed;
-		}
-	}
-
-	for (const auto& [violation_type, section_violation_count] : section_violations) {
-		for (const auto& [section_id, violation_count] : section_violation_count) {
-			print("violation_type", violation_type, section_id, violation_count);
-			int64_t packed = pack5IntToInt64(violation_type, section_id, violation_count, 0, 0);
-
-			result_violation[iter++] = packed;
-		}
-	}
-
-	result_violation[iter] = pack5IntToInt64(-1, -1, -1, -1, -1);
-};
-
-void getResult(Bee& bee, int64_t* result, int64_t* result_2, int offset_duration) {
-	print("Getting result...");
-
-	int iter = 0;
-	for (const auto& [section_id, section] : bee.timetable.sections) {
-		int offset = bee.timetable.s_section_start[section_id];
-		for (const auto& [timeslot, classMap] : section.classes) {
-			for (const auto& [day, schoolClass] : classMap) {
-				// print("class xx",
-				//       grade,
-				//       schoolClass.subject_id,
-				//       schoolClass.teacher_id,
-				//       static_cast<int8_t>(timeslot),
-				//       day);
-
-				int64_t packed = pack5IntToInt64(
-				    section.id,
-				    schoolClass.subject_id,
-				    schoolClass.teacher_id,
-				    static_cast<int8_t>(timeslot),
-				    day);
-
-				int start = section.time_range.at(timeslot).start + offset_duration * timeslot;
-				int end = section.time_range.at(timeslot).end + offset_duration * (timeslot + 1);
-
-				start += offset;
-				end += offset;
-
-				result[iter] = packed;
-				result_2[iter] = pack5IntToInt64(start, end, 0, 0, 0);
-
-				iter++;
-			}
-		}
-	}
-
-	result[iter] = pack5IntToInt64(-1, -1, -1, -1, -1);
-	result_2[iter] = pack5IntToInt64(-1, -1, -1, -1, -1);
-
-	print("...Done getting result!");
-}
-
 extern "C" {
 
 void runExperiment(
@@ -1324,46 +932,23 @@ void runExperiment(
 	ObjectiveFunction evaluator;
 
 	print("For function abcTestMine:", max_iterations, "iterations for each experiment.");
+
 	Bee best_solution(num_teachers, total_section, sections, teachers);
 
-	std::unordered_set<int16_t> affected_teachers;
-	std::unordered_set<int16_t> affected_sections;
-
-	affected_teachers.reserve(num_teachers);
-	affected_sections.reserve(total_section);
-
-	best_solution.timetable.initializeRandomTimetable(affected_teachers);
-	printSchoolClasses(best_solution.timetable);
-	print(MAGENTA_B, " -- FIRSTTTTTTTTTTTTT -- ");
-	evaluator.evaluate(best_solution, affected_teachers, Timetable::s_sections_set, false, true);
-	print(GREEN_B, " -- -- Best solution: cost ", RED_B, best_solution.total_cost, GREEN_B, " -- -- ", RESET);
-
-	vector<Bee>
-	    bees_vector(bees_population, Bee(num_teachers, total_section, sections, teachers));
-
-	for (int i = 0; i < bees_population; i++) {
-		affected_teachers.clear();
-
-		Timetable::s_subject_teacher_queue.resetQueue();
-		bees_vector[i].timetable.initializeRandomTimetable(affected_teachers);
-
-		evaluator.evaluate(bees_vector[i], affected_teachers, Timetable::s_sections_set, false, true);
-
-		if (bees_vector[i].total_cost <= best_solution.total_cost) {
-			best_solution = bees_vector[i];
-		}
-	}
+	ABC abc(
+	    total_section,
+	    num_teachers,
+	    max_iterations,
+	    bees_population,
+	    bees_employed,
+	    bees_onlooker,
+	    bees_scout,
+	    limit,
+	    best_solution,
+	    sections,
+	    teachers);
 
 	Timetable::s_rotary_timeslot = RotaryTimeslot();
-	// initialization, evaluator, and modify
-	// return;
-
-	vector<int> bees_abandoned(bees_population, 0);
-	std::unordered_set<int> above_limit_abandoned_bees;
-	std::uniform_int_distribution<>
-	    dist_bees_employed(0, bees_employed - 1);
-
-	int iteration_count = max_iterations;
 
 	TimeManager tm;
 	tm.startTimer();
@@ -1372,138 +957,9 @@ void runExperiment(
 	                   bees_population, bees_employed, bees_onlooker, bees_scout, limit, work_week, max_teacher_work_load,
 	                   break_time_duration, break_timeslot_allowance, teacher_break_threshold, min_total_class_duration_for_two_breaks, default_class_duration, result_buff_length, offset_duration, enable_logging, tm.getStartTime());
 
-	std::map<int, int> costs;
+	abc.run();
 
-	print(YELLOW, "starting iteration");
-	for (int iter = 0; iter < max_iterations; iter++) {
-		if (iter % 10 == 0) {
-			costs[best_solution.total_cost]++;
-		}
-
-		int total_cost = 0;
-
-		for (int i = 0; i < bees_employed; i++) {
-			int random_bee;
-			do {
-				random_bee = dist_bees_employed(randomizer_engine);
-			} while (random_bee == i);
-
-			Bee new_bee = bees_vector[random_bee];
-
-			affected_teachers.clear();
-			affected_sections.clear();
-
-			new_bee.timetable.modify(affected_teachers, affected_sections);
-			evaluator.evaluate(new_bee, affected_teachers, affected_sections, false, false);
-
-			if (new_bee.total_cost <= bees_vector[i].total_cost) {
-				bees_vector[i] = new_bee;
-
-				bees_abandoned[i] = 0;
-			} else {
-				bees_abandoned[i]++;
-
-				if (bees_abandoned[i] >= limit) {
-					print("employ abandoning bee", iter, i);
-
-					above_limit_abandoned_bees.insert(i);
-				}
-			}
-
-			total_cost += bees_vector[i].total_cost;
-		}
-
-		double averageCost = (total_cost / bees_employed);
-		if (averageCost < 1e-6) {
-			averageCost = 1e-6;  // Ensure averageCost is never too small
-		}
-
-		vector<double> fitness_values(bees_employed, 0);
-		double fSum = 0;
-		for (int i = 0; i < bees_employed; i++) {
-			fitness_values[i] = 1.0 / (1.0 + (bees_vector[i].total_cost / averageCost));
-
-			if (std::isinf(fitness_values[i]) || std::isnan(fitness_values[i])) {
-				print("Numerical issue with fitness value", i);
-				exit(1);
-			}
-
-			fSum += fitness_values[i];
-		}
-
-		if (fSum < 1e-6) {
-			print("fSum too small, potential issue with cost values");
-			exit(1);
-		}
-
-		vector<double>
-		    prob(bees_employed, 0);
-		for (int i = 0; i < bees_employed; i++) {
-			prob[i] = fitness_values[i] / fSum;
-		}
-
-		auto fitness_proportionate_selection = [&](const vector<double>& prob) {
-			std::uniform_real_distribution<> dis(0.0, 1.0);
-			double r = dis(randomizer_engine);
-			double cumulative = 0.0;
-			for (int i = 0; i < static_cast<int>(prob.size()); i++) {
-				cumulative += prob[i];
-				if (r <= cumulative) {
-					return i;
-				}
-			}
-			return static_cast<int>(prob.size() - 1);
-		};
-
-		for (int m = 0; m < bees_onlooker; m++) {
-			int i = fitness_proportionate_selection(prob);
-
-			Bee new_bee = bees_vector[i];
-			affected_teachers.clear();
-			affected_sections.clear();
-
-			new_bee.timetable.modify(affected_teachers, affected_sections);
-			evaluator.evaluate(new_bee, affected_teachers, affected_sections, false, false);
-
-			if (new_bee.total_cost <= bees_vector[i].total_cost) {
-				bees_vector[i] = new_bee;
-				bees_abandoned[i] = 0;
-			} else {
-				bees_abandoned[i]++;
-
-				if (bees_abandoned[i] >= limit) {
-					print("abandoning bee", iter, i);
-					above_limit_abandoned_bees.insert(i);
-				}
-			}
-		}
-
-		for (int itScout = 0; itScout < bees_scout; itScout++) {
-			for (auto it = above_limit_abandoned_bees.begin(); it != above_limit_abandoned_bees.end();) {
-				Bee new_bee(num_teachers, total_section, sections, teachers);
-				affected_teachers.clear();
-				Timetable::s_subject_teacher_queue.resetQueue();
-				new_bee.timetable.initializeRandomTimetable(affected_teachers);
-				bees_vector[*it] = new_bee;
-				evaluator.evaluate(bees_vector[*it], affected_teachers, Timetable::s_sections_set, false, true);
-				bees_abandoned[*it] = 0;
-
-				it = above_limit_abandoned_bees.erase(it);
-			}
-		}
-
-		for (int i = 0; i < bees_employed; i++) {
-			if (bees_vector[i].total_cost <= best_solution.total_cost) {
-				best_solution = bees_vector[i];
-			}
-		}
-
-		if (best_solution.total_cost == 0) {
-			print(CYAN_BG, BOLD, "EARLY BREAK Best solution: cost ", best_solution.total_cost, " at ", iter, RESET);
-			iteration_count = iter;
-			break;
-		}
-	}
+	// std::map<int, int> costs;
 
 	tm.stopTimer();
 
@@ -1511,19 +967,21 @@ void runExperiment(
 	print(GREEN_B, " -- -- Best solution: cost ", RED_B, best_solution.total_cost, GREEN_B, " -- -- ", RESET);
 	print(GREEN_B, " -- -- -- -- -- -- -- -- -- -- -- -- -- -- ", RESET);
 
-	printSchoolClasses(best_solution.timetable);
+	Bee final_bee = abc.getBestSolution();
+
+	printSchoolClasses(final_bee.timetable);
 
 	if (enable_logging) {
 		std::string name_file = std::string(LOG_FOLDER) + "c" + tm.getStartDate() + "-" + tm.getStartTime() + "---" +
-		                        std::to_string(num_teachers) + "_" + std::to_string(total_section) + "_" + std::to_string(best_solution.total_cost) + "---" + "timetable.txt";
+		                        std::to_string(num_teachers) + "_" + std::to_string(total_section) + "_" + std::to_string(final_bee.total_cost) + "---" + "timetable.txt";
 		std::ofstream txt_file(name_file);
-		logResults(txt_file, best_solution.total_cost, tm.getTimelapse(), tm.getStartDate(), tm.getStartTime(), iteration_count, max_iterations, num_teachers, total_section_subjects,
+		logResults(txt_file, final_bee.total_cost, tm.getTimelapse(), tm.getStartDate(), tm.getStartTime(), 69, max_iterations, num_teachers, total_section_subjects,
 		           total_section, teacher_subjects_length, bees_population, bees_employed, bees_onlooker, bees_scout, limit, work_week, max_teacher_work_load, break_time_duration,
 		           break_timeslot_allowance, teacher_break_threshold, min_total_class_duration_for_two_breaks, default_class_duration, result_buff_length, offset_duration, enable_logging);
 
-		logCosts(costs, txt_file);
-		logConflicts(best_solution, txt_file);
-		logSchoolClasses(best_solution.timetable, txt_file);
+		// logCosts(costs, txt_file);
+		logConflicts(&final_bee, txt_file);
+		logSchoolClasses(final_bee.timetable, txt_file);
 
 		print("----------------------------");
 		print("result log file: ", name_file);
@@ -1532,14 +990,13 @@ void runExperiment(
 		txt_file.close();
 	}
 
-	evaluator.evaluate(best_solution, Timetable::s_teachers_set, Timetable::s_sections_set, false, true);
-	print(GREEN_B, " -- -- Best solution: cost ", RED_B, best_solution.total_cost, GREEN_B, " -- -- ", RESET);
-	print(iteration_count == max_iterations ? RED_BG : CYAN_BG, BOLD, iteration_count == max_iterations ? "MAXIMUM ITERATIONS REACHED" : "EARLY BREAK Best solution: cost ", best_solution.total_cost, " at ", iteration_count, RESET);
+	evaluator.evaluate(final_bee, Timetable::s_teachers_set, Timetable::s_sections_set, false, true);
+	print(GREEN_B, " -- -- Best solution: cost ", RED_B, final_bee.total_cost, GREEN_B, " -- -- ", RESET);
 
 	print("Time taken: ", tm.getTimelapse());
 
-	getResult(best_solution, result_timetable, result_timetable_2, offset_duration);
-	getViolation(best_solution, result_violation);
+	abc.getResult(result_timetable, result_timetable_2, offset_duration);
+	abc.getViolation(result_violation);
 
 	return;
 }

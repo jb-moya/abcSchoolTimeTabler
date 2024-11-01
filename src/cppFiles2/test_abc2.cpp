@@ -19,10 +19,10 @@
 #include <utility>
 #include <vector>
 
-#include "RotaryTimeslot.h"
-#include "SubjectTeacherQueue.h"
+#include "rotaryTimeslot.h"
+#include "subjectTeacherQueue.h"
 #include "timetable.h"
-#include "print.h"
+// #include "print.h"
 
 using namespace std;
 
@@ -47,21 +47,18 @@ void unpackInt32ToInt16(int32_t packed, int16_t& first, int16_t& second) {
 
 void test_generate_timetable() {
 	// TODO: dynamic max_iterations base on config'
-	int max_iterations = 100000;
-	int beesPopulation = 7;
+	int max_iterations = 30000;
+	int beesPopulation = 4;
 	int beesEmployed = 2;
-	int beesOnlooker = 5;
+	int beesOnlooker = 2;
 	int beesScout = 1;
 
-	int num_teachers = 9;
-	// int num_teachers = 60;
+	int num_teachers = 27;
 	// count teacher with same subject: 11. does this mean there's extra 1 teacher?
-	int total_section = 9;
-	// int total_section = 40;
+	int total_section = 27;
 	int num_subjects = 9;
 
 	int max_teacher_work_load = 9;
-
 
 	// oct 19, 2024
 
@@ -98,7 +95,7 @@ void test_generate_timetable() {
 	// int limit = (total_section * num_teachers) * 1.2;
 	// int limit = (total_section * num_teachers) / 4;
 	// int limit = (total_section * (num_teachers + 10)) * .7;
-	int limit = (total_section * (num_teachers));
+	int limit = (total_section * (num_teachers)) * .5;
 
 	int default_units = 0;
 	int default_order = 0;
@@ -277,11 +274,11 @@ void printVector(const std::vector<int>& vec) {
 }
 
 int main() {
-		for (int i = 0; i < 1000; i++) {
+	for (int i = 0; i < 1; i++) {
 		test_generate_timetable();
 	}
 	std::cout << "done testing" << std::endl;
-	return 0;
+	return 0;;
 
 	// std::vector<std::vector<int>> breaks_combination = getAllBreaksCombination(12, 2, 3, 3);
 
@@ -290,7 +287,7 @@ int main() {
 	// 	for (auto it2 = it->begin(); it2 != it->end(); ++it2) {
 	// 		std::cout << *it2;
 	// 		if (std::next(it2) != it->end()) {
-				// 			std::cout << ", ";
+	// 			std::cout << ", ";
 	// 		}
 	// 	}
 	// 	std::cout << "}\n";
@@ -311,24 +308,24 @@ int main() {
 	// 	std::cout << num << " ";  // Output: 5 1 2 3 4
 	// }
 
-// RotaryTimeslot rotary_timeslot;
+	// RotaryTimeslot rotary_timeslot;
 
-// // Example sizes to get timeslots
-// // std::vector<int> sizes = {9, 9, 9, 9, 9, 9, 5, 7, 9, 11, 13, 15, 10, 10, 10, 10, 10, 10, 10, 10, 3, 3, 3, 4, 4, 5, 4, 5, 6, 10, 12, 14, 16, 18, 9, 7, 10, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25};
-// // std::vector<int> sizes = {10, 10, 10, 10, 10, 10, 10, 10, 13, 13, 13, 13, 10, 12, 11};
-// std::vector<int> sizes = {10, 10, 9, 8, 7, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
+	// // Example sizes to get timeslots
+	// // std::vector<int> sizes = {9, 9, 9, 9, 9, 9, 5, 7, 9, 11, 13, 15, 10, 10, 10, 10, 10, 10, 10, 10, 3, 3, 3, 4, 4, 5, 4, 5, 6, 10, 12, 14, 16, 18, 9, 7, 10, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25};
+	// // std::vector<int> sizes = {10, 10, 10, 10, 10, 10, 10, 10, 13, 13, 13, 13, 10, 12, 11};
+	// std::vector<int> sizes = {10, 10, 9, 8, 7, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
 
-// std::vector<std::vector<int>> skip = {{3}, {3}, {3}, {3}, {3}, {3}, {3}, {3}, {3}, {3}, {3}, {3, 7}, {3, 7}, {3, 7}, {3, 7}, {3, 7}, {3, 7}, {3}, {3}};
+	// std::vector<std::vector<int>> skip = {{3}, {3}, {3}, {3}, {3}, {3}, {3}, {3}, {3}, {3}, {3}, {3, 7}, {3, 7}, {3, 7}, {3, 7}, {3, 7}, {3, 7}, {3}, {3}};
 
-// // Loop to demonstrate getting timeslots and incrementing shift
-// int i = 0;
-// for (int size : sizes) {
-// 	rotary_timeslot.adjustPosition(size - skip[i].size());
-// 	std::vector<int> timeslot = rotary_timeslot.getTimeslot(size, skip[i]);
-// 	printVector(timeslot);           
-// 	rotary_timeslot.incrementShift();
+	// // Loop to demonstrate getting timeslots and incrementing shift
+	// int i = 0;
+	// for (int size : sizes) {
+	// 	rotary_timeslot.adjustPosition(size - skip[i].size());
+	// 	std::vector<int> timeslot = rotary_timeslot.getTimeslot(size, skip[i]);
+	// 	printVector(timeslot);
+	// 	rotary_timeslot.incrementShift();
 
-// 	i++;
+	// 	i++;.
 	// }
 
 	SubjectTeacherQueue subject_teacher_queue;
@@ -339,20 +336,20 @@ int main() {
 	subject_teacher_queue.addTeacher(2, 4, 10);
 	subject_teacher_queue.addTeacher(3, 4, 2);
 
-	print("ff", subject_teacher_queue.getTeacher(1, 5));
-	print("ff", subject_teacher_queue.getTeacher(1, 5));
-	print("ff", subject_teacher_queue.getTeacher(1, 5));
-	print("ff", subject_teacher_queue.getTeacher(1, 5));
-	print("ff", subject_teacher_queue.getTeacher(1, 5));
-	print("ff", subject_teacher_queue.getTeacher(1, 4));
-	print("ff", subject_teacher_queue.getTeacher(1, 1));
-	print("ff", subject_teacher_queue.getTeacher(1, 1));
-	print("ff", subject_teacher_queue.getTeacher(2, 1));
-	print("ff", subject_teacher_queue.getTeacher(2, 9));
-	print("ff", subject_teacher_queue.getTeacher(2, 1));
-	print("ff", subject_teacher_queue.getTeacher(3, 1));
-	print("ff", subject_teacher_queue.getTeacher(3, 1));
-	print("ff", subject_teacher_queue.getTeacher(3, 1));
+	// print("ff", subject_teacher_queue.getTeacher(1, 5));
+	// print("ff", subject_teacher_queue.getTeacher(1, 5));
+	// print("ff", subject_teacher_queue.getTeacher(1, 5));
+	// print("ff", subject_teacher_queue.getTeacher(1, 5));
+	// print("ff", subject_teacher_queue.getTeacher(1, 5));
+	// print("ff", subject_teacher_queue.getTeacher(1, 4));
+	// print("ff", subject_teacher_queue.getTeacher(1, 1));
+	// print("ff", subject_teacher_queue.getTeacher(1, 1));
+	// print("ff", subject_teacher_queue.getTeacher(2, 1));
+	// print("ff", subject_teacher_queue.getTeacher(2, 9));
+	// print("ff", subject_teacher_queue.getTeacher(2, 1));
+	// print("ff", subject_teacher_queue.getTeacher(3, 1));
+	// print("ff", subject_teacher_queue.getTeacher(3, 1));
+	// print("ff", subject_teacher_queue.getTeacher(3, 1));
 
 	subject_teacher_queue.resetQueue();
 

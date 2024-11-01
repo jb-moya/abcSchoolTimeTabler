@@ -2,8 +2,6 @@
 #define TIMETABLE_H
 
 #include <math.h>
-
-// #include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -26,8 +24,8 @@
 #include <utility>
 #include <vector>
 
-#include "RotaryTimeslot.h"
-#include "SubjectTeacherQueue.h"
+#include "rotaryTimeslot.h"
+#include "subjectTeacherQueue.h"
 
 #define CLASS_TIMESLOT_OVERLAP_INT 1
 #define NO_BREAK_INT 2
@@ -39,18 +37,6 @@
 struct ClassStartEnd {
 	int start;
 	int end;
-};
-
-struct teacherViolation {
-	unsigned long long class_timeslot_overlap;
-	unsigned long long no_break;
-	unsigned long long exceed_workload;
-};
-
-struct sectionViolation {
-	unsigned long long early_break;
-	unsigned long long small_break_gap;
-	unsigned long long late_break;
 };
 
 // struct Subject {
@@ -163,36 +149,6 @@ struct Timetable {
 	    bool is_reset);
 };
 
-struct Bee {
-	Timetable timetable;
-	std::vector<teacherViolation> teacher_violations;
-	std::vector<sectionViolation> section_violations;
-	unsigned long long total_cost;
-
-	void resetTeacherViolation(int teacher_id) {
-		teacher_violations[teacher_id].class_timeslot_overlap = 0;
-		teacher_violations[teacher_id].no_break = 0;
-		teacher_violations[teacher_id].exceed_workload = 0;
-	}
-
-	void resetSectionViolation(int section_id) {
-		section_violations[section_id].early_break = 0;
-		section_violations[section_id].small_break_gap = 0;
-		section_violations[section_id].late_break = 0;
-	}
-
-	Bee(int num_teachers,
-int num_sections,
-	    std::unordered_map<int16_t, Section> sections,
-	    std::unordered_map<int16_t, Teacher> teachers) : teacher_violations(num_teachers),
-	                                                     section_violations(num_sections),
-	                                                     total_cost(std::numeric_limits<int>::max()) {
-		// timetable.initializeTeachersClass(num_teachers);
-		timetable.sections = sections;
-		timetable.teachers = teachers;
-	}
-};
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -238,16 +194,13 @@ std::vector<int> getDefaultBreaksCombination(std::vector<std::vector<int>>& brea
 int64_t pack5IntToInt64(int16_t a, int16_t b, int16_t c, int8_t d, int8_t e);
 int32_t packInt16ToInt32(int16_t first, int16_t second);
 
-void getResult(Bee& bee, int64_t* result_timetable, int64_t* result_timetable_2, int offset_duration);
-void getViolation(Bee& bee, int64_t* result_violation);
-
-struct ObjectiveFunction {
-	static void evaluate(
-	    Bee& bee,
-	    std::unordered_set<int16_t>& update_teachers,
-	    std::unordered_set<int16_t>& update_sections,
-	    bool show_penalty,
-	    bool is_initial);
-};
+// struct ObjectiveFunction {
+// 	static void evaluate(
+// 	    Bee& bee,
+// 	    std::unordered_set<int16_t>& update_teachers,
+// 	    std::unordered_set<int16_t>& update_sections,
+// 	    bool show_penalty,
+// 	    bool is_initial);
+// };
 
 #endif  // TIMETABLE_H

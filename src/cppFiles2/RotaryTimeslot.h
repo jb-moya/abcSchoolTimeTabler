@@ -21,4 +21,4 @@ class RotaryTimeslot {
 	std::vector<int> getTimeslot(int size, std::vector<int> skip);
 };
 
-#endif  // ROTARYTIMESLOT_H
+#endif  // ROTARYTIMESLOT_H.

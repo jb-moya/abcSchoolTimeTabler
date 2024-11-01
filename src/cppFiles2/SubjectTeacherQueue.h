@@ -26,4 +26,4 @@ class SubjectTeacherQueue {
 	void resetQueue();
 };
 
-#endif  // SUBJECTTEACHERQUEUE_H
+#endif  // SUBJECTTEACHERQUEUE_H. 

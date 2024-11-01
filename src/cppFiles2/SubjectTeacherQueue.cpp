@@ -1,4 +1,4 @@
-#include "SubjectTeacherQueue.h"
+#include "subjectTeacherQueue.h"
 
 void SubjectTeacherQueue::addTeacher(int16_t subject_id, int16_t teacher_id, int max_work_load) {
 	TeacherWorkload new_teacher(teacher_id, max_work_load);
@@ -39,6 +39,7 @@ int16_t SubjectTeacherQueue::getTeacher(int16_t subject_id, int decrement_work_l
 }
 
 void SubjectTeacherQueue::resetQueue() {
+	// 
 	for (auto& entry : queue) {
 		int16_t subject_id = entry.first;
 
