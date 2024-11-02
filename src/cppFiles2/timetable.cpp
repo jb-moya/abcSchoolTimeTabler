@@ -25,7 +25,6 @@ std::vector<int> Timetable::s_section_num_breaks;
 
 RotaryTimeslot Timetable::s_rotary_timeslot;
 SubjectTeacherQueue Timetable::s_subject_teacher_queue;
-int Timetable::s_break_timeslot_allowance;
 int Timetable::s_teacher_break_threshold;
 int Timetable::s_default_class_duration;
 int Timetable::s_max_teacher_work_load;
@@ -789,8 +788,7 @@ void runExperiment(
 
     int max_teacher_work_load,
     int break_time_duration,
-    int break_timeslot_allowance,
-    int teacher_break_threshold,
+        int teacher_break_threshold,
     int min_total_class_duration_for_two_breaks,
     int default_class_duration,
     int result_buff_length,
@@ -809,8 +807,7 @@ void runExperiment(
 	{
 		std::unordered_map<int, int> section_num_of_class_block;
 
-		Timetable::s_break_timeslot_allowance = break_timeslot_allowance;
-		Timetable::s_teacher_break_threshold = teacher_break_threshold;
+				Timetable::s_teacher_break_threshold = teacher_break_threshold;
 		Timetable::s_default_class_duration = default_class_duration;
 		Timetable::s_max_teacher_work_load = max_teacher_work_load;
 		Timetable::s_break_time_duration = break_time_duration;
@@ -955,7 +952,7 @@ void runExperiment(
 
 	printConfiguration(max_iterations, num_teachers, total_section_subjects, total_section, teacher_subjects_length,
 	                   bees_population, bees_employed, bees_onlooker, bees_scout, limit, work_week, max_teacher_work_load,
-	                   break_time_duration, break_timeslot_allowance, teacher_break_threshold, min_total_class_duration_for_two_breaks, default_class_duration, result_buff_length, offset_duration, enable_logging, tm.getStartTime());
+	                   break_time_duration, teacher_break_threshold, min_total_class_duration_for_two_breaks, default_class_duration, result_buff_length, offset_duration, enable_logging, tm.getStartTime());
 
 	abc.run();
 
@@ -977,7 +974,7 @@ void runExperiment(
 		std::ofstream txt_file(name_file);
 		logResults(txt_file, final_bee.total_cost, tm.getTimelapse(), tm.getStartDate(), tm.getStartTime(), 69, max_iterations, num_teachers, total_section_subjects,
 		           total_section, teacher_subjects_length, bees_population, bees_employed, bees_onlooker, bees_scout, limit, work_week, max_teacher_work_load, break_time_duration,
-		           break_timeslot_allowance, teacher_break_threshold, min_total_class_duration_for_two_breaks, default_class_duration, result_buff_length, offset_duration, enable_logging);
+		           teacher_break_threshold, min_total_class_duration_for_two_breaks, default_class_duration, result_buff_length, offset_duration, enable_logging);
 
 		// logCosts(costs, txt_file);
 		logConflicts(&final_bee, txt_file);

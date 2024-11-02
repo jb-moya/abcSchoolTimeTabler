@@ -79,7 +79,6 @@ struct Section {
 };
 
 struct Timetable {
-	static int s_break_timeslot_allowance;
 	static int s_teacher_break_threshold;
 	static int s_default_class_duration;
 	static int s_max_teacher_work_load;
@@ -172,7 +171,6 @@ void runExperiment(
     int work_week,
     int max_teacher_work_load,
     int break_time_duration,
-    int break_timeslot_allowance,
     int teacher_break_threshold,
     int min_total_class_duration_for_two_breaks,
     int default_class_duration,

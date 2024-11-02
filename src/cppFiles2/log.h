@@ -119,7 +119,6 @@ inline void logResults(std::ofstream& txt_file,
                        int work_week,
                        int max_teacher_work_load,
                        int break_time_duration,
-                       int break_timeslot_allowance,
                        int teacher_break_threshold,
                        int min_total_class_duration_for_two_breaks,
                        int default_class_duration,
@@ -144,7 +143,6 @@ inline void logResults(std::ofstream& txt_file,
 	txt_file << "work_week: " << work_week << std::endl;
 	txt_file << "max_teacher_work_load: " << max_teacher_work_load << std::endl;
 	txt_file << "break_time_duration: " << break_time_duration << std::endl;
-	txt_file << "break_timeslot_allowance: " << break_timeslot_allowance << std::endl;
 	txt_file << "teacher_break_threshold: " << teacher_break_threshold << std::endl;
 	txt_file << "min_total_class_duration_for_two_breaks: " << min_total_class_duration_for_two_breaks << std::endl;
 	txt_file << "default_class_duration: " << default_class_duration << std::endl;

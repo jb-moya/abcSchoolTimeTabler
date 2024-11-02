@@ -113,7 +113,6 @@ inline void printConfiguration(int max_iterations,
                                int work_week,
                                int max_teacher_work_load,
                                int break_time_duration,
-                               int break_timeslot_allowance,
                                int teacher_break_threshold,
                                int min_total_class_duration_for_two_breaks,
                                int default_class_duration,
@@ -135,7 +134,6 @@ inline void printConfiguration(int max_iterations,
 	print("work_week", work_week);
 	print("max_teacher_work_load", max_teacher_work_load);
 	print("break_time_duration", break_time_duration);
-	print("break_timeslot_allowance", break_timeslot_allowance);
 	print("teacher_break_threshold", teacher_break_threshold);
 	print("min_total_class_duration_for_two_breaks", min_total_class_duration_for_two_breaks);
 	print("default_class_duration", default_class_duration);

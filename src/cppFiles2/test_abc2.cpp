@@ -249,8 +249,7 @@ void test_generate_timetable() {
 
 	    max_teacher_work_load,
 	    break_time_duration,
-	    break_timeslot_allowance,
-	    teacher_break_threshold,
+	    	    teacher_break_threshold,
 	    min_total_class_duration_for_two_breaks,
 	    default_class_duration,
 	    result_buff_length,
