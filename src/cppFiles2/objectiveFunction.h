@@ -77,7 +77,6 @@ struct ObjectiveFunction {
 					if (nextIt != timeslot.end()) {
 						int nextKey = nextIt->first;
 						int difference = nextKey - 1 - timeslot_key;
-						// gap += difference;.
 						if ((difference >= break_time_duration) && !break_found) {
 							if ((rounded_min_allowance <= timeslot_key + 1 && timeslot_key + 1 <= rounded_max_allowance) ||
 							    (rounded_min_allowance <= nextKey - 1 && nextKey - 1 <= rounded_max_allowance)) {

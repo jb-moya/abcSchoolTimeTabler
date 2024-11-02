@@ -192,13 +192,4 @@ std::vector<int> getDefaultBreaksCombination(std::vector<std::vector<int>>& brea
 int64_t pack5IntToInt64(int16_t a, int16_t b, int16_t c, int8_t d, int8_t e);
 int32_t packInt16ToInt32(int16_t first, int16_t second);
 
-// struct ObjectiveFunction {
-// 	static void evaluate(
-// 	    Bee& bee,
-// 	    std::unordered_set<int16_t>& update_teachers,
-// 	    std::unordered_set<int16_t>& update_sections,
-// 	    bool show_penalty,
-// 	    bool is_initial);
-// };
-
 #endif  // TIMETABLE_H

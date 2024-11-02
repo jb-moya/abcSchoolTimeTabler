@@ -70,7 +70,7 @@ class ABC {
 
 		// Evaluate objective function for the best solution
 		objective_function.evaluate(best_solution, affected_teachers, best_solution.timetable.s_sections_set, false, true);
-		// print(GREEN_B, " -- .-- Best solution: cost ", RED_B, best_solution.total_cost, GREEN_B, " -- -- ", RESET);
+		print(GREEN_B, " -- .-- INITIAL Best solution: cost ", RED_B, best_solution.total_cost, GREEN_B, " -- -- ", RESET);
 
 		// Initialize each bee and evaluate
 		for (int i = 0; i < bees_population; i++) {

@@ -19,10 +19,10 @@
 #include <utility>
 #include <vector>
 
+#include "print.h"
 #include "rotaryTimeslot.h"
 #include "subjectTeacherQueue.h"
 #include "timetable.h"
-// #include "print.h"
 
 using namespace std;
 

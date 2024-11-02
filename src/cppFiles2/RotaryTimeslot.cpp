@@ -16,7 +16,6 @@ std::vector<int> RotaryTimeslot::getTimeslot(int size, std::vector<int> skip) {
 
 	total_shift = total_shift % (size - skip.size());
 
-	// std::cout << "total_shift " << shift << ", shift: " << std::endl;.
 	std::rotate(timeslot.rbegin(), timeslot.rbegin() + total_shift, timeslot.rend());
 
 	for (size_t i = 0; i < skip.size(); i++) {
@@ -46,17 +45,5 @@ void RotaryTimeslot::adjustPosition(int size) {
 
 	if (difference == 0) {
 		return;
-	}
-
-	// if (difference == 1) {
-	// 	incrementShift(difference);
-	// }
-
-	if (size > previous_size) {
-		// incrementShift(difference);
-	}
-
-	if (size < previous_size) {
-		// incrementShift(-difference);
 	}
 }

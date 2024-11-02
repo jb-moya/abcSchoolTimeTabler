@@ -39,7 +39,6 @@ int16_t SubjectTeacherQueue::getTeacher(int16_t subject_id, int decrement_work_l
 }
 
 void SubjectTeacherQueue::resetQueue() {
-	// 
 	for (auto& entry : queue) {
 		int16_t subject_id = entry.first;
 

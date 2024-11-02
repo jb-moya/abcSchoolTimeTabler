@@ -393,8 +393,6 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int16_t>& update_te
 			} else {
 				int timeslot_key = fixed_subject_order[order];
 
-				print("aaaaaaa timeslot key: ", timeslot_key);
-
 				timeslot_keys.erase(std::remove(timeslot_keys.begin(), timeslot_keys.end(), timeslot_key), timeslot_keys.end());
 				classes[timeslot_key][0] = SchoolClass{subject_id, selected_teacher};
 

@@ -48,22 +48,18 @@
 #define STRIKETHROUGH "\033[9m"
 #define RESET "\033[0m"
 
-// Templated function to print multiple arguments with a separator
 template <typename T, typename... Args>
 inline void print(T first, Args... args) {
 	std::cout << first;
 	if constexpr (sizeof...(args) > 0) {
 		std::cout << " - ";
-		print(args...);  // Recursively call the function with remaining arguments
+		print(args...);
 	} else {
 		std::cout << RESET << std::endl;
 	}
 };
 
-// Function to handle the base case with no arguments
-inline void print() {
-	// No parameters left to print, base case for variadic template recursion
-}
+inline void print() {}
 
 inline void printSchoolClasses(Timetable& timetable) {
 	for (const auto& [section_id, section] : timetable.sections) {
@@ -77,14 +73,13 @@ inline void printSchoolClasses(Timetable& timetable) {
 				std::cout << GREEN << "" << std::setw(4) << timeslot << RESET;
 				std::cout << YELLOW << DIM << "  d: " << RESET << YELLOW << std::setw(2) << ((day == 0) ? (CYAN + std::to_string(day)) : (std::string(YELLOW) + BOLD + std::to_string(day))) << RESET;
 
-				// For teacher_id
 				std::cout << MAGENTA << DIM << " t: " << RESET << MAGENTA
-				          << std::setw(3)  // Set width for the output
+				          << std::setw(3)
 				          << ((teacher_id == -1) ? (std::string(" ") + DIM + "/\\") : std::to_string(teacher_id))
 				          << RESET;
 
 				std::cout << RED << DIM << " s: " << RESET << RED
-				          << std::setw(3)  // Set width for the output
+				          << std::setw(3)
 				          << ((subject_id == -1) ? (std::string(" ") + DIM + "/\\") : std::to_string(subject_id))
 				          << RESET;
 
