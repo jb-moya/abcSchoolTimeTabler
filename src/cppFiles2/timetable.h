@@ -26,6 +26,7 @@
 
 #include "rotaryTimeslot.h"
 #include "subjectTeacherQueue.h"
+#include "schoolClass.h"
 
 #define CLASS_TIMESLOT_OVERLAP_INT 1
 #define NO_BREAK_INT 2
@@ -61,11 +62,6 @@ struct Teacher {
 	bool has_violation;
 
 	void initializeClass(int work_week);
-};
-
-struct SchoolClass {
-	int subject_id;
-	int teacher_id;
 };
 
 struct Section {

@@ -7,7 +7,7 @@ SUFFIX = ""  # Default suffix is empty
 FOLDER = exeFolder/
 OUTPUT = $(FOLDER)$(TARGET)$(SUFFIX)  # Output filename with folder and suffix
 SRC =  random_util.cpp timetable.cpp abc.cpp test_abc2.cpp timeManager.cpp rotaryTimeslot.cpp subjectTeacherQueue.cpp
-HEADERS = random_util.h timetable.h bee.h objectiveFunction.h abc.h log.h timeManager.h rotaryTimeslot.h subjectTeacherQueue.h  print.h 
+HEADERS = schoolClass.h random_util.h timetable.h bee.h objectiveFunction.h abc.h log.h timeManager.h rotaryTimeslot.h subjectTeacherQueue.h  print.h 
 OBJ = $(SRC:.cpp=.o)
 
 # Rule to build the final executable
