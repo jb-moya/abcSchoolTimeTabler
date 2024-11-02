@@ -40,11 +40,6 @@ int32_t* allocate(int size) {
 	return static_array;
 }
 
-void unpackInt32ToInt16(int32_t packed, int16_t& first, int16_t& second) {
-	first = static_cast<int16_t>(packed >> 16);
-	second = static_cast<int16_t>(packed & 0xFFFF);
-}
-
 void test_generate_timetable() {
 	// TODO: dynamic max_iterations base on config'
 	int max_iterations = 30000;
