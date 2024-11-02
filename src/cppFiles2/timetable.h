@@ -39,14 +39,20 @@ struct ClassStartEnd {
 	int end;
 };
 
-// struct Subject {
-// 	int16_t id;
+struct Subject {
+	int id;
 
-// 	static std::vector<int16_t> s_eligible_teachers;
-// };
+	static std::vector<int> s_eligible_teachers;
+
+	std::unordered_set<int> fixed_assigned_teachers;
+
+	int units;
+	int duration;
+	int order;
+};
 
 struct Teacher {
-	int16_t id;
+	int id;
 
 	int max_work_load;
 	std::unordered_map<int, std::map<int, int>> utilized_time;
@@ -58,12 +64,12 @@ struct Teacher {
 };
 
 struct SchoolClass {
-	int16_t subject_id;
-	int16_t teacher_id;
+	int subject_id;
+	int teacher_id;
 };
 
 struct Section {
-	int16_t id;
+	int id;
 
 	std::map<int, std::unordered_map<int, SchoolClass>> classes;
 
@@ -73,7 +79,7 @@ struct Section {
 	std::unordered_set<int> segmented_timeslot;
 	std::unordered_set<int> dynamic_timeslot;
 	std::unordered_map<int, std::set<int>> fixed_timeslot_day;
-	std::unordered_set<int16_t> utilized_teachers;
+	std::unordered_set<int> utilized_teachers;
 
 	bool has_violation;
 };
@@ -85,26 +91,26 @@ struct Timetable {
 	static int s_break_time_duration;
 	static int s_work_week;
 
-	static std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> s_section_subjects_fixed_teacher;
-	static std::unordered_map<int16_t, std::vector<std::pair<int16_t, int16_t>>> s_section_subjects_units;
-	static std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> s_section_subjects_duration;
-	static std::unordered_map<int16_t, std::unordered_map<int16_t, int16_t>> s_section_subjects_order;
-	static std::unordered_map<int16_t, std::vector<int16_t>> s_eligible_teachers_in_subject;
-	static std::unordered_set<int16_t> s_section_dynamic_subject_consistent_duration;
-	static std::unordered_map<int16_t, int> s_section_not_allowed_breakslot_gap;
-	static std::unordered_map<int16_t, std::vector<int16_t>> s_section_subjects;
-	static std::unordered_map<int16_t, int> s_section_total_duration;
-	static std::unordered_map<int16_t, int> s_section_total_timeslot;
-	static std::unordered_map<int16_t, int> s_section_start;
+	static std::unordered_map<int, std::unordered_map<int, int>> s_section_subjects_fixed_teacher;
+	static std::unordered_map<int, std::vector<std::pair<int, int>>> s_section_subjects_units;
+	static std::unordered_map<int, std::unordered_map<int, int>> s_section_subjects_duration;
+	static std::unordered_map<int, std::unordered_map<int, int>> s_section_subjects_order;
+	static std::unordered_map<int, std::vector<int>> s_eligible_teachers_in_subject;
+	static std::unordered_set<int> s_section_dynamic_subject_consistent_duration;
+	static std::unordered_map<int, int> s_section_not_allowed_breakslot_gap;
+	static std::unordered_map<int, std::vector<int>> s_section_subjects;
+	static std::unordered_map<int, int> s_section_total_duration;
+	static std::unordered_map<int, int> s_section_total_timeslot;
+	static std::unordered_map<int, int> s_section_start;
 
-	static std::unordered_set<int16_t> s_teachers_set;
-	static std::unordered_set<int16_t> s_sections_set;
+	static std::unordered_set<int> s_teachers_set;
+	static std::unordered_set<int> s_sections_set;
 
 	static std::vector<int> s_section_num_breaks;
 
-	static std::uniform_int_distribution<int16_t> s_random_section;
+	static std::uniform_int_distribution<int> s_random_section;
 	static std::uniform_int_distribution<int8_t> s_random_workDay;
-	static std::uniform_int_distribution<int16_t> s_random_field;
+	static std::uniform_int_distribution<int> s_random_field;
 
 	static RotaryTimeslot s_rotary_timeslot;
 	static SubjectTeacherQueue s_subject_teacher_queue;
@@ -120,31 +126,31 @@ struct Timetable {
 
 	static int getRandomInRange(int n);
 
-	static int16_t getRandomTeacher(int16_t subject_id);
+	static int getRandomTeacher(int subject_id);
 
-	std::unordered_map<int16_t, Section> sections;
-	std::unordered_map<int16_t, Teacher> teachers;
+	std::unordered_map<int, Section> sections;
+	std::unordered_map<int, Teacher> teachers;
 
-	std::unordered_set<int16_t> sections_with_conflicts;
-	std::unordered_set<int16_t> teachers_with_conflicts;
+	std::unordered_set<int> sections_with_conflicts;
+	std::unordered_set<int> teachers_with_conflicts;
 
 	std::pair<int, int> pickRandomTimeslots(int selected_section, int field);
-	int16_t pickRandomField(int16_t section);
-	int16_t pickRandomSection();
+	int pickRandomField(int section);
+	int pickRandomSection();
 
 	// void initializeTeachersClass(int teachers);
 
-	void initializeRandomTimetable(std::unordered_set<int16_t>& update_teachers);
+	void initializeRandomTimetable(std::unordered_set<int>& update_teachers);
 
-	void modify(std::unordered_set<int16_t>& affected_teachers, std::unordered_set<int16_t>& affected_sections);
+	void modify(std::unordered_set<int>& affected_teachers, std::unordered_set<int>& affected_sections);
 
 	void updateTeachersAndSections(
-	    std::unordered_set<int16_t>& affected_teachers,
+	    std::unordered_set<int>& affected_teachers,
 	    std::map<int, std::unordered_map<int, SchoolClass>>::iterator iter_start,
 	    std::map<int, std::unordered_map<int, SchoolClass>>::iterator iter_end,
 	    bool is_returning_teachers,
 	    bool is_skipping_between,
-	    int16_t random_section,
+	    int random_section,
 	    bool is_reset);
 };
 

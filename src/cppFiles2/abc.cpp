@@ -148,12 +148,10 @@ Bee ABC::getBestSolution() {
 void ABC::getViolation(int64_t* result_violation) {
 	auto& teachers_timetable = best_solution.timetable.teachers;
 
-	std::unordered_map<int, std::unordered_map<int16_t, int>> teacher_violations;
-	std::unordered_map<int, std::unordered_map<int16_t, int>> section_violations;
+	std::unordered_map<int, std::unordered_map<int, int>> teacher_violations;
+	std::unordered_map<int, std::unordered_map<int, int>> section_violations;
 
-	for (const int16_t& teacher_id_16 : best_solution.timetable.s_teachers_set) {
-		const int teacher_id = static_cast<int>(teacher_id_16);
-
+	for (int teacher_id : best_solution.timetable.s_teachers_set) {
 		const auto& teacher_id_and_days = teachers_timetable.at(teacher_id).utilized_time;
 		const auto& class_count = teachers_timetable.at(teacher_id).class_count;
 
@@ -218,9 +216,7 @@ void ABC::getViolation(int64_t* result_violation) {
 		}
 	}
 
-	for (const int16_t& section_id_16 : best_solution.timetable.s_sections_set) {
-		const int section_id = static_cast<int>(section_id_16);
-
+	for (int section_id : best_solution.timetable.s_sections_set) {
 		// if (bee.timetable.Timetable::s_section_dynamic_subject_consistent_duration.find(section_id) != bee.timetable.Timetable::s_section_dynamic_subject_consistent_duration.end()) {
 		// 	// print("ppp");
 		// 	continue;

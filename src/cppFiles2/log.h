@@ -168,12 +168,10 @@ inline void logConflicts(
 	teacherViolation overall_total_teacher_violation = {0, 0, 0};
 	sectionViolation overall_total_section_violation = {0, 0, 0};
 
-	std::map<int16_t, teacherViolation> teachers_total_violation;
-	std::map<int16_t, sectionViolation> sections_total_violation;
+	std::map<int, teacherViolation> teachers_total_violation;
+	std::map<int, sectionViolation> sections_total_violation;
 
-	for (const int16_t& teacher_id_16 : bee->timetable.s_teachers_set) {
-		const int teacher_id = static_cast<int>(teacher_id_16);
-
+	for (int teacher_id : bee->timetable.s_teachers_set) {
 		const auto& teacher_id_and_days = teachers_timetable.at(teacher_id).utilized_time;
 		const auto& class_count = teachers_timetable.at(teacher_id).class_count;
 
@@ -244,9 +242,7 @@ inline void logConflicts(
 		}
 	}
 
-	for (const int16_t& section_id_16 : bee->timetable.s_sections_set) {
-		const int section_id = static_cast<int>(section_id_16);
-
+	for (int section_id : bee->timetable.s_sections_set) {
 		auto& section = bee->timetable.sections[section_id];
 
 		int early_not_allowed_break_duration_gap = Timetable::s_section_not_allowed_breakslot_gap[section_id] * Timetable::s_default_class_duration;
@@ -307,7 +303,7 @@ inline void logConflicts(
 
 	// log_file << "............................teachers total class:....................." << std::endl;
 
-	// std::vector<int16_t> days;
+	// std::vector<int> days;
 	// for (const auto& [day, _] : bee.timetable.teachers_class_count) {
 	// 	days.push_back(day);
 	// }

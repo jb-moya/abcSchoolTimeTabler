@@ -1,12 +1,12 @@
 #include "subjectTeacherQueue.h"
 
-void SubjectTeacherQueue::addTeacher(int16_t subject_id, int16_t teacher_id, int max_work_load) {
+void SubjectTeacherQueue::addTeacher(int subject_id, int teacher_id, int max_work_load) {
 	TeacherWorkload new_teacher(teacher_id, max_work_load);
 	queue[subject_id].push(new_teacher);
 	initial_state[subject_id].push_back(new_teacher);
 }
 
-TeacherWorkload* SubjectTeacherQueue::peekFrontTeacher(int16_t subject_id) {
+TeacherWorkload* SubjectTeacherQueue::peekFrontTeacher(int subject_id) {
 	if (queue.find(subject_id) != queue.end() && !queue[subject_id].empty()) {
 		TeacherWorkload& front_teacher = queue[subject_id].front();
 		if (front_teacher.max_work_load > 0) {
@@ -16,7 +16,7 @@ TeacherWorkload* SubjectTeacherQueue::peekFrontTeacher(int16_t subject_id) {
 	return nullptr;
 }
 
-int16_t SubjectTeacherQueue::getTeacher(int16_t subject_id, int decrement_work_load) {
+int SubjectTeacherQueue::getTeacher(int subject_id, int decrement_work_load) {
 	TeacherWorkload* front_teacher = peekFrontTeacher(subject_id);
 	if (front_teacher) {
 		int teacher_id = front_teacher->id;
@@ -40,7 +40,7 @@ int16_t SubjectTeacherQueue::getTeacher(int16_t subject_id, int decrement_work_l
 
 void SubjectTeacherQueue::resetQueue() {
 	for (auto& entry : queue) {
-		int16_t subject_id = entry.first;
+		int subject_id = entry.first;
 
 		std::queue<TeacherWorkload>& teacher_queue = entry.second;
 		while (!teacher_queue.empty()) {

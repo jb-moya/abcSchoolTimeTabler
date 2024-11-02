@@ -48,12 +48,10 @@ void test_generate_timetable() {
 	int beesOnlooker = 2;
 	int beesScout = 1;
 
-	int num_teachers = 27;
+	int num_teachers = 45;
 	// count teacher with same subject: 11. does this mean there's extra 1 teacher?
-	int total_section = 27;
+	int total_section = 45;
 	int num_subjects = 9;
-
-	int max_teacher_work_load = 9;
 
 	// oct 19, 2024
 
@@ -66,41 +64,43 @@ void test_generate_timetable() {
 	// might TODO: modify function: make it more smarter by knowing what and what not to modify
 	// if theres no conflict in section break slot anymore, focus on teacher break slot
 
-	// FIXME: when ignoring consistent subject (same timeslot for every situation),
-	// the calculates of viable break slots becomes inaccurate
-
 	// might TODO: treat subjects base on whether or not they are consistent or segmented separately
-
-	// FIXME: teachers class allocation is not efficient. so many gaps (breaks) in teacher class allocation
-
-	// might TODO: teachers are divided beforehand to avoid gaps in teacher class allocation
-	// 10 - 5 - 24
 
 	// FIXME: with segmented timeslot, violation checker becomes inaccurate
 	// 10 - 6- 24
 	// FIXME: address !!!important notes on logs2 folder
 
-	// 10 - 13 - 24 TODO: make all int16 to int
-
-	// 10 - 15 - 24 TODO:
-
 	// is there a way to put async function that execute in parallel
 
-	// int limit = (total_section * num_teachers) / 5;
-	// int limit = (total_section * num_teachers) * 1.2;
-	// int limit = (total_section * num_teachers) / 4;
-	// int limit = (total_section * (num_teachers + 10)) * .7;
 	int limit = (total_section * (num_teachers)) * .5;
-
 	int default_units = 0;
 	int default_order = 0;
-	int default_class_duration = 4;
-	int break_time_duration = 3;
+
+	int default_class_duration = 40;
+	int break_time_duration = 30;
+	int max_teacher_work_load = 1800;
+
 	int workweek = 5;
-	int break_timeslot_allowance = 6;
 	int teacher_break_threshold = 4;
 	int common_subject_count = 9;
-	int min_total_class_duration_for_two_breaks = common_subject_count * default_class_duration;
+
+	int min_total_class_duration_for_two_breaks = 380;
+	// from schedule example
+	// regular section with 1 break only has 350mins
+
+	int time_division = 10;
+
+	default_class_duration /= time_division;
+	break_time_duration /= time_division;
+	max_teacher_work_load /= time_division;
+	min_total_class_duration_for_two_breaks /= time_division;
+
+	// print("default_class_duration", default_class_duration);
+	// print("break_time_duration", break_time_duration);
+	// print("max_teacher_work_load", max_teacher_work_load);
+	// print("min_total_class_duration_for_two_breaks", min_total_class_duration_for_two_breaks);
+
+	// return;
 
 	int num_violation_type = 7;
 
@@ -119,9 +119,11 @@ void test_generate_timetable() {
 	int32_t* section_subject_units = allocate(total_section_subjects);
 	int32_t* section_subject_duration = allocate(total_section_subjects);
 	int32_t* section_subject_order = allocate(total_section_subjects);
+	int32_t* teacher_max_weekly_load = allocate(num_teachers);
 
 	for (int i = 0; i < teacher_subjects_length; ++i) {
 		teacher_subjects[i] = -1;
+		teacher_max_weekly_load[i] = max_teacher_work_load;
 	}
 
 	for (int i = 0; i < num_teachers; ++i) {
@@ -244,7 +246,7 @@ void test_generate_timetable() {
 
 	    max_teacher_work_load,
 	    break_time_duration,
-	    	    teacher_break_threshold,
+	    teacher_break_threshold,
 	    min_total_class_duration_for_two_breaks,
 	    default_class_duration,
 	    result_buff_length,
@@ -272,7 +274,8 @@ int main() {
 		test_generate_timetable();
 	}
 	std::cout << "done testing" << std::endl;
-	return 0;;
+	return 0;
+	;
 
 	// std::vector<std::vector<int>> breaks_combination = getAllBreaksCombination(12, 2, 3, 3);
 

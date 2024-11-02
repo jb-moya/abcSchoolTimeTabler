@@ -7,8 +7,8 @@
 struct ObjectiveFunction {
 	static void evaluate(
 	    Bee& bee,
-	    std::unordered_set<int16_t>& update_teachers,
-	    std::unordered_set<int16_t>& update_sections,
+	    std::unordered_set<int>& update_teachers,
+	    std::unordered_set<int>& update_sections,
 	    bool show_penalty,
 	    bool is_initial) {
 		int counter = 0;
@@ -19,9 +19,7 @@ struct ObjectiveFunction {
 			bee.total_cost = 0;
 		}
 
-		for (const int16_t& teacher_id_16 : update_teachers) {
-			int teacher_id = static_cast<int>(teacher_id_16);
-
+		for (int teacher_id : update_teachers) {
 			if (!is_initial) {
 				bee.total_cost -= bee.teacher_violations[teacher_id].class_timeslot_overlap;
 				bee.total_cost -= bee.teacher_violations[teacher_id].no_break;
@@ -121,16 +119,15 @@ struct ObjectiveFunction {
 			if (bee.teacher_violations[teacher_id].class_timeslot_overlap == 0 &&
 			    bee.teacher_violations[teacher_id].no_break == 0 &&
 			    bee.teacher_violations[teacher_id].exceed_workload == 0) {
-				bee.timetable.teachers_with_conflicts.erase(static_cast<int16_t>(teacher_id));
+				bee.timetable.teachers_with_conflicts.erase(teacher_id);
 			} else {
-				bee.timetable.teachers_with_conflicts.insert(static_cast<int16_t>(teacher_id));
+				bee.timetable.teachers_with_conflicts.insert(teacher_id);
 			}
 		}
 
 		// return;
 
-		for (const int16_t& section_id_16 : update_sections) {
-			int section_id = static_cast<int>(section_id_16);
+		for (int section_id : update_sections) {
 			// if (bee.timetable.Timetable::s_section_dynamic_subject_consistent_duration.find(section_id) != bee.timetable.Timetable::s_section_dynamic_subject_consistent_duration.end()) {
 			// 	// print("ppp");
 			// 	continue;
@@ -188,7 +185,7 @@ struct ObjectiveFunction {
 
 			bool has_teacher_with_conflicts = false;
 
-			for (const int16_t& teacher : section.utilized_teachers) {
+			for (int teacher : section.utilized_teachers) {
 				if (bee.timetable.teachers_with_conflicts.find(teacher) != bee.timetable.teachers_with_conflicts.end()) {
 					has_teacher_with_conflicts = true;
 					break;
@@ -199,9 +196,9 @@ struct ObjectiveFunction {
 			    bee.section_violations[section_id].small_break_gap == 0 &&
 			    bee.section_violations[section_id].late_break == 0 &&
 			    has_teacher_with_conflicts == false) {
-				bee.timetable.sections_with_conflicts.erase(static_cast<int16_t>(section_id));
+				bee.timetable.sections_with_conflicts.erase(section_id);
 			} else {
-				bee.timetable.sections_with_conflicts.insert(static_cast<int16_t>(section_id));
+				bee.timetable.sections_with_conflicts.insert(section_id);
 			}
 		}
 	};

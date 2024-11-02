@@ -8,8 +8,8 @@ class ABC {
    private:
 	Bee best_solution;
 	ObjectiveFunction objective_function;
-	std::unordered_map<int16_t, Section> sections;
-	std::unordered_map<int16_t, Teacher> teachers;
+	std::unordered_map<int, Section> sections;
+	std::unordered_map<int, Teacher> teachers;
 	std::map<int, int> costs;
 
 	std::vector<int> bees_abandoned;
@@ -18,8 +18,8 @@ class ABC {
 
 	std::vector<Bee> bees_vector;
 
-	std::unordered_set<int16_t> affected_teachers;
-	std::unordered_set<int16_t> affected_sections;
+	std::unordered_set<int> affected_teachers;
+	std::unordered_set<int> affected_sections;
 
 	int total_section;
 	int total_teacher;
@@ -40,8 +40,8 @@ class ABC {
 	    int bees_scout,
 	    int limit,
 	    Bee solution,
-	    std::unordered_map<int16_t, Section> sections,
-	    std::unordered_map<int16_t, Teacher> teachers)
+	    std::unordered_map<int, Section> sections,
+	    std::unordered_map<int, Teacher> teachers)
 	    : best_solution(solution),
 	      objective_function(),
 	      sections(std::move(sections)),

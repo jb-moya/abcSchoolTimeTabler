@@ -40,10 +40,10 @@ struct Bee {
 
 	Bee(int num_teachers,
 	    int num_sections,
-	    std::unordered_map<int16_t, Section> sections,
-	    std::unordered_map<int16_t, Teacher> teachers) : teacher_violations(num_teachers),
-	                                                     section_violations(num_sections),
-	                                                     total_cost(std::numeric_limits<int>::max()) {
+	    std::unordered_map<int, Section> sections,
+	    std::unordered_map<int, Teacher> teachers) : teacher_violations(num_teachers),
+	                                                 section_violations(num_sections),
+	                                                 total_cost(std::numeric_limits<int>::max()) {
 		timetable.sections = sections;
 		timetable.teachers = teachers;
 	}
