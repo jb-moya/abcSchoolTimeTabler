@@ -62,16 +62,23 @@ inline void print(T first, Args... args) {
 inline void print() {}
 
 inline void printSchoolClasses(Timetable& timetable) {
-	for (const auto& [section_id, section] : timetable.sections) {
-		std::cout << BLUE << "--------- - - Section: " << section.id << RESET << std::endl;
+	int total_section = timetable.getTotalSection();
+
+	for (int i = 0; i < total_section; i++) {
+		auto section = timetable.getSectionById(i);
+
+		std::cout << BLUE << "--------- - - Section: " << section.getId() << RESET << std::endl;
 		int inner_count = 0;
-		for (const auto& [timeslot, classMap] : section.classes) {
+
+		const auto& classes = section.getClasses();
+
+		for (const auto& [timeslot, classMap]: classes) {
 			for (const auto& [day, schoolClass] : classMap) {
 				int subject_id = schoolClass.subject_id;
 				int teacher_id = schoolClass.teacher_id;
 
 				std::cout << GREEN << "" << std::setw(4) << timeslot << RESET;
-				std::cout << YELLOW << DIM << "  d: " << RESET << YELLOW << std::setw(2) << ((day == 0) ? (CYAN + std::to_string(day)) : (std::string(YELLOW) + BOLD + std::to_string(day))) << RESET;
+				std::cout << YELLOW << DIM << "  d: " << RESET << YELLOW << std::setw(2) << ((day == ScheduledDay::EVERYDAY) ? (CYAN + std::to_string(static_cast<int>(day))) : (std::string(YELLOW) + BOLD + std::to_string(static_cast<int>(day)))) << RESET;
 
 				std::cout << MAGENTA << DIM << " t: " << RESET << MAGENTA
 				          << std::setw(3)
@@ -83,8 +90,10 @@ inline void printSchoolClasses(Timetable& timetable) {
 				          << ((subject_id == -1) ? (std::string(" ") + DIM + "/\\") : std::to_string(subject_id))
 				          << RESET;
 
-				std::cout << DIM << " r: " << RESET << std::setw(4) << section.time_range.at(timeslot).start << " ";
-				std::cout << std::setw(4) << section.time_range.at(timeslot).end << " " << RESET;
+				// std::cout << DIM << " r: " << RESET << std::setw(4) << section.time_range.at(timeslot).start << " ";
+				std::cout << DIM << " r: " << RESET << std::setw(4) << section.getTimeslotStart(timeslot) << " ";
+				// std::cout << std::setw(4) << section.time_range.at(timeslot).end << " " << RESET;
+				std::cout << std::setw(4) << section.getTimeslotEnd(timeslot) << " " << RESET;
 				std::cout << BLUE_B << std::setw(4) << ++inner_count << RESET;
 
 				std::cout << std::endl;
@@ -92,6 +101,7 @@ inline void printSchoolClasses(Timetable& timetable) {
 		}
 		std::cout << RESET << std::endl;
 	}
+
 	std::cout << std::endl;
 }
 

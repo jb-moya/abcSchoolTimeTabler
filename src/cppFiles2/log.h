@@ -14,20 +14,30 @@ inline void logSchoolClasses(Timetable& timetable, std::ofstream& file) {
 	}
 
 	//   teacher     fff.              f  days          time section
-	std::map<int, std::unordered_map<int, std::map<int, int>>> teacher_class;
+	std::map<int, std::unordered_map<ScheduledDay, std::map<int, int>>> teacher_class;
 
 	std::unordered_map<int, int> section_breaks_distribution;
 
-	for (const auto& [section_id, section] : timetable.sections) {
-		file << "--------- - - Section: " << section.id << std::endl;
+	std::map<int, std::vector<int>> teachers;
+
+	const auto& section_set = Timetable::getSectionsSet();
+
+	for (const auto& section_id : section_set) {
+		Section section = timetable.getSectionById(section_id);
+
+		const auto& classes = section.getClasses();
+
+		file << "--------- - - Section: " << section_id << std::endl;
 		int inner_count = 0;
-		for (const auto& [timeslot, classMap] : section.classes) {
+		for (const auto& [timeslot, classMap] : classes) {
 			for (const auto& [day, schoolClass] : classMap) {
 				int subject_id = schoolClass.subject_id;
 				int teacher_id = schoolClass.teacher_id;
 
+				teachers[timeslot].push_back(teacher_id);
+
 				file << "" << std::setw(4) << timeslot;
-				file << "  d: " << std::setw(2) << ((day == 0) ? (std::to_string(day)) : (std::to_string(day)));
+				file << "  d: " << std::setw(2) << ((day == ScheduledDay::EVERYDAY) ? (std::to_string(static_cast<int>(day))) : (std::to_string(static_cast<int>(day))));
 
 				file << " t: "
 				     << std::setw(3)
@@ -38,16 +48,16 @@ inline void logSchoolClasses(Timetable& timetable, std::ofstream& file) {
 				     << ((subject_id == -1) ? (std::string(" ") + "/\\") : std::to_string(subject_id));
 
 				if (teacher_id != -1) {
-					for (int i = section.time_range.at(timeslot).start; i < section.time_range.at(timeslot).end; i++) {
-						teacher_class[teacher_id][day][i] = section.id;
+					for (int i = section.getTimeslotStart(timeslot); i < section.getTimeslotEnd(timeslot); i++) {
+						teacher_class[teacher_id][day][i] = section_id;
 					}
 
 				} else {
 					section_breaks_distribution[timeslot]++;
 				}
 
-				file << " r: " << std::setw(4) << section.time_range.at(timeslot).start << " ";
-				file << std::setw(4) << section.time_range.at(timeslot).end << " ";
+				file << " r: " << std::setw(4) << section.getTimeslotStart(timeslot) << " ";
+				file << std::setw(4) << section.getTimeslotEnd(timeslot) << " ";
 				file << std::setw(4) << ++inner_count;
 
 				file << std::endl;
@@ -56,11 +66,23 @@ inline void logSchoolClasses(Timetable& timetable, std::ofstream& file) {
 		file << std::endl;
 	}
 
+	for (auto& [timeslot, teacher] : teachers) {
+		file << "t: " << std::setw(3);
+
+		for (auto& teacher_id : teacher) {
+			file << std::setw(3) << teacher_id << " ";
+		}
+
+		file << std::endl;
+	}
+
+	file << std::endl;
+
 	for (const auto& [teacher_id, days] : teacher_class) {
 		file << "t: " << std::setw(3) << teacher_id << std::endl;
 
 		for (const auto& [day, school_class] : days) {
-			file << " d: " << day << " | ";
+			file << " d: " << static_cast<int>(day) << " | ";
 
 			int begin = school_class.begin()->first;
 			int end = school_class.rbegin()->first;
@@ -158,7 +180,7 @@ inline void logResults(std::ofstream& txt_file,
 inline void logConflicts(
     Bee* bee,
     std::ofstream& log_file) {
-	auto& teachers_timetable = bee->timetable.teachers;
+	// auto& teachers_timetable = bee->timetable.teachers;
 
 	if (bee == nullptr) {
 		print("Bee is null or timetable is null");
@@ -171,12 +193,16 @@ inline void logConflicts(
 	std::map<int, teacherViolation> teachers_total_violation;
 	std::map<int, sectionViolation> sections_total_violation;
 
-	for (int teacher_id : bee->timetable.s_teachers_set) {
-		const auto& teacher_id_and_days = teachers_timetable.at(teacher_id).utilized_time;
-		const auto& class_count = teachers_timetable.at(teacher_id).class_count;
+	const auto& teacher_set = bee->timetable.getTeachersSet();
 
-		const int max_teacher_work_load = bee->timetable.s_max_teacher_work_load;
-		const int break_time_duration = bee->timetable.s_break_time_duration;
+	for (int teacher_id : teacher_set) {
+		Teacher teacher = bee->timetable.getTeacherById(teacher_id);
+
+		const auto& teacher_id_and_days = teacher.getUtilizedTime();
+		const auto& class_count = teacher.getClassCount();
+
+		const int max_teacher_work_load = teacher.getMaxWorkLoad();
+		const int break_time_duration = bee->timetable.getBreakTimeDuration();
 
 		for (const auto& [day, timeslot] : teacher_id_and_days) {
 			if (class_count.at(day) > max_teacher_work_load) {
@@ -198,8 +224,8 @@ inline void logConflicts(
 
 			int allowance_multiplier = 2;
 
-			float min_allowance = middle - (bee->timetable.s_default_class_duration * allowance_multiplier);
-			float max_allowance = middle + (bee->timetable.s_default_class_duration * allowance_multiplier);
+			float min_allowance = middle - (bee->timetable.getDefaultClassDuration() * allowance_multiplier);
+			float max_allowance = middle + (bee->timetable.getDefaultClassDuration() * allowance_multiplier);
 
 			int rounded_min_allowance = static_cast<int>(std::floor(min_allowance));
 			int rounded_max_allowance = static_cast<int>(std::ceil(max_allowance));
@@ -235,53 +261,68 @@ inline void logConflicts(
 				}
 			}
 
-			if (!break_found && class_count.at(day) >= bee->timetable.s_teacher_break_threshold) {
+			if (!break_found && class_count.at(day) >= bee->timetable.getTeacherBreakThreshold()) {
 				overall_total_teacher_violation.no_break++;
 				teachers_total_violation[teacher_id].no_break++;
 			}
 		}
 	}
 
-	for (int section_id : bee->timetable.s_sections_set) {
-		auto& section = bee->timetable.sections[section_id];
+	const auto& section_set = bee->timetable.getSectionsSet();
 
-		int early_not_allowed_break_duration_gap = Timetable::s_section_not_allowed_breakslot_gap[section_id] * Timetable::s_default_class_duration;
-		int late_not_allowed_break_duration_gap = (Timetable::s_section_not_allowed_breakslot_gap[section_id] + 1) * Timetable::s_default_class_duration;
+	for (int section_id : section_set) {
+		Section section = bee->timetable.getSectionById(section_id);
 
-		int max_time = Timetable::s_section_start[section_id] + Timetable::s_section_total_duration[section_id];
+		int early_not_allowed_break_duration_gap = section.getNotAllowedBreakslotGap() * bee->timetable.getDefaultClassDuration();
+		int late_not_allowed_break_duration_gap = (section.getNotAllowedBreakslotGap() + 1) * bee->timetable.getDefaultClassDuration();
 
-		if (section.break_slots.size() == 1) {
-			int break_time = *section.break_slots.begin();
+		int max_time = section.getStartTime() + section.getTotalDuration();
 
-			if (section.time_range[break_time].end > max_time - late_not_allowed_break_duration_gap) {
-				overall_total_section_violation.late_break++;
-				sections_total_violation[section_id].late_break++;
-			}
+		const auto& break_slots = section.getBreakSlots();
 
-			if (section.time_range[break_time].start < early_not_allowed_break_duration_gap) {
-				overall_total_section_violation.early_break++;
-				sections_total_violation[section_id].early_break++;
+		if (section.getNumberOfBreak() == 1) {
+			// Check if break_slots is not empty
+			if (!break_slots.empty()) {
+				int break_time = *break_slots.begin();
+
+				if (section.getTimeslotEnd(break_time) > max_time - late_not_allowed_break_duration_gap) {
+					overall_total_section_violation.late_break++;
+					sections_total_violation[section_id].late_break++;
+				}
+
+				if (section.getTimeslotEnd(break_time) < early_not_allowed_break_duration_gap) {
+					overall_total_section_violation.early_break++;
+					sections_total_violation[section_id].early_break++;
+				}
+			} else {
+				print("Break slots is empty");
 			}
 		} else {
-			int first_break_time = *section.break_slots.begin();
-			int last_break_time = *section.break_slots.rbegin();
+			if (break_slots.size() >= 2) {
+				auto it = break_slots.begin();
+				int first_break_time = *it;
+				++it;
+				int last_break_time = *it;
 
-			int first_start = section.time_range[first_break_time].start;
-			int last_end = section.time_range[last_break_time].end;
+				int first_start = section.getTimeslotStart(first_break_time);
+				int last_end = section.getTimeslotEnd(last_break_time);
 
-			if (last_end > max_time - late_not_allowed_break_duration_gap) {
-				overall_total_section_violation.late_break++;
-				sections_total_violation[section_id].late_break++;
-			}
+				if (last_end > max_time - late_not_allowed_break_duration_gap) {
+					overall_total_section_violation.late_break++;
+					sections_total_violation[section_id].late_break++;
+				}
 
-			if (first_start < early_not_allowed_break_duration_gap) {
-				overall_total_section_violation.early_break++;
-				sections_total_violation[section_id].early_break++;
-			}
+				if (first_start < early_not_allowed_break_duration_gap) {
+					overall_total_section_violation.early_break++;
+					sections_total_violation[section_id].early_break++;
+				}
 
-			if (last_end - first_start <= early_not_allowed_break_duration_gap) {
-				overall_total_section_violation.small_break_gap++;
-				sections_total_violation[section_id].small_break_gap++;
+				if (last_end - first_start <= early_not_allowed_break_duration_gap) {
+					overall_total_section_violation.small_break_gap++;
+					sections_total_violation[section_id].small_break_gap++;
+				}
+			} else {
+				print("Break slots size is not 2");
 			}
 		}
 	}

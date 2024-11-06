@@ -1,0 +1,15 @@
+#ifndef DAYOFWEEK_H
+#define DAYOFWEEK_H
+
+enum class DayOfWeek {
+	EVERYDAY = 0,
+	MONDAY = 1,
+	TUESDAY,
+	WEDNESDAY,
+	THURSDAY,
+	FRIDAY,
+	SATURDAY,
+	SUNDAY,
+};
+
+#endif  // DAYOFWEEK_H

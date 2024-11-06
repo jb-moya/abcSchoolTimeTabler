@@ -38,15 +38,12 @@ struct Bee {
 		section_violations[section_id].late_break = 0;
 	}
 
-	Bee(int num_teachers,
-	    int num_sections,
-	    std::unordered_map<int, Section> sections,
-	    std::unordered_map<int, Teacher> teachers) : teacher_violations(num_teachers),
-	                                                 section_violations(num_sections),
-	                                                 total_cost(std::numeric_limits<int>::max()) {
-		timetable.sections = sections;
-		timetable.teachers = teachers;
-	}
+	Bee(Timetable& timetable_,
+	    int num_teachers_,
+	    int num_sections_) : timetable(timetable_),
+	                         teacher_violations(num_teachers_),
+	                         section_violations(num_sections_),
+	                         total_cost(0) {}
 };
 
 #endif  // BEE_H.

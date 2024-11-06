@@ -42,15 +42,15 @@ int32_t* allocate(int size) {
 
 void test_generate_timetable() {
 	// TODO: dynamic max_iterations base on config'
-	int max_iterations = 30000;
+	int max_iterations = 10000;
 	int beesPopulation = 4;
 	int beesEmployed = 2;
 	int beesOnlooker = 2;
 	int beesScout = 1;
 
-	int num_teachers = 45;
+	int num_teachers = 18;
 	// count teacher with same subject: 11. does this mean there's extra 1 teacher?
-	int total_section = 45;
+	int total_section = 18;
 	int num_subjects = 9;
 
 	// oct 19, 2024
@@ -78,22 +78,26 @@ void test_generate_timetable() {
 
 	int default_class_duration = 40;
 	int break_time_duration = 30;
-	int max_teacher_work_load = 1800;
-
-	int workweek = 5;
-	int teacher_break_threshold = 4;
-	int common_subject_count = 9;
-
+	int max_teacher_work_load = 900;
 	int min_total_class_duration_for_two_breaks = 380;
-	// from schedule example
-	// regular section with 1 break only has 350mins
 
 	int time_division = 10;
-
 	default_class_duration /= time_division;
 	break_time_duration /= time_division;
 	max_teacher_work_load /= time_division;
 	min_total_class_duration_for_two_breaks /= time_division;
+
+	int offset = 2;
+
+	default_class_duration -= offset;
+	break_time_duration -= offset;
+
+	int workweek = 1;
+	int teacher_break_threshold = 4;
+	int common_subject_count = 9;
+
+	// from schedule example
+	// regular section with 1 break only has 350mins
 
 	// print("default_class_duration", default_class_duration);
 	// print("break_time_duration", break_time_duration);
@@ -106,9 +110,6 @@ void test_generate_timetable() {
 
 	int teacher_subjects_length = num_teachers;
 
-	int offset = 2;
-	default_class_duration -= offset;
-	break_time_duration -= offset;
 	// min_total_class_duration_for_two_breaks /= offset;
 
 	int total_section_subjects = total_section * num_subjects;
@@ -116,10 +117,15 @@ void test_generate_timetable() {
 	int32_t* section_subjects = allocate(total_section_subjects);
 	int32_t* section_start = allocate(total_section);
 	int32_t* teacher_subjects = allocate(teacher_subjects_length);
-	int32_t* section_subject_units = allocate(total_section_subjects);
-	int32_t* section_subject_duration = allocate(total_section_subjects);
-	int32_t* section_subject_order = allocate(total_section_subjects);
+
 	int32_t* teacher_max_weekly_load = allocate(num_teachers);
+
+	int32_t* subject_configuration_subject_order = allocate(num_subjects);
+	int32_t* subject_configuration_subject_duration = allocate(num_subjects);
+	int32_t* subject_configuration_subject_units = allocate(num_subjects);
+	int32_t* section_configuration = allocate(total_section);
+
+	int32_t* section_subject_configuration = allocate(total_section_subjects);
 
 	for (int i = 0; i < teacher_subjects_length; ++i) {
 		teacher_subjects[i] = -1;
@@ -142,6 +148,23 @@ void test_generate_timetable() {
 	// 	section_start[i] = 20;
 	// }
 
+	std::vector<std::vector<int>> subject_configure;
+	for (int i = 0; i < num_subjects; ++i) {
+		subject_configure.push_back({i, default_units, default_class_duration, default_order});
+	}
+
+	int number_of_subject_configuration = subject_configure.size();
+	for (int i = 0; i < number_of_subject_configuration; ++i) {
+		int subject_configuration_subject_id = subject_configure[i][0];
+		int subject_configuration_default_units = subject_configure[i][1];
+		int subject_configuration_default_class_duration = subject_configure[i][2];
+		int subject_configuration_default_order = subject_configure[i][3];
+
+		subject_configuration_subject_units[i] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_units);
+		subject_configuration_subject_duration[i] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_class_duration);
+		subject_configuration_subject_order[i] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_order);
+	}
+
 	for (int16_t section = 0; section < total_section; ++section) {
 		for (int16_t subject = 0; subject < num_subjects; ++subject) {
 			int index = section * num_subjects + subject;
@@ -149,18 +172,29 @@ void test_generate_timetable() {
 			if (index >= total_section_subjects) {
 				std::cerr << "Index out of bounds: " << index << std::endl;
 				delete[] section_subjects;
+				delete[] section_start;
 				delete[] teacher_subjects;
+				delete[] teacher_max_weekly_load;
+				delete[] subject_configuration_subject_order;
+				delete[] subject_configuration_subject_duration;
+				delete[] subject_configuration_subject_units;
+				delete[] section_configuration;
+				delete[] section_subject_configuration;
 				return;
 			}
 
 			section_subjects[index] = packInt16ToInt32(section, subject);
-
-			// std::cout << "index:  " << index << std::endl;
-			// std::cout << "i : " << section << "j " << subject << " default_units " << default_units << std::endl;
-			section_subject_units[index] = packInt16ToInt32(subject, default_units);
-			section_subject_duration[index] = packInt16ToInt32(subject, default_class_duration);
-			section_subject_order[index] = packInt16ToInt32(subject, default_order);
+			section_subject_configuration[index] = packInt16ToInt32(section, subject);
 		}
+	}
+
+	for (int i = 0; i < total_section; ++i) {
+		int num_break = 1;
+		int total_timeslot = 10;
+		int not_allowed_breakslot_gap = 3;
+		int is_dynamic_subject_consistent_duration = 0;
+
+		section_configuration[i] = packInt8ToInt32(num_break, total_timeslot, not_allowed_breakslot_gap, is_dynamic_subject_consistent_duration);
 	}
 
 	// REMINDER:
@@ -174,7 +208,6 @@ void test_generate_timetable() {
 	// section_subject_order[2] = packInt16ToInt32(2, 2);
 	// section_subject_duration[2] = packInt16ToInt32(2, 10);
 	// REMINDER END
-
 	// section_subject_units[2] = packInt16ToInt32(2, 2);
 	// section_subject_units[3] = packInt16ToInt32(3, 3);
 	// section_subject_units[4] = packInt16ToInt32(4, 3);
@@ -187,9 +220,7 @@ void test_generate_timetable() {
 	// section_subject_units[14] = packInt16ToInt32(4, 3);
 	// section_subject_units[15] = packInt16ToInt32(5, 2);
 	// section_subject_units[16] = packInt16ToInt32(6, 4);
-
 	// section_subject_duration[7] = packInt16ToInt32(7, 10);
-
 	// section_subject_units[0] = packInt16ToInt32(0, 2);
 	// section_subject_units[1] = packInt16ToInt32(1, 1);
 	// section_subject_order[0] = packInt16ToInt32(0, 1);
@@ -198,10 +229,8 @@ void test_generate_timetable() {
 	// section_subject_order[1] = packInt16ToInt32(1, 3);
 	// section_subject_order[2] = packInt16ToInt32(2, 4);
 	// section_subject_duration[2] = packInt16ToInt32(2, 10);
-
 	// section_subject_order[1] = packInt16ToInt32(1, -2);
 	// section_subject_order[7] = packInt16ToInt32(7, 1);
-
 	// section_subject_duration[1] = packInt16ToInt32(1, 1);
 	// section_subject_units[2] = packInt16ToInt32(2, 1);
 	// section_subject_units[3] = packInt16ToInt32(3, 4);
@@ -222,19 +251,22 @@ void test_generate_timetable() {
 	int result_buff_length = 9999;  // arbitrary
 
 	bool enable_logging = true;
-
 	runExperiment(
 	    max_iterations,
 	    num_teachers,
 	    total_section_subjects,
 	    total_section,
+	    number_of_subject_configuration,
 
+	    section_configuration,
+	    section_subject_configuration,
 	    section_subjects,
-	    section_subject_duration,
-	    section_subject_order,
+	    subject_configuration_subject_units,
+	    subject_configuration_subject_duration,
+	    subject_configuration_subject_order,
 	    section_start,
 	    teacher_subjects,
-	    section_subject_units,
+	    teacher_max_weekly_load,
 
 	    teacher_subjects_length,
 	    beesPopulation,
@@ -257,6 +289,20 @@ void test_generate_timetable() {
 
 	    enable_logging);
 
+	// Free allocated memory
+	delete[] section_subjects;
+	delete[] section_start;
+	delete[] teacher_subjects;
+	delete[] teacher_max_weekly_load;
+	delete[] subject_configuration_subject_order;
+	delete[] subject_configuration_subject_duration;
+	delete[] subject_configuration_subject_units;
+	delete[] section_configuration;
+	delete[] section_subject_configuration;
+	delete[] resultTimetable;
+	delete[] resultTimetable_2;
+	delete[] resultViolation;
+
 	// for (int i = 0; i < result_buff_length; i++) {
 	// 	std::cout << result[i] << std::endl;
 	// }
@@ -273,9 +319,9 @@ int main() {
 	for (int i = 0; i < 1; i++) {
 		test_generate_timetable();
 	}
+
 	std::cout << "done testing" << std::endl;
 	return 0;
-	;
 
 	// std::vector<std::vector<int>> breaks_combination = getAllBreaksCombination(12, 2, 3, 3);
 

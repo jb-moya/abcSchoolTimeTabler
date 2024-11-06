@@ -1,0 +1,15 @@
+#ifndef SCHEDULEDDAY_H
+#define SCHEDULEDDAY_H
+
+enum class ScheduledDay {
+	EVERYDAY = 0,
+	MONDAY = 1,
+	TUESDAY,
+	WEDNESDAY,
+	THURSDAY,
+	FRIDAY,
+	SATURDAY,
+	SUNDAY,
+};
+
+#endif  // SCHEDULEDDAY_H
