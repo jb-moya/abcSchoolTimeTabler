@@ -52,7 +52,7 @@ template <typename T, typename... Args>
 inline void print(T first, Args... args) {
 	std::cout << first;
 	if constexpr (sizeof...(args) > 0) {
-		std::cout << " - ";
+		std::cout << " ; ";
 		print(args...);
 	} else {
 		std::cout << RESET << std::endl;
