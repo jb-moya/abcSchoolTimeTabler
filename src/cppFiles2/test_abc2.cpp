@@ -20,9 +20,6 @@
 #include <vector>
 
 #include "print.h"
-#include "rotaryTimeslot.h"
-#include "subjectTeacherQueue.h"
-#include "timetable.h"
 
 using namespace std;
 

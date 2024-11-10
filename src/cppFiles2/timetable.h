@@ -1,5 +1,4 @@
-#ifndef TIMETABLE_H
-#define TIMETABLE_H
+#pragma once
 
 #include <math.h>
 #include <stdio.h>
@@ -25,15 +24,12 @@
 #include <utility>
 #include <vector>
 
-#include "random_util.h"
 #include "rotaryTimeslot.h"
 #include "scheduledDay.h"
 #include "schoolClass.h"
 #include "section.h"
 #include "subjectEligibilityManager.h"
-#include "subjectConfiguration.h"
 #include "subjectTeacherQueue.h"
-#include "teacher.h"
 
 #define CLASS_TIMESLOT_OVERLAP_INT 1
 #define NO_BREAK_INT 2
@@ -51,30 +47,23 @@ struct Timetable {
 	static int s_work_week;
 	static int s_total_section;
 
+	static std::unordered_set<int> s_sections_set;
+	static std::unordered_set<int> s_teachers_set;
 
 	std::vector<std::shared_ptr<SubjectConfiguration>> subject_configurations;
 	std::unordered_map<int, Section> sections;
 	std::unordered_map<int, Teacher> teachers;
 
-	// static std::unordered_map<int, std::unordered_map<int, int>> s_section_subjects_fixed_teacher;
-	// static std::unordered_map<int, std::vector<std::pair<int, int>>> s_section_subjects_units;
-	// static std::unordered_map<int, std::unordered_map<int, int>> s_section_subjects_duration;
-	// static std::unordered_map<int, std::unordered_map<int, int>> s_section_subjects_order;
-	// static std::unordered_map<int, std::vector<int>> s_eligible_teachers_in_subject;
-	// static std::unordered_set<int> s_section_dynamic_subject_consistent_duration;
-	// static std::unordered_map<int, int> s_section_not_allowed_breakslot_gap;
-	// static std::unordered_map<int, std::vector<int>> s_section_subjects;
-	// static std::unordered_map<int, int> s_section_total_duration;
-	// static std::unordered_map<int, int> s_section_total_timeslot;
-	// static std::unordered_map<int, int> s_section_start;
-
-	static std::unordered_set<int> s_sections_set;
-	static std::unordered_set<int> s_teachers_set;
-
-	// static std::vector<int> s_section_num_breaks;
-
-
    public:
+	static void setTeacherBreakThreshold(int s_teacher_break_threshold);
+	static void setDefaultClassDuration(int s_default_class_duration);
+	static void setMaxTeacherWorkLoad(int s_max_teacher_work_load);
+	static void setBreakTimeDuration(int s_break_time_duration);
+	static void setWorkWeek(int s_work_week);
+	static void setTotalSection(int s_total_section);
+	static void setTeachersSet(const std::unordered_set<int>& s_teachers_set);
+	static void setSectionsSet(const std::unordered_set<int>& s_sections_set);
+
 	static int getTeacherBreakThreshold();
 	static int getDefaultClassDuration();
 	static int getMaxTeacherWorkLoad();
@@ -87,15 +76,6 @@ struct Timetable {
 	// Helper method to find a subject by name
 	std::shared_ptr<SubjectConfiguration> findSubjectConfigurationById(int subject_configuration_id);
 	void addSubjectConfiguration(int id, int subject_id, int duration, int units, int order);
-
-	static void setTeacherBrealThreshold(int s_teacher_break_threshold);
-	static void setDefaultClassDuration(int s_default_class_duration);
-	static void setMaxTeacherWorkLoad(int s_max_teacher_work_load);
-	static void setBreakTimeDuration(int s_break_time_duration);
-	static void setWorkWeek(int s_work_week);
-	static void setTotalSection(int s_total_section);
-	static void setTeachersSet(const std::unordered_set<int>& s_teachers_set);
-	static void setSectionsSet(const std::unordered_set<int>& s_sections_set);
 
 	Section& getSectionById(int section_id);
 	Teacher& getTeacherById(int teacher_id);
@@ -132,12 +112,17 @@ struct Timetable {
 	int pickRandomField(Section& section);
 	Section& pickRandomSection();
 
-	// void initializeTeachersClass(int teachers);
-
 	void initializeRandomTimetable(std::unordered_set<int>& update_teachers);
+	void initializeSectionTimetable(int section_id, Section& section);
 
-	void modify(std::unordered_set<int>& affected_teachers, std::unordered_set<int>& affected_sections);
+	void modify(Section& selected_section,
+	            int choice,
+	            std::pair<int, int> selected_timeslots,
+	            std::unordered_set<int>& affected_teachers,
+	            std::unordered_set<int>& affected_sections,
+	            SubjectEligibilityManager& subject_eligibility = s_subject_eligibility_manager);
 
+	// TODO: might refactor
 	void updateTeachersAndSections(
 	    std::unordered_set<int>& affected_teachers,
 	    std::map<int, std::unordered_map<ScheduledDay, SchoolClass>>::iterator iter_start,
@@ -146,6 +131,24 @@ struct Timetable {
 	    bool is_skipping_between,
 	    Section& selected_section,
 	    bool is_reset);
+
+	void categorizeSubjects(Section& section,
+	                        std::vector<int>& full_week_day_subjects,
+	                        std::vector<int>& special_unit_subjects,
+	                        std::set<int>& non_dynamic_order_start,
+	                        std::set<int>& non_dynamic_order_end) const;
+
+	std::vector<int> getBreaks(const Section& section) const;
+	void setupTimeslots(int total_timeslot, std::deque<int>& timeslot_keys, std::map<int, int>& timeslots, const std::vector<int>& skips) const;
+	void processTimeslots(std::map<int, int>& fixed_subject_order,
+	                      std::set<int>& reserved_timeslots,
+	                      std::deque<int>& timeslot_keys,
+	                      std::map<int, int>& timeslots,
+	                      const std::set<int>& non_dynamic_order_start,
+	                      const std::set<int>& non_dynamic_order_end) const;
+
+	void changeTeacher(Section& selected_section, int selected_timeslot_1, int new_teacher_id, std::unordered_set<int>& update_teachers);
+	bool isSkippingUpdateBetween(Section& selected_section, std::pair<int, int> selected_timeslots) const;
 };
 
 #ifdef __cplusplus
@@ -200,5 +203,3 @@ std::vector<int> getDefaultBreaksCombination(std::vector<std::vector<int>>& brea
 int64_t pack5IntToInt64(int16_t a, int16_t b, int16_t c, int8_t d, int8_t e);
 int32_t packInt16ToInt32(int16_t first, int16_t second);
 int32_t packInt8ToInt32(int8_t first, int8_t second, int8_t third, int8_t fourth);
-
-#endif  // TIMETABLE_H

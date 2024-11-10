@@ -1,5 +1,4 @@
-#ifndef ROTARYTIMESLOT_H
-#define ROTARYTIMESLOT_H
+#pragma once
 
 #include <algorithm>
 #include <cstdlib>
@@ -9,16 +8,17 @@
 class RotaryTimeslot {
    private:
 	int total_shift;
+	int total_try;
 	int previous_size;
 
    public:
-	RotaryTimeslot() : total_shift(0), previous_size(-1) {}
+	RotaryTimeslot() : total_shift(0), total_try(0), previous_size(-1) {}
 
+	int getTotalShift() const;
+	int getTotalTry() const;
 	void incrementShift(int increment = 1);
 	void resetShift();
 	void adjustPosition(int size);
 
 	std::vector<int> getTimeslot(int size, std::vector<int> skip);
 };
-
-#endif  // ROTARYTIMESLOT_H.

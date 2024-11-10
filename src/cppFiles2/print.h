@@ -1,5 +1,5 @@
-#ifndef PRINT_H
-#define PRINT_H
+#pragma once
+
 #include <iomanip>
 #include <iostream>
 
@@ -147,5 +147,3 @@ inline void printConfiguration(int max_iterations,
 	print("enable_logging", enable_logging);
 	print("time_issued", time_issued);
 }
-
-#endif  // PRINT_H

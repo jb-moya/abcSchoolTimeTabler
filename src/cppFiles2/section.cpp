@@ -1,5 +1,8 @@
 #include "section.h"
 
+#include "print.h"
+#include "random_util.h"
+
 int Section::total_section;
 std::unordered_set<int> Section::s_all_sections;
 
@@ -24,8 +27,57 @@ bool Section::isDynamicSubjectConsistentDuration() const {
 	return is_dynamic_subject_consistent_duration;
 }
 
-void Section::setTimeRange(const std::unordered_map<int, ClassStartEnd>& time_range_) {
-	time_range = time_range_;
+int Section::getClassTimeslotSubjectID(ScheduledDay day, int timeslot) const {
+	auto& classTimeslot = classes.find(timeslot)->second.find(day)->second;
+	return classTimeslot.subject_id;
+}
+
+int Section::getClassTimeslotTeacherID(ScheduledDay day, int timeslot) const {
+	auto& classTimeslot = classes.find(timeslot)->second.find(day)->second;
+	return classTimeslot.teacher_id;
+}
+
+void Section::assignBreaks(std::vector<int>& breaks) {
+	for (int break_slot : breaks) {
+		addClass(break_slot, ScheduledDay::EVERYDAY, SchoolClass{-1, -1});
+		addBreakSlot(break_slot);
+	}
+}
+
+ScheduledDay Section::getRandomClassTimeslotWorkingDays(int timeslot) const {
+	if (classes.find(timeslot) == classes.end()) {
+		print("cannot find timeslot", timeslot);
+		return ScheduledDay::EVERYDAY;
+	};
+
+	std::uniform_int_distribution<>
+	    dis_work_day(0, classes.find(timeslot)->second.size() - 1);
+
+	auto it = classes.find(timeslot)->second.begin();
+	std::advance(it, dis_work_day(randomizer_engine));
+
+	return it->first;
+}
+
+std::unordered_set<ScheduledDay> Section::getAllScheduledDayOnClasstimeslot(int timeslot) const {
+	if (classes.find(timeslot) == classes.end()) {
+		print("cannot find timeslot", timeslot);
+		return {};
+	};
+
+	std::unordered_set<ScheduledDay> result;
+	for (auto& classTimeslot : classes.find(timeslot)->second) {
+		result.insert(classTimeslot.first);
+	}
+
+	return result;
+}
+
+void Section::updateClassTimeslotDay(
+    ScheduledDay day,
+    int timeslot,
+    SchoolClass& school_class) {
+	classes[timeslot][day] = school_class;
 }
 
 void Section::setBreakSlots(const std::unordered_set<int>& break_slots_) {
@@ -64,8 +116,18 @@ const std::unordered_map<int, std::shared_ptr<SubjectConfiguration>>& Section::g
 	return subject_configurations;
 }
 
-ScheduledDay Section::getClassTimeslotScheduledDay(int timeslot) const {
-	return classes.find(timeslot)->second.begin()->first;
+std::unordered_set<ScheduledDay> Section::getClassTimeslotScheduledDay(int timeslot) const {
+	if (classes.find(timeslot) == classes.end()) {
+		print("cannot find timeslot", timeslot);
+		throw std::runtime_error("Class timeslot not found");
+	};
+
+	std::unordered_set<ScheduledDay> scheduled_days;
+	for (auto& classTimeslot : classes.find(timeslot)->second) {
+		scheduled_days.insert(classTimeslot.first);
+	}
+
+	return scheduled_days;
 }
 
 bool Section::isInBreakSlots(int timeslot) const {
@@ -82,6 +144,15 @@ void Section::removeSegmentedTimeSlot(int timeslot) {
 
 void Section::addSegmentedTimeSlot(int timeslot) {
 	segmented_timeslot.insert(timeslot);
+}
+
+ClassStartEnd Section::getClassStartTime(int timeslot) const {
+	if (time_range.find(timeslot) == time_range.end()) {
+		print("cannot find timeslot", timeslot);
+		throw std::runtime_error("Class timeslot not found");
+	};
+	
+	return time_range.find(timeslot)->second;
 }
 
 void Section::addBreakSlot(int timeslot) {

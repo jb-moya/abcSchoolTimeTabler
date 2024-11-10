@@ -1,5 +1,4 @@
-#ifndef SCHEDULEDDAY_H
-#define SCHEDULEDDAY_H
+#pragma once
 
 enum class ScheduledDay {
 	EVERYDAY = 0,
@@ -11,5 +10,3 @@ enum class ScheduledDay {
 	SATURDAY,
 	SUNDAY,
 };
-
-#endif  // SCHEDULEDDAY_H

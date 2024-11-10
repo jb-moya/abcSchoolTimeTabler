@@ -1,9 +1,5 @@
-#ifndef CLASSSTARTEND_H
-#define CLASSSTARTEND_H
-
+#pragma once
 struct ClassStartEnd {
 	int start;  // Example attribute
 	int end;    // Example attribute
 };
-
-#endif  // CLASSSTARTEND_H

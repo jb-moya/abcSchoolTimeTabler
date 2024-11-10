@@ -1,9 +1,6 @@
-#ifndef SCHOOLCLASS_H
-#define SCHOOLCLASS_H
+#pragma once
 
 struct SchoolClass {
 	int subject_id;
 	int teacher_id;
 };
-
-#endif  // SCHOOLCLASS_H

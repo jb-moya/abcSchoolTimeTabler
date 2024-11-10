@@ -1,5 +1,4 @@
-#ifndef LOG_H
-#define LOG_H
+#pragma once
 
 #include <fstream>
 #include <map>
@@ -448,5 +447,3 @@ inline void logConflicts(
 
 	log_file << "\n\n\n\n\n\n\n";
 }
-
-#endif  // LOG_H.

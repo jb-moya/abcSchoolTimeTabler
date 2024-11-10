@@ -1,8 +1,6 @@
-#ifndef ABC_H
-#define ABC_H
+#pragma once
 
 #include "objectiveFunction.h"
-#include "subjectTeacherQueue.h"
 
 class ABC {
    private:
@@ -70,6 +68,7 @@ class ABC {
 		print("hehe");
 
 		// Initialize best solution
+		affected_teachers.clear();
 		best_solution.timetable.initializeRandomTimetable(affected_teachers);
 		// print("zzzz");
 
@@ -78,7 +77,7 @@ class ABC {
 		// 	print("key", key);
 		// }
 
-		// printSchoolClasses(best_solution.timetable);
+		printSchoolClasses(best_solution.timetable);
 
 		// Evaluate objective function for the best solution
 		objective_function.evaluate(best_solution, affected_teachers, Timetable::getSectionsSet(), false, true);
@@ -105,10 +104,10 @@ class ABC {
 
 	void run();
 
+	int getIterationCount() const;
+
 	Bee getBestSolution();
 
 	void getResult(int64_t* result_timetable, int64_t* result_timetable_2, int offset_duration);
 	void getViolation(int64_t* result_violation);
 };
-
-#endif  // ABC_H

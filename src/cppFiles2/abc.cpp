@@ -1,10 +1,4 @@
 #include "abc.h"
-
-#include "bee.h"
-#include "random_util.h"
-#include "subjectTeacherQueue.h"
-#include "timetable.h"
-
 void ABC::run() {
 	print(YELLOW, "starting iteration");
 	for (int iter = 0; iter < max_iterations; iter++) {
@@ -27,14 +21,26 @@ void ABC::run() {
 			affected_teachers.clear();
 			affected_sections.clear();
 
-			new_bee.timetable.modify(affected_teachers, affected_sections);
+			// print("before: ");
+			// printSchoolClasses(new_bee.timetable);
+
+			Section& selected_section = new_bee.timetable.pickRandomSection();
+			int choice = new_bee.timetable.pickRandomField(selected_section);
+			auto selected_timeslots = new_bee.timetable.pickRandomTimeslots(selected_section, choice);
+
+			new_bee.timetable.modify(selected_section, choice, selected_timeslots, affected_teachers, affected_sections);
 			objective_function.evaluate(new_bee, affected_teachers, affected_sections, false, false);
 
+			// print("after: ");
+			// printSchoolClasses(new_bee.timetable);
+
 			if (new_bee.total_cost <= bees_vector[i].total_cost) {
+				// print("yes", new_bee.total_cost, bees_vector[i].total_cost);
 				bees_vector[i] = new_bee;
 
 				bees_abandoned[i] = 0;
 			} else {
+				// print("no", new_bee.total_cost, bees_vector[i].total_cost);
 				bees_abandoned[i]++;
 
 				if (bees_abandoned[i] >= limit) {
@@ -96,13 +102,19 @@ void ABC::run() {
 			affected_teachers.clear();
 			affected_sections.clear();
 
-			new_bee.timetable.modify(affected_teachers, affected_sections);
+			Section& selected_section = new_bee.timetable.pickRandomSection();
+			int choice = new_bee.timetable.pickRandomField(selected_section);
+			auto selected_timeslots = new_bee.timetable.pickRandomTimeslots(selected_section, choice);
+
+			new_bee.timetable.modify(selected_section, choice, selected_timeslots, affected_teachers, affected_sections);
 			objective_function.evaluate(new_bee, affected_teachers, affected_sections, false, false);
 
 			if (new_bee.total_cost <= bees_vector[i].total_cost) {
 				bees_vector[i] = new_bee;
 				bees_abandoned[i] = 0;
+				// print("yes", new_bee.total_cost, bees_vector[i].total_cost);
 			} else {
+				// print("no", new_bee.total_cost, bees_vector[i].total_cost);
 				bees_abandoned[i]++;
 
 				if (bees_abandoned[i] >= limit) {
@@ -264,7 +276,7 @@ void ABC::getViolation(int64_t* result_violation) {
 		} else {
 			if (break_slots.size() >= 2) {
 				// this always assumes that there's only 2 break slots
-			
+
 				auto it = break_slots.begin();
 				int first_break_time = *it;
 				++it;
@@ -360,4 +372,8 @@ void ABC::getResult(int64_t* result, int64_t* result_2, int offset_duration) {
 	result_2[iter] = pack5IntToInt64(-1, -1, -1, -1, -1);
 
 	print("...Done getting result!");
+}
+
+int ABC::getIterationCount() const {
+	return iteration_count;
 }

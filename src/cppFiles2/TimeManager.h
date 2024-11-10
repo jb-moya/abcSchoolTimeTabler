@@ -1,5 +1,4 @@
-#ifndef TIMEMANAGER_H
-#define TIMEMANAGER_H
+#pragma once
 
 #include <chrono>
 #include <ctime>
@@ -23,5 +22,3 @@ class TimeManager {
 	std::string getEndTime();
 	std::string getTimelapse();
 };
-
-#endif  // TIMEMANAGER_H.

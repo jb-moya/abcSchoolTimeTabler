@@ -1,5 +1,4 @@
-#ifndef DAYOFWEEK_H
-#define DAYOFWEEK_H
+#pragma once
 
 enum class DayOfWeek {
 	EVERYDAY = 0,
@@ -11,5 +10,3 @@ enum class DayOfWeek {
 	SATURDAY,
 	SUNDAY,
 };
-
-#endif  // DAYOFWEEK_H

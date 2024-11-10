@@ -1,5 +1,4 @@
-#ifndef BEE_H
-#define BEE_H
+#pragma once
 
 #include <cstdint>
 #include <iostream>
@@ -38,12 +37,10 @@ struct Bee {
 		section_violations[section_id].late_break = 0;
 	}
 
-	Bee(Timetable& timetable_,
+	Bee(Timetable timetable_,
 	    int num_teachers_,
 	    int num_sections_) : timetable(timetable_),
 	                         teacher_violations(num_teachers_),
 	                         section_violations(num_sections_),
 	                         total_cost(0) {}
 };
-
-#endif  // BEE_H.

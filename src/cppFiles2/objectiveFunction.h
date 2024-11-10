@@ -1,5 +1,4 @@
-#ifndef OBJECTIVEFUNCTION_H
-#define OBJECTIVEFUNCTION_H
+#pragma once
 
 #include "bee.h"
 #include "print.h"
@@ -225,5 +224,3 @@ struct ObjectiveFunction {
 		}
 	};
 };
-
-#endif  // OBJECTIVEFUNCTION_H

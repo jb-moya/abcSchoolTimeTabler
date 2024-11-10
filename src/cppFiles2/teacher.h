@@ -1,5 +1,4 @@
-#ifndef TEACHER_H
-#define TEACHER_H
+#pragma once
 
 #include <map>
 #include <unordered_map>
@@ -20,7 +19,9 @@ struct Teacher {
    public:
 	static int total_teacher;
 	static std::unordered_set<int> s_all_teachers;
-	Teacher(int id_, int max_work_load_) : id(id_), max_work_load(max_work_load_) {}
+	Teacher(int id_, int max_work_load_);
+	// Teacher(int id_, int max_work_load_) : id(id_), max_work_load(max_work_load_) {}
+
 	void initializeClass(int work_week);
 
 	int getId() const;
@@ -43,5 +44,3 @@ struct Teacher {
 
 	void removeUtilizedTimeDay(int day);
 };
-
-#endif  // TEACHER_H

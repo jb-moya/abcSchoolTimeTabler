@@ -4,6 +4,14 @@ void RotaryTimeslot::incrementShift(int increment) {
 	total_shift += increment;
 }
 
+int RotaryTimeslot::getTotalShift() const {
+	return total_shift;
+}
+
+int RotaryTimeslot::getTotalTry() const {
+	return total_try;
+}
+
 std::vector<int> RotaryTimeslot::getTimeslot(int size, std::vector<int> skip) {
 	std::vector<int> timeslot;
 	for (int i = 0; i < size; i++) {
@@ -29,6 +37,7 @@ std::vector<int> RotaryTimeslot::getTimeslot(int size, std::vector<int> skip) {
 
 	previous_size = size - skip.size();
 
+	total_try++;
 	return timeslot;
 }
 

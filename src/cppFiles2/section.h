@@ -1,5 +1,4 @@
-#ifndef SECTION_H
-#define SECTION_H
+#pragma once
 
 #include <iostream>
 #include <map>
@@ -77,13 +76,12 @@ class Section {
 	void updateTimeslotStart(int timeslot, int start);
 	void updateTimeslotEnd(int timeslot, int end);
 	void setTimeRange(int timeslot, ClassStartEnd time_range);
-	ScheduledDay getClassTimeslotScheduledDay(int timeslot) const;
+	std::unordered_set<ScheduledDay> getClassTimeslotScheduledDay(int timeslot) const;
 
 	// CRUD Operations for Classes
 	void setClasses(const std::map<int, std::unordered_map<ScheduledDay, SchoolClass>>& classes_);
 
 	// Setters for Attributes
-	void setTimeRange(const std::unordered_map<int, ClassStartEnd>& time_range);
 	void setTotalDuration(int total_duration);
 	void setBreakSlots(const std::unordered_set<int>& break_slots);
 	void setSegmentedTimeslot(const std::unordered_set<int>& segmented_timeslot);
@@ -99,8 +97,13 @@ class Section {
 	int getNotAllowedBreakslotGap() const;
 	int getTotalDuration() const;
 	int getStartTime() const;
+	ClassStartEnd getClassStartTime(int timeslot) const;
 	int getTimeslotStart(int timeslot) const;
 	int getTimeslotEnd(int timeslot) const;
+	int getClassTimeslotSubjectID(ScheduledDay day, int timeslot) const;
+	int getClassTimeslotTeacherID(ScheduledDay day, int timeslot) const;
+	ScheduledDay getRandomClassTimeslotWorkingDays(int timeslot) const;
+	std::unordered_set<ScheduledDay> getAllScheduledDayOnClasstimeslot(int timeslot) const;
 
 	bool hasViolation() const;
 	bool isDynamicSubjectConsistentDuration() const;
@@ -123,5 +126,3 @@ class Section {
 	void updateClassTimeslotDay(ScheduledDay day, int timeslot, SchoolClass& school_class);
 	void assignBreaks(std::vector<int>& breaks);
 };
-
-#endif  // SECTION_H

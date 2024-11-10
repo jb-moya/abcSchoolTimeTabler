@@ -1,6 +1,3 @@
-#ifndef SUBJECTTEACHERQUEUE_H
-#define SUBJECTTEACHERQUEUE_H
-
 #include <cstdint>
 #include <iostream>
 #include <map>
@@ -25,5 +22,3 @@ class SubjectTeacherQueue {
 	int getTeacher(int subject_id, int decrement_work_load);
 	void resetQueue();
 };
-
-#endif  // SUBJECTTEACHERQUEUE_H.

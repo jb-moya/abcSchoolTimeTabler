@@ -1,5 +1,4 @@
-#ifndef SUBJECTCONFIGURATION_H
-#define SUBJECTCONFIGURATION_H
+#pragma once
 
 #include <unordered_set>
 #include <vector>
@@ -32,5 +31,3 @@ struct SubjectConfiguration {
 	int getUnits() const;
 	int getOrder() const;
 };
-
-#endif  // SUBJECTCONFIGURATION_H

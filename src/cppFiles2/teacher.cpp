@@ -1,8 +1,17 @@
 #include "teacher.h"
+
 #include "print.h"
+#include "timetable.h"
 
 int Teacher::total_teacher;
 std::unordered_set<int> Teacher::s_all_teachers;
+
+Teacher::Teacher(int id_, int max_work_load_)
+    : id(id_), max_work_load(max_work_load_), utilized_time(), has_violation(false) {
+	for (int day = 1; day <= Timetable::getWorkWeek(); day++) {
+		class_count[static_cast<ScheduledDay>(day)] = 0;
+	}
+}
 
 void Teacher::initializeClass(int work_week) {
 	for (int day = 1; day <= work_week; ++day) {
