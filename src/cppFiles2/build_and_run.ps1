@@ -3,7 +3,7 @@ param (
 )
 
 # Build the project with the specified suffix
-& make SUFFIX=$suffix
+& make -j SUFFIX=$suffix
 
 # Run the project with the specified suffix
 & make run SUFFIX=$suffix
