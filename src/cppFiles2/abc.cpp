@@ -1,4 +1,7 @@
 #include "abc.h"
+
+#include "bit_utils.h"
+
 void ABC::run() {
 	print(YELLOW, "starting iteration");
 	for (int iter = 0; iter < max_iterations; iter++) {

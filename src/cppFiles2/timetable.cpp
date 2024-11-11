@@ -828,29 +828,6 @@ void Timetable::modify(Section& selected_section,
 	updateTeachersAndSections(update_teachers, itLow, itUp, true, is_skipping_between, selected_section, false);
 };
 
-int64_t pack5IntToInt64(int16_t a, int16_t b, int16_t c, int8_t d, int8_t e) {
-	int64_t result = 0;
-	result |= (static_cast<int64_t>(a) & 0xFFFF) << 48;
-	result |= (static_cast<int64_t>(b) & 0xFFFF) << 32;
-	result |= (static_cast<int64_t>(c) & 0xFFFF) << 16;
-	result |= (static_cast<int64_t>(d) & 0xFF) << 8;
-	result |= (static_cast<int64_t>(e) & 0xFF);
-	return result;
-}
-
-int32_t packInt16ToInt32(int16_t first, int16_t second) {
-	int32_t result = (static_cast<int32_t>(first) << 16) | (static_cast<uint16_t>(second));
-	return result;
-}
-
-int32_t packInt8ToInt32(int8_t first, int8_t second, int8_t third, int8_t fourth) {
-	int32_t result = (static_cast<int32_t>(first) << 24) |
-	                 (static_cast<uint8_t>(second) << 16) |
-	                 (static_cast<uint8_t>(third) << 8) |
-	                 (static_cast<uint8_t>(fourth));
-	return result;
-}
-
 extern "C" {
 
 void runExperiment(

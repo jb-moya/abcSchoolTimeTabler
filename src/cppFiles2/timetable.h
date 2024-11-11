@@ -31,6 +31,7 @@
 #include "subjectEligibilityManager.h"
 #include "subjectTeacherQueue.h"
 #include "types.h"
+#include "bit_utils.h"
 
 #define CLASS_TIMESLOT_OVERLAP_INT 1
 #define NO_BREAK_INT 2
@@ -207,7 +208,3 @@ void runExperiment(
 
 std::vector<std::vector<Timeslot>> getAllBreaksCombination(int slot_count, int break_count, Timeslot gap, Timeslot end_gap);
 std::vector<Timeslot> getDefaultBreaksCombination(std::vector<std::vector<Timeslot>>& breaks_combination);
-
-int64_t pack5IntToInt64(int16_t a, int16_t b, int16_t c, int8_t d, int8_t e);
-int32_t packInt16ToInt32(int16_t first, int16_t second);
-int32_t packInt8ToInt32(int8_t first, int8_t second, int8_t third, int8_t fourth);
