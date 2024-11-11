@@ -81,18 +81,18 @@ void Timetable::initializeRandomWorkDayDistribution(int min, int max) {
 Section& Timetable::getSectionById(SectionID section_id) {
 	auto it = sections.find(section_id);
 	if (it != sections.end()) {
-		return it->second;  // Return the Section if found
+		return it->second;
 	} else {
-		throw std::runtime_error("Section ID not found");  // Handle the error case as needed
+		throw std::runtime_error("Section ID not found");
 	}
 }
 
 Teacher& Timetable::getTeacherById(TeacherID teacher_id) {
 	auto it = teachers.find(teacher_id);
 	if (it != teachers.end()) {
-		return it->second;  // Return the Teacher if found
+		return it->second;
 	} else {
-		throw std::runtime_error("Teacher ID not found");  // Handle the error case as needed
+		throw std::runtime_error("Teacher ID not found");
 	}
 }
 
@@ -121,10 +121,8 @@ void Timetable::addSubjectToSection(SectionID section_id, SubjectConfigurationID
 	if (subject) {
 		auto it = sections.find(section_id);
 		if (it != sections.end()) {
-			// Section exists, add subject to it
 			it->second.addSubject(subject);
 		} else {
-			// Section does not exist
 			std::cout << "Section not found!\n";
 		}
 	} else {
@@ -137,73 +135,23 @@ void Timetable::addSubjectConfiguration(SubjectConfigurationID id, SubjectID sub
 	subject_configurations.push_back(subject_configuration);
 }
 
-void Timetable::changeTeacher(Section& selected_section, Timeslot selected_timeslot, TeacherID new_teacher_id, std::unordered_set<TeacherID>& update_teachers) {
-	// 	// changing teachers
+void Timetable::changeTeacher(Section& selected_section, Timeslot selected_timeslot, ScheduledDay day, TeacherID new_teacher_id, std::unordered_set<TeacherID>& update_teachers) {
+	SubjectID subject_id = selected_section.getClassTimeslotSubjectID(day, selected_timeslot);
+	TeacherID old_teacher = selected_section.getClassTimeslotTeacherID(day, selected_timeslot);
 
-	if (selected_section.getClassTimeslotScheduledDay(selected_timeslot).count(ScheduledDay::EVERYDAY) > 0) {
-		SubjectID subject_id = selected_section.getClassTimeslotSubjectID(ScheduledDay::EVERYDAY, selected_timeslot);
-		TeacherID old_teacher = selected_section.getClassTimeslotTeacherID(ScheduledDay::EVERYDAY, selected_timeslot);
+	getTeacherById(old_teacher).decrementClassCount(static_cast<ScheduledDay>(day));
+	getTeacherById(new_teacher_id).incrementClassCount(static_cast<ScheduledDay>(day));
 
-		// TODO: if there's only one teacher available, don't do this way
-		// TODO: smart picking teacher
+	update_teachers.insert(old_teacher);
+	update_teachers.insert(new_teacher_id);
 
-		for (int day = 1; day <= Timetable::getWorkWeek(); day++) {
-			// TODO: MIGHT make this a function
-			getTeacherById(old_teacher).decrementClassCount(static_cast<ScheduledDay>(day));
-			getTeacherById(new_teacher_id).incrementClassCount(static_cast<ScheduledDay>(day));
-		}
+	selected_section.removeUtilizedTeacher(old_teacher);
+	selected_section.addUtilizedTeacher(new_teacher_id);
 
-		update_teachers.insert(old_teacher);
-		update_teachers.insert(new_teacher_id);
+	SchoolClass updated_school_class = SchoolClass{subject_id, new_teacher_id};
+	TeacherID old_teacher_id = selected_section.getClassTimeslotTeacherID(day, selected_timeslot);
 
-		// print("removing utilized teacher", old_teacher);
-		selected_section.removeUtilizedTeacher(old_teacher);
-
-		// print("adding utilized teacher", new_teacher_id);
-		selected_section.addUtilizedTeacher(new_teacher_id);
-
-		SchoolClass updated_school_class = SchoolClass{subject_id, new_teacher_id};
-
-		TeacherID old_teacher_id = selected_section.getClassTimeslotTeacherID(ScheduledDay::EVERYDAY, selected_timeslot);
-
-		selected_section.updateClassTimeslotDay(ScheduledDay::EVERYDAY, selected_timeslot, updated_school_class);
-
-		TeacherID new_teacher_id = selected_section.getClassTimeslotTeacherID(ScheduledDay::EVERYDAY, selected_timeslot);
-
-		// print("hays old teacher", old_teacher_id, "new teacher", new_teacher_id);
-
-	} else {
-		// TODO: separate
-		// TODO: same teacher on same subject DONE
-		// TODO: CHECK IF THIS iS WORKING
-
-		ScheduledDay randomScheduledDay = selected_section.getRandomClassTimeslotWorkingDays(selected_timeslot);
-
-		SubjectID selected_timeslot_subject_id = selected_section.getClassTimeslotSubjectID(randomScheduledDay, selected_timeslot);
-		TeacherID old_teacher = selected_section.getClassTimeslotTeacherID(randomScheduledDay, selected_timeslot);
-
-		std::unordered_set<ScheduledDay> all_scheduled_days = selected_section.getAllScheduledDayOnClasstimeslot(selected_timeslot);
-		for (const auto& it : all_scheduled_days) {
-			SubjectID subject_id = selected_section.getClassTimeslotSubjectID(it, selected_timeslot);
-
-			if (subject_id == selected_timeslot_subject_id) {
-				SchoolClass updated_school_class = SchoolClass{subject_id, new_teacher_id};
-				selected_section.updateClassTimeslotDay(it, selected_timeslot, updated_school_class);
-			}
-		}
-
-		update_teachers.insert(old_teacher);
-		update_teachers.insert(new_teacher_id);
-
-		// FIXME: only date that are affected
-		for (int day = 1; day <= Timetable::getWorkWeek(); day++) {
-			getTeacherById(old_teacher).decrementClassCount(static_cast<ScheduledDay>(day));
-			getTeacherById(new_teacher_id).incrementClassCount(static_cast<ScheduledDay>(day));
-		}
-
-		SchoolClass updated_school_class = SchoolClass{selected_timeslot_subject_id, new_teacher_id};
-		selected_section.updateClassTimeslotDay(randomScheduledDay, selected_timeslot, updated_school_class);
-	}
+	selected_section.updateClassTimeslotDay(day, selected_timeslot, updated_school_class);
 }
 
 void Timetable::updateTeachersAndSections(
@@ -229,7 +177,6 @@ void Timetable::updateTeachersAndSections(
 		auto day_zero = day_schedule.find(ScheduledDay::EVERYDAY);
 
 		if (it != timeslot_begin) {
-			// start = section.time_range[std::prev(it)->first].end;
 			start = selected_section.getTimeslotEnd(std::prev(it)->first);
 		}
 
@@ -785,25 +732,39 @@ void Timetable::modify(Section& selected_section,
 		}
 
 	} else if (choice == 1) {
-		SubjectID subject_id = selected_section.getClassTimeslotSubjectID(ScheduledDay::EVERYDAY, selected_timeslot_1);
+		ScheduledDay randomScheduledDay = selected_section.getRandomClassTimeslotWorkingDays(selected_timeslot_1);
+		SubjectID selected_timeslot_subject_id = selected_section.getClassTimeslotSubjectID(randomScheduledDay, selected_timeslot_1);
 
-		// TODO: leave breakslots alone
-		if (subject_id == -1) {
-			return;
-		}
-
-		std::unordered_set<ScheduledDay> days = selected_section.getClassTimeslotScheduledDay(selected_timeslot_1);
-
-		if (days.count(ScheduledDay::EVERYDAY) > 0) {
+		if (randomScheduledDay == ScheduledDay::EVERYDAY) {
+			// TODO: leave breakslots alone
+			if (selected_timeslot_subject_id == -1) {
+				print("it shouldn't picked a breakslot");
+				return;
+			}
 			// print(RED_BG, "yes");
 			TeacherID old_teacher_id = selected_section.getClassTimeslotTeacherID(ScheduledDay::EVERYDAY, selected_timeslot_1);
-			TeacherID new_teacher = eligibility_manager.getNewRandomTeacher(subject_id, old_teacher_id);
+			TeacherID new_teacher = eligibility_manager.getNewRandomTeacher(selected_timeslot_subject_id, old_teacher_id);
 
 			// print("selected_section", selected_section.getId(), "x old teacher", old_teacher_id, "x new teacher", new_teacher);
-			changeTeacher(selected_section, selected_timeslot_1, new_teacher, update_teachers);
+			changeTeacher(selected_section, selected_timeslot_1, ScheduledDay::EVERYDAY, new_teacher, update_teachers);
 		} else {
-			// print(RED_BG, "no");
-			// TODO: implement
+			std::vector<ScheduledDay> days_to_update;
+			std::unordered_set<ScheduledDay> all_scheduled_days = selected_section.getAllScheduledDayOnClasstimeslot(selected_timeslot_1);
+
+			for (const ScheduledDay day : all_scheduled_days) {
+				SubjectID subject_id = selected_section.getClassTimeslotSubjectID(day, selected_timeslot_1);
+
+				if (subject_id == selected_timeslot_subject_id) {
+					days_to_update.push_back(day);
+				}
+			}
+
+			for (const auto& day_to_update : days_to_update) {
+				TeacherID old_teacher_id = selected_section.getClassTimeslotTeacherID(day_to_update, selected_timeslot_1);
+				TeacherID new_teacher = eligibility_manager.getNewRandomTeacher(selected_timeslot_subject_id, old_teacher_id);
+
+				changeTeacher(selected_section, selected_timeslot_1, day_to_update, new_teacher, update_teachers);
+			}
 		}
 
 	} else if (choice == 2) {

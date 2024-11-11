@@ -150,7 +150,7 @@ struct Timetable {
 	                      const std::set<int>& non_dynamic_order_start,
 	                      const std::set<int>& non_dynamic_order_end) const;
 
-	void changeTeacher(Section& selected_section, Timeslot selected_timeslot, TeacherID new_teacher_id, std::unordered_set<TeacherID>& update_teachers);
+	void changeTeacher(Section& selected_section, Timeslot selected_timeslot, ScheduledDay day, TeacherID new_teacher_id, std::unordered_set<TeacherID>& update_teachers);
 	bool isSkippingUpdateBetween(Section& selected_section, std::pair<Timeslot, Timeslot> selected_timeslots) const;
 };
 

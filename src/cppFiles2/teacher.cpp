@@ -44,11 +44,23 @@ void Teacher::adjustUtilizedTime(int day, TimePoint timePoint, int value) {
 }
 
 void Teacher::incrementClassCount(ScheduledDay day) {
-	++class_count[day];
+	if (day == ScheduledDay::EVERYDAY) {
+		for (int day = 1; day <= Timetable::getWorkWeek(); day++) {
+			++class_count[static_cast<ScheduledDay>(day)];
+		}
+	} else {
+		++class_count[day];
+	}
 }
 
 void Teacher::decrementClassCount(ScheduledDay day) {
-	--class_count[day];
+	if (day == ScheduledDay::EVERYDAY) {
+		for (int day = 1; day <= Timetable::getWorkWeek(); day++) {
+			--class_count[static_cast<ScheduledDay>(day)];
+		}
+	} else {
+		--class_count[day];
+	}
 }
 
 int Teacher::incrementUtilizedTime(int day, TimePoint timePoint) {

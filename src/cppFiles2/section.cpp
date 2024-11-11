@@ -47,7 +47,8 @@ void Section::assignBreaks(std::vector<Timeslot>& breaks) {
 ScheduledDay Section::getRandomClassTimeslotWorkingDays(Timeslot timeslot) const {
 	if (classes.find(timeslot) == classes.end()) {
 		print("cannot find timeslot", timeslot);
-		return ScheduledDay::EVERYDAY;
+		throw std::runtime_error("Class timeslot not found");
+		// return ScheduledDay::EVERYDAY;
 	};
 
 	std::uniform_int_distribution<>
@@ -151,7 +152,7 @@ ClassStartEnd Section::getClassStartTime(Timeslot timeslot) const {
 		print("cannot find timeslot", timeslot);
 		throw std::runtime_error("Class timeslot not found");
 	};
-	
+
 	return time_range.find(timeslot)->second;
 }
 
