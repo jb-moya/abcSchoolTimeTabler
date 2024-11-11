@@ -191,10 +191,8 @@ void ABC::getViolation(int64_t* result_violation) {
 			auto last_time_point = --time_points_class_count.end();
 			float middle_time_point = (time_points_class_count.begin()->first + last_time_point->first) / 2;
 
-			int allowance_multiplier = 2;
-
-			float min_time_point_allowance = middle_time_point - (best_solution.timetable.getDefaultClassDuration() * allowance_multiplier);
-			float max_time_point_allowance = middle_time_point + (best_solution.timetable.getDefaultClassDuration() * allowance_multiplier);
+			float min_time_point_allowance = middle_time_point - (best_solution.timetable.getTeacherMiddleTimePointGrowAllowanceForBreakTimeslot());
+			float max_time_point_allowance = middle_time_point + (best_solution.timetable.getTeacherMiddleTimePointGrowAllowanceForBreakTimeslot());
 
 			TimePoint rounded_min_time_point_allowance = static_cast<int>(std::floor(min_time_point_allowance));
 			TimePoint rounded_max_time_point_allowance = static_cast<int>(std::ceil(max_time_point_allowance));

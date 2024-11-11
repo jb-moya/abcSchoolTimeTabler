@@ -47,8 +47,10 @@ struct Timetable {
 	static TimeDuration s_break_time_duration;
 	static int s_work_week;
 	static int s_total_section;
+	static int s_teacher_middle_time_point_grow_allowance_for_break_timeslot;
 
-	static std::unordered_set<SectionID> s_sections_set;
+	static std::unordered_set<SectionID>
+	    s_sections_set;
 	static std::unordered_set<TeacherID> s_teachers_set;
 
 	std::vector<std::shared_ptr<SubjectConfiguration>> subject_configurations;
@@ -57,6 +59,7 @@ struct Timetable {
 
    public:
 	static void setTeacherBreakThreshold(int s_teacher_break_threshold);
+	static void setTeacherMiddleTimePointGrowAllowanceForBreakTimeslot(int s_teacher_middle_time_point_grow_allowance_for_break_timeslot);
 	static void setDefaultClassDuration(TimeDuration s_default_class_duration);
 	static void setMaxTeacherWorkLoad(int s_max_teacher_work_load);
 	static void setBreakTimeDuration(TimeDuration s_break_time_duration);
@@ -66,6 +69,7 @@ struct Timetable {
 	static void setSectionsSet(const std::unordered_set<TeacherID>& s_sections_set);
 
 	static int getTeacherBreakThreshold();
+	static int getTeacherMiddleTimePointGrowAllowanceForBreakTimeslot();
 	static TimeDuration getDefaultClassDuration();
 	static int getMaxTeacherWorkLoad();
 	static TimeDuration getBreakTimeDuration();
@@ -186,6 +190,7 @@ void runExperiment(
     int max_teacher_work_load,
     TimeDuration break_time_duration,
     int teacher_break_threshold,
+    int teacher_middle_time_point_grow_allowance_for_break_timeslot,
     TimeDuration min_total_class_duration_for_two_breaks,
     TimeDuration default_class_duration,
     int result_buff_length,

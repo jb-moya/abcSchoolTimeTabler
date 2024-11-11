@@ -93,6 +93,7 @@ void test_generate_timetable() {
 	int teacher_break_threshold = 4;
 	int common_subject_count = 9;
 
+	int teacher_middle_time_point_grow_allowance_for_break_timeslot = 4;
 	// from schedule example
 	// regular section with 1 break only has 350mins
 
@@ -276,6 +277,7 @@ void test_generate_timetable() {
 	    max_teacher_work_load,
 	    break_time_duration,
 	    teacher_break_threshold,
+	    teacher_middle_time_point_grow_allowance_for_break_timeslot,
 	    min_total_class_duration_for_two_breaks,
 	    default_class_duration,
 	    result_buff_length,
@@ -314,7 +316,7 @@ void printVector(const std::vector<int>& vec) {
 
 int main() {
 	int iteration = 100;
-	
+
 	for (int i = 0; i < iteration; i++) {
 		test_generate_timetable();
 	}

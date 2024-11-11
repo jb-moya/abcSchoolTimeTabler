@@ -215,10 +215,8 @@ inline void logConflicts(
 			auto last_time_point = --time_points_class_count.end();
 			float middle_time_point = (time_points_class_count.begin()->first + last_time_point->first) / 2;
 
-			int allowance_multiplier = 2;
-
-			float min_time_point_allowance = middle_time_point - (bee->timetable.getDefaultClassDuration() * allowance_multiplier);
-			float max_time_point_allowance = middle_time_point + (bee->timetable.getDefaultClassDuration() * allowance_multiplier);
+			float min_time_point_allowance = middle_time_point - (bee->timetable.getTeacherMiddleTimePointGrowAllowanceForBreakTimeslot());
+			float max_time_point_allowance = middle_time_point + (bee->timetable.getTeacherMiddleTimePointGrowAllowanceForBreakTimeslot());
 
 			int rounded_min_time_point_allowance = static_cast<int>(std::floor(min_time_point_allowance));
 			int rounded_max_time_point_allowance = static_cast<int>(std::ceil(max_time_point_allowance));

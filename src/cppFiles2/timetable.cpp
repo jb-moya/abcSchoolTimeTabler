@@ -16,6 +16,9 @@ SubjectEligibilityManager Timetable::s_subject_eligibility_manager;
 void Timetable::setTeacherBreakThreshold(int s_teacher_break_threshold_) {
 	s_teacher_break_threshold = s_teacher_break_threshold_;
 }
+void Timetable::setTeacherMiddleTimePointGrowAllowanceForBreakTimeslot(int s_teacher_middle_time_point_grow_allowance_for_break_timeslot_) {
+	s_teacher_middle_time_point_grow_allowance_for_break_timeslot = s_teacher_middle_time_point_grow_allowance_for_break_timeslot_;
+}
 void Timetable::setDefaultClassDuration(TimeDuration s_default_class_duration_) {
 	s_default_class_duration = s_default_class_duration_;
 }
@@ -39,6 +42,7 @@ void Timetable::setSectionsSet(const std::unordered_set<SectionID>& sections_set
 }
 
 int Timetable::s_teacher_break_threshold;
+int Timetable::s_teacher_middle_time_point_grow_allowance_for_break_timeslot;
 TimeDuration Timetable::s_default_class_duration;
 int Timetable::s_max_teacher_work_load;
 TimeDuration Timetable::s_break_time_duration;
@@ -97,6 +101,7 @@ Teacher& Timetable::getTeacherById(TeacherID teacher_id) {
 }
 
 int Timetable::getTeacherBreakThreshold() { return s_teacher_break_threshold; }
+int Timetable::getTeacherMiddleTimePointGrowAllowanceForBreakTimeslot() { return s_teacher_middle_time_point_grow_allowance_for_break_timeslot; }
 TimeDuration Timetable::getDefaultClassDuration() { return s_default_class_duration; }
 int Timetable::getMaxTeacherWorkLoad() { return s_max_teacher_work_load; }
 TimeDuration Timetable::getBreakTimeDuration() { return s_break_time_duration; }
@@ -876,6 +881,7 @@ void runExperiment(
     int max_teacher_work_load,
     TimeDuration break_time_duration,
     int teacher_break_threshold,
+    int teacher_middle_time_point_grow_allowance_for_break_timeslot,
     TimeDuration min_total_class_duration_for_two_breaks,
     TimeDuration default_class_duration,
     int result_buff_length,
@@ -907,6 +913,7 @@ void runExperiment(
 		Timetable::s_subject_eligibility_manager = SubjectEligibilityManager();
 
 		Timetable::setTeacherBreakThreshold(teacher_break_threshold);
+		Timetable::setTeacherMiddleTimePointGrowAllowanceForBreakTimeslot(teacher_middle_time_point_grow_allowance_for_break_timeslot);
 		Timetable::setDefaultClassDuration(default_class_duration);
 		Timetable::setMaxTeacherWorkLoad(max_teacher_work_load);
 		Timetable::setBreakTimeDuration(break_time_duration);

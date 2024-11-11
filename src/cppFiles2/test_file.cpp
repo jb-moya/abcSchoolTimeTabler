@@ -30,6 +30,7 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 		Timetable timetable;
 
 		int teacher_break_threshold = 4;
+		int teacher_middle_time_point_grow_allowance_for_break_timeslot = 4;
 		TimeDuration default_class_duration = 1, break_time_duration = 1;
 		int max_teacher_work_load = 70, work_week = 1, total_teacher = 14;
 		int total_section = 14, total_unique_subject = 7, num_break = 1;
@@ -47,6 +48,7 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 		for (SectionID section_id = 1; section_id <= total_section; ++section_id) sections_set.insert(section_id);
 
 		timetable.setTeacherBreakThreshold(teacher_break_threshold);
+		timetable.setTeacherMiddleTimePointGrowAllowanceForBreakTimeslot(teacher_middle_time_point_grow_allowance_for_break_timeslot);
 		timetable.setDefaultClassDuration(default_class_duration);
 		timetable.setMaxTeacherWorkLoad(max_teacher_work_load);
 		timetable.setBreakTimeDuration(break_time_duration);
@@ -61,6 +63,7 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 
 		THEN("The Timetable parameters should match the initialized values") {
 			REQUIRE(timetable.getTeacherBreakThreshold() == teacher_break_threshold);
+			REQUIRE(timetable.getTeacherMiddleTimePointGrowAllowanceForBreakTimeslot() == teacher_middle_time_point_grow_allowance_for_break_timeslot);
 			REQUIRE(timetable.getDefaultClassDuration() == default_class_duration);
 			REQUIRE(timetable.getMaxTeacherWorkLoad() == max_teacher_work_load);
 			REQUIRE(timetable.getBreakTimeDuration() == break_time_duration);
