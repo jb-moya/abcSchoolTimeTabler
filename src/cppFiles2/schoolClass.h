@@ -1,6 +1,8 @@
 #pragma once
 
+#include "types.h"
+
 struct SchoolClass {
-	int subject_id;
-	int teacher_id;
+	SubjectID subject_id;
+	TeacherID teacher_id;
 };

@@ -29,18 +29,22 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 
 		Timetable timetable;
 
-		int teacher_break_threshold = 4, default_class_duration = 1, break_time_duration = 1;
+		int teacher_break_threshold = 4;
+		TimeDuration default_class_duration = 1, break_time_duration = 1;
 		int max_teacher_work_load = 70, work_week = 1, total_teacher = 14;
 		int total_section = 14, total_unique_subject = 7, num_break = 1;
 		int total_timeslot = total_unique_subject + num_break;
 		int not_allowed_breakslot_gap = 2, start = 0;
 		bool is_dynamic_subject_consistent_duration = false;
-		int default_subject_units = 0, default_subject_duration = default_class_duration, default_subject_order = 0;
+		int default_subject_units = 0;
+		TimeDuration default_subject_duration = 1;
+		TimeDuration default_subject_order = 0;
 
 		// Initialize Teacher and Section Sets
-		std::unordered_set<int> teachers_set, sections_set;
-		for (int i = 1; i <= total_teacher; ++i) teachers_set.insert(i);
-		for (int i = 1; i <= total_section; ++i) sections_set.insert(i);
+		std::unordered_set<TeacherID> teachers_set;
+		std::unordered_set<SectionID> sections_set;
+		for (TeacherID teacher_id = 1; teacher_id <= total_teacher; ++teacher_id) teachers_set.insert(teacher_id);
+		for (SectionID section_id = 1; section_id <= total_section; ++section_id) sections_set.insert(section_id);
 
 		timetable.setTeacherBreakThreshold(teacher_break_threshold);
 		timetable.setDefaultClassDuration(default_class_duration);
@@ -52,8 +56,8 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 		timetable.setSectionsSet(sections_set);
 
 		Timetable::s_rotary_timeslot = RotaryTimeslot();
-		Timetable::s_subject_teacher_queue = SubjectTeacherQueue();
 		Timetable::s_subject_eligibility_manager = SubjectEligibilityManager();
+		Timetable::s_subject_teacher_queue = SubjectTeacherQueue();
 
 		THEN("The Timetable parameters should match the initialized values") {
 			REQUIRE(timetable.getTeacherBreakThreshold() == teacher_break_threshold);
@@ -70,35 +74,34 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 			for (int i = 0; i < total_unique_subject; ++i) {
 				timetable.addSubjectConfiguration(i, i, default_subject_duration, default_subject_units, default_subject_order);
 			}
-			for (int i = 0; i < total_section; i++) {
-				int section_id = i;
+			for (SectionID section_id = 0; section_id < total_section; section_id++) {
 				Section::s_all_sections.insert(section_id);
 				timetable.addSection(section_id, num_break, start, total_timeslot, not_allowed_breakslot_gap, is_dynamic_subject_consistent_duration);
 			}
 
-			for (int section_id = 0; section_id < total_section; section_id++) {
-				for (int j = 0; j < total_unique_subject; j++) {
-					timetable.addSubjectToSection(section_id, j);
+			for (SectionID section_id = 0; section_id < total_section; section_id++) {
+				for (SubjectConfigurationID subject_configuration_id = 0; subject_configuration_id < total_unique_subject; subject_configuration_id++) {
+					timetable.addSubjectToSection(section_id, subject_configuration_id);
 				}
 				REQUIRE(timetable.getSectionById(section_id).getId() == section_id);
 				REQUIRE(timetable.getSectionById(section_id).getSubjectConfigurations().size() == total_unique_subject);
 			}
 
-			// Configure Teachers
-			// Assign Eligible Teachers to Subjects
-			for (int i = 0; i < total_teacher; i++) {
-				Teacher::s_all_teachers.insert(i);
-				timetable.addTeacher(i, max_teacher_work_load);
-				int subject = i % total_unique_subject;
-				Timetable::addEligibleTeacher(subject, i);
-				Timetable::s_subject_teacher_queue.addTeacher(subject, i, max_teacher_work_load);
+			// Configure Teachersv
+			// Assign Eligible Teachers to Subjects  v
+			for (TeacherID teacher_id = 0; teacher_id < total_teacher; teacher_id++) {
+				Teacher::s_all_teachers.insert(teacher_id);
+				timetable.addTeacher(teacher_id, max_teacher_work_load);
+				SubjectID subject_id = teacher_id % total_unique_subject;
+				Timetable::addEligibleTeacher(subject_id, teacher_id);
+				Timetable::s_subject_teacher_queue.addTeacher(subject_id, teacher_id, max_teacher_work_load);
 			}
 
 			AND_WHEN("The random timetable is initialized") {
 				// Initialize Timetable
 				ObjectiveFunction evaluator;
-				std::unordered_set<int> affected_teachers;
-				std::unordered_set<int> affected_sections;
+				std::unordered_set<TeacherID> affected_teachers;
+				std::unordered_set<SectionID> affected_sections;
 
 				timetable.initializeRandomTimetable(affected_teachers);
 
@@ -107,14 +110,14 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 
 				THEN("The timetable should assign distinct teachers to subject timeslots") {
 					ScheduledDay day = ScheduledDay::EVERYDAY;
-					int selected_section_id = 13;
+					SectionID selected_section_id = 13;
 					Section selected_section = timetable.getSectionById(selected_section_id);
-					std::pair<int, int> selected_timeslots = {0, 0};
+					std::pair<Timeslot, Timeslot> selected_timeslots = {0, 0};
 
-					int old_teacher_id = timetable.getSectionById(selected_section_id).getClassTimeslotTeacherID(day, selected_timeslots.first);
-					int subject_id = timetable.getSectionById(selected_section_id).getClassTimeslotSubjectID(day, selected_timeslots.first);
+					TeacherID old_teacher_id = timetable.getSectionById(selected_section_id).getClassTimeslotTeacherID(day, selected_timeslots.first);
+					SubjectID subject_id = timetable.getSectionById(selected_section_id).getClassTimeslotSubjectID(day, selected_timeslots.first);
 
-					int new_teacher_id = timetable.s_subject_eligibility_manager.getNewRandomTeacher(subject_id, old_teacher_id);
+					TeacherID new_teacher_id = timetable.s_subject_eligibility_manager.getNewRandomTeacher(subject_id, old_teacher_id);
 
 					REQUIRE(old_teacher_id != new_teacher_id);
 
@@ -167,7 +170,7 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 							updated_timetable.modify(updated_selected_section, choice, selected_timeslots, affected_teachers, affected_sections, subject_eligibility_manager);
 							Section updated_section = updated_timetable.getSectionById(selected_section_id);
 
-							int updated_section_teacher_id = updated_section.getClassTimeslotTeacherID(ScheduledDay::EVERYDAY, selected_timeslots.first);
+							TeacherID updated_section_teacher_id = updated_section.getClassTimeslotTeacherID(ScheduledDay::EVERYDAY, selected_timeslots.first);
 
 							THEN("The section's timetable should reflect the new teacher assignment") {
 								REQUIRE(updated_section_teacher_id != old_teacher_id);
@@ -189,14 +192,14 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 									}
 								}
 
-								for (int time = class_start_end.start; time < class_start_end.end; time++) {
+								for (TimePoint time_point = class_start_end.start; time_point < class_start_end.end; time_point++) {
 									bool is_day_exists = updated_old_teacher.getUtilizedTime().count(day) == 1;
 
 									if (is_day_exists) {
-										bool is_time_exists = updated_old_teacher.getUtilizedTime().find(day)->second.count(time) == 1;
+										bool is_time_exists = updated_old_teacher.getUtilizedTime().find(day)->second.count(time_point) == 1;
 
 										if (is_time_exists) {
-											print("day", static_cast<int>(day), "time", time);
+											print("day", static_cast<int>(day), "time", time_point);
 											auto& updated_old_teacher_utilized_time = updated_old_teacher.getUtilizedTime().find(day)->second;
 
 											print("inside updated old teacher utitlized time inside");
@@ -209,10 +212,10 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 											}
 											print("end");
 
-											bool updated_old_teacher_utilized_time_selected_timeslot_exists = updated_old_teacher_utilized_time.count(time) == 1;
-											bool old_teacher_utilized_time_selected_timeslot_exists = old_teacher_utilized_time.count(time) == 1;
+											bool updated_old_teacher_utilized_time_selected_timeslot_exists = updated_old_teacher_utilized_time.count(time_point) == 1;
+											bool old_teacher_utilized_time_selected_timeslot_exists = old_teacher_utilized_time.count(time_point) == 1;
 											if (updated_old_teacher_utilized_time_selected_timeslot_exists && old_teacher_utilized_time_selected_timeslot_exists) {
-												REQUIRE(old_teacher.getUtilizedTime().find(day)->second.find(time)->second > updated_old_teacher_utilized_time.find(time)->second);
+												REQUIRE(old_teacher.getUtilizedTime().find(day)->second.find(time_point)->second > updated_old_teacher_utilized_time.find(time_point)->second);
 											}
 										}
 									}

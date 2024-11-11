@@ -4,19 +4,20 @@
 #include <vector>
 
 #include "scheduledDay.h"
+#include "types.h"
 
 struct SubjectConfiguration {
    private:
-	const int id;
-	const int subject_id;
-	const int duration;
+	const SubjectConfigurationID id;
+	const SubjectID subject_id;
+	const TimeDuration duration;
 	const int units;
 	const int order;
 
    public:
-	SubjectConfiguration(int id_,
-	                     int subject_id_,
-	                     int duration_,
+	SubjectConfiguration(SubjectConfigurationID id_,
+	                     SubjectID subject_id_,
+	                     TimeDuration duration_,
 	                     int units_,
 	                     int order_)
 	    : id(id_),
@@ -25,9 +26,9 @@ struct SubjectConfiguration {
 	      units(units_),
 	      order(order_) {}
 
-	int getSubjectConfigurationId() const;
-	int getSubjectId() const;
-	int getDuration() const;
+	SubjectConfigurationID getSubjectConfigurationId() const;
+	SubjectID getSubjectId() const;
+	TimeDuration getDuration() const;
 	int getUnits() const;
 	int getOrder() const;
 };

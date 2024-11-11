@@ -5,6 +5,8 @@
 #include <iostream>
 #include <vector>
 
+#include "types.h"
+
 class RotaryTimeslot {
    private:
 	int total_shift;
@@ -20,5 +22,5 @@ class RotaryTimeslot {
 	void resetShift();
 	void adjustPosition(int size);
 
-	std::vector<int> getTimeslot(int size, std::vector<int> skip);
+	std::vector<Timeslot> getTimeslot(int size, std::vector<Timeslot> skip_timeslots);
 };

@@ -1,15 +1,15 @@
 #include "subjectConfiguration.h"
 
-int SubjectConfiguration::getSubjectConfigurationId() const {
+SubjectConfigurationID SubjectConfiguration::getSubjectConfigurationId() const {
 	return id;
 }
 
-int SubjectConfiguration::getSubjectId() const {
-    return subject_id;
+SubjectID SubjectConfiguration::getSubjectId() const {
+	return subject_id;
 }
 
-int SubjectConfiguration::getDuration() const {
-    return duration;
+TimeDuration SubjectConfiguration::getDuration() const {
+	return duration;
 }
 
 int SubjectConfiguration::getUnits() const {

@@ -7,15 +7,14 @@
 
 class SubjectEligibilityManager {
    private:
-	std::unordered_map<int, std::vector<int>> eligible_teachers_in_subject;
-	std::unordered_map<int, std::uniform_int_distribution<>> dis_map;
+	std::unordered_map<SubjectID, std::vector<TeacherID>> eligible_teachers_in_subject;
 
    public:
-	void addTeacher(int subjectId, int teacherId) {
+	void addTeacher(SubjectID subjectId, TeacherID teacherId) {
 		eligible_teachers_in_subject[subjectId].push_back(teacherId);
 	}
 
-	const std::vector<int>& getEligibleTeachers(int subjectId) const {
+	const std::vector<TeacherID>& getEligibleTeachers(SubjectID subjectId) const {
 		if (eligible_teachers_in_subject.find(subjectId) == eligible_teachers_in_subject.end()) {
 			throw std::runtime_error("No eligible teachers available for subject." + std::to_string(subjectId));
 		}
@@ -23,7 +22,7 @@ class SubjectEligibilityManager {
 		return eligible_teachers_in_subject.at(subjectId);
 	}
 
-	int getNewRandomTeacher(int subjectId, int old_teacher = -1) {
+	TeacherID getNewRandomTeacher(SubjectID subjectId, TeacherID old_teacher = -1) {
 		const auto& eligibleTeachers = getEligibleTeachers(subjectId);
 		if (eligibleTeachers.empty()) {
 			throw std::runtime_error("No eligible teachers available for subject.");
@@ -35,7 +34,7 @@ class SubjectEligibilityManager {
 
 		std::uniform_int_distribution<> dis(0, eligibleTeachers.size() - 1);
 
-		int new_teacher;
+		TeacherID new_teacher;
 		do {
 			new_teacher = eligibleTeachers[dis(randomizer_engine)];
 		} while (new_teacher == old_teacher && old_teacher != -1);

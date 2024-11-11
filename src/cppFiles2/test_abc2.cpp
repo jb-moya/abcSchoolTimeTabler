@@ -40,15 +40,15 @@ int32_t* allocate(int size) {
 void test_generate_timetable() {
 	// TODO: dynamic max_iterations base on config'
 	int max_iterations = 10000;
-	int beesPopulation = 4;
+	int beesPopulation = 3;
 	int beesEmployed = 2;
-	int beesOnlooker = 2;
+	int beesOnlooker = 1;
 	int beesScout = 1;
 
-	int num_teachers = 18;
+	int num_teachers = 42;
 	// count teacher with same subject: 11. does this mean there's extra 1 teacher?
-	int total_section = 18;
-	int num_subjects = 9;
+	int total_section = 42;
+	int num_subjects = 7;
 
 	// oct 19, 2024
 
@@ -73,10 +73,10 @@ void test_generate_timetable() {
 	int default_units = 0;
 	int default_order = 0;
 
-	int default_class_duration = 40;
-	int break_time_duration = 30;
+	TimeDuration default_class_duration = 40;
+	TimeDuration break_time_duration = 30;
 	int max_teacher_work_load = 900;
-	int min_total_class_duration_for_two_breaks = 380;
+	TimeDuration min_total_class_duration_for_two_breaks = 380;
 
 	int time_division = 10;
 	default_class_duration /= time_division;
@@ -124,16 +124,16 @@ void test_generate_timetable() {
 
 	int32_t* section_subject_configuration = allocate(total_section_subjects);
 
-	for (int i = 0; i < teacher_subjects_length; ++i) {
+	for (TeacherID i = 0; i < teacher_subjects_length; ++i) {
 		teacher_subjects[i] = -1;
 		teacher_max_weekly_load[i] = max_teacher_work_load;
 	}
 
-	for (int i = 0; i < num_teachers; ++i) {
+	for (TeacherID i = 0; i < num_teachers; ++i) {
 		teacher_subjects[i] = packInt16ToInt32(i, i % num_subjects);
 	}
 
-	for (int i = 0; i < total_section; ++i) {
+	for (SectionID i = 0; i < total_section; ++i) {
 		section_start[i] = 0;
 	}
 
@@ -146,15 +146,15 @@ void test_generate_timetable() {
 	// }
 
 	std::vector<std::vector<int>> subject_configure;
-	for (int i = 0; i < num_subjects; ++i) {
+	for (SubjectID i = 0; i < num_subjects; ++i) {
 		subject_configure.push_back({i, default_units, default_class_duration, default_order});
 	}
 
 	int number_of_subject_configuration = subject_configure.size();
 	for (int i = 0; i < number_of_subject_configuration; ++i) {
-		int subject_configuration_subject_id = subject_configure[i][0];
+		SubjectID subject_configuration_subject_id = subject_configure[i][0];
 		int subject_configuration_default_units = subject_configure[i][1];
-		int subject_configuration_default_class_duration = subject_configure[i][2];
+		TimeDuration subject_configuration_default_class_duration = subject_configure[i][2];
 		int subject_configuration_default_order = subject_configure[i][3];
 
 		subject_configuration_subject_units[i] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_units);
@@ -187,8 +187,8 @@ void test_generate_timetable() {
 
 	for (int i = 0; i < total_section; ++i) {
 		int num_break = 1;
-		int total_timeslot = 10;
-		int not_allowed_breakslot_gap = 3;
+		int total_timeslot = 8;
+		int not_allowed_breakslot_gap = 2;
 		int is_dynamic_subject_consistent_duration = 0;
 
 		section_configuration[i] = packInt8ToInt32(num_break, total_timeslot, not_allowed_breakslot_gap, is_dynamic_subject_consistent_duration);
@@ -313,7 +313,9 @@ void printVector(const std::vector<int>& vec) {
 }
 
 int main() {
-	for (int i = 0; i < 1; i++) {
+	int iteration = 100;
+	
+	for (int i = 0; i < iteration; i++) {
 		test_generate_timetable();
 	}
 
@@ -365,16 +367,16 @@ int main() {
 	// 	printVector(timeslot);
 	// 	rotary_timeslot.incrementShift();
 
-	// 	i++;.
+	// 	i++;
 	// }
 
-	SubjectTeacherQueue subject_teacher_queue;
+	// SubjectTeacherQueue subject_teacher_queue;
 
-	subject_teacher_queue.addTeacher(1, 1, 10);
-	subject_teacher_queue.addTeacher(1, 2, 10);
-	subject_teacher_queue.addTeacher(1, 3, 10);
-	subject_teacher_queue.addTeacher(2, 4, 10);
-	subject_teacher_queue.addTeacher(3, 4, 2);
+	// subject_teacher_queue.addTeacher(1, 1, 10);
+	// subject_teacher_queue.addTeacher(1, 2, 10);
+	// subject_teacher_queue.addTeacher(1, 3, 10);
+	// subject_teacher_queue.addTeacher(2, 4, 10);
+	// subject_teacher_queue.addTeacher(3, 4, 2);
 
 	// print("ff", subject_teacher_queue.getTeacher(1, 5));
 	// print("ff", subject_teacher_queue.getTeacher(1, 5));
@@ -391,7 +393,7 @@ int main() {
 	// print("ff", subject_teacher_queue.getTeacher(3, 1));
 	// print("ff", subject_teacher_queue.getTeacher(3, 1));
 
-	subject_teacher_queue.resetQueue();
+	// subject_teacher_queue.resetQueue();
 
 	std::cout << "done testing" << std::endl;
 

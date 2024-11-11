@@ -3,10 +3,10 @@
 #include "print.h"
 #include "timetable.h"
 
-int Teacher::total_teacher;
-std::unordered_set<int> Teacher::s_all_teachers;
+int Teacher::teacher_count;
+std::unordered_set<TeacherID> Teacher::s_all_teachers;
 
-Teacher::Teacher(int id_, int max_work_load_)
+Teacher::Teacher(TeacherID id_, int max_work_load_)
     : id(id_), max_work_load(max_work_load_), utilized_time(), has_violation(false) {
 	for (int day = 1; day <= Timetable::getWorkWeek(); day++) {
 		class_count[static_cast<ScheduledDay>(day)] = 0;
@@ -19,7 +19,7 @@ void Teacher::initializeClass(int work_week) {
 	}
 }
 
-int Teacher::getId() const {
+TeacherID Teacher::getId() const {
 	return id;
 }
 
@@ -31,7 +31,7 @@ bool Teacher::hasViolation() const {
 	return has_violation;
 }
 
-const std::unordered_map<ScheduledDay, std::map<int, int>> Teacher::getUtilizedTime() const {
+const std::unordered_map<ScheduledDay, std::map<TimePoint, int>> Teacher::getUtilizedTime() const {
 	return utilized_time;
 }
 
@@ -39,8 +39,8 @@ const std::unordered_map<ScheduledDay, int> Teacher::getClassCount() const {
 	return class_count;
 }
 
-void Teacher::adjustUtilizedTime(int day, int timeslot, int value) {
-	utilized_time[static_cast<ScheduledDay>(day)][timeslot] += value;
+void Teacher::adjustUtilizedTime(int day, TimePoint timePoint, int value) {
+	utilized_time[static_cast<ScheduledDay>(day)][timePoint] += value;
 }
 
 void Teacher::incrementClassCount(ScheduledDay day) {
@@ -51,22 +51,22 @@ void Teacher::decrementClassCount(ScheduledDay day) {
 	--class_count[day];
 }
 
-int Teacher::incrementUtilizedTime(int day, int timeslot) {
+int Teacher::incrementUtilizedTime(int day, TimePoint timePoint) {
 	ScheduledDay scheduled_day = static_cast<ScheduledDay>(day);
 	// print("scheduled_day", static_cast<int>(scheduled_day));
-	return ++utilized_time[scheduled_day][timeslot];
+	return ++utilized_time[scheduled_day][timePoint];
 }
 
-int Teacher::decrementUtilizedTime(int day, int timeslot) {
+int Teacher::decrementUtilizedTime(int day, TimePoint timePoint) {
 	ScheduledDay scheduled_day = static_cast<ScheduledDay>(day);
 	// print("scheduled_day", static_cast<int>(scheduled_day));
-	return --utilized_time[scheduled_day][timeslot];
+	return --utilized_time[scheduled_day][timePoint];
 }
 
-int Teacher::removeUtilizedTimeslot(int day, int timeslot) {
+int Teacher::removeUtilizedTimePoint(int day, TimePoint timePoint) {
 	ScheduledDay scheduled_day = static_cast<ScheduledDay>(day);
 	// print("scheduled_day", static_cast<int>(scheduled_day));
-	return utilized_time[scheduled_day].erase(timeslot);
+	return utilized_time[scheduled_day].erase(timePoint);
 }
 
 bool Teacher::isUtilizedTimesDayEmpty(int day) {

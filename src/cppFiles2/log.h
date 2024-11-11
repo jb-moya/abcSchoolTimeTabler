@@ -12,12 +12,11 @@ inline void logSchoolClasses(Timetable& timetable, std::ofstream& file) {
 		return;
 	}
 
-	//   teacher     fff.              f  days          time section
-	std::map<int, std::unordered_map<ScheduledDay, std::map<int, int>>> teacher_class;
+	std::map<TeacherID, std::unordered_map<ScheduledDay, std::map<TimePoint, SectionID>>> teacher_class;
 
-	std::unordered_map<int, int> section_breaks_distribution;
+	std::unordered_map<Timeslot, int> section_breaks_distribution;
 
-	std::map<int, std::vector<int>> teachers;
+	std::map<Timeslot, std::vector<TeacherID>> teachers_in_timeslot;
 
 	const auto& section_set = Timetable::getSectionsSet();
 
@@ -30,10 +29,10 @@ inline void logSchoolClasses(Timetable& timetable, std::ofstream& file) {
 		int inner_count = 0;
 		for (const auto& [timeslot, classMap] : classes) {
 			for (const auto& [day, schoolClass] : classMap) {
-				int subject_id = schoolClass.subject_id;
-				int teacher_id = schoolClass.teacher_id;
+				SubjectID subject_id = schoolClass.subject_id;
+				TeacherID teacher_id = schoolClass.teacher_id;
 
-				teachers[timeslot].push_back(teacher_id);
+				teachers_in_timeslot[timeslot].push_back(teacher_id);
 
 				file << "" << std::setw(4) << timeslot;
 				file << "  d: " << std::setw(2) << ((day == ScheduledDay::EVERYDAY) ? (std::to_string(static_cast<int>(day))) : (std::to_string(static_cast<int>(day))));
@@ -47,8 +46,8 @@ inline void logSchoolClasses(Timetable& timetable, std::ofstream& file) {
 				     << ((subject_id == -1) ? (std::string(" ") + "/\\") : std::to_string(subject_id));
 
 				if (teacher_id != -1) {
-					for (int i = section.getTimeslotStart(timeslot); i < section.getTimeslotEnd(timeslot); i++) {
-						teacher_class[teacher_id][day][i] = section_id;
+					for (TimePoint time_point = section.getTimeslotStart(timeslot); time_point < section.getTimeslotEnd(timeslot); time_point++) {
+						teacher_class[teacher_id][day][time_point] = section_id;
 					}
 
 				} else {
@@ -65,7 +64,7 @@ inline void logSchoolClasses(Timetable& timetable, std::ofstream& file) {
 		file << std::endl;
 	}
 
-	for (auto& [timeslot, teacher] : teachers) {
+	for (auto& [timeslot, teacher] : teachers_in_timeslot) {
 		file << "t: " << std::setw(3);
 
 		for (auto& teacher_id : teacher) {
@@ -83,16 +82,16 @@ inline void logSchoolClasses(Timetable& timetable, std::ofstream& file) {
 		for (const auto& [day, school_class] : days) {
 			file << " d: " << static_cast<int>(day) << " | ";
 
-			int begin = school_class.begin()->first;
-			int end = school_class.rbegin()->first;
+			TimePoint lowest_time_point = school_class.begin()->first;
+			TimePoint hihest_time_point = school_class.rbegin()->first;
 
-			for (int i = begin; i <= end; i++) {
-				bool found = school_class.find(i) != school_class.end();
+			for (TimePoint time_point = lowest_time_point; time_point <= hihest_time_point; time_point++) {
+				bool found = school_class.find(time_point) != school_class.end();
 
 				if (found) {
-					file << " " << std::setw(4) << " " + std::to_string(i);
+					file << " " << std::setw(4) << " " + std::to_string(time_point);
 				} else {
-					file << " " << std::setw(4) << "." + std::to_string(i);
+					file << " " << std::setw(4) << "." + std::to_string(time_point);
 				}
 			}
 
@@ -189,78 +188,75 @@ inline void logConflicts(
 	teacherViolation overall_total_teacher_violation = {0, 0, 0};
 	sectionViolation overall_total_section_violation = {0, 0, 0};
 
-	std::map<int, teacherViolation> teachers_total_violation;
-	std::map<int, sectionViolation> sections_total_violation;
+	std::map<TeacherID, teacherViolation> teachers_total_violation;
+	std::map<SectionID, sectionViolation> sections_total_violation;
 
 	const auto& teacher_set = bee->timetable.getTeachersSet();
 
-	for (int teacher_id : teacher_set) {
+	for (TeacherID teacher_id : teacher_set) {
 		Teacher teacher = bee->timetable.getTeacherById(teacher_id);
 
-		const auto& teacher_id_and_days = teacher.getUtilizedTime();
-		const auto& class_count = teacher.getClassCount();
+		const auto& daily_class_schedule = teacher.getUtilizedTime();
+		const auto& total_class_count = teacher.getClassCount();
 
 		const int max_teacher_work_load = teacher.getMaxWorkLoad();
-		const int break_time_duration = bee->timetable.getBreakTimeDuration();
+		const TimeDuration break_time_duration = bee->timetable.getBreakTimeDuration();
 
-		for (const auto& [day, timeslot] : teacher_id_and_days) {
-			if (class_count.at(day) > max_teacher_work_load) {
+		for (const auto& [day, time_points_class_count] : daily_class_schedule) {
+			if (total_class_count.at(day) > max_teacher_work_load) {
 				overall_total_teacher_violation.exceed_workload++;
 				teachers_total_violation[teacher_id].exceed_workload++;
 			}
 
-			if (timeslot.size() == 0) {
+			if (time_points_class_count.size() == 0) {
 				continue;
 			}
 
-			auto it = timeslot.begin();
-			auto nextIt = std::next(it);
-
-			std::set<int> teacher_available_timeslot;
-
-			auto lastElement = --timeslot.end();
-			float middle = (timeslot.begin()->first + lastElement->first) / 2;
+			auto last_time_point = --time_points_class_count.end();
+			float middle_time_point = (time_points_class_count.begin()->first + last_time_point->first) / 2;
 
 			int allowance_multiplier = 2;
 
-			float min_allowance = middle - (bee->timetable.getDefaultClassDuration() * allowance_multiplier);
-			float max_allowance = middle + (bee->timetable.getDefaultClassDuration() * allowance_multiplier);
+			float min_time_point_allowance = middle_time_point - (bee->timetable.getDefaultClassDuration() * allowance_multiplier);
+			float max_time_point_allowance = middle_time_point + (bee->timetable.getDefaultClassDuration() * allowance_multiplier);
 
-			int rounded_min_allowance = static_cast<int>(std::floor(min_allowance));
-			int rounded_max_allowance = static_cast<int>(std::ceil(max_allowance));
+			int rounded_min_time_point_allowance = static_cast<int>(std::floor(min_time_point_allowance));
+			int rounded_max_time_point_allowance = static_cast<int>(std::ceil(max_time_point_allowance));
 
 			bool break_found = false;
 
-			while (it != timeslot.end()) {
-				int timeslot_key = it->first;
-				int class_count = it->second;
+			auto it = time_points_class_count.begin();
+			auto nextIt = std::next(it);
+			while (it != time_points_class_count.end()) {
+				TimePoint time_point = it->first;
+				int time_point_class_count = it->second;
 
-				if (nextIt != timeslot.end()) {
-					int nextKey = nextIt->first;
-					int difference = nextKey - timeslot_key - 1;
+				if (nextIt != time_points_class_count.end()) {
+					TimePoint next_time_point = nextIt->first;
+					TimePoint difference = next_time_point - time_point - 1;
 					if ((difference >= break_time_duration) && !break_found) {
-						if ((rounded_min_allowance <= timeslot_key + 1 && timeslot_key + 1 <= rounded_max_allowance) ||
-						    (rounded_min_allowance <= nextKey - 1 && nextKey - 1 <= rounded_max_allowance)) {
+						if ((rounded_min_time_point_allowance <= time_point + 1 && time_point + 1 <= rounded_max_time_point_allowance) ||
+						    (rounded_min_time_point_allowance <= next_time_point - 1 && next_time_point - 1 <= rounded_max_time_point_allowance)) {
 							break_found = true;
 						}
 					}
 				}
 
-				if (class_count > 1) {
-					overall_total_teacher_violation.class_timeslot_overlap += class_count;
+				if (time_point_class_count > 1) {
+					overall_total_teacher_violation.class_timeslot_overlap += time_point_class_count;
 
-					print("class_count", class_count);
+					print("class_count", time_point_class_count);
 					teachers_total_violation[teacher_id]
-					    .class_timeslot_overlap += class_count;
+					    .class_timeslot_overlap += time_point_class_count;
 				}
 
 				it = nextIt;
-				if (nextIt != timeslot.end()) {
+				if (nextIt != time_points_class_count.end()) {
 					++nextIt;
 				}
 			}
 
-			if (!break_found && class_count.at(day) >= bee->timetable.getTeacherBreakThreshold()) {
+			if (!break_found && total_class_count.at(day) >= bee->timetable.getTeacherBreakThreshold()) {
 				overall_total_teacher_violation.no_break++;
 				teachers_total_violation[teacher_id].no_break++;
 			}
@@ -269,20 +265,20 @@ inline void logConflicts(
 
 	const auto& section_set = bee->timetable.getSectionsSet();
 
-	for (int section_id : section_set) {
+	for (SectionID section_id : section_set) {
 		Section section = bee->timetable.getSectionById(section_id);
 
-		int early_not_allowed_break_duration_gap = section.getNotAllowedBreakslotGap() * bee->timetable.getDefaultClassDuration();
-		int late_not_allowed_break_duration_gap = (section.getNotAllowedBreakslotGap() + 1) * bee->timetable.getDefaultClassDuration();
+		TimePoint early_not_allowed_break_duration_gap = section.getNotAllowedBreakslotGap() * bee->timetable.getDefaultClassDuration();
+		TimePoint late_not_allowed_break_duration_gap = (section.getNotAllowedBreakslotGap() + 1) * bee->timetable.getDefaultClassDuration();
 
-		int max_time = section.getStartTime() + section.getTotalDuration();
+		TimePoint max_time = section.getStartTime() + section.getTotalDuration();
 
 		const auto& break_slots = section.getBreakSlots();
 
 		if (section.getNumberOfBreak() == 1) {
 			// Check if break_slots is not empty
 			if (!break_slots.empty()) {
-				int break_time = *break_slots.begin();
+				Timeslot break_time = *break_slots.begin();
 
 				if (section.getTimeslotEnd(break_time) > max_time - late_not_allowed_break_duration_gap) {
 					overall_total_section_violation.late_break++;
@@ -299,12 +295,12 @@ inline void logConflicts(
 		} else {
 			if (break_slots.size() >= 2) {
 				auto it = break_slots.begin();
-				int first_break_time = *it;
+				Timeslot first_break_time = *it;
 				++it;
-				int last_break_time = *it;
+				Timeslot last_break_time = *it;
 
-				int first_start = section.getTimeslotStart(first_break_time);
-				int last_end = section.getTimeslotEnd(last_break_time);
+				TimePoint first_start = section.getTimeslotStart(first_break_time);
+				TimePoint last_end = section.getTimeslotEnd(last_break_time);
 
 				if (last_end > max_time - late_not_allowed_break_duration_gap) {
 					overall_total_section_violation.late_break++;

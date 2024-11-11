@@ -5,22 +5,24 @@
 #include <map>
 #include <queue>
 
+#include "types.h"
+
 struct TeacherWorkload {
-	int id;
+	TeacherID id;
 	int max_work_load;
 
-	TeacherWorkload(int teacher_id, int workload)
-	    : id(teacher_id), max_work_load(workload) {}
+	TeacherWorkload(TeacherID id, int workload)
+	    : id(id), max_work_load(workload) {}
 };
 
 class SubjectTeacherQueue {
    private:
-	std::map<int, std::queue<TeacherWorkload>> queue;
-	std::map<int, std::vector<TeacherWorkload>> initial_state;
+	std::map<SubjectID, std::queue<TeacherWorkload>> queue;
+	std::map<SubjectID, std::vector<TeacherWorkload>> initial_state;
 
    public:
-	void addTeacher(int subject_id, int teacher_id, int max_work_load);
-	TeacherWorkload* peekFrontTeacher(int subject_id);
-	int getTeacher(int subject_id, int decrement_work_load);
+	void addTeacher(SubjectID subject_id, TeacherID teacher_id, int max_work_load);
+	TeacherWorkload* peekFrontTeacher(SubjectID subject_id);
+	TeacherID getTeacher(SubjectID subject_id, int decrement_work_load);
 	void resetQueue();
 };

@@ -64,8 +64,8 @@ inline void print() {}
 inline void printSchoolClasses(Timetable& timetable) {
 	int total_section = timetable.getTotalSection();
 
-	for (int i = 0; i < total_section; i++) {
-		auto section = timetable.getSectionById(i);
+	for (SectionID section_id = 0; section_id < total_section; section_id++) {
+		auto section = timetable.getSectionById(section_id);
 
 		std::cout << BLUE << "--------- - - Section: " << section.getId() << RESET << std::endl;
 		int inner_count = 0;
@@ -74,8 +74,8 @@ inline void printSchoolClasses(Timetable& timetable) {
 
 		for (const auto& [timeslot, classMap]: classes) {
 			for (const auto& [day, schoolClass] : classMap) {
-				int subject_id = schoolClass.subject_id;
-				int teacher_id = schoolClass.teacher_id;
+				SubjectID subject_id = schoolClass.subject_id;
+				TeacherID teacher_id = schoolClass.teacher_id;
 
 				std::cout << GREEN << "" << std::setw(4) << timeslot << RESET;
 				std::cout << YELLOW << DIM << "  d: " << RESET << YELLOW << std::setw(2) << ((day == ScheduledDay::EVERYDAY) ? (CYAN + std::to_string(static_cast<int>(day))) : (std::string(YELLOW) + BOLD + std::to_string(static_cast<int>(day)))) << RESET;
@@ -117,12 +117,12 @@ inline void printConfiguration(int max_iterations,
                                int limit,
                                int work_week,
                                int max_teacher_work_load,
-                               int break_time_duration,
+                               TimeDuration break_time_duration,
                                int teacher_break_threshold,
-                               int min_total_class_duration_for_two_breaks,
-                               int default_class_duration,
+                               TimeDuration min_total_class_duration_for_two_breaks,
+                               TimeDuration default_class_duration,
                                int result_buff_length,
-                               int offset_duration,
+                               TimePoint offset_duration,
                                bool enable_logging,
                                std::string time_issued) {
 	print("Configuration: ");

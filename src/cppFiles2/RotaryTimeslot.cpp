@@ -12,30 +12,30 @@ int RotaryTimeslot::getTotalTry() const {
 	return total_try;
 }
 
-std::vector<int> RotaryTimeslot::getTimeslot(int size, std::vector<int> skip) {
-	std::vector<int> timeslot;
+std::vector<Timeslot> RotaryTimeslot::getTimeslot(int size, std::vector<Timeslot> skip_timeslots) {
+	std::vector<Timeslot> timeslot;
 	for (int i = 0; i < size; i++) {
-		if (std::count(skip.begin(), skip.end(), i) > 0) {
+		if (std::count(skip_timeslots.begin(), skip_timeslots.end(), i) > 0) {
 			continue;
 		}
 
 		timeslot.push_back(i);
 	}
 
-	total_shift = total_shift % (size - skip.size());
+	total_shift = total_shift % (size - skip_timeslots.size());
 
 	std::rotate(timeslot.rbegin(), timeslot.rbegin() + total_shift, timeslot.rend());
 
-	for (size_t i = 0; i < skip.size(); i++) {
-		int element = skip[i];
+	for (size_t i = 0; i < skip_timeslots.size(); i++) {
+		Timeslot break_timeslot = skip_timeslots[i];
 
-		if (timeslot[0] == element) {
+		if (timeslot[0] == break_timeslot) {
 			std::rotate(timeslot.rbegin(), timeslot.rbegin() + 1, timeslot.rend());
 			total_shift++;
 		}
 	}
 
-	previous_size = size - skip.size();
+	previous_size = size - skip_timeslots.size();
 
 	total_try++;
 	return timeslot;

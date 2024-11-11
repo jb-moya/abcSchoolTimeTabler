@@ -7,8 +7,8 @@ class ABC {
 	Timetable initialTimetable;
 	Bee best_solution;
 	ObjectiveFunction objective_function;
-	std::unordered_map<int, Section> sections;
-	std::unordered_map<int, Teacher> teachers;
+	std::unordered_map<SectionID, Section> sections;
+	std::unordered_map<TeacherID, Teacher> teachers;
 	std::map<int, int> costs;
 
 	std::vector<int> bees_abandoned;
@@ -17,8 +17,8 @@ class ABC {
 
 	std::vector<Bee> bees_vector;
 
-	std::unordered_set<int> affected_teachers;
-	std::unordered_set<int> affected_sections;
+	std::unordered_set<TeacherID> affected_teachers;
+	std::unordered_set<SectionID> affected_sections;
 
 	int total_section;
 	int total_teacher;
@@ -32,8 +32,8 @@ class ABC {
    public:
 	ABC(Timetable initialTimetable,
 	    Bee solution,
-	    std::unordered_map<int, Section> sections,
-	    std::unordered_map<int, Teacher> teachers,
+	    std::unordered_map<SectionID, Section> sections,
+	    std::unordered_map<TeacherID, Teacher> teachers,
 	    int total_section,
 	    int total_teacher,
 	    int max_iterations,
@@ -108,6 +108,6 @@ class ABC {
 
 	Bee getBestSolution();
 
-	void getResult(int64_t* result_timetable, int64_t* result_timetable_2, int offset_duration);
+	void getResult(int64_t* result_timetable, int64_t* result_timetable_2, TimePoint offset_duration);
 	void getViolation(int64_t* result_violation);
 };

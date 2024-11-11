@@ -26,7 +26,7 @@ void ABC::run() {
 
 			Section& selected_section = new_bee.timetable.pickRandomSection();
 			int choice = new_bee.timetable.pickRandomField(selected_section);
-			auto selected_timeslots = new_bee.timetable.pickRandomTimeslots(selected_section, choice);
+			std::pair<Timeslot, Timeslot> selected_timeslots = new_bee.timetable.pickRandomTimeslots(selected_section, choice);
 
 			new_bee.timetable.modify(selected_section, choice, selected_timeslots, affected_teachers, affected_sections);
 			objective_function.evaluate(new_bee, affected_teachers, affected_sections, false, false);
@@ -104,7 +104,7 @@ void ABC::run() {
 
 			Section& selected_section = new_bee.timetable.pickRandomSection();
 			int choice = new_bee.timetable.pickRandomField(selected_section);
-			auto selected_timeslots = new_bee.timetable.pickRandomTimeslots(selected_section, choice);
+			std::pair<Timeslot, Timeslot> selected_timeslots = new_bee.timetable.pickRandomTimeslots(selected_section, choice);
 
 			new_bee.timetable.modify(selected_section, choice, selected_timeslots, affected_teachers, affected_sections);
 			objective_function.evaluate(new_bee, affected_teachers, affected_sections, false, false);
@@ -162,79 +162,71 @@ Bee ABC::getBestSolution() {
 void ABC::getViolation(int64_t* result_violation) {
 	// auto& teachers_timetable = best_solution.timetable.teachers;
 
-	std::unordered_map<int, std::unordered_map<int, int>> teacher_violations;
-	std::unordered_map<int, std::unordered_map<int, int>> section_violations;
+	std::unordered_map<int, std::unordered_map<TeacherID, int>> teacher_violations;
+	std::unordered_map<int, std::unordered_map<TeacherID, int>> section_violations;
 
 	const auto& teacher_set = Timetable::getTeachersSet();
 
-	for (int teacher_id : teacher_set) {
+	for (TeacherID teacher_id : teacher_set) {
 		Teacher teacher = best_solution.timetable.getTeacherById(teacher_id);
 
-		// const auto& teacher_id_and_days = teachers_timetable.at(teacher_id).utilized_time;
-		// const auto& class_count = teachers_timetable.at(teacher_id).class_count;
-
-		const auto& teacher_id_and_days = teacher.getUtilizedTime();
-		const auto& class_count = teacher.getClassCount();
-
-		// const int max_teacher_work_load = best_solution.timetable.s_max_teacher_work_load;
-		// const int break_time_duration = best_solution.timetable.s_break_time_duration;
+		const auto& daily_class_schedule = teacher.getUtilizedTime();
+		const auto& total_class_count = teacher.getClassCount();
 
 		const int max_teacher_work_load = teacher.getMaxWorkLoad();
-		const int break_time_duration = best_solution.timetable.getBreakTimeDuration();
+		const TimeDuration break_time_duration = best_solution.timetable.getBreakTimeDuration();
 
-		for (const auto& [day, timeslot] : teacher_id_and_days) {
-			if (class_count.at(day) > max_teacher_work_load) {
+		for (const auto& [day, time_points_class_count] : daily_class_schedule) {
+			if (total_class_count.at(day) > max_teacher_work_load) {
 				teacher_violations[EXCEED_WORKLOAD_INT][teacher_id]++;
 			}
 
-			if (timeslot.size() == 0) {
+			if (time_points_class_count.size() == 0) {
 				continue;
 			}
 
-			auto it = timeslot.begin();
+			auto it = time_points_class_count.begin();
 			auto nextIt = std::next(it);
 
-			std::set<int> teacher_available_timeslot;
-
-			auto lastElement = --timeslot.end();
-			float middle = (timeslot.begin()->first + lastElement->first) / 2;
+			auto last_time_point = --time_points_class_count.end();
+			float middle_time_point = (time_points_class_count.begin()->first + last_time_point->first) / 2;
 
 			int allowance_multiplier = 2;
 
-			float min_allowance = middle - (best_solution.timetable.getDefaultClassDuration() * allowance_multiplier);
-			float max_allowance = middle + (best_solution.timetable.getDefaultClassDuration() * allowance_multiplier);
+			float min_time_point_allowance = middle_time_point - (best_solution.timetable.getDefaultClassDuration() * allowance_multiplier);
+			float max_time_point_allowance = middle_time_point + (best_solution.timetable.getDefaultClassDuration() * allowance_multiplier);
 
-			int rounded_min_allowance = static_cast<int>(std::floor(min_allowance));
-			int rounded_max_allowance = static_cast<int>(std::ceil(max_allowance));
+			TimePoint rounded_min_time_point_allowance = static_cast<int>(std::floor(min_time_point_allowance));
+			TimePoint rounded_max_time_point_allowance = static_cast<int>(std::ceil(max_time_point_allowance));
 
 			bool break_found = false;
 
-			while (it != timeslot.end()) {
-				int timeslot_key = it->first;
-				int class_count = it->second;
+			while (it != time_points_class_count.end()) {
+				TimePoint time_point = it->first;
+				int time_point_class_count = it->second;
 
-				if (nextIt != timeslot.end()) {
-					int nextKey = nextIt->first;
-					int difference = nextKey - timeslot_key - 1;
+				if (nextIt != time_points_class_count.end()) {
+					TimePoint next_time_point = nextIt->first;
+					TimePoint difference = next_time_point - time_point - 1;
 					if ((difference >= break_time_duration) && !break_found) {
-						if ((rounded_min_allowance <= timeslot_key + 1 && timeslot_key + 1 <= rounded_max_allowance) ||
-						    (rounded_min_allowance <= nextKey - 1 && nextKey - 1 <= rounded_max_allowance)) {
+						if ((rounded_min_time_point_allowance <= time_point + 1 && time_point + 1 <= rounded_max_time_point_allowance) ||
+						    (rounded_min_time_point_allowance <= next_time_point - 1 && next_time_point - 1 <= rounded_max_time_point_allowance)) {
 							break_found = true;
 						}
 					}
 				}
 
-				if (class_count > 1) {
+				if (time_point_class_count > 1) {
 					teacher_violations[CLASS_TIMESLOT_OVERLAP_INT][teacher_id]++;
 				}
 
 				it = nextIt;
-				if (nextIt != timeslot.end()) {
+				if (nextIt != time_points_class_count.end()) {
 					++nextIt;
 				}
 			}
 
-			if (!break_found && class_count.at(day) >= best_solution.timetable.getTeacherBreakThreshold()) {
+			if (!break_found && total_class_count.at(day) >= best_solution.timetable.getTeacherBreakThreshold()) {
 				teacher_violations[NO_BREAK_INT][teacher_id]++;
 			}
 		}
@@ -242,7 +234,7 @@ void ABC::getViolation(int64_t* result_violation) {
 
 	const auto& section_set = Timetable::getSectionsSet();
 
-	for (int section_id : section_set) {
+	for (SectionID section_id : section_set) {
 		// if (bee.timetable.Timetable::s_section_dynamic_subject_consistent_duration.find(section_id) != bee.timetable.Timetable::s_section_dynamic_subject_consistent_duration.end()) {
 		// 	// print("ppp");
 		// 	continue;
@@ -252,16 +244,16 @@ void ABC::getViolation(int64_t* result_violation) {
 
 		Section section = best_solution.timetable.getSectionById(section_id);
 
-		int early_not_allowed_break_duration_gap = section.getNotAllowedBreakslotGap() * best_solution.timetable.getDefaultClassDuration();
-		int late_not_allowed_break_duration_gap = (section.getNotAllowedBreakslotGap() + 1) * best_solution.timetable.getDefaultClassDuration();
+		TimePoint early_not_allowed_break_duration_gap = section.getNotAllowedBreakslotGap() * best_solution.timetable.getDefaultClassDuration();
+		TimePoint late_not_allowed_break_duration_gap = (section.getNotAllowedBreakslotGap() + 1) * best_solution.timetable.getDefaultClassDuration();
 
 		// int max_time = Timetable::s_section_start[section_id] + Timetable::s_section_total_duration[section_id];
-		int max_time = section.getStartTime() + section.getTotalDuration();
+		TimePoint max_time = section.getStartTime() + section.getTotalDuration();
 		const auto& break_slots = section.getBreakSlots();
 
 		if (section.getNumberOfBreak() == 1) {
 			if (!break_slots.empty()) {
-				int break_time = *break_slots.begin();
+				Timeslot break_time = *break_slots.begin();
 
 				if (section.getTimeslotEnd(break_time) > max_time - late_not_allowed_break_duration_gap) {
 					section_violations[LATE_BREAK_INT][section_id]++;
@@ -278,12 +270,12 @@ void ABC::getViolation(int64_t* result_violation) {
 				// this always assumes that there's only 2 break slots
 
 				auto it = break_slots.begin();
-				int first_break_time = *it;
+				Timeslot first_break_time = *it;
 				++it;
-				int last_break_time = *it;
+				Timeslot last_break_time = *it;
 
-				int first_start = section.getTimeslotStart(first_break_time);
-				int last_end = section.getTimeslotEnd(last_break_time);
+				TimePoint first_start = section.getTimeslotStart(first_break_time);
+				TimePoint last_end = section.getTimeslotEnd(last_break_time);
 
 				if (last_end > max_time - late_not_allowed_break_duration_gap) {
 					section_violations[LATE_BREAK_INT][section_id]++;
@@ -324,7 +316,7 @@ void ABC::getViolation(int64_t* result_violation) {
 	result_violation[iter] = pack5IntToInt64(-1, -1, -1, -1, -1);
 };
 
-void ABC::getResult(int64_t* result, int64_t* result_2, int offset_duration) {
+void ABC::getResult(int64_t* result, int64_t* result_2, TimePoint offset_duration) {
 	print("Getting result...");
 
 	int iter = 0;
@@ -334,7 +326,7 @@ void ABC::getResult(int64_t* result, int64_t* result_2, int offset_duration) {
 	for (const auto& section_id : section_set) {
 		Section section = best_solution.timetable.getSectionById(section_id);
 
-		int offset = section.getStartTime();
+		TimePoint offset = section.getStartTime();
 
 		const auto& classes = section.getClasses();
 
@@ -354,8 +346,8 @@ void ABC::getResult(int64_t* result, int64_t* result_2, int offset_duration) {
 				    static_cast<int8_t>(timeslot),
 				    static_cast<int8_t>(day));
 
-				int start = section.getTimeslotStart(timeslot) + offset_duration * timeslot;
-				int end = section.getTimeslotEnd(timeslot) + offset_duration * (timeslot + 1);
+				TimePoint start = section.getTimeslotStart(timeslot) + offset_duration * timeslot;
+				TimePoint end = section.getTimeslotEnd(timeslot) + offset_duration * (timeslot + 1);
 
 				start += offset;
 				end += offset;
