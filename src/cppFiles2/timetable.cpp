@@ -368,73 +368,17 @@ void Timetable::setupTimeslots(int total_timeslot, std::deque<Timeslot>& timeslo
 
 void Timetable::categorizeSubjects(Section& section,
                                    std::vector<SubjectID>& full_week_day_subjects,
-                                   std::vector<SubjectID>& special_unit_subjects,
-                                   std::set<int>& non_dynamic_order_start,
-                                   std::set<int>& non_dynamic_order_end) const {
+                                   std::vector<SubjectID>& special_unit_subjects) const {
 	const auto& subject_configurations = section.getSubjectConfigurations();
 	for (const auto& [subject_id, _] : subject_configurations) {
-		int order = section.getSubject(subject_id).getOrder();
-		int units = section.getSubject(subject_id).getUnits();
+				int units = section.getSubject(subject_id).getUnits();
 
 		if (units == 0) {
-			if (order != 0) {
-				full_week_day_subjects.insert(full_week_day_subjects.begin(), subject_id);
-
-				if (order < 0) {
-					non_dynamic_order_start.insert(order);
-				} else {
-					non_dynamic_order_end.insert(order);
-				}
-
-			} else {
-				full_week_day_subjects.push_back(subject_id);
-			}
-
-		} else {
-			if (order != 0) {
-				special_unit_subjects.insert(special_unit_subjects.begin(), subject_id);
-
-				if (order < 0) {
-					non_dynamic_order_start.insert(order);
-				} else {
-					non_dynamic_order_end.insert(order);
-				}
-			} else {
+							full_week_day_subjects.push_back(subject_id);
+						} else {
 				special_unit_subjects.push_back(subject_id);
 			}
-		}
-	}
-}
-
-void Timetable::processTimeslots(std::map<int, Timeslot>& timeslot_order,
-                                 std::set<Timeslot>& reserved_timeslots,
-                                 std::deque<Timeslot>& timeslot_keys,
-                                 std::map<Timeslot, int>& timeslots,
-                                 const std::set<int>& non_dynamic_order_start,
-                                 const std::set<int>& non_dynamic_order_end) const {
-	// Lambda to assign timeslots to subject order and mark them as reserved
-	auto assignTimeslots = [&](auto begin, auto end, auto& timeslot_it) {
-		for (auto itr = begin; itr != end; ++itr) {
-			timeslot_order[*itr] = *timeslot_it;
-			reserved_timeslots.insert(*timeslot_it);
-			++timeslot_it;
-		}
-	};
-
-	auto timeslot_it = timeslot_keys.begin();
-	assignTimeslots(non_dynamic_order_start.begin(), non_dynamic_order_start.end(), timeslot_it);
-
-	auto timeslot_it_reverse = timeslot_keys.rbegin();
-	assignTimeslots(non_dynamic_order_end.rbegin(), non_dynamic_order_end.rend(), timeslot_it_reverse);
-
-	// Erase reserved timeslots from timeslot_keys and timeslots in a single pass
-	timeslot_keys.erase(std::remove_if(timeslot_keys.begin(), timeslot_keys.end(),
-	                                   [&](int t) { return reserved_timeslots.count(t); }),
-	                    timeslot_keys.end());
-
-	for (Timeslot t : reserved_timeslots) {
-		timeslots.erase(t);
-	}
+			}
 }
 
 void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teachers) {
@@ -454,14 +398,7 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 
 		std::vector<SubjectID> full_week_day_subjects;
 		std::vector<SubjectID> special_unit_subjects;
-		std::set<int> non_dynamic_order_start;
-		std::set<int> non_dynamic_order_end;
-		categorizeSubjects(section, full_week_day_subjects, special_unit_subjects, non_dynamic_order_start, non_dynamic_order_end);
-
-		std::map<int, Timeslot> timeslot_order;
-		std::set<Timeslot> reserved_timeslots;
-
-		processTimeslots(timeslot_order, reserved_timeslots, timeslot_keys, timeslots, non_dynamic_order_start, non_dynamic_order_end);
+				categorizeSubjects(section, full_week_day_subjects, special_unit_subjects);
 
 		for (const auto& subject_id : full_week_day_subjects) {
 			int order = section.getSubject(subject_id).getOrder();
@@ -489,7 +426,7 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 
 				timeslots.erase(timeslot_key);
 			} else {
-				Timeslot timeslot_key = timeslot_order[order];
+				Timeslot timeslot_key = order;
 
 				timeslot_keys.erase(std::remove(timeslot_keys.begin(), timeslot_keys.end(), timeslot_key), timeslot_keys.end());
 
@@ -531,7 +468,7 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 						timeslots.erase(timeslot);
 					}
 				} else {
-					Timeslot timeslot_key = timeslot_order[order];
+					Timeslot timeslot_key = order;
 
 					section.addClass(timeslot_key, static_cast<ScheduledDay>(day), SchoolClass{subject_id, selected_teacher});
 

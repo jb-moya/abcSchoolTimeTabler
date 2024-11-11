@@ -140,22 +140,12 @@ struct Timetable {
 
 	void categorizeSubjects(Section& section,
 	                        std::vector<SubjectID>& full_week_day_subjects,
-	                        std::vector<SubjectID>& special_unit_subjects,
-	                        std::set<int>& non_dynamic_order_start,
-	                        std::set<int>& non_dynamic_order_end) const;
+	                        std::vector<SubjectID>& special_unit_subjects) const;
 
 	std::vector<Timeslot> getBreaks(const Section& section) const;
 	void setupTimeslots(int total_timeslot, std::deque<Timeslot>& timeslot_keys, std::map<Timeslot, int>& timeslots, const std::vector<Timeslot>& skips) const;
 
-	// understand this function
-	void processTimeslots(std::map<int, Timeslot>& fixed_subject_order,
-	                      std::set<Timeslot>& reserved_timeslots,
-	                      std::deque<Timeslot>& timeslot_keys,
-	                      std::map<Timeslot, int>& timeslots,
-	                      const std::set<int>& non_dynamic_order_start,
-	                      const std::set<int>& non_dynamic_order_end) const;
-
-	void changeTeacher(Section& selected_section, Timeslot selected_timeslot, ScheduledDay day, TeacherID new_teacher_id, std::unordered_set<TeacherID>& update_teachers);
+		void changeTeacher(Section& selected_section, Timeslot selected_timeslot, ScheduledDay day, TeacherID new_teacher_id, std::unordered_set<TeacherID>& update_teachers);
 	bool isSkippingUpdateBetween(Section& selected_section, std::pair<Timeslot, Timeslot> selected_timeslots) const;
 };
 
