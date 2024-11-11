@@ -22,6 +22,11 @@ function convertToTime(num) {
     if (hours === 0) hours = 12; // Handle the midnight case (12 AM)
 
     // Return the formatted time
+    if (num === 4 || num === 0) {
+        // console.log(hours);
+        // console.log(minutes);
+        // console.log(period);
+    }
     return `${hours}:${minutes.toString().padStart(2, '0')} ${period}`;
 }
 

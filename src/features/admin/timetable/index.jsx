@@ -18,19 +18,15 @@ import ExportImportDBButtons from '@components/Admin/ExportImportDBButtons';
 
 import { getTimeSlotString } from '../../../components/Admin/timeSlotMapper';
 import Breadcrumbs from '@components/Admin/Breadcrumbs';
-import {
-    clearAllEntriesAndResetIDs,
-} from "@src/indexedDB";
-
+import { clearAllEntriesAndResetIDs } from '@src/indexedDB';
 
 const getTimetable = wrap(new WasmWorker());
 
 function Timetable() {
-
     const links = [
         { name: 'Home', href: '/' },
         // { name: 'Modify Subjects', href: '/modify-subjects' },
-      ];
+    ];
 
     const { subjects: subjectsStore } = useSelector((state) => state.subject);
     const { teachers: teachersStore } = useSelector((state) => state.teacher);
@@ -254,7 +250,7 @@ function Timetable() {
         const numTeachers = Object.keys(teacherMap).length;
         const totalSchoolClass = sectionSubjectArray.length;
         const totalSection = Object.keys(sectionMap).length;
-        
+
         const limits = numTeachers * totalSection;
 
         // for (let i = 0; i < totalSection; i++) {
@@ -404,7 +400,7 @@ function Timetable() {
     const handleSchedExport = () => {
         const sectionWorkbook = XLSX.utils.book_new();
         const teacherWorkbook = XLSX.utils.book_new();
-
+        console.log(sectionTimetables);
         const cs1 = {
             fill: {
                 fgColor: { rgb: 'FFFF00' },
@@ -455,13 +451,15 @@ function Timetable() {
 
             Object.keys(sectionSchedules).forEach((dayKey) => {
                 const timeSchedules = sectionSchedules[dayKey];
-
+                console.log(timeSchedules);
                 const slotKeys = Object.keys(timeSchedules);
 
                 if (slotKeys.length === 1) {
                     const slotKey = slotKeys[0];
+                    console.log(timeSchedules);
                     const schedule = timeSchedules[slotKey];
-
+                    console.log(slotKeys);
+                    console.log(schedule);
                     if (
                         schedule.subject !== null &&
                         schedule.subject !== undefined
@@ -529,23 +527,28 @@ function Timetable() {
                     let prevSlotKey = 0;
                     slotKeys.forEach((slotKey) => {
                         const schedule = timeSchedules[slotKey];
+                        console.log('timesched ', timeSchedules);
+                        console.log(slotKeys);
+                        console.log('log on sched', schedule);
+                        console.log('slotkey: ', slotKey);
+                        if (slotKey !== 'start' && slotKey !== 'end') {
+                            if (
+                                schedule.subject !== null &&
+                                schedule.subject !== undefined
+                            ) {
+                                subjects.push(schedule.subject);
+                                teachers.push(schedule.teacher);
+                            }
 
-                        if (
-                            schedule.subject !== null &&
-                            schedule.subject !== undefined
-                        ) {
-                            subjects.push(schedule.subject);
-                            teachers.push(schedule.teacher);
+                            const gap = slotKey - prevSlotKey - 1;
+
+                            for (let i = 0; i < gap; i++) {
+                                subjects.push('');
+                                sections.push('');
+                            }
+
+                            prevSlotKey = slotKey;
                         }
-
-                        const gap = slotKey - prevSlotKey - 1;
-
-                        for (let i = 0; i < gap; i++) {
-                            subjects.push('');
-                            sections.push('');
-                        }
-
-                        prevSlotKey = slotKey;
                     });
 
                     if (setSched.indexOf(schedData) === -1) {
@@ -734,33 +737,32 @@ function Timetable() {
     return (
         <div className="App container mx-auto px-4 py-6">
             <div className="mb-6 flex justify-between items-center">
-                    <Breadcrumbs title="Timetable" links={links} /> 
-                    <div className="flex items-center gap-2">
-
-                        <ExportImportDBButtons onClear={handleClearAndRefresh} />   
-                            <button
-                                className={clsx('btn btn-primary', {
-                                    'cursor-not-allowed': timetableGenerationStatus === 'running',
-                                    'btn-error': timetableGenerationStatus === 'error',
-                                })}
-                                onClick={() => {
-                                    if (validate()) {
-                                    handleButtonClick();
-                                    }
-                                }}
-                                disabled={timetableGenerationStatus === 'running'}
-                                >
-                                {timetableGenerationStatus === 'running' ? (
-                                    <div className="flex gap-2 items-center">
-                                    <span>Generating</span>
-                                    <span className="loading loading-spinner loading-xs"></span>
-                                    </div>
-                                ) : (
-                                    'Generate Timetable'
-                                )}
-                                </button>
-                    </div>
-                   
+                <Breadcrumbs title="Timetable" links={links} />
+                <div className="flex items-center gap-2">
+                    <ExportImportDBButtons onClear={handleClearAndRefresh} />
+                    <button
+                        className={clsx('btn btn-primary', {
+                            'cursor-not-allowed':
+                                timetableGenerationStatus === 'running',
+                            'btn-error': timetableGenerationStatus === 'error',
+                        })}
+                        onClick={() => {
+                            if (validate()) {
+                                handleButtonClick();
+                            }
+                        }}
+                        disabled={timetableGenerationStatus === 'running'}
+                    >
+                        {timetableGenerationStatus === 'running' ? (
+                            <div className="flex gap-2 items-center">
+                                <span>Generating</span>
+                                <span className="loading loading-spinner loading-xs"></span>
+                            </div>
+                        ) : (
+                            'Generate Timetable'
+                        )}
+                    </button>
+                </div>
             </div>
 
             <div className="mb-6">
@@ -778,10 +780,10 @@ function Timetable() {
       <TeacherListContainer />
     </div>
   </div> */}
-            <div >
+            <div>
                 <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
                     <h2 className="text-lg font-semibold mb-4">Subjects</h2>
-                    <SubjectListContainer/>
+                    <SubjectListContainer />
                 </div>
 
                 <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
@@ -806,7 +808,7 @@ function Timetable() {
                     </div>
                 </div>
             </div>
-            
+
             {Object.keys(sectionTimetables).length > 0 &&
                 Object.keys(teacherTimetables).length > 0 && (
                     <button
@@ -817,16 +819,31 @@ function Timetable() {
                     </button>
                 )}
 
+            {/* pag section need Container section + sectionid + teacherid for error */}
             <GeneratedTimetable
                 timetables={sectionTimetables}
                 field={'section'}
                 columnField={['teacher', 'subject']}
+                onUpdateTimetables={setSectionTimetables}
+                errors={{
+                    containerName: 'Rosas',
+                    teacherID: [9],
+                    sectionID: [7],
+                }}
             />
+
+            {/* pag teacher need Container teacher + sectionid + subjectid for error */}
 
             <GeneratedTimetable
                 timetables={teacherTimetables}
                 field={'teacher'}
                 columnField={['subject', 'section']}
+                onUpdateTimetables={setTeacherTimetables}
+                errors={{
+                    containerName: 'Mark Tagalogon',
+                    subjectID: [6],
+                    sectionID: [7],
+                }}
             />
 
             {/* <div className="grid grid-cols-1 col-span-full gap-4 sm:grid-cols-2"></div> */}
