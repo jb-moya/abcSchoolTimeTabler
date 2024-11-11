@@ -12,14 +12,14 @@ struct SubjectConfiguration {
 	const SubjectID subject_id;
 	const TimeDuration duration;
 	const int units;
-	const int order;
+	const Timeslot order;
 
    public:
 	SubjectConfiguration(SubjectConfigurationID id_,
 	                     SubjectID subject_id_,
 	                     TimeDuration duration_,
 	                     int units_,
-	                     int order_)
+	                     Timeslot order_)
 	    : id(id_),
 	      subject_id(subject_id_),
 	      duration(duration_),
@@ -30,5 +30,5 @@ struct SubjectConfiguration {
 	SubjectID getSubjectId() const;
 	TimeDuration getDuration() const;
 	int getUnits() const;
-	int getOrder() const;
+	Timeslot getOrder() const;
 };

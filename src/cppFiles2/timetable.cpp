@@ -371,14 +371,14 @@ void Timetable::categorizeSubjects(Section& section,
                                    std::vector<SubjectID>& special_unit_subjects) const {
 	const auto& subject_configurations = section.getSubjectConfigurations();
 	for (const auto& [subject_id, _] : subject_configurations) {
-				int units = section.getSubject(subject_id).getUnits();
+		int units = section.getSubject(subject_id).getUnits();
 
 		if (units == 0) {
-							full_week_day_subjects.push_back(subject_id);
-						} else {
-				special_unit_subjects.push_back(subject_id);
-			}
-			}
+			full_week_day_subjects.push_back(subject_id);
+		} else {
+			special_unit_subjects.push_back(subject_id);
+		}
+	}
 }
 
 void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teachers) {
@@ -398,10 +398,10 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 
 		std::vector<SubjectID> full_week_day_subjects;
 		std::vector<SubjectID> special_unit_subjects;
-				categorizeSubjects(section, full_week_day_subjects, special_unit_subjects);
+		categorizeSubjects(section, full_week_day_subjects, special_unit_subjects);
 
 		for (const auto& subject_id : full_week_day_subjects) {
-			int order = section.getSubject(subject_id).getOrder();
+			Timeslot order = section.getSubject(subject_id).getOrder();
 
 			TimeDuration subject_duration = section.getSubject(subject_id).getDuration() * Timetable::getWorkWeek();  // TODO: not elegant
 			TeacherID queued_teacher = Timetable::s_subject_teacher_queue.getTeacher(subject_id, subject_duration);
@@ -440,7 +440,7 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 
 		int day = 1;
 		for (const auto& subject_id : special_unit_subjects) {
-			int order = section.getSubject(subject_id).getOrder();
+			Timeslot order = section.getSubject(subject_id).getOrder();
 			int units = section.getSubject(subject_id).getUnits();
 
 			TeacherID selected_teacher = getRandomTeacher(subject_id);
@@ -854,7 +854,7 @@ void runExperiment(
 			SubjectID subject_id;
 			int subject_units;
 			TimeDuration subject_duration;
-			int subject_order;
+			Timeslot subject_order;
 
 			subject_id = static_cast<int>(subject_configuration_subject_units[subject_configuration_id] >> 16);
 			subject_units = static_cast<int>(subject_configuration_subject_units[subject_configuration_id] & 0xFFFF);

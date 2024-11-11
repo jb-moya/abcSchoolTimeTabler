@@ -39,7 +39,7 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 		bool is_dynamic_subject_consistent_duration = false;
 		int default_subject_units = 0;
 		TimeDuration default_subject_duration = 1;
-		TimeDuration default_subject_order = 0;
+		Timeslot default_subject_order = 0;
 
 		// Initialize Teacher and Section Sets
 		std::unordered_set<TeacherID> teachers_set;

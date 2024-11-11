@@ -71,7 +71,7 @@ void test_generate_timetable() {
 
 	int limit = (total_section * (num_teachers)) * .5;
 	int default_units = 0;
-	int default_order = 0;
+	Timeslot default_order = 0;
 
 	TimeDuration default_class_duration = 40;
 	TimeDuration break_time_duration = 30;
@@ -156,7 +156,7 @@ void test_generate_timetable() {
 		SubjectID subject_configuration_subject_id = subject_configure[subject_configuration_id][0];
 		int subject_configuration_default_units = subject_configure[subject_configuration_id][1];
 		TimeDuration subject_configuration_default_class_duration = subject_configure[subject_configuration_id][2];
-		int subject_configuration_default_order = subject_configure[subject_configuration_id][3];
+		Timeslot subject_configuration_default_order = subject_configure[subject_configuration_id][3];
 
 		subject_configuration_subject_units[subject_configuration_id] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_units);
 		subject_configuration_subject_duration[subject_configuration_id] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_class_duration);

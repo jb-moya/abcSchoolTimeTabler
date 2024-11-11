@@ -16,6 +16,6 @@ int SubjectConfiguration::getUnits() const {
     return units;
 }
 
-int SubjectConfiguration::getOrder() const {    
-    return order;
+Timeslot SubjectConfiguration::getOrder() const {
+	return order;
 }
