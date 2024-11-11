@@ -243,3 +243,43 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 		}
 	}
 }
+
+TEST_CASE("pack5IntToInt64") {
+	SECTION("positive numbers") {
+		int16_t a = 12345;
+		int16_t b = 23456;
+		int16_t c = 34567;
+		int8_t d = 127;
+		int8_t e = 63;
+
+		// Pack the values
+		int64_t packed = pack5IntToInt64(a, b, c, d, e);
+
+		// Manually verify the expected packed value:
+		int64_t expected = ((static_cast<int64_t>(a) & 0xFFFF) << 48) |
+		                   ((static_cast<int64_t>(b) & 0xFFFF) << 32) |
+		                   ((static_cast<int64_t>(c) & 0xFFFF) << 16) |
+		                   ((static_cast<int64_t>(d) & 0xFF) << 8) |
+		                   (static_cast<int64_t>(e) & 0xFF);
+
+		REQUIRE(packed == expected);
+	}
+
+	SECTION("Negative numbers") {
+		int16_t a = -1;
+		int16_t b = -2;
+		int16_t c = -3;
+		int8_t d = -4;
+		int8_t e = -5;
+
+		int64_t packed = pack5IntToInt64(a, b, c, d, e);
+
+		int64_t expected = ((static_cast<int64_t>(a) & 0xFFFF) << 48) |
+		                   ((static_cast<int64_t>(b) & 0xFFFF) << 32) |
+		                   ((static_cast<int64_t>(c) & 0xFFFF) << 16) |
+		                   ((static_cast<int64_t>(d) & 0xFF) << 8) |
+		                   (static_cast<int64_t>(e) & 0xFF);
+
+		REQUIRE(packed == expected);
+	}
+}
