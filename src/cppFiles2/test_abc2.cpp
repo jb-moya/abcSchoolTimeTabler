@@ -147,20 +147,20 @@ void test_generate_timetable() {
 	// }
 
 	std::vector<std::vector<int>> subject_configure;
-	for (SubjectID i = 0; i < num_subjects; ++i) {
-		subject_configure.push_back({i, default_units, default_class_duration, default_order});
+	for (SubjectID subject_id = 0; subject_id < num_subjects; ++subject_id) {
+		subject_configure.push_back({subject_id, default_units, default_class_duration, default_order});
 	}
 
 	int number_of_subject_configuration = subject_configure.size();
-	for (int i = 0; i < number_of_subject_configuration; ++i) {
-		SubjectID subject_configuration_subject_id = subject_configure[i][0];
-		int subject_configuration_default_units = subject_configure[i][1];
-		TimeDuration subject_configuration_default_class_duration = subject_configure[i][2];
-		int subject_configuration_default_order = subject_configure[i][3];
+	for (SubjectConfigurationID subject_configuration_id = 0; subject_configuration_id < number_of_subject_configuration; ++subject_configuration_id) {
+		SubjectID subject_configuration_subject_id = subject_configure[subject_configuration_id][0];
+		int subject_configuration_default_units = subject_configure[subject_configuration_id][1];
+		TimeDuration subject_configuration_default_class_duration = subject_configure[subject_configuration_id][2];
+		int subject_configuration_default_order = subject_configure[subject_configuration_id][3];
 
-		subject_configuration_subject_units[i] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_units);
-		subject_configuration_subject_duration[i] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_class_duration);
-		subject_configuration_subject_order[i] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_order);
+		subject_configuration_subject_units[subject_configuration_id] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_units);
+		subject_configuration_subject_duration[subject_configuration_id] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_class_duration);
+		subject_configuration_subject_order[subject_configuration_id] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_order);
 	}
 
 	for (int16_t section = 0; section < total_section; ++section) {
