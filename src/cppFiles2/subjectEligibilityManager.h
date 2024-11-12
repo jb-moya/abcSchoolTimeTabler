@@ -1,9 +1,11 @@
-#pragma once	
+#pragma once
 
+#include <stdexcept>
 #include <unordered_map>
 #include <vector>
 
 #include "random_util.h"
+#include "types.h"
 
 class SubjectEligibilityManager {
    private:
