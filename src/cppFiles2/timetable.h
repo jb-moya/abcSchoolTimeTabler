@@ -24,6 +24,7 @@
 #include <utility>
 #include <vector>
 
+#include "bit_utils.h"
 #include "rotaryTimeslot.h"
 #include "scheduledDay.h"
 #include "schoolClass.h"
@@ -31,7 +32,6 @@
 #include "subjectEligibilityManager.h"
 #include "subjectTeacherQueue.h"
 #include "types.h"
-#include "bit_utils.h"
 
 #define CLASS_TIMESLOT_OVERLAP_INT 1
 #define NO_BREAK_INT 2
@@ -50,8 +50,7 @@ struct Timetable {
 	static int s_total_section;
 	static int s_teacher_middle_time_point_grow_allowance_for_break_timeslot;
 
-	static std::unordered_set<SectionID>
-	    s_sections_set;
+	static std::unordered_set<SectionID> s_sections_set;
 	static std::unordered_set<TeacherID> s_teachers_set;
 
 	std::vector<std::shared_ptr<SubjectConfiguration>> subject_configurations;
@@ -145,8 +144,8 @@ struct Timetable {
 	std::vector<Timeslot> getBreaks(const Section& section) const;
 	void setupTimeslots(int total_timeslot, std::deque<Timeslot>& timeslot_keys, std::map<Timeslot, int>& timeslots, const std::vector<Timeslot>& skips) const;
 
-		void changeTeacher(Section& selected_section, Timeslot selected_timeslot, ScheduledDay day, TeacherID new_teacher_id, std::unordered_set<TeacherID>& update_teachers);
-	bool isSkippingUpdateBetween(Section& selected_section, std::pair<Timeslot, Timeslot> selected_timeslots) const;
+	void changeTeacher(Section& selected_section, Timeslot selected_timeslot, ScheduledDay day, TeacherID new_teacher_id, std::unordered_set<TeacherID>& update_teachers);
+	
 };
 
 #ifdef __cplusplus

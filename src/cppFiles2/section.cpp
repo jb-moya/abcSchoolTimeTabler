@@ -15,14 +15,6 @@ void Section::addSubject(const std::shared_ptr<SubjectConfiguration>& subject_co
 	subject_configurations[subject_id] = subject_configuration_;
 }
 
-void Section::setTimeRange(Timeslot timeslot, ClassStartEnd time_range_) {
-	time_range[timeslot] = time_range_;
-}
-
-void Section::setClasses(const std::map<Timeslot, std::unordered_map<ScheduledDay, SchoolClass>>& classes_) {
-	classes = classes_;
-}
-
 bool Section::isDynamicSubjectConsistentDuration() const {
 	return is_dynamic_subject_consistent_duration;
 }
@@ -40,8 +32,32 @@ TeacherID Section::getClassTimeslotTeacherID(ScheduledDay day, Timeslot timeslot
 void Section::assignBreaks(std::vector<Timeslot>& breaks) {
 	for (Timeslot break_slot : breaks) {
 		addClass(break_slot, ScheduledDay::EVERYDAY, SchoolClass{-1, -1});
-		addBreakSlot(break_slot);
+		timeslot_manager.addBreakSlot(break_slot);
 	}
+}
+
+void Section::adjustBreakslots(Timeslot timeslot_1, Timeslot timeslot_2) {
+	if (timeslot_manager.isInBreakSlots(timeslot_1) && !timeslot_manager.isInBreakSlots(timeslot_2)) {
+		timeslot_manager.removeBreakSlot(timeslot_1);
+		timeslot_manager.addBreakSlot(timeslot_2);
+	} else if (timeslot_manager.isInBreakSlots(timeslot_2) && !timeslot_manager.isInBreakSlots(timeslot_1)) {
+		timeslot_manager.removeBreakSlot(timeslot_2);
+		timeslot_manager.addBreakSlot(timeslot_1);
+	}
+}
+
+void Section::adjustSegmentedTimeslots(Timeslot timeslot_1, Timeslot timeslot_2) {
+	if (timeslot_manager.isInSegmentedTimeslot(timeslot_1) && !timeslot_manager.isInSegmentedTimeslot(timeslot_2)) {
+		timeslot_manager.removeSegmentedTimeSlot(timeslot_1);
+		timeslot_manager.addSegmentedTimeSlot(timeslot_2);
+	} else if (timeslot_manager.isInSegmentedTimeslot(timeslot_2) && !timeslot_manager.isInSegmentedTimeslot(timeslot_1)) {
+		timeslot_manager.removeSegmentedTimeSlot(timeslot_2);
+		timeslot_manager.addSegmentedTimeSlot(timeslot_1);
+	}
+}
+
+void Section::swapClassesByTimeslot(Timeslot timeslot_1, Timeslot timeslot_2) {
+	std::swap(classes[timeslot_1], classes[timeslot_2]);
 }
 
 ScheduledDay Section::getRandomClassTimeslotWorkingDays(Timeslot timeslot) const {
@@ -58,6 +74,10 @@ ScheduledDay Section::getRandomClassTimeslotWorkingDays(Timeslot timeslot) const
 	std::advance(it, dis_work_day(randomizer_engine));
 
 	return it->first;
+}
+
+ScheduledDay Section::getRandomDynamicTimeslotDay(Timeslot timeslot) {
+	return timeslot_manager.getRandomDynamicTimeslotDay(timeslot);
 }
 
 std::unordered_set<ScheduledDay> Section::getAllScheduledDayOnClasstimeslot(Timeslot timeslot) const {
@@ -79,26 +99,6 @@ void Section::updateClassTimeslotDay(
     Timeslot timeslot,
     SchoolClass& school_class) {
 	classes[timeslot][day] = school_class;
-}
-
-void Section::setBreakSlots(const std::unordered_set<Timeslot>& break_slots_) {
-	break_slots = break_slots_;
-}
-
-void Section::setSegmentedTimeslot(const std::unordered_set<Timeslot>& segmented_timeslot_) {
-	segmented_timeslot = segmented_timeslot_;
-}
-
-void Section::setDynamicTimeslot(const std::unordered_set<Timeslot>& dynamic_timeslot_) {
-	dynamic_timeslot = dynamic_timeslot_;
-}
-
-void Section::setFixedTimeslotDay(const std::unordered_map<Timeslot, std::set<ScheduledDay>>& fixed_timeslot_day_) {
-	fixed_timeslot_day = fixed_timeslot_day_;
-}
-
-void Section::setUtilizedTeachers(const std::unordered_set<TeacherID>& utilized_teachers_) {
-	utilized_teachers = utilized_teachers_;
 }
 
 void Section::setViolation(bool violation) {
@@ -131,49 +131,12 @@ std::unordered_set<ScheduledDay> Section::getClassTimeslotScheduledDay(Timeslot 
 	return scheduled_days;
 }
 
-bool Section::isInBreakSlots(Timeslot timeslot) const {
-	return break_slots.find(timeslot) != break_slots.end();
-}
-
-bool Section::isInSegmentedTimeslot(Timeslot timeslot) const {
-	return segmented_timeslot.find(timeslot) != segmented_timeslot.end();
-}
-
-void Section::removeSegmentedTimeSlot(Timeslot timeslot) {
-	segmented_timeslot.erase(timeslot);
-}
-
-void Section::addSegmentedTimeSlot(Timeslot timeslot) {
-	segmented_timeslot.insert(timeslot);
-}
-
-ClassStartEnd Section::getClassStartTime(Timeslot timeslot) const {
-	if (time_range.find(timeslot) == time_range.end()) {
-		print("cannot find timeslot", timeslot);
-		throw std::runtime_error("Class timeslot not found");
-	};
-
-	return time_range.find(timeslot)->second;
-}
-
-void Section::addBreakSlot(Timeslot timeslot) {
-	break_slots.insert(timeslot);
-}
-
-void Section::removeBreakSlot(Timeslot timeslot) {
-	break_slots.erase(timeslot);
-}
-
 void Section::addClass(Timeslot timeslot, ScheduledDay day, const SchoolClass& school_class_) {
 	classes[timeslot][day] = school_class_;
 }
 
 int Section::getTotalTimeslot() const {
 	return total_timeslot;
-}
-
-void Section::addFixedTimeSlotDay(Timeslot timeslot, ScheduledDay day) {
-	fixed_timeslot_day[timeslot].insert(day);
 }
 
 void Section::addUtilizedTeacher(TeacherID teacher_id) {
@@ -200,43 +163,12 @@ std::map<Timeslot, std::unordered_map<ScheduledDay, SchoolClass>>& Section::getC
 	return classes;
 }
 
-const std::unordered_map<Timeslot, ClassStartEnd>& Section::getTimeRange() const {
-	return time_range;
-}
-
-const std::unordered_set<Timeslot>& Section::getBreakSlots() const {
-	return break_slots;
-}
-
 TimeDuration Section::getTotalDuration() const {
 	return total_duration;
 }
 
-TimePoint Section::getTimeslotStart(Timeslot timeslot) const {
-	return time_range.find(timeslot)->second.start;
-}
-
-TimePoint Section::getTimeslotEnd(Timeslot timeslot) const {
-	return time_range.find(timeslot)->second.end;
-}
-void Section::updateTimeslotStart(Timeslot timeslot, TimePoint start) {
-	time_range.find(timeslot)->second.start = start;
-}
-
-void Section::updateTimeslotEnd(Timeslot timeslot, TimePoint end) {
-	time_range.find(timeslot)->second.end = end;
-}
-
-const std::unordered_set<Timeslot>& Section::getSegmentedTimeslot() const {
-	return segmented_timeslot;
-}
-
-const std::unordered_set<Timeslot>& Section::getDynamicTimeslot() const {
-	return dynamic_timeslot;
-}
-
 const std::unordered_map<Timeslot, std::set<ScheduledDay>>& Section::getFixedTimeslotDay() const {
-	return fixed_timeslot_day;
+	return timeslot_manager.getFixedTimeslotDay();
 }
 
 const std::unordered_set<TeacherID>& Section::getUtilizedTeachers() const {
@@ -245,4 +177,58 @@ const std::unordered_set<TeacherID>& Section::getUtilizedTeachers() const {
 
 TimePoint Section::getStartTime() const {
 	return start_time;
+}
+void Section::addBreakSlot(Timeslot break_slot) {
+	timeslot_manager.addBreakSlot(break_slot);
+}
+void Section::addSegmentedTimeSlot(Timeslot timeslot) {
+	timeslot_manager.addSegmentedTimeSlot(timeslot);
+}
+void Section::addFixedTimeSlotDay(Timeslot timeslot, ScheduledDay day) {
+	timeslot_manager.addFixedTimeSlotDay(timeslot, day);
+}
+void Section::addDynamicTimeSlotDay(Timeslot timeslot, ScheduledDay day) {
+	timeslot_manager.addDynamicTimeSlotDay(timeslot, day);
+}
+void Section::removeBreakSlot(Timeslot timeslot) {
+	timeslot_manager.removeBreakSlot(timeslot);
+}
+void Section::removeSegmentedTimeSlot(Timeslot timeslot) {
+	timeslot_manager.removeSegmentedTimeSlot(timeslot);
+}
+void Section::updateTimeslotStart(Timeslot timeslot, TimePoint start) {
+	timeslot_manager.updateTimeslotStart(timeslot, start);
+}
+void Section::updateTimeslotEnd(Timeslot timeslot, TimePoint end) {
+	timeslot_manager.updateTimeslotEnd(timeslot, end);
+}
+void Section::setTimeRange(Timeslot timeslot, ClassStartEnd time_range) {
+	timeslot_manager.setTimeRange(timeslot, time_range);
+}
+ClassStartEnd Section::getClassStartTime(Timeslot timeslot) const {
+	return timeslot_manager.getClassStartTime(timeslot);
+}
+TimePoint Section::getTimeslotStart(Timeslot timeslot) const {
+	return timeslot_manager.getTimeslotStart(timeslot);
+}
+TimePoint Section::getTimeslotEnd(Timeslot timeslot) const {
+	return timeslot_manager.getTimeslotEnd(timeslot);
+}
+bool Section::isInBreakSlots(Timeslot timeslot) const {
+	return timeslot_manager.isInBreakSlots(timeslot);
+}
+bool Section::isInSegmentedTimeslot(Timeslot timeslot) const {
+	return timeslot_manager.isInSegmentedTimeslot(timeslot);
+}
+const std::unordered_set<Timeslot>& Section::getBreakSlots() const {
+	return timeslot_manager.getBreakSlots();
+}
+const std::unordered_set<Timeslot>& Section::getSegmentedTimeslot() const {
+	return timeslot_manager.getSegmentedTimeslot();
+}
+const std::unordered_set<Timeslot>& Section::getDynamicTimeslot() const {
+	return timeslot_manager.getDynamicTimeslot();
+}
+bool Section::isPairTimeslotDurationEqual(std::pair<Timeslot, Timeslot> selected_timeslots) const {
+	return timeslot_manager.isPairTimeslotDurationEqual(selected_timeslots);
 }

@@ -20,6 +20,8 @@
 #include "teacher.h"
 #include "timeManager.h"
 #include "timemanager.cpp"
+#include "timeslotManager.cpp"
+#include "timeslotManager.h"
 #include "timetable.cpp"
 #include "timetable.h"
 
@@ -146,6 +148,7 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 							ScheduledDay day = static_cast<ScheduledDay>(i);
 
 							REQUIRE(old_teacher.getUtilizedTime().count(day) == 1);
+							;
 							REQUIRE(old_teacher.getClassCount().count(day) == 1);
 							REQUIRE(new_teacher.getUtilizedTime().count(day) == 1);
 							REQUIRE(new_teacher.getClassCount().count(day) == 1);
@@ -171,6 +174,7 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 
 							print("modifying");
 							updated_timetable.modify(updated_selected_section, choice, selected_timeslots, affected_teachers, affected_sections, subject_eligibility_manager);
+							print("f");
 							Section updated_section = updated_timetable.getSectionById(selected_section_id);
 
 							TeacherID updated_section_teacher_id = updated_section.getClassTimeslotTeacherID(ScheduledDay::EVERYDAY, selected_timeslots.first);

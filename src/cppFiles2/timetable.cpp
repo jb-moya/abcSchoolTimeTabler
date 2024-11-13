@@ -424,6 +424,8 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 
 				section.addClass(timeslot_key, ScheduledDay::EVERYDAY, SchoolClass{subject_id, selected_teacher});
 
+				section.addDynamicTimeSlotDay(timeslot_key, ScheduledDay::EVERYDAY);
+
 				timeslots.erase(timeslot_key);
 			} else {
 				Timeslot timeslot_key = order;
@@ -462,6 +464,8 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 
 					section.addClass(timeslot, static_cast<ScheduledDay>(day), SchoolClass{subject_id, selected_teacher});
 					section.addSegmentedTimeSlot(timeslot);
+
+					section.addDynamicTimeSlotDay(timeslot, static_cast<ScheduledDay>(day));
 
 					if (--timeslots[timeslot] == 0) {
 						timeslot_keys.erase(it);
@@ -613,16 +617,6 @@ int Timetable::pickRandomField(Section& selected_section) {
 	// }
 }
 
-bool Timetable::isSkippingUpdateBetween(Section& selected_section, std::pair<Timeslot, Timeslot> selected_timeslots) const {
-	Timeslot selected_timeslot_1 = selected_timeslots.first;
-	Timeslot selected_timeslot_2 = selected_timeslots.second;
-
-	TimeDuration duration_1 = selected_section.getTimeslotEnd(selected_timeslot_1) - selected_section.getTimeslotStart(selected_timeslot_1);
-	TimeDuration duration_2 = selected_section.getTimeslotEnd(selected_timeslot_2) - selected_section.getTimeslotStart(selected_timeslot_2);
-
-	return duration_1 == duration_2;
-}
-
 void Timetable::modify(Section& selected_section,
                        int choice,
                        std::pair<Timeslot, Timeslot> selected_timeslots,
@@ -648,37 +642,22 @@ void Timetable::modify(Section& selected_section,
 	auto itUp = classes.upper_bound(std::max(selected_timeslot_1, selected_timeslot_2));
 	auto itUpPrev = std::prev(itUp);
 
-	bool is_skipping_between = isSkippingUpdateBetween(selected_section, selected_timeslots);
+	bool is_skipping_between = selected_section.isPairTimeslotDurationEqual(selected_timeslots);
 	updateTeachersAndSections(update_teachers, itLow, itUp, false, is_skipping_between, selected_section, true);
 	if (choice == 0) {
-		// swapping of classes between timeslots in the same section
-
-		if (selected_section.isInBreakSlots(itLow->first) && !selected_section.isInBreakSlots(itUpPrev->first)) {
-			selected_section.removeBreakSlot(itLow->first);
-			selected_section.removeBreakSlot(itUpPrev->first);
-		} else if (selected_section.isInBreakSlots(itUpPrev->first) && !selected_section.isInBreakSlots(itLow->first)) {
-			selected_section.removeBreakSlot(itUpPrev->first);
-			selected_section.removeBreakSlot(itLow->first);
-		}
-
-		std::swap(classes[selected_timeslot_1], classes[selected_timeslot_2]);
+		selected_section.swapClassesByTimeslot(selected_timeslot_1, selected_timeslot_2);
+		selected_section.adjustBreakslots(itLow->first, itUpPrev->first);
 
 		if (!selected_section.getSegmentedTimeslot().empty()) {
-			if (selected_section.isInSegmentedTimeslot(selected_timeslot_1) && !selected_section.isInSegmentedTimeslot(selected_timeslot_2)) {
-				selected_section.removeSegmentedTimeSlot(selected_timeslot_1);
-				selected_section.addSegmentedTimeSlot(selected_timeslot_2);
-			} else if (selected_section.isInSegmentedTimeslot(selected_timeslot_2) && !selected_section.isInSegmentedTimeslot(selected_timeslot_1)) {
-				selected_section.removeSegmentedTimeSlot(selected_timeslot_2);
-				selected_section.addSegmentedTimeSlot(selected_timeslot_1);
-			}
+			selected_section.adjustSegmentedTimeslots(selected_timeslot_1, selected_timeslot_2);
 		}
-
 	} else if (choice == 1) {
 		ScheduledDay randomScheduledDay = selected_section.getRandomClassTimeslotWorkingDays(selected_timeslot_1);
 		SubjectID selected_timeslot_subject_id = selected_section.getClassTimeslotSubjectID(randomScheduledDay, selected_timeslot_1);
 
 		if (randomScheduledDay == ScheduledDay::EVERYDAY) {
 			// TODO: leave breakslots alone
+			// FIXME: Bug for implementation of fixed teacher in the future
 			if (selected_timeslot_subject_id == -1) {
 				print("it shouldn't picked a breakslot");
 				return;
@@ -708,7 +687,6 @@ void Timetable::modify(Section& selected_section,
 				changeTeacher(selected_section, selected_timeslot_1, day_to_update, new_teacher, update_teachers);
 			}
 		}
-
 	} else if (choice == 2) {
 		// std::cout << " : ( " << random_section << " " << random_timeslot_1 << " " << random_timeslot_2 << std::endl;
 		ScheduledDay day_1, day_2;
@@ -717,17 +695,8 @@ void Timetable::modify(Section& selected_section,
 		auto& section_timeslot_2 = classes[selected_timeslot_2];
 
 		do {
-			day_1 = static_cast<ScheduledDay>(Timetable::s_random_workDay(randomizer_engine));
-			day_2 = static_cast<ScheduledDay>(Timetable::s_random_workDay(randomizer_engine));
-
-			// FIXME: this will cause infinite loop with fixed timeslot day:
-			// is_fixed_timeslot_day = section_fixed_timeslot_day[selected_section][selected_timeslot_1].find(day_1) != section_fixed_timeslot_day[selected_section][selected_timeslot_1].end();
-			// is_fixed_timeslot_day |= section_fixed_timeslot_day[selected_section][selected_timeslot_2].find(day_2) != section_fixed_timeslot_day[selected_section][selected_timeslot_2].end();
-
-			// might important:
-			// } while ((day_1 == day_2 && selected_timeslot_1 == selected_timeslot_2) ||
-			//          (section_timeslot_1.find(day_1) == section_timeslot_1.end() &&
-			//           section_timeslot_2.find(day_2) == section_timeslot_2.end()));
+			day_1 = selected_section.getRandomDynamicTimeslotDay(selected_timeslot_1);
+			day_2 = selected_section.getRandomDynamicTimeslotDay(selected_timeslot_2);
 		} while ((day_1 == day_2 && selected_timeslot_1 == selected_timeslot_2));
 
 		auto it1 = section_timeslot_1.find(day_1);
