@@ -14,33 +14,33 @@ import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import Lottie from 'lottie-react';
 import animationData from '/public/SuccessAnimation.json'
+import { toast } from 'sonner';
 
-
-const SuccessModal = ({ message, onClose }) => {
-  return (
-    <div className="modal modal-open flex items-center justify-center z-10">
-      <div className="modal-box flex flex-col items-center justify-center p-4"> {/* Added padding */}
-        <div className="lottie-animation w-48 h-48">
-          <Lottie
-            animationData={
-              animationData
-            } // Replace with your Lottie JSON
-            loop={false} // Ensures the animati on does not loop
-          />
-        </div>
-        <h2 className="font-bold text-lg text-center">{message}</h2> {/* Center text */}
-        <div className="modal-action">
-          <button
-            className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-            onClick={onClose}
-          >
-            ✕
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+// const SuccessModal = ({ message, onClose }) => {
+//   return (
+//     <div className="modal modal-open flex items-center justify-center z-10">
+//       <div className="modal-box flex flex-col items-center justify-center p-4"> {/* Added padding */}
+//         <div className="lottie-animation w-48 h-48">
+//           <Lottie
+//             animationData={
+//               animationData
+//             } // Replace with your Lottie JSON
+//             loop={false} // Ensures the animati on does not loop
+//           />
+//         </div>
+//         <h2 className="font-bold text-lg text-center">{message}</h2> {/* Center text */}
+//         <div className="modal-action">
+//           <button
+//             className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+//             onClick={onClose}
+//           >
+//             ✕
+//           </button>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
 
 const AddSubjectContainer = ({
   close,
@@ -85,10 +85,13 @@ const AddSubjectContainer = ({
           classDuration: classDuration,
         })
       );
-  
-      // Set success message and show the modal
-      setModalMessage('Subject added successfully!');
-      setShowSuccessModal(true);
+
+      toast.success('Subject added successfully!', {
+        style: {
+          backgroundColor: '#28a745', 
+          color: '#fff',               
+        },
+      });
   
       // Reset input fields
       setSubjectName('');
@@ -160,12 +163,13 @@ const AddSubjectContainer = ({
       </div>
 
       {/* Render SuccessModal if showSuccessModal is true */}
-      {showSuccessModal && (
+      {/* {showSuccessModal && (
         <SuccessModal
           message={modalMessage}
           onClose={handleCloseModal}
         />
-      )}
+      )} */}
+      
     </div>
   );
 };
@@ -483,12 +487,12 @@ const SubjectListContainer = ({ editable = false }) => {
           </tbody>
         </table>
 
-        {showSuccessModal && (
+        {/* {showSuccessModal && (
           <SuccessModal
             message={modalMessage}
             onClose={handleCloseModal}
           />
-        )}
+        )} */}
       </div>
 
     </div>
