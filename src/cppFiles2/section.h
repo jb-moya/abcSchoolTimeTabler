@@ -121,6 +121,7 @@ class Section {
 	bool isPairTimeslotDurationEqual(std::pair<Timeslot, Timeslot> selected_timeslots) const;
 
 	void swapClassesByTimeslot(Timeslot timeslot_1, Timeslot timeslot_2);
+	void swapClassesByDay(Timeslot timeslot_1, Timeslot timeslot_2, ScheduledDay day_1, ScheduledDay day_2);
 
 	void adjustBreakslots(Timeslot timeslot_1, Timeslot timeslot_2);
 	void adjustSegmentedTimeslots(Timeslot timeslot_1, Timeslot timeslot_2);

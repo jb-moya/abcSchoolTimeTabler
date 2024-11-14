@@ -57,7 +57,26 @@ void Section::adjustSegmentedTimeslots(Timeslot timeslot_1, Timeslot timeslot_2)
 }
 
 void Section::swapClassesByTimeslot(Timeslot timeslot_1, Timeslot timeslot_2) {
+	if (classes.find(timeslot_1) == classes.end() || classes.find(timeslot_2) == classes.end()) {
+		print("cannot find timeslot", timeslot_1, timeslot_2);
+		throw std::runtime_error("Class timeslot not found");
+	};
+
 	std::swap(classes[timeslot_1], classes[timeslot_2]);
+}
+
+void Section::swapClassesByDay(Timeslot timeslot_1, Timeslot timeslot_2, ScheduledDay day_1, ScheduledDay day_2) {
+	if (classes.find(timeslot_1) == classes.end() || classes.find(timeslot_2) == classes.end()) {
+		print("cannot find timeslot", timeslot_1, timeslot_2);
+		throw std::runtime_error("Class timeslot not found");
+	}
+
+	if (classes[timeslot_1].find(day_1) == classes[timeslot_1].end() || classes[timeslot_2].find(day_2) == classes[timeslot_2].end()) {
+		print("cannot find day", static_cast<int>(day_1), static_cast<int>(day_2));
+		throw std::runtime_error("Class day not found");
+	}
+
+	std::swap(classes[timeslot_1][day_1], classes[timeslot_2][day_2]);
 }
 
 ScheduledDay Section::getRandomClassTimeslotWorkingDays(Timeslot timeslot) const {

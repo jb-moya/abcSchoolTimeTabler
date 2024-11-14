@@ -135,6 +135,11 @@ void Timetable::addSubjectToSection(SectionID section_id, SubjectConfigurationID
 	}
 }
 
+void Timetable::moveTeacherClassCountToNewDay(TeacherID teacher_id, ScheduledDay from_day, ScheduledDay to_day) {
+	getTeacherById(teacher_id).decrementClassCount(static_cast<ScheduledDay>(from_day));
+	getTeacherById(teacher_id).incrementClassCount(static_cast<ScheduledDay>(to_day));
+}
+
 void Timetable::addSubjectConfiguration(SubjectConfigurationID id, SubjectID subject_id, TimeDuration duration, int units, int order) {
 	auto subject_configuration = std::make_shared<SubjectConfiguration>(id, subject_id, duration, units, order);
 	subject_configurations.push_back(subject_configuration);
@@ -532,19 +537,14 @@ std::pair<Timeslot, Timeslot> Timetable::pickRandomTimeslots(Section& selected_s
 			is_timeslot_2_break = section_break_slots.find(selected_timeslot_2) != section_break_slots.end();
 
 			if (is_consistent_duration && (is_timeslot_1_break || is_timeslot_2_break)) {
-print("ahh");
 				ignore_break_slots = true;
 			} else {
 				ignore_break_slots = false;
 			}
 
-					} while (selected_timeslot_1 == selected_timeslot_2 ||
+		} while (selected_timeslot_1 == selected_timeslot_2 ||
 		         (is_timeslot_1_at_start_or_end_of_schedule && is_timeslot_2_break) ||
 		         (is_timeslot_2_at_start_or_end_of_schedule && is_timeslot_1_break) || ignore_break_slots);
-		// } while (selected_timeslot_1 == selected_timeslot_2 ||
-		//          (is_timeslot_1_at_start_or_end_of_schedule && is_timeslot_2_break) ||
-		//          (is_timeslot_2_at_start_or_end_of_schedule && is_timeslot_1_break) ||
-		//          is_fixed_subject);
 
 		return {selected_timeslot_1, selected_timeslot_2};
 
@@ -600,15 +600,15 @@ Section& Timetable::pickRandomSection() {
 }
 
 int Timetable::pickRandomField(Section& selected_section) {
-	return 1;
+	// return 1;llllll
 
-	// if (selected_section.getSegmentedTimeslot().empty()) {
-	// 	std::uniform_int_distribution<> dis(0, 1);
+	if (selected_section.getSegmentedTimeslot().empty()) {
+		std::uniform_int_distribution<> dis(0, 1);
 
-	// 	return dis(randomizer_engine);
-	// } else {
-	// 	return Timetable::s_random_field(randomizer_engine);
-	// }
+		return dis(randomizer_engine);
+	} else {
+		return Timetable::s_random_field(randomizer_engine);
+	}
 }
 
 void Timetable::modify(Section& selected_section,
@@ -700,25 +700,21 @@ void Timetable::modify(Section& selected_section,
 			TeacherID teacher_id_1 = it1->second.teacher_id;
 			TeacherID teacher_id_2 = it2->second.teacher_id;
 
-			getTeacherById(teacher_id_1).decrementClassCount(static_cast<ScheduledDay>(day_1));
-			getTeacherById(teacher_id_1).incrementClassCount(static_cast<ScheduledDay>(day_2));
-			getTeacherById(teacher_id_2).incrementClassCount(static_cast<ScheduledDay>(day_1));
-			getTeacherById(teacher_id_2).decrementClassCount(static_cast<ScheduledDay>(day_2));
+			moveTeacherClassCountToNewDay(teacher_id_1, day_1, day_2);
+			moveTeacherClassCountToNewDay(teacher_id_2, day_2, day_1);
 
 			std::swap(it1->second, it2->second);
 		} else if (it1 != section_timeslot_1.end() && it2 == section_timeslot_2.end()) {
 			TeacherID teacher_id = it1->second.teacher_id;
 
-			getTeacherById(teacher_id).decrementClassCount(static_cast<ScheduledDay>(day_1));
-			getTeacherById(teacher_id).incrementClassCount(static_cast<ScheduledDay>(day_2));
+			moveTeacherClassCountToNewDay(teacher_id, day_1, day_2);
 
 			section_timeslot_2[day_2] = std::move(it1->second);
 			section_timeslot_1.erase(it1);
 		} else if (it1 == section_timeslot_1.end() && it2 != section_timeslot_2.end()) {
 			TeacherID teacher_id = it2->second.teacher_id;
 
-			getTeacherById(teacher_id).incrementClassCount(static_cast<ScheduledDay>(day_1));
-			getTeacherById(teacher_id).decrementClassCount(static_cast<ScheduledDay>(day_2));
+			moveTeacherClassCountToNewDay(teacher_id, day_2, day_1);
 
 			section_timeslot_1[day_1] = std::move(it2->second);
 			section_timeslot_2.erase(it2);

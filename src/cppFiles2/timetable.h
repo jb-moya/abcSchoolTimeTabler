@@ -137,6 +137,8 @@ struct Timetable {
 	    Section& selected_section,
 	    bool is_reset);
 
+	void moveTeacherClassCountToNewDay(TeacherID teacher_id, ScheduledDay from_day, ScheduledDay to_day);
+
 	void categorizeSubjects(Section& section,
 	                        std::vector<SubjectID>& full_week_day_subjects,
 	                        std::vector<SubjectID>& special_unit_subjects) const;
