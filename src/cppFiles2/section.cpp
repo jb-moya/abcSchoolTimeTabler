@@ -226,9 +226,6 @@ const std::unordered_set<Timeslot>& Section::getBreakSlots() const {
 const std::unordered_set<Timeslot>& Section::getSegmentedTimeslot() const {
 	return timeslot_manager.getSegmentedTimeslot();
 }
-const std::unordered_set<Timeslot>& Section::getDynamicTimeslot() const {
-	return timeslot_manager.getDynamicTimeslot();
-}
 bool Section::isPairTimeslotDurationEqual(std::pair<Timeslot, Timeslot> selected_timeslots) const {
 	return timeslot_manager.isPairTimeslotDurationEqual(selected_timeslots);
 }

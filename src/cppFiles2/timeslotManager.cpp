@@ -79,10 +79,6 @@ const std::unordered_set<Timeslot>& TimeslotManager::getSegmentedTimeslot() cons
 	return segmented_timeslot;
 }
 
-const std::unordered_set<Timeslot>& TimeslotManager::getDynamicTimeslot() const {
-	return dynamic_timeslot;
-}
-
 bool TimeslotManager::isPairTimeslotDurationEqual(std::pair<Timeslot, Timeslot> selected_timeslots) const {
 	Timeslot selected_timeslot_1 = selected_timeslots.first;
 	Timeslot selected_timeslot_2 = selected_timeslots.second;

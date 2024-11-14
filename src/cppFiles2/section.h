@@ -118,8 +118,6 @@ class Section {
 	const std::unordered_set<Timeslot>& getBreakSlots() const;
 	const std::unordered_set<Timeslot>& getSegmentedTimeslot() const;
 
-	const std::unordered_set<Timeslot>& getDynamicTimeslot() const;
-
 	bool isPairTimeslotDurationEqual(std::pair<Timeslot, Timeslot> selected_timeslots) const;
 
 	void swapClassesByTimeslot(Timeslot timeslot_1, Timeslot timeslot_2);
