@@ -9,8 +9,8 @@
 
 struct Teacher {
    private:
-	const TeacherID id;
-	const int max_work_load;
+	TeacherID id;
+	int max_work_load;
 
 	std::unordered_map<ScheduledDay, std::map<TimePoint, int>> utilized_time;
 	std::unordered_map<ScheduledDay, int> class_count;

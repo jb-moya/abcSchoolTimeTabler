@@ -18,12 +18,12 @@
 class Section {
    private:
 	// Member Variables
-	const SectionID id;
-	const int num_break;
-	const TimePoint start_time;
-	const int total_timeslot;
-	const int not_allowed_breakslot_gap;
-	const bool is_dynamic_subject_consistent_duration;
+	SectionID id;
+	int num_break;
+	TimePoint start_time;
+	int total_timeslot;
+	int not_allowed_breakslot_gap;
+	bool is_dynamic_subject_consistent_duration;
 
 	TimeDuration total_duration;
 	bool has_violation;

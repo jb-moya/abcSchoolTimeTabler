@@ -15,7 +15,8 @@ void TimeManager::stopTimer() {
 }
 
 std::string TimeManager::getStartDate() {
-	auto start_time_t = std::chrono::high_resolution_clock::to_time_t(start_time);
+	auto start_time = std::chrono::system_clock::now();
+	auto start_time_t = std::chrono::system_clock::to_time_t(start_time);
 	std::tm* localStartTime = std::localtime(&start_time_t);
 
 	// Format the date as YYYY-MM-DD
@@ -26,7 +27,8 @@ std::string TimeManager::getStartDate() {
 
 // Function to get the start time as a string.
 std::string TimeManager::getStartTime() {
-	auto start_time_t = std::chrono::high_resolution_clock::to_time_t(start_time);
+	auto start_time = std::chrono::system_clock::now();
+	auto start_time_t = std::chrono::system_clock::to_time_t(start_time);
 	std::tm* localStartTime = std::localtime(&start_time_t);
 
 	// Format the time as HH-MM-SS
@@ -36,7 +38,8 @@ std::string TimeManager::getStartTime() {
 }
 
 std::string TimeManager::getEndDate() {
-	auto start_time_t = std::chrono::high_resolution_clock::to_time_t(end_time);
+	auto start_time = std::chrono::system_clock::now();
+	auto start_time_t = std::chrono::system_clock::to_time_t(start_time);
 	std::tm* localStartTime = std::localtime(&start_time_t);
 
 	// Format the date as YYYY-MM-DD
@@ -47,7 +50,8 @@ std::string TimeManager::getEndDate() {
 
 // Function to get the start time as a string
 std::string TimeManager::getEndTime() {
-	auto start_time_t = std::chrono::high_resolution_clock::to_time_t(end_time);
+	auto start_time = std::chrono::system_clock::now();
+	auto start_time_t = std::chrono::system_clock::to_time_t(start_time);
 	std::tm* localStartTime = std::localtime(&start_time_t);
 
 	// Format the time as HH-MM-SS
