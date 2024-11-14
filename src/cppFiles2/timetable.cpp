@@ -517,15 +517,13 @@ std::pair<Timeslot, Timeslot> Timetable::pickRandomTimeslots(Section& selected_s
 		bool is_timeslot_1_break = false;
 		bool is_timeslot_2_break = false;
 
-		bool is_fixed_subject = false;
-
 		bool ignore_break_slots = false;
 
 		bool is_consistent_duration = selected_section.isDynamicSubjectConsistentDuration();
 
 		do {
-			selected_timeslot_1 = getRandomInRange(timeslot_count - 1);
-			selected_timeslot_2 = getRandomInRange(timeslot_count - 1);
+			selected_timeslot_1 = selected_section.getRandomDynamicTimeslot();
+			selected_timeslot_2 = selected_section.getRandomDynamicTimeslot();
 
 			is_timeslot_1_at_start_or_end_of_schedule = selected_timeslot_1 == 0 || selected_timeslot_1 == timeslot_count - 1;
 			is_timeslot_2_at_start_or_end_of_schedule = selected_timeslot_2 == 0 || selected_timeslot_2 == timeslot_count - 1;
@@ -534,19 +532,15 @@ std::pair<Timeslot, Timeslot> Timetable::pickRandomTimeslots(Section& selected_s
 			is_timeslot_2_break = section_break_slots.find(selected_timeslot_2) != section_break_slots.end();
 
 			if (is_consistent_duration && (is_timeslot_1_break || is_timeslot_2_break)) {
+print("ahh");
 				ignore_break_slots = true;
 			} else {
 				ignore_break_slots = false;
 			}
 
-			// TODO: instead of blindly selecting a random timeslot that is not fixed, the selection must already be viable
-			is_fixed_subject = fixed_timeslot_day.find(selected_timeslot_1) != fixed_timeslot_day.end();
-			is_fixed_subject |= fixed_timeslot_day.find(selected_timeslot_2) != fixed_timeslot_day.end();
-
-		} while (selected_timeslot_1 == selected_timeslot_2 ||
+					} while (selected_timeslot_1 == selected_timeslot_2 ||
 		         (is_timeslot_1_at_start_or_end_of_schedule && is_timeslot_2_break) ||
-		         (is_timeslot_2_at_start_or_end_of_schedule && is_timeslot_1_break) ||
-		         is_fixed_subject || ignore_break_slots);
+		         (is_timeslot_2_at_start_or_end_of_schedule && is_timeslot_1_break) || ignore_break_slots);
 		// } while (selected_timeslot_1 == selected_timeslot_2 ||
 		//          (is_timeslot_1_at_start_or_end_of_schedule && is_timeslot_2_break) ||
 		//          (is_timeslot_2_at_start_or_end_of_schedule && is_timeslot_1_break) ||

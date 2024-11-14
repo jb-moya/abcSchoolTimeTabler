@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 #include "classStartEnd.h"
 #include "scheduledDay.h"
@@ -14,6 +15,7 @@ class TimeslotManager {
 	//    might TODO: used vector instead for optimal randomness
 	std::unordered_map<Timeslot, std::set<ScheduledDay>> fixed_timeslot_day;
 	std::unordered_map<Timeslot, std::set<ScheduledDay>> dynamic_timeslot_day;
+	std::vector<Timeslot> dynamic_timeslot;
 	std::unordered_map<Timeslot, ClassStartEnd> time_range;
 	std::unordered_set<Timeslot> segmented_timeslot;
 	std::unordered_set<Timeslot> break_slots;
@@ -23,6 +25,7 @@ class TimeslotManager {
 	void addSegmentedTimeSlot(Timeslot timeslot);
 	void addFixedTimeSlotDay(Timeslot timeslot, ScheduledDay day);
 	void addDynamicTimeSlotDay(Timeslot timeslot, ScheduledDay day);
+	void addDynamicTimeSlot(Timeslot timeslot);
 	const std::unordered_map<Timeslot, std::set<ScheduledDay>>& getFixedTimeslotDay() const;
 
 	void removeBreakSlot(Timeslot timeslot);
@@ -46,4 +49,5 @@ class TimeslotManager {
 	bool isPairTimeslotDurationEqual(std::pair<Timeslot, Timeslot> selected_timeslots) const;
 
 	ScheduledDay getRandomDynamicTimeslotDay(Timeslot timeslot) const;
+	Timeslot getRandomDynamicTimeslot() const;
 };

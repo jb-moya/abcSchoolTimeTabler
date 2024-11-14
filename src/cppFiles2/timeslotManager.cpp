@@ -51,11 +51,21 @@ ScheduledDay TimeslotManager::getRandomDynamicTimeslotDay(Timeslot timeslot) con
 	std::uniform_int_distribution<int> dis_work_day(0, days.size() - 1);
 	return days[dis_work_day(randomizer_engine)];
 }
+Timeslot TimeslotManager::getRandomDynamicTimeslot() const {
+	if (dynamic_timeslot.empty()) {
+		std::cerr << "No dynamic timeslots found" << std::endl;
+		throw std::runtime_error("No dynamic timeslots available");
+	}
+
+	std::uniform_int_distribution<int> dis_work_day(0, dynamic_timeslot.size() - 1);
+	return dynamic_timeslot[dis_work_day(randomizer_engine)];
+}
 void TimeslotManager::addFixedTimeSlotDay(Timeslot timeslot, ScheduledDay day) {
 	fixed_timeslot_day[timeslot].insert(day);
 }
 void TimeslotManager::addDynamicTimeSlotDay(Timeslot timeslot, ScheduledDay day) {
 	dynamic_timeslot_day[timeslot].insert(day);
+	dynamic_timeslot.push_back(timeslot);
 }
 const std::unordered_set<Timeslot>& TimeslotManager::getBreakSlots() const {
 	return break_slots;

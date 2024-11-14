@@ -125,4 +125,5 @@ class Section {
 	void adjustBreakslots(Timeslot timeslot_1, Timeslot timeslot_2);
 	void adjustSegmentedTimeslots(Timeslot timeslot_1, Timeslot timeslot_2);
 	ScheduledDay getRandomDynamicTimeslotDay(Timeslot timeslot);
+	Timeslot getRandomDynamicTimeslot() const;
 };

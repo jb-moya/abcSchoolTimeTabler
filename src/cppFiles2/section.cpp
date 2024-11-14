@@ -93,7 +93,9 @@ std::unordered_set<ScheduledDay> Section::getAllScheduledDayOnClasstimeslot(Time
 
 	return result;
 }
-
+Timeslot Section::getRandomDynamicTimeslot() const {
+	return timeslot_manager.getRandomDynamicTimeslot();
+}
 void Section::updateClassTimeslotDay(
     ScheduledDay day,
     Timeslot timeslot,
