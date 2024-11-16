@@ -137,7 +137,6 @@ inline void logResults(std::ofstream& txt_file,
                        int bees_scout,
                        int limit,
                        int work_week,
-                       int max_teacher_work_load,
                        int break_time_duration,
                        int teacher_break_threshold,
                        int min_total_class_duration_for_two_breaks,
@@ -161,7 +160,6 @@ inline void logResults(std::ofstream& txt_file,
 	txt_file << "bees_scout: " << bees_scout << std::endl;
 	txt_file << "limit: " << limit << std::endl;
 	txt_file << "work_week: " << work_week << std::endl;
-	txt_file << "max_teacher_work_load: " << max_teacher_work_load << std::endl;
 	txt_file << "break_time_duration: " << break_time_duration << std::endl;
 	txt_file << "teacher_break_threshold: " << teacher_break_threshold << std::endl;
 	txt_file << "min_total_class_duration_for_two_breaks: " << min_total_class_duration_for_two_breaks << std::endl;

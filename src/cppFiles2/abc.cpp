@@ -31,6 +31,8 @@ void ABC::run() {
 			int choice = new_bee.timetable.pickRandomField(selected_section);
 			std::pair<Timeslot, Timeslot> selected_timeslots = new_bee.timetable.pickRandomTimeslots(selected_section, choice);
 
+			// print("ff");
+
 			new_bee.timetable.modify(selected_section, choice, selected_timeslots, affected_teachers, affected_sections);
 			objective_function.evaluate(new_bee, affected_teachers, affected_sections, false, false);
 

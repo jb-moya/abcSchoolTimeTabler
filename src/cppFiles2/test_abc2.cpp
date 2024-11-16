@@ -25,7 +25,7 @@ using namespace std;
 
 std::random_device test_rd;
 std::mt19937 test_randomizer_engine(test_rd());
-//
+
 int32_t* allocate(int size) {
 	int32_t* static_array = new (std::nothrow) int32_t[size];
 
@@ -39,10 +39,10 @@ int32_t* allocate(int size) {
 
 void test_generate_timetable() {
 	// TODO: dynamic max_iterations base on config'
-	int max_iterations = 10000;
-	int beesPopulation = 3;
+	int max_iterations = 40000;
+	int beesPopulation = 4;
 	int beesEmployed = 2;
-	int beesOnlooker = 1;
+	int beesOnlooker = 2;
 	int beesScout = 1;
 
 	int num_teachers = 42;
@@ -69,13 +69,14 @@ void test_generate_timetable() {
 
 	// is there a way to put async function that execute in parallel
 
-	int limit = (total_section * (num_teachers)) * .5;
+	int limit = (total_section * (num_teachers)) * .6;
 	int default_units = 0;
 	Timeslot default_order = 0;
 
 	TimeDuration default_class_duration = 40;
 	TimeDuration break_time_duration = 30;
-	int max_teacher_work_load = 900;
+	TimeDuration max_teacher_work_load = 900;
+	TimeDuration min_teacher_work_load = 700;
 	TimeDuration min_total_class_duration_for_two_breaks = 380;
 
 	int time_division = 10;
@@ -116,7 +117,7 @@ void test_generate_timetable() {
 	int32_t* section_start = allocate(total_section);
 	int32_t* teacher_subjects = allocate(teacher_subjects_length);
 
-	int32_t* teacher_max_weekly_load = allocate(num_teachers);
+	int32_t* teacher_week_load_config = allocate(num_teachers);
 
 	int32_t* subject_configuration_subject_order = allocate(num_subjects);
 	int32_t* subject_configuration_subject_duration = allocate(num_subjects);
@@ -127,7 +128,7 @@ void test_generate_timetable() {
 
 	for (TeacherID i = 0; i < teacher_subjects_length; ++i) {
 		teacher_subjects[i] = -1;
-		teacher_max_weekly_load[i] = max_teacher_work_load;
+		teacher_week_load_config[i] = packInt16ToInt32(max_teacher_work_load, min_teacher_work_load);
 	}
 
 	for (TeacherID i = 0; i < num_teachers; ++i) {
@@ -172,7 +173,7 @@ void test_generate_timetable() {
 				delete[] section_subjects;
 				delete[] section_start;
 				delete[] teacher_subjects;
-				delete[] teacher_max_weekly_load;
+				delete[] teacher_week_load_config;
 				delete[] subject_configuration_subject_order;
 				delete[] subject_configuration_subject_duration;
 				delete[] subject_configuration_subject_units;
@@ -264,7 +265,7 @@ void test_generate_timetable() {
 	    subject_configuration_subject_order,
 	    section_start,
 	    teacher_subjects,
-	    teacher_max_weekly_load,
+	    teacher_week_load_config,
 
 	    teacher_subjects_length,
 	    beesPopulation,
@@ -274,7 +275,6 @@ void test_generate_timetable() {
 	    limit,
 	    workweek,
 
-	    max_teacher_work_load,
 	    break_time_duration,
 	    teacher_break_threshold,
 	    teacher_middle_time_point_grow_allowance_for_break_timeslot,
@@ -292,7 +292,7 @@ void test_generate_timetable() {
 	delete[] section_subjects;
 	delete[] section_start;
 	delete[] teacher_subjects;
-	delete[] teacher_max_weekly_load;
+	delete[] teacher_week_load_config;
 	delete[] subject_configuration_subject_order;
 	delete[] subject_configuration_subject_duration;
 	delete[] subject_configuration_subject_units;

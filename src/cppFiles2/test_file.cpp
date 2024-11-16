@@ -34,7 +34,9 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 		int teacher_break_threshold = 4;
 		int teacher_middle_time_point_grow_allowance_for_break_timeslot = 4;
 		TimeDuration default_class_duration = 1, break_time_duration = 1;
-		int max_teacher_work_load = 70, work_week = 1, total_teacher = 14;
+		TimeDuration max_teacher_work_load = 90;
+		TimeDuration min_teacher_work_load = 70;
+		int work_week = 1, total_teacher = 14;
 		int total_section = 14, total_unique_subject = 7, num_break = 1;
 		int total_timeslot = total_unique_subject + num_break;
 		int not_allowed_breakslot_gap = 2, start = 0;
@@ -52,7 +54,6 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 		timetable.setTeacherBreakThreshold(teacher_break_threshold);
 		timetable.setTeacherMiddleTimePointGrowAllowanceForBreakTimeslot(teacher_middle_time_point_grow_allowance_for_break_timeslot);
 		timetable.setDefaultClassDuration(default_class_duration);
-		timetable.setMaxTeacherWorkLoad(max_teacher_work_load);
 		timetable.setBreakTimeDuration(break_time_duration);
 		timetable.setWorkWeek(work_week);
 		timetable.setTotalSection(total_section);
@@ -67,7 +68,6 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 			REQUIRE(timetable.getTeacherBreakThreshold() == teacher_break_threshold);
 			REQUIRE(timetable.getTeacherMiddleTimePointGrowAllowanceForBreakTimeslot() == teacher_middle_time_point_grow_allowance_for_break_timeslot);
 			REQUIRE(timetable.getDefaultClassDuration() == default_class_duration);
-			REQUIRE(timetable.getMaxTeacherWorkLoad() == max_teacher_work_load);
 			REQUIRE(timetable.getBreakTimeDuration() == break_time_duration);
 			REQUIRE(timetable.getWorkWeek() == work_week);
 			REQUIRE(timetable.getTotalSection() == total_section);
@@ -96,7 +96,7 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 			// Assign Eligible Teachers to Subjects  v
 			for (TeacherID teacher_id = 0; teacher_id < total_teacher; teacher_id++) {
 				Teacher::s_all_teachers.insert(teacher_id);
-				timetable.addTeacher(teacher_id, max_teacher_work_load);
+				timetable.addTeacher(teacher_id, max_teacher_work_load, min_teacher_work_load);
 				SubjectID subject_id = teacher_id % total_unique_subject;
 				Timetable::addEligibleTeacher(subject_id, teacher_id);
 				Timetable::s_subject_teacher_queue.addTeacher(subject_id, teacher_id, max_teacher_work_load);

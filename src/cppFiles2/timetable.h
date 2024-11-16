@@ -44,7 +44,6 @@ struct Timetable {
    private:
 	static int s_teacher_break_threshold;
 	static TimeDuration s_default_class_duration;
-	static int s_max_teacher_work_load;
 	static TimeDuration s_break_time_duration;
 	static int s_work_week;
 	static int s_total_section;
@@ -61,7 +60,6 @@ struct Timetable {
 	static void setTeacherBreakThreshold(int s_teacher_break_threshold);
 	static void setTeacherMiddleTimePointGrowAllowanceForBreakTimeslot(int s_teacher_middle_time_point_grow_allowance_for_break_timeslot);
 	static void setDefaultClassDuration(TimeDuration s_default_class_duration);
-	static void setMaxTeacherWorkLoad(int s_max_teacher_work_load);
 	static void setBreakTimeDuration(TimeDuration s_break_time_duration);
 	static void setWorkWeek(int s_work_week);
 	static void setTotalSection(int s_total_section);
@@ -71,7 +69,6 @@ struct Timetable {
 	static int getTeacherBreakThreshold();
 	static int getTeacherMiddleTimePointGrowAllowanceForBreakTimeslot();
 	static TimeDuration getDefaultClassDuration();
-	static int getMaxTeacherWorkLoad();
 	static TimeDuration getBreakTimeDuration();
 	static int getWorkWeek();
 	static int getTotalSection();
@@ -106,7 +103,7 @@ struct Timetable {
 	static void addEligibleTeacher(SubjectID subjectId, TeacherID teacherId);
 
 	void addSection(SubjectID section_id, int num_break, TimePoint start_time, int total_timeslot, int not_allowed_breakslot_gap, bool is_dynamic_subject_consistent_duration);
-	void addTeacher(TeacherID teacher_id, int max_weekly_load);
+	void addTeacher(TeacherID teacher_id, TimeDuration max_weekly_load, TimeDuration min_weekly_load);
 
 	void addSubjectToSection(SectionID section_id, SubjectConfigurationID subject_configuration_id);
 
@@ -147,7 +144,6 @@ struct Timetable {
 	void setupTimeslots(int total_timeslot, std::deque<Timeslot>& timeslot_keys, std::map<Timeslot, int>& timeslots, const std::vector<Timeslot>& skips) const;
 
 	void changeTeacher(Section& selected_section, Timeslot selected_timeslot, ScheduledDay day, TeacherID new_teacher_id, std::unordered_set<TeacherID>& update_teachers);
-	
 };
 
 #ifdef __cplusplus
@@ -169,7 +165,7 @@ void runExperiment(
     int32_t* subject_configuration_subject_order,
     int32_t* section_start,
     int32_t* teacher_subjects,
-    int32_t* teacher_max_weekly_load,
+    int32_t* teacher_week_load_config,
 
     int teacher_subjects_length,
     int bees_population,
@@ -179,7 +175,6 @@ void runExperiment(
     int limit,
     int work_week,
 
-    int max_teacher_work_load,
     TimeDuration break_time_duration,
     int teacher_break_threshold,
     int teacher_middle_time_point_grow_allowance_for_break_timeslot,

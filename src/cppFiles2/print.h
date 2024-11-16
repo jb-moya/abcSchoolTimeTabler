@@ -116,7 +116,6 @@ inline void printConfiguration(int max_iterations,
                                int bees_scout,
                                int limit,
                                int work_week,
-                               int max_teacher_work_load,
                                TimeDuration break_time_duration,
                                int teacher_break_threshold,
                                TimeDuration min_total_class_duration_for_two_breaks,
@@ -137,7 +136,6 @@ inline void printConfiguration(int max_iterations,
 	print("bees_scout", bees_scout);
 	print("limit", limit);
 	print("work_week", work_week);
-	print("max_teacher_work_load", max_teacher_work_load);
 	print("break_time_duration", break_time_duration);
 	print("teacher_break_threshold", teacher_break_threshold);
 	print("min_total_class_duration_for_two_breaks", min_total_class_duration_for_two_breaks);

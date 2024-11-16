@@ -22,9 +22,6 @@ void Timetable::setTeacherMiddleTimePointGrowAllowanceForBreakTimeslot(int s_tea
 void Timetable::setDefaultClassDuration(TimeDuration s_default_class_duration_) {
 	s_default_class_duration = s_default_class_duration_;
 }
-void Timetable::setMaxTeacherWorkLoad(int s_max_teacher_work_load_) {
-	s_max_teacher_work_load = s_max_teacher_work_load_;
-}
 void Timetable::setBreakTimeDuration(TimeDuration s_break_time_duration_) {
 	s_break_time_duration = s_break_time_duration_;
 }
@@ -44,7 +41,6 @@ void Timetable::setSectionsSet(const std::unordered_set<SectionID>& sections_set
 int Timetable::s_teacher_break_threshold;
 int Timetable::s_teacher_middle_time_point_grow_allowance_for_break_timeslot;
 TimeDuration Timetable::s_default_class_duration;
-int Timetable::s_max_teacher_work_load;
 TimeDuration Timetable::s_break_time_duration;
 int Timetable::s_work_week;
 int Timetable::s_total_section;
@@ -71,8 +67,8 @@ void Timetable::addSection(SectionID section_id, int num_break, TimePoint start_
 	sections.emplace(section_id, Section(section_id, num_break, start_time, total_timeslot, not_allowed_breakslot_gap, is_dynamic_subject_consistent_duration));
 }
 
-void Timetable::addTeacher(TeacherID teacher_id, int max_work_load) {
-	teachers.emplace(teacher_id, Teacher(teacher_id, max_work_load));
+void Timetable::addTeacher(TeacherID teacher_id, TimeDuration max_work_load, TimeDuration min_work_load) {
+	teachers.emplace(teacher_id, Teacher(teacher_id, max_work_load, min_work_load));
 }
 
 void Timetable::initializeRandomFieldDistribution(int min, int max) {
@@ -103,7 +99,6 @@ Teacher& Timetable::getTeacherById(TeacherID teacher_id) {
 int Timetable::getTeacherBreakThreshold() { return s_teacher_break_threshold; }
 int Timetable::getTeacherMiddleTimePointGrowAllowanceForBreakTimeslot() { return s_teacher_middle_time_point_grow_allowance_for_break_timeslot; }
 TimeDuration Timetable::getDefaultClassDuration() { return s_default_class_duration; }
-int Timetable::getMaxTeacherWorkLoad() { return s_max_teacher_work_load; }
 TimeDuration Timetable::getBreakTimeDuration() { return s_break_time_duration; }
 int Timetable::getWorkWeek() { return s_work_week; }
 int Timetable::getTotalSection() { return s_total_section; }
@@ -411,10 +406,6 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 			TimeDuration subject_duration = section.getSubject(subject_id).getDuration() * Timetable::getWorkWeek();  // TODO: not elegant
 			TeacherID queued_teacher = Timetable::s_subject_teacher_queue.getTeacher(subject_id, subject_duration);
 			TeacherID selected_teacher = getRandomTeacher(subject_id);
-
-			if (queued_teacher == -1) {
-				print("Bobo");
-			}
 
 			section.addUtilizedTeacher(selected_teacher);
 
@@ -741,7 +732,7 @@ void runExperiment(
     int32_t* subject_configuration_subject_order,
     int32_t* section_start,
     int32_t* teacher_subjects,
-    int32_t* teacher_max_weekly_load,
+    int32_t* teacher_week_load_config,
 
     int teacher_subjects_length,
     int bees_population,
@@ -751,7 +742,6 @@ void runExperiment(
     int limit,
     int work_week,
 
-    int max_teacher_work_load,
     TimeDuration break_time_duration,
     int teacher_break_threshold,
     int teacher_middle_time_point_grow_allowance_for_break_timeslot,
@@ -788,7 +778,6 @@ void runExperiment(
 		Timetable::setTeacherBreakThreshold(teacher_break_threshold);
 		Timetable::setTeacherMiddleTimePointGrowAllowanceForBreakTimeslot(teacher_middle_time_point_grow_allowance_for_break_timeslot);
 		Timetable::setDefaultClassDuration(default_class_duration);
-		Timetable::setMaxTeacherWorkLoad(max_teacher_work_load);
 		Timetable::setBreakTimeDuration(break_time_duration);
 		Timetable::setWorkWeek(work_week);
 
@@ -843,12 +832,11 @@ void runExperiment(
 		}
 
 		for (TeacherID teacher_id = 0; teacher_id < num_teachers; teacher_id++) {
-			int max_weekly_load = teacher_max_weekly_load[teacher_id];
+			TimeDuration max_weekly_load = static_cast<int>(teacher_week_load_config[teacher_id] >> 16);
+			TimeDuration min_weekly_load = static_cast<int>(teacher_week_load_config[teacher_id] & 0xFFFF);
 
 			Teacher::s_all_teachers.insert(teacher_id);
-			Teacher teacher(teacher_id, max_weekly_load);
-
-			timetable.addTeacher(teacher_id, max_weekly_load);
+			timetable.addTeacher(teacher_id, max_weekly_load, min_weekly_load);
 		}
 
 		for (int i = 0; i < teacher_subjects_length; i++) {
@@ -905,7 +893,7 @@ void runExperiment(
 	tm.startTimer();
 
 	printConfiguration(max_iterations, num_teachers, total_section_subjects, total_section, teacher_subjects_length,
-	                   bees_population, bees_employed, bees_onlooker, bees_scout, limit, work_week, max_teacher_work_load,
+	                   bees_population, bees_employed, bees_onlooker, bees_scout, limit, work_week,
 	                   break_time_duration, teacher_break_threshold, min_total_class_duration_for_two_breaks, default_class_duration, result_buff_length, offset_duration, enable_logging, tm.getStartTime());
 
 	abc.run();
@@ -934,7 +922,7 @@ void runExperiment(
 		                        std::to_string(num_teachers) + "_" + std::to_string(total_section) + "_" + std::to_string(final_bee.total_cost) + "---" + "timetable.txt";
 		std::ofstream txt_file(name_file);
 		logResults(txt_file, final_bee.total_cost, tm.getTimelapse(), tm.getStartDate(), tm.getStartTime(), final_iteration_count, max_iterations, num_teachers, total_section_subjects,
-		           total_section, teacher_subjects_length, bees_population, bees_employed, bees_onlooker, bees_scout, limit, work_week, max_teacher_work_load, break_time_duration,
+		           total_section, teacher_subjects_length, bees_population, bees_employed, bees_onlooker, bees_scout, limit, work_week, break_time_duration,
 		           teacher_break_threshold, min_total_class_duration_for_two_breaks, default_class_duration, result_buff_length, offset_duration, enable_logging);
 
 		// logCosts(costs, txt_file);

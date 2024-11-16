@@ -6,8 +6,8 @@
 int Teacher::teacher_count;
 std::unordered_set<TeacherID> Teacher::s_all_teachers;
 
-Teacher::Teacher(TeacherID id_, int max_work_load_)
-    : id(id_), max_work_load(max_work_load_), utilized_time(), has_violation(false) {
+Teacher::Teacher(TeacherID id_, int max_work_load_, TimeDuration min_work_load_)
+    : id(id_), max_work_load(max_work_load_), min_work_load(min_work_load_), utilized_time(), has_violation(false) {
 	for (int day = 1; day <= Timetable::getWorkWeek(); day++) {
 		class_count[static_cast<ScheduledDay>(day)] = 0;
 	}

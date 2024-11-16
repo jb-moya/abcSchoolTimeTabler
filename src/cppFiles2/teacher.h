@@ -10,7 +10,8 @@
 struct Teacher {
    private:
 	TeacherID id;
-	int max_work_load;
+	TimeDuration min_work_load;
+	TimeDuration max_work_load;
 
 	std::unordered_map<ScheduledDay, std::map<TimePoint, int>> utilized_time;
 	std::unordered_map<ScheduledDay, int> class_count;
@@ -20,13 +21,14 @@ struct Teacher {
    public:
 	static int teacher_count;
 	static std::unordered_set<TeacherID> s_all_teachers;
-	Teacher(TeacherID id_, int max_work_load_);
-	// Teacher(int id_, int max_work_load_) : id(id_), max_work_load(max_work_load_) {}
+	Teacher(TeacherID id_, TimeDuration max_work_load_, TimeDuration  min_work_load_);
 
 	void initializeClass(int work_week);
 
 	TeacherID getId() const;
-	int getMaxWorkLoad() const;
+	TimeDuration getMaxWorkLoad() const;
+	TimeDuration getMinWorkLoad() const;
+
 	bool hasViolation() const;
 
 	const std::unordered_map<ScheduledDay, std::map<TimePoint, int>> getUtilizedTime() const;
