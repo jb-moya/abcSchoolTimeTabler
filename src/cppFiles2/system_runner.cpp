@@ -2,9 +2,7 @@
 
 #include "abc.h"
 #include "log.h"
-#include "print.h"
 #include "timeManager.h"
-#include "timetable.h"
 
 #define LOG_FOLDER "logs2/"
 

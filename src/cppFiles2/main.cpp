@@ -18,8 +18,10 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
-#include "system_runner.h"
+
+#include "bit_utils.h"
 #include "print.h"
+#include "system_runner.h"
 
 using namespace std;
 
@@ -43,7 +45,8 @@ void test_generate_timetable() {
 	int beesPopulation = 4;
 	int beesEmployed = 2;
 	int beesOnlooker = 2;
-	int beesScout = 1;;
+	int beesScout = 1;
+	;
 
 	int num_teachers = 42;
 	// count teacher with same subject: 11. does this mean there's extra 1 teacher?
@@ -103,7 +106,7 @@ void test_generate_timetable() {
 	// print("max_teacher_work_load", max_teacher_work_load);
 	// print("min_total_class_duration_for_two_breaks", min_total_class_duration_for_two_breaks);
 
-	// return;
+	// return;;
 
 	int num_violation_type = 7;
 

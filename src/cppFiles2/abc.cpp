@@ -176,13 +176,13 @@ void ABC::getViolation(int64_t* result_violation) {
 		Teacher teacher = best_solution.timetable.getTeacherById(teacher_id);
 
 		const auto& daily_class_schedule = teacher.getUtilizedTime();
-		const auto& total_class_count = teacher.getClassCount();
+		const auto& total_day_work_load = teacher.getDayTotalWorkLoad();
 
-		const int max_teacher_work_load = teacher.getMaxWorkLoad();
+		const TimeDuration max_teacher_work_load = teacher.getMaxWorkLoad();
 		const TimeDuration break_time_duration = best_solution.timetable.getBreakTimeDuration();
 
 		for (const auto& [day, time_points_class_count] : daily_class_schedule) {
-			if (total_class_count.at(day) > max_teacher_work_load) {
+			if (total_day_work_load.at(day) > max_teacher_work_load) {
 				teacher_violations[EXCEED_WORKLOAD_INT][teacher_id]++;
 			}
 
@@ -229,7 +229,7 @@ void ABC::getViolation(int64_t* result_violation) {
 				}
 			}
 
-			if (!break_found && total_class_count.at(day) >= best_solution.timetable.getTeacherBreakThreshold()) {
+			if (!break_found && total_day_work_load.at(day) >= best_solution.timetable.getTeacherBreakThreshold()) {
 				teacher_violations[NO_BREAK_INT][teacher_id]++;
 			}
 		}

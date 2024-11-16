@@ -195,13 +195,13 @@ inline void logConflicts(
 		Teacher teacher = bee->timetable.getTeacherById(teacher_id);
 
 		const auto& daily_class_schedule = teacher.getUtilizedTime();
-		const auto& total_class_count = teacher.getClassCount();
+		const auto& total_day_work_load = teacher.getDayTotalWorkLoad();
 
-		const int max_teacher_work_load = teacher.getMaxWorkLoad();
+		const TimeDuration max_teacher_work_load = teacher.getMaxWorkLoad();
 		const TimeDuration break_time_duration = bee->timetable.getBreakTimeDuration();
 
 		for (const auto& [day, time_points_class_count] : daily_class_schedule) {
-			if (total_class_count.at(day) > max_teacher_work_load) {
+			if (total_day_work_load.at(day) > max_teacher_work_load) {
 				overall_total_teacher_violation.exceed_workload++;
 				teachers_total_violation[teacher_id].exceed_workload++;
 			}
@@ -252,7 +252,7 @@ inline void logConflicts(
 				}
 			}
 
-			if (!break_found && total_class_count.at(day) >= bee->timetable.getTeacherBreakThreshold()) {
+			if (!break_found && total_day_work_load.at(day) >= bee->timetable.getTeacherBreakThreshold()) {
 				overall_total_teacher_violation.no_break++;
 				teachers_total_violation[teacher_id].no_break++;
 			}

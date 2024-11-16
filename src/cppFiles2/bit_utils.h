@@ -2,8 +2,6 @@
 
 #include <cstdint>
 
-#include "bit_utils.h"
-
 inline int64_t pack5IntToInt64(int16_t a, int16_t b, int16_t c, int8_t d, int8_t e) {
 	int64_t result = 0;
 	result |= (static_cast<int64_t>(a) & 0xFFFF) << 48;

@@ -6,16 +6,16 @@
 int Teacher::teacher_count;
 std::unordered_set<TeacherID> Teacher::s_all_teachers;
 
-Teacher::Teacher(TeacherID id_, int max_work_load_, TimeDuration min_work_load_)
+Teacher::Teacher(TeacherID id_, TimeDuration max_work_load_, TimeDuration min_work_load_)
     : id(id_), max_work_load(max_work_load_), min_work_load(min_work_load_), utilized_time(), has_violation(false) {
 	for (int day = 1; day <= Timetable::getWorkWeek(); day++) {
-		class_count[static_cast<ScheduledDay>(day)] = 0;
+		day_total_work_load[static_cast<ScheduledDay>(day)] = 0;
 	}
 }
 
 void Teacher::initializeClass(int work_week) {
 	for (int day = 1; day <= work_week; ++day) {
-		class_count[static_cast<ScheduledDay>(day)] = 0;
+		day_total_work_load[static_cast<ScheduledDay>(day)] = 0;
 	}
 }
 
@@ -35,8 +35,8 @@ const std::unordered_map<ScheduledDay, std::map<TimePoint, int>> Teacher::getUti
 	return utilized_time;
 }
 
-const std::unordered_map<ScheduledDay, int> Teacher::getClassCount() const {
-	return class_count;
+const std::unordered_map<ScheduledDay, TimeDuration> Teacher::getDayTotalWorkLoad() const {
+	return day_total_work_load;
 }
 
 void Teacher::adjustUtilizedTime(int day, TimePoint timePoint, int value) {
@@ -46,20 +46,20 @@ void Teacher::adjustUtilizedTime(int day, TimePoint timePoint, int value) {
 void Teacher::incrementClassCount(ScheduledDay day) {
 	if (day == ScheduledDay::EVERYDAY) {
 		for (int day = 1; day <= Timetable::getWorkWeek(); day++) {
-			++class_count[static_cast<ScheduledDay>(day)];
+			++day_total_work_load[static_cast<ScheduledDay>(day)];
 		}
 	} else {
-		++class_count[day];
+		++day_total_work_load[day];
 	}
 }
 
 void Teacher::decrementClassCount(ScheduledDay day) {
 	if (day == ScheduledDay::EVERYDAY) {
 		for (int day = 1; day <= Timetable::getWorkWeek(); day++) {
-			--class_count[static_cast<ScheduledDay>(day)];
+			--day_total_work_load[static_cast<ScheduledDay>(day)];
 		}
 	} else {
-		--class_count[day];
+		--day_total_work_load[day];
 	}
 }
 

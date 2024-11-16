@@ -138,8 +138,8 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 							REQUIRE(old_teacher.getUtilizedTime().count(static_cast<ScheduledDay>(i)) == 1);
 							REQUIRE(new_teacher.getUtilizedTime().count(static_cast<ScheduledDay>(i)) == 1);
 
-							REQUIRE(old_teacher.getClassCount().count(static_cast<ScheduledDay>(i)) == 1);
-							REQUIRE(new_teacher.getClassCount().count(static_cast<ScheduledDay>(i)) == 1);
+							REQUIRE(old_teacher.getDayTotalWorkLoad().count(static_cast<ScheduledDay>(i)) == 1);
+							REQUIRE(new_teacher.getDayTotalWorkLoad().count(static_cast<ScheduledDay>(i)) == 1);
 						}
 					}
 
@@ -149,12 +149,12 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 
 							REQUIRE(old_teacher.getUtilizedTime().count(day) == 1);
 							;
-							REQUIRE(old_teacher.getClassCount().count(day) == 1);
+							REQUIRE(old_teacher.getDayTotalWorkLoad().count(day) == 1);
 							REQUIRE(new_teacher.getUtilizedTime().count(day) == 1);
-							REQUIRE(new_teacher.getClassCount().count(day) == 1);
+							REQUIRE(new_teacher.getDayTotalWorkLoad().count(day) == 1);
 
 							auto& old_teacher_utilized_time = old_teacher.getUtilizedTime().find(day)->second;
-							int old_teacher_class_count = old_teacher.getClassCount().find(day)->second;
+							int old_teacher_class_count = old_teacher.getDayTotalWorkLoad().find(day)->second;
 
 							print("old teacher utitlized time");
 
@@ -163,7 +163,7 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 							}
 
 							auto& new_teacher_utilized_time = new_teacher.getUtilizedTime().find(day)->second;
-							int new_teacher_class_count = new_teacher.getClassCount().find(day)->second;
+							int new_teacher_class_count = new_teacher.getDayTotalWorkLoad().find(day)->second;
 
 							auto& updated_section_utilized_teachers = old_section.getUtilizedTeachers();
 
