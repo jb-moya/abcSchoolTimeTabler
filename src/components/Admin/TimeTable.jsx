@@ -1,296 +1,373 @@
-import React from 'react';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import React, { useState } from 'react';
 import { convertToTime } from '../../utils/convertToTime';
 
-const GeneratedTimetable = ({
-    timetables,
-    field,
-    columnField,
-    onUpdateTimetables,
-    errors,
-}) => {
+const GeneratedTimetable = ({ timetables, field, columnField, onUpdateTimetables }) => {
     if (!timetables) return null;
 
-    const handleDragEnd = (result) => {
-        const { source, destination } = result;
+    const [draggedRow, setDraggedRow] = useState(null);
+    const [hoveredRow, setHoveredRow] = useState(null);
+    const [highlightPosition, setHighlightPosition] = useState(null);
 
-        if (!destination) return;
+    const handleDragStart = (e, tableID, rowIndex) => {
+        setDraggedRow({ tableID, rowIndex });
+        e.dataTransfer.effectAllowed = 'move';
+    };
 
-        if (
-            source.droppableId === destination.droppableId &&
-            source.index === destination.index
-        ) {
-            return;
+    const handleDragOver = (e, tableID, rowIndex) => {
+        e.preventDefault();
+
+        // Determine the drop position based on mouse position
+        const rect = e.currentTarget.getBoundingClientRect();
+        const dropPosition = (e.clientY - rect.top) / rect.height;
+
+        if (dropPosition <= 0.17) {
+            setHighlightPosition('top');
+        } else if (dropPosition >= 0.83) {
+            setHighlightPosition('bottom');
+        } else {
+            setHighlightPosition('middle');
         }
 
-        const updatedTimetables = JSON.parse(JSON.stringify(timetables));
-        const timetableID = source.droppableId;
-        const timetable = updatedTimetables[timetableID];
+        setHoveredRow({ tableID, rowIndex });
+    };
 
-        const startEndValues = Object.entries(timetable)
-            .filter(([key]) => key !== 'containerName')
-            .sort((a, b) => a[0] - b[0])
-            .map(([key, value]) => {
-                const innerValue = value['0'];
-                return {
-                    start: innerValue?.start,
-                    end: innerValue?.end,
-                };
-            });
+    const handleDrop = (e, tableID, rowIndex) => {
+        e.preventDefault();
+    
+        if (draggedRow && draggedRow.tableID === tableID) {
+            const rows = { ...timetables[tableID] };
+            console.log("rows: ", rows);
+            console.log("orig: ",timetables[tableID])
+            // Get the row keys (indexes)
+            const rowKeys = Object.keys(rows);
+            console.log("Row index:", rowIndex);
+            console.log("Row keys:", rowKeys);
+            
+            // Find the dragged row by index
+            const draggedRowKey = rowKeys[draggedRow.rowIndex];
+            const movedRow = rows[draggedRowKey];
+            console.log("Moved row:", movedRow);
+    
+            // Remove the dragged row from the rows
+            delete rows[draggedRowKey];
+    
+            if (highlightPosition === 'top' || highlightPosition === 'bottom') {
+                console.log(`moved ${highlightPosition}`);
+            
+                // Get the target row key
+                const targetRowKey = rowKeys[rowIndex];
+            
+                // Determine insert index based on position
+                var insertIndex = highlightPosition === 'top' ? rowIndex : rowIndex;
+                console.log("rows before : ",rows)
 
-        const rows = Object.entries(timetable).filter(
-            ([key]) => key !== 'containerName'
-        );
+                // Remove dragged row and insert it at the new position
+                if (draggedRow.rowIndex < rowIndex && highlightPosition === 'top') {
+                    insertIndex = insertIndex - 1;
+                }
 
-        const [movedRow] = rows.splice(source.index, 1);
-        rows.splice(destination.index, 0, movedRow);
+                if (draggedRow.rowIndex > rowIndex && highlightPosition === 'bottom') {
+                    insertIndex = insertIndex + 1;
+                }
+                rowKeys.splice(draggedRow.rowIndex, 1); // Remove dragged row key
+                rowKeys.splice(insertIndex, 0, draggedRowKey); // Insert dragged row key
+            
+                console.log("newRowKeys: ", rowKeys);
+                console.log("rows: ",rows)
+                // Rebuild the updatedRows object without including 'containerName'
+                console.log("moved row: ",movedRow);
+                console.log("insertIndex: ",insertIndex);
 
-        // Extract start and end values
+                const updatedRows = {};  // Initialize as an object
+                let index = 0;  // This will track the "position" where to add in updatedRows
+                
+                rowKeys.forEach(key => {
+                    if (key === 'containerName') {
+                        updatedRows[key] = rows[key];  // Add the row at the current key to the object
+                    } else {
+                        if (index === insertIndex) {  
+                            updatedRows[index] = movedRow;  // Add movedRow to the object at the current index
+                            console.log("inside updatedRow: ", updatedRows[index]);  // Log the added movedRow
+                        } else {
+                            updatedRows[index] = rows[key];  // Add the row at the current key to the object
+                        }
+                    }
 
-        // Update reorderedTimetable with startEndValues
-        const reorderedTimetable = rows.reduce(
-            (acc, [key, value], index) => {
-                const innerValue = value['0'];
-                const updatedEntry = innerValue
-                    ? { ...innerValue }
-                    : { ...value };
-                console.log('log here po no index', startEndValues);
+                    index++;  // Increment the index to maintain order
 
-                console.log('log here po', startEndValues[index]);
-                console.log('log here next', updatedEntry);
-
-                // Set updated start and end values from startEndValues
-                updatedEntry.start = startEndValues[index].start;
-                updatedEntry.end = startEndValues[index].end;
-
-                acc[index] = innerValue ? { 0: updatedEntry } : updatedEntry;
-                return acc;
-            },
-            { containerName: timetable.containerName }
-        );
-
-        updatedTimetables[timetableID] = reorderedTimetable;
-        onUpdateTimetables(updatedTimetables);
-        console.log('updated log', updatedTimetables);
-        // Example errors for testing
-        // Remove this later when passing errors as a prop
+                });
+                
+            
+                console.log("updatedRows: ", updatedRows);
+            
+                // Update the timetable state with the updated rows
+                onUpdateTimetables(prevTimetables => ({
+                    ...prevTimetables,
+                    [tableID]: updatedRows,
+                }));
+            }
+            
+            
+             else {
+                // Default: Swap rows
+                const targetRowKey = rowKeys[rowIndex];
+                const targetRow = rows[targetRowKey];
+                
+                rows[draggedRowKey] = targetRow;
+                rows[targetRowKey] = movedRow;
+                
+                console.log("rows: ",rows);
+                onUpdateTimetables(prevTimetables => ({
+                    ...prevTimetables,
+                    [tableID]: rows
+                }));
+            }
+    
+            console.log("Updated rows:", rows);
+    
+            // Reset states
+            setDraggedRow(null);
+            setHoveredRow(null);
+            setHighlightPosition(null);
+        }
     };
 
     return (
-        <DragDropContext onDragEnd={handleDragEnd}>
-            <div className="overflow-hidden">
-                {Object.entries(timetables).map(([timetableID, timetable]) => {
-                    const { containerName, ...rowTimetable } = timetable;
-                    console.log(timetable);
-                    return (
-                        <React.Fragment key={timetableID}>
-                            <div className="flex gap-4 font-bold items-center text-center mt-20">
-                                <div>{field}: </div>
-                                <div className="text-lg text-accent">
-                                    {containerName}
+        <div className="overflow-x-auto">
+            {Object.entries(timetables).map(([tableID, timetable]) => {
+                const { containerName, ...rowTimetable } = timetable;
+
+                return (
+                    <React.Fragment key={tableID}>
+                        <div className="flex gap-4 font-bold items-center text-center mt-10">
+                            <div>{field}: </div>
+                            <div className="text-lg text-accent">
+                                {containerName}
+                            </div>
+                        </div>
+                        <div className="flex bg-base-100">
+                            <div className="w-1/12">
+                                <div className="border border-primary-content">
+                                    Time
                                 </div>
                             </div>
-
-                            <div className="flex bg-base-100 h-full">
-                                {/* Time Table */}
-                                <div className="w-2/12 items-center">
-                                    <div className="border border-primary-content ">
-                                        Time
-                                    </div>
-                                    {Object.entries(rowTimetable).map(
-                                        ([_, row], index) => (
-                                            <div
-                                                key={index}
-                                                className="flex-col items-center  border-b border-primary-content h-11"
-                                            >
-                                                {convertToTime(row[0]?.start)} -{' '}
-                                                {convertToTime(row[0]?.end)}
-                                            </div>
-                                        )
-                                    )}
-                                </div>
-
-                                {/* Content Table */}
-                                <div className="w-10/12">
-                                    <div className="flex text-center w-full border border-primary-content">
-                                        {[
-                                            'Mon',
-                                            'Tue',
-                                            'Wed',
-                                            'Thu',
-                                            'Fri',
-                                        ].map((day, index) => (
+                            <div className="w-11/12">
+                                <div className="flex text-center w-full border border-primary-content">
+                                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(
+                                        (day, index) => (
                                             <div
                                                 key={index}
                                                 className="flex-1 border-r border-primary-content"
                                             >
                                                 {day}
                                             </div>
-                                        ))}
-                                    </div>
-                                    <Droppable
-                                        droppableId={timetableID}
-                                        type="ROW"
-                                    >
-                                        {(provided) => (
-                                            <div
-                                                ref={provided.innerRef}
-                                                {...provided.droppableProps}
-                                                className="flex flex-col h-full"
-                                            >
-                                                {Object.entries(
-                                                    rowTimetable
-                                                ).map(
-                                                    (
-                                                        [timeslot, row],
-                                                        index
-                                                    ) => {
-                                                        const consistent =
-                                                            '0' in row;
-
-                                                        const draggableId = `${timetableID}-${timeslot}`;
-
-                                                        // Check if this row has an error
-                                                        const hasError =
-                                                            errors?.containerName ===
-                                                                containerName &&
-                                                            errors?.sectionID?.includes(
-                                                                row[0]
-                                                                    ?.sectionID
-                                                            ) &&
-                                                            (errors?.subjectID?.includes(
-                                                                row[0]
-                                                                    ?.subjectID
-                                                            ) ||
-                                                                errors?.teacherID?.includes(
-                                                                    row[0]
-                                                                        ?.teacherID
-                                                                ));
-
-                                                        return (
-                                                            <Draggable
-                                                                key={
-                                                                    draggableId
-                                                                }
-                                                                draggableId={
-                                                                    draggableId
-                                                                }
-                                                                index={index}
-                                                            >
-                                                                {(provided) => (
-                                                                    <div
-                                                                        ref={
-                                                                            provided.innerRef
-                                                                        }
-                                                                        {...provided.draggableProps}
-                                                                        {...provided.dragHandleProps}
-                                                                        className={`flex items-center border-b border-primary-content h-11 ${
-                                                                            hasError
-                                                                                ? 'bg-red-500'
-                                                                                : 'bg-base-100'
-                                                                        }`}
-                                                                    >
-                                                                        <div className="w-full flex justify-center space-x-3">
-                                                                            {consistent ? (
-                                                                                <>
-                                                                                    {row[0][
-                                                                                        columnField[1]
-                                                                                    ] ||
-                                                                                    row[0][
-                                                                                        columnField[0]
-                                                                                    ] ? (
-                                                                                        <>
-                                                                                            <div>
-                                                                                                {
-                                                                                                    row[0][
-                                                                                                        columnField[1]
-                                                                                                    ]
-                                                                                                }
-                                                                                            </div>
-                                                                                            <div>
-                                                                                                {
-                                                                                                    row[0][
-                                                                                                        columnField[0]
-                                                                                                    ]
-                                                                                                }
-                                                                                            </div>
-                                                                                        </>
-                                                                                    ) : (
-                                                                                        <div className="opacity-60">
-                                                                                            Break
-                                                                                            Time
-                                                                                        </div>
-                                                                                    )}
-                                                                                </>
-                                                                            ) : (
-                                                                                <>
-                                                                                    {[
-                                                                                        '1',
-                                                                                        '2',
-                                                                                        '3',
-                                                                                        '4',
-                                                                                        '5',
-                                                                                    ].map(
-                                                                                        (
-                                                                                            day
-                                                                                        ) => (
-                                                                                            <div
-                                                                                                key={
-                                                                                                    day
-                                                                                                }
-                                                                                                className="w-1/5 text-center"
-                                                                                            >
-                                                                                                {row[
-                                                                                                    day
-                                                                                                ] ? (
-                                                                                                    <>
-                                                                                                        <div>
-                                                                                                            {
-                                                                                                                row[
-                                                                                                                    day
-                                                                                                                ][
-                                                                                                                    columnField[0]
-                                                                                                                ]
-                                                                                                            }
-                                                                                                        </div>
-                                                                                                        <div>
-                                                                                                            {
-                                                                                                                row[
-                                                                                                                    day
-                                                                                                                ][
-                                                                                                                    columnField[1]
-                                                                                                                ]
-                                                                                                            }
-                                                                                                        </div>
-                                                                                                    </>
-                                                                                                ) : (
-                                                                                                    <div className="opacity-60">
-                                                                                                        ----
-                                                                                                    </div>
-                                                                                                )}
-                                                                                            </div>
-                                                                                        )
-                                                                                    )}
-                                                                                </>
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </Draggable>
-                                                        );
-                                                    }
-                                                )}
-                                                {provided.placeholder}
-                                            </div>
-                                        )}
-                                    </Droppable>
+                                        )
+                                    )}
                                 </div>
                             </div>
-                        </React.Fragment>
-                    );
-                })}
-            </div>
-        </DragDropContext>
+                        </div>
+
+                        {Object.entries(rowTimetable).map(
+                            ([timeslot, row], index) => {
+                                const consistent = '0' in row;
+
+                                const isDragging =
+                                    draggedRow &&
+                                    draggedRow.tableID === tableID &&
+                                    draggedRow.rowIndex === index;
+                                const isHovered =
+                                    hoveredRow &&
+                                    hoveredRow.tableID === tableID &&
+                                    hoveredRow.rowIndex === index;
+
+                                const rowStyles = {
+                                    cursor: 'move',
+                                    backgroundColor: isDragging
+                                        ? '#f0f0f0'
+                                        : '#fff',
+                                    borderTop:
+                                        isHovered && highlightPosition === 'top'
+                                            ? '2px solid blue'
+                                            : isHovered && highlightPosition === 'middle'
+                                            ? '2px solid blue'
+                                            : '2px solid transparent',
+                                    borderBottom:
+                                        isHovered && highlightPosition === 'bottom'
+                                            ? '2px solid blue'
+                                            : isHovered && highlightPosition === 'middle'
+                                            ? '2px solid blue'
+                                            : '2px solid transparent',
+                                    borderLeft:
+                                        isHovered && highlightPosition === 'middle'
+                                            ? '2px solid blue'
+                                            : '2px solid transparent',
+                                    borderRight:
+                                        isHovered && highlightPosition === 'middle'
+                                            ? '2px solid blue'
+                                            : '2px solid transparent',
+                                };
+
+                                if (consistent) {
+                                    const startTime = convertToTime(
+                                        row[0].start
+                                    );
+                                    const endTime = convertToTime(
+                                        row[0].end
+                                    );
+                                    const teacher =
+                                        row[0][columnField[0]];
+                                    const subject =
+                                        row[0][columnField[1]];
+
+                                    return (
+                                        <div
+                                            key={timeslot}
+                                            draggable
+                                            onDragStart={(e) =>
+                                                handleDragStart(
+                                                    e,
+                                                    tableID,
+                                                    index
+                                                )
+                                            }
+                                            onDragOver={(e) =>
+                                                handleDragOver(
+                                                    e,
+                                                    tableID,
+                                                    index
+                                                )
+                                            }
+                                            onDrop={(e) =>
+                                                handleDrop(
+                                                    e,
+                                                    tableID,
+                                                    index
+                                                )
+                                            }
+                                            style={rowStyles}
+                                            className="flex bg-base-100 items-center"
+                                        >
+                                            <div className="w-1/12 text-sm text-center">
+                                                {startTime} - {endTime}
+                                            </div>
+
+                                            <div className="w-11/12 flex justify-center space-x-3">
+                                                {teacher && subject ? (
+                                                    <>
+                                                        <div>{subject}</div>
+                                                        <div>{teacher}</div>
+                                                    </>
+                                                ) : (
+                                                    <div className="opacity-60">
+                                                        Break Time
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                } else {
+                                    let startTime;
+                                    let endTime;
+                                    const keys = Object.keys(row);
+
+                                    if (keys.length > 0) {
+                                        const anyKey = keys[0];
+                                        startTime = convertToTime(
+                                            row[anyKey].start
+                                        );
+                                        endTime = convertToTime(
+                                            row[anyKey].end
+                                        );
+                                    } else {
+                                        console.error('No keys found.');
+                                    }
+
+                                    const days = ['1', '2', '3', '4', '5'];
+
+                                    return (
+                                        <div
+                                            key={timeslot}
+                                            draggable
+                                            onDragStart={(e) =>
+                                                handleDragStart(
+                                                    e,
+                                                    tableID,
+                                                    index
+                                                )
+                                            }
+                                            onDragOver={(e) =>
+                                                handleDragOver(
+                                                    e,
+                                                    tableID,
+                                                    index
+                                                )
+                                            }
+                                            onDrop={(e) =>
+                                                handleDrop(
+                                                    e,
+                                                    tableID,
+                                                    index
+                                                )
+                                            }
+                                            style={rowStyles}
+                                            className="flex bg-base-100 items-center"
+                                        >
+                                            <div className="w-1/12 text-sm text-center">
+                                                {startTime} - {endTime}
+                                            </div>
+
+                                            <div className="w-11/12">
+                                                <div className="flex text-center w-full items-center">
+                                                    {days.map((day) => {
+                                                        if (day in row) {
+                                                            return (
+                                                                <div
+                                                                    className="w-1/5"
+                                                                    key={day}
+                                                                >
+                                                                    <div>
+                                                                        {
+                                                                            row[
+                                                                                day
+                                                                            ][
+                                                                                columnField[0]
+                                                                            ]
+                                                                        }
+                                                                    </div>
+                                                                    <div>
+                                                                        {
+                                                                            row[
+                                                                                day
+                                                                            ][
+                                                                                columnField[1]
+                                                                            ]
+                                                                        }
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        } else {
+                                                            return (
+                                                                <div
+                                                                    className="w-1/5 opacity-60"
+                                                                    key={day}
+                                                                >
+                                                                    - - - - - -
+                                                                    -
+                                                                </div>
+                                                            );
+                                                        }
+                                                    })}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                            }
+                        )}
+                    </React.Fragment>
+                );
+            })}
+        </div>
     );
 };
 
