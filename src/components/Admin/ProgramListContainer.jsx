@@ -15,36 +15,6 @@ import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
 
-import Lottie from 'lottie-react';
-import animationData from '/public/SuccessAnimation.json'
-
-// const SuccessModal = ({ message, onClose }) => {
-//   return (
-//     <div className="modal modal-open flex items-center h-full w-full justify-center">
-//       <div className="modal-box flex flex-col items-center justify-center p-4"> {/* Added padding */}
-//         <div className="lottie-animation w-48 h-48">
-//           <Lottie
-//             animationData={
-//               animationData
-//             } // Replace with your Lottie JSON
-//             loop={false} // Ensures the animati on does not loop
-//           />
-//         </div>
-//         <h2 className="font-bold text-lg text-center">{message}</h2> {/* Center text */}
-//         <div className="modal-action">
-//           <button
-//             className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-//             onClick={onClose}
-//           >
-//             ✕
-//           </button>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-
 const AddProgramContainer = ({
   close,
   reduxField,

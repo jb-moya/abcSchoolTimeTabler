@@ -5,7 +5,7 @@ import "./index.css";
 // import { WasmProvider } from "./WasmContext.jsx";
 import store from "./store/store";
 import { Provider } from "react-redux";
-import { Toaster } from "sonner";
+import { Toaster, toast} from "sonner";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   // <React.StrictMode>

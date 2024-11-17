@@ -1,5 +1,5 @@
 import { openDB } from 'idb';
-import { toast } from 'sonner';
+import { Toaster, toast } from 'sonner'
 import * as XLSX from 'xlsx';
 
 export const DB_NAME = 'abcTimetable';
@@ -11,6 +11,7 @@ export const STORE_NAMES = {
   RANKS: 'ranks',
   SECTIONS: 'sections',
   PROGRAMS: 'programs',
+  DEPARTMENTS: 'departments',
 };
 
 export const initDB = async () => {
@@ -141,7 +142,19 @@ export const removeEntityFromDB = async (storeName, entityId) => {
 
     // console.log("eh dito?");
 
-    toast.success('Entity removed successfully');
+   
+    toast.success('Data removed successfully!', {
+      style: {
+        backgroundColor: '#28a745', 
+        color: '#fff',        
+        borderColor: '#28a745',   
+      },
+    });
+
+
+
+    <Toaster richColors  />
+
     return true;
 
   } catch (error) {
