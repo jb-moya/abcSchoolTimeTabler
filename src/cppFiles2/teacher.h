@@ -16,7 +16,7 @@ struct Teacher {
 	std::unordered_map<ScheduledDay, std::map<TimePoint, int>> utilized_time;
 	std::unordered_map<ScheduledDay, TimeDuration> day_total_work_load;
 
-	bool has_violation;;;;;;;;;;;;
+	bool has_violation;
 
    public:
 	static int teacher_count;

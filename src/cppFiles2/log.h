@@ -183,8 +183,8 @@ inline void logConflicts(
 		exit(1);
 	}
 
-	teacherViolation overall_total_teacher_violation = {0, 0, 0};
-	sectionViolation overall_total_section_violation = {0, 0, 0};
+	teacherViolation overall_total_teacher_violation{};
+	sectionViolation overall_total_section_violation{};
 
 	std::map<TeacherID, teacherViolation> teachers_total_violation;
 	std::map<SectionID, sectionViolation> sections_total_violation;
@@ -198,12 +198,19 @@ inline void logConflicts(
 		const auto& total_day_work_load = teacher.getDayTotalWorkLoad();
 
 		const TimeDuration max_teacher_work_load = teacher.getMaxWorkLoad();
+		const TimeDuration min_teacher_work_load = teacher.getMinWorkLoad();
+
 		const TimeDuration break_time_duration = bee->timetable.getBreakTimeDuration();
 
 		for (const auto& [day, time_points_class_count] : daily_class_schedule) {
 			if (total_day_work_load.at(day) > max_teacher_work_load) {
 				overall_total_teacher_violation.exceed_workload++;
 				teachers_total_violation[teacher_id].exceed_workload++;
+			}
+
+			if (total_day_work_load.at(day) < min_teacher_work_load) {
+				overall_total_teacher_violation.below_min_workload++;
+				teachers_total_violation[teacher_id].below_min_workload++;
 			}
 
 			if (time_points_class_count.size() == 0) {
@@ -323,6 +330,7 @@ inline void logConflicts(
 	log_file << "class timeslot overlap: " << overall_total_teacher_violation.class_timeslot_overlap << std::endl;
 	log_file << "no break: " << overall_total_teacher_violation.no_break << std::endl;
 	log_file << "exceed workload: " << overall_total_teacher_violation.exceed_workload << std::endl;
+	log_file << "below min workload: " << overall_total_teacher_violation.below_min_workload << std::endl;
 	log_file << std::endl;
 
 	log_file << "Section: " << std::endl;
@@ -410,6 +418,10 @@ inline void logConflicts(
 
 		if (teacher_violation.exceed_workload > 0) {
 			log_file << "." << std::setw(4) << " exceed workload: " << teacher_violation.exceed_workload << std::endl;
+		}
+
+		if (teacher_violation.below_min_workload > 0) {
+			log_file << "." << std::setw(4) << " below min workload: " << teacher_violation.below_min_workload << std::endl;
 		}
 	}
 

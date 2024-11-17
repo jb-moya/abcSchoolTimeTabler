@@ -179,11 +179,16 @@ void ABC::getViolation(int64_t* result_violation) {
 		const auto& total_day_work_load = teacher.getDayTotalWorkLoad();
 
 		const TimeDuration max_teacher_work_load = teacher.getMaxWorkLoad();
+		const TimeDuration min_teacher_work_load = teacher.getMinWorkLoad();
 		const TimeDuration break_time_duration = best_solution.timetable.getBreakTimeDuration();
 
 		for (const auto& [day, time_points_class_count] : daily_class_schedule) {
 			if (total_day_work_load.at(day) > max_teacher_work_load) {
-				teacher_violations[EXCEED_WORKLOAD_INT][teacher_id]++;
+				teacher_violations[EXCEED_MAX_WORKLOAD_INT][teacher_id]++;
+			}
+
+			if (total_day_work_load.at(day) < min_teacher_work_load) {
+				teacher_violations[BELOW_MIN_WORKLOAD_INT][teacher_id]++;
 			}
 
 			if (time_points_class_count.size() == 0) {

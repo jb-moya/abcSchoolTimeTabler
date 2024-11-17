@@ -27,6 +27,10 @@ int Teacher::getMaxWorkLoad() const {
 	return max_work_load;
 }
 
+int Teacher::getMinWorkLoad() const {
+	return min_work_load;
+}
+
 bool Teacher::hasViolation() const {
 	return has_violation;
 }

@@ -11,6 +11,7 @@ struct teacherViolation {
 	unsigned long long class_timeslot_overlap;
 	unsigned long long no_break;
 	unsigned long long exceed_workload;
+	unsigned long long below_min_workload;
 };
 
 struct sectionViolation {

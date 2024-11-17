@@ -16,11 +16,15 @@ struct ObjectiveFunction {
 			bee.total_cost = 0;
 		}
 
+		// print("what t ");
+		// ;
+
 		for (TeacherID teacher_id : update_teachers) {
 			if (!is_initial) {
 				bee.total_cost -= bee.teacher_violations[teacher_id].class_timeslot_overlap;
 				bee.total_cost -= bee.teacher_violations[teacher_id].no_break;
 				bee.total_cost -= bee.teacher_violations[teacher_id].exceed_workload;
+				bee.total_cost -= bee.teacher_violations[teacher_id].below_min_workload;
 			}
 
 			bee.resetTeacherViolation(teacher_id);
@@ -31,11 +35,18 @@ struct ObjectiveFunction {
 			const auto& total_day_work_load = teacher.getDayTotalWorkLoad();
 
 			const TimeDuration max_teacher_work_load = teacher.getMaxWorkLoad();
+			const TimeDuration min_teacher_work_load = teacher.getMinWorkLoad();
 			const TimeDuration break_time_duration = bee.timetable.getBreakTimeDuration();
 
 			for (const auto& [day, time_points_class_count] : daily_class_schedule) {
 				if (total_day_work_load.at(day) > max_teacher_work_load) {
-					bee.teacher_violations[teacher_id].exceed_workload += 5;
+					bee.teacher_violations[teacher_id].exceed_workload++;
+				}
+
+				// print("work load", total_day_work_load.at(day));;
+
+				if (total_day_work_load.at(day) < min_teacher_work_load) {
+					bee.teacher_violations[teacher_id].exceed_workload++;
 				}
 
 				if (show_penalty) {
@@ -107,15 +118,18 @@ struct ObjectiveFunction {
 				print("a", bee.teacher_violations[teacher_id].class_timeslot_overlap);
 				print("a", bee.teacher_violations[teacher_id].no_break);
 				print("a", bee.teacher_violations[teacher_id].exceed_workload);
+				print("a", bee.teacher_violations[teacher_id].below_min_workload);
 			}
 
 			bee.total_cost += bee.teacher_violations[teacher_id].class_timeslot_overlap;
 			bee.total_cost += bee.teacher_violations[teacher_id].no_break;
 			bee.total_cost += bee.teacher_violations[teacher_id].exceed_workload;
+			bee.total_cost += bee.teacher_violations[teacher_id].below_min_workload;
 
 			if (bee.teacher_violations[teacher_id].class_timeslot_overlap == 0 &&
 			    bee.teacher_violations[teacher_id].no_break == 0 &&
-			    bee.teacher_violations[teacher_id].exceed_workload == 0) {
+			    bee.teacher_violations[teacher_id].exceed_workload == 0 &&
+			    bee.teacher_violations[teacher_id].below_min_workload == 0) {
 				bee.timetable.teachers_with_conflicts.erase(teacher_id);
 			} else {
 				bee.timetable.teachers_with_conflicts.insert(teacher_id);

@@ -70,7 +70,7 @@ void test_generate_timetable() {
 	// 10 - 6- 24
 	// FIXME: address !!!important notes on logs2 folder
 
-	// is there a way to put async function that execute in parallel
+	// is there a way to put async function that execute in parallellk
 
 	int limit = (total_section * (num_teachers)) * .6;
 	int default_units = 0;
@@ -78,14 +78,18 @@ void test_generate_timetable() {
 
 	TimeDuration default_class_duration = 40;
 	TimeDuration break_time_duration = 30;
-	TimeDuration max_teacher_work_load = 900;
-	TimeDuration min_teacher_work_load = 700;
+	TimeDuration max_teacher_work_load = 300;
+	TimeDuration min_teacher_work_load = 10;
 	TimeDuration min_total_class_duration_for_two_breaks = 380;
 
 	int time_division = 10;
 	default_class_duration /= time_division;
 	break_time_duration /= time_division;
 	max_teacher_work_load /= time_division;
+	min_teacher_work_load /= time_division;
+
+	int workweek = 1;
+
 	min_total_class_duration_for_two_breaks /= time_division;
 
 	int offset = 2;
@@ -93,7 +97,6 @@ void test_generate_timetable() {
 	default_class_duration -= offset;
 	break_time_duration -= offset;
 
-	int workweek = 1;
 	int teacher_break_threshold = 4;
 	int common_subject_count = 9;
 
