@@ -43,7 +43,7 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 		bool is_dynamic_subject_consistent_duration = false;
 		int default_subject_units = 0;
 		TimeDuration default_subject_duration = 1;
-		Timeslot default_subject_order = 0;
+		Timeslot default_subject_fixed_timeslot = 0;
 
 		// Initialize Teacher and Section Sets
 		std::unordered_set<TeacherID> teachers_set;
@@ -77,7 +77,7 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 
 		WHEN("The Timetable is configured with subjects, sections, and teachers") {
 			for (int i = 0; i < total_unique_subject; ++i) {
-				timetable.addSubjectConfiguration(i, i, default_subject_duration, default_subject_units, default_subject_order);
+				timetable.addSubjectConfiguration(i, i, default_subject_duration, default_subject_units, default_subject_fixed_timeslot);
 			}
 			for (SectionID section_id = 0; section_id < total_section; section_id++) {
 				Section::s_all_sections.insert(section_id);

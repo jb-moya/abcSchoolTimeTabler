@@ -20,7 +20,7 @@ void runExperiment(
     int32_t* section_subjects,
     int32_t* subject_configuration_subject_units,
     int32_t* subject_configuration_subject_duration,
-    int32_t* subject_configuration_subject_order,
+    int32_t* subject_configuration_subject_fixed_timeslot,
     int32_t* section_start,
     int32_t* teacher_subjects,
     int32_t* teacher_week_load_config,
@@ -93,14 +93,14 @@ void runExperiment(
 			SubjectID subject_id;
 			int subject_units;
 			TimeDuration subject_duration;
-			Timeslot subject_order;
+			Timeslot subject_fixed_timeslot;
 
 			subject_id = static_cast<int>(subject_configuration_subject_units[subject_configuration_id] >> 16);
 			subject_units = static_cast<int>(subject_configuration_subject_units[subject_configuration_id] & 0xFFFF);
 			subject_duration = static_cast<int>(subject_configuration_subject_duration[subject_configuration_id] & 0xFFFF);
-			subject_order = static_cast<int>(subject_configuration_subject_order[subject_configuration_id] & 0xFFFF);
+			subject_fixed_timeslot = static_cast<int>(subject_configuration_subject_fixed_timeslot[subject_configuration_id] & 0xFFFF);
 
-			timetable.addSubjectConfiguration(subject_configuration_id, subject_id, subject_duration, subject_units, subject_order);
+			timetable.addSubjectConfiguration(subject_configuration_id, subject_id, subject_duration, subject_units, subject_fixed_timeslot);
 		}
 
 		for (SectionID i = 0; i < total_section; i++) {

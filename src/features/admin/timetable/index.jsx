@@ -46,10 +46,8 @@ function Timetable() {
     // Scope and Limitations
     // Room-Section Relationship: Each room is uniquely assigned to a specific subject, establishing a 1:1 relationship.
     // Due to this strict pairing, room allocation is not a factor in timetable generation.
-
     // Curriculum-Driven Course Selection: Students are required to follow a predefined curriculum.
     // They do not have the option to select subjects independently.
-
     // Standardized Class Start and Break Times: The start time for the first class and the timing of breaks are
     // standardized across all sections and teachers, ensuring uniformity in the daily schedule.
 
@@ -246,10 +244,6 @@ function Timetable() {
         const totalSections = Object.keys(sectionMap).length;
 
         const limits = totalTeachers * totalSections;
-
-        // for (let i = 0; i < totalSection; i++) {
-        //     sectionStartArray[i] = 0;
-        // }
 
         const sectionStarts = new Int32Array([...sectionStartArray]);
 

@@ -78,7 +78,7 @@ struct Timetable {
 
 	// Helper method to find a subject by name
 	std::shared_ptr<SubjectConfiguration> findSubjectConfigurationById(SubjectConfigurationID id);
-	void addSubjectConfiguration(SubjectConfigurationID subject_configuration_id, SubjectID subject_id, TimeDuration duration, int unit_count, int order);
+	void addSubjectConfiguration(SubjectConfigurationID subject_configuration_id, SubjectID subject_id, TimeDuration duration, int unit_count, Timeslot fixed_timeslot);
 
 	Section& getSectionById(SectionID section_id);
 	Teacher& getTeacherById(TeacherID teacher_id);

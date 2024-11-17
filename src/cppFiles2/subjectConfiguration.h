@@ -12,23 +12,23 @@ struct SubjectConfiguration {
 	const SubjectID subject_id;
 	const TimeDuration duration;
 	const int units;
-	const Timeslot order;
+	const Timeslot fixed_timeslot;
 
    public:
 	SubjectConfiguration(SubjectConfigurationID id_,
 	                     SubjectID subject_id_,
 	                     TimeDuration duration_,
 	                     int units_,
-	                     Timeslot order_)
+	                     Timeslot fixed_timeslot_)
 	    : id(id_),
 	      subject_id(subject_id_),
 	      duration(duration_),
 	      units(units_),
-	      order(order_) {}
+	      fixed_timeslot(fixed_timeslot_) {}
 
 	SubjectConfigurationID getSubjectConfigurationId() const;
 	SubjectID getSubjectId() const;
 	TimeDuration getDuration() const;
 	int getUnits() const;
-	Timeslot getOrder() const;
+	Timeslot getFixedTimeslot() const;
 };

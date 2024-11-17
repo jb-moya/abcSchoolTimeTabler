@@ -74,7 +74,7 @@ void test_generate_timetable() {
 
 	int limit = (total_section * (num_teachers)) * .6;
 	int default_units = 0;
-	Timeslot default_order = 0;
+	Timeslot default_fixed_timeslot = 0;
 
 	TimeDuration default_class_duration = 40;
 	TimeDuration break_time_duration = 30;
@@ -125,7 +125,7 @@ void test_generate_timetable() {
 
 	int32_t* teacher_week_load_config = allocate(num_teachers);
 
-	int32_t* subject_configuration_subject_order = allocate(num_subjects);
+	int32_t* subject_configuration_subject_fixed_timeslot = allocate(num_subjects);
 	int32_t* subject_configuration_subject_duration = allocate(num_subjects);
 	int32_t* subject_configuration_subject_units = allocate(num_subjects);
 	int32_t* section_configuration = allocate(total_section);
@@ -155,7 +155,7 @@ void test_generate_timetable() {
 
 	std::vector<std::vector<int>> subject_configure;
 	for (SubjectID subject_id = 0; subject_id < num_subjects; ++subject_id) {
-		subject_configure.push_back({subject_id, default_units, default_class_duration, default_order});
+		subject_configure.push_back({subject_id, default_units, default_class_duration, default_fixed_timeslot});
 	}
 
 	int number_of_subject_configuration = subject_configure.size();
@@ -163,11 +163,11 @@ void test_generate_timetable() {
 		SubjectID subject_configuration_subject_id = subject_configure[subject_configuration_id][0];
 		int subject_configuration_default_units = subject_configure[subject_configuration_id][1];
 		TimeDuration subject_configuration_default_class_duration = subject_configure[subject_configuration_id][2];
-		Timeslot subject_configuration_default_order = subject_configure[subject_configuration_id][3];
+		Timeslot subject_configuration_default_fixed_timeslot = subject_configure[subject_configuration_id][3];
 
 		subject_configuration_subject_units[subject_configuration_id] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_units);
 		subject_configuration_subject_duration[subject_configuration_id] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_class_duration);
-		subject_configuration_subject_order[subject_configuration_id] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_order);
+		subject_configuration_subject_fixed_timeslot[subject_configuration_id] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_fixed_timeslot);
 	}
 
 	for (int16_t section = 0; section < total_section; ++section) {
@@ -180,7 +180,7 @@ void test_generate_timetable() {
 				delete[] section_start;
 				delete[] teacher_subjects;
 				delete[] teacher_week_load_config;
-				delete[] subject_configuration_subject_order;
+				delete[] subject_configuration_subject_fixed_timeslot;
 				delete[] subject_configuration_subject_duration;
 				delete[] subject_configuration_subject_units;
 				delete[] section_configuration;
@@ -208,9 +208,9 @@ void test_generate_timetable() {
 	// because they're fixed...
 	// section_subject_units[0] = packInt16ToInt32(0, 4);
 	// section_subject_units[1] = packInt16ToInt32(1, 1);
-	// section_subject_order[0] = packInt16ToInt32(0, 1);
-	// section_subject_order[1] = packInt16ToInt32(1, 1);
-	// section_subject_order[2] = packInt16ToInt32(2, 2);
+	// section_subject_fixed_timeslot[0] = packInt16ToInt32(0, 1);
+	// section_subject_fixed_timeslot[1] = packInt16ToInt32(1, 1);
+	// section_subject_fixed_timeslot[2] = packInt16ToInt32(2, 2);
 	// section_subject_duration[2] = packInt16ToInt32(2, 10);
 	// REMINDER END
 	// section_subject_units[2] = packInt16ToInt32(2, 2);
@@ -228,14 +228,14 @@ void test_generate_timetable() {
 	// section_subject_duration[7] = packInt16ToInt32(7, 10);
 	// section_subject_units[0] = packInt16ToInt32(0, 2);
 	// section_subject_units[1] = packInt16ToInt32(1, 1);
-	// section_subject_order[0] = packInt16ToInt32(0, 1);
-	// section_subject_order[1] = packInt16ToInt32(1, 1);
-	// section_subject_order[0] = packInt16ToInt32(0, 2);
-	// section_subject_order[1] = packInt16ToInt32(1, 3);
-	// section_subject_order[2] = packInt16ToInt32(2, 4);
+	// section_subject_fixed_timeslot[0] = packInt16ToInt32(0, 1);
+	// section_subject_fixed_timeslot[1] = packInt16ToInt32(1, 1);
+	// section_subject_fixed_timeslot[0] = packInt16ToInt32(0, 2);
+	// section_subject_fixed_timeslot[1] = packInt16ToInt32(1, 3);
+	// section_subject_fixed_timeslot[2] = packInt16ToInt32(2, 4);
 	// section_subject_duration[2] = packInt16ToInt32(2, 10);
-	// section_subject_order[1] = packInt16ToInt32(1, -2);
-	// section_subject_order[7] = packInt16ToInt32(7, 1);
+	// section_subject_fixed_timeslot[1] = packInt16ToInt32(1, -2);
+	// section_subject_fixed_timeslot[7] = packInt16ToInt32(7, 1);
 	// section_subject_duration[1] = packInt16ToInt32(1, 1);
 	// section_subject_units[2] = packInt16ToInt32(2, 1);
 	// section_subject_units[3] = packInt16ToInt32(3, 4);
@@ -268,7 +268,7 @@ void test_generate_timetable() {
 	    section_subjects,
 	    subject_configuration_subject_units,
 	    subject_configuration_subject_duration,
-	    subject_configuration_subject_order,
+	    subject_configuration_subject_fixed_timeslot,
 	    section_start,
 	    teacher_subjects,
 	    teacher_week_load_config,
@@ -299,7 +299,7 @@ void test_generate_timetable() {
 	delete[] section_start;
 	delete[] teacher_subjects;
 	delete[] teacher_week_load_config;
-	delete[] subject_configuration_subject_order;
+	delete[] subject_configuration_subject_fixed_timeslot;
 	delete[] subject_configuration_subject_duration;
 	delete[] subject_configuration_subject_units;
 	delete[] section_configuration;

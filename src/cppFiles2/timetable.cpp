@@ -132,8 +132,8 @@ void Timetable::moveTeacherClassCountToNewDay(TeacherID teacher_id, ScheduledDay
 	getTeacherById(teacher_id).incrementClassCount(static_cast<ScheduledDay>(to_day));
 }
 
-void Timetable::addSubjectConfiguration(SubjectConfigurationID id, SubjectID subject_id, TimeDuration duration, int units, int order) {
-	auto subject_configuration = std::make_shared<SubjectConfiguration>(id, subject_id, duration, units, order);
+void Timetable::addSubjectConfiguration(SubjectConfigurationID id, SubjectID subject_id, TimeDuration duration, int units, Timeslot fixed_timeslot) {
+	auto subject_configuration = std::make_shared<SubjectConfiguration>(id, subject_id, duration, units, fixed_timeslot);
 	subject_configurations.push_back(subject_configuration);
 }
 
@@ -398,7 +398,7 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 		categorizeSubjects(section, full_week_day_subjects, special_unit_subjects);
 
 		for (const auto& subject_id : full_week_day_subjects) {
-			Timeslot order = section.getSubject(subject_id).getOrder();
+			Timeslot fixed_timeslot = section.getSubject(subject_id).getFixedTimeslot();
 
 			TimeDuration subject_duration = section.getSubject(subject_id).getDuration() * Timetable::getWorkWeek();  // TODO: not elegant
 			TeacherID queued_teacher = Timetable::s_subject_teacher_queue.getTeacher(subject_id, subject_duration);
@@ -410,7 +410,7 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 				getTeacherById(selected_teacher).incrementClassCount(static_cast<ScheduledDay>(day));
 			}
 
-			if (order == 0) {
+			if (fixed_timeslot == 0) {
 				Timeslot timeslot_key = timeslot_keys.front();
 
 				timeslot_keys.erase(std::remove(timeslot_keys.begin(), timeslot_keys.end(), timeslot_key), timeslot_keys.end());
@@ -421,7 +421,7 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 
 				timeslots.erase(timeslot_key);
 			} else {
-				Timeslot timeslot_key = order;
+				Timeslot timeslot_key = fixed_timeslot;
 
 				timeslot_keys.erase(std::remove(timeslot_keys.begin(), timeslot_keys.end(), timeslot_key), timeslot_keys.end());
 
@@ -435,7 +435,7 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 
 		int day = 1;
 		for (const auto& subject_id : special_unit_subjects) {
-			Timeslot order = section.getSubject(subject_id).getOrder();
+			Timeslot fixed_timeslot = section.getSubject(subject_id).getFixedTimeslot();
 			int units = section.getSubject(subject_id).getUnits();
 
 			TeacherID selected_teacher = getRandomTeacher(subject_id);
@@ -444,7 +444,7 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 			section.addUtilizedTeacher(selected_teacher);
 
 			for (int iter = 1; iter <= units; ++iter) {
-				if (order == 0) {
+				if (fixed_timeslot == 0) {
 					auto it = std::find_if(timeslot_keys.begin(), timeslot_keys.end(),
 					                       [&timeslots](int key) { return timeslots[key] > 0; });
 
@@ -465,7 +465,7 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 						timeslots.erase(timeslot);
 					}
 				} else {
-					Timeslot timeslot_key = order;
+					Timeslot timeslot_key = fixed_timeslot;
 
 					section.addClass(timeslot_key, static_cast<ScheduledDay>(day), SchoolClass{subject_id, selected_teacher});
 
