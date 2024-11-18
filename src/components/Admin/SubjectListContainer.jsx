@@ -52,10 +52,13 @@ const AddSubjectContainer = ({
 
   const subjects = useSelector((state) => state.subject.subjects);
 
+  const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
   const [subjectName, setSubjectName] = useState('');
   const [classSubjectDuration, setClassSubjectDuration] = useState(
     defaultSubjectClassDuration || 10 // Ensure it defaults to 10 if undefined
   );
+  const [subjectWeeklyMinutes, setSubjectWeeklyMinutes] = useState(100);
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
@@ -68,9 +71,13 @@ const AddSubjectContainer = ({
     } else if (!classSubjectDuration) {
       alert('Class duration cannot be empty');
       return;
+    } else if (!subjectWeeklyMinutes) {
+      alert('Subject weekly minutes cannot be empty');
+      return;
     }
 
     const classDuration = parseInt(classSubjectDuration, 10);
+    const weeklyMinutes = parseInt(subjectWeeklyMinutes, 10);
 
     const duplicateSubject = Object.values(subjects).find(
       (subject) => subject.subject.trim().toLowerCase() === subjectName.trim().toLowerCase()
@@ -83,6 +90,7 @@ const AddSubjectContainer = ({
         reduxFunction({
           subject: subjectName,
           classDuration: classDuration,
+          weeklyMinutes: weeklyMinutes,
         })
       );
   
@@ -93,6 +101,7 @@ const AddSubjectContainer = ({
       // Reset input fields
       setSubjectName('');
       setClassSubjectDuration(defaultSubjectClassDuration || 10);
+      setSubjectWeeklyMinutes(100);
   
       if (inputNameRef.current) {
         inputNameRef.current.focus();
@@ -107,6 +116,7 @@ const AddSubjectContainer = ({
   const handleReset = () => {
     setSubjectName('');
     setClassSubjectDuration(defaultSubjectClassDuration || 10);
+    setSubjectWeeklyMinutes(100);
   };
 
   useEffect(() => {
@@ -144,8 +154,24 @@ const AddSubjectContainer = ({
             setClassSubjectDuration(value);
           }}
           placeholder="Enter class duration"
-          step={10}
+          step={5}
           min={10}
+        />
+      </div>
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-2">
+          Subject's Weekly Time Requirement (minutes):
+        </label>
+        <input
+          type="number"
+          className="input input-bordered w-full"
+          value={subjectWeeklyMinutes}
+          onChange={(e) => {
+            const value = Number(e.target.value);
+            setSubjectWeeklyMinutes(value);
+          }}
+          placeholder="Enter subject's weekly minutes"
+          step={5}
         />
       </div>
       <div className="flex justify-center gap-2">
@@ -175,11 +201,14 @@ const SubjectListContainer = ({ editable = false }) => {
   const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
 
   const defaultSubjectClassDuration = localStorage.getItem('defaultSubjectClassDuration');
+  const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   const [editSubjectId, setEditSubjectId] = useState(null);
   const [searchSubjectResult, setSearchSubjectResult] = useState(subjects);
   const [editSubjectValue, setEditSubjectValue] = useState('');
   const [editClassDuration, setEditClassDuration] = useState(0);
+  const [editSubjectWeeklyMinutes, setEditSubjectWeeklyMinutes] = useState(0);
+
   const [searchSubjectValue, setSearchSubjectValue] = useState('');
   const [openAddSubjectContainer, setOpenAddSubjectContainer] = useState(false);
 
@@ -191,6 +220,7 @@ const SubjectListContainer = ({ editable = false }) => {
     setEditSubjectId(subject.id);
     setEditSubjectValue(subject.subject);
     setEditClassDuration(subject.classDuration);
+    setEditSubjectWeeklyMinutes(subject.weeklyMinutes);
   };
 
   const handleSaveSubjectEditClick = (subjectId) => {
@@ -200,6 +230,9 @@ const SubjectListContainer = ({ editable = false }) => {
       return;
     } else if (!editClassDuration) {
       alert('Class duration cannot be empty');
+      return;
+    } else if (!editSubjectWeeklyMinutes) {
+      alert('Subject weekly minutes cannot be empty');
       return;
     }
 
@@ -212,6 +245,7 @@ const SubjectListContainer = ({ editable = false }) => {
           updatedSubject: {
             subject: editSubjectValue,
             classDuration: editClassDuration,
+            weeklyMinutes: editSubjectWeeklyMinutes,
           },
         })
       );
@@ -236,6 +270,7 @@ const SubjectListContainer = ({ editable = false }) => {
             updatedSubject: {
               subject: editSubjectValue,
               classDuration: editClassDuration,
+              weeklyMinutes: editSubjectWeeklyMinutes,
             },
           })
         );
@@ -246,6 +281,7 @@ const SubjectListContainer = ({ editable = false }) => {
         setEditSubjectId(null);
         setEditSubjectValue('');
         setEditClassDuration(0);
+        setEditSubjectWeeklyMinutes(0);
       }
     }
   };  
@@ -254,13 +290,8 @@ const SubjectListContainer = ({ editable = false }) => {
     setEditSubjectId(null);
     setEditSubjectValue('');
     setEditClassDuration(0);
+    setEditSubjectWeeklyMinutes(0);
   };
-
-  useEffect(() => {
-    if (subjectStatus === 'idle') {
-      dispatch(fetchSubjects());
-    }
-  }, [subjectStatus, dispatch]);
 
   const debouncedSearch = useCallback(
     debounce((searchValue, subjects) => {
@@ -278,6 +309,12 @@ const SubjectListContainer = ({ editable = false }) => {
     }, 200),
     []
   );
+  
+  useEffect(() => {
+    if (subjectStatus === 'idle') {
+      dispatch(fetchSubjects());
+    }
+  }, [subjectStatus, dispatch]);
 
   useEffect(() => {
     debouncedSearch(searchSubjectValue, subjects);
@@ -302,90 +339,89 @@ const SubjectListContainer = ({ editable = false }) => {
     <div className="w-full">
 
       <div className="flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5">
-      {/* Pagination */}
-      {currentItems.length > 0 && (
-        <div className="join flex justify-center  mb-4 md:mb-0">
-          <button
-            className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
-            onClick={() => {
-              if (currentPage > 1) {
-                setCurrentPage(currentPage - 1);
-              }
-              handleCancelSubjectEditClick();
-            }}
-            disabled={currentPage === 1}
-          >
-            «
-          </button>
-          <button className="join-item btn">
-            Page {currentPage} of {totalPages}
-          </button>
-          <button
-            className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
-            onClick={() => {
-              if (currentPage < totalPages) {
-                setCurrentPage(currentPage + 1);
-              }
-              handleCancelSubjectEditClick();
-            }}
-            disabled={currentPage === totalPages}
-          >
-            »
-          </button>
+        {/* Pagination */}
+        {currentItems.length > 0 && (
+          <div className="join flex justify-center  mb-4 md:mb-0">
+            <button
+              className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
+              onClick={() => {
+                if (currentPage > 1) {
+                  setCurrentPage(currentPage - 1);
+                }
+                handleCancelSubjectEditClick();
+              }}
+              disabled={currentPage === 1}
+            >
+              «
+            </button>
+            <button className="join-item btn">
+              Page {currentPage} of {totalPages}
+            </button>
+            <button
+              className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
+              onClick={() => {
+                if (currentPage < totalPages) {
+                  setCurrentPage(currentPage + 1);
+                }
+                handleCancelSubjectEditClick();
+              }}
+              disabled={currentPage === totalPages}
+            >
+              »
+            </button>
+          </div>
+        )}
+
+        {currentItems.length === 0 && currentPage > 1 && (
+          <div className="hidden">
+            {setCurrentPage(currentPage - 1)}
+          </div>
+        )}
+
+        {/* Search Subject */}
+        <div className="flex-grow w-full md:w-1/3 lg:w-1/4">
+          <label className="input input-bordered flex items-center gap-2 w-full">
+            <input
+              type="text"
+              className="grow p-3 text-sm w-full"
+              placeholder="Search Subject"
+              value={searchSubjectValue}
+              onChange={(e) => setSearchSubjectValue(e.target.value)}
+            />
+            <IoSearch className="text-xl" />
+          </label>
         </div>
-      )}
 
-      {currentItems.length === 0 && currentPage > 1 && (
-        <div className="hidden">
-          {setCurrentPage(currentPage - 1)}
-        </div>
-      )}
+        {/* Add Subject Button (only when editable) */}
+        {editable && (
+          <div className="w-full mt-4 md:mt-0 md:w-auto">
+            <button
+              className="btn btn-primary h-12 flex items-center justify-center w-full md:w-52"
+              onClick={() => document.getElementById('add_subject_modal').showModal()}
+            >
+              Add Subject <IoAdd size={20} className="ml-2" />
+            </button>
 
-      {/* Search Subject */}
-      <div className="flex-grow w-full md:w-1/3 lg:w-1/4">
-        <label className="input input-bordered flex items-center gap-2 w-full">
-          <input
-            type="text"
-            className="grow p-3 text-sm w-full"
-            placeholder="Search Subject"
-            value={searchSubjectValue}
-            onChange={(e) => setSearchSubjectValue(e.target.value)}
-          />
-          <IoSearch className="text-xl" />
-        </label>
-      </div>
-
-      {/* Add Subject Button (only when editable) */}
-      {editable && (
-        <div className="w-full mt-4 md:mt-0 md:w-auto">
-          <button
-            className="btn btn-primary h-12 flex items-center justify-center w-full md:w-52"
-            onClick={() => document.getElementById('add_subject_modal').showModal()}
-          >
-            Add Subject <IoAdd size={20} className="ml-2" />
-          </button>
-
-          {/* Modal for adding subject */}
-          <dialog id="add_subject_modal" className="modal modal-bottom sm:modal-middle">
-            <div className="modal-box">
-              <AddSubjectContainer
-                close={() => document.getElementById('add_subject_modal').close()}
-                reduxFunction={addSubject}
-                defaultSubjectClassDuration={defaultSubjectClassDuration}
-              />
-              <div className="modal-action">
-                <button
-                  className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                  onClick={() => document.getElementById('add_subject_modal').close()}
-                >
-                  ✕
-                </button>
+            {/* Modal for adding subject */}
+            <dialog id="add_subject_modal" className="modal modal-bottom sm:modal-middle">
+              <div className="modal-box">
+                <AddSubjectContainer
+                  close={() => document.getElementById('add_subject_modal').close()}
+                  reduxFunction={addSubject}
+                  defaultSubjectClassDuration={defaultSubjectClassDuration}
+                />
+                <div className="modal-action">
+                  <button
+                    className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                    onClick={() => document.getElementById('add_subject_modal').close()}
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
-            </div>
-          </dialog>
-        </div>
-      )}
-
+            </dialog>
+          </div>
+        )}
       </div>
 
       {/* Table */}
@@ -393,10 +429,12 @@ const SubjectListContainer = ({ editable = false }) => {
         <table className="table table-sm table-zebra md:table-md w-full">
           <thead>
             <tr>
-              <th className="w-8">#</th>
-              <th>Subject ID</th>
+              {/* <th className="w-8">#</th> */}
+              <th>ID</th>
               <th>Subject</th>
-              <th>Class Duration</th>
+              <th>Duration (min)</th>
+              <th>Weekly Requirement (min)</th>
+              <th># of Classes</th>
               {editable && <th className="text-left">Actions</th>}
             </tr>
           </thead>
@@ -410,7 +448,7 @@ const SubjectListContainer = ({ editable = false }) => {
             ) : (
               currentItems.map(([, subject], index) => (
                 <tr key={subject.id} className="group hover">
-                  <td>{index + indexOfFirstItem + 1}</td>
+                  {/* <td>{index + indexOfFirstItem + 1}</td> */}
                   <th>{subject.id}</th>
                   <td>
                     {editSubjectId === subject.id ? (
@@ -439,8 +477,28 @@ const SubjectListContainer = ({ editable = false }) => {
                         min={10}
                       />
                     ) : (
-                      `${subject.classDuration} mins`
+                      `${subject.classDuration}`
                     )}
+                  </td>
+                  <td>
+                    {editSubjectId === subject.id ? (
+                      <input
+                        type="number"
+                        value={editSubjectWeeklyMinutes}
+                        onChange={(e) => {
+                          const newDuration = Number(e.target.value);
+                          setEditSubjectWeeklyMinutes(newDuration);
+                        }}
+                        className="input input-bordered input-sm w-full"
+                        placeholder="Enter subject weekly minutes"
+                        step={5}
+                      />
+                    ) : (
+                        `${subject.weeklyMinutes}`
+                    )}
+                  </td>
+                  <td>
+                    {Math.floor(subject.weeklyMinutes / subject.classDuration)}
                   </td>
                   {editable && (
                     <td className="w-28 text-right">

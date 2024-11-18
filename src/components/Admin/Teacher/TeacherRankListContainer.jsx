@@ -52,13 +52,17 @@ const AddTeacherRankContainer = ({
   const dispatch = useDispatch();
 
   const [rankValue, setRankValue] = useState('');
-  const [rankLoad, setRankLoad] = useState(1800);
+  // const [rankLoad, setRankLoad] = useState(1800);
 
-  const rankLoadInHours = rankLoad / 60;
+  // const rankLoadInHours = rankLoad / 60;
   
   const handleAddRank = () => {
 
-    if (!rankValue.trim() || rankLoad === 0) {
+    // if (!rankValue.trim() || rankLoad === 0) {
+    //   alert('All fields are required.');
+    //   return;
+    // }
+    if (!rankValue.trim()) {
       alert('All fields are required.');
       return;
     }
@@ -74,7 +78,7 @@ const AddTeacherRankContainer = ({
       dispatch(
         reduxFunction({
           rank: rankValue,
-          load: rankLoad,
+          // load: rankLoad,
         })
       );
     }
@@ -91,7 +95,7 @@ const AddTeacherRankContainer = ({
 
   const handleReset = () => {
     setRankValue('');
-    setRankLoad(1800);
+    // setRankLoad(1800);
   };
 
   useEffect(() => {
@@ -132,7 +136,7 @@ const AddTeacherRankContainer = ({
       </div>
 
       {/* Rank Load */}
-      <div className="mb-4">
+      {/* <div className="mb-4">
         <label className="block text-sm font-medium mb-1" htmlFor="rankLoad">
           Input Rank Load (hours):
         </label>
@@ -147,6 +151,7 @@ const AddTeacherRankContainer = ({
           step={1}
         />
       </div>
+      */}
     
       <div className="flex justify-center gap-4 mt-4">
         <button className="btn btn-secondary" onClick={handleReset}>
@@ -170,12 +175,12 @@ const TeacherRankListContainer = ({ editable = false }) => {
 
   const [editRankId, setEditRankId] = useState(null);
   const [editRankValue, setEditRankValue] = useState('');
-  const [editRankLoad, setEditRankLoad] = useState(1800);
+  // const [editRankLoad, setEditRankLoad] = useState(1800);
 
   const [searchRankResult, setSearchRankResult] = useState(ranks);
   const [searchRankValue, setSearchRankValue] = useState('');
 
-  const rankLoadInHours = editRankLoad / 60;
+  // const rankLoadInHours = editRankLoad / 60;
 
   const handleRankLoadChange = (e) => {
     setEditRankLoad(Number(e.target.value) * 60);
@@ -184,12 +189,16 @@ const TeacherRankListContainer = ({ editable = false }) => {
   const handleEditRankClick = (rank) => {
     setEditRankId(rank.id);
     setEditRankValue(rank.rank);
-    setEditRankLoad(rank.load);
+    // setEditRankLoad(rank.load);
   };
 
   const handleSaveRankEditClick = (rankId) => {
 
-    if (!editRankValue.trim() || editRankLoad === 0) {
+    // if (!editRankValue.trim() || editRankLoad === 0) {
+    //   alert('All fields are required.');
+    //   return;
+    // }
+    if (!editRankValue.trim()) {
       alert('All fields are required.');
       return;
     }
@@ -202,14 +211,14 @@ const TeacherRankListContainer = ({ editable = false }) => {
           rankId,
           updatedRank: {
             rank: editRankValue,
-            load: editRankLoad,
+            // load: editRankLoad,
           },
         })
       );
 
       setEditRankId(null);
       setEditRankValue('');
-      setEditRankLoad(0);
+      // setEditRankLoad(0);
     } else {
       const duplicateRank = Object.values(ranks).find(
         (rank) => rank.rank.trim().toLowerCase() === editRankValue.trim().toLowerCase()
@@ -224,13 +233,13 @@ const TeacherRankListContainer = ({ editable = false }) => {
             rankId,
             updatedRank: {
               rank: editRankValue,
-              load: editRankLoad,
+              // load: editRankLoad,
             },
           })
         );
         setEditRankId(null);
         setEditRankValue('');
-        setEditRankLoad(0);
+        // setEditRankLoad(0);
       }
     }
   };
@@ -238,7 +247,7 @@ const TeacherRankListContainer = ({ editable = false }) => {
   const handleCancelRankEditClick = () => {
     setEditRankId(null);
     setEditRankValue('');
-    setEditRankLoad(0);
+    // setEditRankLoad(0);
   };
 
   const debouncedSearch = useCallback(
@@ -382,7 +391,7 @@ const TeacherRankListContainer = ({ editable = false }) => {
               <th className="w-8">#</th>
               <th className="whitespace-nowrap">Rank ID</th>
               <th className="whitespace-nowrap">Rank</th>
-              <th className="whitespace-nowrap max-w-xs">Weekly Load (hours)</th>
+              {/* <th className="whitespace-nowrap max-w-xs">Weekly Load (hours)</th> */}
               {editable && <th className="w-28 text-right">Actions</th>}
             </tr>
           </thead>
@@ -410,7 +419,7 @@ const TeacherRankListContainer = ({ editable = false }) => {
                       rank.rank
                     )}
                   </td>
-                  <td className="flex gap-1 flex-wrap">
+                  {/* <td className="flex gap-1 flex-wrap">
                     {editRankId === rank.id ? (
                       <>
                         <div className="mb-4">
@@ -432,7 +441,7 @@ const TeacherRankListContainer = ({ editable = false }) => {
                     ) : (
                       rank.load / 60
                     )}
-                  </td>
+                  </td> */}
                   {editable && (
                     <td className="w-28 text-right">
                       {editRankId === rank.id ? (

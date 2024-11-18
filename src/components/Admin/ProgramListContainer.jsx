@@ -57,8 +57,7 @@ const AddProgramContainer = ({
   const programs = useSelector((state) => state.program.programs);
   const dispatch = useDispatch();
 
-  // const [showSuccessModal, setShowSuccessModal] = useState(false);
-  // const [modalMessage, setModalMessage] = useState('');
+  const numOfSchoolDays = localStorage.getItem('numOfSchoolDays');
 
   const [inputValue, setInputValue] = useState('');
   const [selectedSubjects, setSelectedSubjects] = useState({
@@ -66,6 +65,18 @@ const AddProgramContainer = ({
     8: [],
     9: [],
     10: [],
+  });
+  const [fixedDays, setFixedDays] = useState({
+    7: {},
+    8: {},
+    9: {},
+    10: {},
+  });
+  const [fixedPositions, setFixedPositions] = useState({
+    7: {},
+    8: {},
+    9: {},
+    10: {},
   });
   const [selectedShifts, setSelectedShifts] = useState({
     7: 0, // 0 for AM, 1 for PM
@@ -113,7 +124,25 @@ const AddProgramContainer = ({
   const handleSubjectSelection = (grade, selectedList) => {
     setSelectedSubjects((prevState) => ({
       ...prevState,
-      [grade]: selectedList,
+      [grade]: selectedList, // Update selected subjects for the grade
+    }));
+  
+    setFixedDays((prevState) => ({
+      ...prevState,
+      [grade]: selectedList.reduce((acc, subjectID) => {
+        acc[subjectID] = prevState[grade]?.[subjectID] || {
+          0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, // Sequence is Monday to Sunday
+      };
+        return acc;
+      }, {}),
+    }));
+
+    setFixedPositions((prevState) => ({
+      ...prevState,
+      [grade]: selectedList.reduce((acc, subjectID) => {
+        acc[subjectID] = prevState[grade]?.[subjectID] ?? 0;
+        return acc;
+      }, {}),
     }));
   };
 
@@ -127,6 +156,19 @@ const AddProgramContainer = ({
     setStartTimes((prevTimes) => ({
       ...prevTimes,
       [grade]: defaultTime,
+    }));
+  };
+
+  const handleFixedDaysSelection = (grade, subjectID, dayIndex) => {
+    setFixedDays((prevState) => ({
+      ...prevState,
+      [grade]: {
+        ...prevState[grade],
+        [subjectID]: {
+          ...prevState[grade][subjectID],
+          [dayIndex]: prevState[grade]?.[subjectID]?.[dayIndex] === 1 ? 0 : 1,
+        },
+      },
     }));
   };
 
@@ -172,21 +214,29 @@ const AddProgramContainer = ({
           [reduxField[0]]: inputValue,
           7: {
             subjects: selectedSubjects[7],
+            fixedDays: fixedDays[7],
+            fixedPositions: fixedPositions[7],
             shift: selectedShifts[7],
             startTime: getTimeSlotIndex(startTimes[7]),
           },
           8: {
             subjects: selectedSubjects[8],
+            fixedDays: fixedDays[8],
+            fixedPositions: fixedPositions[8],
             shift: selectedShifts[8],
             startTime: getTimeSlotIndex(startTimes[8]),
           },
           9: {
             subjects: selectedSubjects[9],
+            fixedDays: fixedDays[9],
+            fixedPositions: fixedPositions[9],
             shift: selectedShifts[9],
             startTime: getTimeSlotIndex(startTimes[9]),
           },
           10: {
             subjects: selectedSubjects[10],
+            fixedDays: fixedDays[10],
+            fixedPositions: fixedPositions[10],
             shift: selectedShifts[10],
             startTime: getTimeSlotIndex(startTimes[10]),
           },
@@ -227,6 +277,14 @@ const AddProgramContainer = ({
     }
   }, []);
 
+  // useEffect(() => {
+  //   console.log('fixedDays:', fixedDays);
+  // }, [fixedDays]);
+
+  // useEffect(() => {
+  //   console.log('fixedPositions:', fixedPositions);
+  // }, [fixedPositions]);
+
   const handleCloseModal = () => {
     setShowSuccessModal(false);
   };
@@ -254,29 +312,10 @@ const AddProgramContainer = ({
       </div>
     
       {/* Subject and shift management */}
-      <div className="flex flex-col space-y-4">
+      <div className="text-sm flex flex-col space-y-4">
         {[7, 8, 9, 10].map((grade) => (
           <div key={grade} className="bg-white shadow-md rounded-lg p-4">
-            <h3 className="text-lg font-bold mb-2">{`Grade ${grade}`}</h3>
-    
-            {/* Subject selection */}
-            <div className="flex items-center mb-2 py-4 flex-wrap">
-              <div className="m-1">
-                <SearchableDropdownToggler
-                  selectedList={selectedSubjects[grade]}
-                  setSelectedList={(list) => handleSubjectSelection(grade, list)}
-                />
-              </div>
-              {selectedSubjects[grade] && Array.isArray(selectedSubjects[grade]) ? (
-                selectedSubjects[grade].map((subjectID) => (
-                  <div key={subjectID} className="badge badge-secondary m-1 whitespace-nowrap">
-                    {subjects[subjectID]?.subject || subjectID}
-                  </div>
-                ))
-              ) : (
-                <div>No subjects selected</div>
-              )}
-            </div>
+            <h3 className="font-bold mb-2">{`Grade ${grade}`}</h3>
     
             {/* Shift selection */}
             <div className="mt-2 mb-2">
@@ -311,6 +350,100 @@ const AddProgramContainer = ({
               >
                 {renderTimeOptions(selectedShifts[grade])}
               </select>
+            </div>
+
+            {/* Subject selection */}
+            <div className="flex items-center mb-2 py-4 flex-wrap">
+              <div className="m-1">
+                <SearchableDropdownToggler
+                  selectedList={selectedSubjects[grade]}
+                  setSelectedList={(list) => handleSubjectSelection(grade, list)}
+                />
+              </div>
+            </div>
+            <div>
+              <table className="min-w-full bg-white font-normal border border-gray-300">
+                <thead>
+                  <tr>
+                    <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Subject</th>
+                    <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Duration (min)</th>
+                    <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Weekly Minutes</th>
+                    <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Fixed Days</th>
+                    <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Fixed Position</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedSubjects[grade] && Array.isArray(selectedSubjects[grade]) ? (
+                    selectedSubjects[grade].map((subjectID) => (
+                      <tr key={subjectID}>
+                        {/* Subject */}
+                        <td className='p-2'> 
+                          {subjects[subjectID]?.subject || 'Unknown Subject, ID: ' + subjectID}
+                        </td>
+                        {/* Duration */}
+                        <td className='p-2'>
+                          {subjects[subjectID]?.classDuration || 'N/A'}
+                        </td>
+                        {/* Weekly Minutes */}
+                        <td className='p-2'>
+                          {subjects[subjectID]?.weeklyMinutes || 'N/A'}
+                        </td>
+                        {/* Fixed Days */}
+                        <td className="p-2">
+                          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+                            .slice(0, numOfSchoolDays)
+                            .map((day, index) => {
+                              const weeklyMinutes = subjects[subjectID]?.weeklyMinutes || 0;
+                              const classDuration = subjects[subjectID]?.classDuration || 1;
+                              const requiredClasses = Math.ceil(weeklyMinutes / classDuration);
+
+                              const disabledDays = requiredClasses >= numOfSchoolDays;
+                              const selectedDaysCount = Object.values(fixedDays[grade]?.[subjectID] || {}).filter(Boolean).length;
+
+                              return (
+                                <label key={index} className="flex items-center">
+                                  <input
+                                    type="checkbox"
+                                    className="mr-1"
+                                    checked={fixedDays[grade]?.[subjectID]?.[index] || false}
+                                    onChange={() => handleFixedDaysSelection(grade, subjectID, index)}
+                                    disabled={disabledDays ||selectedDaysCount >= requiredClasses && !fixedDays[grade]?.[subjectID]?.[index]} // Disable if the condition is met
+                                  />
+                                  {day}
+                                </label>
+                              );
+                            })}
+                        </td>
+                        {/* Fixed Position */}
+                        <td className='p-2'>
+                          <input
+                            type="number"
+                            className="input input-bordered w-full"
+                            min={0}
+                            max={selectedSubjects[grade]?.length || 0}
+                            value={fixedPositions[grade]?.[subjectID] || 0}
+                            onChange={(e) => {
+                              const value = Math.min(
+                                Math.max(0, parseInt(e.target.value) || 0),
+                                selectedSubjects[grade]?.length || 0
+                              );
+                              setFixedPositions((prevState) => ({
+                                ...prevState,
+                                [grade]: {
+                                  ...prevState[grade],
+                                  [subjectID]: value,
+                                },
+                              }));
+                            }}
+                          />
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <div>No subjects selected</div>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         ))}
@@ -352,6 +485,7 @@ const ProgramListContainer = ({ editable = false }) => {
     (state) => state.subject
   );
 
+  const numOfSchoolDays = localStorage.getItem('numOfSchoolDays');
   const morningStartTime =
     localStorage.getItem('morningStartTime') || '06:00 AM';
   const afternoonStartTime =
@@ -370,12 +504,24 @@ const ProgramListContainer = ({ editable = false }) => {
     9: 0,
     10: 0,
   });
-
   const [startTimes, setStartTimes] = useState({
     7: '06:00 AM',
     8: '06:00 AM',
     9: '06:00 AM',
     10: '06:00 AM',
+  });
+
+  const [editFixedDays, setEditFixedDays] = useState({
+    7: {},
+    8: {},
+    9: {},
+    10: {},
+  });
+  const [editFixedPositions, setEditFixedPositions] = useState({ 
+    7: {},
+    8: {},
+    9: {},  
+    10: {},
   });
 
   const renderTimeOptions = (shift) => {
@@ -395,6 +541,47 @@ const ProgramListContainer = ({ editable = false }) => {
         {time}
       </option>
     ));
+  };
+
+  const handleSubjectSelection = (grade, selectedList) => {
+    console.log('grade', grade);
+    console.log('selectedList', selectedList);
+
+    setEditProgramCurr((prevState) => ({
+      ...prevState,
+      [grade]: selectedList, // Update selected subjects for the grade
+    }));
+  
+    setEditFixedDays((prevState) => ({
+      ...prevState,
+      [grade]: selectedList.reduce((acc, subjectID) => {
+        acc[subjectID] = prevState[grade]?.[subjectID] || {
+          0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, // Sequence is Monday to Sunday
+      };
+        return acc;
+      }, {}),
+    }));
+
+    setEditFixedPositions((prevState) => ({
+      ...prevState,
+      [grade]: selectedList.reduce((acc, subjectID) => {
+        acc[subjectID] = prevState[grade]?.[subjectID] ?? 0;
+        return acc;
+      }, {}),
+    }));
+  };
+
+  const handleFixedDaysSelection = (grade, subjectID, dayIndex) => {
+    setEditFixedDays((prevState) => ({
+      ...prevState,
+      [grade]: {
+        ...prevState[grade],
+        [subjectID]: {
+          ...prevState[grade][subjectID],
+          [dayIndex]: prevState[grade]?.[subjectID]?.[dayIndex] === 1 ? 0 : 1,
+        },
+      },
+    }));
   };
 
   const handleShiftSelection = (grade, shift) => {
@@ -430,6 +617,18 @@ const ProgramListContainer = ({ editable = false }) => {
       8: program[8]?.shift || 0,
       9: program[9]?.shift || 0,
       10: program[10]?.shift || 0,
+    });
+    setEditFixedDays({
+      7: program[7]?.fixedDays || {},
+      8: program[8]?.fixedDays || {},
+      9: program[9]?.fixedDays || {},
+      10: program[10]?.fixedDays || {},
+    });
+    setEditFixedPositions({
+      7: program[7]?.fixedPositions || {},
+      8: program[8]?.fixedPositions || {},
+      9: program[9]?.fixedPositions || {},
+      10: program[10]?.fixedPositions || {},
     });
   };
 
@@ -474,59 +673,91 @@ const ProgramListContainer = ({ editable = false }) => {
             program: editProgramValue,
             7: {
               subjects: editProgramCurr[7],
+              fixedDays: editFixedDays[7],
+              fixedPositions: editFixedPositions[7],
               shift: selectedShifts[7],
               startTime: getTimeSlotIndex(startTimes[7] || '06:00 AM'),
             },
             8: {
               subjects: editProgramCurr[8],
+              fixedDays: editFixedDays[8],
+              fixedPositions: editFixedPositions[8],
               shift: selectedShifts[8],
               startTime: getTimeSlotIndex(startTimes[8] || '06:00 AM'),
             },
             9: {
               subjects: editProgramCurr[9],
+              fixedDays: editFixedDays[9],
+              fixedPositions: editFixedPositions[9],
               shift: selectedShifts[9],
               startTime: getTimeSlotIndex(startTimes[9] || '06:00 AM'),
             },
             10: {
               subjects: editProgramCurr[10],
+              fixedDays: editFixedDays[10],
+              fixedPositions: editFixedPositions[10],
               shift: selectedShifts[10],
               startTime: getTimeSlotIndex(startTimes[10] || '06:00 AM'),
             },
           },
         })
       );
-      dispatch(
-        updateSectionsForProgramYear({
-          programId,
-          yearLevel: 7,
-          newSubjects: editProgramCurr[7], // Subjects for Grade 7
-        })
-      );
-      dispatch(
-        updateSectionsForProgramYear({
-          programId,
-          yearLevel: 8,
-          newSubjects: editProgramCurr[8], // Subjects for Grade 8
-        })
-      );
-      dispatch(
-        updateSectionsForProgramYear({
-          programId,
-          yearLevel: 9,
-          newSubjects: editProgramCurr[9], // Subjects for Grade 9
-        })
-      );
-      dispatch(
-        updateSectionsForProgramYear({
-          programId,
-          yearLevel: 10,
-          newSubjects: editProgramCurr[10], // Subjects for Grade 10
-        })
-      );
+      // dispatch(
+      //   updateSectionsForProgramYear({
+      //     programId,
+      //     yearLevel: 7,
+      //     newSubjects: editProgramCurr[7], // Subjects for Grade 7
+      //   })
+      // );
+      // dispatch(
+      //   updateSectionsForProgramYear({
+      //     programId,
+      //     yearLevel: 8,
+      //     newSubjects: editProgramCurr[8], // Subjects for Grade 8
+      //   })
+      // );
+      // dispatch(
+      //   updateSectionsForProgramYear({
+      //     programId,
+      //     yearLevel: 9,
+      //     newSubjects: editProgramCurr[9], // Subjects for Grade 9
+      //   })
+      // );
+      // dispatch(
+      //   updateSectionsForProgramYear({
+      //     programId,
+      //     yearLevel: 10,
+      //     newSubjects: editProgramCurr[10], // Subjects for Grade 10
+      //   })
+      // );
   
       setEditProgramId(null);
       setEditProgramValue('');
       setEditProgramCurr([]);
+      setStartTimes({
+        7: '06:00 AM',
+        8: '06:00 AM',
+        9: '06:00 AM',
+        10: '06:00 AM',
+      });
+      setSelectedShifts({
+        7: 0,
+        8: 0,
+        9: 0,
+        10: 0,
+      });
+      setEditFixedDays({
+        7: {},
+        8: {},
+        9: {},
+        10: {},
+      });
+      setEditFixedPositions({
+        7: {},
+        8: {},
+        9: {},
+        10: {},
+      });
     } else {
       const duplicateProgram = Object.values(programs).find(
         (program) => program.program.trim().toLowerCase() === editProgramValue.trim().toLowerCase()
@@ -542,59 +773,91 @@ const ProgramListContainer = ({ editable = false }) => {
               program: editProgramValue,
               7: {
                 subjects: editProgramCurr[7],
+                fixedDays: editFixedDays[7],
+                fixedPositions: editFixedPositions[7],
                 shift: selectedShifts[7],
                 startTime: getTimeSlotIndex(startTimes[7] || '06:00 AM'),
               },
               8: {
                 subjects: editProgramCurr[8],
+                fixedDays: editFixedDays[8],
+                fixedPositions: editFixedPositions[8],
                 shift: selectedShifts[8],
                 startTime: getTimeSlotIndex(startTimes[8] || '06:00 AM'),
               },
               9: {
                 subjects: editProgramCurr[9],
+                fixedDays: editFixedDays[9],
+                fixedPositions: editFixedPositions[9],
                 shift: selectedShifts[9],
                 startTime: getTimeSlotIndex(startTimes[9] || '06:00 AM'),
               },
               10: {
                 subjects: editProgramCurr[10],
+                fixedDays: editFixedDays[10],
+                fixedPositions: editFixedPositions[10],
                 shift: selectedShifts[10],
                 startTime: getTimeSlotIndex(startTimes[10] || '06:00 AM'),
               },
             },
           })
         );
-        dispatch(
-          updateSectionsForProgramYear({
-            programId,
-            yearLevel: 7,
-            newSubjects: editProgramCurr[7], // Subjects for Grade 7
-          })
-        );
-        dispatch(
-          updateSectionsForProgramYear({
-            programId,
-            yearLevel: 8,
-            newSubjects: editProgramCurr[8], // Subjects for Grade 8
-          })
-        );
-        dispatch(
-          updateSectionsForProgramYear({
-            programId,
-            yearLevel: 9,
-            newSubjects: editProgramCurr[9], // Subjects for Grade 9
-          })
-        );
-        dispatch(
-          updateSectionsForProgramYear({
-            programId,
-            yearLevel: 10,
-            newSubjects: editProgramCurr[10], // Subjects for Grade 10
-          })
-        );
+        // dispatch(
+        //   updateSectionsForProgramYear({
+        //     programId,
+        //     yearLevel: 7,
+        //     newSubjects: editProgramCurr[7], // Subjects for Grade 7
+        //   })
+        // );
+        // dispatch(
+        //   updateSectionsForProgramYear({
+        //     programId,
+        //     yearLevel: 8,
+        //     newSubjects: editProgramCurr[8], // Subjects for Grade 8
+        //   })
+        // );
+        // dispatch(
+        //   updateSectionsForProgramYear({
+        //     programId,
+        //     yearLevel: 9,
+        //     newSubjects: editProgramCurr[9], // Subjects for Grade 9
+        //   })
+        // );
+        // dispatch(
+        //   updateSectionsForProgramYear({
+        //     programId,
+        //     yearLevel: 10,
+        //     newSubjects: editProgramCurr[10], // Subjects for Grade 10
+        //   })
+        // );
     
         setEditProgramId(null);
         setEditProgramValue('');
         setEditProgramCurr([]);
+        setStartTimes({
+          7: '06:00 AM',
+          8: '06:00 AM',
+          9: '06:00 AM',
+          10: '06:00 AM',
+        });
+        setSelectedShifts({
+          7: 0,
+          8: 0,
+          9: 0,
+          10: 0,
+        });
+        setEditFixedDays({
+          7: {},
+          8: {},
+          9: {},
+          10: {},
+        });
+        setEditFixedPositions({
+          7: {},
+          8: {},
+          9: {},
+          10: {},
+        });
       }
     }
 
@@ -615,6 +878,18 @@ const ProgramListContainer = ({ editable = false }) => {
       8: 0,
       9: 0,
       10: 0,
+    });
+    setEditFixedDays({
+      7: {},
+      8: {},
+      9: {},
+      10: {},
+    });
+    setEditFixedPositions({
+      7: {},
+      8: {},
+      9: {},
+      10: {},
     });
   };
 
@@ -647,6 +922,10 @@ const ProgramListContainer = ({ editable = false }) => {
     }, 200),
     []
   );
+
+  useEffect(() => {
+    console.log('editFixedDays', editFixedDays, 'editFixedPositions', editFixedPositions);
+  }, [editFixedDays, editFixedPositions]);
 
   useEffect(() => {
     debouncedSearch(searchProgramValue, programs, subjects);
@@ -732,11 +1011,11 @@ const ProgramListContainer = ({ editable = false }) => {
               className="btn btn-primary h-12 flex items-center justify-center w-full md:w-52"
               onClick={() => document.getElementById('add_program_modal').showModal()}
             >
-              Add Section <IoAdd size={20} className="ml-2" />
+              Add Program <IoAdd size={20} className="ml-2" />
             </button>
 
             <dialog id="add_program_modal" className="modal modal-bottom sm:modal-middle">
-              <div className="modal-box">
+              <div className="modal-box" style={{ width: '50%', maxWidth: 'none' }}>
                 <AddProgramContainer
                   close={() => document.getElementById('add_program_modal').close()}
                   reduxField={['program', 'subjects']}
@@ -744,7 +1023,7 @@ const ProgramListContainer = ({ editable = false }) => {
                   morningStartTime={morningStartTime}
                   afternoonStartTime={afternoonStartTime}
                 />
-                <div className="modal-action">
+                <div className="modal-action w-full">
                   <button
                     className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
                     onClick={() => document.getElementById('add_program_modal').close()}
@@ -795,115 +1074,231 @@ const ProgramListContainer = ({ editable = false }) => {
                     )}
                   </td>
                   <td className=''> {/* This can remain as is for additional styling */}
-                  {editProgramId === program.id ? (
-                    <>
-                      {[7, 8, 9, 10].map((grade) => (
-                        <div key={grade} className="my-2">
-                          <h3 className="font-bold">{`Grade ${grade}`}</h3>
-                          <div className="mt-2">
-                            <label className="mr-2">Shift:</label>
-                            <label className="mr-2">
-                              <input
-                                type="radio"
-                                value={selectedShifts[grade]}
-                                checked={selectedShifts[grade] === 0}
-                                onChange={() =>
-                                  handleShiftSelection(grade, 0)
-                                }
-                              />
-                              AM
-                            </label>
-                            <label>
-                              <input
-                                type="radio"
-                                value={selectedShifts[grade]}
-                                checked={selectedShifts[grade] === 1}
-                                onChange={() =>
-                                  handleShiftSelection(grade, 1)
-                                }
-                              />
-                              PM
-                            </label>
-                          </div>
-                          <div>
-                            <label>Start Time:</label>
-                            <select
-                              value={startTimes[grade]}
-                              onChange={(e) => {
-                                const newValue = e.target.value;
-                                setStartTimes((prevState) => ({
-                                  ...prevState,
-                                  [grade]: newValue,
-                                }));
-                              }}
-                            >
-                              {renderTimeOptions(selectedShifts[grade])}
-                            </select>
-                          </div>
-                          <div className="m-1">Selected Subjects:</div>
-                          {editProgramCurr[grade] &&
-                          Array.isArray(editProgramCurr[grade]) &&
-                          subjects ? (
-                            editProgramCurr[grade].map((subjectID) => (
-                              <div
-                                key={subjectID}
-                                className="badge badge-secondary m-1"
+                    {editProgramId === program.id ? (
+                      <>
+                        {[7, 8, 9, 10].map((grade) => (
+                          <div key={grade} className="my-2">
+                            <h3 className="font-bold">{`Grade ${grade}`}</h3>
+                            <div className="mt-2">
+                              <label className="mr-2">Shift:</label>
+                              <label className="mr-2">
+                                <input
+                                  type="radio"
+                                  value={selectedShifts[grade]}
+                                  checked={selectedShifts[grade] === 0}
+                                  onChange={() =>
+                                    handleShiftSelection(grade, 0)
+                                  }
+                                />
+                                AM
+                              </label>
+                              <label>
+                                <input
+                                  type="radio"
+                                  value={selectedShifts[grade]}
+                                  checked={selectedShifts[grade] === 1}
+                                  onChange={() =>
+                                    handleShiftSelection(grade, 1)
+                                  }
+                                />
+                                PM
+                              </label>
+                            </div>
+                            <div>
+                              <label>Start Time:</label>
+                              <select
+                                value={startTimes[grade]}
+                                onChange={(e) => {
+                                  const newValue = e.target.value;
+                                  setStartTimes((prevState) => ({
+                                    ...prevState,
+                                    [grade]: newValue,
+                                  }));
+                                }}
                               >
-                                   {subjects[subjectID]?.subject || subjectID}
-                              </div>
-                            ))
-                          ) : (
-                            <div>No subjects selected</div>
-                          )}
-                          
-                          <SearchableDropdownToggler
-                            selectedList={editProgramCurr[grade]}
-                            setSelectedList={(list) =>
-                              setEditProgramCurr((prevState) => ({
-                                ...prevState,
-                                [grade]: list,
-                              }))
-                            }
-                          />
-                        </div>
-                      ))}
-                    </>
-                  ) : (
-                    <div>
-                      {[7, 8, 9, 10].map((grade) => (
-                        <div key={grade} className="my-4">
-                          <h3 className="font-bold">{`Grade ${grade}`}</h3>
-                          <div className="flex items-center mt-2">
-                            <span className="inline-block bg-blue-500 text-white text-xs font-semibold py-1 px-3 rounded-lg">
-                              {program[`${grade}`]?.shift === 0 ? 'AM' : 'PM'}
-                            </span>
-                            <span className="ml-2 text-sm font-medium">
-                              {getTimeSlotString(
-                                program[`${grade}`]?.startTime || 0
-                              )}
-                            </span>
+                                {renderTimeOptions(selectedShifts[grade])}
+                              </select>
+                            </div>
+
+                            <SearchableDropdownToggler
+                              selectedList={editProgramCurr[grade]}
+                              setSelectedList={(list) => handleSubjectSelection(grade, list)}
+                            />
+
+                            <div className="overflow-x-auto mt-2">
+                              <table className="min-w-full bg-white border border-gray-300">
+                                <thead>
+                                  <tr>
+                                    <th className="py-2 px-4 border-b border-gray-200 text-left">Subject</th>
+                                    <th className="py-2 px-4 border-b border-gray-200 text-left">Duration</th>
+                                    <th className="py-2 px-4 border-b border-gray-200 text-left">Weekly Minutes</th>
+                                    <th className="py-2 px-4 border-b border-gray-200 text-left">Fixed Days</th>
+                                    <th className="py-2 px-4 border-b border-gray-200 text-left">Fixed Position</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {Array.isArray(editProgramCurr[grade]) && editProgramCurr[grade].length > 0 ? (
+                                    editProgramCurr[grade].map((subjectID) => {
+                                      const fixedDaysForSubject = editFixedDays?.[grade]?.[subjectID];
+                                      const fixedPositionForSubject = editFixedPositions?.[grade]?.[subjectID];
+
+                                      return (
+                                        <tr key={subjectID}>
+                                          {/* Subject ID */}
+                                          <td className="py-2 px-4 border-b border-gray-200">
+                                            {subjects[subjectID]?.subject || 'Unknown Subject, ID: ' + subjectID}
+                                          </td>
+
+                                          {/* Duration */}
+                                          <td className="py-2 px-4 border-b border-gray-200">
+                                            {subjects[subjectID]?.classDuration || ''}
+                                          </td>
+
+                                          {/* Weekly Minutes */}
+                                          <td className="py-2 px-4 border-b border-gray-200">
+                                            {subjects[subjectID]?.weeklyMinutes || ''} 
+                                          </td>
+
+                                          {/* Fixed Days */}
+                                          <td className="py-2 px-4 border-b border-gray-200">
+                                            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+                                            .slice(0, numOfSchoolDays)
+                                            .map((day, index) => {
+                                              const weeklyMinutes = subjects[subjectID]?.weeklyMinutes || 0;
+                                              const classDuration = subjects[subjectID]?.classDuration || 1;
+                                              const requiredClasses = Math.ceil(weeklyMinutes / classDuration);
+
+                                              const disabledDays = requiredClasses >= numOfSchoolDays;
+                                              const selectedDaysCount = Object.values(editFixedDays[grade]?.[subjectID] || {}).filter(Boolean).length;
+
+                                              return (
+                                                <label key={index} className="flex items-center">
+                                                  <input
+                                                    type="checkbox"
+                                                    className="mr-1"
+                                                    checked={editFixedDays[grade]?.[subjectID]?.[index] || false}
+                                                    onChange={() => handleFixedDaysSelection(grade, subjectID, index)}
+                                                    disabled={disabledDays ||selectedDaysCount >= requiredClasses && !editFixedDays[grade]?.[subjectID]?.[index]} // Disable if the condition is met
+                                                  />
+                                                  {day}
+                                                </label>
+                                              );
+                                            })}
+                                          </td>
+                                          
+                                          {/* Fixed Position */}
+                                          <td className="py-2 px-4 border-b border-gray-200">
+                                            {/* {fixedPositionForSubject || ''} */}
+                                            <input
+                                              type="number"
+                                              className="input input-bordered w-full"
+                                              min={0}
+                                              max={editProgramCurr[grade]?.length || 0}
+                                              value={editFixedPositions[grade]?.[subjectID] || 0}
+                                              onChange={(e) => {
+                                                const value = Math.min(
+                                                  Math.max(0, parseInt(e.target.value) || 0),
+                                                  editProgramCurr[grade]?.length || 0
+                                                );
+                                                setEditFixedPositions((prevState) => ({
+                                                  ...prevState,
+                                                  [grade]: {
+                                                    ...prevState[grade],
+                                                    [subjectID]: value,
+                                                  },
+                                                }));
+                                              }}
+                                            />
+                                          </td>
+                                        </tr>
+                                      );
+                                    })
+                                  ) : (
+                                    <tr>
+                                      <td colSpan="4" className="py-2 px-4 text-center border-b border-gray-200">
+                                        No subjects selected
+                                      </td>
+                                    </tr>
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+                            
+                            
                           </div>
-                          <div className="mt-2">
-                            {Array.isArray(program[`${grade}`]?.subjects) &&
-                            program[`${grade}`].subjects.length > 0 ? (
-                              program[`${grade}`].subjects.map(
-                                (subjectID) => (
-                                  <div
-                                    key={subjectID}
-                                    className="badge badge-secondary m-1"
-                                  >
-                                    {subjects[subjectID]?.subject || subjectID}
-                                  </div>
-                                )
-                              )
-                            ) : (
-                              <div>No subjects selected</div>
-                            )}
+                        ))}
+                      </>
+                    ) : (
+                      <div>
+                        {[7, 8, 9, 10].map((grade) => (
+                          <div key={grade} className="my-4">
+                            <h3 className="font-bold">{`Grade ${grade}`}</h3>
+                            <div className="flex items-center mt-2">
+                              <span className="inline-block bg-blue-500 text-white text-xs font-semibold py-1 px-3 rounded-lg">
+                                {program[`${grade}`]?.shift === 0 ? 'AM' : 'PM'}
+                              </span>
+                              <span className="ml-2 text-sm font-medium">
+                                {getTimeSlotString(
+                                  program[`${grade}`]?.startTime || 0
+                                )}
+                              </span>
+                            </div>
+
+                            {/* Table for Subjects */}
+                            <div className="overflow-x-auto mt-2">
+                              <table className="min-w-full bg-white border border-gray-300">
+                                <thead>
+                                  <tr>
+                                    <th className="py-2 px-4 border-b border-gray-200 text-left">Subject</th>
+                                    <th className="py-2 px-4 border-b border-gray-200 text-left">Duration</th>
+                                    <th className="py-2 px-4 border-b border-gray-200 text-left">Weekly Minutes</th>
+                                    <th className="py-2 px-4 border-b border-gray-200 text-left">Fixed Days</th>
+                                    <th className="py-2 px-4 border-b border-gray-200 text-left">Fixed Position</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {Array.isArray(program[`${grade}`]?.subjects) && program[`${grade}`].subjects.length > 0 ? (
+                                    program[`${grade}`].subjects.map((subjectID) => {
+
+                                      const fixedDaysForSubject = program[`${grade}`]?.fixedDays?.[subjectID];
+                                      const fixedPositionForSubject = program[`${grade}`]?.fixedPositions?.[subjectID];
+
+                                      return (
+                                        <tr key={subjectID}>
+                                          <td className="py-2 px-4 border-b border-gray-200">
+                                            {subjects[subjectID]?.subject || 'Unknown Subject, ID: ' + subjectID}
+                                          </td>
+                                          <td className="py-2 px-4 border-b border-gray-200">
+                                            {subjects[subjectID]?.classDuration || ''}
+                                          </td>
+                                          <td className="py-2 px-4 border-b border-gray-200">
+                                            {subjects[subjectID]?.weeklyMinutes || ''} 
+                                          </td>
+                                          <td className="py-2 px-4 border-b border-gray-200">
+                                            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
+                                              return fixedDaysForSubject[index] === 1 ? <div key={day}>• {day}</div> : null;
+                                            })}
+                                          </td>
+                                          <td className="py-2 px-4 border-b border-gray-200">
+                                            {fixedPositionForSubject || ''}
+                                          </td>
+                                        </tr>
+                                      );
+                                    })
+                                  ) : (
+                                    <tr>
+                                      <td colSpan="4" className="py-2 px-4 text-center border-b border-gray-200">
+                                        No subjects selected
+                                      </td>
+                                    </tr>
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    )}
                   </td>
                   {editable && (
                     <td>
