@@ -78,8 +78,6 @@ class Section {
 	ScheduledDay getRandomClassTimeslotWorkingDays(Timeslot timeslot) const;
 	std::unordered_set<ScheduledDay> getAllScheduledDayOnClasstimeslot(Timeslot timeslot) const;
 
-	const std::unordered_map<Timeslot, std::set<ScheduledDay>>& getFixedTimeslotDay() const;
-
 	bool hasViolation() const;
 	bool isDynamicSubjectConsistentDuration() const;
 
@@ -97,7 +95,6 @@ class Section {
 
 	void addBreakSlot(Timeslot break_slot);
 	void addSegmentedTimeSlot(Timeslot timeslot);
-	void addFixedTimeSlotDay(Timeslot timeslot, ScheduledDay day);
 	void addDynamicTimeSlotDay(Timeslot timeslot, ScheduledDay day);
 
 	void removeBreakSlot(Timeslot timeslot);

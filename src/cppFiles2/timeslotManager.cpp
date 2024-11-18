@@ -18,9 +18,7 @@ void TimeslotManager::removeSegmentedTimeSlot(Timeslot timeslot) {
 void TimeslotManager::addSegmentedTimeSlot(Timeslot timeslot) {
 	segmented_timeslot.insert(timeslot);
 }
-const std::unordered_map<Timeslot, std::set<ScheduledDay>>& TimeslotManager::getFixedTimeslotDay() const {
-	return fixed_timeslot_day;
-}
+
 ClassStartEnd TimeslotManager::getClassStartTime(Timeslot timeslot) const {
 	if (time_range.find(timeslot) == time_range.end()) {
 		print("cannot find timeslot", timeslot);
@@ -60,9 +58,7 @@ Timeslot TimeslotManager::getRandomDynamicTimeslot() const {
 	std::uniform_int_distribution<int> dis_work_day(0, dynamic_timeslot.size() - 1);
 	return dynamic_timeslot[dis_work_day(randomizer_engine)];
 }
-void TimeslotManager::addFixedTimeSlotDay(Timeslot timeslot, ScheduledDay day) {
-	fixed_timeslot_day[timeslot].insert(day);
-}
+
 void TimeslotManager::addDynamicTimeSlotDay(Timeslot timeslot, ScheduledDay day) {
 	dynamic_timeslot_day[timeslot].insert(day);
 	dynamic_timeslot.push_back(timeslot);

@@ -427,8 +427,6 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 
 				section.addClass(timeslot_key, ScheduledDay::EVERYDAY, SchoolClass{subject_id, selected_teacher});
 
-				section.addFixedTimeSlotDay(timeslot_key, ScheduledDay::EVERYDAY);
-
 				timeslots.erase(timeslot_key);
 			}
 		}
@@ -471,7 +469,6 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 
 					section.addSegmentedTimeSlot(timeslot_key);
 
-					section.addFixedTimeSlotDay(timeslot_key, static_cast<ScheduledDay>(day));
 
 					if (--timeslots[timeslot_key] == 0) {
 						timeslot_keys.erase(std::remove(timeslot_keys.begin(), timeslot_keys.end(), timeslot_key), timeslot_keys.end());
@@ -501,7 +498,6 @@ std::pair<Timeslot, Timeslot> Timetable::pickRandomTimeslots(Section& selected_s
 
 	int timeslot_count = selected_section.getTotalTimeslot();
 	auto& section_break_slots = selected_section.getBreakSlots();
-	auto& fixed_timeslot_day = selected_section.getFixedTimeslotDay();
 
 	if (field == 0) {
 		bool is_timeslot_1_at_start_or_end_of_schedule = false;
