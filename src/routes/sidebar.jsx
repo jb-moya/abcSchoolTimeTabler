@@ -55,6 +55,11 @@ const routes = [
         icon: <DocumentIcon className={submenuIconClasses} />,
         name: 'Modify Section',
       },
+      {
+        path: '/app/admin/modify-sections',
+        icon: <DocumentIcon className={submenuIconClasses} />,
+        name: 'Building Map',
+      },
     ],
   },
   {
