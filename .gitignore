@@ -54,4 +54,5 @@ dist-ssr
 
 # C++ object & exe file
 *.o
+*.d
 *.exe

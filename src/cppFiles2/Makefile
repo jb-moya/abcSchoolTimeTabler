@@ -1,7 +1,7 @@
 # Variables
 CXX = g++
 # CXXFLAGS = -Wall -Wextra -std=c++17 -g
-CXXFLAGS = -Wall -Wextra -std=c++17 -O3
+CXXFLAGS = -Wall -Wextra -std=c++17 -O3 -MMD
 TARGET = zapp_test_abc2
 SUFFIX = ""  # Default suffix is empty
 FOLDER = exeFolder/
@@ -43,7 +43,7 @@ bee.h \
 objectiveFunction.h \
 log.h \
 print.h
-		  
+
 # Test Source File
 TEST_SRC = test_file.cpp  # Your test file
 
@@ -52,6 +52,14 @@ CATCH_SRC = catch_amalgamated.cpp  # Catch2 amalgamated source
 		  
 OBJ = $(SRC:.cpp=.o)
 TEST_OBJ = $(TEST_SRC:.cpp=.o) $(CATCH_SRC:.cpp=.o)  # Catch2 object file
+
+-include $(OBJ:.o=.d)
+-include $(TEST_OBJ:.o=.d)
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+
 
 # Rule to build the final executable
 $(OUTPUT): $(OBJ)
