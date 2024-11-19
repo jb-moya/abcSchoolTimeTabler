@@ -46,7 +46,6 @@ void test_generate_timetable() {
 	int beesEmployed = 2;
 	int beesOnlooker = 2;
 	int beesScout = 1;
-	;
 
 	int num_teachers = 42;
 	// count teacher with same subject: 11. does this mean there's extra 1 teacher?
@@ -74,6 +73,7 @@ void test_generate_timetable() {
 
 	int limit = (total_section * (num_teachers)) * .6;
 	int default_units = 0;
+
 	Timeslot default_fixed_timeslot = 0;
 
 	TimeDuration default_class_duration = 40;
@@ -101,15 +101,6 @@ void test_generate_timetable() {
 	int common_subject_count = 9;
 
 	int teacher_middle_time_point_grow_allowance_for_break_timeslot = 4;
-	// from schedule example
-	// regular section with 1 break only has 350mins
-
-	// print("default_class_duration", default_class_duration);
-	// print("break_time_duration", break_time_duration);
-	// print("max_teacher_work_load", max_teacher_work_load);
-	// print("min_total_class_duration_for_two_breaks", min_total_class_duration_for_two_breaks);
-
-	// return;;
 
 	int num_violation_type = 7;
 
@@ -126,7 +117,7 @@ void test_generate_timetable() {
 	int32_t* teacher_week_load_config = allocate(num_teachers);
 
 	int32_t* subject_configuration_subject_fixed_timeslot = allocate(num_subjects);
-int32_t* subject_configuration_subject_fixed_day = allocate(num_subjects);
+	int32_t* subject_configuration_subject_fixed_day = allocate(num_subjects);
 	int32_t* subject_configuration_subject_duration = allocate(num_subjects);
 	int32_t* subject_configuration_subject_units = allocate(num_subjects);
 	int32_t* section_configuration = allocate(total_section);
@@ -167,12 +158,12 @@ int32_t* subject_configuration_subject_fixed_day = allocate(num_subjects);
 		int subject_configuration_default_units = subject_configure[subject_configuration_id][1];
 		TimeDuration subject_configuration_default_class_duration = subject_configure[subject_configuration_id][2];
 		Timeslot subject_configuration_default_fixed_timeslot = subject_configure[subject_configuration_id][3];
-int subject_configuration_default_fixed_day = subject_configure[subject_configuration_id][4];
+		int subject_configuration_default_fixed_day = subject_configure[subject_configuration_id][4];
 
 		subject_configuration_subject_units[subject_configuration_id] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_units);
 		subject_configuration_subject_duration[subject_configuration_id] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_class_duration);
 		subject_configuration_subject_fixed_timeslot[subject_configuration_id] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_fixed_timeslot);
-subject_configuration_subject_fixed_day[subject_configuration_id] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_fixed_day);
+		subject_configuration_subject_fixed_day[subject_configuration_id] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_fixed_day);
 	}
 
 	for (int16_t section = 0; section < total_section; ++section) {
@@ -182,13 +173,6 @@ subject_configuration_subject_fixed_day[subject_configuration_id] = packInt16ToI
 			if (index >= total_section_subjects) {
 				std::cerr << "Index out of bounds: " << index << std::endl;
 				delete[] section_subjects;
-				delete[] section_start;
-				delete[] teacher_subjects;
-				delete[] teacher_week_load_config;
-				delete[] subject_configuration_subject_fixed_timeslot;
-				delete[] subject_configuration_subject_duration;
-				delete[] subject_configuration_subject_units;
-				delete[] section_configuration;
 				delete[] section_subject_configuration;
 				return;
 			}
@@ -211,39 +195,7 @@ subject_configuration_subject_fixed_day[subject_configuration_id] = packInt16ToI
 	// about this config
 	// a viable break slot between the two fixed subject but is impossible to get.
 	// because they're fixed...
-	// section_subject_units[0] = packInt16ToInt32(0, 4);
-	// section_subject_units[1] = packInt16ToInt32(1, 1);
-	// section_subject_fixed_timeslot[0] = packInt16ToInt32(0, 1);
-	// section_subject_fixed_timeslot[1] = packInt16ToInt32(1, 1);
-	// section_subject_fixed_timeslot[2] = packInt16ToInt32(2, 2);
-	// section_subject_duration[2] = packInt16ToInt32(2, 10);
 	// REMINDER END
-	// section_subject_units[2] = packInt16ToInt32(2, 2);
-	// section_subject_units[3] = packInt16ToInt32(3, 3);
-	// section_subject_units[4] = packInt16ToInt32(4, 3);
-	// section_subject_units[5] = packInt16ToInt32(5, 2);
-	// section_subject_units[6] = packInt16ToInt32(6, 4);
-	// section_subject_units[10] = packInt16ToInt32(0, 1);
-	// section_subject_units[11] = packInt16ToInt32(1, 4);
-	// section_subject_units[12] = packInt16ToInt32(2, 2);
-	// section_subject_units[13] = packInt16ToInt32(3, 3);
-	// section_subject_units[14] = packInt16ToInt32(4, 3);
-	// section_subject_units[15] = packInt16ToInt32(5, 2);
-	// section_subject_units[16] = packInt16ToInt32(6, 4);
-	// section_subject_duration[7] = packInt16ToInt32(7, 10);
-	// section_subject_units[0] = packInt16ToInt32(0, 2);
-	// section_subject_units[1] = packInt16ToInt32(1, 1);
-	// section_subject_fixed_timeslot[0] = packInt16ToInt32(0, 1);
-	// section_subject_fixed_timeslot[1] = packInt16ToInt32(1, 1);
-	// section_subject_fixed_timeslot[0] = packInt16ToInt32(0, 2);
-	// section_subject_fixed_timeslot[1] = packInt16ToInt32(1, 3);
-	// section_subject_fixed_timeslot[2] = packInt16ToInt32(2, 4);
-	// section_subject_duration[2] = packInt16ToInt32(2, 10);
-	// section_subject_fixed_timeslot[1] = packInt16ToInt32(1, -2);
-	// section_subject_fixed_timeslot[7] = packInt16ToInt32(7, 1);
-	// section_subject_duration[1] = packInt16ToInt32(1, 1);
-	// section_subject_units[2] = packInt16ToInt32(2, 1);
-	// section_subject_units[3] = packInt16ToInt32(3, 4);
 
 	int64_t* resultTimetable = new (std::nothrow) int64_t[total_section * (total_section_subjects)];
 	int64_t* resultTimetable_2 = new (std::nothrow) int64_t[total_section * (total_section_subjects)];
@@ -335,83 +287,4 @@ int main() {
 
 	std::cout << "done testing" << std::endl;
 	return 0;
-
-	// std::vector<std::vector<int>> breaks_combination = getAllBreaksCombination(12, 2, 3, 3);
-
-	// for (auto it = breaks_combination.begin(); it != breaks_combination.end(); ++it) {
-	// 	std::cout << "{";
-	// 	for (auto it2 = it->begin(); it2 != it->end(); ++it2) {
-	// 		std::cout << *it2;
-	// 		if (std::next(it2) != it->end()) {
-	// 			std::cout << ", ";
-	// 		}
-	// 	}
-	// 	std::cout << "}\n";
-	// }
-
-	// int size = 7;
-	// int shift = 6;
-
-	// std::vector<int> vec;
-	// for (int i = 0; i < size; i++) {
-	// 	vec.push_back(i);
-	// }
-
-	// std::rotate(vec.rbegin(), vec.rbegin() + shift, vec.rend());  // Rotate by one
-
-	// std::cout << "Rotated vector: ";
-	// for (int num : vec) {
-	// 	std::cout << num << " ";  // Output: 5 1 2 3 4
-	// }
-
-	// RotaryTimeslot rotary_timeslot;
-
-	// // Example sizes to get timeslots
-	// // std::vector<int> sizes = {9, 9, 9, 9, 9, 9, 5, 7, 9, 11, 13, 15, 10, 10, 10, 10, 10, 10, 10, 10, 3, 3, 3, 4, 4, 5, 4, 5, 6, 10, 12, 14, 16, 18, 9, 7, 10, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25};
-	// // std::vector<int> sizes = {10, 10, 10, 10, 10, 10, 10, 10, 13, 13, 13, 13, 10, 12, 11};
-	// std::vector<int> sizes = {10, 10, 9, 8, 7, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
-
-	// std::vector<std::vector<int>> skip = {{3}, {3}, {3}, {3}, {3}, {3}, {3}, {3}, {3}, {3}, {3}, {3, 7}, {3, 7}, {3, 7}, {3, 7}, {3, 7}, {3, 7}, {3}, {3}};
-
-	// // Loop to demonstrate getting timeslots and incrementing shift
-	// int i = 0;
-	// for (int size : sizes) {
-	// 	rotary_timeslot.adjustPosition(size - skip[i].size());
-	// 	std::vector<int> timeslot = rotary_timeslot.getTimeslot(size, skip[i]);
-	// 	printVector(timeslot);
-	// 	rotary_timeslot.incrementShift();
-
-	// 	i++;
-	// }
-
-	// SubjectTeacherQueue subject_teacher_queue;
-
-	// subject_teacher_queue.addTeacher(1, 1, 10);
-	// subject_teacher_queue.addTeacher(1, 2, 10);
-	// subject_teacher_queue.addTeacher(1, 3, 10);
-	// subject_teacher_queue.addTeacher(2, 4, 10);
-	// subject_teacher_queue.addTeacher(3, 4, 2);
-
-	// print("ff", subject_teacher_queue.getTeacher(1, 5));
-	// print("ff", subject_teacher_queue.getTeacher(1, 5));
-	// print("ff", subject_teacher_queue.getTeacher(1, 5));
-	// print("ff", subject_teacher_queue.getTeacher(1, 5));
-	// print("ff", subject_teacher_queue.getTeacher(1, 5));
-	// print("ff", subject_teacher_queue.getTeacher(1, 4));
-	// print("ff", subject_teacher_queue.getTeacher(1, 1));
-	// print("ff", subject_teacher_queue.getTeacher(1, 1));
-	// print("ff", subject_teacher_queue.getTeacher(2, 1));
-	// print("ff", subject_teacher_queue.getTeacher(2, 9));
-	// print("ff", subject_teacher_queue.getTeacher(2, 1));
-	// print("ff", subject_teacher_queue.getTeacher(3, 1));
-	// print("ff", subject_teacher_queue.getTeacher(3, 1));
-	// print("ff", subject_teacher_queue.getTeacher(3, 1));
-
-	// subject_teacher_queue.resetQueue();
-
-	std::cout << "done testing" << std::endl;
-
-	return 0;
 }
-
-// emcc abc.cpp -s -sMODULARIZE=1 -sWASM_BIGINT - sEXPORTED_FUNCTIONS = '_runExperiment', '_malloc', '_free', getValue abc.js
