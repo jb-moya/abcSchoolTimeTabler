@@ -87,7 +87,7 @@ run: $(OUTPUT)
 
 # Rule to run the tests
 run_tests: test
-	./$(FOLDER)test_executable$(SUFFIX)
+	./$(FOLDER)test_executable$(SUFFIX) $(TEST_FILTER)
 
 # By default, just build the target
 all: $(OUTPUT)
