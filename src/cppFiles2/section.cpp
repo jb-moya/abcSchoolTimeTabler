@@ -183,19 +183,12 @@ bool Section::hasViolation() const {
 std::map<Timeslot, std::unordered_map<ScheduledDay, SchoolClass>>& Section::getClasses() {
 	return classes;
 }
-
 TimeDuration Section::getTotalDuration() const {
 	return total_duration;
 }
-
-const std::unordered_map<Timeslot, std::set<ScheduledDay>>& Section::getFixedTimeslotDay() const {
-	return timeslot_manager.getFixedTimeslotDay();
-}
-
 const std::unordered_set<TeacherID>& Section::getUtilizedTeachers() const {
 	return utilized_teachers;
 }
-
 TimePoint Section::getStartTime() const {
 	return start_time;
 }
@@ -204,9 +197,6 @@ void Section::addBreakSlot(Timeslot break_slot) {
 }
 void Section::addSegmentedTimeSlot(Timeslot timeslot) {
 	timeslot_manager.addSegmentedTimeSlot(timeslot);
-}
-void Section::addFixedTimeSlotDay(Timeslot timeslot, ScheduledDay day) {
-	timeslot_manager.addFixedTimeSlotDay(timeslot, day);
 }
 void Section::addDynamicTimeSlotDay(Timeslot timeslot, ScheduledDay day) {
 	timeslot_manager.addDynamicTimeSlotDay(timeslot, day);
