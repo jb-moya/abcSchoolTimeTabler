@@ -19,3 +19,7 @@ int SubjectConfiguration::getUnits() const {
 Timeslot SubjectConfiguration::getFixedTimeslot() const {
 	return fixed_timeslot;
 }
+
+std::vector<ScheduledDay> SubjectConfiguration::getFixedDays() const {
+	return fixed_days;
+}

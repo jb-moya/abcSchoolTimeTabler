@@ -61,6 +61,8 @@ Timeslot TimeslotManager::getRandomDynamicTimeslot() const {
 
 void TimeslotManager::addDynamicTimeSlotDay(Timeslot timeslot, ScheduledDay day) {
 	dynamic_timeslot_day[timeslot].insert(day);
+}
+void TimeslotManager::addDynamicTimeSlot(Timeslot timeslot) {
 	dynamic_timeslot.push_back(timeslot);
 }
 const std::unordered_set<Timeslot>& TimeslotManager::getBreakSlots() const {

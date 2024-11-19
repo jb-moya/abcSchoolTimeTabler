@@ -13,22 +13,26 @@ struct SubjectConfiguration {
 	const TimeDuration duration;
 	const int units;
 	const Timeslot fixed_timeslot;
+	const std::vector<ScheduledDay> fixed_days;
 
    public:
 	SubjectConfiguration(SubjectConfigurationID id_,
 	                     SubjectID subject_id_,
 	                     TimeDuration duration_,
 	                     int units_,
-	                     Timeslot fixed_timeslot_)
+	                     Timeslot fixed_timeslot_,
+	                     std::vector<ScheduledDay> fixed_days_)
 	    : id(id_),
 	      subject_id(subject_id_),
 	      duration(duration_),
 	      units(units_),
-	      fixed_timeslot(fixed_timeslot_) {}
+	      fixed_timeslot(fixed_timeslot_),
+	      fixed_days(fixed_days_) {}
 
 	SubjectConfigurationID getSubjectConfigurationId() const;
 	SubjectID getSubjectId() const;
 	TimeDuration getDuration() const;
 	int getUnits() const;
 	Timeslot getFixedTimeslot() const;
+	std::vector<ScheduledDay> getFixedDays() const;
 };

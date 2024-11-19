@@ -201,6 +201,9 @@ void Section::addSegmentedTimeSlot(Timeslot timeslot) {
 void Section::addDynamicTimeSlotDay(Timeslot timeslot, ScheduledDay day) {
 	timeslot_manager.addDynamicTimeSlotDay(timeslot, day);
 }
+void Section::addDynamicTimeSlot(Timeslot timeslot) {
+	timeslot_manager.addDynamicTimeSlot(timeslot);
+}
 void Section::removeBreakSlot(Timeslot timeslot) {
 	timeslot_manager.removeBreakSlot(timeslot);
 }

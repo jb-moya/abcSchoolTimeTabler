@@ -18,6 +18,7 @@ void runExperiment(
     int32_t* subject_configuration_subject_units,
     int32_t* subject_configuration_subject_duration,
     int32_t* subject_configuration_subject_fixed_timeslot,
+    int32_t* subject_configuration_subject_fixed_day,
     int32_t* section_start,
     int32_t* teacher_subjects,
     int32_t* teacher_week_load_config,

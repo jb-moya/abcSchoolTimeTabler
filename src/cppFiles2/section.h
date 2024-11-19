@@ -96,6 +96,7 @@ class Section {
 	void addBreakSlot(Timeslot break_slot);
 	void addSegmentedTimeSlot(Timeslot timeslot);
 	void addDynamicTimeSlotDay(Timeslot timeslot, ScheduledDay day);
+	void addDynamicTimeSlot(Timeslot timeslot);
 
 	void removeBreakSlot(Timeslot timeslot);
 	void removeSegmentedTimeSlot(Timeslot timeslot);

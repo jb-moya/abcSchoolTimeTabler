@@ -24,3 +24,19 @@ inline int32_t packInt8ToInt32(int8_t first, int8_t second, int8_t third, int8_t
 	                 (static_cast<uint8_t>(fourth));
 	return result;
 }
+
+inline uint8_t assignFixedDay(bool anyDay, bool monday, bool tuesday, bool wednesday,
+                             bool thursday, bool friday, bool saturday, bool sunday) {
+	uint8_t config = 0;
+
+	if (anyDay) config |= (1 << 7);  // Set the most significant bit (bit 7)
+	if (monday) config |= (1 << 6);
+	if (tuesday) config |= (1 << 5);
+	if (wednesday) config |= (1 << 4);
+	if (thursday) config |= (1 << 3);
+	if (friday) config |= (1 << 2);
+	if (saturday) config |= (1 << 1);
+	if (sunday) config |= (1 << 0);
+
+	return config;
+}

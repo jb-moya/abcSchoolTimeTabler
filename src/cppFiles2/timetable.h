@@ -78,7 +78,12 @@ struct Timetable {
 
 	// Helper method to find a subject by name
 	std::shared_ptr<SubjectConfiguration> findSubjectConfigurationById(SubjectConfigurationID id);
-	void addSubjectConfiguration(SubjectConfigurationID subject_configuration_id, SubjectID subject_id, TimeDuration duration, int unit_count, Timeslot fixed_timeslot);
+	void addSubjectConfiguration(SubjectConfigurationID subject_configuration_id, 
+								 SubjectID subject_id, 
+								 TimeDuration duration, 
+								 int unit_count, 
+								 Timeslot fixed_timeslot,
+								 std::vector<ScheduledDay> fixed_days);
 
 	Section& getSectionById(SectionID section_id);
 	Teacher& getTeacherById(TeacherID teacher_id);
@@ -142,7 +147,7 @@ struct Timetable {
 	                        std::vector<SubjectID>& special_unit_subjects) const;
 
 	std::vector<Timeslot> getBreaks(const Section& section) const;
-	void setupTimeslots(int total_timeslot, std::deque<Timeslot>& timeslot_keys, std::map<Timeslot, int>& timeslots, const std::vector<Timeslot>& skips) const;
+	void setupTimeslots(int total_timeslot, std::deque<Timeslot>& timeslot_keys, std::map<Timeslot, std::vector<ScheduledDay>>& timeslots, const std::vector<Timeslot>& skips) const;
 
 	void changeTeacher(Section& selected_section, Timeslot selected_timeslot, ScheduledDay day, TeacherID new_teacher_id, std::unordered_set<TeacherID>& update_teachers);
 };

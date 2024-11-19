@@ -126,6 +126,7 @@ void test_generate_timetable() {
 	int32_t* teacher_week_load_config = allocate(num_teachers);
 
 	int32_t* subject_configuration_subject_fixed_timeslot = allocate(num_subjects);
+int32_t* subject_configuration_subject_fixed_day = allocate(num_subjects);
 	int32_t* subject_configuration_subject_duration = allocate(num_subjects);
 	int32_t* subject_configuration_subject_units = allocate(num_subjects);
 	int32_t* section_configuration = allocate(total_section);
@@ -153,9 +154,11 @@ void test_generate_timetable() {
 	// 	section_start[i] = 20;
 	// }
 
+	uint8_t default_fixed_day = assignFixedDay(true, false, false, false, false, false, false, false);
+
 	std::vector<std::vector<int>> subject_configure;
 	for (SubjectID subject_id = 0; subject_id < num_subjects; ++subject_id) {
-		subject_configure.push_back({subject_id, default_units, default_class_duration, default_fixed_timeslot});
+		subject_configure.push_back({subject_id, default_units, default_class_duration, default_fixed_timeslot, default_fixed_day});
 	}
 
 	int number_of_subject_configuration = subject_configure.size();
@@ -164,10 +167,12 @@ void test_generate_timetable() {
 		int subject_configuration_default_units = subject_configure[subject_configuration_id][1];
 		TimeDuration subject_configuration_default_class_duration = subject_configure[subject_configuration_id][2];
 		Timeslot subject_configuration_default_fixed_timeslot = subject_configure[subject_configuration_id][3];
+int subject_configuration_default_fixed_day = subject_configure[subject_configuration_id][4];
 
 		subject_configuration_subject_units[subject_configuration_id] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_units);
 		subject_configuration_subject_duration[subject_configuration_id] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_class_duration);
 		subject_configuration_subject_fixed_timeslot[subject_configuration_id] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_fixed_timeslot);
+subject_configuration_subject_fixed_day[subject_configuration_id] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_fixed_day);
 	}
 
 	for (int16_t section = 0; section < total_section; ++section) {
@@ -269,6 +274,7 @@ void test_generate_timetable() {
 	    subject_configuration_subject_units,
 	    subject_configuration_subject_duration,
 	    subject_configuration_subject_fixed_timeslot,
+	    subject_configuration_subject_fixed_day,
 	    section_start,
 	    teacher_subjects,
 	    teacher_week_load_config,

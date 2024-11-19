@@ -21,6 +21,7 @@ void runExperiment(
     int32_t* subject_configuration_subject_units,
     int32_t* subject_configuration_subject_duration,
     int32_t* subject_configuration_subject_fixed_timeslot,
+    int32_t* subject_configuration_subject_fixed_day,
     int32_t* section_start,
     int32_t* teacher_subjects,
     int32_t* teacher_week_load_config,
@@ -46,7 +47,7 @@ void runExperiment(
 
     bool enable_logging) {
 	// Timetable::reset();
-	print(CYAN, "RESETT", RESET);
+	print(CYAN, "RESET", RESET);
 
 	std::unordered_map<SectionID, Section> sections;
 	std::unordered_map<TeacherID, Teacher> teachers;
@@ -100,7 +101,15 @@ void runExperiment(
 			subject_duration = static_cast<int>(subject_configuration_subject_duration[subject_configuration_id] & 0xFFFF);
 			subject_fixed_timeslot = static_cast<int>(subject_configuration_subject_fixed_timeslot[subject_configuration_id] & 0xFFFF);
 
-			timetable.addSubjectConfiguration(subject_configuration_id, subject_id, subject_duration, subject_units, subject_fixed_timeslot);
+			std::vector<ScheduledDay> subject_fixed_days;
+
+			for (int i = 0; i < 7; i++) {
+				if (subject_configuration_subject_fixed_day[subject_configuration_id] & (1 << i)) {
+					subject_fixed_days.push_back(static_cast<ScheduledDay>(i + 1));
+				}
+			}
+
+			timetable.addSubjectConfiguration(subject_configuration_id, subject_id, subject_duration, subject_units, subject_fixed_timeslot, subject_fixed_days);
 		}
 
 		for (SectionID i = 0; i < total_section; i++) {

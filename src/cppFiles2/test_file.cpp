@@ -44,6 +44,15 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 		int default_subject_units = 0;
 		TimeDuration default_subject_duration = 1;
 		Timeslot default_subject_fixed_timeslot = 0;
+uint8_t default_fixed_day = assignFixedDay(true, false, false, false, false, false, false, false);
+
+		std::vector<ScheduledDay> subject_fixed_days;
+
+		for (int i = 0; i < 7; i++) {
+			if (default_fixed_day & (1 << i)) {
+				subject_fixed_days.push_back(static_cast<ScheduledDay>(i + 1));
+			}
+		}
 
 		// Initialize Teacher and Section Sets
 		std::unordered_set<TeacherID> teachers_set;
@@ -77,7 +86,7 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 
 		WHEN("The Timetable is configured with subjects, sections, and teachers") {
 			for (int i = 0; i < total_unique_subject; ++i) {
-				timetable.addSubjectConfiguration(i, i, default_subject_duration, default_subject_units, default_subject_fixed_timeslot);
+				timetable.addSubjectConfiguration(i, i, default_subject_duration, default_subject_units, default_subject_fixed_timeslot, subject_fixed_days);
 			}
 			for (SectionID section_id = 0; section_id < total_section; section_id++) {
 				Section::s_all_sections.insert(section_id);
