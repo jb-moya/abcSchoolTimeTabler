@@ -103,9 +103,12 @@ void runExperiment(
 
 			std::vector<ScheduledDay> subject_fixed_days;
 
-			for (int i = 0; i < 7; i++) {
+			for (int i = 0; i < 8; i++) {
 				if (subject_configuration_subject_fixed_day[subject_configuration_id] & (1 << i)) {
-					subject_fixed_days.push_back(static_cast<ScheduledDay>(i + 1));
+print(YELLOW, "yes fixed day");
+					subject_fixed_days.push_back(static_cast<ScheduledDay>(i));
+} else {
+					print(RED, "not fixed day");
 				}
 			}
 

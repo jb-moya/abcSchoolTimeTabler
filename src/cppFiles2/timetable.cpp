@@ -511,6 +511,12 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 			}
 		}
 
+		for (const auto& [timeslot, days] : timeslots) {
+			for (const auto& day : days) {
+				section.addDynamicTimeSlotDay(timeslot, static_cast<ScheduledDay>(day));
+			}
+		}
+
 		setClasstimeslot(section);
 
 		auto& classes = section.getClasses();

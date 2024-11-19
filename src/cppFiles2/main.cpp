@@ -88,7 +88,7 @@ void test_generate_timetable() {
 	max_teacher_work_load /= time_division;
 	min_teacher_work_load /= time_division;
 
-	int workweek = 1;
+	int workweek = 5;
 
 	min_total_class_duration_for_two_breaks /= time_division;
 
@@ -165,6 +165,9 @@ void test_generate_timetable() {
 		subject_configuration_subject_fixed_timeslot[subject_configuration_id] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_fixed_timeslot);
 		subject_configuration_subject_fixed_day[subject_configuration_id] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_fixed_day);
 	}
+
+	subject_configuration_subject_units[0] = packInt16ToInt32(0, 3);
+	// subject_configuration_subject_units[1] = packInt16ToInt32(1, 2);
 
 	for (int16_t section = 0; section < total_section; ++section) {
 		for (int16_t subject = 0; subject < num_subjects; ++subject) {
