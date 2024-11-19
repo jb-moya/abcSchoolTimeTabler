@@ -296,3 +296,32 @@ TEST_CASE("pack5IntToInt64") {
 		REQUIRE(packed == expected);
 	}
 }
+
+TEST_CASE("assign fixed day") {
+	// Test case 1: Only `anyDay` is set
+	uint8_t example = assignFixedDay(true, false, false, false, false, false, false, false);
+	REQUIRE(example == 0b10000000);  // Only the MSB (bit 7) should be set
+
+	// Test case 2: Only Monday is set
+	example = assignFixedDay(false, true, false, false, false, false, false, false);
+	REQUIRE(example == 0b01000000);  // Only bit 6 should be set
+
+	// Test case 3: Only Tuesday is set
+	example = assignFixedDay(false, false, true, false, false, false, false, false);
+	REQUIRE(example == 0b00100000);  // Only bit 5 should be set
+
+	// Test case 4: Multiple days (Monday and Wednesday)
+	example = assignFixedDay(false, true, false, true, false, false, false, false);
+	REQUIRE(example == 0b01010000);  // Bits 6 (Monday) and 4 (Wednesday) should be set
+
+	// Test case 5: All days set
+	example = assignFixedDay(true, true, true, true, true, true, true, true);
+	REQUIRE(example == 0b11111111);  // All bits should be set
+
+	// Test case 6: Only Sunday is set
+	example = assignFixedDay(false, false, false, false, false, false, false, true);
+	REQUIRE(example == 0b00000001);  // Only bit 0 (Sunday) should be set
+
+	print("done");
+}
+#endif
