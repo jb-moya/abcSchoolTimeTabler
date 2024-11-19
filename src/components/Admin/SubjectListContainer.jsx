@@ -12,35 +12,7 @@ import { IoAdd, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
-import Lottie from 'lottie-react';
-import animationData from '/public/SuccessAnimation.json'
-
-
-const SuccessModal = ({ message, onClose }) => {
-  return (
-    <div className="modal modal-open flex items-center justify-center z-10">
-      <div className="modal-box flex flex-col items-center justify-center p-4"> {/* Added padding */}
-        <div className="lottie-animation w-48 h-48">
-          <Lottie
-            animationData={
-              animationData
-            } // Replace with your Lottie JSON
-            loop={false} // Ensures the animati on does not loop
-          />
-        </div>
-        <h2 className="font-bold text-lg text-center">{message}</h2> {/* Center text */}
-        <div className="modal-action">
-          <button
-            className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-            onClick={onClose}
-          >
-            ✕
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+import { toast } from 'sonner';
 
 const AddSubjectContainer = ({
   close,
@@ -59,9 +31,6 @@ const AddSubjectContainer = ({
     defaultSubjectClassDuration || 10 // Ensure it defaults to 10 if undefined
   );
   const [subjectWeeklyMinutes, setSubjectWeeklyMinutes] = useState(100);
-
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [modalMessage, setModalMessage] = useState('');
 
   const handleAddSubject = () => {
 
@@ -93,11 +62,15 @@ const AddSubjectContainer = ({
           weeklyMinutes: weeklyMinutes,
         })
       );
-  
-      // Set success message and show the modal
-      setModalMessage('Subject added successfully!');
-      setShowSuccessModal(true);
-  
+      
+      toast.success('Subject added successfully!', {
+        style: {
+          backgroundColor: '#28a745', 
+          borderColor: '#28a745',
+          color: '#fff',               
+        },
+      });
+
       // Reset input fields
       setSubjectName('');
       setClassSubjectDuration(defaultSubjectClassDuration || 10);
@@ -107,10 +80,6 @@ const AddSubjectContainer = ({
         inputNameRef.current.focus();
       }
     }
-  };
-
-  const handleCloseModal = () => {
-    setShowSuccessModal(false);
   };
 
   const handleReset = () => {
@@ -184,14 +153,7 @@ const AddSubjectContainer = ({
           </button>
         </div>
       </div>
-
-      {/* Render SuccessModal if showSuccessModal is true */}
-      {showSuccessModal && (
-        <SuccessModal
-          message={modalMessage}
-          onClose={handleCloseModal}
-        />
-      )}
+      
     </div>
   );
 };
@@ -211,10 +173,6 @@ const SubjectListContainer = ({ editable = false }) => {
 
   const [searchSubjectValue, setSearchSubjectValue] = useState('');
   const [openAddSubjectContainer, setOpenAddSubjectContainer] = useState(false);
-
-  // State for success modal
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [modalMessage, setModalMessage] = useState('');
 
   const handleEditSubjectClick = (subject) => {
     setEditSubjectId(subject.id);
@@ -250,12 +208,18 @@ const SubjectListContainer = ({ editable = false }) => {
         })
       );
   
-      setModalMessage('Data Updated Successfully!');
-      setShowSuccessModal(true);
+      toast.success('Data updated successfully!', {
+        style: {
+          backgroundColor: '#28a745', 
+          color: '#fff',        
+          borderColor: '#28a745',   
+        },
+      });
   
       setEditSubjectId(null);
       setEditSubjectValue('');
       setEditClassDuration(0);
+      
     } else {
       const duplicateSubject = Object.values(subjects).find(
         (subject) => subject.subject.trim().toLowerCase() === editSubjectValue.trim().toLowerCase()
@@ -275,8 +239,7 @@ const SubjectListContainer = ({ editable = false }) => {
           })
         );
 
-        setModalMessage('Data Updated Successfully!');
-        setShowSuccessModal(true);
+        
   
         setEditSubjectId(null);
         setEditSubjectValue('');
@@ -330,10 +293,6 @@ const SubjectListContainer = ({ editable = false }) => {
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = Object.entries(searchSubjectResult).slice(indexOfFirstItem, indexOfLastItem);
-
-  const handleCloseModal = () => {
-    setShowSuccessModal(false);
-  };
 
   return (
     <div className="w-full">
@@ -541,12 +500,6 @@ const SubjectListContainer = ({ editable = false }) => {
           </tbody>
         </table>
 
-        {showSuccessModal && (
-          <SuccessModal
-            message={modalMessage}
-            onClose={handleCloseModal}
-          />
-        )}
       </div>
 
     </div>
