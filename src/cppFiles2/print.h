@@ -52,7 +52,7 @@ template <typename T, typename... Args>
 inline void print(T first, Args... args) {
 	std::cout << first;
 	if constexpr (sizeof...(args) > 0) {
-		std::cout << " ; ";
+		std::cout << " | ";
 		print(args...);
 	} else {
 		std::cout << RESET << std::endl;
@@ -67,7 +67,7 @@ inline void printSchoolClasses(Timetable& timetable) {
 	for (SectionID section_id = 0; section_id < total_section; section_id++) {
 		auto section = timetable.getSectionById(section_id);
 
-		std::cout << BLUE << "--------- - - Section: " << section.getId() << RESET << std::endl;
+		std::cout << BLUE << " - - Section: " << section.getId() << RESET << std::endl;
 		int inner_count = 0;
 
 		const auto& classes = section.getClasses();
