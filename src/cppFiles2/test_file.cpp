@@ -258,7 +258,6 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 	}
 }
 
-#if 0
 TEST_CASE("pack5IntToInt64") {
 	SECTION("positive numbers") {
 		int16_t a = 12345;
@@ -299,31 +298,79 @@ TEST_CASE("pack5IntToInt64") {
 	}
 }
 
-TEST_CASE("assign fixed day") {
-	// Test case 1: Only `anyDay` is set
+TEST_CASE("assign fixed day", "[assignFixedDay]") {
 	uint8_t example = assignFixedDay(true, false, false, false, false, false, false, false);
-	REQUIRE(example == 0b10000000);  // Only the MSB (bit 7) should be set
+	CHECK(example == 0b00000001);
+	CHECK(example & (1 << 0));
+	CHECK((example & 0b11111110) == 0);
 
-	// Test case 2: Only Monday is set
-	example = assignFixedDay(false, true, false, false, false, false, false, false);
-	REQUIRE(example == 0b01000000);  // Only bit 6 should be set
+		example = assignFixedDay(false, true, false, false, false, false, false, false);
+	CHECK(example == 0b00000010);
+	CHECK(example & (1 << 1));
+	CHECK((example & 0b11111101) == 0);
 
-	// Test case 3: Only Tuesday is set
-	example = assignFixedDay(false, false, true, false, false, false, false, false);
-	REQUIRE(example == 0b00100000);  // Only bit 5 should be set
+		example = assignFixedDay(false, false, true, false, false, false, false, false);
+	CHECK(example == 0b00000100);
+	CHECK(example & (1 << 2));
+	CHECK((example & 0b11111011) == 0);
 
-	// Test case 4: Multiple days (Monday and Wednesday)
-	example = assignFixedDay(false, true, false, true, false, false, false, false);
-	REQUIRE(example == 0b01010000);  // Bits 6 (Monday) and 4 (Wednesday) should be set
+		example = assignFixedDay(false, true, false, true, false, false, false, false);
+	CHECK(example == 0b00001010);
+	CHECK(example & (1 << 1));
+	CHECK(example & (1 << 3));
+	CHECK((example & 0b11110101) == 0);
 
-	// Test case 5: All days set
-	example = assignFixedDay(true, true, true, true, true, true, true, true);
-	REQUIRE(example == 0b11111111);  // All bits should be set
+		example = assignFixedDay(true, true, true, true, true, true, true, true);
+	CHECK(example == 0b11111111);
+	for (int i = 0; i < 8; ++i) {
+		CHECK(example & (1 << i));
+	}
 
-	// Test case 6: Only Sunday is set
-	example = assignFixedDay(false, false, false, false, false, false, false, true);
-	REQUIRE(example == 0b00000001);  // Only bit 0 (Sunday) should be set
+		example = assignFixedDay(false, false, false, false, false, false, false, true);
+	CHECK(example == 0b10000000);
+	CHECK(example & (1 << 7));
+	CHECK((example & 0b01111111) == 0);
 
 	print("done");
 }
-#endif
+
+TEST_CASE("printing containers", "[printContainer]") {
+	std::vector<int> vec = {1, 2, 3, 4, 5};
+	printContainer(vec);
+
+	// Test with an empty vector
+	std::vector<int> emptyVec;
+	printContainer(emptyVec);
+
+	// Test with a set (ordered)
+	std::set<int> s = {10, 20, 30, 40};
+	printContainer(s);
+
+	// Test with an empty set (ordered)
+	std::set<int> emptySet;
+	printContainer(emptySet);
+
+	// Test with an unordered set
+	std::unordered_set<int> us = {50, 60, 70, 80};
+	printContainer(us);
+
+	// Test with an empty unordered set
+	std::unordered_set<int> emptyUs;
+	printContainer(emptyUs);
+
+	// Test with a map (ordered)
+	std::map<int, std::string> m = {{1, "One"}, {2, "Two"}, {3, "Three"}};
+	printContainer(m);
+
+	// Test with an empty map (ordered)
+	std::map<int, std::string> emptyMap;
+	printContainer(emptyMap);
+
+	// Test with an unordered map
+	std::unordered_map<int, std::string> um = {{4, "Four"}, {5, "Five"}, {6, "Six"}};
+	printContainer(um);
+
+	// Test with an empty unordered map
+	std::unordered_map<int, std::string> emptyUm;
+	printContainer(emptyUm);
+}
