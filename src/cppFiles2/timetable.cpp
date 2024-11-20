@@ -700,11 +700,11 @@ void Timetable::modify(Section& selected_section,
 				}
 			}
 
-			for (const auto& day_to_update : days_to_update) {
-				TeacherID old_teacher_id = selected_section.getClassTimeslotTeacherID(day_to_update, selected_timeslot_1);
-				TeacherID new_teacher = eligibility_manager.getNewRandomTeacher(selected_timeslot_subject_id, old_teacher_id);
+			TeacherID old_teacher_id = selected_section.getClassTimeslotTeacherID(randomScheduledDay, selected_timeslot_1);  // pick only one of the scheduled days because they have the same teacher
+			TeacherID new_teacher = eligibility_manager.getNewRandomTeacher(selected_timeslot_subject_id, old_teacher_id);
 
-				changeTeacher(selected_section, selected_timeslot_1, day_to_update, new_teacher, update_teachers);
+			for (const auto& day_to_update : days_to_update) {
+								changeTeacher(selected_section, selected_timeslot_1, day_to_update, new_teacher, update_teachers);
 			}
 		}
 	} else if (choice == 2) {
