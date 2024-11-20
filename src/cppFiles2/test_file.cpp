@@ -6,6 +6,7 @@
 #include "abc.h"
 #include "catch_amalgamated.hpp"  // Include Catch2
 #include "classStartEnd.h"
+#include "print.h"
 #include "random_util.cpp"
 #include "random_util.h"
 #include "rotaryTimeslot.cpp"
