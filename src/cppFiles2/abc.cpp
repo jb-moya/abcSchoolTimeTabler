@@ -24,7 +24,7 @@ void ABC::run() {
 			affected_teachers.clear();
 			affected_sections.clear();
 
-			// print("before: ");
+// print("before: ");
 			// printSchoolClasses(new_bee.timetable);
 
 			Section& selected_section = new_bee.timetable.pickRandomSection();
@@ -36,16 +36,16 @@ void ABC::run() {
 			new_bee.timetable.modify(selected_section, choice, selected_timeslots, affected_teachers, affected_sections);
 			objective_function.evaluate(new_bee, affected_teachers, affected_sections, false, false);
 
-			// print("after: ");
+// print("after: ");
 			// printSchoolClasses(new_bee.timetable);
 
-			if (new_bee.total_cost <= bees_vector[i].total_cost) {
+						if (new_bee.total_cost <= bees_vector[i].total_cost) {
 				// print("yes", new_bee.total_cost, bees_vector[i].total_cost);
 				bees_vector[i] = new_bee;
 
 				bees_abandoned[i] = 0;
 			} else {
-				// print("no", new_bee.total_cost, bees_vector[i].total_cost);
+// print("no", new_bee.total_cost, bees_vector[i].total_cost);
 				bees_abandoned[i]++;
 
 				if (bees_abandoned[i] >= limit) {
@@ -129,19 +129,19 @@ void ABC::run() {
 			}
 		}
 
-		for (int itScout = 0; itScout < bees_scout; itScout++) {
-			for (auto it = above_limit_abandoned_bees.begin(); it != above_limit_abandoned_bees.end();) {
-				Bee new_bee(this->initialTimetable, total_teacher, total_section);
-				affected_teachers.clear();
+					for (int itScout = 0; itScout < bees_scout; itScout++) {
+				for (auto it = above_limit_abandoned_bees.begin(); it != above_limit_abandoned_bees.end();) {
+					Bee new_bee(this->initialTimetable, total_teacher, total_section);
+					affected_teachers.clear();
 
-				Timetable::s_subject_teacher_queue.resetQueue();
-				new_bee.timetable.initializeRandomTimetable(affected_teachers);
-				bees_vector[*it] = new_bee;
-				objective_function.evaluate(bees_vector[*it], affected_teachers, Timetable::getSectionsSet(), false, true);
-				bees_abandoned[*it] = 0;
+					Timetable::s_subject_teacher_queue.resetQueue();
+					new_bee.timetable.initializeRandomTimetable(affected_teachers);
+					bees_vector[*it] = new_bee;
+					objective_function.evaluate(bees_vector[*it], affected_teachers, Timetable::getSectionsSet(), false, true);
+					bees_abandoned[*it] = 0;
 
-				it = above_limit_abandoned_bees.erase(it);
-			}
+					it = above_limit_abandoned_bees.erase(it);
+							}
 		}
 
 		for (int i = 0; i < bees_employed; i++) {
