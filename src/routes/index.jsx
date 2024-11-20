@@ -38,6 +38,9 @@ const DisplaySubjectSchedule = lazy(() =>
 const DisplayTeacherSchedule = lazy(() =>
   import('../pages/protected/reports/TeacherSchedules')
 );
+const BuildingMap = lazy(() =>
+  import('../pages/protected/admin/BuildingMap')
+);
 const routes = [
   {
     path: '/dashboard', // the url
@@ -58,6 +61,10 @@ const routes = [
   {
     path: '/admin/modify-sections', // the url
     component: ModifySections, // view rendered
+  },
+  {
+    path: '/admin/building-map', // the url
+    component: BuildingMap, // view rendered
   },
   {
     path: '/reports/display-teachers-schedule', // the url
