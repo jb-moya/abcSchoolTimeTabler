@@ -61,6 +61,31 @@ inline void print(T first, Args... args) {
 
 inline void print() {}
 
+// General template function to print containers
+template <typename Container>
+void printContainer(const Container& container) {
+	for (const auto& elem : container) {
+		std::cout << elem << " ";
+	}
+	std::cout << std::endl;
+}
+
+template <typename Key, typename Value>
+void printContainer(const std::map<Key, Value>& container) {
+	for (const auto& elem : container) {
+		std::cout << "[" << elem.first << ": " << elem.second << "] ";
+	}
+	std::cout << std::endl;
+}
+
+template <typename Key, typename Value>
+void printContainer(const std::unordered_map<Key, Value>& container) {
+	for (const auto& elem : container) {
+		std::cout << "[" << elem.first << ": " << elem.second << "] ";
+	}
+	std::cout << std::endl;
+}
+
 inline void printSchoolClasses(Timetable& timetable) {
 	int total_section = timetable.getTotalSection();
 
