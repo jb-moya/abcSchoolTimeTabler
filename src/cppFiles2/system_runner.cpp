@@ -63,6 +63,7 @@ void runExperiment(
 
 		Timetable::s_random_section_id = std::uniform_int_distribution<int>(0, total_section - 1);
 		// Timetable::initializeRandomSectionDistribution(0, total_section - 1);
+		// Timetable::initializeRandomFieldDistribution(0, 2);
 		Timetable::initializeRandomFieldDistribution(0, 2);
 		Timetable::initializeRandomWorkDayDistribution(1, work_week);
 		Timetable::s_rotary_timeslot = RotaryTimeslot();
@@ -97,7 +98,6 @@ void runExperiment(
 			int subject_units;
 			TimeDuration subject_duration;
 			Timeslot subject_fixed_timeslot;
-
 			subject_id = static_cast<int>(subject_configuration_subject_units[subject_configuration_id] >> 16);
 			subject_units = static_cast<int>(subject_configuration_subject_units[subject_configuration_id] & 0xFFFF);
 			subject_duration = static_cast<int>(subject_configuration_subject_duration[subject_configuration_id] & 0xFFFF);
@@ -107,9 +107,9 @@ void runExperiment(
 
 			for (int i = 0; i < 8; i++) {
 				if (subject_configuration_subject_fixed_day[subject_configuration_id] & (1 << i)) {
-print(YELLOW, "yes fixed day");
+					print(YELLOW, "yes fixed day");
 					subject_fixed_days.push_back(static_cast<ScheduledDay>(i));
-} else {
+				} else {
 					print(RED, "not fixed day");
 				}
 			}

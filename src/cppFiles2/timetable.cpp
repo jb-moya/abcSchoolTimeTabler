@@ -619,20 +619,19 @@ Section& Timetable::pickRandomSection() {
 	// print("ff", getSectionById(section_id).getId());
 
 	return getSectionById(section_id);
+	if (sections_with_conflicts.empty()) {
+	} else {
+		std::uniform_int_distribution<> dis(0, sections_with_conflicts.size() - 1);
 
-	// if (sections_with_conflicts.empty()) {
-	// } else {
-	// 	std::uniform_int_distribution<> dis(0, sections_with_conflicts.size() - 1);
+		int random_index = dis(randomizer_engine);
 
-	// 	int random_index = dis(randomizer_engine);
+		auto it = sections_with_conflicts.begin();
+		std::advance(it, random_index);
 
-	// 	auto it = sections_with_conflicts.begin();
-	// 	std::advance(it, random_index);
+		SectionID section_id = *it;
 
-	// 	SectionID section_id = *it;
-
-	// 	return getSectionById(section_id);
-	// }
+		return getSectionById(section_id);
+	}
 }
 
 int Timetable::pickRandomField(Section& selected_section) {

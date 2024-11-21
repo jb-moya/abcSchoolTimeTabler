@@ -170,7 +170,7 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 						print("old teacher utilized time");
 
 						for (auto& [time, count] : old_teacher_utilized_time) {
-							print("bbb ", static_cast<int>(day), time, count);
+							print("time ", static_cast<int>(day), time, count);
 						}
 
 						auto& new_teacher_utilized_time = new_teacher.getUtilizedTime().find(day)->second;
@@ -239,18 +239,25 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 							}
 						}
 
-						for (auto& [time, count] : old_teacher_utilized_time) {
-							print("bbb ", static_cast<int>(day), time, count);
-						}
+						print("test");
 
-						print("updated old teacher utilized time");
-						for (auto& [day, time] : updated_old_teacher.getUtilizedTime()) {
-							for (auto& [time, count] : time) {
-								print("v", static_cast<int>(day), time, count);
+						bool is_day_exists = updated_old_teacher.getUtilizedTime().count(day) == 1;
+						if (is_day_exists) {
+							for (auto& [time, count] : updated_old_teacher.getUtilizedTime().find(day)->second) {
+								print("bbb ", static_cast<int>(day));
+								print(time);
+								print(count);
 							}
 						}
+
+						// print("updated old teacher utilized time");
+						// for (auto& [day, time] : updated_old_teacher.getUtilizedTime()) {
+						// 	for (auto& [time, count] : time) {
+						// 		print("v", static_cast<int>(day), time, count);
+						// 	}
 						// }
-						print(RED, "END");
+						// // }
+						// print(RED, "END");
 					}
 				}
 				// }
@@ -305,29 +312,29 @@ TEST_CASE("assign fixed day", "[assignFixedDay]") {
 	CHECK(example & (1 << 0));
 	CHECK((example & 0b11111110) == 0);
 
-		example = assignFixedDay(false, true, false, false, false, false, false, false);
+	example = assignFixedDay(false, true, false, false, false, false, false, false);
 	CHECK(example == 0b00000010);
 	CHECK(example & (1 << 1));
 	CHECK((example & 0b11111101) == 0);
 
-		example = assignFixedDay(false, false, true, false, false, false, false, false);
+	example = assignFixedDay(false, false, true, false, false, false, false, false);
 	CHECK(example == 0b00000100);
 	CHECK(example & (1 << 2));
 	CHECK((example & 0b11111011) == 0);
 
-		example = assignFixedDay(false, true, false, true, false, false, false, false);
+	example = assignFixedDay(false, true, false, true, false, false, false, false);
 	CHECK(example == 0b00001010);
 	CHECK(example & (1 << 1));
 	CHECK(example & (1 << 3));
 	CHECK((example & 0b11110101) == 0);
 
-		example = assignFixedDay(true, true, true, true, true, true, true, true);
+	example = assignFixedDay(true, true, true, true, true, true, true, true);
 	CHECK(example == 0b11111111);
 	for (int i = 0; i < 8; ++i) {
 		CHECK(example & (1 << i));
 	}
 
-		example = assignFixedDay(false, false, false, false, false, false, false, true);
+	example = assignFixedDay(false, false, false, false, false, false, false, true);
 	CHECK(example == 0b10000000);
 	CHECK(example & (1 << 7));
 	CHECK((example & 0b01111111) == 0);
