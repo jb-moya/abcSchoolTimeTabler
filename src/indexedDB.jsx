@@ -140,8 +140,9 @@ export const removeEntityFromDB = async (storeName, entityId) => {
     await store.delete(entityId);
 
     // console.log("eh dito?");
-
-    toast.success('Entity removed successfully');
+    toast.success('Entity Removed Successfully', {
+      style: { backgroundColor: 'green', color: 'white', bordercolor: 'green', }, 
+    });
     return true;
 
   } catch (error) {

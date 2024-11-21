@@ -18,6 +18,10 @@ import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { BiChevronDown, BiChevronUp } from 'react-icons/bi';
 
+import { Toaster, toast } from "sonner";
+import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
+
+
 const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
   const inputNameRef = useRef();
   const dispatch = useDispatch();
@@ -32,7 +36,7 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
     (state) => state.teacher
   );
   const { sections } = useSelector((state) => state.section);
-  
+
   const [inputValue, setInputValue] = useState('');
   const [selectedAdviser, setSelectedAdviser] = useState('');
   const [selectedProgram, setSelectedProgram] = useState('');
@@ -42,6 +46,7 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
   const [selectedStartTime, setSelectedStartTime] = useState(0);
   const [subjectUnits, setSubjectUnits] = useState({});
   const [subjectPriorities, setSubjectPriorities] = useState({});
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleInputChange = (e) => {
     setInputValue(e.target.value);
@@ -49,8 +54,10 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
 
   const handleAddEntry = () => {
 
+    setErrorMessage('');
+    
     if (inputValue === '' || selectedAdviser === '' || selectedProgram === '' || selectedYearLevel === '' || selectedSubjects.length === 0 || subjectUnits.length === 0 || subjectPriorities.length === 0) {
-      alert('All fields are required.');
+      setErrorMessage('All fields are required.');
       return;
     }
 
@@ -63,21 +70,21 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
     );
 
     if (duplicateSection) {
-      alert('Section already exists.');
+      setErrorMessage('Section already exists.');
       return;
     } else if (duplicateAdviser) {
-      alert(`Teacher is already assigned as adviser of section '${duplicateAdviser.section}'`);
+      setErrorMessage(`Teacher is already assigned as adviser of section '${duplicateAdviser.section}'`);
       return;
     } else {
       const formattedSubjects = {}; // New object for subjects
-  
+
       selectedSubjects.forEach((subjectID) => {
         formattedSubjects[subjectID] = [
           subjectUnits[subjectID] || 0,          // units
           subjectPriorities[subjectID] || 0,     // priority
         ];
       });
-    
+
       dispatch(
         reduxFunction({
           [reduxField[0]]: inputValue,
@@ -89,7 +96,7 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
           startTime: selectedStartTime,
         })
       );
-    
+
       setInputValue('');
       setSelectedProgram('');
       setSelectedYearLevel('');
@@ -99,7 +106,7 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
       setSubjectUnits({});
       setSubjectPriorities({});
     }
-  
+
     if (inputNameRef.current) {
       inputNameRef.current.focus();
       inputNameRef.current.select();
@@ -107,6 +114,7 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
   };
 
   const handleReset = () => {
+    setErrorMessage('');
     setInputValue('');
     setSelectedProgram('');
     setSelectedYearLevel('');
@@ -184,18 +192,18 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
       </div>
 
       <div className="mb-4">
-          <label className="label">
+        <label className="label">
           <span className="label-text">Section Name</span>
         </label>
-          <input
-            type="text"
-            ref={inputNameRef}
-            placeholder={`${reduxField[0]} Name`}
-            required
-            className="input input-bordered input-sm w-full "
-            value={inputValue}
-            onChange={handleInputChange}
-          />
+        <input
+          type="text"
+          ref={inputNameRef}
+          placeholder={`${reduxField[0]} Name`}
+          required
+          className="input input-bordered input-sm w-full "
+          value={inputValue}
+          onChange={handleInputChange}
+        />
       </div>
 
       <div className="mt-3">
@@ -358,15 +366,18 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
         ))}
       </div>
 
+      {/* Show error message if exists */}
+      {errorMessage && <p className="text-red-500 text-sm my-4 font-medium">{errorMessage}</p>}
+
       <div className="flex justify-center gap-4 mt-4">
-          <button className="btn btn-secondary" onClick={handleReset}>
-            Reset
-          </button>
-          <button className="btn btn-primary" onClick={handleAddEntry}>
-            Add Section
-          </button>
+        <button className="btn btn-secondary" onClick={handleReset}>
+          Reset
+        </button>
+        <button className="btn btn-primary" onClick={handleAddEntry}>
+          Add Section
+        </button>
       </div>
-      
+
     </div>
   );
 };
@@ -423,9 +434,9 @@ const SectionListContainer = ({ editable = false }) => {
         priority, // Include priority
       };
     });
-  
+
     setEditSectionSubjects(subjectsWithUnitsAndPriority.map(({ id }) => id));
-  
+
     setEditSectionUnitsAndPriority(
       subjectsWithUnitsAndPriority.reduce((acc, { id, units, priority }) => {
         acc[id] = [units, priority];
@@ -437,7 +448,7 @@ const SectionListContainer = ({ editable = false }) => {
   const handleSaveSectionEditClick = (sectionId) => {
 
     if (!editSectionAdviser || !editSectionValue || !editSectionProg || !editSectionYear || editSectionSubjects.length === 0 || editSectionUnitsAndPriority.length === 0) {
-      alert('Please fill out all required fields.');
+      setErrorMessage('Please fill out all required fields.');
       return;
     }
 
@@ -486,10 +497,10 @@ const SectionListContainer = ({ editable = false }) => {
       // console.log('duplicateAdviser: ', duplicateAdviser);
 
       if (duplicateSection) {
-        alert('Section name already taken.');
+        setErrorMessage('Section name already taken.');
         return;
       } else if (duplicateAdviser) {
-        alert(`Adviser already assigned to section '${duplicateAdviser.section}'`);
+        setErrorMessage(`Adviser already assigned to section '${duplicateAdviser.section}'`);
         return;
       } else {
         const updatedUnits = {};
@@ -539,19 +550,19 @@ const SectionListContainer = ({ editable = false }) => {
     const times =
       editSectionShift === 0
         ? Array.from({ length: 36 }, (_, i) => {
-            const hours = 6 + Math.floor(i / 6);
-            const minutes = (i % 6) * 10;
-            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} AM`;
-          })
+          const hours = 6 + Math.floor(i / 6);
+          const minutes = (i % 6) * 10;
+          return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} AM`;
+        })
         : ['01:00 PM']; // Only one option for PM
-  
+
     return times.map((time) => (
       <option key={time} value={time}>
         {time}
       </option>
     ));
   };
-   
+
   const debouncedSearch = useCallback(
     debounce((searchValue, sections, subjects) => {
       setSearchSectionResult(
@@ -615,383 +626,383 @@ const SectionListContainer = ({ editable = false }) => {
   }, [editSectionAdviser]);
 
 
-const itemsPerPage = 10; // Adjust this to change items per page
-const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10; // Adjust this to change items per page
+  const [currentPage, setCurrentPage] = useState(1);
 
-// Calculate total pages based on filtered sections
-const totalPages = Math.ceil(Object.values(searchSectionResult).length / itemsPerPage);
+  // Calculate total pages based on filtered sections
+  const totalPages = Math.ceil(Object.values(searchSectionResult).length / itemsPerPage);
 
-// Get current items
-const indexOfLastItem = currentPage * itemsPerPage;
-const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-const currentItems = Object.entries(searchSectionResult).slice(indexOfFirstItem, indexOfLastItem);
+  // Get current items
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = Object.entries(searchSectionResult).slice(indexOfFirstItem, indexOfLastItem);
 
   return (
     <React.Fragment>
-    <div className="w-full">
-      <div className="flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5">
+      <div className="w-full">
+        <div className="flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5">
 
-      {/* Pagination */}
-      {currentItems.length > 0 && (
-        <div className="join flex justify-center mb-4 md:mb-0">
-          <button
-            className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
-            onClick={() => {
-              if (currentPage > 1) {
-                setCurrentPage(currentPage - 1);
-              }
-              handleCancelSectionEditClick();
-            }}
-            disabled={currentPage === 1}
-          >
-            «
-          </button>
-          <button className="join-item btn">
-            Page {currentPage} of {totalPages}
-          </button>
-          <button
-            className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
-            onClick={() => {
-              if (currentPage < totalPages) {
-                setCurrentPage(currentPage + 1);
-              }
-              handleCancelSectionEditClick();
-            }}
-            disabled={currentPage === totalPages}
-          >
-            »
-          </button>
-        </div>
-      )}
+          {/* Pagination */}
+          {currentItems.length > 0 && (
+            <div className="join flex justify-center mb-4 md:mb-0">
+              <button
+                className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
+                onClick={() => {
+                  if (currentPage > 1) {
+                    setCurrentPage(currentPage - 1);
+                  }
+                  handleCancelSectionEditClick();
+                }}
+                disabled={currentPage === 1}
+              >
+                «
+              </button>
+              <button className="join-item btn">
+                Page {currentPage} of {totalPages}
+              </button>
+              <button
+                className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
+                onClick={() => {
+                  if (currentPage < totalPages) {
+                    setCurrentPage(currentPage + 1);
+                  }
+                  handleCancelSectionEditClick();
+                }}
+                disabled={currentPage === totalPages}
+              >
+                »
+              </button>
+            </div>
+          )}
 
-      {currentItems.length === 0 && currentPage > 1 && (
-        <div className="hidden">
-          {setCurrentPage(currentPage - 1)}
-        </div>
-      )}
-        {/* Search Section */}
-        <div className="flex-grow w-full md:w-1/3 lg:w-1/4">
-          <label className="input input-bordered flex items-center gap-2 w-full">
-            <input
-              type="text"
-              className="grow p-3 text-sm w-full"
-              placeholder="Search Section"
-              value={searchSectionValue}
-              onChange={(e) => setSearchSectionValue(e.target.value)}
-            />
-            <IoSearch className="text-xl" />
-          </label>
-        </div>
-
-        {editable && (
-          <div className="w-full mt-4 md:mt-0 md:w-auto">
-            <button
-              className="btn btn-primary h-12 flex items-center justify-center w-full md:w-52"
-              onClick={() => document.getElementById('add_section_modal').showModal()}
-            >
-              Add Section <IoAdd size={20} className="ml-2" />
-            </button>
-
-            <dialog id="add_section_modal" className="modal modal-bottom sm:modal-middle">
-              <div className="modal-box">
-                <AddSectionContainer
-                  close={() => document.getElementById('add_section_modal').close()}
-                  reduxField={['section', 'subjects', 'units']}
-                  reduxFunction={addSection}
-                />
-                <div className="modal-action">
-                  <button
-                    className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                    onClick={() => document.getElementById('add_section_modal').close()}
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-            </dialog>
+          {currentItems.length === 0 && currentPage > 1 && (
+            <div className="hidden">
+              {setCurrentPage(currentPage - 1)}
+            </div>
+          )}
+          {/* Search Section */}
+          <div className="flex-grow w-full md:w-1/3 lg:w-1/4">
+            <label className="input input-bordered flex items-center gap-2 w-full">
+              <input
+                type="text"
+                className="grow p-3 text-sm w-full"
+                placeholder="Search Section"
+                value={searchSectionValue}
+                onChange={(e) => setSearchSectionValue(e.target.value)}
+              />
+              <IoSearch className="text-xl" />
+            </label>
           </div>
-        )}
+
+          {editable && (
+            <div className="w-full mt-4 md:mt-0 md:w-auto">
+              <button
+                className="btn btn-primary h-12 flex items-center justify-center w-full md:w-52"
+                onClick={() => document.getElementById('add_section_modal').showModal()}
+              >
+                Add Section <IoAdd size={20} className="ml-2" />
+              </button>
+
+              <dialog id="add_section_modal" className="modal modal-bottom sm:modal-middle">
+                <div className="modal-box">
+                  <AddSectionContainer
+                    close={() => document.getElementById('add_section_modal').close()}
+                    reduxField={['section', 'subjects', 'units']}
+                    reduxFunction={addSection}
+                  />
+                  <div className="modal-action">
+                    <button
+                      className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                      onClick={() => document.getElementById('add_section_modal').close()}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              </dialog>
+            </div>
+          )}
+        </div>
+
+        {/* Section Table */}
+        <div className="overflow-x-auto">
+          <table className="table table-sm table-zebra min-w-full">
+            <thead>
+              <tr>
+                <th className="w-8">#</th>
+                <th>Section ID</th>
+                <th>Section</th>
+                <th>Adviser</th>
+                <th>Program</th>
+                <th>Year</th>
+                <th>Subjects</th>
+                {editable && <th className="text-right">Actions</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {currentItems.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="text-center">
+                    No sections found
+                  </td>
+                </tr>
+              ) : (
+                currentItems.map(([, section], index) => (
+                  <tr key={section.id} className="group hover">
+                    <td>{index + indexOfFirstItem + 1}</td>
+                    <th>{section.id}</th>
+                    <td>
+                      {editSectionId === section.id ? (
+                        <>
+                          <input
+                            type="text"
+                            value={editSectionValue}
+                            onChange={(e) => setEditSectionValue(e.target.value)}
+                            className="input input-bordered input-sm w-full"
+                          />
+                          <div className="mt-2">
+                            <label className="mr-2">Shift:</label>
+                            <label className="mr-2">
+                              <input
+                                type="radio"
+                                value={editSectionShift}
+                                checked={editSectionShift === 0}
+                                onChange={() => {
+                                  setEditSectionShift(0);  // PM shift
+                                  setEditSectionStartTime('06:00 AM');  // Reset to default AM start time
+                                }}
+                              />
+                              AM
+                            </label>
+                            <label>
+                              <input
+                                type="radio"
+                                value={editSectionShift}
+                                checked={editSectionShift === 1}
+                                onChange={() => {
+                                  setEditSectionShift(1);  // PM shift
+                                  setEditSectionStartTime('01:00 PM');  // Reset to default PM start time
+                                }}
+                              />
+                              PM
+                            </label>
+                          </div>
+                          <div>
+                            <label>Start Time:</label>
+                            <select
+                              value={editSectionStartTime}
+                              onChange={(e) => setEditSectionStartTime(e.target.value)}
+                            >
+                              {renderTimeOptions()}
+                            </select>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="text-base font-bold">{section.section}</div>
+                          <div className="flex items-center mt-2">
+                            <span className="inline-block bg-blue-500 text-white text-sm font-semibold py-1 px-3 rounded-lg">
+                              {section.shift === 0 ? 'AM' : 'PM'}
+                            </span>
+                            <span className="ml-2 text-sm font-medium">
+                              {getTimeSlotString(section.startTime)}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                    </td>
+                    <td>
+                      {editSectionId === section.id ? (
+                        <select
+                          className="select select-bordered w-full"
+                          value={editSectionAdviser}
+                          onChange={(e) => setEditSectionAdviser(parseInt(e.target.value, 10))}
+                        >
+                          <option value="" disabled>
+                            Assign an adviser
+                          </option>
+                          {Object.keys(teachers).map((key) => (
+                            <option key={teachers[key].id} value={teachers[key].id}>
+                              {teachers[key].teacher}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        teachers[section.teacher]?.teacher || 'Unknown Teacher'
+                      )}
+                    </td>
+                    <td>
+                      {editSectionId === section.id ? (
+                        <select
+                          value={editSectionProg}
+                          onChange={(e) => {
+                            const newProgram = parseInt(e.target.value, 10);
+                            setEditSectionProg(newProgram);
+                            const subjectsForProgramAndYear =
+                              programs[newProgram]?.[section.year]?.subjects || [];
+                            setEditSectionSubjects(subjectsForProgramAndYear);
+                            const updatedUnits = {};
+                            subjectsForProgramAndYear.forEach((subjectId) => {
+                              updatedUnits[subjectId] = 0;
+                            });
+                            setEditSectionUnitsAndPriority(updatedUnits);
+                          }}
+                          className="select select-bordered"
+                        >
+                          {Object.entries(programs).map(([key, program]) => (
+                            <option key={key} value={key}>
+                              {program.program}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        programs[section.program]?.program || 'Unknown Program'
+                      )}
+                    </td>
+                    <td>
+                      {editSectionId === section.id ? (
+                        <select
+                          value={editSectionYear}
+                          onChange={(e) => {
+                            const newYear = parseInt(e.target.value, 10);
+                            setEditSectionYear(newYear);
+                            const subjectsForProgramAndYear =
+                              programs[editSectionProg]?.[newYear]?.subjects || [];
+                            setEditSectionSubjects(subjectsForProgramAndYear);
+                            const updatedUnits = {};
+                            subjectsForProgramAndYear.forEach((subjectId) => {
+                              updatedUnits[subjectId] = 0;
+                            });
+                            setEditSectionUnitsAndPriority(updatedUnits);
+                          }}
+                          className="select select-bordered"
+                        >
+                          {[7, 8, 9, 10].map((year) => (
+                            <option key={year} value={year}>
+                              {year}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        section.year
+                      )}
+                    </td>
+                    <td className="flex gap-1 flex-wrap">
+                      {editSectionId === section.id ? (
+                        <div className="space-y-2">
+                          {editSectionSubjects.map((subjectId) => (
+                            <div
+                              key={subjectId}
+                              className="px-2 flex items-center border border-gray-500 border-opacity-30"
+                            >
+                              <div className="mr-2">
+                                {subjects[subjectId]?.subject || 'Unknown Subject'}
+                              </div>
+                              <input
+                                type="number"
+                                value={editSectionUnitsAndPriority[subjectId][0] || 0}
+                                onChange={(e) =>
+                                  setEditSectionUnitsAndPriority({
+                                    ...editSectionUnitsAndPriority,
+                                    [subjectId]: [
+                                      parseInt(e.target.value, 10) || 0, // Set units
+                                      editSectionUnitsAndPriority[subjectId]?.[1] || 0, // Preserve priority
+                                    ],
+                                  })
+                                }
+                                className="input input-xs w-16"
+                              />
+                              <span className="text-xs ml-1">unit(s)</span>
+
+                              <input
+                                type="number"
+                                value={editSectionUnitsAndPriority[subjectId][1] || 0} // Priority input
+                                onChange={(e) =>
+                                  setEditSectionUnitsAndPriority({
+                                    ...editSectionUnitsAndPriority,
+                                    [subjectId]: [
+                                      editSectionUnitsAndPriority[subjectId]?.[0] || 0, // Preserve units
+                                      parseInt(e.target.value, 10) || 0, // Set priority
+                                    ],
+                                  })
+                                }
+                                className="input input-xs w-16 ml-2" // Add some margin for spacing
+                              />
+                              <span className="text-xs ml-1">priority</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        subjectStatus === 'succeeded' && (
+                          <div className="space-y-2">
+                            {Object.keys(section.subjects).map((subjectID) => (
+                              <div
+                                key={subjectID}
+                                className="px-2 py-1 flex items-center border border-gray-500 border-opacity-30"
+                              >
+                                <div className="mr-2">
+                                  {subjects[subjectID]?.subject || 'Unknown Subject'}
+                                </div>
+                                <div className="text-xs opacity-75">
+                                  <span className="mr-1">{section.subjects[subjectID][0]}</span>
+                                  <span>unit(s)</span>
+                                  <span> </span>
+                                  <span>priority</span>
+                                  <span className="mr-1">({section.subjects[subjectID][1]})</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )
+                      )}
+                    </td>
+
+                    {editable && (
+                      <td className="w-28 text-right">
+                        {editSectionId === section.id ? (
+                          <>
+                            <button
+                              className="btn btn-xs btn-ghost text-green-500"
+                              onClick={() => handleSaveSectionEditClick(section.id)}
+                            >
+                              Save
+                            </button>
+                            <button
+                              className="btn btn-xs btn-ghost text-red-500"
+                              onClick={() => handleCancelSectionEditClick()}
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              className="btn btn-xs btn-ghost text-blue-500"
+                              onClick={() => handleEditSectionClick(section)}
+                            >
+                              <RiEdit2Fill />
+                            </button>
+                            <button
+                              className="btn btn-xs btn-ghost text-red-500"
+                              onClick={() => dispatch(removeSection(section.id))}
+                            >
+                              <RiDeleteBin7Line />
+                            </button>
+                          </>
+                        )}
+                      </td>
+                    )}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+
       </div>
 
-     {/* Section Table */}
-  <div className="overflow-x-auto">
-  <table className="table table-sm table-zebra min-w-full">
-    <thead>
-      <tr>
-        <th className="w-8">#</th>
-        <th>Section ID</th>
-        <th>Section</th>
-        <th>Adviser</th>
-        <th>Program</th>
-        <th>Year</th>
-        <th>Subjects</th>
-        {editable && <th className="text-right">Actions</th>}
-      </tr>
-    </thead>
-    <tbody>
-      {currentItems.length === 0 ? (
-        <tr>
-          <td colSpan="7" className="text-center">
-            No sections found
-          </td>
-        </tr>
-      ) : (
-        currentItems.map(([, section], index) => (
-          <tr key={section.id} className="group hover">
-            <td>{index + indexOfFirstItem + 1}</td>
-            <th>{section.id}</th>
-            <td>
-              {editSectionId === section.id ? (
-                <>
-                  <input
-                    type="text"
-                    value={editSectionValue}
-                    onChange={(e) => setEditSectionValue(e.target.value)}
-                    className="input input-bordered input-sm w-full"
-                  />
-                  <div className="mt-2">
-                    <label className="mr-2">Shift:</label>
-                    <label className="mr-2">
-                      <input
-                        type="radio"
-                        value={editSectionShift}
-                        checked={editSectionShift === 0}
-                        onChange={() => {
-                          setEditSectionShift(0);  // PM shift
-                          setEditSectionStartTime('06:00 AM');  // Reset to default AM start time
-                        }}
-                      />
-                      AM
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        value={editSectionShift}
-                        checked={editSectionShift === 1}
-                        onChange={() => {
-                          setEditSectionShift(1);  // PM shift
-                          setEditSectionStartTime('01:00 PM');  // Reset to default PM start time
-                        }}
-                      />
-                      PM
-                    </label>
-                  </div>
-                  <div>
-                    <label>Start Time:</label>
-                    <select
-                      value={editSectionStartTime}
-                      onChange={(e) => setEditSectionStartTime(e.target.value)}
-                    >
-                      {renderTimeOptions()}
-                    </select>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="text-base font-bold">{section.section}</div>
-                  <div className="flex items-center mt-2">
-                    <span className="inline-block bg-blue-500 text-white text-sm font-semibold py-1 px-3 rounded-lg">
-                      {section.shift === 0 ? 'AM' : 'PM'}
-                    </span>
-                    <span className="ml-2 text-sm font-medium">
-                      {getTimeSlotString(section.startTime)}
-                    </span>
-                  </div>
-                </>
-              )}
-            </td>
-            <td>
-              {editSectionId === section.id ? (
-                <select
-                  className="select select-bordered w-full"
-                  value={editSectionAdviser}
-                  onChange={(e) => setEditSectionAdviser(parseInt(e.target.value, 10))}
-                >
-                  <option value="" disabled>
-                    Assign an adviser
-                  </option>
-                  {Object.keys(teachers).map((key) => (
-                    <option key={teachers[key].id} value={teachers[key].id}>
-                      {teachers[key].teacher}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                teachers[section.teacher]?.teacher || 'Unknown Teacher'
-              )}
-            </td>
-            <td>
-              {editSectionId === section.id ? (
-                <select
-                  value={editSectionProg}
-                  onChange={(e) => {
-                    const newProgram = parseInt(e.target.value, 10);
-                    setEditSectionProg(newProgram);
-                    const subjectsForProgramAndYear =
-                      programs[newProgram]?.[section.year]?.subjects || [];
-                    setEditSectionSubjects(subjectsForProgramAndYear);
-                    const updatedUnits = {};
-                    subjectsForProgramAndYear.forEach((subjectId) => {
-                      updatedUnits[subjectId] = 0;
-                    });
-                    setEditSectionUnitsAndPriority(updatedUnits);
-                  }}
-                  className="select select-bordered"
-                >
-                  {Object.entries(programs).map(([key, program]) => (
-                    <option key={key} value={key}>
-                      {program.program}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                programs[section.program]?.program || 'Unknown Program'
-              )}
-            </td>
-            <td>
-              {editSectionId === section.id ? (
-                <select
-                  value={editSectionYear}
-                  onChange={(e) => {
-                    const newYear = parseInt(e.target.value, 10);
-                    setEditSectionYear(newYear);
-                    const subjectsForProgramAndYear =
-                      programs[editSectionProg]?.[newYear]?.subjects || [];
-                    setEditSectionSubjects(subjectsForProgramAndYear);
-                    const updatedUnits = {};
-                    subjectsForProgramAndYear.forEach((subjectId) => {
-                      updatedUnits[subjectId] = 0;
-                    });
-                    setEditSectionUnitsAndPriority(updatedUnits);
-                  }}
-                  className="select select-bordered"
-                >
-                  {[7, 8, 9, 10].map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                section.year
-              )}
-            </td>
-            <td className="flex gap-1 flex-wrap">
-              {editSectionId === section.id ? (
-                <div className="space-y-2">
-                  {editSectionSubjects.map((subjectId) => (
-                    <div
-                      key={subjectId}
-                      className="px-2 flex items-center border border-gray-500 border-opacity-30"
-                    >
-                      <div className="mr-2">
-                        {subjects[subjectId]?.subject || 'Unknown Subject'}
-                      </div>
-                      <input
-                        type="number"
-                        value={editSectionUnitsAndPriority[subjectId][0] || 0}
-                        onChange={(e) =>
-                          setEditSectionUnitsAndPriority({
-                            ...editSectionUnitsAndPriority,
-                            [subjectId]: [
-                              parseInt(e.target.value, 10) || 0, // Set units
-                              editSectionUnitsAndPriority[subjectId]?.[1] || 0, // Preserve priority
-                            ],
-                          })
-                        }
-                        className="input input-xs w-16"
-                      />
-                      <span className="text-xs ml-1">unit(s)</span>
-
-                      <input
-                        type="number"
-                        value={editSectionUnitsAndPriority[subjectId][1] || 0} // Priority input
-                        onChange={(e) =>
-                          setEditSectionUnitsAndPriority({
-                            ...editSectionUnitsAndPriority,
-                            [subjectId]: [
-                              editSectionUnitsAndPriority[subjectId]?.[0] || 0, // Preserve units
-                              parseInt(e.target.value, 10) || 0, // Set priority
-                            ],
-                          })
-                        }
-                        className="input input-xs w-16 ml-2" // Add some margin for spacing
-                      />
-                      <span className="text-xs ml-1">priority</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                subjectStatus === 'succeeded' && (
-                  <div className="space-y-2">
-                    {Object.keys(section.subjects).map((subjectID) => (
-                      <div
-                        key={subjectID}
-                        className="px-2 py-1 flex items-center border border-gray-500 border-opacity-30"
-                      >
-                        <div className="mr-2">
-                          {subjects[subjectID]?.subject || 'Unknown Subject'}
-                        </div>
-                        <div className="text-xs opacity-75">
-                          <span className="mr-1">{section.subjects[subjectID][0]}</span>
-                          <span>unit(s)</span>
-                          <span> </span>
-                          <span>priority</span>
-                          <span className="mr-1">({section.subjects[subjectID][1]})</span>    
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )
-              )}
-            </td>
-
-            {editable && (
-              <td className="w-28 text-right">
-                {editSectionId === section.id ? (
-                  <>
-                    <button
-                      className="btn btn-xs btn-ghost text-green-500"
-                      onClick={() => handleSaveSectionEditClick(section.id)}
-                    >
-                      Save
-                    </button>
-                    <button
-                      className="btn btn-xs btn-ghost text-red-500"
-                      onClick={() => handleCancelSectionEditClick()}
-                    >
-                      Cancel
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      className="btn btn-xs btn-ghost text-blue-500"
-                      onClick={() => handleEditSectionClick(section)}
-                    >
-                      <RiEdit2Fill />
-                    </button>
-                    <button
-                      className="btn btn-xs btn-ghost text-red-500"
-                      onClick={() => dispatch(removeSection(section.id))}
-                    >
-                      <RiDeleteBin7Line />
-                    </button>
-                  </>
-                )}
-              </td>
-            )}
-          </tr>
-        ))
-      )}
-    </tbody>
-  </table>
-</div>
-
-
-    </div>
-    
-  </React.Fragment>
+    </React.Fragment>
   );
 };
 
