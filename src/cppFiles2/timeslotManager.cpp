@@ -68,18 +68,35 @@ void TimeslotManager::addDynamicTimeSlot(Timeslot timeslot) {
 const std::unordered_set<Timeslot>& TimeslotManager::getBreakSlots() const {
 	return break_slots;
 }
+
 TimePoint TimeslotManager::getTimeslotStart(Timeslot timeslot) const {
+	auto it = time_range.find(timeslot);
+	if (it == time_range.end()) {
+		throw std::runtime_error(std::to_string(timeslot) + " Timeslot not found in time_range.");
+	}
 	return time_range.find(timeslot)->second.start;
 }
 
 TimePoint TimeslotManager::getTimeslotEnd(Timeslot timeslot) const {
+	auto it = time_range.find(timeslot);
+	if (it == time_range.end()) {
+		throw std::runtime_error(std::to_string(timeslot) + " Timeslot not found in time_range.");
+	}
 	return time_range.find(timeslot)->second.end;
 }
 void TimeslotManager::updateTimeslotStart(Timeslot timeslot, TimePoint start) {
+	auto it = time_range.find(timeslot);
+	if (it == time_range.end()) {
+		throw std::runtime_error(std::to_string(timeslot) + " Timeslot not found in time_range. Cannot update start time.");
+	}
 	time_range.find(timeslot)->second.start = start;
 }
 
 void TimeslotManager::updateTimeslotEnd(Timeslot timeslot, TimePoint end) {
+	auto it = time_range.find(timeslot);
+	if (it == time_range.end()) {
+		throw std::runtime_error(std::to_string(timeslot) + " Timeslot not found in time_range. Cannot update end time.");
+	}
 	time_range.find(timeslot)->second.end = end;
 }
 
