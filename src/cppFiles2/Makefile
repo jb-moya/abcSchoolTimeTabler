@@ -23,6 +23,7 @@ subjectTeacherQueue.cpp
 
 # Header Files
 HEADERS = \
+print.h \
 teacher.h \
 system_runner.h \
 timeslotManager.h \
@@ -41,8 +42,7 @@ classStartEnd.h \
 schoolClass.h \
 bee.h \
 objectiveFunction.h \
-log.h \
-print.h
+log.h
 
 # Test Source File
 TEST_SRC = test_file.cpp  # Your test file

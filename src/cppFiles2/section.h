@@ -30,6 +30,7 @@ class Section {
 
 	std::unordered_map<SubjectID, std::shared_ptr<SubjectConfiguration>> subject_configurations;
 	std::map<Timeslot, std::unordered_map<ScheduledDay, SchoolClass>> classes;
+	std::unordered_map<SubjectID, TeacherID> subject_fixed_teacher;
 	std::unordered_set<TeacherID> utilized_teachers;
 
 	TimeslotManager timeslot_manager;
@@ -56,6 +57,7 @@ class Section {
 	static Section& getRandomSection();
 
 	// Core Functional Methods
+	void addSubjectFixedTeacher(SubjectID subject_id, TeacherID teacher_id);
 	void addSubject(const std::shared_ptr<SubjectConfiguration>& subject_configuration);
 	void addClass(Timeslot timeslot, ScheduledDay day, const SchoolClass& class_);
 	void addUtilizedTeacher(TeacherID teacher_id);
@@ -65,6 +67,8 @@ class Section {
 	// Setters for Attributes
 	void setTotalDuration(TimeDuration total_duration);
 	void setViolation(bool violation);
+
+	TeacherID getSubjectFixedTeacher(SubjectID subject_id) const;
 
 	// Getters for Attributes
 	SectionID getId() const;

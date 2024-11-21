@@ -152,6 +152,17 @@ std::unordered_set<ScheduledDay> Section::getClassTimeslotScheduledDay(Timeslot 
 	return scheduled_days;
 }
 
+void Section::addSubjectFixedTeacher(SubjectID subject_id, TeacherID teacher_id) {
+	subject_fixed_teacher[subject_id] = teacher_id;
+}
+
+TeacherID Section::getSubjectFixedTeacher(SubjectID subject_id) const {
+	if (subject_fixed_teacher.find(subject_id) == subject_fixed_teacher.end()) {
+		return -1;
+	}
+	return subject_fixed_teacher.at(subject_id);
+}
+
 void Section::addClass(Timeslot timeslot, ScheduledDay day, const SchoolClass& school_class_) {
 	classes[timeslot][day] = school_class_;
 }

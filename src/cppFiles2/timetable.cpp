@@ -386,6 +386,19 @@ void Timetable::categorizeSubjects(Section& section,
 	}
 }
 
+TeacherID Timetable::getRandomInitialTeacher(Section& section, SubjectID subject_id) {
+	TeacherID fixed_teacher_id = section.getSubjectFixedTeacher(subject_id);
+	if (fixed_teacher_id == -1) {
+		TimeDuration subject_duration = section.getSubject(subject_id).getDuration() * Timetable::getWorkWeek();  // TODO: not elegant
+		TeacherID queued_teacher = Timetable::s_subject_teacher_queue.getTeacher(subject_id, subject_duration);
+		TeacherID selected_teacher = queued_teacher != -1 ? queued_teacher : getRandomTeacher(subject_id);
+		return selected_teacher;
+		// return getRandomTeacher(subject_id);
+	}
+
+	return fixed_teacher_id;
+}
+
 void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teachers) {
 	if (sections.size() == 0) {
 		print("no sections");
@@ -408,9 +421,7 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 		for (const auto& subject_id : full_week_day_subjects) {
 			Timeslot fixed_timeslot = section.getSubject(subject_id).getFixedTimeslot();
 
-			TimeDuration subject_duration = section.getSubject(subject_id).getDuration() * Timetable::getWorkWeek();  // TODO: not elegant
-			TeacherID queued_teacher = Timetable::s_subject_teacher_queue.getTeacher(subject_id, subject_duration);
-			TeacherID selected_teacher = getRandomTeacher(subject_id);
+			TeacherID selected_teacher = getRandomInitialTeacher(section, subject_id);
 
 			section.addUtilizedTeacher(selected_teacher);
 
@@ -445,7 +456,8 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 			Timeslot fixed_timeslot = section.getSubject(subject_id).getFixedTimeslot();
 			int units = section.getSubject(subject_id).getUnits();
 
-			TeacherID selected_teacher = getRandomTeacher(subject_id);
+			TeacherID selected_teacher = getRandomInitialTeacher(section, subject_id);
+
 			std::vector<ScheduledDay> fixed_days = section.getSubject(subject_id).getFixedDays();
 
 			section.addUtilizedTeacher(selected_teacher);
@@ -661,27 +673,39 @@ void Timetable::modify(Section& selected_section,
 	auto itUpPrev = std::prev(itUp);
 
 	bool is_skipping_between = selected_section.isPairTimeslotDurationEqual(selected_timeslots);
-	updateTeachersAndSections(update_teachers, itLow, itUp, false, is_skipping_between, selected_section, true);
-	if (choice == 0) {
+
+	switch (choice) {
+	case 0: {
+		updateTeachersAndSections(update_teachers, itLow, itUp, false, is_skipping_between, selected_section, true);
 		selected_section.swapClassesByTimeslot(selected_timeslot_1, selected_timeslot_2);
 		selected_section.adjustBreakslots(itLow->first, itUpPrev->first);
 
 		if (!selected_section.getSegmentedTimeslot().empty()) {
 			selected_section.adjustSegmentedTimeslots(selected_timeslot_1, selected_timeslot_2);
 		}
-	} else if (choice == 1) {
-		// TODO: AVOID FIXED TEACHER
 
+		updateTeachersAndSections(update_teachers, itLow, itUp, true, is_skipping_between, selected_section, false);
+
+	}
+
+	break;
+	case 1: {
 		ScheduledDay randomScheduledDay = selected_section.getRandomClassTimeslotWorkingDays(selected_timeslot_1);
 		SubjectID selected_timeslot_subject_id = selected_section.getClassTimeslotSubjectID(randomScheduledDay, selected_timeslot_1);
+		TeacherID selected_timeslot_teacher_id = selected_section.getClassTimeslotTeacherID(randomScheduledDay, selected_timeslot_1);
+
+		if (selected_timeslot_subject_id == -1) {
+			print("it shouldn't picked a breakslot");
+			break;
+		}
+
+		if (selected_section.getSubjectFixedTeacher(selected_timeslot_subject_id) == selected_timeslot_teacher_id) {
+			break;
+		}
+
+		updateTeachersAndSections(update_teachers, itLow, itUp, false, is_skipping_between, selected_section, true);
 
 		if (randomScheduledDay == ScheduledDay::EVERYDAY) {
-			// TODO: leave breakslots alone
-			// FIXME: Bug for implementation of fixed teacher in the future
-			if (selected_timeslot_subject_id == -1) {
-				print("it shouldn't picked a breakslot");
-				return;
-			}
 			// print(RED_BG, "yes");
 			TeacherID old_teacher_id = selected_section.getClassTimeslotTeacherID(ScheduledDay::EVERYDAY, selected_timeslot_1);
 			TeacherID new_teacher = eligibility_manager.getNewRandomTeacher(selected_timeslot_subject_id, old_teacher_id);
@@ -704,11 +728,19 @@ void Timetable::modify(Section& selected_section,
 			TeacherID new_teacher = eligibility_manager.getNewRandomTeacher(selected_timeslot_subject_id, old_teacher_id);
 
 			for (const auto& day_to_update : days_to_update) {
-								changeTeacher(selected_section, selected_timeslot_1, day_to_update, new_teacher, update_teachers);
+				changeTeacher(selected_section, selected_timeslot_1, day_to_update, new_teacher, update_teachers);
 			}
 		}
-	} else if (choice == 2) {
+
+		updateTeachersAndSections(update_teachers, itLow, itUp, true, is_skipping_between, selected_section, false);
+	}
+
+	break;
+	case 2: {
 		// std::cout << " : ( " << random_section << " " << random_timeslot_1 << " " << random_timeslot_2 << std::endl;
+
+		updateTeachersAndSections(update_teachers, itLow, itUp, false, is_skipping_between, selected_section, true);
+
 		ScheduledDay day_1, day_2;
 
 		auto& section_timeslot_1 = classes[selected_timeslot_1];
@@ -745,7 +777,14 @@ void Timetable::modify(Section& selected_section,
 			section_timeslot_1[day_1] = std::move(it2->second);
 			section_timeslot_2.erase(it2);
 		}
+
+		updateTeachersAndSections(update_teachers, itLow, itUp, true, is_skipping_between, selected_section, false);
 	}
 
-	updateTeachersAndSections(update_teachers, itLow, itUp, true, is_skipping_between, selected_section, false);
+	break;
+
+	default:
+		print("unreachable");
+		break;
+	}
 };

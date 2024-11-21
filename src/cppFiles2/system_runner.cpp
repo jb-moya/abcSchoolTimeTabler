@@ -22,6 +22,8 @@ void runExperiment(
     int32_t* subject_configuration_subject_duration,
     int32_t* subject_configuration_subject_fixed_timeslot,
     int32_t* subject_configuration_subject_fixed_day,
+    int32_t* subject_fixed_teacher_section,
+    int32_t* subject_fixed_teacher,
     int32_t* section_start,
     int32_t* teacher_subjects,
     int32_t* teacher_week_load_config,
@@ -132,6 +134,19 @@ print(YELLOW, "yes fixed day");
 
 			Section::s_all_sections.insert(section_id);
 			timetable.addSection(section_id, num_break, start, total_timeslot, not_allowed_breakslot_gap, is_dynamic_subject_consistent_duration);
+		}
+
+		size_t count = 0;
+		while (subject_fixed_teacher_section[count] != -1) {
+			SectionID section_id = static_cast<int>(subject_fixed_teacher_section[count]);
+			SubjectID subject_id = static_cast<int>(subject_fixed_teacher[count] >> 16);
+			TeacherID teacher_id = static_cast<int>(subject_fixed_teacher[count] & 0xFFFF);
+
+			print("section_id", section_id, "subject_id", subject_id, "teacher_id", teacher_id);
+
+			timetable.getSectionById(section_id).addSubjectFixedTeacher(subject_id, teacher_id);
+
+			++count;
 		}
 
 		for (TeacherID teacher_id = 0; teacher_id < num_teachers; teacher_id++) {

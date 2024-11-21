@@ -122,6 +122,7 @@ struct Timetable {
 
 	void initializeRandomTimetable(std::unordered_set<TeacherID>& update_teachers);
 	void initializeSectionTimetable(SectionID section_id, Section& section);
+	TeacherID getRandomInitialTeacher(Section& section, SubjectID subject_id);
 
 	void modify(Section& selected_section,
 	            int choice,

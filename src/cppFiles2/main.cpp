@@ -124,6 +124,16 @@ void test_generate_timetable() {
 
 	int32_t* section_subject_configuration = allocate(total_section_subjects);
 
+	// int32_t* subject_fixed_teacher_section = allocate(2);
+	int32_t* subject_fixed_teacher_section = allocate(1);
+	int32_t* subject_fixed_teacher = allocate(1);
+
+	subject_fixed_teacher_section[0] = -1;
+
+	// subject_fixed_teacher_section[0] = 0;
+	// subject_fixed_teacher_section[1] = -1;
+	// subject_fixed_teacher[0] = packInt16ToInt32(0, 0);
+
 	for (TeacherID i = 0; i < teacher_subjects_length; ++i) {
 		teacher_subjects[i] = -1;
 		teacher_week_load_config[i] = packInt16ToInt32(max_teacher_work_load, min_teacher_work_load);
@@ -230,6 +240,8 @@ void test_generate_timetable() {
 	    subject_configuration_subject_duration,
 	    subject_configuration_subject_fixed_timeslot,
 	    subject_configuration_subject_fixed_day,
+	    subject_fixed_teacher_section,
+	    subject_fixed_teacher,
 	    section_start,
 	    teacher_subjects,
 	    teacher_week_load_config,
