@@ -4,7 +4,6 @@
 #include "random_util.h"
 
 int Section::total_section;
-std::unordered_set<SectionID> Section::s_all_sections;
 
 SubjectConfiguration& Section::getSubject(SubjectID subject_id) {
 	return *subject_configurations[subject_id];
@@ -104,6 +103,8 @@ std::unordered_set<ScheduledDay> Section::getAllScheduledDayOnClasstimeslot(Time
 		print("cannot find timeslot", timeslot);
 		return {};
 	};
+
+	// does this only include the day that has class
 
 	std::unordered_set<ScheduledDay> result;
 	for (auto& classTimeslot : classes.find(timeslot)->second) {

@@ -28,7 +28,7 @@ inline int32_t packInt8ToInt32(int8_t first, int8_t second, int8_t third, int8_t
 }
 
 inline uint8_t assignFixedDay(bool anyDay, bool monday, bool tuesday, bool wednesday,
-                             bool thursday, bool friday, bool saturday, bool sunday) {
+                              bool thursday, bool friday, bool saturday, bool sunday) {
 	uint8_t config = 0;
 
 	if (anyDay) config |= (1 << static_cast<uint8_t>(ScheduledDay::ANYDAY));  // Set the most significant bit (bit 7))
@@ -41,4 +41,14 @@ inline uint8_t assignFixedDay(bool anyDay, bool monday, bool tuesday, bool wedne
 	if (sunday) config |= (1 << static_cast<uint8_t>(ScheduledDay::SUNDAY));
 
 	return config;
+}
+
+inline std::vector<ScheduledDay> extractFixedDays(uint8_t config) {
+	std::vector<ScheduledDay> fixed_days;
+	for (int i = 0; i < 8; i++) {
+		if (config & (1 << i)) {
+			fixed_days.push_back(static_cast<ScheduledDay>(i));
+		}
+	}
+	return fixed_days;
 }

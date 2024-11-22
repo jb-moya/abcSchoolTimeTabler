@@ -78,12 +78,12 @@ struct Timetable {
 
 	// Helper method to find a subject by name
 	std::shared_ptr<SubjectConfiguration> findSubjectConfigurationById(SubjectConfigurationID id);
-	void addSubjectConfiguration(SubjectConfigurationID subject_configuration_id, 
-								 SubjectID subject_id, 
-								 TimeDuration duration, 
-								 int unit_count, 
-								 Timeslot fixed_timeslot,
-								 std::vector<ScheduledDay> fixed_days);
+	void addSubjectConfiguration(SubjectConfigurationID subject_configuration_id,
+	                             SubjectID subject_id,
+	                             TimeDuration duration,
+	                             int unit_count,
+	                             Timeslot fixed_timeslot,
+	                             std::vector<ScheduledDay> fixed_days);
 
 	Section& getSectionById(SectionID section_id);
 	Teacher& getTeacherById(TeacherID teacher_id);
@@ -97,8 +97,10 @@ struct Timetable {
 	static SubjectTeacherQueue s_subject_teacher_queue;
 
 	static void initializeRandomWorkDayDistribution(int min, int max);
-	// static void initializeRandomSectionDistribution(int min, int max);
+	static void initializeRandomSectionDistribution(int min, int max);
 	static void initializeRandomFieldDistribution(int min, int max);
+	static void initializeSectionSet(int total_section);
+	static void initializeTeachersSet(int total_teacher);
 	static void reset();
 
 	void setClasstimeslot(Section& section);
@@ -122,6 +124,23 @@ struct Timetable {
 
 	void initializeRandomTimetable(std::unordered_set<TeacherID>& update_teachers);
 	void initializeSectionTimetable(SectionID section_id, Section& section);
+
+	void initializeSubjectConfigurations(int number_of_subject_configuration,
+	                                     int32_t* subject_configuration_subject_units,
+	                                     int32_t* subject_configuration_subject_duration,
+	                                     int32_t* subject_configuration_subject_fixed_timeslot,
+	                                     int32_t* subject_configuration_subject_fixed_day);
+
+	void initializeSections(int number_of_section,
+	                        int32_t* section_configuration,
+	                        int32_t* section_start);
+
+	void initializeSectionFixedSubjectTeacher(int32_t* subject_fixed_teacher_section, int32_t* subject_fixed_teacher);
+
+	void initializeTeachers(int number_of_teacher, int32_t* teacher_week_load_config);
+	void initializeTeacherSubjects(int teacher_subjects_length, int32_t* teacher_subjects);
+	void initializeSectionSubjects(int total_section_subjects, int32_t* section_subject_configuration);
+
 	TeacherID getRandomInitialTeacher(Section& section, SubjectID subject_id);
 
 	void modify(Section& selected_section,

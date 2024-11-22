@@ -7,8 +7,6 @@ class ABC {
 	Timetable initialTimetable;
 	Bee best_solution;
 	ObjectiveFunction objective_function;
-	std::unordered_map<SectionID, Section> sections;
-	std::unordered_map<TeacherID, Teacher> teachers;
 	std::map<int, int> costs;
 
 	std::vector<int> bees_abandoned;
@@ -32,8 +30,6 @@ class ABC {
    public:
 	ABC(Timetable initialTimetable,
 	    Bee solution,
-	    std::unordered_map<SectionID, Section> sections,
-	    std::unordered_map<TeacherID, Teacher> teachers,
 	    int total_section,
 	    int total_teacher,
 	    int max_iterations,
@@ -45,8 +41,6 @@ class ABC {
 	    : initialTimetable(initialTimetable),
 	      best_solution(solution),
 	      objective_function(),
-	      sections(std::move(sections)),
-	      teachers(std::move(teachers)),
 	      costs(),
 	      bees_abandoned(bees_population, 0),
 	      above_limit_abandoned_bees(),

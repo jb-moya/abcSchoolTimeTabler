@@ -37,7 +37,6 @@ class Section {
 
    public:
 	static int total_section;
-	static std::unordered_set<SectionID> s_all_sections;
 
 	Section(SectionID id_,
 	        int num_break_,

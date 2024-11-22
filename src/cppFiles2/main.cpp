@@ -41,7 +41,7 @@ int32_t* allocate(int size) {
 
 void test_generate_timetable() {
 	// TODO: dynamic max_iterations base on config'
-	int max_iterations = 40000;
+	int max_iterations = 10000;
 	int beesPopulation = 4;
 	int beesEmployed = 2;
 	int beesOnlooker = 2;
@@ -69,9 +69,10 @@ void test_generate_timetable() {
 	// 10 - 6- 24
 	// FIXME: address !!!important notes on logs2 folder
 
-	// is there a way to put async function that execute in parallellk
+	// is there a way to put async function that execute in parallell
 
-	int limit = (total_section * (num_teachers)) * .6;
+	// int limit = (total_section * (num_teachers));
+	int limit = (total_section * (num_teachers)) * 3;
 	int default_units = 0;
 
 	Timeslot default_fixed_timeslot = 0;
@@ -135,11 +136,10 @@ void test_generate_timetable() {
 	// subject_fixed_teacher[0] = packInt16ToInt32(0, 0);
 
 	for (TeacherID i = 0; i < teacher_subjects_length; ++i) {
-		teacher_subjects[i] = -1;
 		teacher_week_load_config[i] = packInt16ToInt32(max_teacher_work_load, min_teacher_work_load);
 	}
 
-	for (TeacherID i = 0; i < num_teachers; ++i) {
+	for (TeacherID i = 0; i < teacher_subjects_length; ++i) {
 		teacher_subjects[i] = packInt16ToInt32(i, i % num_subjects);
 	}
 
@@ -176,8 +176,8 @@ void test_generate_timetable() {
 		subject_configuration_subject_fixed_day[subject_configuration_id] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_fixed_day);
 	}
 
-	subject_configuration_subject_units[0] = packInt16ToInt32(0, 3);
-	// subject_configuration_subject_units[1] = packInt16ToInt32(1, 2);
+	// subject_configuration_subject_units[0] = packInt16ToInt32(0, 3);
+	// subject_configuration_subject_units[1] = packInt16ToInt32(1, 1);
 
 	for (int16_t section = 0; section < total_section; ++section) {
 		for (int16_t subject = 0; subject < num_subjects; ++subject) {
@@ -197,7 +197,8 @@ void test_generate_timetable() {
 
 	for (int i = 0; i < total_section; ++i) {
 		int num_break = 1;
-		int total_timeslot = 8;
+		// int total_timeslot = 7;  // dependent on subject and their units
+		int total_timeslot = 8;  // dependent on subject and their units
 		int not_allowed_breakslot_gap = 2;
 		int is_dynamic_subject_consistent_duration = 0;
 
@@ -235,7 +236,6 @@ void test_generate_timetable() {
 
 	    section_configuration,
 	    section_subject_configuration,
-	    section_subjects,
 	    subject_configuration_subject_units,
 	    subject_configuration_subject_duration,
 	    subject_configuration_subject_fixed_timeslot,

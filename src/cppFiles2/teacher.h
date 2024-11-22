@@ -20,7 +20,6 @@ struct Teacher {
 
    public:
 	static int teacher_count;
-	static std::unordered_set<TeacherID> s_all_teachers;
 	Teacher(TeacherID id_, TimeDuration max_work_load_, TimeDuration min_work_load_);
 
 	void initializeClass(int work_week);

@@ -51,7 +51,7 @@ void Timetable::reset() {
 	Timetable::setBreakTimeDuration(0);
 	Timetable::setWorkWeek(0);
 
-	// initializeRandomSectionDistribution(0, 0);
+	initializeRandomSectionDistribution(0, 0);
 	initializeRandomWorkDayDistribution(0, 0);
 	initializeRandomFieldDistribution(0, 0);
 }
@@ -73,6 +73,114 @@ void Timetable::initializeRandomFieldDistribution(int min, int max) {
 }
 void Timetable::initializeRandomWorkDayDistribution(int min, int max) {
 	s_random_workDay = std::uniform_int_distribution<int8_t>(min, max);
+}
+void Timetable::initializeRandomSectionDistribution(int min, int max) {
+	s_random_section_id = std::uniform_int_distribution<int>(min, max);
+}
+void Timetable::initializeSectionSet(int total_section) {
+	std::unordered_set<SectionID> section_set;
+	for (SectionID subject_id = 0; subject_id < total_section; subject_id++) {
+		section_set.insert(subject_id);
+	}
+
+	Timetable::setSectionsSet(section_set);
+}
+void Timetable::initializeTeachersSet(int total_teacher) {
+	std::unordered_set<TeacherID> teacher_set;
+	for (TeacherID teacher_id = 0; teacher_id < total_teacher; teacher_id++) {
+		teacher_set.insert(teacher_id);
+	}
+
+	Timetable::setTeachersSet(teacher_set);
+}
+
+void Timetable::initializeSubjectConfigurations(int number_of_subject_configuration,
+                                                int32_t* subject_configuration_subject_units,
+                                                int32_t* subject_configuration_subject_duration,
+                                                int32_t* subject_configuration_subject_fixed_timeslot,
+                                                int32_t* subject_configuration_subject_fixed_day) {
+	for (SubjectConfigurationID subject_configuration_id = 0; subject_configuration_id < number_of_subject_configuration; subject_configuration_id++) {
+		SubjectID subject_id = static_cast<int>(subject_configuration_subject_units[subject_configuration_id] >> 16);
+		int subject_units = static_cast<int>(subject_configuration_subject_units[subject_configuration_id] & 0xFFFF);
+		TimeDuration subject_duration = static_cast<int>(subject_configuration_subject_duration[subject_configuration_id] & 0xFFFF);
+		Timeslot subject_fixed_timeslot = static_cast<int>(subject_configuration_subject_fixed_timeslot[subject_configuration_id] & 0xFFFF);
+
+		std::vector<ScheduledDay> subject_fixed_days = extractFixedDays(static_cast<uint8_t>(subject_configuration_subject_fixed_day[subject_configuration_id]));
+
+		addSubjectConfiguration(subject_configuration_id, subject_id, subject_duration, subject_units, subject_fixed_timeslot, subject_fixed_days);
+	}
+}
+
+void Timetable::initializeSections(int number_of_section,
+                                   int32_t* section_configuration,
+                                   int32_t* section_start) {
+	for (SectionID i = 0; i < number_of_section; i++) {
+		SectionID section_id = i;
+		int num_break = static_cast<int>((section_configuration[i] >> 24) & 0xFF);
+		int total_timeslot = static_cast<int>((section_configuration[i] >> 16) & 0xFF);
+		int not_allowed_breakslot_gap = static_cast<int>((section_configuration[i] >> 8) & 0xFF);
+		bool is_dynamic_subject_consistent_duration = static_cast<bool>(section_configuration[i] & 0xFF);
+		TimePoint start = static_cast<int>(section_start[i]);
+
+		// print("ff", section_id,
+		//       num_break,
+		//       total_timeslot,
+		//       not_allowed_breakslot_gap,
+		//       is_dynamic_subject_consistent_duration,
+		//       start);
+
+		addSection(section_id, num_break, start, total_timeslot, not_allowed_breakslot_gap, is_dynamic_subject_consistent_duration);
+	}
+}
+
+void Timetable::initializeSectionFixedSubjectTeacher(int32_t* subject_fixed_teacher_section, int32_t* subject_fixed_teacher) {
+	size_t count = 0;
+	while (subject_fixed_teacher_section[count] != -1) {
+		SectionID section_id = static_cast<int>(subject_fixed_teacher_section[count]);
+		SubjectID subject_id = static_cast<int>(subject_fixed_teacher[count] >> 16);
+		TeacherID teacher_id = static_cast<int>(subject_fixed_teacher[count] & 0xFFFF);
+
+		print("section_id", section_id, "subject_id", subject_id, "teacher_id", teacher_id);
+
+		getSectionById(section_id).addSubjectFixedTeacher(subject_id, teacher_id);
+
+		++count;
+	}
+}
+
+void Timetable::initializeTeachers(int number_of_teacher,
+                                   int32_t* teacher_week_load_config) {
+	for (TeacherID teacher_id = 0; teacher_id < number_of_teacher; teacher_id++) {
+		TimeDuration max_weekly_load = static_cast<int>(teacher_week_load_config[teacher_id] >> 16);
+		TimeDuration min_weekly_load = static_cast<int>(teacher_week_load_config[teacher_id] & 0xFFFF);
+
+		addTeacher(teacher_id, max_weekly_load, min_weekly_load);
+	}
+}
+
+void Timetable::initializeTeacherSubjects(int teacher_subjects_length, int32_t* teacher_subjects) {
+	for (int i = 0; i < teacher_subjects_length; i++) {
+		TeacherID teacher_id;
+		SubjectID subject_id;
+		teacher_id = static_cast<int>(teacher_subjects[i] >> 16);
+		subject_id = static_cast<int>(teacher_subjects[i] & 0xFFFF);
+
+		Timetable::addEligibleTeacher(subject_id, teacher_id);
+
+		Timetable::s_subject_teacher_queue.addTeacher(subject_id, teacher_id, 70);
+	}
+}
+
+void Timetable::initializeSectionSubjects(int total_section_subjects, int32_t* section_subject_configuration) {
+	for (int i = 0; i < total_section_subjects; i++) {
+		SectionID section_id;
+		SubjectConfigurationID subject_configuration_id;
+
+		section_id = static_cast<int>(section_subject_configuration[i] >> 16);
+		subject_configuration_id = static_cast<int>(section_subject_configuration[i] & 0xFFFF);
+
+		addSubjectToSection(section_id, subject_configuration_id);
+	}
 }
 
 Section& Timetable::getSectionById(SectionID section_id) {
@@ -408,7 +516,15 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 	for (auto& [section_id, section] : sections) {
 		// print("section", section_id);
 		std::vector<Timeslot> breaks = getBreaks(section);
+		// std::vector<Timeslot> breaks = {3};
+
+		printContainer(breaks);
+
 		section.assignBreaks(breaks);
+
+		// for (Timeslot timeslot : breaks) {
+		// 	section.addDynamicTimeSlot(timeslot);
+		// }
 
 		std::deque<Timeslot> timeslot_keys;
 		std::map<Timeslot, std::vector<ScheduledDay>> timeslots;
@@ -451,8 +567,6 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 		}
 
 		for (const auto& subject_id : special_unit_subjects) {
-			print("c subject", subject_id);
-
 			Timeslot fixed_timeslot = section.getSubject(subject_id).getFixedTimeslot();
 			int units = section.getSubject(subject_id).getUnits();
 
@@ -523,8 +637,12 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 			}
 		}
 
+		// FIXME: segmented timeslot with all of its subject are dynamic timeslot should be included on dyanmic timeslot container
+
+		// print("section id ", section.getId());
 		for (const auto& [timeslot, days] : timeslots) {
 			for (const auto& day : days) {
+				// print("initialized day", static_cast<int>(day));
 				section.addDynamicTimeSlotDay(timeslot, static_cast<ScheduledDay>(day));
 			}
 		}
@@ -549,7 +667,6 @@ std::pair<Timeslot, Timeslot> Timetable::pickRandomTimeslots(Section& selected_s
 	auto& section_break_slots = selected_section.getBreakSlots();
 
 	// TODO: SMART PICKING: when the violation is wrong break slot, pick one breakslot than swap it with non-break timeslot
-
 
 	if (field == 0) {
 		bool is_timeslot_1_at_start_or_end_of_schedule = false;
@@ -661,11 +778,12 @@ void Timetable::modify(Section& selected_section,
 		update_sections.insert(selected_section.getId());
 	}
 
-	// choice = 1;
-	// print("section", selected_section.getId(), "selected_timeslot_1", selected_timeslot_1, "selected_timeslot_2", selected_timeslot_2);
-
 	Timeslot selected_timeslot_1 = selected_timeslots.first;
 	Timeslot selected_timeslot_2 = selected_timeslots.second;
+
+	// print("choice: ", choice);
+	// print("section", selected_section.getId(), "selected_timeslot_1", selected_timeslot_1, "selected_timeslot_2", selected_timeslot_2);
+
 	auto& classes = selected_section.getClasses();
 	auto itLow = classes.lower_bound(std::min(selected_timeslot_1, selected_timeslot_2));
 	auto itUp = classes.upper_bound(std::max(selected_timeslot_1, selected_timeslot_2));

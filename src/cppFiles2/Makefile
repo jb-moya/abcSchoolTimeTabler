@@ -1,6 +1,6 @@
 # Variables
 CXX = g++
-# CXXFLAGS = -Wall -Wextra -std=c++17 -g
+# CXXFLAGS = -Wall -Wextra -std=c++17 -g -MMD
 CXXFLAGS = -Wall -Wextra -std=c++17 -O3 -MMD
 TARGET = zapp_test_abc2
 SUFFIX = ""  # Default suffix is empty

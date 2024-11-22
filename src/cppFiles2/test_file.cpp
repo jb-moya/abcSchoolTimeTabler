@@ -35,11 +35,15 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 
 		int teacher_break_threshold = 4;
 		int teacher_middle_time_point_grow_allowance_for_break_timeslot = 4;
-		TimeDuration default_class_duration = 1, break_time_duration = 1;
+		TimeDuration default_class_duration = 1;
+		TimeDuration break_time_duration = 1;
 		TimeDuration max_teacher_work_load = 90;
 		TimeDuration min_teacher_work_load = 70;
-		int work_week = 1, total_teacher = 14;
-		int total_section = 14, total_unique_subject = 7, num_break = 1;
+		int work_week = 1;
+		int total_teacher = 14;
+		int total_section = 14;
+		int total_unique_subject = 7;
+		int num_break = 1;
 		int total_timeslot = total_unique_subject + num_break;
 		int not_allowed_breakslot_gap = 2, start = 0;
 		bool is_dynamic_subject_consistent_duration = false;
@@ -91,7 +95,6 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 				timetable.addSubjectConfiguration(i, i, default_subject_duration, default_subject_units, default_subject_fixed_timeslot, subject_fixed_days);
 			}
 			for (SectionID section_id = 0; section_id < total_section; section_id++) {
-				Section::s_all_sections.insert(section_id);
 				timetable.addSection(section_id, num_break, start, total_timeslot, not_allowed_breakslot_gap, is_dynamic_subject_consistent_duration);
 			}
 
@@ -106,7 +109,6 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 			// Configure Teachers
 			// Assign Eligible Teachers to Subjects  v
 			for (TeacherID teacher_id = 0; teacher_id < total_teacher; teacher_id++) {
-				Teacher::s_all_teachers.insert(teacher_id);
 				timetable.addTeacher(teacher_id, max_teacher_work_load, min_teacher_work_load);
 				SubjectID subject_id = teacher_id % total_unique_subject;
 				Timetable::addEligibleTeacher(subject_id, teacher_id);
@@ -146,11 +148,11 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 
 				// AND_THEN("The scheduled day on both utilized time and class count must be present on both teachers") {
 				for (int i = 1; i <= Timetable::getWorkWeek(); ++i) {
-					REQUIRE(old_teacher.getUtilizedTime().count(static_cast<ScheduledDay>(i)) == 1);
-					REQUIRE(new_teacher.getUtilizedTime().count(static_cast<ScheduledDay>(i)) == 1);
+					CHECK(old_teacher.getUtilizedTime().count(static_cast<ScheduledDay>(i)) == 1);
+					CHECK(new_teacher.getUtilizedTime().count(static_cast<ScheduledDay>(i)) == 1);
 
-					REQUIRE(old_teacher.getDayTotalWorkLoad().count(static_cast<ScheduledDay>(i)) == 1);
-					REQUIRE(new_teacher.getDayTotalWorkLoad().count(static_cast<ScheduledDay>(i)) == 1);
+					CHECK(old_teacher.getDayTotalWorkLoad().count(static_cast<ScheduledDay>(i)) == 1);
+					CHECK(new_teacher.getDayTotalWorkLoad().count(static_cast<ScheduledDay>(i)) == 1);
 				}
 				// }
 
@@ -311,33 +313,39 @@ TEST_CASE("assign fixed day", "[assignFixedDay]") {
 	CHECK(example == 0b00000001);
 	CHECK(example & (1 << 0));
 	CHECK((example & 0b11111110) == 0);
+	CHECK(extractFixedDays(example) == std::vector<ScheduledDay>{ScheduledDay::ANYDAY});
 
 	example = assignFixedDay(false, true, false, false, false, false, false, false);
 	CHECK(example == 0b00000010);
 	CHECK(example & (1 << 1));
 	CHECK((example & 0b11111101) == 0);
+	CHECK(extractFixedDays(example) == std::vector<ScheduledDay>{ScheduledDay::MONDAY});
 
 	example = assignFixedDay(false, false, true, false, false, false, false, false);
 	CHECK(example == 0b00000100);
 	CHECK(example & (1 << 2));
 	CHECK((example & 0b11111011) == 0);
+	CHECK(extractFixedDays(example) == std::vector<ScheduledDay>{ScheduledDay::TUESDAY});
 
 	example = assignFixedDay(false, true, false, true, false, false, false, false);
 	CHECK(example == 0b00001010);
 	CHECK(example & (1 << 1));
 	CHECK(example & (1 << 3));
 	CHECK((example & 0b11110101) == 0);
+	CHECK(extractFixedDays(example) == std::vector<ScheduledDay>{ScheduledDay::MONDAY, ScheduledDay::WEDNESDAY});
 
 	example = assignFixedDay(true, true, true, true, true, true, true, true);
 	CHECK(example == 0b11111111);
 	for (int i = 0; i < 8; ++i) {
 		CHECK(example & (1 << i));
 	}
+	CHECK(extractFixedDays(example) == std::vector<ScheduledDay>{ScheduledDay::ANYDAY, ScheduledDay::MONDAY, ScheduledDay::TUESDAY, ScheduledDay::WEDNESDAY, ScheduledDay::THURSDAY, ScheduledDay::FRIDAY, ScheduledDay::SATURDAY, ScheduledDay::SUNDAY});
 
 	example = assignFixedDay(false, false, false, false, false, false, false, true);
 	CHECK(example == 0b10000000);
 	CHECK(example & (1 << 7));
 	CHECK((example & 0b01111111) == 0);
+	CHECK(extractFixedDays(example) == std::vector<ScheduledDay>{ScheduledDay::SUNDAY});
 
 	print("done");
 }
