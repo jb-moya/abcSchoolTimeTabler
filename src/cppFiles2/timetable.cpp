@@ -599,6 +599,8 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 					} else {
 						std::uniform_int_distribution<int> dis_work_day(0, fixed_days.size() - 1);
 						day = fixed_days[dis_work_day(randomizer_engine)];
+
+						fixed_days.erase(std::remove(fixed_days.begin(), fixed_days.end(), day), fixed_days.end());
 					}
 
 					section.addClass(timeslot, static_cast<ScheduledDay>(day), SchoolClass{subject_id, selected_teacher});
@@ -622,6 +624,8 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 					} else {
 						std::uniform_int_distribution<int> dis_work_day(0, fixed_days.size() - 1);
 						day = fixed_days[dis_work_day(randomizer_engine)];
+
+						fixed_days.erase(std::remove(fixed_days.begin(), fixed_days.end(), day), fixed_days.end());
 					}
 
 					section.addClass(timeslot_key, static_cast<ScheduledDay>(day), SchoolClass{subject_id, selected_teacher});
