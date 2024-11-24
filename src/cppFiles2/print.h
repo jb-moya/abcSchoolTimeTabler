@@ -52,7 +52,7 @@ template <typename T, typename... Args>
 inline void print(T first, Args... args) {
 	std::cout << first;
 	if constexpr (sizeof...(args) > 0) {
-		std::cout << " | ";
+		std::cout << "  ";
 		print(args...);
 	} else {
 		std::cout << RESET << std::endl;
@@ -61,30 +61,71 @@ inline void print(T first, Args... args) {
 
 inline void print() {}
 
+// Macro to automatically pass __FILE__ and __LINE__
+#define printWithLocation(...) { print("@" + std::string(__FILE__) + ":" + std::to_string(__LINE__), __VA_ARGS__); }
+
+
 // General template function to print containers
 template <typename Container>
-void printContainer(const Container& container) {
-	for (const auto& elem : container) {
-		std::cout << elem << " ";
+void printContainer(const Container& container,
+                    const std::string& name = "",
+                    bool showSize = true) {
+	if (!name.empty()) {
+		std::cout << "Container: " << name << ": " << std::endl;
 	}
-	std::cout << std::endl;
+	if (showSize) {
+		if (container.size() == 0) {
+			std::cout << "empty" << std::endl;
+		} else {
+			std::cout << "(Size: " << container.size() << ") " << std::endl;
+		}
+	}
+	for (const auto& elem : container) {
+		std::cout << elem << " " << std::endl;
+	}
+	std::cout << "" << std::endl;
 }
 
 template <typename Key, typename Value>
-void printContainer(const std::map<Key, Value>& container) {
-	for (const auto& elem : container) {
-		std::cout << "[" << elem.first << ": " << elem.second << "] ";
+void printContainer(const std::map<Key, Value>& container,
+                    const std::string& name = "",
+                    bool showSize = true) {
+	if (!name.empty()) {
+		std::cout << "Container: " << name << ": " << std::endl;
 	}
-	std::cout << std::endl;
+	if (showSize) {
+		if (container.size() == 0) {
+			std::cout << "empty" << std::endl;
+		} else {
+			std::cout << "(Size: " << container.size() << ") " << std::endl;
+		}
+	}
+	for (const auto& [key, value] : container) {
+		std::cout << "  " << key << ": " << value << std::endl;
+	}
+	std::cout << "" << std::endl;
 }
 
 template <typename Key, typename Value>
-void printContainer(const std::unordered_map<Key, Value>& container) {
-	for (const auto& elem : container) {
-		std::cout << "[" << elem.first << ": " << elem.second << "] ";
+void printContainer(const std::unordered_map<Key, Value>& container,
+                    const std::string& name = "",
+                    bool showSize = true) {
+	if (!name.empty()) {
+		std::cout << "Container: " << name << ": " << std::endl;
 	}
-	std::cout << std::endl;
+	if (showSize) {
+		if (container.size() == 0) {
+			std::cout << "empty" << std::endl;
+		} else {
+			std::cout << "(Size: " << container.size() << ") " << std::endl;
+		}
+	}
+	for (const auto& elem : container) {
+		std::cout << "  " << elem.first << ": " << elem.second << std::endl;
+	}
+	std::cout << "" << std::endl;
 }
+
 
 inline void printSchoolClasses(Timetable& timetable) {
 	int total_section = timetable.getTotalSection();
@@ -97,7 +138,7 @@ inline void printSchoolClasses(Timetable& timetable) {
 
 		const auto& classes = section.getClasses();
 
-		for (const auto& [timeslot, classMap]: classes) {
+		for (const auto& [timeslot, classMap] : classes) {
 			for (const auto& [day, schoolClass] : classMap) {
 				SubjectID subject_id = schoolClass.subject_id;
 				TeacherID teacher_id = schoolClass.teacher_id;
