@@ -12,41 +12,60 @@ import { IoAdd, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
-import { toast } from 'sonner';
+
+import {toast } from "sonner";
+import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 
 const AddSubjectContainer = ({
   close,
   reduxFunction,
+  errorMessage,
+  setErrorMessage,
+  errorField,
+  setErrorField,
   defaultSubjectClassDuration,
 }) => {
   const inputNameRef = useRef();
   const dispatch = useDispatch();
-
   const subjects = useSelector((state) => state.subject.subjects);
 
   const [subjectName, setSubjectName] = useState('');
   const [classSubjectDuration, setClassSubjectDuration] = useState(
-    defaultSubjectClassDuration || 10 // Ensure it defaults to 10 if undefined
+    defaultSubjectClassDuration || 10
   );
+   // Tracks which input field has an error
+
+  useEffect(() => {
+    if (!close) {
+      setErrorMessage('');
+      setErrorField('');
+    }
+  }, [close, setErrorMessage, setErrorField]);
 
   const handleAddSubject = () => {
 
+    handleReset();
+
     if (!subjectName.trim()) {
-      alert('Subject name cannot be empty');
+      setErrorMessage('Subject name cannot be empty');
+      setErrorField('name'); // Highlight Subject Name input
       return;
     } else if (!classSubjectDuration) {
-      alert('Class duration cannot be empty');
+      setErrorMessage('Class duration cannot be empty');
+      setErrorField('duration'); // Highlight Class Duration input
       return;
     }
 
     const classDuration = parseInt(classSubjectDuration, 10);
 
     const duplicateSubject = Object.values(subjects).find(
-      (subject) => subject.subject.trim().toLowerCase() === subjectName.trim().toLowerCase()
+      (subject) =>
+        subject.subject.trim().toLowerCase() === subjectName.trim().toLowerCase()
     );
-  
+
     if (duplicateSubject) {
-      alert('A subject with this name already exists.');
+      setErrorMessage('A subject with this name already exists');
+      setErrorField('name');
     } else {
       dispatch(
         reduxFunction({
@@ -54,28 +73,24 @@ const AddSubjectContainer = ({
           classDuration: classDuration,
         })
       );
-      
-      toast.success('Subject added successfully!', {
-        style: {
-          backgroundColor: '#28a745', 
-          borderColor: '#28a745',
-          color: '#fff',               
-        },
+
+      toast.success('Subject added successfully', {
+        style: { backgroundColor: 'green', color: 'white', bordercolor: 'green' },
       });
 
-      // Reset input fields
-      setSubjectName('');
-      setClassSubjectDuration(defaultSubjectClassDuration || 10);
-  
-      if (inputNameRef.current) {
-        inputNameRef.current.focus();
-      }
+      handleReset();
+      close();
     }
   };
 
   const handleReset = () => {
     setSubjectName('');
     setClassSubjectDuration(defaultSubjectClassDuration || 10);
+    setErrorMessage('');
+    setErrorField('');
+    if (inputNameRef.current) {
+      inputNameRef.current.focus();
+    }
   };
 
   useEffect(() => {
@@ -86,51 +101,53 @@ const AddSubjectContainer = ({
 
   return (
     <div>
-      <div>
-        <h3 className="text-lg font-bold mb-4">Add New Subject</h3>
-      </div>
+      <h3 className="text-lg font-bold mb-4">Add New Subject</h3>
+
       <div className="mb-4">
         <label className="block text-sm font-medium mb-2">Subject Name:</label>
         <input
           type="text"
-          className="input input-bordered w-full"
+          className={`input input-bordered w-full ${errorField === 'name' ? 'border-red-500' : ''
+            }`}
           value={subjectName}
           onChange={(e) => setSubjectName(e.target.value)}
           placeholder="Enter subject name"
           ref={inputNameRef}
         />
       </div>
+
       <div className="mb-4">
         <label className="block text-sm font-medium mb-2">
           Class Duration (minutes):
         </label>
         <input
           type="number"
-          className="input input-bordered w-full"
+          className={`input input-bordered w-full ${errorField === 'duration' ? 'border-red-500' : ''
+            }`}
           value={classSubjectDuration}
-          onChange={(e) => {
-            const value = Number(e.target.value);
-            setClassSubjectDuration(value);
-          }}
+          onChange={(e) => setClassSubjectDuration(Number(e.target.value))}
           placeholder="Enter class duration"
           step={10}
           min={10}
         />
       </div>
+
+      {errorMessage && (
+        <p className="text-red-500 text-sm my-4 font-medium select-none ">{errorMessage}</p>
+      )}
+
       <div className="flex justify-center gap-2">
         <button className="btn btn-secondary border-0" onClick={handleReset}>
           Reset
         </button>
-        <div className="flex justify-end space-x-2">
-          <button className="btn btn-primary" onClick={handleAddSubject}>
-            Add Subject
-          </button>
-        </div>
+        <button className="btn btn-primary" onClick={handleAddSubject}>
+          Add Subject
+        </button>
       </div>
-      
     </div>
   );
 };
+
 
 const SubjectListContainer = ({ editable = false }) => {
   const dispatch = useDispatch();
@@ -138,12 +155,25 @@ const SubjectListContainer = ({ editable = false }) => {
 
   const defaultSubjectClassDuration = localStorage.getItem('defaultSubjectClassDuration');
 
+  const [errorMessage, setErrorMessage] = useState('');
+  const [errorField, setErrorField] = useState('');
+
   const [editSubjectId, setEditSubjectId] = useState(null);
   const [searchSubjectResult, setSearchSubjectResult] = useState(subjects);
   const [editSubjectValue, setEditSubjectValue] = useState('');
   const [editClassDuration, setEditClassDuration] = useState(0);
   const [searchSubjectValue, setSearchSubjectValue] = useState('');
-  const [openAddSubjectContainer, setOpenAddSubjectContainer] = useState(false);
+
+  const handleClose = () => {
+    const modal = document.getElementById('add_subject_modal');
+    if (modal) {
+        modal.close();
+        setErrorMessage('');
+        setErrorField('');
+    } else {
+        console.error("Modal with ID 'add_subject_modal' not found.");
+    }
+};
 
   const handleEditSubjectClick = (subject) => {
     setEditSubjectId(subject.id);
@@ -154,15 +184,20 @@ const SubjectListContainer = ({ editable = false }) => {
   const handleSaveSubjectEditClick = (subjectId) => {
 
     if (!editSubjectValue.trim()) {
-      alert('Subject name cannot be empty');
+      toast.error('Subject name cannot be empty', {
+        style: { backgroundColor: 'red', color: 'white' },
+      });
+
       return;
     } else if (!editClassDuration) {
-      alert('Class duration cannot be empty');
+      toast.error('Class duration cannot be empty', {
+        style: { backgroundColor: 'red', color: 'white' },
+      });
       return;
     }
 
     const currentSubject = subjects[subjectId]?.subject || '';
-  
+
     if (editSubjectValue.trim().toLowerCase() === currentSubject.toLowerCase()) {
       dispatch(
         editSubject({
@@ -173,24 +208,19 @@ const SubjectListContainer = ({ editable = false }) => {
           },
         })
       );
-  
-      toast.success('Data updated successfully!', {
-        style: {
-          backgroundColor: '#28a745', 
-          color: '#fff',        
-          borderColor: '#28a745',   
-        },
+
+      toast.success('Data updated successfully', {
+        style: { backgroundColor: 'green', color: 'white', bordercolor: 'green', },
       });
-  
+
       setEditSubjectId(null);
       setEditSubjectValue('');
       setEditClassDuration(0);
-      
     } else {
       const duplicateSubject = Object.values(subjects).find(
         (subject) => subject.subject.trim().toLowerCase() === editSubjectValue.trim().toLowerCase()
       );
-  
+
       if (duplicateSubject) {
         alert('A subject with this name already exists.');
       } else if (editSubjectValue.trim()) {
@@ -204,14 +234,16 @@ const SubjectListContainer = ({ editable = false }) => {
           })
         );
 
-        
-  
+        toast.success('Data updated successfully', {
+          style: { backgroundColor: 'green', color: 'white', bordercolor: 'green', },
+        });
+
         setEditSubjectId(null);
         setEditSubjectValue('');
         setEditClassDuration(0);
       }
     }
-  };  
+  };
 
   const handleCancelSubjectEditClick = () => {
     setEditSubjectId(null);
@@ -246,6 +278,19 @@ const SubjectListContainer = ({ editable = false }) => {
     debouncedSearch(searchSubjectValue, subjects);
   }, [searchSubjectValue, subjects, debouncedSearch]);
 
+  const deleteModal = (id) => {
+    const deleteModalElement = document.getElementById("delete_modal");
+    deleteModalElement.showModal();  
+
+    const deleteButton = document.getElementById("delete_button");
+    deleteButton.onclick = () => handleDelete(id);  
+  };
+
+  const handleDelete = (id) => {
+    dispatch(removeSubject(id));  
+    document.getElementById("delete_modal").close(); 
+  };
+
   const itemsPerPage = 10; // Change this to adjust the number of items per page
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -257,93 +302,98 @@ const SubjectListContainer = ({ editable = false }) => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = Object.entries(searchSubjectResult).slice(indexOfFirstItem, indexOfLastItem);
 
+
   return (
     <div className="w-full">
 
       <div className="flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5">
-      {/* Pagination */}
-      {currentItems.length > 0 && (
-        <div className="join flex justify-center  mb-4 md:mb-0">
-          <button
-            className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
-            onClick={() => {
-              if (currentPage > 1) {
-                setCurrentPage(currentPage - 1);
-              }
-              handleCancelSubjectEditClick();
-            }}
-            disabled={currentPage === 1}
-          >
-            «
-          </button>
-          <button className="join-item btn">
-            Page {currentPage} of {totalPages}
-          </button>
-          <button
-            className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
-            onClick={() => {
-              if (currentPage < totalPages) {
-                setCurrentPage(currentPage + 1);
-              }
-              handleCancelSubjectEditClick();
-            }}
-            disabled={currentPage === totalPages}
-          >
-            »
-          </button>
+        {/* Pagination */}
+        {currentItems.length > 0 && (
+          <div className="join flex justify-center  mb-4 md:mb-0">
+            <button
+              className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
+              onClick={() => {
+                if (currentPage > 1) {
+                  setCurrentPage(currentPage - 1);
+                }
+                handleCancelSubjectEditClick();
+              }}
+              disabled={currentPage === 1}
+            >
+              «
+            </button>
+            <button className="join-item btn">
+              Page {currentPage} of {totalPages}
+            </button>
+            <button
+              className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
+              onClick={() => {
+                if (currentPage < totalPages) {
+                  setCurrentPage(currentPage + 1);
+                }
+                handleCancelSubjectEditClick();
+              }}
+              disabled={currentPage === totalPages}
+            >
+              »
+            </button>
+          </div>
+        )}
+
+        {currentItems.length === 0 && currentPage > 1 && (
+          <div className="hidden">
+            {setCurrentPage(currentPage - 1)}
+          </div>
+        )}
+
+        {/* Search Subject */}
+        <div className="flex-grow w-full md:w-1/3 lg:w-1/4">
+          <label className="input input-bordered flex items-center gap-2 w-full">
+            <input
+              type="text"
+              className="grow p-3 text-sm w-full"
+              placeholder="Search Subject"
+              value={searchSubjectValue}
+              onChange={(e) => setSearchSubjectValue(e.target.value)}
+            />
+            <IoSearch className="text-xl" />
+          </label>
         </div>
-      )}
 
-      {currentItems.length === 0 && currentPage > 1 && (
-        <div className="hidden">
-          {setCurrentPage(currentPage - 1)}
-        </div>
-      )}
+        {/* Add Subject Button (only when editable) */}
+        {editable && (
+          <div className="w-full mt-4 md:mt-0 md:w-auto">
+            <button
+              className="btn btn-primary h-12 flex items-center justify-center w-full md:w-52"
+              onClick={() => document.getElementById('add_subject_modal').showModal()}
+            >
+              Add Subject <IoAdd size={20} className="ml-2" />
+            </button>
 
-      {/* Search Subject */}
-      <div className="flex-grow w-full md:w-1/3 lg:w-1/4">
-        <label className="input input-bordered flex items-center gap-2 w-full">
-          <input
-            type="text"
-            className="grow p-3 text-sm w-full"
-            placeholder="Search Subject"
-            value={searchSubjectValue}
-            onChange={(e) => setSearchSubjectValue(e.target.value)}
-          />
-          <IoSearch className="text-xl" />
-        </label>
-      </div>
-
-      {/* Add Subject Button (only when editable) */}
-      {editable && (
-        <div className="w-full mt-4 md:mt-0 md:w-auto">
-          <button
-            className="btn btn-primary h-12 flex items-center justify-center w-full md:w-52"
-            onClick={() => document.getElementById('add_subject_modal').showModal()}
-          >
-            Add Subject <IoAdd size={20} className="ml-2" />
-          </button>
-
-          {/* Modal for adding subject */}
-          <dialog id="add_subject_modal" className="modal modal-bottom sm:modal-middle">
-            <div className="modal-box">
+            {/* Modal for adding subject */}
+            <dialog id="add_subject_modal" className="modal modal-bottom sm:modal-middle">
+              <div className="modal-box">
               <AddSubjectContainer
-                close={() => document.getElementById('add_subject_modal').close()}
-                reduxFunction={addSubject}
-                defaultSubjectClassDuration={defaultSubjectClassDuration}
-              />
-              <div className="modal-action">
-                <button
-                  className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                  onClick={() => document.getElementById('add_subject_modal').close()}
-                >
-                  ✕
-                </button>
+                  close={() => document.getElementById('add_subject_modal').close()}
+                  reduxFunction={addSubject}
+                  errorMessage={errorMessage}
+                  setErrorMessage={setErrorMessage}
+                  errorField={errorField}
+                  setErrorField={setErrorField}
+                  defaultSubjectClassDuration={defaultSubjectClassDuration}
+                />
+                <div className="modal-action">
+                  <button
+                    className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                    onClick={handleClose}
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
-            </div>
-          </dialog>
-        </div>
-      )}
+            </dialog>
+          </div>
+        )}
 
       </div>
 
@@ -426,12 +476,53 @@ const SubjectListContainer = ({ editable = false }) => {
                           >
                             <RiEdit2Fill size={20} />
                           </button>
+
+
                           <button
                             className="btn btn-xs btn-ghost text-red-500"
-                            onClick={() => dispatch(removeSubject(subject.id))}
+                            onClick={() => deleteModal(subject.id)}
                           >
                             <RiDeleteBin7Line size={20} />
                           </button>
+
+                          {/* Modal for deleting an item */}
+                          <dialog id="delete_modal" className="modal modal-bottom sm:modal-middle">
+                            <form method="dialog" className="modal-box">
+                              {/* Icon and message */}
+                              <div className="flex flex-col items-center justify-center">
+                                <TrashIcon className="text-red-500 mb-4" width={40} height={40} />
+                                <h3 className="font-bold text-lg text-center">
+                                  Are you sure you want to delete this item?
+                                </h3>
+                                <p className="text-sm text-gray-500 text-center">
+                                  This action cannot be undone.
+                                </p>
+                              </div>
+
+                              {/* Modal actions */}
+                              <div className="modal-action flex justify-center">
+                                {/* Close Button */}
+                                <button
+                                  className="btn btn-sm btn-ghost"
+                                  onClick={() => document.getElementById("delete_modal").close()}
+                                  aria-label="Cancel deletion"
+                                >
+                                  Cancel
+                                </button>
+
+                                {/* Confirm Delete Button */}
+                                <button
+                                  className="btn btn-sm btn-error text-white"
+                                  id="delete_button"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </form>
+                          </dialog>
+
+
+
                         </>
                       )}
                     </td>
@@ -441,7 +532,6 @@ const SubjectListContainer = ({ editable = false }) => {
             )}
           </tbody>
         </table>
-
       </div>
 
     </div>
