@@ -50,219 +50,148 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 		int default_subject_units = 0;
 		TimeDuration default_subject_duration = 1;
 		Timeslot default_subject_fixed_timeslot = 0;
+
 		uint8_t default_fixed_day = assignFixedDay(true, false, false, false, false, false, false, false);
+		std::vector<ScheduledDay> subject_fixed_days = extractFixedDays(default_fixed_day);
 
-		std::vector<ScheduledDay> subject_fixed_days;
-
-		for (int i = 0; i < 7; i++) {
-			if (default_fixed_day & (1 << i)) {
-				subject_fixed_days.push_back(static_cast<ScheduledDay>(i + 1));
-			}
-		}
-
-		// Initialize Teacher and Section Sets
-		std::unordered_set<TeacherID> teachers_set;
-		std::unordered_set<SectionID> sections_set;
-		for (TeacherID teacher_id = 1; teacher_id <= total_teacher; ++teacher_id) teachers_set.insert(teacher_id);
-		for (SectionID section_id = 1; section_id <= total_section; ++section_id) sections_set.insert(section_id);
-
+		timetable.initializeTeachersSet(total_teacher);
+		timetable.initializeSectionSet(total_section);
 		timetable.setTeacherBreakThreshold(teacher_break_threshold);
 		timetable.setTeacherMiddleTimePointGrowAllowanceForBreakTimeslot(teacher_middle_time_point_grow_allowance_for_break_timeslot);
 		timetable.setDefaultClassDuration(default_class_duration);
 		timetable.setBreakTimeDuration(break_time_duration);
 		timetable.setWorkWeek(work_week);
 		timetable.setTotalSection(total_section);
-		timetable.setTeachersSet(teachers_set);
-		timetable.setSectionsSet(sections_set);
 
 		Timetable::s_rotary_timeslot = RotaryVector();
 		Timetable::s_subject_eligibility_manager = SubjectEligibilityManager();
 		Timetable::s_subject_teacher_queue = SubjectTeacherQueue();
 
-		// THEN("The Timetable parameters should match the initialized values") {
 		REQUIRE(timetable.getTeacherBreakThreshold() == teacher_break_threshold);
 		REQUIRE(timetable.getTeacherMiddleTimePointGrowAllowanceForBreakTimeslot() == teacher_middle_time_point_grow_allowance_for_break_timeslot);
 		REQUIRE(timetable.getDefaultClassDuration() == default_class_duration);
 		REQUIRE(timetable.getBreakTimeDuration() == break_time_duration);
 		REQUIRE(timetable.getWorkWeek() == work_week);
 		REQUIRE(timetable.getTotalSection() == total_section);
-		REQUIRE(timetable.getTeachersSet() == teachers_set);
-		REQUIRE(timetable.getSectionsSet() == sections_set);
-		// }
 
-		WHEN("The Timetable is configured with subjects, sections, and teachers") {
-			for (int i = 0; i < total_unique_subject; ++i) {
-				timetable.addSubjectConfiguration(i, i, default_subject_duration, default_subject_units, default_subject_fixed_timeslot, subject_fixed_days);
-			}
-			for (SectionID section_id = 0; section_id < total_section; section_id++) {
-				timetable.addSection(section_id, num_break, start, total_timeslot, not_allowed_breakslot_gap, is_dynamic_subject_consistent_duration);
-			}
+		for (int i = 0; i < total_unique_subject; ++i) {
+			timetable.addSubjectConfiguration(i, i, default_subject_duration, default_subject_units, default_subject_fixed_timeslot, subject_fixed_days);
+		}
+		for (SectionID section_id = 0; section_id < total_section; section_id++) {
+			timetable.addSection(section_id, num_break, start, total_timeslot, not_allowed_breakslot_gap, is_dynamic_subject_consistent_duration);
+		}
 
-			for (SectionID section_id = 0; section_id < total_section; section_id++) {
-				for (SubjectConfigurationID subject_configuration_id = 0; subject_configuration_id < total_unique_subject; subject_configuration_id++) {
-					timetable.addSubjectToSection(section_id, subject_configuration_id);
+		for (SectionID section_id = 0; section_id < total_section; section_id++) {
+			for (SubjectConfigurationID subject_configuration_id = 0; subject_configuration_id < total_unique_subject; subject_configuration_id++) {
+				timetable.addSubjectToSection(section_id, subject_configuration_id);
+			}
+			REQUIRE(timetable.getSectionById(section_id).getId() == section_id);
+			REQUIRE(timetable.getSectionById(section_id).getSubjectConfigurations().size() == total_unique_subject);
+		}
+
+		for (TeacherID teacher_id = 0; teacher_id < total_teacher; teacher_id++) {
+			timetable.addTeacher(teacher_id, max_teacher_work_load, min_teacher_work_load);
+			SubjectID subject_id = teacher_id % total_unique_subject;
+			Timetable::addEligibleTeacher(subject_id, teacher_id);
+			Timetable::s_subject_teacher_queue.addTeacher(subject_id, teacher_id, max_teacher_work_load);
+		}
+
+		ObjectiveFunction evaluator;
+		std::unordered_set<TeacherID> affected_teachers;
+		std::unordered_set<SectionID> affected_sections;
+
+		timetable.initializeRandomTimetable(affected_teachers);
+
+		affected_teachers.clear();
+		affected_sections.clear();
+
+		ScheduledDay day = ScheduledDay::EVERYDAY;
+		SectionID selected_section_id = 13;
+		Section selected_section = timetable.getSectionById(selected_section_id);
+		std::pair<Timeslot, Timeslot> selected_timeslots = {0, 0};
+
+		TeacherID old_teacher_id = timetable.getSectionById(selected_section_id).getClassTimeslotTeacherID(day, selected_timeslots.first);
+		SubjectID subject_id = timetable.getSectionById(selected_section_id).getClassTimeslotSubjectID(day, selected_timeslots.first);
+
+		TeacherID new_teacher_id = timetable.s_subject_eligibility_manager.getNewRandomTeacher(subject_id, old_teacher_id);
+
+		REQUIRE(old_teacher_id != new_teacher_id);
+
+		SubjectEligibilityManager subject_eligibility_manager = SubjectEligibilityManager();
+		subject_eligibility_manager.addTeacher(subject_id, new_teacher_id);
+
+		Teacher old_teacher = timetable.getTeacherById(old_teacher_id);
+		Teacher new_teacher = timetable.getTeacherById(new_teacher_id);
+		Section old_section = timetable.getSectionById(selected_section_id);
+
+		for (int i = 1; i <= Timetable::getWorkWeek(); ++i) {
+			CHECK(old_teacher.getUtilizedTime().count(static_cast<ScheduledDay>(i)) == 1);
+			CHECK(new_teacher.getUtilizedTime().count(static_cast<ScheduledDay>(i)) == 1);
+
+			CHECK(old_teacher.getDayTotalWorkLoad().count(static_cast<ScheduledDay>(i)) == 1);
+			CHECK(new_teacher.getDayTotalWorkLoad().count(static_cast<ScheduledDay>(i)) == 1);
+		}
+
+		for (int i = 1; i <= Timetable::getWorkWeek(); ++i) {
+			ScheduledDay day = static_cast<ScheduledDay>(i);
+
+			REQUIRE(old_teacher.getUtilizedTime().count(day) == 1);
+			REQUIRE(old_teacher.getDayTotalWorkLoad().count(day) == 1);
+			REQUIRE(new_teacher.getUtilizedTime().count(day) == 1);
+			REQUIRE(new_teacher.getDayTotalWorkLoad().count(day) == 1);
+
+			std::map<Timeslot, int> old_teacher_utilized_time = old_teacher.getUtilizedTime().find(day)->second;
+			std::map<Timeslot, int> new_teacher_utilized_time = new_teacher.getUtilizedTime().find(day)->second;
+
+			printContainer(old_teacher_utilized_time, "old_teacher_utilized_time");
+			printContainer(new_teacher_utilized_time, "new_teacher_utilized_time");
+
+			int new_teacher_class_count = new_teacher.getDayTotalWorkLoad().find(day)->second;
+
+			auto& updated_section_utilized_teachers = old_section.getUtilizedTeachers();
+
+			int choice = 1;
+
+			Timetable updated_timetable = timetable;
+			Section& updated_selected_section = updated_timetable.getSectionById(selected_section_id);
+
+			updated_timetable.modify(updated_selected_section, choice, selected_timeslots, affected_teachers, affected_sections, subject_eligibility_manager);
+
+			Section updated_section = updated_timetable.getSectionById(selected_section_id);
+
+			TeacherID updated_section_teacher_id = updated_section.getClassTimeslotTeacherID(ScheduledDay::EVERYDAY, selected_timeslots.first);
+
+			REQUIRE(updated_section_teacher_id != old_teacher_id);
+			REQUIRE(updated_section_teacher_id == new_teacher_id);
+
+			print("old_teacher_id", old_teacher_id, "new_teacher_id", new_teacher_id);
+
+			Teacher updated_old_teacher = updated_timetable.getTeacherById(old_teacher_id);
+			Teacher updated_new_teacher = updated_timetable.getTeacherById(new_teacher_id);
+
+			ClassStartEnd class_start_end = old_section.getClassStartTime(selected_timeslots.first);
+			print("class_start_end.start:", class_start_end.start, "class_start_end.end:", class_start_end.end);
+
+			std::map<Timeslot, int> updated_old_teacher_utilized_time = updated_old_teacher.getUtilizedTime().find(day)->second;
+			std::map<Timeslot, int> updated_new_teacher_utilized_time = updated_new_teacher.getUtilizedTime().find(day)->second;
+
+			printContainer(updated_old_teacher_utilized_time, "updated_old_teacher_utilized_time");
+			printContainer(updated_new_teacher_utilized_time, "updated_new_teacher_utilized_time");
+
+			if (updated_old_teacher.getUtilizedTime().count(day) == 0) {
+				for (TimePoint time_point = class_start_end.start; time_point < class_start_end.end; time_point++) {
+					int old_teacher_old_class_count = old_teacher_utilized_time[time_point];
+					int old_teacher_updated_class_count = updated_old_teacher_utilized_time[time_point];
+
+					REQUIRE(old_teacher_old_class_count > old_teacher_updated_class_count);
 				}
-				REQUIRE(timetable.getSectionById(section_id).getId() == section_id);
-				REQUIRE(timetable.getSectionById(section_id).getSubjectConfigurations().size() == total_unique_subject);
 			}
 
-			// Configure Teachers
-			// Assign Eligible Teachers to Subjects  v
-			for (TeacherID teacher_id = 0; teacher_id < total_teacher; teacher_id++) {
-				timetable.addTeacher(teacher_id, max_teacher_work_load, min_teacher_work_load);
-				SubjectID subject_id = teacher_id % total_unique_subject;
-				Timetable::addEligibleTeacher(subject_id, teacher_id);
-				Timetable::s_subject_teacher_queue.addTeacher(subject_id, teacher_id, max_teacher_work_load);
-			}
+			for (TimePoint time_point = class_start_end.start; time_point < class_start_end.end; time_point++) {
+				int new_teacher_old_class_count = new_teacher_utilized_time[time_point];
+				int new_teacher_updated_class_count = updated_new_teacher_utilized_time[time_point];
 
-			AND_WHEN("The random timetable is initialized") {
-				// Initialize Timetable
-				ObjectiveFunction evaluator;
-				std::unordered_set<TeacherID> affected_teachers;
-				std::unordered_set<SectionID> affected_sections;
-
-				timetable.initializeRandomTimetable(affected_teachers);
-
-				affected_teachers.clear();
-				affected_sections.clear();
-
-				// THEN("The timetable should assign distinct teachers to subject timeslots") {
-				ScheduledDay day = ScheduledDay::EVERYDAY;
-				SectionID selected_section_id = 13;
-				Section selected_section = timetable.getSectionById(selected_section_id);
-				std::pair<Timeslot, Timeslot> selected_timeslots = {0, 0};
-
-				TeacherID old_teacher_id = timetable.getSectionById(selected_section_id).getClassTimeslotTeacherID(day, selected_timeslots.first);
-				SubjectID subject_id = timetable.getSectionById(selected_section_id).getClassTimeslotSubjectID(day, selected_timeslots.first);
-
-				TeacherID new_teacher_id = timetable.s_subject_eligibility_manager.getNewRandomTeacher(subject_id, old_teacher_id);
-
-				REQUIRE(old_teacher_id != new_teacher_id);
-
-				SubjectEligibilityManager subject_eligibility_manager = SubjectEligibilityManager();
-				subject_eligibility_manager.addTeacher(subject_id, new_teacher_id);
-
-				Teacher old_teacher = timetable.getTeacherById(old_teacher_id);
-				Teacher new_teacher = timetable.getTeacherById(new_teacher_id);
-				Section old_section = timetable.getSectionById(selected_section_id);
-
-				// AND_THEN("The scheduled day on both utilized time and class count must be present on both teachers") {
-				for (int i = 1; i <= Timetable::getWorkWeek(); ++i) {
-					CHECK(old_teacher.getUtilizedTime().count(static_cast<ScheduledDay>(i)) == 1);
-					CHECK(new_teacher.getUtilizedTime().count(static_cast<ScheduledDay>(i)) == 1);
-
-					CHECK(old_teacher.getDayTotalWorkLoad().count(static_cast<ScheduledDay>(i)) == 1);
-					CHECK(new_teacher.getDayTotalWorkLoad().count(static_cast<ScheduledDay>(i)) == 1);
-				}
-				// }
-
-				AND_WHEN("A section's schedule is modified with a new teacher") {
-					for (int i = 1; i <= Timetable::getWorkWeek(); ++i) {
-						ScheduledDay day = static_cast<ScheduledDay>(i);
-
-						REQUIRE(old_teacher.getUtilizedTime().count(day) == 1);
-						;
-						REQUIRE(old_teacher.getDayTotalWorkLoad().count(day) == 1);
-						REQUIRE(new_teacher.getUtilizedTime().count(day) == 1);
-						REQUIRE(new_teacher.getDayTotalWorkLoad().count(day) == 1);
-
-						auto& old_teacher_utilized_time = old_teacher.getUtilizedTime().find(day)->second;
-						int old_teacher_class_count = old_teacher.getDayTotalWorkLoad().find(day)->second;
-
-						print("old teacher utilized time");
-
-						for (auto& [time, count] : old_teacher_utilized_time) {
-							print("time ", static_cast<int>(day), time, count);
-						}
-
-						auto& new_teacher_utilized_time = new_teacher.getUtilizedTime().find(day)->second;
-						int new_teacher_class_count = new_teacher.getDayTotalWorkLoad().find(day)->second;
-
-						auto& updated_section_utilized_teachers = old_section.getUtilizedTeachers();
-
-						int choice = 1;
-
-						Timetable updated_timetable = timetable;
-						Section& updated_selected_section = updated_timetable.getSectionById(selected_section_id);
-
-						print("modifying");
-						updated_timetable.modify(updated_selected_section, choice, selected_timeslots, affected_teachers, affected_sections, subject_eligibility_manager);
-						print("f");
-						Section updated_section = updated_timetable.getSectionById(selected_section_id);
-
-						TeacherID updated_section_teacher_id = updated_section.getClassTimeslotTeacherID(ScheduledDay::EVERYDAY, selected_timeslots.first);
-
-						// THEN("The section's timetable should reflect the new teacher assignment") {
-						REQUIRE(updated_section_teacher_id != old_teacher_id);
-						REQUIRE(updated_section_teacher_id == new_teacher_id);
-						// }
-
-						// AND_THEN("Old teacher utilized time should either be decremented or removed") {
-						print("old_teacher_id", old_teacher_id, "new_teacher_id", new_teacher_id);
-
-						Teacher updated_old_teacher = updated_timetable.getTeacherById(old_teacher_id);
-
-						ClassStartEnd class_start_end = old_section.getClassStartTime(selected_timeslots.first);
-						print("class_start_end.start:", class_start_end.start, "class_start_end.end:", class_start_end.end);
-
-						print("old teacher utilized time");
-						for (auto& [day, time] : old_teacher.getUtilizedTime()) {
-							for (auto& [time, count] : time) {
-								print("v", static_cast<int>(day), time, count);
-							}
-						}
-
-						for (TimePoint time_point = class_start_end.start; time_point < class_start_end.end; time_point++) {
-							bool is_day_exists = updated_old_teacher.getUtilizedTime().count(day) == 1;
-
-							if (is_day_exists) {
-								bool is_time_exists = updated_old_teacher.getUtilizedTime().find(day)->second.count(time_point) == 1;
-
-								if (is_time_exists) {
-									print("day", static_cast<int>(day), "time", time_point);
-									auto& updated_old_teacher_utilized_time = updated_old_teacher.getUtilizedTime().find(day)->second;
-
-									print("inside updated old teacher utilized time inside");
-									if (!updated_old_teacher_utilized_time.empty()) {
-										for (auto& [time, count] : updated_old_teacher_utilized_time) {
-											std::cout << "Time: " << typeid(time).name() << " " << time << ", Count: " << typeid(count).name() << " " << count << std::endl;
-										}
-									} else {
-										std::cout << "Map is empty." << std::endl;
-									}
-									print("end");
-
-									bool updated_old_teacher_utilized_time_selected_timeslot_exists = updated_old_teacher_utilized_time.count(time_point) == 1;
-									bool old_teacher_utilized_time_selected_timeslot_exists = old_teacher_utilized_time.count(time_point) == 1;
-									if (updated_old_teacher_utilized_time_selected_timeslot_exists && old_teacher_utilized_time_selected_timeslot_exists) {
-										REQUIRE(old_teacher.getUtilizedTime().find(day)->second.find(time_point)->second > updated_old_teacher_utilized_time.find(time_point)->second);
-									}
-								}
-							}
-						}
-
-						print("test");
-
-						bool is_day_exists = updated_old_teacher.getUtilizedTime().count(day) == 1;
-						if (is_day_exists) {
-							for (auto& [time, count] : updated_old_teacher.getUtilizedTime().find(day)->second) {
-								print("bbb ", static_cast<int>(day));
-								print(time);
-								print(count);
-							}
-						}
-
-						// print("updated old teacher utilized time");
-						// for (auto& [day, time] : updated_old_teacher.getUtilizedTime()) {
-						// 	for (auto& [time, count] : time) {
-						// 		print("v", static_cast<int>(day), time, count);
-						// 	}
-						// }
-						// // }
-						// print(RED, "END");
-					}
-				}
-				// }
+				REQUIRE(new_teacher_old_class_count < new_teacher_updated_class_count);
 			}
 		}
 	}
@@ -358,8 +287,12 @@ TEST_CASE("printing containers", "[printContainer]") {
 	std::vector<int> emptyVec;
 	printContainer(emptyVec);
 
+	printWithLocation("ff");
+	printWithLocation("f x x x x x");
+
 	// Test with a set (ordered)
-	std::set<int> s = {10, 20, 30, 40};
+	std::set<int>
+	    s = {10, 20, 30, 40};
 	printContainer(s);
 
 	// Test with an empty set (ordered)
