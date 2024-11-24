@@ -50,16 +50,21 @@ void runExperiment(
 	// Timetable::reset();
 	print(CYAN, "RESET", RESET);
 
-
 	Timetable::setTotalSection(total_section);
 	Section::total_section = total_section;
 	Teacher::teacher_count = num_teachers;
 
 	Timetable::initializeRandomSectionDistribution(0, total_section - 1);
-	Timetable::initializeRandomFieldDistribution(0, 2);
+
+	if (work_week == 1) {
+		Timetable::initializeRandomFieldDistribution(0, 1);
+	} else {
+		Timetable::initializeRandomFieldDistribution(0, 2);
+	}
+
 	Timetable::initializeRandomWorkDayDistribution(1, work_week);
 
-	Timetable::s_rotary_timeslot = RotaryTimeslot();
+	Timetable::s_rotary_timeslot = RotaryVector();
 	Timetable::s_subject_teacher_queue = SubjectTeacherQueue();
 	Timetable::s_subject_eligibility_manager = SubjectEligibilityManager();
 
@@ -71,7 +76,7 @@ void runExperiment(
 
 	Timetable::initializeSectionSet(total_section);
 	Timetable::initializeTeachersSet(num_teachers);
-	
+
 	Timetable timetable;
 	timetable.initializeSubjectConfigurations(number_of_subject_configuration,
 	                                          subject_configuration_subject_units,

@@ -1,12 +1,12 @@
 
 #include "print.h"
 #include "random_util.h"
-#include "rotaryTimeslot.h"
+#include "rotaryVector.h"
 #include "timeManager.h"
 
 using namespace std;
 
-RotaryTimeslot Timetable::s_rotary_timeslot;
+RotaryVector Timetable::s_rotary_timeslot;
 SubjectTeacherQueue Timetable::s_subject_teacher_queue;
 SubjectEligibilityManager Timetable::s_subject_eligibility_manager;
 
@@ -462,7 +462,7 @@ std::vector<Timeslot> Timetable::getBreaks(const Section& section) const {
 
 void Timetable::setupTimeslots(int total_timeslot, std::deque<Timeslot>& timeslot_keys, std::map<Timeslot, std::vector<ScheduledDay>>& timeslots, const std::vector<Timeslot>& skips) const {
 	s_rotary_timeslot.adjustPosition(total_timeslot);
-	std::vector<Timeslot> timeslot = s_rotary_timeslot.getTimeslot(total_timeslot, skips);
+	std::vector<Timeslot> timeslot = s_rotary_timeslot.getVector(total_timeslot, skips);
 	timeslot_keys.insert(timeslot_keys.end(), timeslot.begin(), timeslot.end());
 	s_rotary_timeslot.incrementShift();
 
@@ -500,8 +500,8 @@ TeacherID Timetable::getRandomInitialTeacher(Section& section, SubjectID subject
 		TimeDuration subject_duration = section.getSubject(subject_id).getDuration() * Timetable::getWorkWeek();  // TODO: not elegant
 		TeacherID queued_teacher = Timetable::s_subject_teacher_queue.getTeacher(subject_id, subject_duration);
 		TeacherID selected_teacher = queued_teacher != -1 ? queued_teacher : getRandomTeacher(subject_id);
-		return selected_teacher;
-		// return getRandomTeacher(subject_id);
+		// return selected_teacher;
+		return getRandomTeacher(subject_id);
 	}
 
 	return fixed_teacher_id;
@@ -830,22 +830,28 @@ void Timetable::modify(Section& selected_section,
 			// print("selected_section", selected_section.getId(), "x old teacher", old_teacher_id, "x new teacher", new_teacher);
 			changeTeacher(selected_section, selected_timeslot_1, ScheduledDay::EVERYDAY, new_teacher, update_teachers);
 		} else {
-			std::vector<ScheduledDay> days_to_update;
-			std::unordered_set<ScheduledDay> all_scheduled_days = selected_section.getAllScheduledDayOnClasstimeslot(selected_timeslot_1);
-
-			for (const ScheduledDay day : all_scheduled_days) {
-				SubjectID subject_id = selected_section.getClassTimeslotSubjectID(day, selected_timeslot_1);
-
-				if (subject_id == selected_timeslot_subject_id) {
-					days_to_update.push_back(day);
-				}
-			}
-
 			TeacherID old_teacher_id = selected_section.getClassTimeslotTeacherID(randomScheduledDay, selected_timeslot_1);  // pick only one of the scheduled days because they have the same teacher
 			TeacherID new_teacher = eligibility_manager.getNewRandomTeacher(selected_timeslot_subject_id, old_teacher_id);
 
-			for (const auto& day_to_update : days_to_update) {
-				changeTeacher(selected_section, selected_timeslot_1, day_to_update, new_teacher, update_teachers);
+			std::unordered_map<Timeslot, std::vector<ScheduledDay>> all_segmented_class;
+			std::unordered_set<Timeslot> all_segmented_timeslot = selected_section.getSegmentedTimeslot();
+
+			for (const int segmented_timeslot : all_segmented_timeslot) {
+				std::unordered_set<ScheduledDay> all_scheduled_days = selected_section.getAllScheduledDayOnClasstimeslot(segmented_timeslot);
+
+				for (const ScheduledDay day : all_scheduled_days) {
+					SubjectID subject_id = selected_section.getClassTimeslotSubjectID(day, segmented_timeslot);
+
+					if (subject_id == selected_timeslot_subject_id) {
+						all_segmented_class[segmented_timeslot].push_back(day);
+					}
+				}
+			}
+
+			for (const auto& [segmented_timeslot, days_to_update] : all_segmented_class) {
+				for (const auto& day_to_update : days_to_update) {
+					changeTeacher(selected_section, segmented_timeslot, day_to_update, new_teacher, update_teachers);
+				}
 			}
 		}
 
@@ -866,6 +872,9 @@ void Timetable::modify(Section& selected_section,
 		do {
 			day_1 = selected_section.getRandomDynamicTimeslotDay(selected_timeslot_1);
 			day_2 = selected_section.getRandomDynamicTimeslotDay(selected_timeslot_2);
+
+			// print("fff");
+
 		} while ((day_1 == day_2 && selected_timeslot_1 == selected_timeslot_2));
 
 		auto it1 = section_timeslot_1.find(day_1);

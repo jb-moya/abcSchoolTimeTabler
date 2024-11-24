@@ -7,14 +7,14 @@
 
 #include "types.h"
 
-class RotaryTimeslot {
+class RotaryVector {
    private:
 	int total_shift;
 	int total_try;
 	int previous_size;
 
    public:
-	RotaryTimeslot() : total_shift(0), total_try(0), previous_size(-1) {}
+	RotaryVector() : total_shift(0), total_try(0), previous_size(-1) {}
 
 	int getTotalShift() const;
 	int getTotalTry() const;
@@ -22,5 +22,5 @@ class RotaryTimeslot {
 	void resetShift();
 	void adjustPosition(int size);
 
-	std::vector<Timeslot> getTimeslot(int size, std::vector<Timeslot> skip_timeslots);
+	std::vector<int> getVector(int size, std::vector<int> skip_timeslots);
 };

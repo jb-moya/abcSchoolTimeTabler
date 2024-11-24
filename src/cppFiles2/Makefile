@@ -18,7 +18,7 @@ timetable.cpp \
 abc.cpp \
 main.cpp \
 timeManager.cpp \
-rotaryTimeslot.cpp \
+rotaryVector.cpp \
 subjectTeacherQueue.cpp
 
 # Header Files
@@ -33,7 +33,7 @@ random_util.h \
 timetable.h \
 abc.h \
 timeManager.h \
-rotaryTimeslot.h \
+rotaryVector.h \
 subjectTeacherQueue.h \
 bit_utils.h \
 subjectEligibilityManager.h \

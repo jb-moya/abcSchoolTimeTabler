@@ -41,15 +41,15 @@ int32_t* allocate(int size) {
 
 void test_generate_timetable() {
 	// TODO: dynamic max_iterations base on config'
-	int max_iterations = 10000;
+	int max_iterations = 30000;
 	int beesPopulation = 4;
 	int beesEmployed = 2;
 	int beesOnlooker = 2;
 	int beesScout = 1;
 
-	int num_teachers = 42;
+	int num_teachers = 14;
 	// count teacher with same subject: 11. does this mean there's extra 1 teacher?
-	int total_section = 42;
+	int total_section = 14;
 	int num_subjects = 7;
 
 	// oct 19, 2024
@@ -89,7 +89,7 @@ void test_generate_timetable() {
 	max_teacher_work_load /= time_division;
 	min_teacher_work_load /= time_division;
 
-	int workweek = 5;
+	int workweek = 1;
 
 	min_total_class_duration_for_two_breaks /= time_division;
 
@@ -176,8 +176,8 @@ void test_generate_timetable() {
 		subject_configuration_subject_fixed_day[subject_configuration_id] = packInt16ToInt32(subject_configuration_subject_id, subject_configuration_default_fixed_day);
 	}
 
-	// subject_configuration_subject_units[0] = packInt16ToInt32(0, 3);
-	// subject_configuration_subject_units[1] = packInt16ToInt32(1, 1);
+	subject_configuration_subject_units[0] = packInt16ToInt32(0, 1);
+	subject_configuration_subject_units[1] = packInt16ToInt32(1, 1);
 
 	for (int16_t section = 0; section < total_section; ++section) {
 		for (int16_t subject = 0; subject < num_subjects; ++subject) {

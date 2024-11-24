@@ -9,8 +9,8 @@
 #include "print.h"
 #include "random_util.cpp"
 #include "random_util.h"
-#include "rotaryTimeslot.cpp"
-#include "rotaryTimeslot.h"
+#include "rotaryVector.cpp"
+#include "rotaryVector.h"
 #include "section.cpp"
 #include "section.h"
 #include "subjectConfiguration.cpp"
@@ -75,7 +75,7 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 		timetable.setTeachersSet(teachers_set);
 		timetable.setSectionsSet(sections_set);
 
-		Timetable::s_rotary_timeslot = RotaryTimeslot();
+		Timetable::s_rotary_timeslot = RotaryVector();
 		Timetable::s_subject_eligibility_manager = SubjectEligibilityManager();
 		Timetable::s_subject_teacher_queue = SubjectTeacherQueue();
 

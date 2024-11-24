@@ -25,7 +25,7 @@
 #include <vector>
 
 #include "bit_utils.h"
-#include "rotaryTimeslot.h"
+#include "rotaryVector.h"
 #include "scheduledDay.h"
 #include "schoolClass.h"
 #include "section.h"
@@ -93,7 +93,7 @@ struct Timetable {
 	static std::uniform_int_distribution<int> s_random_field;
 
 	static SubjectEligibilityManager s_subject_eligibility_manager;
-	static RotaryTimeslot s_rotary_timeslot;
+	static RotaryVector s_rotary_timeslot;
 	static SubjectTeacherQueue s_subject_teacher_queue;
 
 	static void initializeRandomWorkDayDistribution(int min, int max);
