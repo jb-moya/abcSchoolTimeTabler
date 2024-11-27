@@ -114,6 +114,11 @@ function Map() {
     setVacantRooms(updatedVacantRooms);
   };
   
+  //Clicking of room sched
+  const handleVacancyToggle = (roomId) => {
+    // Add your logic to toggle the room's vacancy status here.
+    alert("Assign and Delete Function")
+  };
   
 
   return (
@@ -235,30 +240,33 @@ function Map() {
                     </div>
 
                  {/* Filtered Rooms Section */}
-                  {selectedFloor && (
-                    <div className="mt-6">
-                      <p className="text-md font-medium">Rooms on {selectedFloor.name}:</p>
-                      <div className="mt-2 space-y-2">
-                        {getRoomsForFloor(selectedFloor.id).map((room, index) => (
-                          <div
-                            key={index}
-                            className={`flex justify-between items-center p-2 rounded shadow ${
-                              room.isVacant ? 'bg-green-100' : 'bg-red-100'
+                 {selectedFloor && (
+                  <div className="mt-6">
+                    <p className="text-md font-medium">Rooms on {selectedFloor.name}:</p>
+                    <div className="mt-2 space-y-2">
+                      {getRoomsForFloor(selectedFloor.id).map((room, index) => (
+                        <div
+                          key={index}
+                          className={`flex justify-between items-center p-2 rounded shadow ${
+                            room.isVacant ? 'bg-green-100' : 'bg-red-100'
+                          }`}
+                        >
+                          <span className="text-gray-700">{room.name}</span>
+                          <button
+                            onClick={() => handleVacancyToggle(room.id)}
+                            className={`text-sm font-medium px-3 py-1 rounded ${
+                              room.isVacant
+                                ? 'bg-green-500 text-white hover:bg-green-600'
+                                : 'bg-red-500 text-white hover:bg-red-600'
                             }`}
                           >
-                            <span className="text-gray-700">{room.name}</span>
-                            <span
-                              className={`text-sm ${
-                                room.isVacant ? 'text-green-600' : 'text-red-600'
-                              }`}
-                            >
-                              {room.isVacant ? 'Vacant' : 'Occupied'}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
+                            {room.isVacant ? 'Vacant' : 'Occupied'}
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                  )}
+                  </div>
+                )}
 
 
                   <button
