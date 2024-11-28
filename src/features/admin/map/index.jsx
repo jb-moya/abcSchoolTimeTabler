@@ -65,6 +65,7 @@ function Map() {
       setVacantRooms(roomsForFloor);
     }
   };
+
   
   //filter rooms
   const[filter, setFilter] = React.useState('all');
@@ -169,108 +170,115 @@ function Map() {
             {isPopupVisible && (
               <div
                 className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
-                onClick={closePopup} // Close popup when clicking outside
+                onClick={closePopup}
               >
                 <div
-                  className="bg-white p-6 rounded shadow-lg"
-                  onClick={(e) => e.stopPropagation()} // Prevent click on popup from closing it
+                  className="bg-white p-6 rounded shadow-lg w-full max-w-4xl"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <p className="text-lg font-semibold">
+                  <p className="text-lg font-semibold mb-4">
                     Room Management for {selectedBuilding?.name}
                   </p>
 
-                  {/* Floor selection radio-like checkboxes */}
-                  <div className="mt-4">
-                    <p className="text-md font-medium">Select Floor:</p>
-                    <div className="mt-2 space-y-2">
-                      {floors.map((floor, index) => (
-                        <label key={index} className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            className="form-checkbox h-5 w-5 text-primary"
-                            checked={selectedFloor?.id === floor.id}
-                            onChange={() => handleFloorSelection(floor)}
-                          />
-                          <span className="text-gray-700">{floor.name}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Add Room Form */}
-                  {selectedFloor && (
-                    <div className="mt-6">
-                      <p className="text-md font-medium">Add a Room to {selectedFloor.name}:</p>
-                      <form
-                        className="mt-2 flex items-center space-x-2"
-                        onSubmit={handleAddRoom}
-                      >
-                        <input
-                          type="text"
-                          placeholder="Room Name"
-                          className="border border-gray-300 rounded p-2 w-full"
-                          value={newRoomName}
-                          onChange={(e) => setNewRoomName(e.target.value)}
-                        />
-                        <button
-                          type="submit"
-                          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                        >
-                          Add
-                        </button>
-                      </form>
-                    </div>
-                  )}
-
-                  {/*Dropdown selection*/}
-                  <div className="mt-4">
-                    <label htmlFor="room-filter" className="block text-md font-medium text-gray-700">
-                      Filter Rooms:
-                    </label>
-                    <select
-                    id="room-filter"
-                    value={filter}
-                    onChange={(e) => setFilter(e.target.value)}
-                    className="mt-1 block w-full p-2 border border-gray-300 rounded shadow-sm focus:ring-primary focus:border-primary"
-                    >
-                    <option value="all">View all</option>
-                    <option value="vacant">Vacant</option>
-                    <option value="occupied">Occupied</option>
-                    </select>
-                    </div>
-
-                 {/* Filtered Rooms Section */}
-                 {selectedFloor && (
-                  <div className="mt-6">
-                    <p className="text-md font-medium">Rooms on {selectedFloor.name}:</p>
-                    <div className="mt-2 space-y-2">
-                      {getRoomsForFloor(selectedFloor.id).map((room, index) => (
-                        <div
-                          key={index}
-                          className={`flex justify-between items-center p-2 rounded shadow ${
-                            room.isVacant ? 'bg-green-100' : 'bg-red-100'
-                          }`}
-                        >
-                          <span className="text-gray-700">{room.name}</span>
-                          <button
-                            onClick={() => handleVacancyToggle(room.id)}
-                            className={`text-sm font-medium px-3 py-1 rounded ${
-                              room.isVacant
-                                ? 'bg-green-500 text-white hover:bg-green-600'
-                                : 'bg-red-500 text-white hover:bg-red-600'
-                            }`}
-                          >
-                            {room.isVacant ? 'Vacant' : 'Occupied'}
-                          </button>
+                  <div className="flex flex-col md:flex-row gap-6">
+                    {/* Left column: Floor selection and Add Room form */}
+                    <div className="w-full md:w-1/3">
+                      {/* Floor selection radio-like checkboxes */}
+                      <div>
+                        <p className="text-md font-medium mb-2">Select Floor:</p>
+                        <div className="space-y-2">
+                          {floors.map((floor, index) => (
+                            <label key={index} className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                className="form-checkbox h-5 w-5 text-primary"
+                                checked={selectedFloor?.id === floor.id}
+                                onChange={() => handleFloorSelection(floor)}
+                              />
+                              <span className="text-gray-700">{floor.name}</span>
+                            </label>
+                          ))}
                         </div>
-                      ))}
+                      </div>
+
+                      {/* Add Room Form */}
+                      {selectedFloor && (
+                        <div className="mt-6">
+                          <p className="text-md font-medium mb-2">Add a Room to {selectedFloor.name}:</p>
+                          <form
+                            className="flex flex-col space-y-2"
+                            onSubmit={handleAddRoom}
+                          >
+                            <input
+                              type="text"
+                              placeholder="Room Name"
+                              className="border border-gray-300 rounded p-2 w-full"
+                              value={newRoomName}
+                              onChange={(e) => setNewRoomName(e.target.value)}
+                            />
+                            <button
+                              type="submit"
+                              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                            >
+                              Add
+                            </button>
+                          </form>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Right column: Room filter and list */}
+                    <div className="w-full md:w-2/3">
+                      {/* Dropdown selection */}
+                      <div className="mb-4">
+                        <label htmlFor="room-filter" className="block text-md font-medium text-gray-700 mb-2">
+                          Filter Rooms:
+                        </label>
+                        <select
+                          id="room-filter"
+                          value={filter}
+                          onChange={(e) => setFilter(e.target.value)}
+                          className="block w-full p-2 border border-gray-300 rounded shadow-sm focus:ring-primary focus:border-primary"
+                        >
+                          <option value="all">View all</option>
+                          <option value="vacant">Vacant</option>
+                          <option value="occupied">Occupied</option>
+                        </select>
+                      </div>
+
+                      {/* Filtered Rooms Section */}
+                      {selectedFloor && (
+                        <div>
+                          <p className="text-md font-medium mb-2">Rooms on {selectedFloor.name}:</p>
+                          <div className="space-y-2 max-h-64 overflow-y-auto">
+                            {getRoomsForFloor(selectedFloor.id).map((room, index) => (
+                              <div
+                                key={index}
+                                className={`flex justify-between items-center p-2 rounded shadow ${
+                                  room.isVacant ? 'bg-green-100' : 'bg-red-100'
+                                }`}
+                              >
+                                <span className="text-gray-700">{room.name}</span>
+                                <button
+                                  onClick={() => handleVacancyToggle(room.id)}
+                                  className={`text-sm font-medium px-3 py-1 rounded ${
+                                    room.isVacant
+                                      ? 'bg-green-500 text-white hover:bg-green-600'
+                                      : 'bg-red-500 text-white hover:bg-red-600'
+                                  }`}
+                                >
+                                  {room.isVacant ? 'Vacant' : 'Occupied'}
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
-                )}
-
 
                   <button
-                    className="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary-focus transition-colors"
+                    className="mt-6 px-4 py-2 bg-primary text-white rounded hover:bg-primary-focus transition-colors"
                     onClick={closePopup}
                   >
                     Close
@@ -278,9 +286,6 @@ function Map() {
                 </div>
               </div>
             )}
-
-
-
           </div>
         </div>
       </div>
