@@ -18,6 +18,8 @@ import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { BiChevronDown, BiChevronUp } from 'react-icons/bi';
 
+import FixedScheduleMaker from './FixedSchedules/fixedScheduleMaker';
+
 const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
   const inputNameRef = useRef();
   const dispatch = useDispatch();
@@ -33,7 +35,7 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
   );
   const { sections } = useSelector((state) => state.section);
 
-  const numOfSchoolDays = localStorage.getItem('numOfSchoolDays');
+  const numOfSchoolDays = parseInt(localStorage.getItem('numOfSchoolDays'), 10);
   
   const [inputValue, setInputValue] = useState('');
   const [selectedAdviser, setSelectedAdviser] = useState('');
@@ -50,31 +52,31 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
     setInputValue(e.target.value);
   };
 
-  const handleFixedDaysChange = (subjectID, index) => {
-    setFixedDays((prevState) => {
-      const currentDayState = prevState[subjectID]?.[index] || 0;
-      const updatedState = {
-        ...prevState,
-        [subjectID]: {
-          ...prevState[subjectID],
-          [index]: currentDayState === 0 ? 1 : 0,
-        },
-      };
-      return updatedState;
-    })
-  };
+  // const handleFixedDaysChange = (subjectID, index) => {
+  //   setFixedDays((prevState) => {
+  //     const currentDayState = prevState[subjectID]?.[index] || 0;
+  //     const updatedState = {
+  //       ...prevState,
+  //       [subjectID]: {
+  //         ...prevState[subjectID],
+  //         [index]: currentDayState === 0 ? 1 : 0,
+  //       },
+  //     };
+  //     return updatedState;
+  //   })
+  // };
 
-  const handleFixedPositionChange = (e, subjectID) => {
-    const value = Math.min(
-      Math.max(0, parseInt(e.target.value) || 0),
-      selectedSubjects.length || 0
-    );
-    setFixedPositions((prevState) => ({
-      ...prevState,
-      [subjectID]: value
-    }))
+  // const handleFixedPositionChange = (e, subjectID) => {
+  //   const value = Math.min(
+  //     Math.max(0, parseInt(e.target.value) || 0),
+  //     selectedSubjects.length || 0
+  //   );
+  //   setFixedPositions((prevState) => ({
+  //     ...prevState,
+  //     [subjectID]: value
+  //   }))
 
-  };
+  // };
 
   const handleAddEntry = () => {
 
@@ -151,15 +153,10 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
   }, []);
 
   useEffect(() => {
-    // console.log('Selected Program:', selectedProgram);
-    // console.log('Selected Year Level:', selectedYearLevel);
-
     if (selectedProgram && selectedYearLevel) {
       const program = Object.values(programs).find(
         (p) => p.id === selectedProgram
       );
-
-      // console.log('program[selectedYearLevel].subjects:', program[selectedYearLevel].subjects);
 
       if (program) {
         setSelectedSubjects(program[selectedYearLevel].subjects || []); // Ensure it accesses the subjects correctly
@@ -169,7 +166,7 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
         setSelectedStartTime(program[selectedYearLevel].startTime || 0);
       }
     }
-  }, [selectedProgram, selectedYearLevel, ,programs]);
+  }, [selectedProgram, selectedYearLevel, programs]);
 
   useEffect(() => {
     if (programStatus === 'idle') {
@@ -270,78 +267,66 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
         </select>
       </div>
 
-      <div className="mt-4 text-sm">
-        <table className="min-w-full bg-white font-normal border border-gray-300">
-          <thead>
-          <tr>
-            <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Subject</th>
-            <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Duration (min)</th>
-            <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Weekly Minutes</th>
-            <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Fixed Days</th>
-            <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Fixed Position</th>
-          </tr>
-          </thead>
-          <tbody>
-            {selectedSubjects.map((subjectID) => (
-              <tr key={subjectID}>
-                {/* Subject */}
-                <td className='p-2'> 
-                  {subjects[subjectID]?.subject || 'Unknown Subject, ID: ' + subjectID}
-                </td>
-                {/* Duration */}
-                <td className='p-2'>
-                  {subjects[subjectID]?.classDuration || 'N/A'}
-                </td>
-                {/* Weekly Minutes */}
-                <td className='p-2'>
-                  {subjects[subjectID]?.weeklyMinutes || 'N/A'}
-                </td>
-                {/* Fixed Days */}
-                <td className='p-2'>
-                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-                    .slice(0, numOfSchoolDays)
-                    .map((day, index) => {
-                      const weeklyMinutes = subjects[subjectID]?.weeklyMinutes || 0;
-                      const classDuration = subjects[subjectID]?.classDuration || 0;
-                      const requiredClasses = Math.ceil(weeklyMinutes / classDuration);
+      { selectedSubjects.length > 0 && 
+        <>
+          <div className="mt-4 text-sm">
+              <table className="min-w-full bg-white font-normal border border-gray-300">
+                <thead>
+                <tr>
+                  <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Subject</th>
+                  <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Duration (min)</th>
+                  <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Weekly Minutes</th>
+                  <th className="py-2 px-4 border-b border-gray-200 font-normal text-left"># of Classes</th>
+                </tr>
+                </thead>
+                <tbody>
+                  {selectedSubjects.map((subjectID) => (
+                    <tr key={subjectID}>
+                      {/* Subject */}
+                      <td className='p-2'> 
+                        {subjects[subjectID]?.subject || 'Unknown Subject, ID: ' + subjectID}
+                      </td>
+                      {/* Duration */}
+                      <td className='p-2'>
+                        {subjects[subjectID]?.classDuration || 'N/A'}
+                      </td>
+                      {/* Weekly Minutes */}
+                      <td className='p-2'>
+                        {subjects[subjectID]?.weeklyMinutes || 'N/A'}
+                      </td>
+                      {/* # of Classes */}
+                      <td>
+                        { (Math.min(Math.ceil(subjects[subjectID]?.weeklyMinutes / subjects[subjectID]?.classDuration), numOfSchoolDays)) || 'N/A'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+          </div>
 
-                      const disabledDays = requiredClasses >= numOfSchoolDays;
-                      const selectedDaysCount = Object.values(fixedDays[subjectID] || {}).filter(Boolean).length;
+          <button
+            className='btn'
+            onClick={() =>     
+              document.getElementById(`assign_fixed_sched_modal_${selectedYearLevel}`).showModal()                      
+            }
+          >
+            Edit Section Fixed Schedule(s)
+          </button>
+          <FixedScheduleMaker 
+            key={selectedYearLevel}
 
-                      return (
-                        <label key={index} className='flex items-center'>
-                          <input
-                            type='checkbox'
-                            className='mr-1'
-                            checked={fixedDays[subjectID]?.[index] || false}
-                            onChange={() => handleFixedDaysChange(subjectID, index)}
-                            disabled={disabledDays || selectedDaysCount >= requiredClasses && !fixedDays[subjectID]?.[index]}
-                          />
-                          {day}
-                        </label>
-                      );
-                    })
-                  }
-                </td>
-                {/* Fixed Position */}
-                <td className='p-2'>
-                  <input 
-                    type='number'
-                    className='input bg-gray-200 input-border w-full'
-                    min={0}
-                    max={selectedSubjects.length || 0}
-                    value={fixedPositions[subjectID] || 0}
-                    onChange={(e) => handleFixedPositionChange(e, subjectID)}
-                  />
-                </td>        
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            addingMode={0}
+            isForSection={true}
 
-        
-        
-      </div>
+            selectedSubjects={selectedSubjects}
+            fixedDays={fixedDays} setFixedDays={setFixedDays}
+            fixedPositions={fixedPositions} setFixedPositions={setFixedPositions}
+            grade={selectedYearLevel}
+            numOfSchoolDays={numOfSchoolDays}
+          />
+
+        </>
+      }
 
       <div className="flex justify-center gap-4 mt-4">
           <button className="btn btn-secondary" onClick={handleReset}>
@@ -582,7 +567,6 @@ const SectionListContainer = ({ editable = false }) => {
     }
   }, [editSectionYear, editSectionProg]);
   
-
   useEffect(() => {
     if (sectionStatus === 'idle') {
       dispatch(fetchSections());

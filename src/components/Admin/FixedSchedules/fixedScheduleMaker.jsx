@@ -11,6 +11,8 @@ import { darkColors } from './bgColors';
 const FixedScheduleMaker = ({
     addingMode,
 
+    isForSection = false,
+
     selectedSubjects,
     fixedDays, setFixedDays,
     fixedPositions, setFixedPositions,
@@ -126,14 +128,24 @@ const FixedScheduleMaker = ({
     const handleSave = () => {
         setFixedDays((prev) =>
             produce(prev, (draft) => {
-                draft[grade] = days;
+                if (isForSection) {
+                    draft = days; // Save only the days directly
+                } else {
+                    draft[grade] = days; // Save the days for the specific grade
+                }
             })
         );
         setFixedPositions((prev) =>
             produce(prev, (draft) => {
-                draft[grade] = positions;
+                if (isForSection) {
+                    draft = positions; // Save only the positions directly
+                } else {
+                    draft[grade] = positions; // Save the positions for the specific grade
+                }
             })
         );
+
+        setEditMode(false);
         document.getElementById(`assign_fixed_sched_modal_${grade}`).close();
     };
 
@@ -142,6 +154,7 @@ const FixedScheduleMaker = ({
         setDays(produce(fixedDays, (draft) => draft));
         setPositions(produce(fixedPositions, (draft) => draft));
 
+        setEditMode(false);
         document.getElementById(`assign_fixed_sched_modal_${grade}`).close();
     };
 
@@ -150,6 +163,7 @@ const FixedScheduleMaker = ({
         setDays(produce(fixedDays, (draft) => draft));
         setPositions(produce(fixedPositions, (draft) => draft));
 
+        setEditMode(false);
         document.getElementById(`assign_fixed_sched_modal_${grade}`).close();
     };
 

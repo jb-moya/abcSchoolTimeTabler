@@ -478,7 +478,7 @@ const ProgramListContainer = ({ editable = false }) => {
     (state) => state.subject
   );
 
-  const numOfSchoolDays = localStorage.getItem('numOfSchoolDays');
+  const numOfSchoolDays = parseInt(localStorage.getItem('numOfSchoolDays'), 10);
   const morningStartTime =
     localStorage.getItem('morningStartTime') || '06:00 AM';
   const afternoonStartTime =
@@ -544,23 +544,65 @@ const ProgramListContainer = ({ editable = false }) => {
       [grade]: selectedList, // Update selected subjects for the grade
     }));
   
-    setEditFixedDays((prevState) => ({
-      ...prevState,
-      [grade]: selectedList.reduce((acc, subjectID) => {
-        acc[subjectID] = prevState[grade]?.[subjectID] || {
-          0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, // Sequence is Monday to Sunday
-      };
-        return acc;
-      }, {}),
-    }));
+    setEditFixedDays((prevState) => {
+      const updatedFixedDays = { ...prevState[grade] };
 
-    setEditFixedPositions((prevState) => ({
-      ...prevState,
-      [grade]: selectedList.reduce((acc, subjectID) => {
-        acc[subjectID] = prevState[grade]?.[subjectID] ?? 0;
-        return acc;
-      }, {}),
-    }));
+        // Add new subjects to fixedDays
+        selectedList.forEach((subjectID) => {
+            if (!updatedFixedDays[subjectID]) {
+                const subject = subjects[subjectID];
+                if (subject) {
+                    const numClasses = Math.min(
+                        Math.floor(subject.weeklyMinutes / subject.classDuration),
+                        numOfSchoolDays
+                    );
+                    updatedFixedDays[subjectID] = Array(numClasses).fill(0);
+                }
+            }
+        });
+
+        // Remove subjects no longer in selectedList
+        Object.keys(updatedFixedDays).forEach((subjectID) => {
+            if (!(selectedList.includes(Number(subjectID)))) {
+                delete updatedFixedDays[subjectID];
+            }
+        });
+
+        return {
+            ...prevState,
+            [grade]: updatedFixedDays,
+        };
+    });
+
+    setEditFixedPositions((prevState) => {
+      const updatedFixedPositions = { ...prevState[grade] };
+
+      // Add new subjects to fixedPositions
+      selectedList.forEach((subjectID) => {
+          if (!updatedFixedPositions[subjectID]) {
+              const subject = subjects[subjectID];
+              if (subject) {
+                  const numClasses = Math.min(
+                      Math.floor(subject.weeklyMinutes / subject.classDuration),
+                      numOfSchoolDays
+                  );
+                  updatedFixedPositions[subjectID] = Array(numClasses).fill(0); // Initialize positions array with 0s
+              }
+          }
+      });
+
+      // Remove subjects no longer in selectedList
+      Object.keys(updatedFixedPositions).forEach((subjectID) => {
+          if (!(selectedList.includes(Number(subjectID)))) {
+              delete updatedFixedPositions[subjectID];
+          }
+      });
+
+      return {
+          ...prevState,
+          [grade]: updatedFixedPositions,
+      };
+    });
   };
 
   const handleFixedDaysSelection = (grade, subjectID, dayIndex) => {
