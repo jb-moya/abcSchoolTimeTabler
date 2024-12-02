@@ -408,7 +408,11 @@ const SubjectListContainer = ({ editable = false }) => {
               currentItems.map(([, subject], index) => (
                 <tr key={subject.id} className="group hover">
                   {/* <td>{index + indexOfFirstItem + 1}</td> */}
+
+                  {/* Subject ID */}
                   <th>{subject.id}</th>
+
+                  {/* Subject Name */}
                   <td>
                     {editSubjectId === subject.id ? (
                       <input
@@ -421,6 +425,8 @@ const SubjectListContainer = ({ editable = false }) => {
                       subject.subject
                     )}
                   </td>
+
+                  {/* Duration */}
                   <td>
                     {editSubjectId === subject.id ? (
                       <input
@@ -432,13 +438,15 @@ const SubjectListContainer = ({ editable = false }) => {
                         }}
                         className="input input-bordered input-sm w-full"
                         placeholder="Enter class duration"
-                        step={10}
+                        step={5}
                         min={10}
                       />
                     ) : (
                       `${subject.classDuration}`
                     )}
                   </td>
+
+                  {/* Weekly Minutes */}
                   <td>
                     {editSubjectId === subject.id ? (
                       <input
@@ -457,7 +465,7 @@ const SubjectListContainer = ({ editable = false }) => {
                     )}
                   </td>
                   <td>
-                    {Math.floor(subject.weeklyMinutes / subject.classDuration)}
+                    {Math.ceil(subject.weeklyMinutes / subject.classDuration)}
                   </td>
                   {editable && (
                     <td className="w-28 text-right">
