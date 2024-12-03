@@ -9,6 +9,10 @@ import SunIcon from '@heroicons/react/24/outline/SunIcon';
 import { openRightDrawer } from '@features/common/rightDrawerSlice';
 import { RIGHT_DRAWER_TYPES } from '@utils/globalConstantUtil';
 import { NavLink, Routes, Link, useLocation } from 'react-router-dom';
+import NavBar from '../features/guest/NavBar';
+import Search from '../features/guest/Search';
+
+
 
 function ExternalPage() {
     const dispatch = useDispatch();
@@ -16,7 +20,7 @@ function ExternalPage() {
         (state) => state.header
     );
     const [currentTheme, setCurrentTheme] = useState(
-        localStorage.getItem('theme') || 'light' // Default to light mode
+        localStorage.getItem('theme') || 'dark' // Default to light mode
     );
 
     useEffect(() => {
@@ -28,7 +32,7 @@ function ExternalPage() {
         if (!storedTheme) {
             localStorage.setItem('theme', 'light');
             setCurrentTheme('light');
-            document.documentElement.setAttribute('data-theme', 'light');
+            document.documentElement.setAttribute('data-theme', 'dark');
         } else {
             setCurrentTheme(storedTheme);
             document.documentElement.setAttribute('data-theme', storedTheme);
@@ -61,8 +65,23 @@ function ExternalPage() {
     }
 
     return (
-        <div className="">
-            <div className="navbar sticky top-0 bg-base-100 z-10">
+        <div data-theme="dark" className="h-screen">
+            <div className="bg-[#fdf0d5] h-full">
+                <div className="bg-[#003049] h-full flex flex-col">
+                    {/* Navigation Bar */}
+                    <NavBar />
+
+                    {/* Main Content */}
+                    <div className="flex flex-col items-center justify-center flex-grow mx-auto px-4 w-full max-w-screen-xl text-center">
+                        {/* Search Component */}
+                        <Search />
+                    </div>
+                </div>
+            </div>
+
+
+
+            {/* <div className="navbar sticky top-0 bg-base-100 z-10">
                 <div className="flex-1 flex items-center">
                     <label
                         htmlFor="left-sidebar-drawer"
@@ -80,11 +99,11 @@ function ExternalPage() {
                             BHS Scheduler
                         </div>
                     </div>
-                </div>
+                </div> */}
 
-                <div className="flex-none">
-                    {/* Theme Toggle */}
-                    <button
+            {/* <div className="flex-none"> */}
+            {/* Theme Toggle */}
+            {/* <button
                         onClick={toggleTheme}
                         className="btn btn-ghost btn-circle"
                     >
@@ -97,10 +116,10 @@ function ExternalPage() {
 
                     <button onClick={goToLoginPage}>Log in</button>
                 </div>
-            </div>
+            </div> */}
 
             {/* Search Input Centered on Screen */}
-            <div className="flex justify-center items-center min-h-screen">
+            {/* <div className="flex justify-center items-center min-h-screen">
                 <div className="w-full max-w-md p-4">
                     <input
                         type="text"
@@ -108,9 +127,9 @@ function ExternalPage() {
                         className="w-full p-3 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
-            </div>
+            </div> */}
 
-            <Guest />
+            {/* <Guest /> */}
         </div>
     );
 }
