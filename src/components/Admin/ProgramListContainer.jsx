@@ -14,7 +14,6 @@ import { getTimeSlotIndex, getTimeSlotString } from './timeSlotMapper';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
-import { DndContext } from '@dnd-kit/core';
 
 import FixedScheduleMaker from './FixedSchedules/fixedScheduleMaker';
 
