@@ -52,32 +52,6 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
     setInputValue(e.target.value);
   };
 
-  // const handleFixedDaysChange = (subjectID, index) => {
-  //   setFixedDays((prevState) => {
-  //     const currentDayState = prevState[subjectID]?.[index] || 0;
-  //     const updatedState = {
-  //       ...prevState,
-  //       [subjectID]: {
-  //         ...prevState[subjectID],
-  //         [index]: currentDayState === 0 ? 1 : 0,
-  //       },
-  //     };
-  //     return updatedState;
-  //   })
-  // };
-
-  // const handleFixedPositionChange = (e, subjectID) => {
-  //   const value = Math.min(
-  //     Math.max(0, parseInt(e.target.value) || 0),
-  //     selectedSubjects.length || 0
-  //   );
-  //   setFixedPositions((prevState) => ({
-  //     ...prevState,
-  //     [subjectID]: value
-  //   }))
-
-  // };
-
   const handleAddEntry = () => {
 
     if (inputValue === '' || selectedAdviser === '' || selectedProgram === '' || selectedYearLevel === '' || selectedSubjects.length === 0) {
@@ -122,8 +96,6 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
       setSelectedSubjects([]);
       setSelectedShift(0);
       setSelectedStartTime(0);
-      setSubjectUnits({});
-      setSubjectPriorities({});
       setFixedDays({});
       setFixedPositions({});
     }
@@ -145,6 +117,11 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
     setFixedDays({});
     setFixedPositions({});
   };
+
+  useEffect(() => {
+    console.log('fixedDays:', fixedDays);
+    console.log('fixedPositions:', fixedPositions);
+  }, [fixedDays, fixedPositions]);
 
   useEffect(() => {
     if (inputNameRef.current) {
@@ -307,7 +284,7 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
           <button
             className='btn'
             onClick={() =>     
-              document.getElementById(`assign_fixed_sched_modal_${selectedYearLevel}`).showModal()                      
+              document.getElementById(`assign_fixed_sched_modal_section(0)-grade(${selectedYearLevel})`).showModal()                      
             }
           >
             Edit Section Fixed Schedule(s)
@@ -318,10 +295,14 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
             addingMode={0}
             isForSection={true}
 
+            pvs={1}
+            section={0}
+            grade={selectedYearLevel}
+
             selectedSubjects={selectedSubjects}
             fixedDays={fixedDays} setFixedDays={setFixedDays}
             fixedPositions={fixedPositions} setFixedPositions={setFixedPositions}
-            grade={selectedYearLevel}
+            
             numOfSchoolDays={numOfSchoolDays}
           />
 
@@ -356,7 +337,7 @@ const SectionListContainer = ({ editable = false }) => {
     (state) => state.teacher
   );
 
-  const numOfSchoolDays = localStorage.getItem('numOfSchoolDays');
+  const numOfSchoolDays = parseInt(localStorage.getItem('numOfSchoolDays'), 10);
 
   const [editSectionAdviser, setEditSectionAdviser] = useState('');
   const [editSectionProg, setEditSectionProg] = useState('');
@@ -373,6 +354,9 @@ const SectionListContainer = ({ editable = false }) => {
   const [searchSectionResult, setSearchSectionResult] = useState(sections);
   const [searchSectionValue, setSearchSectionValue] = useState('');
 
+  const [currEditProgram, setCurrEditProgram] = useState('');
+  const [currEditYear, setCurrEditYear] = useState('');
+
   const handleEditSectionClick = (section) => {
     setEditSectionId(section.id);
     setEditSectionValue(section.section);
@@ -384,6 +368,9 @@ const SectionListContainer = ({ editable = false }) => {
     setEditSectionSubjects(section.subjects);
     setEditSectionFixedDays(section.fixedDays);
     setEditSectionFixedPositions(section.fixedPositions);
+
+    setCurrEditProgram(section.program);
+    setCurrEditYear(section.year);
   };
 
   const handleSaveSectionEditClick = (sectionId) => {
@@ -425,6 +412,9 @@ const SectionListContainer = ({ editable = false }) => {
       setEditSectionSubjects([]);
       setEditSectionFixedDays({});
       setEditSectionFixedPositions({});
+
+      setCurrEditProgram('');
+      setCurrEditYear('');
     } else {
       const duplicateSection = Object.values(sections).find(
         (section) => section.section.trim().toLowerCase() === editSectionValue.trim().toLowerCase()
@@ -469,6 +459,9 @@ const SectionListContainer = ({ editable = false }) => {
         setEditSectionSubjects([]);
         setEditSectionFixedDays({});
         setEditSectionFixedPositions({});
+
+        setCurrEditProgram('');
+        setCurrEditYear('');
       }
     }
   };
@@ -482,16 +475,9 @@ const SectionListContainer = ({ editable = false }) => {
     setEditSectionSubjects([]);
     setEditSectionFixedDays({});
     setEditSectionFixedPositions({});
-  };
 
-  const handleFixedDaysSelection = (subjectID, dayIndex) => {
-    setEditSectionFixedDays((prevState) => ({
-      ...prevState,
-      [subjectID]: {
-        ...prevState[subjectID],
-        [dayIndex]: prevState[subjectID]?.[dayIndex] === 1 ? 0 : 1,
-      },
-    }));
+    setCurrEditProgram('');
+    setCurrEditYear('');
   };
 
   const renderTimeOptions = () => {
@@ -545,16 +531,15 @@ const SectionListContainer = ({ editable = false }) => {
     debouncedSearch(searchSectionValue, sections, subjects);
   }, [searchSectionValue, sections, debouncedSearch, subjects]);
 
-  // TO DETECT CHANGES IN SECTION PROGRAM AND/OR YEAR
-  const prevYear = useRef(editSectionYear);
-  const prevProgram = useRef(editSectionProg);
-
   useEffect(() => {
-    if (prevYear.current !== editSectionYear || prevProgram.current !== editSectionProg) {
-      console.log("editSectionYear or editSectionProgram has changed.");
-      prevYear.current = editSectionYear;
-      prevProgram.current = editSectionProg;
-      
+    if (
+      editSectionYear !== undefined &&
+      editSectionProg !== undefined &&
+      (currEditYear !== editSectionYear || currEditProgram !== editSectionProg)
+    ) {
+      setCurrEditProgram(editSectionProg);
+      setCurrEditYear(editSectionYear);
+
       const program = Object.values(programs).find(
         (p) => p.id === editSectionProg
       );
@@ -565,8 +550,14 @@ const SectionListContainer = ({ editable = false }) => {
         setEditSectionFixedPositions(program[editSectionYear]?.fixedPositions || {});
       }
     }
-  }, [editSectionYear, editSectionProg]);
-  
+  }, [editSectionYear, editSectionProg, programs]); // Add `programs` as a dependency
+
+  useEffect(() => {
+    console.log('editSectionSubjects:', editSectionSubjects);
+    console.log('editSectionFixedDays:', editSectionFixedDays);
+    console.log('editSectionFixedPositions:', editSectionFixedPositions);
+  }, [editSectionSubjects, editSectionFixedDays, editSectionFixedPositions]);
+
   useEffect(() => {
     if (sectionStatus === 'idle') {
       dispatch(fetchSections());
@@ -863,165 +854,103 @@ const SectionListContainer = ({ editable = false }) => {
 
                     {/* Subject Details */}
                     <td className="flex gap-1 flex-wrap">
-                      {editSectionId === section.id ? (
-                        <div className="overflow-x-auto mt-2">
-                          <table className='min-w-full bg-white border border-gray-300'>
-                            <thead>
-                              <tr>
-                                <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Subject</th>
-                                <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Duration (min)</th>
-                                <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Weekly Minutes</th>
-                                <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Fixed Days</th>
-                                <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Fixed Position</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {Array.isArray(editSectionSubjects) && editSectionSubjects.length > 0 ? (
-                                editSectionSubjects.map((subjectID, index) => {
+                      <div className='overflow-x-auto mt-2'>
+                        <table className='min-w-full bg-white border border-gray-300'>
+                          <thead>
+                            <tr>
+                              <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Subject</th>
+                              <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Duration (min)</th>
+                              <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Weekly Minutes</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {Array.isArray(section.subjects) && section.subjects.length > 0 ? (
+                              section.subjects.map((subjectID, index) => (
+                                <tr key={index} className="border-b border-gray-200">
+                                  {/* Subject Name */}
+                                  <td className="py-2 px-4 border-b border-gray-200">
+                                    {subjects[subjectID].subject || 'Unknown Subject, ID: ' + subjectID}
+                                  </td>
 
-                                  return (
-                                    <tr key={subjectID}>
+                                  {/* Duration */}
+                                  <td className="py-2 px-4 border-b border-gray-200">
+                                    {subjects[subjectID].classDuration || ''}
+                                  </td>
 
-                                      {/* Subject */}
-                                      <td className="py-2 px-4 border-b border-gray-200">
-                                        {subjects[subjectID]?.subject || 'Unknown Subject, ID: ' + subjectID}
-                                      </td>
-
-                                      {/* Duration */}
-                                      <td className="py-2 px-4 border-b border-gray-200">
-                                        {subjects[subjectID]?.classDuration}
-                                      </td>
-
-                                      {/* Weekly Minutes */}
-                                      <td className="py-2 px-4 border-b border-gray-200">
-                                        {subjects[subjectID]?.weeklyMinutes || ''} 
-                                      </td>
-
-                                      {/* Fixed Days */}
-                                      <td className="py-2 px-4 border-b border-gray-200">
-                                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-                                          .slice(0, numOfSchoolDays)
-                                          .map((day, index) => {
-                                            const weeklyMinutes = subjects[subjectID]?.weeklyMinutes || 0;
-                                            const classDuration = subjects[subjectID]?.classDuration || 1;
-                                            const requiredClasses = Math.ceil(weeklyMinutes / classDuration);
-
-                                            const disabledDays = requiredClasses >= numOfSchoolDays;
-                                            const selectedDaysCount = Object.values(editSectionFixedDays[subjectID] || {}).filter(Boolean).length;
-
-                                            return (
-                                              <label key={index} className="flex items-center">
-                                                <input
-                                                  type="checkbox"
-                                                  className="mr-1"
-                                                  checked={editSectionFixedDays[subjectID]?.[index] || false}
-                                                  onChange={() => handleFixedDaysSelection(subjectID, index)}
-                                                  disabled={disabledDays ||selectedDaysCount >= requiredClasses && !editSectionFixedDays[subjectID]?.[index]} // Disable if the condition is met
-                                                />
-                                                {day}
-                                              </label>
-                                            );
-                                          })}
-                                      </td>
-
-                                      {/* Fixed Position */}
-                                      <td className="py-2 px-4 border-b border-gray-200">
-                                        {/* {fixedPositionForSubject || ''} */}
-                                        <input
-                                          type="number"
-                                          className="input input-bordered w-full"
-                                          min={0}
-                                          max={editSectionSubjects?.length || 0}
-                                          value={editSectionFixedPositions[subjectID] || 0}
-                                          onChange={(e) => {
-                                            const value = Math.min(
-                                              Math.max(0, parseInt(e.target.value) || 0),
-                                              editSectionSubjects.length || 0
-                                            );
-                                            setEditSectionFixedPositions((prevState) => ({
-                                              ...prevState,
-                                              [subjectID]: value,
-                                            }));
-                                          }}
-                                        />
-                                      </td>
-
-                                    </tr>
-                                  );
-                                })
-                              ) : (
-                                <tr>
-                                  <td colSpan="4" className="py-2 px-4 text-center border-b border-gray-200">
-                                    No subjects selected
+                                  {/* Weekly Minutes */}
+                                  <td className="py-2 px-4 border-b border-gray-200">
+                                    {subjects[subjectID].weeklyMinutes || ''}
                                   </td>
                                 </tr>
-                              )}
-                            </tbody>
-                          </table>
-                        </div>
-                      ) : (
-                        <div className='overflow-x-auto mt-2'>
-                          <table className='min-w-full bg-white border border-gray-300'>
-                            <thead>
+                              ))
+                            ) : (
                               <tr>
-                                <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Subject</th>
-                                <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Duration (min)</th>
-                                <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Weekly Minutes</th>
-                                <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Fixed Days</th>
-                                <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Fixed Position</th>
+                                <td colSpan="4" className="py-2 px-4 text-center border-b border-gray-200">
+                                  No subjects selected
+                                </td>
                               </tr>
-                            </thead>
-                            <tbody>
-                              {Array.isArray(section.subjects)&& section.subjects.length > 0 ? (
-                                section.subjects.map((subjectID, index) => {
+                            )}
+                          </tbody>
+                        </table>
 
-                                  const fixedDaysForSubject = section?.fixedDays?.[subjectID];
-                                  const fixedPositionForSubject = section?.fixedPositions?.[subjectID];
+                        { editSectionId === section.id ? (
+                          <div className='p-2 flex justify-center'>
+                            <button
+                              className='btn'
+                              onClick={() =>     
+                                document.getElementById(`assign_fixed_sched_modal_section(${section.id})-grade(${editSectionYear})`).showModal()                      
+                              }
+                            >
+                              View Fixed Schedules
+                            </button>
 
-                                  return (
-                                    <tr key={index} className="border-b border-gray-200">
+                            <FixedScheduleMaker
+                              key={editSectionYear}
 
-                                      {/* Subject Name */}
-                                      <td className="py-2 px-4 border-b border-gray-200">
-                                        {subjects[subjectID].subject || 'Unknown Subject, ID: ' + subjectID}
-                                      </td>
+                              viewingMode={0}
+                              isForSection={true}
 
-                                      {/* Duration */}
-                                      <td className="py-2 px-4 border-b border-gray-200">
-                                        {subjects[subjectID].classDuration || ''}
-                                      </td>
+                              pvs={1}
+                              section={section.id}
+                              grade={editSectionYear}
 
-                                      {/* Weekly Minutes */}
-                                      <td className="py-2 px-4 border-b border-gray-200">
-                                        {subjects[subjectID].weeklyMinutes || ''}
-                                      </td>
+                              selectedSubjects={editSectionSubjects}
+                              fixedDays={editSectionFixedDays} setFixedDays={setEditSectionFixedDays}
+                              fixedPositions={editSectionFixedPositions} setFixedPositions={setEditSectionFixedPositions}
+                              
+                              numOfSchoolDays={numOfSchoolDays}
+                            />
+                          </div>
+                        ) : (
+                          <div className='p-2 flex justify-center'>
+                            <button
+                              className='btn'
+                              onClick={() =>     
+                                document.getElementById(`assign_fixed_sched_modal_section(${section.id})-grade(${section.year})`).showModal()                      
+                              }
+                            >
+                              View Fixed Schedules
+                            </button>
 
-                                      {/* Fixed Days */}
-                                      <td className="py-2 px-4 border-b border-gray-200">
-                                        {['Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sun']
-                                          .map((day, index) => {
-                                            return fixedDaysForSubject[index] === 1 ? <div key={day}>• {day}</div> : null;
-                                        })}
-                                      </td>
+                            <FixedScheduleMaker
+                              key={section.year}
 
-                                      {/* Fixed Position */}
-                                      <td className="py-2 px-4 border-b border-gray-200">
-                                        {fixedPositionForSubject || ''}
-                                      </td>
-                                  </tr>
-                                  );
-                                })
-                              ) : (
-                                <tr>
-                                  <td colSpan="4" className="py-2 px-4 text-center border-b border-gray-200">
-                                    No subjects selected
-                                  </td>
-                                </tr>
-                              )}
-                            </tbody>
-                          </table> 
-                        </div>
-                      )}
+                              viewingMode={1}
+                              isForSection={true}
+
+                              pvs={1}
+                              section={section.id}
+                              grade={section.year}
+
+                              selectedSubjects={section.subjects || []}
+                              fixedDays={section.fixedDays || {}}
+                              fixedPositions={section.fixedPositions || {}}
+
+                              numOfSchoolDays={numOfSchoolDays}
+                            />
+                          </div>
+                        )}
+                      </div>
                     </td>
 
                     {editable && (

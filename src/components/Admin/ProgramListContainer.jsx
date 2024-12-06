@@ -99,65 +99,66 @@ const AddProgramContainer = ({
         [grade]: selectedList,
     }));
 
-    setFixedDays((prevState) => {
-        const updatedFixedDays = { ...prevState[grade] };
+    const updatedFixedDays = structuredClone(fixedDays[grade]);
+    const updatedFixedPositions = structuredClone(fixedPositions[grade]);
 
-        // Add new subjects to fixedDays
-        selectedList.forEach((subjectID) => {
-            if (!updatedFixedDays[subjectID]) {
-                const subject = subjects[subjectID];
-                if (subject) {
-                    const numClasses = Math.min(
-                        Math.floor(subject.weeklyMinutes / subject.classDuration),
-                        numOfSchoolDays
-                    );
-                    updatedFixedDays[subjectID] = Array(numClasses).fill(0);
-                }
-            }
-        });
-
-        // Remove subjects no longer in selectedList
-        Object.keys(updatedFixedDays).forEach((subjectID) => {
-            if (!(selectedList.includes(Number(subjectID)))) {
-                delete updatedFixedDays[subjectID];
-            }
-        });
-
-        return {
-            ...prevState,
-            [grade]: updatedFixedDays,
-        };
+    Object.keys(updatedFixedDays).forEach((subID) => {
+      if (!selectedList.includes(Number(subID))) {
+        delete updatedFixedDays[subID];
+        delete updatedFixedPositions[subID];
+      }
     });
 
-    setFixedPositions((prevState) => {
-        const updatedFixedPositions = { ...prevState[grade] };
+    selectedList.forEach((subjectID) => {
+      if (!updatedFixedDays[subjectID]) {
+        const subject = subjects[subjectID];
+        if (subject) {
+            const numClasses = Math.min(
+                Math.ceil(subject.weeklyMinutes / subject.classDuration),
+                numOfSchoolDays
+            );
+            updatedFixedDays[subjectID] = Array(numClasses).fill(0);
+            updatedFixedPositions[subjectID] = Array(numClasses).fill(0);
+        }
+      }
+    })
 
-        // Add new subjects to fixedPositions
-        selectedList.forEach((subjectID) => {
-            if (!updatedFixedPositions[subjectID]) {
-                const subject = subjects[subjectID];
-                if (subject) {
-                    const numClasses = Math.min(
-                        Math.floor(subject.weeklyMinutes / subject.classDuration),
-                        numOfSchoolDays
-                    );
-                    updatedFixedPositions[subjectID] = Array(numClasses).fill(0); // Initialize positions array with 0s
-                }
+    selectedList.forEach((subID) => {
+        const subjDays = updatedFixedDays[subID] || [];
+        const subjPositions = updatedFixedPositions[subID] || [];
+
+        subjDays.forEach((day, index) => {
+            const position = subjPositions[index];
+            if (day !== 0 && position !== 0) {
+                validCombinations.push([day, position]);
             }
         });
-
-        // Remove subjects no longer in selectedList
-        Object.keys(updatedFixedPositions).forEach((subjectID) => {
-            if (!(selectedList.includes(Number(subjectID)))) {
-                delete updatedFixedPositions[subjectID];
-            }
-        });
-
-        return {
-            ...prevState,
-            [grade]: updatedFixedPositions,
-        };
     });
+
+    selectedList.forEach((subID) => {
+      const subjDays = structuredClone(updatedFixedDays[subID]);
+      const subjPositions = structuredClone(updatedFixedPositions[subID]);
+
+      for (let i = 0; i < subjDays.length; i++) {
+        if (subjPositions[i] > selectedList.length || subjDays[i] > numOfSchoolDays) {
+          subjDays[i] = 0;
+          subjPositions[i] = 0;
+        }
+      }
+
+      updatedFixedDays[subID] = subjDays;
+      updatedFixedPositions[subID] = subjPositions;
+    })
+
+    setFixedDays((prevState) => ({
+      ...prevState,
+      [grade]: updatedFixedDays, // Update only the specified grade
+    }));
+  
+    setFixedPositions((prevState) => ({
+      ...prevState,
+      [grade]: updatedFixedPositions, // Update only the specified grade
+    }));
   };
 
   const handleShiftSelection = (grade, shift) => {
@@ -415,7 +416,7 @@ const AddProgramContainer = ({
                       <button 
                         className="btn btn-primary"
                         onClick={() =>     
-                            document.getElementById(`assign_fixed_sched_modal_${grade}`).showModal()                      
+                            document.getElementById(`assign_fixed_sched_modal_prog(0)-grade(${grade})`).showModal()                      
                         }
                       >
                         Open Fixed Schedule Maker
@@ -424,12 +425,16 @@ const AddProgramContainer = ({
                         <FixedScheduleMaker
                           key={grade}
 
-                          addingMode={1}
+                          viewingMode={0}
+
+                          pvs={0}
+                          program={0}
+                          grade={grade}
 
                           selectedSubjects={selectedSubjects[grade]}
                           fixedDays={fixedDays[grade]} setFixedDays={setFixedDays}
                           fixedPositions={fixedPositions[grade]} setFixedPositions={setFixedPositions}
-                          grade={grade}
+                          
                           numOfSchoolDays={numOfSchoolDays}
                         />
                       
@@ -536,85 +541,73 @@ const ProgramListContainer = ({ editable = false }) => {
   };
 
   const handleSubjectSelection = (grade, selectedList) => {
-    console.log('grade', grade);
-    console.log('selectedList', selectedList);
+
+    const validCombinations = [];
 
     setEditProgramCurr((prevState) => ({
       ...prevState,
-      [grade]: selectedList, // Update selected subjects for the grade
+      [grade]: selectedList,
     }));
   
-    setEditFixedDays((prevState) => {
-      const updatedFixedDays = { ...prevState[grade] };
+    const updatedFixedDays = structuredClone(editFixedDays[grade]);
+    const updatedFixedPositions = structuredClone(editFixedPositions[grade]);
 
-        // Add new subjects to fixedDays
-        selectedList.forEach((subjectID) => {
-            if (!updatedFixedDays[subjectID]) {
-                const subject = subjects[subjectID];
-                if (subject) {
-                    const numClasses = Math.min(
-                        Math.floor(subject.weeklyMinutes / subject.classDuration),
-                        numOfSchoolDays
-                    );
-                    updatedFixedDays[subjectID] = Array(numClasses).fill(0);
-                }
-            }
-        });
-
-        // Remove subjects no longer in selectedList
-        Object.keys(updatedFixedDays).forEach((subjectID) => {
-            if (!(selectedList.includes(Number(subjectID)))) {
-                delete updatedFixedDays[subjectID];
-            }
-        });
-
-        return {
-            ...prevState,
-            [grade]: updatedFixedDays,
-        };
+    Object.keys(updatedFixedDays).forEach((subID) => {
+      if (!selectedList.includes(Number(subID))) {
+        delete updatedFixedDays[subID];
+        delete updatedFixedPositions[subID];
+      }
     });
 
-    setEditFixedPositions((prevState) => {
-      const updatedFixedPositions = { ...prevState[grade] };
+    selectedList.forEach((subjectID) => {
+      if (!updatedFixedDays[subjectID]) {
+        const subject = subjects[subjectID];
+        if (subject) {
+            const numClasses = Math.min(
+                Math.ceil(subject.weeklyMinutes / subject.classDuration),
+                numOfSchoolDays
+            );
+            updatedFixedDays[subjectID] = Array(numClasses).fill(0);
+            updatedFixedPositions[subjectID] = Array(numClasses).fill(0);
+        }
+      }
+    })
 
-      // Add new subjects to fixedPositions
-      selectedList.forEach((subjectID) => {
-          if (!updatedFixedPositions[subjectID]) {
-              const subject = subjects[subjectID];
-              if (subject) {
-                  const numClasses = Math.min(
-                      Math.floor(subject.weeklyMinutes / subject.classDuration),
-                      numOfSchoolDays
-                  );
-                  updatedFixedPositions[subjectID] = Array(numClasses).fill(0); // Initialize positions array with 0s
-              }
-          }
-      });
+    selectedList.forEach((subID) => {
+        const subjDays = updatedFixedDays[subID] || [];
+        const subjPositions = updatedFixedPositions[subID] || [];
 
-      // Remove subjects no longer in selectedList
-      Object.keys(updatedFixedPositions).forEach((subjectID) => {
-          if (!(selectedList.includes(Number(subjectID)))) {
-              delete updatedFixedPositions[subjectID];
-          }
-      });
-
-      return {
-          ...prevState,
-          [grade]: updatedFixedPositions,
-      };
+        subjDays.forEach((day, index) => {
+            const position = subjPositions[index];
+            if (day !== 0 && position !== 0) {
+                validCombinations.push([day, position]);
+            }
+        });
     });
-  };
 
-  const handleFixedDaysSelection = (grade, subjectID, dayIndex) => {
+    selectedList.forEach((subID) => {
+      const subjDays = structuredClone(updatedFixedDays[subID]);
+      const subjPositions = structuredClone(updatedFixedPositions[subID]);
+
+      for (let i = 0; i < subjDays.length; i++) {
+        if (subjPositions[i] > selectedList.length || subjDays[i] > numOfSchoolDays) {
+          subjDays[i] = 0;
+          subjPositions[i] = 0;
+        }
+      }
+
+      updatedFixedDays[subID] = subjDays;
+      updatedFixedPositions[subID] = subjPositions;
+    })
+
     setEditFixedDays((prevState) => ({
       ...prevState,
-      [grade]: {
-        ...prevState[grade],
-        [subjectID]: {
-          ...prevState[grade][subjectID],
-          [dayIndex]: prevState[grade]?.[subjectID]?.[dayIndex] === 1 ? 0 : 1,
-        },
-      },
+      [grade]: updatedFixedDays, // Update only the specified grade
+    }));
+  
+    setEditFixedPositions((prevState) => ({
+      ...prevState,
+      [grade]: updatedFixedPositions, // Update only the specified grade
     }));
   };
 
@@ -958,6 +951,11 @@ const ProgramListContainer = ({ editable = false }) => {
   );
 
   useEffect(() => {
+    console.log('editFixedDays', editFixedDays);
+    console.log('editFixedPositions', editFixedPositions);
+  }, [editFixedDays, editFixedPositions])
+
+  useEffect(() => {
     debouncedSearch(searchProgramValue, programs, subjects);
   }, [searchProgramValue, programs, debouncedSearch, subjects]);
 
@@ -1157,31 +1155,32 @@ const ProgramListContainer = ({ editable = false }) => {
                               </div>
                             </div>
                             
-                           
                             <div className='flex justify-center items-center'>
-                                <button 
-                                  className="btn text-xs"
-                                  onClick={() =>     
-                                      document.getElementById(`assign_fixed_sched_modal_${grade}`).showModal()                      
-                                  }
-                                >
-                                  Open Fixed Schedule Maker for Grade {grade}
-                                </button>
+                              <button 
+                                className="btn text-xs"
+                                onClick={() =>     
+                                    document.getElementById(`assign_fixed_sched_modal_prog(${editProgramId})-grade(${grade})`).showModal()                      
+                                }
+                              >
+                                Open Fixed Schedule Maker for Grade {grade}
+                              </button>
+                              
+                              <FixedScheduleMaker
+                                key={grade}
+
+                                viewingMode={0}
+
+                                pvs={0}
+                                program={editProgramId}
+                                grade={grade}
+
+                                selectedSubjects={editProgramCurr[grade]}
+                                fixedDays={editFixedDays[grade]} setFixedDays={setEditFixedDays}
+                                fixedPositions={editFixedPositions[grade]} setFixedPositions={setEditFixedPositions}
                                 
-                                <FixedScheduleMaker
-                                  key={grade}
-
-                                  addingMode={0}
-
-                                  selectedSubjects={editProgramCurr[grade]}
-                                  fixedDays={editFixedDays[grade]} setFixedDays={setEditFixedDays}
-                                  fixedPositions={editFixedPositions[grade]} setFixedPositions={setEditFixedPositions}
-                                  grade={grade}
-                                  numOfSchoolDays={numOfSchoolDays}
-                                />
-                              </div>
-                            
-
+                                numOfSchoolDays={numOfSchoolDays}
+                              />
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -1206,12 +1205,38 @@ const ProgramListContainer = ({ editable = false }) => {
                               <div className='w-full'>
                                 Assigned Subjects for Grade {grade}:
                               </div>
-                              <div className="flex flex-wrap gap-1 p-1">
+                              <div className="w-full flex flex-wrap gap-1 p-1">
                                 {program[`${grade}`]?.subjects?.map((id) => (
                                   <div key={id} className="h-8 w-10 bg-green-400 rounded-md text-xs flex items-center justify-center truncate">
                                     {subjects[id]?.subject}
                                   </div>
                                 ))}
+                              </div>
+                              <div className='flex justify-center items-center'>
+                                <button 
+                                  className="btn text-xs"
+                                  onClick={() =>     
+                                      document.getElementById(`assign_fixed_sched_modal_prog(${program.id})-grade(${grade})`).showModal()                      
+                                  }
+                                >
+                                  View Fixed Schedules for Grade {grade}
+                                </button>
+                                
+                                <FixedScheduleMaker
+                                  key={grade}
+
+                                  viewingMode={1}
+
+                                  pvs={0}
+                                  program={program.id}
+                                  grade={grade}
+
+                                  selectedSubjects={program[grade]?.subjects || []}
+                                  fixedDays={program[grade]?.fixedDays || {}}
+                                  fixedPositions={program[grade]?.fixedPositions || {}}
+
+                                  numOfSchoolDays={numOfSchoolDays}
+                                />
                               </div>
                             </div>
                           </div>

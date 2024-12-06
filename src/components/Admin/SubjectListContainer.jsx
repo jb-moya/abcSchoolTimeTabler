@@ -162,7 +162,9 @@ const SubjectListContainer = ({ editable = false }) => {
   const dispatch = useDispatch();
   const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
 
+  const numOfSchoolDays = parseInt(localStorage.getItem('numOfSchoolDays'), 10);
   const defaultSubjectClassDuration = localStorage.getItem('defaultSubjectClassDuration');
+
   const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   const [editSubjectId, setEditSubjectId] = useState(null);
@@ -393,7 +395,7 @@ const SubjectListContainer = ({ editable = false }) => {
               <th>Subject</th>
               <th>Duration (min)</th>
               <th>Weekly Requirement (min)</th>
-              <th># of Classes</th>
+              <th># of Classes (Max: {numOfSchoolDays})</th>
               {editable && <th className="text-left">Actions</th>}
             </tr>
           </thead>
@@ -465,7 +467,7 @@ const SubjectListContainer = ({ editable = false }) => {
                     )}
                   </td>
                   <td>
-                    {Math.ceil(subject.weeklyMinutes / subject.classDuration)}
+                    {Math.min(Math.ceil(subject.weeklyMinutes / subject.classDuration), numOfSchoolDays)}
                   </td>
                   {editable && (
                     <td className="w-28 text-right">

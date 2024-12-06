@@ -9,15 +9,22 @@ import { ReserveDay, ReservePosition } from './reservation';
 import { darkColors } from './bgColors';
 
 const FixedScheduleMaker = ({
-    addingMode,
+    viewingMode = 0,
+
+    pvs = 0,
+
+    program = 0,
+    grade = 0,
+    section = 0,
 
     isForSection = false,
-
-    selectedSubjects,
-    fixedDays, setFixedDays,
-    fixedPositions, setFixedPositions,
-    grade,
-    numOfSchoolDays,
+    selectedSubjects = [],
+    fixedDays = [],
+    setFixedDays = () => {},
+    fixedPositions = {},
+    setFixedPositions = () => {},
+    
+    numOfSchoolDays = 0, 
 }) => {
 
     const subjects = useSelector((state) => state.subject.subjects);
@@ -57,7 +64,7 @@ const FixedScheduleMaker = ({
 
         for (let i = 0; i < subjs.length; i++) {
             const subject = subjs[i];
-            // console.log('subject',  subject);
+            
             const fixedDay = days[subject] || [];
             const fixedPos = positions[subject] || [];
 
@@ -129,7 +136,7 @@ const FixedScheduleMaker = ({
         setFixedDays((prev) =>
             produce(prev, (draft) => {
                 if (isForSection) {
-                    draft = days; // Save only the days directly
+                    Object.assign(draft, days); // Save only the days directly
                 } else {
                     draft[grade] = days; // Save the days for the specific grade
                 }
@@ -138,7 +145,7 @@ const FixedScheduleMaker = ({
         setFixedPositions((prev) =>
             produce(prev, (draft) => {
                 if (isForSection) {
-                    draft = positions; // Save only the positions directly
+                    Object.assign(draft, positions); // Save only the positions directly
                 } else {
                     draft[grade] = positions; // Save the positions for the specific grade
                 }
@@ -146,7 +153,8 @@ const FixedScheduleMaker = ({
         );
 
         setEditMode(false);
-        document.getElementById(`assign_fixed_sched_modal_${grade}`).close();
+        document.getElementById(pvs === 0 ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})` 
+            : `assign_fixed_sched_modal_section(${section})-grade(${grade})`).close();
     };
 
     const handleCancel = () => {
@@ -155,7 +163,8 @@ const FixedScheduleMaker = ({
         setPositions(produce(fixedPositions, (draft) => draft));
 
         setEditMode(false);
-        document.getElementById(`assign_fixed_sched_modal_${grade}`).close();
+        document.getElementById(pvs === 0 ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})` 
+            : `assign_fixed_sched_modal_section(${section})-grade(${grade})`).close();
     };
 
     const handleClose = () => {
@@ -164,7 +173,12 @@ const FixedScheduleMaker = ({
         setPositions(produce(fixedPositions, (draft) => draft));
 
         setEditMode(false);
-        document.getElementById(`assign_fixed_sched_modal_${grade}`).close();
+        document.getElementById(pvs === 0 ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})` 
+            : `assign_fixed_sched_modal_section(${section})-grade(${grade})`).close();
+    };
+
+    const toggleViewMode = () => {
+        setEditMode(!editMode);
     };
 
     // DRAG AND DROP
@@ -254,12 +268,10 @@ const FixedScheduleMaker = ({
         
     };
 
-    const toggleViewMode = () => {
-        setEditMode(!editMode);
-    };
-
     return (
-        <dialog id={`assign_fixed_sched_modal_${grade}`}  className="modal modal-bottom sm:modal-middle">
+        <dialog id={pvs === 0 ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})` 
+            : `assign_fixed_sched_modal_section(${section})-grade(${grade})`}  
+                className="modal modal-bottom sm:modal-middle">
             <div 
                 className="modal-box" 
                 style={{
@@ -275,7 +287,7 @@ const FixedScheduleMaker = ({
                     </div>
                     
                     {
-                        addingMode === 0 &&
+                        viewingMode === 0 &&
 
                         <div className="flex justify-center items-center space-x-2 m-3 text-base">
                             <div className={``}>
