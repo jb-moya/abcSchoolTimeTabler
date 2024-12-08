@@ -2,12 +2,19 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { useDispatch } from 'react-redux';
+
+
 import {
   fetchSubjects,
   addSubject,
   editSubject,
   removeSubject,
 } from '@features/subjectSlice';
+import { fetchPrograms, editProgram } from '@features/programSlice';
+import { fetchSections, editSection } from '@features/sectionSlice';
+
+import { getTimeSlotIndex, getTimeSlotString } from './timeSlotMapper';
+
 import { IoAdd, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
@@ -160,12 +167,13 @@ const AddSubjectContainer = ({
 
 const SubjectListContainer = ({ editable = false }) => {
   const dispatch = useDispatch();
+
   const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
+  const { programs, status: programStatus } = useSelector((state) => state.program);
+  const { sections, status: sectionStatus } = useSelector((state) => state.section);
 
   const numOfSchoolDays = parseInt(localStorage.getItem('numOfSchoolDays'), 10);
   const defaultSubjectClassDuration = localStorage.getItem('defaultSubjectClassDuration');
-
-  const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   const [editSubjectId, setEditSubjectId] = useState(null);
   const [searchSubjectResult, setSearchSubjectResult] = useState(subjects);
@@ -209,8 +217,10 @@ const SubjectListContainer = ({ editable = false }) => {
           },
         })
       );
+
+      updateSubjectDependencies();
   
-      toast.success('Data updated successfully!', {
+      toast.success('Data and dependencies updated successfully!', {
         style: {
           backgroundColor: '#28a745', 
           color: '#fff',        
@@ -221,6 +231,7 @@ const SubjectListContainer = ({ editable = false }) => {
       setEditSubjectId(null);
       setEditSubjectValue('');
       setEditClassDuration(0);
+      setEditSubjectWeeklyMinutes(0);
       
     } else {
       const duplicateSubject = Object.values(subjects).find(
@@ -241,7 +252,15 @@ const SubjectListContainer = ({ editable = false }) => {
           })
         );
 
+        updateSubjectDependencies();
         
+        toast.success('Data and dependencies updated successfully!', {
+          style: {
+            backgroundColor: '#28a745', 
+            color: '#fff',        
+            borderColor: '#28a745',   
+          },
+        });
   
         setEditSubjectId(null);
         setEditSubjectValue('');
@@ -256,6 +275,165 @@ const SubjectListContainer = ({ editable = false }) => {
     setEditSubjectValue('');
     setEditClassDuration(0);
     setEditSubjectWeeklyMinutes(0);
+  };
+
+  const updateSubjectDependencies = () => {
+    
+    // Update subject dependencies in PROGRAMS
+    Object.entries(programs).forEach(([id, program]) => {
+      const originalProgram = JSON.parse(JSON.stringify(program));
+      const newProgram = JSON.parse(JSON.stringify(program));
+    
+      [7, 8, 9, 10].forEach((grade) => {
+        if (!newProgram[grade].subjects.includes(editSubjectId)) return;
+    
+        const numOfClasses = Math.min(
+          Math.ceil(editSubjectWeeklyMinutes / editClassDuration),
+          numOfSchoolDays
+        );
+    
+        const fixedDays = newProgram[grade].fixedDays[editSubjectId];
+        const fixedPositions = newProgram[grade].fixedPositions[editSubjectId];
+    
+        // Skip if both arrays are already of the correct length
+        if (fixedDays.length === numOfClasses && fixedPositions.length === numOfClasses) return;
+    
+        // Use hash maps to quickly look up subjects and day-position pairs
+        const dayPositionMap = new Map();
+        const subjectsMap = new Map();
+        newProgram[grade].subjects.forEach(subject => subjectsMap.set(subject.id, true));
+    
+        fixedDays.forEach((day, index) => {
+          const pos = fixedPositions[index];
+          if (day !== 0 && pos !== 0 && !dayPositionMap.has(`${day}-${pos}`)) {
+            dayPositionMap.set(`${day}-${pos}`, [day, pos]);
+          }
+        });
+    
+        // Now we process the day-position pairs efficiently
+        let result = [];
+        dayPositionMap.forEach(([day, pos]) => {
+          if (result.length < numOfClasses) {
+            result.push([day, pos]);
+          }
+        });
+    
+        // Pad with [0, 0] if necessary
+        while (result.length < numOfClasses) {
+          result.push([0, 0]);
+        }
+    
+        // Split the combined array back into fixedDays and fixedPositions
+        newProgram[grade].fixedDays[editSubjectId] = result.map(([day]) => day);
+        newProgram[grade].fixedPositions[editSubjectId] = result.map(([_, pos]) => pos);
+      });
+    
+      if (originalProgram !== newProgram) {
+        dispatch(
+          editProgram({
+            programId: newProgram.id,
+            updatedProgram: {
+              program: newProgram.program,
+              7: {
+                subjects: newProgram[7].subjects,
+                fixedDays: newProgram[7].fixedDays,
+                fixedPositions: newProgram[7].fixedPositions,
+                shift: newProgram[7].shift,
+                startTime: getTimeSlotIndex(newProgram[7].startTime || '06:00 AM'),
+              },
+              8: {
+                subjects: newProgram[8].subjects,
+                fixedDays: newProgram[8].fixedDays,
+                fixedPositions: newProgram[8].fixedPositions,
+                shift: newProgram[8].shift,
+                startTime: getTimeSlotIndex(newProgram[8].startTime || '06:00 AM'),
+              },
+              9: {
+                subjects: newProgram[9].subjects,
+                fixedDays: newProgram[9].fixedDays,
+                fixedPositions: newProgram[9].fixedPositions,
+                shift: newProgram[9].shift,
+                startTime: getTimeSlotIndex(newProgram[9].startTime || '06:00 AM'),
+              },
+              10: {
+                subjects: newProgram[10].subjects,
+                fixedDays: newProgram[10].fixedDays,
+                fixedPositions: newProgram[10].fixedPositions,
+                shift: newProgram[10].shift,
+                startTime: getTimeSlotIndex(newProgram[10].startTime || '06:00 AM'),
+              },
+            },
+          })
+        );
+      } 
+    });
+
+    // Update subject dependencies in SECTIONS
+    Object.entries(sections).forEach(([id, section]) => {
+      const originalSection = JSON.parse(JSON.stringify(section));
+      const newSection = JSON.parse(JSON.stringify(section));
+
+      if (!newSection.subjects.includes(editSubjectId)) return;
+
+      const numOfClasses = Math.min(Math.ceil(editSubjectWeeklyMinutes / editClassDuration), numOfSchoolDays);
+
+      const fixedDays = newSection.fixedDays[editSubjectId];
+      const fixedPositions = newSection.fixedPositions[editSubjectId];
+
+      // Skip if both arrays are already of the correct length
+      if (fixedDays.length === numOfClasses && fixedPositions.length === numOfClasses) return;
+
+      // Use hash maps to quickly look up subjects and day-position pairs
+      const dayPositionMap = new Map();
+      const subjectsMap = new Map();
+      newSection.subjects.forEach(subject => subjectsMap.set(subject.id, true));
+
+      fixedDays.forEach((day, index) => {
+        const pos = fixedPositions[index];
+        if (day !== 0 && pos !== 0 && !dayPositionMap.has(`${day}-${pos}`)) {
+          dayPositionMap.set(`${day}-${pos}`, [day, pos]);
+        }
+      });
+
+      // Now we process the day-position pairs efficiently
+      let result = [];
+      dayPositionMap.forEach(([day, pos]) => {
+        if (result.length < numOfClasses) {
+          result.push([day, pos]);
+        }
+      });
+
+      // Pad with [0, 0] if necessary
+      while (result.length < numOfClasses) {
+        result.push([0, 0]);
+      }
+
+      // Split the combined array back into fixedDays and fixedPositions
+      newSection.fixedDays[editSubjectId] = result.map(([day]) => day);
+      newSection.fixedPositions[editSubjectId] = result.map(([_, pos]) => pos);
+
+      if (originalSection !== newSection) {
+        dispatch(
+          editSection({
+            sectionId: newSection.id,
+            updatedSection: {
+              id: newSection.id,
+              teacher: newSection.teacher,
+              program: newSection.program,
+              section: newSection.section,
+              subjects: newSection.subjects,
+              fixedDays: newSection.fixedDays,
+              fixedPositions: newSection.fixedPositions,
+              year: newSection.year,
+              shift: newSection.shift,
+              startTime: getTimeSlotIndex(newSection.startTime || '06:00 AM'),
+            },
+          })
+        );
+      };
+
+    });
+
   };
 
   const debouncedSearch = useCallback(
@@ -275,11 +453,24 @@ const SubjectListContainer = ({ editable = false }) => {
     []
   );
   
+  // Initialization of stores
   useEffect(() => {
     if (subjectStatus === 'idle') {
       dispatch(fetchSubjects());
     }
   }, [subjectStatus, dispatch]);
+
+  useEffect(() => {
+    if (programStatus === 'idle') {
+      dispatch(fetchPrograms());
+    }
+  }, [programStatus, dispatch]);
+
+  useEffect(() => {
+    if (sectionStatus === 'idle') {
+      dispatch(fetchSections());
+    }
+  }, [sectionStatus, dispatch]);
 
   useEffect(() => {
     debouncedSearch(searchSubjectValue, subjects);

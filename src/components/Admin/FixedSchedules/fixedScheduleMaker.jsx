@@ -425,33 +425,35 @@ const FixedScheduleMaker = ({
                                         ))}
 
                                         {/* Reserve day */}
-                                        <div key="reserveDay" className="flex flex-wrap justify-center items-center">
+                                        {subs?.length > 0 && (
+                                            <div key="reserveDay" className="flex flex-wrap justify-center items-center">
 
-                                            <div className="w-20 h-10 bg-transparent border border-transparent">
+                                                <div className="w-20 h-10 bg-transparent border border-transparent">
+                                                </div>
+
+                                                {Array.from({ length:numOfSchoolDays }).map((_, index) => (
+                                                    <ReserveDay
+                                                        key={`reserveDay-g${grade}-d${index + 1}`}
+                                                        editMode={editMode}
+
+                                                        grade={grade}
+                                                        subjectID={-1}
+                                                        day={index + 1}
+                                                        position={0}
+
+                                                        subs={subs}
+                                                        days={days} setDays={setDays}
+                                                        positions={positions}  setPositions={setPositions}
+                                                    />
+                                                ))}
+
+                                                <div className="w-10 h-10 bg-transparent border border-transparent">
+                                                </div>
+
                                             </div>
-
-                                            {Array.from({ length:numOfSchoolDays }).map((_, index) => (
-                                                <ReserveDay
-                                                    key={`reserveDay-g${grade}-d${index + 1}`}
-                                                    editMode={editMode}
-
-                                                    grade={grade}
-                                                    subjectID={-1}
-                                                    day={index + 1}
-                                                    position={0}
-
-                                                    subs={subs}
-                                                    days={days} setDays={setDays}
-                                                    positions={positions}  setPositions={setPositions}
-                                                />
-                                            ))}
-
-                                            <div className="w-10 h-10 bg-transparent border border-transparent">
-                                            </div>
-
-                                        </div>
-                                        
+                                        )}
                                     </div>
+                                    
                                 </div>
                             </div>
                         </DndContext>

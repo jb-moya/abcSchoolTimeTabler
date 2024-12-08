@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+
 import {
   fetchPrograms,
   addProgram,
   editProgram,
   removeProgram,
-  updateSectionsForProgramYear,
 } from '@features/programSlice';
+import { fetchSections, editSection } from '@features/sectionSlice';
+import { fetchSubjects } from '@features/subjectSlice';
+
 import debounce from 'debounce';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import SearchableDropdownToggler from './searchableDropdown';
@@ -14,6 +17,7 @@ import { getTimeSlotIndex, getTimeSlotString } from './timeSlotMapper';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
+import { toast } from 'sonner';
 
 import FixedScheduleMaker from './FixedSchedules/fixedScheduleMaker';
 
@@ -135,8 +139,8 @@ const AddProgramContainer = ({
     });
 
     selectedList.forEach((subID) => {
-      const subjDays = structuredClone(updatedFixedDays[subID]);
-      const subjPositions = structuredClone(updatedFixedPositions[subID]);
+      const subjDays = updatedFixedDays[subID];
+      const subjPositions = updatedFixedPositions[subID];
 
       for (let i = 0; i < subjDays.length; i++) {
         if (subjPositions[i] > selectedList.length || subjDays[i] > numOfSchoolDays) {
@@ -482,11 +486,13 @@ const ProgramListContainer = ({ editable = false }) => {
     (state) => state.subject
   );
 
+  const { sections, status: sectionStatus } = useSelector(
+    (state) => state.section
+  );
+
   const numOfSchoolDays = parseInt(localStorage.getItem('numOfSchoolDays'), 10);
-  const morningStartTime =
-    localStorage.getItem('morningStartTime') || '06:00 AM';
-  const afternoonStartTime =
-    localStorage.getItem('afternoonStartTime') || '01:00 PM';
+  const morningStartTime = localStorage.getItem('morningStartTime') || '06:00 AM';
+  const afternoonStartTime = localStorage.getItem('afternoonStartTime') || '01:00 PM';
 
   const [editProgramId, setEditProgramId] = useState(null);
   const [editProgramValue, setEditProgramValue] = useState('');
@@ -728,34 +734,16 @@ const ProgramListContainer = ({ editable = false }) => {
           },
         })
       );
-      // dispatch(
-      //   updateSectionsForProgramYear({
-      //     programId,
-      //     yearLevel: 7,
-      //     newSubjects: editProgramCurr[7], // Subjects for Grade 7
-      //   })
-      // );
-      // dispatch(
-      //   updateSectionsForProgramYear({
-      //     programId,
-      //     yearLevel: 8,
-      //     newSubjects: editProgramCurr[8], // Subjects for Grade 8
-      //   })
-      // );
-      // dispatch(
-      //   updateSectionsForProgramYear({
-      //     programId,
-      //     yearLevel: 9,
-      //     newSubjects: editProgramCurr[9], // Subjects for Grade 9
-      //   })
-      // );
-      // dispatch(
-      //   updateSectionsForProgramYear({
-      //     programId,
-      //     yearLevel: 10,
-      //     newSubjects: editProgramCurr[10], // Subjects for Grade 10
-      //   })
-      // );
+
+      updateProgramDependencies();
+
+      toast.success('Data and dependencies updated successfully!', {
+        style: {
+          backgroundColor: '#28a745', 
+          color: '#fff',        
+          borderColor: '#28a745',   
+        },
+      });
   
       setEditProgramId(null);
       setEditProgramValue('');
@@ -828,34 +816,16 @@ const ProgramListContainer = ({ editable = false }) => {
             },
           })
         );
-        // dispatch(
-        //   updateSectionsForProgramYear({
-        //     programId,
-        //     yearLevel: 7,
-        //     newSubjects: editProgramCurr[7], // Subjects for Grade 7
-        //   })
-        // );
-        // dispatch(
-        //   updateSectionsForProgramYear({
-        //     programId,
-        //     yearLevel: 8,
-        //     newSubjects: editProgramCurr[8], // Subjects for Grade 8
-        //   })
-        // );
-        // dispatch(
-        //   updateSectionsForProgramYear({
-        //     programId,
-        //     yearLevel: 9,
-        //     newSubjects: editProgramCurr[9], // Subjects for Grade 9
-        //   })
-        // );
-        // dispatch(
-        //   updateSectionsForProgramYear({
-        //     programId,
-        //     yearLevel: 10,
-        //     newSubjects: editProgramCurr[10], // Subjects for Grade 10
-        //   })
-        // );
+
+        updateProgramDependencies();
+
+        toast.success('Data and dependencies updated successfully!', {
+          style: {
+            backgroundColor: '#28a745', 
+            color: '#fff',        
+            borderColor: '#28a745',   
+          },
+        });
     
         setEditProgramId(null);
         setEditProgramValue('');
@@ -919,6 +889,109 @@ const ProgramListContainer = ({ editable = false }) => {
     });
   };
 
+  const updateProgramDependencies = () => {
+
+    // Update program dependencies in SECTIONS
+    Object.entries(sections).forEach(([id, section]) => {
+      const originalSection = JSON.parse(JSON.stringify(section));
+      const newSection = JSON.parse(JSON.stringify(section));
+
+      // Early return if section is not part of the edited program
+      if (newSection.program !== editProgramId) return; 
+
+      // Use set to quickly look up subjects from the edited program-year and the current section
+      const newSubs = new Set(editProgramCurr[newSection.year]);
+      const originalSubs = new Set(newSection.subjects);
+
+      // Early return if there are no changes
+      if (newSubs.size === originalSubs.size && [...newSubs].every(subjectId => originalSubs.has(subjectId))) return;
+
+      // Add subjects from the edited program-year to the current section
+      editProgramCurr[newSection.year].forEach((subjectId) => {
+        if (!originalSubs.has(subjectId)) {
+          newSection.subjects.push(subjectId);
+          originalSubs.add(subjectId);
+        }
+      });
+
+      // Remove subjects from the current section that are not in the edited program-year
+      newSection.subjects = newSection.subjects.filter((subjectId) => newSubs.has(subjectId));
+
+      // Update the section in the sections object
+      const newSubjsSet = new Set(newSection.subjects);
+
+      // Remove the fixed schedules from the current section that are not in the edited program-year
+      Object.keys(newSection.fixedDays).forEach((subjectId) => {
+        if (!newSubjsSet.has(subjectId)) {
+          delete newSection.fixedDays[subjectId];
+          delete newSection.fixedPositions[subjectId];
+        }
+      })
+
+      // Retrieve all occupied days and positions of the current section
+      const dayPositionMap = new Map();
+      Object.keys(newSection.fixedDays).forEach((subjectId) => {
+        newSection.fixedDays[subjectId].forEach((day, index) => {
+          const pos = newSection.fixedPositions[subjectId][index];
+          if (day !== 0 && pos !== 0 && !dayPositionMap.has(`${day}-${pos}`)) {
+            dayPositionMap.set(`${day}-${pos}`, true);          
+          }
+        })
+      });
+
+      // Add fixed schedules from the edited program-year to the current section
+      newSection.subjects.forEach((subjectId) => {
+        if (!(subjectId in newSection.fixedDays)) {
+          let newSubjDays = [];
+          let newSubjPositions = [];
+
+          for (let i = 0; i < editFixedDays[newSection.year][subjectId].length; i++) {
+            const day = editFixedDays[newSection.year][subjectId][i];
+            const position = editFixedPositions[newSection.year][subjectId][i];
+
+            // Check if the day-position combination is already occupied
+            if ((day !== 0 && position !== 0 && !dayPositionMap.has(`${day}-${position}`))) {
+              newSubjDays.push(day);
+              newSubjPositions.push(position);
+              dayPositionMap.set(`${day}-${position}`, true);
+            } else if (Number(day) + Number(position) === 1) {
+              newSubjDays.push(day);
+              newSubjPositions.push(position);
+            } else {
+              newSubjDays.push(0);
+              newSubjPositions.push(0);
+            }
+          }
+
+          newSection.fixedDays[subjectId] = newSubjDays;
+          newSection.fixedPositions[subjectId] = newSubjPositions;
+        }
+      })
+
+      if (originalSection !== newSection) {
+        dispatch(
+          editSection({
+            sectionId: newSection.id,
+            updatedSection: {
+              id: newSection.id,
+              teacher: newSection.teacher,
+              program: newSection.program,
+              section: newSection.section,
+              subjects: newSection.subjects,
+              fixedDays: newSection.fixedDays,
+              fixedPositions: newSection.fixedPositions,
+              year: newSection.year,
+              shift: newSection.shift,
+              startTime: getTimeSlotIndex(newSection.startTime || '06:00 AM'),
+            },
+          })
+        );
+      };
+
+    })
+
+  }; 
+
   const debouncedSearch = useCallback(
     debounce((searchValue, programs, subjects) => {
       setSearchProgramResult(
@@ -959,10 +1032,22 @@ const ProgramListContainer = ({ editable = false }) => {
   }, [searchProgramValue, programs, debouncedSearch, subjects]);
 
   useEffect(() => {
+    if (sectionStatus === 'idle') {
+      dispatch(fetchSections());
+    }
+  }, [sectionStatus, dispatch]);
+
+  useEffect(() => {
     if (programStatus === 'idle') {
       dispatch(fetchPrograms());
     }
   }, [programStatus, dispatch]);
+
+  useEffect(() => {
+    if (subjectStatus === 'idle') {
+      dispatch(fetchSubjects());
+    }
+  }, [subjectStatus, dispatch]);
 
   const itemsPerPage = 3; // Change this to adjust the number of items per page
   const [currentPage, setCurrentPage] = useState(1);
