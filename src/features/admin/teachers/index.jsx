@@ -1,4 +1,5 @@
-import TeacherListContainer from '@components/Admin/TeacherListContainer';
+import TeacherListContainer from '@components/Admin/Teacher/TeacherListContainer';
+import TeacherRankListContainer from '@components/Admin/Teacher/TeacherRankListContainer';
 import Breadcrumbs from '@components/Admin/Breadcrumbs';
 
 
@@ -21,7 +22,12 @@ function Teachers() {
           <TeacherListContainer editable={true} />
         </div>
       </div>
-  
+      <div className="card w-full bg-base-100 shadow-md">
+        <div className="card-body">
+          <TeacherRankListContainer editable={true} />
+        </div>
+        
+      </div>
     </div>
   </div>
   );

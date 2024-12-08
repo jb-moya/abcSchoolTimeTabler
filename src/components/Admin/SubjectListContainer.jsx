@@ -2,45 +2,24 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { useDispatch } from 'react-redux';
+
+
 import {
   fetchSubjects,
   addSubject,
   editSubject,
   removeSubject,
 } from '@features/subjectSlice';
+import { fetchPrograms, editProgram } from '@features/programSlice';
+import { fetchSections, editSection } from '@features/sectionSlice';
+
+import { getTimeSlotIndex, getTimeSlotString } from './timeSlotMapper';
+
 import { IoAdd, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
-import Lottie from 'lottie-react';
-import animationData from '/public/SuccessAnimation.json'
-
-
-const SuccessModal = ({ message, onClose }) => {
-  return (
-    <div className="modal modal-open flex items-center justify-center z-10">
-      <div className="modal-box flex flex-col items-center justify-center p-4"> {/* Added padding */}
-        <div className="lottie-animation w-48 h-48">
-          <Lottie
-            animationData={
-              animationData
-            } // Replace with your Lottie JSON
-            loop={false} // Ensures the animati on does not loop
-          />
-        </div>
-        <h2 className="font-bold text-lg text-center">{message}</h2> {/* Center text */}
-        <div className="modal-action">
-          <button
-            className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-            onClick={onClose}
-          >
-            ✕
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+import { toast } from 'sonner';
 
 const AddSubjectContainer = ({
   close,
@@ -52,13 +31,13 @@ const AddSubjectContainer = ({
 
   const subjects = useSelector((state) => state.subject.subjects);
 
+  const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
   const [subjectName, setSubjectName] = useState('');
   const [classSubjectDuration, setClassSubjectDuration] = useState(
     defaultSubjectClassDuration || 10 // Ensure it defaults to 10 if undefined
   );
-
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [modalMessage, setModalMessage] = useState('');
+  const [subjectWeeklyMinutes, setSubjectWeeklyMinutes] = useState(100);
 
   const handleAddSubject = () => {
 
@@ -68,9 +47,13 @@ const AddSubjectContainer = ({
     } else if (!classSubjectDuration) {
       alert('Class duration cannot be empty');
       return;
+    } else if (!subjectWeeklyMinutes) {
+      alert('Subject weekly minutes cannot be empty');
+      return;
     }
 
     const classDuration = parseInt(classSubjectDuration, 10);
+    const weeklyMinutes = parseInt(subjectWeeklyMinutes, 10);
 
     const duplicateSubject = Object.values(subjects).find(
       (subject) => subject.subject.trim().toLowerCase() === subjectName.trim().toLowerCase()
@@ -83,16 +66,22 @@ const AddSubjectContainer = ({
         reduxFunction({
           subject: subjectName,
           classDuration: classDuration,
+          weeklyMinutes: weeklyMinutes,
         })
       );
-  
-      // Set success message and show the modal
-      setModalMessage('Subject added successfully!');
-      setShowSuccessModal(true);
-  
+      
+      toast.success('Subject added successfully!', {
+        style: {
+          backgroundColor: '#28a745', 
+          borderColor: '#28a745',
+          color: '#fff',               
+        },
+      });
+
       // Reset input fields
       setSubjectName('');
       setClassSubjectDuration(defaultSubjectClassDuration || 10);
+      setSubjectWeeklyMinutes(100);
   
       if (inputNameRef.current) {
         inputNameRef.current.focus();
@@ -100,13 +89,10 @@ const AddSubjectContainer = ({
     }
   };
 
-  const handleCloseModal = () => {
-    setShowSuccessModal(false);
-  };
-
   const handleReset = () => {
     setSubjectName('');
     setClassSubjectDuration(defaultSubjectClassDuration || 10);
+    setSubjectWeeklyMinutes(100);
   };
 
   useEffect(() => {
@@ -144,8 +130,24 @@ const AddSubjectContainer = ({
             setClassSubjectDuration(value);
           }}
           placeholder="Enter class duration"
-          step={10}
+          step={5}
           min={10}
+        />
+      </div>
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-2">
+          Subject's Weekly Time Requirement (minutes):
+        </label>
+        <input
+          type="number"
+          className="input input-bordered w-full"
+          value={subjectWeeklyMinutes}
+          onChange={(e) => {
+            const value = Number(e.target.value);
+            setSubjectWeeklyMinutes(value);
+          }}
+          placeholder="Enter subject's weekly minutes"
+          step={5}
         />
       </div>
       <div className="flex justify-center gap-2">
@@ -158,39 +160,35 @@ const AddSubjectContainer = ({
           </button>
         </div>
       </div>
-
-      {/* Render SuccessModal if showSuccessModal is true */}
-      {showSuccessModal && (
-        <SuccessModal
-          message={modalMessage}
-          onClose={handleCloseModal}
-        />
-      )}
+      
     </div>
   );
 };
 
 const SubjectListContainer = ({ editable = false }) => {
   const dispatch = useDispatch();
-  const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
 
+  const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
+  const { programs, status: programStatus } = useSelector((state) => state.program);
+  const { sections, status: sectionStatus } = useSelector((state) => state.section);
+
+  const numOfSchoolDays = parseInt(localStorage.getItem('numOfSchoolDays'), 10);
   const defaultSubjectClassDuration = localStorage.getItem('defaultSubjectClassDuration');
 
   const [editSubjectId, setEditSubjectId] = useState(null);
   const [searchSubjectResult, setSearchSubjectResult] = useState(subjects);
   const [editSubjectValue, setEditSubjectValue] = useState('');
   const [editClassDuration, setEditClassDuration] = useState(0);
+  const [editSubjectWeeklyMinutes, setEditSubjectWeeklyMinutes] = useState(0);
+
   const [searchSubjectValue, setSearchSubjectValue] = useState('');
   const [openAddSubjectContainer, setOpenAddSubjectContainer] = useState(false);
-
-  // State for success modal
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [modalMessage, setModalMessage] = useState('');
 
   const handleEditSubjectClick = (subject) => {
     setEditSubjectId(subject.id);
     setEditSubjectValue(subject.subject);
     setEditClassDuration(subject.classDuration);
+    setEditSubjectWeeklyMinutes(subject.weeklyMinutes);
   };
 
   const handleSaveSubjectEditClick = (subjectId) => {
@@ -200,6 +198,9 @@ const SubjectListContainer = ({ editable = false }) => {
       return;
     } else if (!editClassDuration) {
       alert('Class duration cannot be empty');
+      return;
+    } else if (!editSubjectWeeklyMinutes) {
+      alert('Subject weekly minutes cannot be empty');
       return;
     }
 
@@ -212,16 +213,26 @@ const SubjectListContainer = ({ editable = false }) => {
           updatedSubject: {
             subject: editSubjectValue,
             classDuration: editClassDuration,
+            weeklyMinutes: editSubjectWeeklyMinutes,
           },
         })
       );
+
+      updateSubjectDependencies();
   
-      setModalMessage('Data Updated Successfully!');
-      setShowSuccessModal(true);
+      toast.success('Data and dependencies updated successfully!', {
+        style: {
+          backgroundColor: '#28a745', 
+          color: '#fff',        
+          borderColor: '#28a745',   
+        },
+      });
   
       setEditSubjectId(null);
       setEditSubjectValue('');
       setEditClassDuration(0);
+      setEditSubjectWeeklyMinutes(0);
+      
     } else {
       const duplicateSubject = Object.values(subjects).find(
         (subject) => subject.subject.trim().toLowerCase() === editSubjectValue.trim().toLowerCase()
@@ -236,16 +247,25 @@ const SubjectListContainer = ({ editable = false }) => {
             updatedSubject: {
               subject: editSubjectValue,
               classDuration: editClassDuration,
+              weeklyMinutes: editSubjectWeeklyMinutes,
             },
           })
         );
 
-        setModalMessage('Data Updated Successfully!');
-        setShowSuccessModal(true);
+        updateSubjectDependencies();
+        
+        toast.success('Data and dependencies updated successfully!', {
+          style: {
+            backgroundColor: '#28a745', 
+            color: '#fff',        
+            borderColor: '#28a745',   
+          },
+        });
   
         setEditSubjectId(null);
         setEditSubjectValue('');
         setEditClassDuration(0);
+        setEditSubjectWeeklyMinutes(0);
       }
     }
   };  
@@ -254,13 +274,167 @@ const SubjectListContainer = ({ editable = false }) => {
     setEditSubjectId(null);
     setEditSubjectValue('');
     setEditClassDuration(0);
+    setEditSubjectWeeklyMinutes(0);
   };
 
-  useEffect(() => {
-    if (subjectStatus === 'idle') {
-      dispatch(fetchSubjects());
-    }
-  }, [subjectStatus, dispatch]);
+  const updateSubjectDependencies = () => {
+    
+    // Update subject dependencies in PROGRAMS
+    Object.entries(programs).forEach(([id, program]) => {
+      const originalProgram = JSON.parse(JSON.stringify(program));
+      const newProgram = JSON.parse(JSON.stringify(program));
+    
+      [7, 8, 9, 10].forEach((grade) => {
+        if (!newProgram[grade].subjects.includes(editSubjectId)) return;
+    
+        const numOfClasses = Math.min(
+          Math.ceil(editSubjectWeeklyMinutes / editClassDuration),
+          numOfSchoolDays
+        );
+    
+        const fixedDays = newProgram[grade].fixedDays[editSubjectId];
+        const fixedPositions = newProgram[grade].fixedPositions[editSubjectId];
+    
+        // Skip if both arrays are already of the correct length
+        if (fixedDays.length === numOfClasses && fixedPositions.length === numOfClasses) return;
+    
+        // Use hash maps to quickly look up subjects and day-position pairs
+        const dayPositionMap = new Map();
+        const subjectsMap = new Map();
+        newProgram[grade].subjects.forEach(subject => subjectsMap.set(subject.id, true));
+    
+        fixedDays.forEach((day, index) => {
+          const pos = fixedPositions[index];
+          if (day !== 0 && pos !== 0 && !dayPositionMap.has(`${day}-${pos}`)) {
+            dayPositionMap.set(`${day}-${pos}`, [day, pos]);
+          }
+        });
+    
+        // Now we process the day-position pairs efficiently
+        let result = [];
+        dayPositionMap.forEach(([day, pos]) => {
+          if (result.length < numOfClasses) {
+            result.push([day, pos]);
+          }
+        });
+    
+        // Pad with [0, 0] if necessary
+        while (result.length < numOfClasses) {
+          result.push([0, 0]);
+        }
+    
+        // Split the combined array back into fixedDays and fixedPositions
+        newProgram[grade].fixedDays[editSubjectId] = result.map(([day]) => day);
+        newProgram[grade].fixedPositions[editSubjectId] = result.map(([_, pos]) => pos);
+      });
+    
+      if (originalProgram !== newProgram) {
+        dispatch(
+          editProgram({
+            programId: newProgram.id,
+            updatedProgram: {
+              program: newProgram.program,
+              7: {
+                subjects: newProgram[7].subjects,
+                fixedDays: newProgram[7].fixedDays,
+                fixedPositions: newProgram[7].fixedPositions,
+                shift: newProgram[7].shift,
+                startTime: getTimeSlotIndex(newProgram[7].startTime || '06:00 AM'),
+              },
+              8: {
+                subjects: newProgram[8].subjects,
+                fixedDays: newProgram[8].fixedDays,
+                fixedPositions: newProgram[8].fixedPositions,
+                shift: newProgram[8].shift,
+                startTime: getTimeSlotIndex(newProgram[8].startTime || '06:00 AM'),
+              },
+              9: {
+                subjects: newProgram[9].subjects,
+                fixedDays: newProgram[9].fixedDays,
+                fixedPositions: newProgram[9].fixedPositions,
+                shift: newProgram[9].shift,
+                startTime: getTimeSlotIndex(newProgram[9].startTime || '06:00 AM'),
+              },
+              10: {
+                subjects: newProgram[10].subjects,
+                fixedDays: newProgram[10].fixedDays,
+                fixedPositions: newProgram[10].fixedPositions,
+                shift: newProgram[10].shift,
+                startTime: getTimeSlotIndex(newProgram[10].startTime || '06:00 AM'),
+              },
+            },
+          })
+        );
+      } 
+    });
+
+    // Update subject dependencies in SECTIONS
+    Object.entries(sections).forEach(([id, section]) => {
+      const originalSection = JSON.parse(JSON.stringify(section));
+      const newSection = JSON.parse(JSON.stringify(section));
+
+      if (!newSection.subjects.includes(editSubjectId)) return;
+
+      const numOfClasses = Math.min(Math.ceil(editSubjectWeeklyMinutes / editClassDuration), numOfSchoolDays);
+
+      const fixedDays = newSection.fixedDays[editSubjectId];
+      const fixedPositions = newSection.fixedPositions[editSubjectId];
+
+      // Skip if both arrays are already of the correct length
+      if (fixedDays.length === numOfClasses && fixedPositions.length === numOfClasses) return;
+
+      // Use hash maps to quickly look up subjects and day-position pairs
+      const dayPositionMap = new Map();
+      const subjectsMap = new Map();
+      newSection.subjects.forEach(subject => subjectsMap.set(subject.id, true));
+
+      fixedDays.forEach((day, index) => {
+        const pos = fixedPositions[index];
+        if (day !== 0 && pos !== 0 && !dayPositionMap.has(`${day}-${pos}`)) {
+          dayPositionMap.set(`${day}-${pos}`, [day, pos]);
+        }
+      });
+
+      // Now we process the day-position pairs efficiently
+      let result = [];
+      dayPositionMap.forEach(([day, pos]) => {
+        if (result.length < numOfClasses) {
+          result.push([day, pos]);
+        }
+      });
+
+      // Pad with [0, 0] if necessary
+      while (result.length < numOfClasses) {
+        result.push([0, 0]);
+      }
+
+      // Split the combined array back into fixedDays and fixedPositions
+      newSection.fixedDays[editSubjectId] = result.map(([day]) => day);
+      newSection.fixedPositions[editSubjectId] = result.map(([_, pos]) => pos);
+
+      if (originalSection !== newSection) {
+        dispatch(
+          editSection({
+            sectionId: newSection.id,
+            updatedSection: {
+              id: newSection.id,
+              teacher: newSection.teacher,
+              program: newSection.program,
+              section: newSection.section,
+              subjects: newSection.subjects,
+              fixedDays: newSection.fixedDays,
+              fixedPositions: newSection.fixedPositions,
+              year: newSection.year,
+              shift: newSection.shift,
+              startTime: getTimeSlotIndex(newSection.startTime || '06:00 AM'),
+            },
+          })
+        );
+      };
+
+    });
+
+  };
 
   const debouncedSearch = useCallback(
     debounce((searchValue, subjects) => {
@@ -278,6 +452,25 @@ const SubjectListContainer = ({ editable = false }) => {
     }, 200),
     []
   );
+  
+  // Initialization of stores
+  useEffect(() => {
+    if (subjectStatus === 'idle') {
+      dispatch(fetchSubjects());
+    }
+  }, [subjectStatus, dispatch]);
+
+  useEffect(() => {
+    if (programStatus === 'idle') {
+      dispatch(fetchPrograms());
+    }
+  }, [programStatus, dispatch]);
+
+  useEffect(() => {
+    if (sectionStatus === 'idle') {
+      dispatch(fetchSections());
+    }
+  }, [sectionStatus, dispatch]);
 
   useEffect(() => {
     debouncedSearch(searchSubjectValue, subjects);
@@ -294,98 +487,93 @@ const SubjectListContainer = ({ editable = false }) => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = Object.entries(searchSubjectResult).slice(indexOfFirstItem, indexOfLastItem);
 
-  const handleCloseModal = () => {
-    setShowSuccessModal(false);
-  };
-
   return (
     <div className="w-full">
 
       <div className="flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5">
-      {/* Pagination */}
-      {currentItems.length > 0 && (
-        <div className="join flex justify-center  mb-4 md:mb-0">
-          <button
-            className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
-            onClick={() => {
-              if (currentPage > 1) {
-                setCurrentPage(currentPage - 1);
-              }
-              handleCancelSubjectEditClick();
-            }}
-            disabled={currentPage === 1}
-          >
-            «
-          </button>
-          <button className="join-item btn">
-            Page {currentPage} of {totalPages}
-          </button>
-          <button
-            className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
-            onClick={() => {
-              if (currentPage < totalPages) {
-                setCurrentPage(currentPage + 1);
-              }
-              handleCancelSubjectEditClick();
-            }}
-            disabled={currentPage === totalPages}
-          >
-            »
-          </button>
+        {/* Pagination */}
+        {currentItems.length > 0 && (
+          <div className="join flex justify-center  mb-4 md:mb-0">
+            <button
+              className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
+              onClick={() => {
+                if (currentPage > 1) {
+                  setCurrentPage(currentPage - 1);
+                }
+                handleCancelSubjectEditClick();
+              }}
+              disabled={currentPage === 1}
+            >
+              «
+            </button>
+            <button className="join-item btn">
+              Page {currentPage} of {totalPages}
+            </button>
+            <button
+              className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
+              onClick={() => {
+                if (currentPage < totalPages) {
+                  setCurrentPage(currentPage + 1);
+                }
+                handleCancelSubjectEditClick();
+              }}
+              disabled={currentPage === totalPages}
+            >
+              »
+            </button>
+          </div>
+        )}
+
+        {currentItems.length === 0 && currentPage > 1 && (
+          <div className="hidden">
+            {setCurrentPage(currentPage - 1)}
+          </div>
+        )}
+
+        {/* Search Subject */}
+        <div className="flex-grow w-full md:w-1/3 lg:w-1/4">
+          <label className="input input-bordered flex items-center gap-2 w-full">
+            <input
+              type="text"
+              className="grow p-3 text-sm w-full"
+              placeholder="Search Subject"
+              value={searchSubjectValue}
+              onChange={(e) => setSearchSubjectValue(e.target.value)}
+            />
+            <IoSearch className="text-xl" />
+          </label>
         </div>
-      )}
 
-      {currentItems.length === 0 && currentPage > 1 && (
-        <div className="hidden">
-          {setCurrentPage(currentPage - 1)}
-        </div>
-      )}
+        {/* Add Subject Button (only when editable) */}
+        {editable && (
+          <div className="w-full mt-4 md:mt-0 md:w-auto">
+            <button
+              className="btn btn-primary h-12 flex items-center justify-center w-full md:w-52"
+              onClick={() => document.getElementById('add_subject_modal').showModal()}
+            >
+              Add Subject <IoAdd size={20} className="ml-2" />
+            </button>
 
-      {/* Search Subject */}
-      <div className="flex-grow w-full md:w-1/3 lg:w-1/4">
-        <label className="input input-bordered flex items-center gap-2 w-full">
-          <input
-            type="text"
-            className="grow p-3 text-sm w-full"
-            placeholder="Search Subject"
-            value={searchSubjectValue}
-            onChange={(e) => setSearchSubjectValue(e.target.value)}
-          />
-          <IoSearch className="text-xl" />
-        </label>
-      </div>
-
-      {/* Add Subject Button (only when editable) */}
-      {editable && (
-        <div className="w-full mt-4 md:mt-0 md:w-auto">
-          <button
-            className="btn btn-primary h-12 flex items-center justify-center w-full md:w-52"
-            onClick={() => document.getElementById('add_subject_modal').showModal()}
-          >
-            Add Subject <IoAdd size={20} className="ml-2" />
-          </button>
-
-          {/* Modal for adding subject */}
-          <dialog id="add_subject_modal" className="modal modal-bottom sm:modal-middle">
-            <div className="modal-box">
-              <AddSubjectContainer
-                close={() => document.getElementById('add_subject_modal').close()}
-                reduxFunction={addSubject}
-                defaultSubjectClassDuration={defaultSubjectClassDuration}
-              />
-              <div className="modal-action">
-                <button
-                  className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                  onClick={() => document.getElementById('add_subject_modal').close()}
-                >
-                  ✕
-                </button>
+            {/* Modal for adding subject */}
+            <dialog id="add_subject_modal" className="modal modal-bottom sm:modal-middle">
+              <div className="modal-box">
+                <AddSubjectContainer
+                  close={() => document.getElementById('add_subject_modal').close()}
+                  reduxFunction={addSubject}
+                  defaultSubjectClassDuration={defaultSubjectClassDuration}
+                />
+                <div className="modal-action">
+                  <button
+                    className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                    onClick={() => document.getElementById('add_subject_modal').close()}
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
-            </div>
-          </dialog>
-        </div>
-      )}
-
+            </dialog>
+          </div>
+        )}
       </div>
 
       {/* Table */}
@@ -393,10 +581,12 @@ const SubjectListContainer = ({ editable = false }) => {
         <table className="table table-sm table-zebra md:table-md w-full">
           <thead>
             <tr>
-              <th className="w-8">#</th>
-              <th>Subject ID</th>
+              {/* <th className="w-8">#</th> */}
+              <th>ID</th>
               <th>Subject</th>
-              <th>Class Duration</th>
+              <th>Duration (min)</th>
+              <th>Weekly Requirement (min)</th>
+              <th># of Classes (Max: {numOfSchoolDays})</th>
               {editable && <th className="text-left">Actions</th>}
             </tr>
           </thead>
@@ -410,8 +600,12 @@ const SubjectListContainer = ({ editable = false }) => {
             ) : (
               currentItems.map(([, subject], index) => (
                 <tr key={subject.id} className="group hover">
-                  <td>{index + indexOfFirstItem + 1}</td>
+                  {/* <td>{index + indexOfFirstItem + 1}</td> */}
+
+                  {/* Subject ID */}
                   <th>{subject.id}</th>
+
+                  {/* Subject Name */}
                   <td>
                     {editSubjectId === subject.id ? (
                       <input
@@ -424,6 +618,8 @@ const SubjectListContainer = ({ editable = false }) => {
                       subject.subject
                     )}
                   </td>
+
+                  {/* Duration */}
                   <td>
                     {editSubjectId === subject.id ? (
                       <input
@@ -435,12 +631,34 @@ const SubjectListContainer = ({ editable = false }) => {
                         }}
                         className="input input-bordered input-sm w-full"
                         placeholder="Enter class duration"
-                        step={10}
+                        step={5}
                         min={10}
                       />
                     ) : (
-                      `${subject.classDuration} mins`
+                      `${subject.classDuration}`
                     )}
+                  </td>
+
+                  {/* Weekly Minutes */}
+                  <td>
+                    {editSubjectId === subject.id ? (
+                      <input
+                        type="number"
+                        value={editSubjectWeeklyMinutes}
+                        onChange={(e) => {
+                          const newDuration = Number(e.target.value);
+                          setEditSubjectWeeklyMinutes(newDuration);
+                        }}
+                        className="input input-bordered input-sm w-full"
+                        placeholder="Enter subject weekly minutes"
+                        step={5}
+                      />
+                    ) : (
+                        `${subject.weeklyMinutes}`
+                    )}
+                  </td>
+                  <td>
+                    {Math.min(Math.ceil(subject.weeklyMinutes / subject.classDuration), numOfSchoolDays)}
                   </td>
                   {editable && (
                     <td className="w-28 text-right">
@@ -483,12 +701,6 @@ const SubjectListContainer = ({ editable = false }) => {
           </tbody>
         </table>
 
-        {showSuccessModal && (
-          <SuccessModal
-            message={modalMessage}
-            onClose={handleCloseModal}
-          />
-        )}
       </div>
 
     </div>

@@ -19,8 +19,10 @@ import rightDrawerSlice from '../features/common/rightDrawerSlice';
 import leadsSlice from '../features/leads/leadSlice';
 import subjectReducer from '../features/subjectSlice';
 import teacherReducer from '../features/teacherSlice';
+import rankReducer from '../features/rankSlice';
 import sectionReducer from '../features/sectionSlice';
 import programReducer from '../features/programSlice';
+import departmentReducer from '../features/departmentSlice';
 
 const combinedReducer = {
   header: headerSlice,
@@ -29,8 +31,10 @@ const combinedReducer = {
   lead: leadsSlice,
   subject: subjectReducer,
   teacher: teacherReducer,
+  rank: rankReducer,
   section: sectionReducer,
   program: programReducer,
+  department: departmentReducer,
 };
 
 const store = configureStore({

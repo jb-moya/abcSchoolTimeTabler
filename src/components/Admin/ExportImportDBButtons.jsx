@@ -14,6 +14,8 @@ import { addSection } from "@features/sectionSlice";
 import { addTeacher, fetchTeachers } from "@features/teacherSlice";
 import { addProgram, fetchPrograms } from "@features/programSlice";
 
+import { addRank, fetchRanks } from "@features/rankSlice";
+
 import { getTimeSlotString, getTimeSlotIndex } from "./timeSlotMapper";
 import { setSubjectStatusIdle } from "@features/subjectSlice";
 import { setSectionStatusIdle } from "@features/sectionSlice";
@@ -39,6 +41,10 @@ const ExportImportDBButtons = ({ onClear }) => {
     (state) => state.teacher
   );
 
+  const { ranks, status: rankStatus } = useSelector(
+    (state) => state.rank
+  );
+
   useEffect(() => {
     if (programStatus === 'idle') {
       dispatch(fetchPrograms());
@@ -56,6 +62,12 @@ const ExportImportDBButtons = ({ onClear }) => {
       dispatch(fetchTeachers());
     }
   }, [dispatch, teacherStatus]);
+
+  useEffect(() => {
+    if (rankStatus === 'idle') {
+      dispatch(fetchRanks());
+    }
+  }, [dispatch, rankStatus]);
 
 
   const exportDB = (format) => {
@@ -126,6 +138,8 @@ const ExportImportDBButtons = ({ onClear }) => {
     const teachersMap = {};
     const programsMap = {};
 
+    const ranksMap = {}
+
     exportData.subjects.forEach(subject => {
       subjectsMap[subject.id] = subject.subject;
     })
@@ -136,6 +150,10 @@ const ExportImportDBButtons = ({ onClear }) => {
 
     exportData.programs.forEach(program => {
       programsMap[program.id] = program.program;
+    })
+
+    exportData.ranks.forEach(rank => {
+      ranksMap[rank.id] = rank.rank;
     })
 
     const wb = XLSX.utils.book_new();
@@ -160,13 +178,23 @@ const ExportImportDBButtons = ({ onClear }) => {
     // ---------------------------------------------
 
     const teacherData = [
-      ['Teacher', 'Subjects'],
+      ['Teacher', 'Rank', 'Subjects', 'Assigned Year Level(s)'],
     ];
 
     exportData.teachers.forEach(teacher => {
       const detailsRow = [
         teacher.teacher,
+        ranksMap[teacher.rank] || '',
         teacher.subjects.map(subjectId => subjectsMap[subjectId]).join(', '),
+        teacher.yearLevels.map(level => {
+          switch (level) {
+            case 0: return 7;
+            case 1: return 8;
+            case 2: return 9;
+            case 3: return 10;
+            default: return '';
+          }
+        }).join(', '),
       ];
       teacherData.push(detailsRow);
     });
@@ -260,6 +288,22 @@ const ExportImportDBButtons = ({ onClear }) => {
     const sectionSheet = XLSX.utils.aoa_to_sheet(sectionData);
     XLSX.utils.book_append_sheet(wb, sectionSheet, 'Sections');
 
+    // ----------------------------------------
+    // ------- EXPORT RANKS TO WORKBOOK ------- 
+    // ----------------------------------------
+
+    const rankData = [
+      ['Rank', 'Weekly Load (in hours)'],
+    ];
+
+    exportData.ranks.forEach(rank => {
+      const rankRow = [rank.rank, rank.load / 60];
+      rankData.push(rankRow);
+    });
+
+    const rankSheet = XLSX.utils.aoa_to_sheet(rankData);
+    XLSX.utils.book_append_sheet(wb, rankSheet, 'Ranks');
+
     // Generate Excel file and trigger download
     XLSX.writeFile(wb, `TIMETABLE DATA.xlsx`);
   };
@@ -268,11 +312,13 @@ const ExportImportDBButtons = ({ onClear }) => {
 
     const addedSubjects = [];
     const addedTeachers = [];
+    const addedRanks = [];
     const addedPrograms = [];
     const addedSections = [];
 
     const unaddedSubjects = [];
     const unaddedTeachers = [];
+    const unaddedRanks = [];
     const unaddedPrograms = [];
     const unaddedSections = [];
 
@@ -280,7 +326,10 @@ const ExportImportDBButtons = ({ onClear }) => {
       const normalizedObj = {};
     
       Object.keys(obj).forEach((key) => {
-        const normalizedKey = key.toLowerCase().replace(/\s+/g, '');
+        const normalizedKey = 
+          key.toLowerCase()
+            .replace(/\s+/g, '')
+            .replace(/[()]/g, ''); ;
         normalizedObj[normalizedKey] = obj[key];
       });
     
@@ -321,24 +370,63 @@ const ExportImportDBButtons = ({ onClear }) => {
       });
     }
 
+    if (normalizedData['Ranks']) {
+      normalizedData['Ranks'].forEach((rank) => {
+        if (rank.rank === '' || rank.rank === null || rank.rank === undefined
+            || rank.weeklyloadinhours === 0 || rank.weeklyloadinhours === null || rank.weeklyloadinhours === undefined
+        ) {
+          unaddedRanks.push([0, rank]);
+          return;
+        }
+
+        console.log('rank.weeklyloadinhours: ', rank.weeklyloadinhours);
+
+        const isDuplicateRank = addedRanks.find((r) => r.rank.trim().toLowerCase() === rank.rank.trim().toLowerCase());
+
+        if (isDuplicateRank) {          
+          unaddedRanks.push([1, rank]);
+          return;
+        } else {
+          dispatch(
+            addRank({
+                rank: rank.rank,
+                load: rank.weeklyloadinhours * 60,
+            })
+          );
+          addedRanks.push(rank);
+        }
+      });
+    }
+
     if (normalizedData['Teachers']) {
       normalizedData['Teachers'].forEach((teacher) => {
 
         if (teacher.teacher === '' || teacher.teacher === null || teacher.teacher === undefined
+            || teacher.rank === '' || teacher.rank === null || teacher.rank === undefined
             || teacher.subjects === '' || teacher.subjects === null || teacher.subjects === undefined
+            || teacher.assignedyearlevels === '' || teacher.assignedyearlevels === null || teacher.assignedyearlevels === undefined
         ) {
           unaddedTeachers.push([0, teacher]);
           return;
         }
 
-        const isDuplicateTeacher = addedTeachers.find((t) => t.trim().toLowerCase() === teacher.teacher.trim().toLowerCase());
+        let yearLevelString = teacher.assignedyearlevels.toString();
+
+        const isDuplicateTeacher = addedTeachers.find((t) => t.teacher.trim().toLowerCase() === teacher.teacher.trim().toLowerCase());
 
         if (isDuplicateTeacher) {
           unaddedTeachers.push([1, teacher]);
           return;
         } else {
+          // Get rank ID
+          const rankIndex = addedRanks.findIndex((r) => r.rank.trim().toLowerCase() === teacher.rank.trim().toLowerCase());
+          if (rankIndex === -1) {  // No match found
+            unaddedTeachers.push([2, teacher]);
+            return;
+          }
+          
+          // Get subject IDs
           const subjIds = [];
-
           const subjArray = teacher.subjects.split(',').map(subject => subject.trim());
           subjArray.forEach((subjectName) => {
             let found = false;
@@ -356,6 +444,21 @@ const ExportImportDBButtons = ({ onClear }) => {
             }
           });
 
+          // Get year level IDs
+          const yearLevelIds = [];
+          const yearLevelArray = yearLevelString.split(',').map(yearLevel => yearLevel.trim());
+          yearLevelArray.forEach((yearLevel) => {
+            if (yearLevel === '7') {
+              yearLevelIds.push(0);
+            } else if (yearLevel === '8') {
+              yearLevelIds.push(1);
+            } else if (yearLevel === '9') {
+              yearLevelIds.push(2);
+            } else if (yearLevel === '10') {
+              yearLevelIds.push(3);
+            }
+          });
+
           if (subjIds.includes(-1)) {
             unaddedTeachers.push([2, teacher]);
             return;
@@ -363,11 +466,13 @@ const ExportImportDBButtons = ({ onClear }) => {
             dispatch(
               addTeacher({
                   teacher: teacher.teacher,
+                  rank: rankIndex + 1,
                   subjects: subjIds,
+                  yearLevels: yearLevelIds,
               })
             );
 
-            addedTeachers.push(teacher.teacher);
+            addedTeachers.push(teacher);
           }
           
         }
@@ -559,7 +664,7 @@ const ExportImportDBButtons = ({ onClear }) => {
             });
 
             const progID = addedPrograms.findIndex(program => program['program'].trim().toLowerCase() === section.program.trim().toLowerCase()) + 1;
-            const advID = addedTeachers.findIndex(teacher => teacher.trim().toLowerCase() === section.adviser.trim().toLowerCase()) + 1;
+            const advID = addedTeachers.findIndex(t => t.teacher.trim().toLowerCase() === section.adviser.trim().toLowerCase()) + 1;
 
             if (isUnknownSubject.length > 0) {
               unaddedSections.push([2, section]);
@@ -596,6 +701,7 @@ const ExportImportDBButtons = ({ onClear }) => {
     console.log('unaddedTeachers', unaddedTeachers);
     console.log('unaddedPrograms', unaddedPrograms);
     console.log('unaddedSections', unaddedSections);
+    console.log('unaddedRanks', unaddedRanks);
 
   }
 
