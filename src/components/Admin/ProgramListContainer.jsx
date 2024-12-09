@@ -21,11 +21,18 @@ import { toast } from 'sonner';
 
 import FixedScheduleMaker from './FixedSchedules/fixedScheduleMaker';
 
+import { toast } from "sonner";
+import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
+
 const AddProgramContainer = ({
   reduxField,
   reduxFunction,
   morningStartTime,
   afternoonStartTime,
+  errorMessage,
+  setErrorMessage,
+  errorField,
+  setErrorField,
 }) => {
   const inputNameRef = useRef();
   const subjects = useSelector((state) => state.subject.subjects);
@@ -178,32 +185,44 @@ const AddProgramContainer = ({
   };
 
   const handleAddEntry = () => {
+
+
     if (!inputValue.trim()) {
-      alert('Program name cannot be empty');
+      setErrorMessage('Program name cannot be empty');
+      setErrorField('program');
       return;
     } else if (selectedSubjects[7].length === 0) {
-      alert('Select at least one subject for grade 7');
+      setErrorMessage('Select at least one subject for grade 7');
+      setErrorField('sub7');
       return;
     } else if (selectedShifts[7] === undefined || !startTimes[7]) {
-      alert('Select shift and start time for grade 7');
+      setErrorMessage('Select shift and start time for grade 7');
+      setErrorField('subTime7');
       return;
     } else if (selectedSubjects[8].length === 0) {  
-      alert('Select at least one subject for grade 8'); 
+      setErrorMessage('Select at least one subject for grade 8');
+      setErrorField('sub8');
       return;
     } else if (selectedShifts[8] === undefined || !startTimes[8]) {
-      alert('Select shift and start time for grade 8');
+      setErrorMessage('Select shift and start time for grade 8');
+      setErrorField('subTime8');
       return;
     } else if (selectedSubjects[9].length === 0) {  
-      alert('Select at least one subject for grade 9'); 
+      setErrorMessage('Select at least one subject for grade 9');
+      setErrorField('sub9');
       return;
     } else if (selectedShifts[9] === undefined || !startTimes[9]) {
-      alert('Select shift and start time for grade 9');
+      setErrorMessage('Select shift and start time for grade 9');
+      setErrorField('subTime9');
       return;
     } else if (selectedSubjects[10].length === 0) {  
-      alert('Select at least one subject for grade 10'); 
+      setErrorMessage('Select at least one subject for grade 10');
+      setErrorField('sub10');
+      return; 
       return;
     } else if (selectedShifts[10] === undefined || !startTimes[10]) {
-      alert('Select shift and start time for grade 10');
+      setErrorMessage('Select shift and start time for grade 10');
+      setErrorField('subTime10');
       return;
     }
 
@@ -212,7 +231,8 @@ const AddProgramContainer = ({
     );
 
     if (duplicateProgram) {
-      alert('A program with this name already exists.');
+      setErrorMessage('A program with this name already exists.');
+      setErrorField('program');
     } else {
       dispatch(
         reduxFunction({
@@ -247,14 +267,18 @@ const AddProgramContainer = ({
           },
         })
       );
-      // Set success message and show the modal
-      //  setModalMessage('Program added successfully!');
-      //  setShowSuccessModal(true);
-      // close();
+
+      toast.success('Program added successfully!', {
+        style: { backgroundColor: 'green', color: 'white', bordercolor: 'green' },
+      });
+      handleReset();
+      close();
     }
   };
 
   const handleReset = () => {
+    setErrorField('');
+    setErrorMessage('');
     setInputValue('');
     setSelectedSubjects({
       7: [],
@@ -331,7 +355,7 @@ const AddProgramContainer = ({
     }
   }, []);
 
-  return (
+  return 
     <dialog id="add_program_modal" className="modal modal-bottom sm:modal-middle">
       <div className="modal-box" style={{ width: '50%', maxWidth: 'none' }}>
         <div className="p-6">
@@ -460,7 +484,26 @@ const AddProgramContainer = ({
               </button>
             </div>
           </div>
+        ))}
+      </div>
+
+       {errorMessage && (
+        <p className="text-red-500 text-sm my-4 font-medium select-none ">{errorMessage}</p>
+       )}
+    
+        {/* Add button centered at the bottom */}
+        <div className="flex mt-6 justify-center gap-2">
+          <button className="btn btn-secondary" onClick={handleReset}>
+            Reset
+          </button>
+          <div className="flex justify-end space-x-2">
+            <button className="btn btn-primary flex items-center" onClick={handleAddEntry}>
+              <div>Add {reduxField[0]}</div>
+              <IoAdd size={20} className="ml-2" />
+            </button>
+          </div>
         </div>
+        
         <div className="modal-action w-full">
           <button
             className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
@@ -469,6 +512,7 @@ const AddProgramContainer = ({
             ✕
           </button>
         </div>
+        
       </div>
     </dialog>
   
@@ -485,11 +529,14 @@ const ProgramListContainer = ({ editable = false }) => {
   const { subjects, status: subjectStatus } = useSelector(
     (state) => state.subject
   );
-
+  
   const { sections, status: sectionStatus } = useSelector(
     (state) => state.section
   );
 
+  const [errorMessage, setErrorMessage] = useState('');
+  const [errorField, setErrorField] = useState('');
+  
   const numOfSchoolDays = parseInt(localStorage.getItem('numOfSchoolDays'), 10);
   const morningStartTime = localStorage.getItem('morningStartTime') || '06:00 AM';
   const afternoonStartTime = localStorage.getItem('afternoonStartTime') || '01:00 PM';
@@ -667,31 +714,76 @@ const ProgramListContainer = ({ editable = false }) => {
   const handleSaveProgramEditClick = (programId) => {
 
     if (!editProgramValue.trim()) {
-      alert('Program name cannot be empty');
+      toast.error('Program name cannot be empty', {
+        style: {
+          backgroundColor: 'red',
+          color: 'white',
+        },
+      });
       return;
     } else if (editProgramCurr[7].length === 0) {
-      alert('Select at least one subject for grade 7');
+      toast.error('Select at least one subject for grade 7', {
+        style: {
+          backgroundColor: 'red',
+          color: 'white',
+        },
+      });
       return;
     } else if (selectedShifts[7] === undefined || !startTimes[7]) {
-      alert('Select shift and start time for grade 7');
+      toast.error('Select shift and start time for grade 7', {
+        style: {
+          backgroundColor: 'red',
+          color: 'white',
+        },
+      });
       return;
     } else if (editProgramCurr[8].length === 0) {  
-      alert('Select at least one subject for grade 8'); 
+      toast.error('Select at least one subject for grade 8', {
+        style: {
+          backgroundColor: 'red',
+          color: 'white',
+        },
+      });
       return;
     } else if (selectedShifts[8] === undefined || !startTimes[8]) {
-      alert('Select shift and start time for grade 8');
+      toast.error('Select shift and start time for grade 8', {
+        style: {
+          backgroundColor: 'red',
+          color: 'white',
+        },
+      });
       return;
     } else if (editProgramCurr[9].length === 0) {  
-      alert('Select at least one subject for grade 9'); 
+      toast.error('Select at least one subject for grade 9', {
+        style: {
+          backgroundColor: 'red',
+          color: 'white',
+        },
+      });
       return;
     } else if (selectedShifts[9] === undefined || !startTimes[9]) {
-      alert('Select shift and start time for grade 9');
+      toast.error('Select shift and start time for grade 9', {
+        style: {
+          backgroundColor: 'red',
+          color: 'white',
+        },
+      });
       return;
-    } else if (editProgramCurr[10].length === 0) {  
-      alert('Select at least one subject for grade 10'); 
+    } else if (editProgramCurr[10].length === 0) {   
+      toast.error('Select at least one subject for grade 10', {
+        style: {
+          backgroundColor: 'red',
+          color: 'white',
+        },
+      });
       return;
     } else if (selectedShifts[10] === undefined || !startTimes[10]) {
-      alert('Select shift and start time for grade 10');
+      toast.error('Select shift and start time for grade 10', {
+        style: {
+          backgroundColor: 'red',
+          color: 'white',
+        },
+      });
       return;
     }
 
@@ -778,7 +870,12 @@ const ProgramListContainer = ({ editable = false }) => {
       );
 
       if (duplicateProgram) {
-        alert('A program with this name already exists!');
+        toast.error('A program with this name already exists!', {
+          style: {
+            backgroundColor: 'red',
+            color: 'white',
+          },
+        });
       } else if (editProgramValue.trim()) {
         dispatch(
           editProgram({
@@ -1059,6 +1156,32 @@ const ProgramListContainer = ({ editable = false }) => {
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = Object.entries(searchProgramResult).slice(indexOfFirstItem, indexOfLastItem);
+
+  const deleteModal = (id) => {
+    const deleteModalElement = document.getElementById("delete_modal");
+    deleteModalElement.showModal();  
+
+    const deleteButton = document.getElementById("delete_button");
+    deleteButton.onclick = () => handleDelete(id);  
+  };
+
+  const handleDelete = (id) => {
+    dispatch(removeProgram(id));  
+    document.getElementById("delete_modal").close(); 
+  };
+
+  
+  const handleClose = () => {
+    const modal = document.getElementById('add_program_modal');
+    if (modal) {
+        modal.close();
+        setErrorMessage('');
+        setErrorField('');
+    } else {
+        console.error("Modal with ID 'add_program_modal' not found.");
+    }
+};
+
   
   return (
     <React.Fragment>
@@ -1355,10 +1478,38 @@ const ProgramListContainer = ({ editable = false }) => {
                           </button>
                           <button
                             className="btn btn-xs btn-ghost text-red-500"
-                            onClick={() => dispatch(removeProgram(program.id))}
+                            onClick={() => deleteModal(program.id)}
                           >
                             <RiDeleteBin7Line size={20} />
                           </button>
+
+                          <dialog id="delete_modal" className="modal modal-bottom sm:modal-middle">
+                          <form method="dialog" className="modal-box">
+                            <div className="flex flex-col items-center justify-center">
+                              <TrashIcon className="text-red-500 mb-4" width={40} height={40} />
+                              <h3 className="font-bold text-lg text-center">
+                                Are you sure you want to delete this program?
+                              </h3>
+                              <p className="text-sm text-gray-500 text-center">
+                                This action cannot be undone.
+                              </p>
+                            </div>
+                            <div className="modal-action flex justify-center">
+                              <button
+                                className="btn btn-sm btn-ghost"
+                                onClick={() => document.getElementById('delete_modal').close()}
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                id="delete_button"
+                                className="btn btn-sm btn-error text-white"     
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </form>
+                        </dialog>
                         </>
                       )}
                     </td>

@@ -11,38 +11,17 @@ import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
-import Lottie from 'lottie-react';
-import animationData from '/public/SuccessAnimation.json'
 
-const SuccessModal = ({ message, onClose }) => {
-  return (
-    <div className="modal modal-open flex items-center justify-center">
-      <div className="modal-box flex flex-col items-center justify-center p-4"> {/* Added padding */}
-        <div className="lottie-animation w-48 h-48">
-          <Lottie
-            animationData={
-              animationData
-            } // Replace with your Lottie JSON
-            loop={false} // Ensures the animati on does not loop
-          />
-        </div>
-        <h2 className="font-bold text-lg text-center">{message}</h2> {/* Center text */}
-        <div className="modal-action">
-          <button
-            className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-            onClick={onClose}
-          >
-            ✕
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+import { toast } from "sonner";
+import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 
 const AddTeacherRankContainer = ({
   close,
   reduxFunction,
+  errorMessage,
+  setErrorMessage,
+  errorField,
+  setErrorField,
 }) => {
   const inputNameRef = useRef();
   const { ranks, status: rankStatus } = useSelector(
@@ -57,13 +36,14 @@ const AddTeacherRankContainer = ({
   // const rankLoadInHours = rankLoad / 60;
   
   const handleAddRank = () => {
-
-    // if (!rankValue.trim() || rankLoad === 0) {
-    //   alert('All fields are required.');
-    //   return;
-    // }
-    if (!rankValue.trim()) {
-      alert('All fields are required.');
+    
+    if (!rankValue.trim() || rankLoad === 0) {
+      setErrorMessage('All fields are required.');
+      if (rankValue === ""){
+        setErrorField('rank');
+      } else {
+        setErrorField('load');
+      }
       return;
     }
 
@@ -72,7 +52,8 @@ const AddTeacherRankContainer = ({
     );
 
     if (duplicateRank) {
-      alert('Rank already exists.');
+      setErrorMessage('Rank already exists.');
+      setErrorField('rank');
       return;
     } else {
       dispatch(
@@ -83,10 +64,17 @@ const AddTeacherRankContainer = ({
       );
     }
 
+    toast.success('Rank added successfully', {
+      style: { backgroundColor: 'green', color: 'white', bordercolor: 'green', },
+    });
+    handleReset();
+    close();
+
     if (inputNameRef.current) {
       inputNameRef.current.focus();
       inputNameRef.current.select();
     }
+    
   };
 
   const handleRankLoadChange = (e) => {
@@ -94,6 +82,8 @@ const AddTeacherRankContainer = ({
   };
 
   const handleReset = () => {
+    setErrorField('');
+    setErrorMessage('');
     setRankValue('');
     // setRankLoad(1800);
   };
@@ -110,10 +100,6 @@ const AddTeacherRankContainer = ({
     }
   }, []);
 
-  const handleSuccessClick = ({ message }) => {
-    toast.success(message);
-  };
-
   return (
     <div className="justify-left">
       <div className="flex justify-center mb-4">
@@ -126,7 +112,8 @@ const AddTeacherRankContainer = ({
         <input
           id="rankName"
           type="text"
-          className="input input-bordered w-full"
+          className={`input input-bordered w-full ${errorField === 'rank' ? 'border-red-500' : ''
+          }`}
           value={rankValue}
           onChange={(e) => setRankValue(e.target.value)}
           placeholder="Enter rank name"
@@ -143,7 +130,8 @@ const AddTeacherRankContainer = ({
         <input
           id="rankLoad"
           type="number"
-          className="input input-bordered w-full"
+          className={`input input-bordered w-full ${errorField === 'load' ? 'border-red-500' : ''
+          }`}
           value={rankLoadInHours}
           onChange={handleRankLoadChange}
           min={10}
@@ -151,8 +139,11 @@ const AddTeacherRankContainer = ({
           step={1}
         />
       </div>
-      */}
-    
+
+      {errorMessage && (
+        <p className="text-red-500 text-sm my-4 font-medium select-none ">{errorMessage}</p>
+      )}
+
       <div className="flex justify-center gap-4 mt-4">
         <button className="btn btn-secondary" onClick={handleReset}>
           Reset
@@ -172,6 +163,9 @@ const TeacherRankListContainer = ({ editable = false }) => {
   const { ranks, status: rankStatus } = useSelector(
     (state) => state.rank
   )
+
+  const [errorMessage, setErrorMessage] = useState('');
+  const [errorField, setErrorField] = useState('');
 
   const [editRankId, setEditRankId] = useState(null);
   const [editRankValue, setEditRankValue] = useState('');
@@ -194,12 +188,10 @@ const TeacherRankListContainer = ({ editable = false }) => {
 
   const handleSaveRankEditClick = (rankId) => {
 
-    // if (!editRankValue.trim() || editRankLoad === 0) {
-    //   alert('All fields are required.');
-    //   return;
-    // }
-    if (!editRankValue.trim()) {
-      alert('All fields are required.');
+    if (!editRankValue.trim() || editRankLoad === 0) {
+      toast.error('All fields are required.', {
+        style: { backgroundColor: 'red', color: 'white' },
+      });
       return;
     }
 
@@ -225,7 +217,9 @@ const TeacherRankListContainer = ({ editable = false }) => {
       );
 
       if (duplicateRank) {
-        alert('Rank already exists.');
+        toast.error('Rank already exists.', {
+          style: { backgroundColor: 'red', color: 'white' },
+        });
         return;
       } else {
         dispatch(
@@ -237,6 +231,10 @@ const TeacherRankListContainer = ({ editable = false }) => {
             },
           })
         );
+
+        toast.success('Data updated successfully', {
+          style: { backgroundColor: 'green', color: 'white', bordercolor: 'green', },
+        });
         setEditRankId(null);
         setEditRankValue('');
         // setEditRankLoad(0);
@@ -280,11 +278,32 @@ const TeacherRankListContainer = ({ editable = false }) => {
       dispatch(fetchRanks());
     }
   }, [rankStatus, dispatch]);
-  
-  const handleCloseModal = () => {
-    setShowSuccessModal(false);
+
+  const handleClose = () => {
+    const modal = document.getElementById('add_rank_modal');
+    if (modal) {
+      modal.close();
+      setErrorMessage('');
+      setErrorField('');
+    } else {
+      console.error("Modal with ID 'add_teacher_modal' not found.");
+    }
   };
 
+  const deleteModal = (id) => {
+    const deleteModalElement = document.getElementById("delete_modal");
+    deleteModalElement.showModal();  
+
+    const deleteButton = document.getElementById("delete_button");
+    deleteButton.onclick = () => handleDelete(id);  
+  };
+
+  const handleDelete = (id) => {
+    dispatch(removeRank(id));  
+    document.getElementById("delete_modal").close(); 
+  };
+
+  
   const itemsPerPage = 10; // Change this to adjust the number of items per page
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -369,11 +388,15 @@ const TeacherRankListContainer = ({ editable = false }) => {
               <AddTeacherRankContainer
                 close={() => document.getElementById('add_rank_modal').close()}
                 reduxFunction={addRank}
+                errorMessage={errorMessage}
+                setErrorMessage={setErrorMessage}
+                errorField={errorField}
+                setErrorField={setErrorField}
               />
               <div className="modal-action">
                 <button
                   className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                  onClick={() => document.getElementById('add_rank_modal').close()}
+                  onClick={handleClose}
                 >
                   ✕
                 </button>
@@ -469,10 +492,45 @@ const TeacherRankListContainer = ({ editable = false }) => {
                           </button>
                           <button
                             className="btn btn-xs btn-ghost text-red-500"
-                            onClick={() => dispatch(removeRank(rank.id))}
+                            onClick={() => deleteModal(rank.id)}
                           >
                             <RiDeleteBin7Line size={20} />
                           </button>
+
+                          <dialog id="delete_modal" className="modal modal-bottom sm:modal-middle">
+                            <form method="dialog" className="modal-box">
+                              {/* Icon and message */}
+                              <div className="flex flex-col items-center justify-center">
+                                <TrashIcon className="text-red-500 mb-4" width={40} height={40} />
+                                <h3 className="font-bold text-lg text-center">
+                                  Are you sure you want to delete this item?
+                                </h3>
+                                <p className="text-sm text-gray-500 text-center">
+                                  This action cannot be undone.
+                                </p>
+                              </div>
+
+                              {/* Modal actions */}
+                              <div className="modal-action flex justify-center">
+                                {/* Close Button */}
+                                <button
+                                  className="btn btn-sm btn-ghost"
+                                  onClick={() => document.getElementById("delete_modal").close()}
+                                  aria-label="Cancel deletion"
+                                >
+                                  Cancel
+                                </button>
+
+                                {/* Confirm Delete Button */}
+                                <button
+                                  className="btn btn-sm btn-error text-white"
+                                  id="delete_button"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </form>
+                          </dialog>
                         </>
                       )}
                     </td>

@@ -14,38 +14,17 @@ import SearchableDropdownToggler from '../searchableDropdown';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
-import Lottie from 'lottie-react';
-import animationData from '/public/SuccessAnimation.json'
 
-const SuccessModal = ({ message, onClose }) => {
-  return (
-    <div className="modal modal-open flex items-center justify-center">
-      <div className="modal-box flex flex-col items-center justify-center p-4"> {/* Added padding */}
-        <div className="lottie-animation w-48 h-48">
-          <Lottie
-            animationData={
-              animationData
-            } // Replace with your Lottie JSON
-            loop={false} // Ensures the animati on does not loop
-          />
-        </div>
-        <h2 className="font-bold text-lg text-center">{message}</h2> {/* Center text */}
-        <div className="modal-action">
-          <button
-            className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-            onClick={onClose}
-          >
-            ✕
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+import { toast } from "sonner";
+import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 
 const AddTeacherContainer = ({
   close,
   reduxFunction,
+  errorMessage,
+  setErrorMessage,
+  errorField,
+  setErrorField,
 }) => {
   const inputNameRef = useRef();
 
@@ -63,29 +42,36 @@ const AddTeacherContainer = ({
   const [teacherRank, setTeacherRank] = useState(null);
   const [selectedSubjects, setSelectedSubjects] = useState([]);
   const [assignedYearLevels, setAssignedYearLevels] = useState([]);
-  
+
   const handleAddTeacher = () => {
 
+    handleReset();
+
     if (!teacherName.trim()) {
-      alert('Teacher name cannot be empty.');
+      setErrorMessage('Teacher name cannot be empty.');
+      setErrorField('name');
       return;
     } else if (teacherRank === null) {
-      alert('Please assign teacher rank.');
+      setErrorMessage('Please assign teacher rank.');
+      setErrorField('rank');
       return;
     } else if (selectedSubjects.length === 0) {
-      alert('Please assign subject specialization(s).');
+      setErrorMessage('Please assign subject specialization(s).');
+      setErrorField('specialization');
       return;
     } else if (assignedYearLevels.length === 0) {
-      alert('Please assign year level assignment(s).');
+      setErrorMessage('Please assign year level assignment(s).');
+      setErrorField('assignment');
       return;
-    } 
+    }
 
     const duplicateTeacher = Object.values(teachers).find(
       (teacher) => teacher.teacher.trim().toLowerCase() === teacherName.trim().toLowerCase()
     );
 
     if (duplicateTeacher) {
-      alert('Teacher already exists.');
+      setErrorField('name');
+      setErrorMessage('Teacher already exists.')
       return;
     } else {
       dispatch(
@@ -97,6 +83,13 @@ const AddTeacherContainer = ({
         })
       );
     }
+
+    toast.success('Teacher added successfully', {
+      style: { backgroundColor: 'green', color: 'white', bordercolor: 'green', },
+    });
+
+    handleReset();
+    close();
 
     if (inputNameRef.current) {
       inputNameRef.current.focus();
@@ -119,6 +112,9 @@ const AddTeacherContainer = ({
   };
 
   const handleReset = () => {
+
+    setErrorField('');
+    setErrorMessage('');
     setTeacherName('');
     setSelectedSubjects([]);
     setAssignedYearLevels([]);
@@ -127,7 +123,7 @@ const AddTeacherContainer = ({
 
   useEffect(() => {
     if (inputNameRef.current) {
-        inputNameRef.current.focus();
+      inputNameRef.current.focus();
     }
   }, []);
 
@@ -147,10 +143,6 @@ const AddTeacherContainer = ({
     console.log(ranks);
   }, [ranks]);
 
-  const handleSuccessClick = ({ message }) => {
-    toast.success(message);
-  };
-
   return (
     <div className="justify-left">
       <div className="flex justify-center mb-4">
@@ -163,12 +155,13 @@ const AddTeacherContainer = ({
         <input
           id="teacherName"
           type="text"
-          className="input input-bordered w-full"
+          className={`input input-bordered w-full ${errorField === 'name' ? 'border-red-500' : ''
+            }`}
           value={teacherName}
           onChange={(e) => setTeacherName(e.target.value)}
           placeholder="Enter teacher name"
           aria-label="Teacher Name"
-          ref={inputNameRef} 
+          ref={inputNameRef}
         />
       </div>
 
@@ -199,7 +192,7 @@ const AddTeacherContainer = ({
       {/* Assigning of Subjects */}
       <div className="mt-5">
         <div>
-          <h4 className="font-bold align-right">Selected Subjects:</h4>
+          <h4 className="font-bold align-right my-2">Selected Subjects:</h4>
           <div className="flex gap-2 flex-wrap">
             {selectedSubjects.length === 0 ? (
               <span className="text-gray-500 mt-1">No subjects selected</span>
@@ -269,7 +262,12 @@ const AddTeacherContainer = ({
           </label>
         </div>
       </div>
-    
+
+      {errorMessage && (
+        <p className="text-red-500 text-sm my-4 font-medium select-none ">{errorMessage}</p>
+      )}
+
+
       <div className="flex justify-center gap-4 mt-4">
         <button className="btn btn-secondary" onClick={handleReset}>
           Reset
@@ -298,6 +296,9 @@ const TeacherListContainer = ({ editable = false }) => {
     (state) => state.rank
   );
 
+  const [errorMessage, setErrorMessage] = useState('');
+  const [errorField, setErrorField] = useState('');
+
   const [editTeacherId, setEditTeacherId] = useState(null);
   const [editTeacherRank, setEditTeacherRank] = useState(0);
   const [editTeacherValue, setEditTeacherValue] = useState('');
@@ -320,7 +321,9 @@ const TeacherListContainer = ({ editable = false }) => {
   const handleSaveTeacherEditClick = (teacherId) => {
 
     if (!editTeacherValue.trim() || editTeacherRank === 0 || editTeacherCurr.length === 0 || editTeacherYearLevels.length === 0) {
-      alert('All fields are required.');
+      toast.error('All fields are required.', {
+        style: { backgroundColor: 'red', color: 'white' },
+      });
       return;
     }
 
@@ -339,6 +342,10 @@ const TeacherListContainer = ({ editable = false }) => {
         })
       );
 
+      toast.success('Data updated successfully', {
+        style: { backgroundColor: 'green', color: 'white', bordercolor: 'green', },
+      });
+
       setEditTeacherId(null);
       setEditTeacherRank(0);
       setEditTeacherValue('');
@@ -350,7 +357,9 @@ const TeacherListContainer = ({ editable = false }) => {
       );
 
       if (duplicateTeacher) {
-        alert('Teacher already exists.');
+        toast.error('Teacher already exists.', {
+          style: { backgroundColor: 'red', color: 'white' },
+        });
         return;
       } else {
         dispatch(
@@ -439,11 +448,7 @@ const TeacherListContainer = ({ editable = false }) => {
       dispatch(fetchRanks());
     }
   }, [rankStatus, dispatch]);
-
-  const handleCloseModal = () => {
-    setShowSuccessModal(false);
-  };
-
+  
   const itemsPerPage = 10; // Change this to adjust the number of items per page
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -455,311 +460,374 @@ const TeacherListContainer = ({ editable = false }) => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = Object.entries(searchTeacherResult).slice(indexOfFirstItem, indexOfLastItem);
 
+  const handleClose = () => {
+    const modal = document.getElementById('add_teacher_modal');
+    if (modal) {
+      modal.close();
+      setErrorMessage('');
+      setErrorField('');
+    } else {
+      console.error("Modal with ID 'add_teacher_modal' not found.");
+    }
+  };
+
+  const deleteModal = (id) => {
+    const deleteModalElement = document.getElementById("delete_modal");
+    deleteModalElement.showModal();  
+
+    const deleteButton = document.getElementById("delete_button");
+    deleteButton.onclick = () => handleDelete(id);  
+  };
+
+  const handleDelete = (id) => {
+    dispatch(removeTeacher(id));  
+    document.getElementById("delete_modal").close(); 
+  };
+
 
   return (
     <React.Fragment>
-    <div className="w-full">
-    <div className="flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5">
-      {/* Pagination */}
-      {currentItems.length > 0 && (
-        <div className="join flex justify-center mb-4 md:mb-0">
-          <button
-            className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
-            onClick={() => {
-              if (currentPage > 1) {
-                setCurrentPage(currentPage - 1);
-              }
-              handleCancelTeacherEditClick();
-            }}
-            disabled={currentPage === 1}
-          >
-            «
-          </button>
-          <button className="join-item btn">
-            Page {currentPage} of {totalPages}
-          </button>
-          <button
-            className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
-            onClick={() => {
-              if (currentPage < totalPages) {
-                setCurrentPage(currentPage + 1);
-              }
-              handleCancelTeacherEditClick();
-            }}
-            disabled={currentPage === totalPages}
-          >
-            »
-          </button>
-        </div>
-      )}
-
-      {currentItems.length === 0 && currentPage > 1 && (
-        <div className="hidden">
-          {setCurrentPage(currentPage - 1)}
-        </div>
-      )}
-
-      {/* Search Teacher */}
-      <div className="flex-grow w-full md:w-1/3 lg:w-1/4">
-        <label className="input input-bordered flex items-center gap-2 w-full">
-          <input
-            type="text"
-            className="grow p-3 text-sm w-full"
-            placeholder="Search Teacher"
-            value={searchTeacherValue}
-            onChange={(e) => setSearcTeacherValue(e.target.value)}
-          />
-          <IoSearch className="text-xl" />
-        </label>
-      </div>
-
-      {/* Add Teacher Button (only when editable) */}
-      {editable && (
-        <div className="w-full mt-4 md:mt-0 md:w-auto">
-          <button
-            className="btn btn-primary h-12 flex items-center justify-center w-full md:w-52"
-            onClick={() => document.getElementById('add_teacher_modal').showModal()}
-          >
-            Add Teacher <IoAdd size={20} className="ml-2" />
-          </button>
-
-          {/* Modal for adding teacher */}
-          <dialog id="add_teacher_modal" className="modal modal-bottom sm:modal-middle">
-            <div className="modal-box">
-              <AddTeacherContainer
-                close={() => document.getElementById('add_teacher_modal').close()}
-                reduxFunction={addTeacher}
-              />
-              <div className="modal-action">
-                <button
-                  className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                  onClick={() => document.getElementById('add_teacher_modal').close()}
-                >
-                  ✕
-                </button>
-              </div>
+      <div className="w-full">
+        <div className="flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5">
+          {/* Pagination */}
+          {currentItems.length > 0 && (
+            <div className="join flex justify-center mb-4 md:mb-0">
+              <button
+                className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
+                onClick={() => {
+                  if (currentPage > 1) {
+                    setCurrentPage(currentPage - 1);
+                  }
+                  handleCancelTeacherEditClick();
+                }}
+                disabled={currentPage === 1}
+              >
+                «
+              </button>
+              <button className="join-item btn">
+                Page {currentPage} of {totalPages}
+              </button>
+              <button
+                className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
+                onClick={() => {
+                  if (currentPage < totalPages) {
+                    setCurrentPage(currentPage + 1);
+                  }
+                  handleCancelTeacherEditClick();
+                }}
+                disabled={currentPage === totalPages}
+              >
+                »
+              </button>
             </div>
-          </dialog>
-        </div>
-      )}
+          )}
 
-      </div>
-      <div className='overflow-x-auto'>
-      <table className="table table-sm table-zebra w-full">
-          <thead>
-            <tr>
-              <th className="w-8">#</th>
-              <th className="whitespace-nowrap">Teacher ID</th>
-              <th className="whitespace-nowrap">Teacher</th>
-              <th className="whitespace-nowrap">Rank</th>
-              <th className="whitespace-nowrap max-w-xs">Subject Specialization</th>
-              <th className="whitespace-nowrap max-w-xs">Assigned Year Level(s)</th>
-              {editable && <th className="w-28 text-right">Actions</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {currentItems.length === 0 ? (
+          {currentItems.length === 0 && currentPage > 1 && (
+            <div className="hidden">
+              {setCurrentPage(currentPage - 1)}
+            </div>
+          )}
+
+          {/* Search Teacher */}
+          <div className="flex-grow w-full md:w-1/3 lg:w-1/4">
+            <label className="input input-bordered flex items-center gap-2 w-full">
+              <input
+                type="text"
+                className="grow p-3 text-sm w-full"
+                placeholder="Search Teacher"
+                value={searchTeacherValue}
+                onChange={(e) => setSearcTeacherValue(e.target.value)}
+              />
+              <IoSearch className="text-xl" />
+            </label>
+          </div>
+
+          {/* Add Teacher Button (only when editable) */}
+          {editable && (
+            <div className="w-full mt-4 md:mt-0 md:w-auto">
+              <button
+                className="btn btn-primary h-12 flex items-center justify-center w-full md:w-52"
+                onClick={() => document.getElementById('add_teacher_modal').showModal()}
+              >
+                Add Teacher <IoAdd size={20} className="ml-2" />
+              </button>
+
+              {/* Modal for adding teacher */}
+              <dialog id="add_teacher_modal" className="modal modal-bottom sm:modal-middle">
+                <div className="modal-box">
+                  <AddTeacherContainer
+                    close={() => document.getElementById('add_teacher_modal').close()}
+                    reduxFunction={addTeacher}
+                    errorMessage={errorMessage}
+                    setErrorMessage={setErrorMessage}
+                    errorField={errorField}
+                    setErrorField={setErrorField}
+                  />
+                  <div className="modal-action">
+                    <button
+                      className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                      onClick={handleClose}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              </dialog>
+            </div>
+          )}
+
+        </div>
+        <div className='overflow-x-auto'>
+          <table className="table table-sm table-zebra w-full">
+            <thead>
               <tr>
-                <td colSpan="5" className="text-center">
-                  No teachers found
-                </td>
+                <th className="w-8">#</th>
+                <th className="whitespace-nowrap">Teacher ID</th>
+                <th className="whitespace-nowrap">Teacher</th>
+                <th className="whitespace-nowrap">Rank</th>
+                <th className="whitespace-nowrap max-w-xs">Subject Specialization</th>
+                <th className="whitespace-nowrap max-w-xs">Assigned Year Level(s)</th>
+                {editable && <th className="w-28 text-right">Actions</th>}
               </tr>
-            ) : (
-              currentItems.map(([, teacher], index) => (
-                <tr key={teacher.id} className="group hover">
-                  <td>{index + indexOfFirstItem + 1}</td>
-                  <th>{teacher.id}</th>
-                  <td>
-                    {editTeacherId === teacher.id ? (
-                      <input
-                        type="text"
-                        className="input input-bordered input-sm w-full"
-                        value={editTeacherValue}
-                        onChange={(e) => setEditTeacherValue(e.target.value)}
-                      />
-                    ) : (
-                      teacher.teacher
-                    )}
+            </thead>
+            <tbody>
+              {currentItems.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="text-center">
+                    No teachers found
                   </td>
-                  <td>
-                    {editTeacherId === teacher.id ? (
-                      <div>
-                        <select
-                          id="teacherRank"
-                          className="input input-bordered input-sm w-full"
-                          value={editTeacherRank || ''}
-                          onChange={handleRankChange}
-                        >
-                          <option value="" disabled>
-                            Select rank
-                          </option>
-                          {ranks && Object.keys(ranks).length > 0 ? (
-                            Object.values(ranks).map((rank) => (
-                              <option key={rank.id} value={rank.id}>
-                                {rank.rank}
-                              </option>
-                            ))
-                          ) : (
-                            <option disabled>No ranks available</option>
-                          )}
-                        </select>
-                      </div>
-                    ) : (
-                      ranks[teacher.rank]?.rank || "Unknown Rank"
-                    )}
-                  </td>
-                  <td className="flex gap-1 flex-wrap">
-                    {editTeacherId === teacher.id ? (
-                      <>
-                        <div className="m-1">Selected Subjects:</div>
-                        {editTeacherCurr && Array.isArray(editTeacherCurr) && subjects ? (
-                          editTeacherCurr.map((subjectID) => (
-                            <div key={subjectID} className="badge badge-secondary m-1">
-                              {subjects[subjectID]?.subject || subjectID}
-                            </div>
-                          ))
-                        ) : (
-                          <div>No subjects selected</div>
-                        )}
-                        <SearchableDropdownToggler
-                          selectedList={editTeacherCurr}
-                          setSelectedList={setEditTeacherCurr}
-                          isEditable={true}
-                        />
-                      </>
-                    ) : (
-                      subjectStatus === 'succeeded' &&
-                      teacher.subjects.map((subject) => (
-                        <div key={subject} className="badge badge-secondary m-1">
-                          {subjects[subject]?.subject || 'Unknown Subject'}
-                        </div>
-                      ))
-                    )}
-                  </td>
-                  <td>
-                    {editTeacherId === teacher.id ? (
-                      <div>
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={editTeacherYearLevels.includes(0)}
-                            onChange={() => handleYearLevelChange(0)}
-                          />
-                          Grade 7
-                        </label>
-                        <br />
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={editTeacherYearLevels.includes(1)}
-                            onChange={() => handleYearLevelChange(1)}
-                          />
-                          Grade 8
-                        </label>
-                        <br />
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={editTeacherYearLevels.includes(2)}
-                            onChange={() => handleYearLevelChange(2)}
-                          />
-                          Grade 9
-                        </label>
-                        <br />
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={editTeacherYearLevels.includes(3)}
-                            onChange={() => handleYearLevelChange(3)}
-                          />
-                          Grade 10
-                        </label>
-                      </div>
-                    ) : (
-                      <div>
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={teacher.yearLevels.includes(0)}
-                            readOnly
-                          />
-                          Grade 7
-                        </label>
-                        <br />
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={teacher.yearLevels.includes(1)}
-                            readOnly
-                          />
-                          Grade 8
-                        </label>
-                        <br />
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={teacher.yearLevels.includes(2)}
-                            readOnly
-                          />
-                          Grade 9
-                        </label>
-                        <br />
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={teacher.yearLevels.includes(3)}
-                            readOnly
-                          />
-                          Grade 10
-                        </label>
-                      </div>
-                    )}
-                  </td>
-                  {editable && (
-                    <td className="w-28 text-right">
+                </tr>
+              ) : (
+                currentItems.map(([, teacher], index) => (
+                  <tr key={teacher.id} className="group hover">
+                    <td>{index + indexOfFirstItem + 1}</td>
+                    <th>{teacher.id}</th>
+                    <td>
                       {editTeacherId === teacher.id ? (
-                        <>
-                          <button
-                            className="btn btn-xs btn-ghost text-green-500"
-                            onClick={() => handleSaveTeacherEditClick(teacher.id)}
-                          >
-                            Save
-                          </button>
-                          <button
-                            className="btn btn-xs btn-ghost text-red-500"
-                            onClick={() => handleCancelTeacherEditClick()}
-                          >
-                            Cancel
-                          </button>
-                        </>
+                        <input
+                          type="text"
+                          className="input input-bordered input-sm w-full"
+                          value={editTeacherValue}
+                          onChange={(e) => setEditTeacherValue(e.target.value)}
+                        />
                       ) : (
-                        <>
-                          <button
-                            className="btn btn-xs btn-ghost text-blue-500"
-                            onClick={() => handleEditTeacherClick(teacher)}
-                          >
-                            <RiEdit2Fill size={20} />
-                          </button>
-                          <button
-                            className="btn btn-xs btn-ghost text-red-500"
-                            onClick={() => dispatch(removeTeacher(teacher.id))}
-                          >
-                            <RiDeleteBin7Line size={20} />
-                          </button>
-                        </>
+                        teacher.teacher
                       )}
                     </td>
-                  )}
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-        
+                    <td>
+                      {editTeacherId === teacher.id ? (
+                        <div>
+                          <select
+                            id="teacherRank"
+                            className="input input-bordered input-sm w-full"
+                            value={editTeacherRank || ''}
+                            onChange={handleRankChange}
+                          >
+                            <option value="" disabled>
+                              Select rank
+                            </option>
+                            {ranks && Object.keys(ranks).length > 0 ? (
+                              Object.values(ranks).map((rank) => (
+                                <option key={rank.id} value={rank.id}>
+                                  {rank.rank}
+                                </option>
+                              ))
+                            ) : (
+                              <option disabled>No ranks available</option>
+                            )}
+                          </select>
+                        </div>
+                      ) : (
+                        ranks[teacher.rank]?.rank || "Unknown Rank"
+                      )}
+                    </td>
+                    <td className="flex gap-1 flex-wrap">
+                      {editTeacherId === teacher.id ? (
+                        <>
+                          <div className="m-1">Selected Subjects:</div>
+                          {editTeacherCurr && Array.isArray(editTeacherCurr) && subjects ? (
+                            editTeacherCurr.map((subjectID) => (
+                              <div key={subjectID} className="badge badge-secondary m-1">
+                                {subjects[subjectID]?.subject || subjectID}
+                              </div>
+                            ))
+                          ) : (
+                            <div>No subjects selected</div>
+                          )}
+                          <SearchableDropdownToggler
+                            selectedList={editTeacherCurr}
+                            setSelectedList={setEditTeacherCurr}
+                            isEditable={true}
+                          />
+                        </>
+                      ) : (
+                        subjectStatus === 'succeeded' &&
+                        teacher.subjects.map((subject) => (
+                          <div key={subject} className="badge badge-secondary m-1">
+                            {subjects[subject]?.subject || 'Unknown Subject'}
+                          </div>
+                        ))
+                      )}
+                    </td>
+                    <td>
+                      {editTeacherId === teacher.id ? (
+                        <div>
+                          <label>
+                            <input
+                              type="checkbox"
+                              checked={editTeacherYearLevels.includes(0)}
+                              onChange={() => handleYearLevelChange(0)}
+                            />
+                            Grade 7
+                          </label>
+                          <br />
+                          <label>
+                            <input
+                              type="checkbox"
+                              checked={editTeacherYearLevels.includes(1)}
+                              onChange={() => handleYearLevelChange(1)}
+                            />
+                            Grade 8
+                          </label>
+                          <br />
+                          <label>
+                            <input
+                              type="checkbox"
+                              checked={editTeacherYearLevels.includes(2)}
+                              onChange={() => handleYearLevelChange(2)}
+                            />
+                            Grade 9
+                          </label>
+                          <br />
+                          <label>
+                            <input
+                              type="checkbox"
+                              checked={editTeacherYearLevels.includes(3)}
+                              onChange={() => handleYearLevelChange(3)}
+                            />
+                            Grade 10
+                          </label>
+                        </div>
+                      ) : (
+                        <div>
+                          <label>
+                            <input
+                              type="checkbox"
+                              checked={teacher.yearLevels.includes(0)}
+                              readOnly
+                            />
+                            Grade 7
+                          </label>
+                          <br />
+                          <label>
+                            <input
+                              type="checkbox"
+                              checked={teacher.yearLevels.includes(1)}
+                              readOnly
+                            />
+                            Grade 8
+                          </label>
+                          <br />
+                          <label>
+                            <input
+                              type="checkbox"
+                              checked={teacher.yearLevels.includes(2)}
+                              readOnly
+                            />
+                            Grade 9
+                          </label>
+                          <br />
+                          <label>
+                            <input
+                              type="checkbox"
+                              checked={teacher.yearLevels.includes(3)}
+                              readOnly
+                            />
+                            Grade 10
+                          </label>
+                        </div>
+                      )}
+                    </td>
+                    {editable && (
+                      <td className="w-28 text-right">
+                        {editTeacherId === teacher.id ? (
+                          <>
+                            <button
+                              className="btn btn-xs btn-ghost text-green-500"
+                              onClick={() => handleSaveTeacherEditClick(teacher.id)}
+                            >
+                              Save
+                            </button>
+                            <button
+                              className="btn btn-xs btn-ghost text-red-500"
+                              onClick={() => handleCancelTeacherEditClick()}
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              className="btn btn-xs btn-ghost text-blue-500"
+                              onClick={() => handleEditTeacherClick(teacher)}
+                            >
+                              <RiEdit2Fill size={20} />
+                            </button>
+                            <button
+                              className="btn btn-xs btn-ghost text-red-500"
+                              onClick={() => deleteModal(teacher.id)}
+                            >
+                              <RiDeleteBin7Line size={20} />
+                            </button>
 
-    </div>
-  </React.Fragment>
+                            <dialog id="delete_modal" className="modal modal-bottom sm:modal-middle">
+                            <form method="dialog" className="modal-box">
+                              {/* Icon and message */}
+                              <div className="flex flex-col items-center justify-center">
+                                <TrashIcon className="text-red-500 mb-4" width={40} height={40} />
+                                <h3 className="font-bold text-lg text-center">
+                                  Are you sure you want to delete this item?
+                                </h3>
+                                <p className="text-sm text-gray-500 text-center">
+                                  This action cannot be undone.
+                                </p>
+                              </div>
+
+                              {/* Modal actions */}
+                              <div className="modal-action flex justify-center">
+                                {/* Close Button */}
+                                <button
+                                  className="btn btn-sm btn-ghost"
+                                  onClick={() => document.getElementById("delete_modal").close()}
+                                  aria-label="Cancel deletion"
+                                >
+                                  Cancel
+                                </button>
+
+                                {/* Confirm Delete Button */}
+                                <button
+                                  className="btn btn-sm btn-error text-white"
+                                  id="delete_button"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </form>
+                          </dialog>
+                          </>
+                        )}
+                      </td>
+                    )}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+
+      </div>
+    </React.Fragment>
   );
 };
 

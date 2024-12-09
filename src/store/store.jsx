@@ -23,6 +23,7 @@ import rankReducer from '../features/rankSlice';
 import sectionReducer from '../features/sectionSlice';
 import programReducer from '../features/programSlice';
 import departmentReducer from '../features/departmentSlice';
+import buildingReducer from '../features/buildingSlice';
 
 const combinedReducer = {
   header: headerSlice,
@@ -35,6 +36,7 @@ const combinedReducer = {
   section: sectionReducer,
   program: programReducer,
   department: departmentReducer,
+  building: buildingReducer,
 };
 
 const store = configureStore({

@@ -18,9 +18,20 @@ import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { BiChevronDown, BiChevronUp } from 'react-icons/bi';
 
+import { toast } from "sonner";
+import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
+
 import FixedScheduleMaker from './FixedSchedules/fixedScheduleMaker';
 
-const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
+const AddSectionContainer = ({
+  close,
+  reduxField,
+  reduxFunction,
+  errorMessage,
+  setErrorMessage,
+  errorField,
+  setErrorField, }) => {
+
   const inputNameRef = useRef();
   const dispatch = useDispatch();
 
@@ -36,7 +47,7 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
   const { sections } = useSelector((state) => state.section);
 
   const numOfSchoolDays = parseInt(localStorage.getItem('numOfSchoolDays'), 10);
-  
+
   const [inputValue, setInputValue] = useState('');
   const [selectedAdviser, setSelectedAdviser] = useState('');
   const [selectedProgram, setSelectedProgram] = useState('');
@@ -54,9 +65,19 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
 
   const handleAddEntry = () => {
 
-    if (inputValue === '' || selectedAdviser === '' || selectedProgram === '' || selectedYearLevel === '' || selectedSubjects.length === 0) {
-      alert('All fields are required.');
-      return;
+    if (inputValue === '' || selectedAdviser === '' || selectedProgram === '' || selectedYearLevel === '' || selectedSubjects.length === 0 || subjectUnits.length === 0 || subjectPriorities.length === 0) {
+      const errorFields = [];
+      if (inputValue === '') errorFields.push('name');
+      if (selectedAdviser === '') errorFields.push('adviser');
+      if (selectedProgram === '') errorFields.push('program');
+      if (selectedYearLevel === '') errorFields.push('yearLevel');
+      if (selectedSubjects.length === 0) errorFields.push('subjects');
+
+      if (errorFields.length > 0) {
+        setErrorMessage('All fields are required.');
+        setErrorField(errorFields);
+        return;
+      }
     }
 
     const duplicateSection = Object.values(sections).find(
@@ -68,14 +89,15 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
     );
 
     if (duplicateSection) {
-      alert('Section already exists.');
+      setErrorMessage('Section already exists.');
+      setErrorField('name');
       return;
     } else if (duplicateAdviser) {
-      alert(`Teacher is already assigned as adviser of section '${duplicateAdviser.section}'`);
+      setErrorMessage(`Teacher is already assigned as adviser of section '${duplicateAdviser.section}'`);
+      setErrorField('adviser');
+      // alert(`Teacher is already assigned as adviser of section '${duplicateAdviser.section}'`);
       return;
     } else {
-
-    
       dispatch(
         reduxFunction({
           [reduxField[0]]: inputValue,
@@ -89,7 +111,6 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
           startTime: selectedStartTime,
         })
       );
-    
       setInputValue('');
       setSelectedProgram('');
       setSelectedYearLevel('');
@@ -99,7 +120,14 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
       setFixedDays({});
       setFixedPositions({});
     }
-  
+
+    toast.success('Teacher added successfully', {
+      style: { backgroundColor: 'green', color: 'white', bordercolor: 'green', },
+    });
+
+    handleReset();
+    close();
+
     if (inputNameRef.current) {
       inputNameRef.current.focus();
       inputNameRef.current.select();
@@ -107,6 +135,9 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
   };
 
   const handleReset = () => {
+
+    setErrorMessage('');
+    setErrorField([]);
     setInputValue('');
     setSelectedProgram('');
     setSelectedYearLevel('');
@@ -170,18 +201,19 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
       </div>
 
       <div className="mb-4">
-          <label className="label">
+        <label className="label">
           <span className="label-text">Section Name</span>
         </label>
-          <input
-            type="text"
-            ref={inputNameRef}
-            placeholder={`${reduxField[0]} Name`}
-            required
-            className="input input-bordered input-sm w-full "
-            value={inputValue}
-            onChange={handleInputChange}
-          />
+        <input
+          type="text"
+          ref={inputNameRef}
+          placeholder={`Section Name`}
+          required
+          className={`input input-bordered input-md w-full ${errorField.includes('name') ? 'border-red-500' : ''
+            }`}
+          value={inputValue}
+          onChange={handleInputChange}
+        />
       </div>
 
       <div className="mt-3">
@@ -189,7 +221,8 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
           <span className="label-text">Assign Adviser</span>
         </label>
         <select
-          className="select select-bordered w-full"
+          className={`select select-bordered w-full ${errorField.includes('adviser') ? 'border-red-500' : ''
+            }`}
           value={selectedAdviser}
           onChange={(e) => setSelectedAdviser(parseInt(e.target.value, 10))}
         >
@@ -209,7 +242,8 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
           <span className="label-text">Select Program</span>
         </label>
         <select
-          className="select select-bordered w-full"
+          className={`select select-bordered w-full ${errorField.includes('program') ? 'border-red-500' : ''
+            }`}
           value={selectedProgram}
           onChange={(e) => setSelectedProgram(parseInt(e.target.value, 10))}
         >
@@ -229,7 +263,8 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
           <span className="label-text">Select Year Level</span>
         </label>
         <select
-          className="select select-bordered w-full"
+          className={`select select-bordered w-full ${errorField.includes('yearLevel') ? 'border-red-500' : ''
+            }`}
           value={selectedYearLevel}
           onChange={(e) => setSelectedYearLevel(parseInt(e.target.value, 10))}
         >
@@ -309,15 +344,19 @@ const AddSectionContainer = ({ close, reduxField, reduxFunction }) => {
         </>
       }
 
+      {errorMessage && (
+        <p className="text-red-500 text-sm my-4 font-medium select-none ">{errorMessage}</p>
+      )}
+
       <div className="flex justify-center gap-4 mt-4">
-          <button className="btn btn-secondary" onClick={handleReset}>
-            Reset
-          </button>
-          <button className="btn btn-primary" onClick={handleAddEntry}>
-            Add Section
-          </button>
+        <button className="btn btn-secondary" onClick={handleReset}>
+          Reset
+        </button>
+        <button className="btn btn-primary" onClick={handleAddEntry}>
+          Add Section
+        </button>
       </div>
-      
+
     </div>
   );
 };
@@ -338,6 +377,9 @@ const SectionListContainer = ({ editable = false }) => {
   );
 
   const numOfSchoolDays = parseInt(localStorage.getItem('numOfSchoolDays'), 10);
+
+  const [errorMessage, setErrorMessage] = useState('');
+  const [errorField, setErrorField] = useState([]);
 
   const [editSectionAdviser, setEditSectionAdviser] = useState('');
   const [editSectionProg, setEditSectionProg] = useState('');
@@ -376,7 +418,10 @@ const SectionListContainer = ({ editable = false }) => {
   const handleSaveSectionEditClick = (sectionId) => {
 
     if (!editSectionAdviser || !editSectionValue || !editSectionProg || !editSectionYear || editSectionSubjects.length === 0) {
-      alert('Please fill out all required fields.');
+      toast.error('Please fill out all required fields.', {
+        style: { backgroundColor: 'red', color: 'white' },
+      });
+
       return;
     }
 
@@ -404,6 +449,10 @@ const SectionListContainer = ({ editable = false }) => {
         })
       );
 
+      toast.success('Section added successfully', {
+        style: { backgroundColor: 'green', color: 'white', bordercolor: 'green' },
+      });
+
       // Reset the editing state
       setEditSectionId('');
       setEditSectionValue('');
@@ -427,11 +476,14 @@ const SectionListContainer = ({ editable = false }) => {
       // console.log('duplicateAdviser: ', duplicateAdviser);
 
       if (duplicateSection) {
-        alert('Section name already taken.');
+        toast.error('Section name already taken.', {
+          style: { backgroundColor: 'red', color: 'white' },
+        });
         return;
       } else if (duplicateAdviser) {
-        alert(`Adviser already assigned to section '${duplicateAdviser.section}'`);
-        return;
+        toast.error(`Adviser already assigned to section '${duplicateAdviser.section}'`, {
+          style: { backgroundColor: 'red', color: 'white' },
+        });
       } else {
         dispatch(
           editSection({
@@ -484,19 +536,43 @@ const SectionListContainer = ({ editable = false }) => {
     const times =
       editSectionShift === 0
         ? Array.from({ length: 36 }, (_, i) => {
-            const hours = 6 + Math.floor(i / 6);
-            const minutes = (i % 6) * 10;
-            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} AM`;
-          })
+          const hours = 6 + Math.floor(i / 6);
+          const minutes = (i % 6) * 10;
+          return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} AM`;
+        })
         : ['01:00 PM']; // Only one option for PM
-  
+
     return times.map((time) => (
       <option key={time} value={time}>
         {time}
       </option>
     ));
   };
-   
+  
+  const handleClose = () => {
+    const modal = document.getElementById('add_section_modal');
+    if (modal) {
+      modal.close();
+      setErrorMessage('');
+      setErrorField([]);
+    } else {
+      console.error("Modal with ID 'add_section_modal' not found.");
+    }
+  };
+
+  const deleteModal = (id) => {
+    const deleteModalElement = document.getElementById("delete_modal");
+    deleteModalElement.showModal();  // Show the modal
+
+    const deleteButton = document.getElementById("delete_button");
+    deleteButton.onclick = () => handleDelete(id);  // Dynamically assign delete logic
+  };
+
+  const handleDelete = (id) => {
+    dispatch(removeSection(id));  // Perform the delete action
+    document.getElementById("delete_modal").close(); // Close the modal after deleting
+  };
+
   const debouncedSearch = useCallback(
     debounce((searchValue, sections, subjects) => {
       setSearchSectionResult(
@@ -582,12 +658,16 @@ const SectionListContainer = ({ editable = false }) => {
     }
   }, [teacherStatus, dispatch]);
 
+  useEffect(() => {
+    console.log('editSectionAdviser: ', editSectionAdviser);
+  }, [editSectionAdviser]);
+
   const itemsPerPage = 10; // Adjust this to change items per page
   const [currentPage, setCurrentPage] = useState(1);
 
   // Calculate total pages based on filtered sections
   const totalPages = Math.ceil(Object.values(searchSectionResult).length / itemsPerPage);
-
+  
   // Get current items
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -597,45 +677,45 @@ const SectionListContainer = ({ editable = false }) => {
     <React.Fragment>
       <div className="w-full">
         <div className="flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5">
+        
+          {/* Pagination */}
+          {currentItems.length > 0 && (
+            <div className="join flex justify-center mb-4 md:mb-0">
+              <button
+                className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
+                onClick={() => {
+                  if (currentPage > 1) {
+                    setCurrentPage(currentPage - 1);
+                  }
+                  handleCancelSectionEditClick();
+                }}
+                disabled={currentPage === 1}
+              >
+                «
+              </button>
+              <button className="join-item btn">
+                Page {currentPage} of {totalPages}
+              </button>
+              <button
+                className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
+                onClick={() => {
+                  if (currentPage < totalPages) {
+                    setCurrentPage(currentPage + 1);
+                  }
+                  handleCancelSectionEditClick();
+                }}
+                disabled={currentPage === totalPages}
+              >
+                »
+              </button>
+            </div>
+          )}
 
-        {/* Pagination */}
-        {currentItems.length > 0 && (
-          <div className="join flex justify-center mb-4 md:mb-0">
-            <button
-              className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
-              onClick={() => {
-                if (currentPage > 1) {
-                  setCurrentPage(currentPage - 1);
-                }
-                handleCancelSectionEditClick();
-              }}
-              disabled={currentPage === 1}
-            >
-              «
-            </button>
-            <button className="join-item btn">
-              Page {currentPage} of {totalPages}
-            </button>
-            <button
-              className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
-              onClick={() => {
-                if (currentPage < totalPages) {
-                  setCurrentPage(currentPage + 1);
-                }
-                handleCancelSectionEditClick();
-              }}
-              disabled={currentPage === totalPages}
-            >
-              »
-            </button>
-          </div>
-        )}
-
-        {currentItems.length === 0 && currentPage > 1 && (
-          <div className="hidden">
-            {setCurrentPage(currentPage - 1)}
-          </div>
-        )}
+          {currentItems.length === 0 && currentPage > 1 && (
+            <div className="hidden">
+              {setCurrentPage(currentPage - 1)}
+            </div>
+          )}
           {/* Search Section */}
           <div className="flex-grow w-full md:w-1/3 lg:w-1/4">
             <label className="input input-bordered flex items-center gap-2 w-full">
@@ -650,6 +730,7 @@ const SectionListContainer = ({ editable = false }) => {
             </label>
           </div>
 
+
           {editable && (
             <div className="w-full mt-4 md:mt-0 md:w-auto">
               <button
@@ -660,11 +741,18 @@ const SectionListContainer = ({ editable = false }) => {
               </button>
 
               <dialog id="add_section_modal" className="modal modal-bottom sm:modal-middle">
+
                 <div className="modal-box" style={{ width: '50%', maxWidth: 'none' }}>
+
                   <AddSectionContainer
                     close={() => document.getElementById('add_section_modal').close()}
                     reduxField={['section', 'subjects', 'units']}
                     reduxFunction={addSection}
+                    errorMessage={errorMessage}
+                    setErrorMessage={setErrorMessage}
+                    errorField={errorField}
+                    setErrorField={setErrorField}
+
                   />
                   <div className="modal-action">
                     <button
@@ -691,6 +779,7 @@ const SectionListContainer = ({ editable = false }) => {
                 <th>Adviser</th>
                 {/* <th>Program</th> */}
                 {/* <th>Year</th> */}
+
                 <th>Subjects</th>
                 {editable && <th className="text-right">Actions</th>}
               </tr>
@@ -705,6 +794,7 @@ const SectionListContainer = ({ editable = false }) => {
               ) : (
                 currentItems.map(([, section], index) => (
                   <tr key={section.id} className="group hover">
+
                     {/* <td>{index + indexOfFirstItem + 1}</td> */}
 
                     {/* Section ID */}
@@ -800,6 +890,7 @@ const SectionListContainer = ({ editable = false }) => {
                           </div>
 
                           {/* Section Start Time (AM or PM) */}
+
                           <div>
                             <label>Start Time:</label>
                             <select
@@ -818,6 +909,7 @@ const SectionListContainer = ({ editable = false }) => {
                           <div className='mt-1'>
                             {`(${programs[section.program]?.program})`}
                           </div>
+
                           <div className="flex items-center mt-2">
                             <span className="inline-block bg-blue-500 text-white text-sm font-semibold py-1 px-3 rounded-lg">
                               {section.shift === 0 ? 'AM' : 'PM'}
@@ -831,6 +923,7 @@ const SectionListContainer = ({ editable = false }) => {
                     </td>
 
                     {/* Adviser */}
+
                     <td>
                       {editSectionId === section.id ? (
                         <select
@@ -851,7 +944,7 @@ const SectionListContainer = ({ editable = false }) => {
                         teachers[section.teacher]?.teacher || 'Unknown Teacher'
                       )}
                     </td>
-
+                    
                     {/* Subject Details */}
                     <td className="flex gap-1 flex-wrap">
                       <div className='overflow-x-auto mt-2'>
@@ -980,10 +1073,40 @@ const SectionListContainer = ({ editable = false }) => {
                             </button>
                             <button
                               className="btn btn-xs btn-ghost text-red-500"
-                              onClick={() => dispatch(removeSection(section.id))}
+                              onClick={() => deleteModal(section.id)} // Call deleteModal with the section.id
                             >
                               <RiDeleteBin7Line />
                             </button>
+
+                            <dialog id="delete_modal" className="modal modal-bottom sm:modal-middle">
+                              <form method="dialog" className="modal-box">
+                                <div className="flex flex-col items-center justify-center">
+                                  <TrashIcon className="text-red-500 mb-4" width={40} height={40} />
+                                  <h3 className="font-bold text-lg text-center">
+                                    Are you sure you want to delete this section?
+                                  </h3>
+                                  <p className="text-sm text-gray-500 text-center">
+                                    This action cannot be undone.
+                                  </p>
+                                </div>
+                                <div className="modal-action flex justify-center">
+                                  <button
+                                    className="btn btn-sm btn-ghost"
+                                    onClick={() => document.getElementById('delete_modal').close()}
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    id="delete_button"
+                                    className="btn btn-sm btn-error text-white"
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              </form>
+                            </dialog>
+
+
                           </>
                         )}
                       </td>

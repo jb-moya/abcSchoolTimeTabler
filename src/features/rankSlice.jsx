@@ -48,7 +48,7 @@ export const removeRank = createAsyncThunk(
     async (rankId, { dispatch, rejectWithValue }) => {
         try {
             const success = await removeEntityFromDB(
-                STORE_NAMES.RANKSS,
+                STORE_NAMES.RANKS,
                 rankId
             );
             if (success) {

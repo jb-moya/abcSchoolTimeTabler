@@ -74,8 +74,7 @@ module.exports = {
 
         dark: {
           ...require("daisyui/src/theming/themes")["dark"], // Spreading the default light theme
-          primary: "#074683", // Custom primary color
-          secondary: "#4CAF50", // Custom secondary color from your extension
+          "base-content": "#ffffff",
         },
       },
       "dark", // The default dark theme

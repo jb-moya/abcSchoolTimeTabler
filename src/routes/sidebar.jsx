@@ -60,6 +60,11 @@ const routes = [
         icon: <DocumentIcon className={submenuIconClasses} />,
         name: 'Modify Departments',
       },
+      {
+        path: '/app/admin/room-mapping',
+        icon: <DocumentIcon className={submenuIconClasses} />,
+        name: 'Room Utilization',
+      },
     ],
   },
   {

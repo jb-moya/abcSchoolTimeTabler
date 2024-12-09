@@ -12,6 +12,7 @@ export const STORE_NAMES = {
   SECTIONS: 'sections',
   PROGRAMS: 'programs',
   DEPARTMENTS: 'departments',
+  BUILDINGS: 'buildings',
 };
 
 export const initDB = async () => {
@@ -143,7 +144,7 @@ export const removeEntityFromDB = async (storeName, entityId) => {
     // console.log("eh dito?");
 
    
-    toast.success('Data removed successfully!', {
+    toast.success('Entity removed successfully!', {
       style: {
         backgroundColor: '#28a745', 
         color: '#fff',        
