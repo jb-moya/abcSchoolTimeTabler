@@ -180,7 +180,7 @@ const AddTeacherContainer = ({
           {ranks && Object.keys(ranks).length > 0 ? (
             Object.values(ranks).map((rank) => (
               <option key={rank.id} value={rank.id}>
-                {rank.rank} - Load: {rank.load}
+                {rank.rank}
               </option>
             ))
           ) : (

@@ -21,6 +21,8 @@ import { BiChevronDown, BiChevronUp } from 'react-icons/bi';
 import { toast } from "sonner";
 import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 
+import FixedScheduleMaker from './FixedSchedules/fixedScheduleMaker';
+
 const AddSectionContainer = ({
   close,
   reduxField,
@@ -29,6 +31,7 @@ const AddSectionContainer = ({
   setErrorMessage,
   errorField,
   setErrorField, }) => {
+
   const inputNameRef = useRef();
   const dispatch = useDispatch();
 
@@ -43,6 +46,8 @@ const AddSectionContainer = ({
   );
   const { sections } = useSelector((state) => state.section);
 
+  const numOfSchoolDays = parseInt(localStorage.getItem('numOfSchoolDays'), 10);
+
   const [inputValue, setInputValue] = useState('');
   const [selectedAdviser, setSelectedAdviser] = useState('');
   const [selectedProgram, setSelectedProgram] = useState('');
@@ -50,8 +55,9 @@ const AddSectionContainer = ({
   const [selectedSubjects, setSelectedSubjects] = useState([]);
   const [selectedShift, setSelectedShift] = useState(0);
   const [selectedStartTime, setSelectedStartTime] = useState(0);
-  const [subjectUnits, setSubjectUnits] = useState({});
-  const [subjectPriorities, setSubjectPriorities] = useState({});
+
+  const [fixedDays, setFixedDays] = useState({});
+  const [fixedPositions, setFixedPositions] = useState({});
 
   const handleInputChange = (e) => {
     setInputValue(e.target.value);
@@ -92,22 +98,15 @@ const AddSectionContainer = ({
       // alert(`Teacher is already assigned as adviser of section '${duplicateAdviser.section}'`);
       return;
     } else {
-      const formattedSubjects = {}; // New object for subjects
-
-      selectedSubjects.forEach((subjectID) => {
-        formattedSubjects[subjectID] = [
-          subjectUnits[subjectID] || 0,          // units
-          subjectPriorities[subjectID] || 0,     // priority
-        ];
-      });
-
       dispatch(
         reduxFunction({
           [reduxField[0]]: inputValue,
           teacher: selectedAdviser,
           program: selectedProgram,
           year: selectedYearLevel,
-          subjects: formattedSubjects,
+          subjects: selectedSubjects,
+          fixedDays: fixedDays,
+          fixedPositions: fixedPositions,
           shift: selectedShift,
           startTime: selectedStartTime,
         })
@@ -118,8 +117,8 @@ const AddSectionContainer = ({
       setSelectedSubjects([]);
       setSelectedShift(0);
       setSelectedStartTime(0);
-      setSubjectUnits({});
-      setSubjectPriorities({});
+      setFixedDays({});
+      setFixedPositions({});
     }
 
     toast.success('Teacher added successfully', {
@@ -146,9 +145,14 @@ const AddSectionContainer = ({
     setSelectedSubjects([]);
     setSelectedShift(0);
     setSelectedStartTime(0);
-    setSubjectUnits({});
-    setSubjectPriorities({});
+    setFixedDays({});
+    setFixedPositions({});
   };
+
+  useEffect(() => {
+    console.log('fixedDays:', fixedDays);
+    console.log('fixedPositions:', fixedPositions);
+  }, [fixedDays, fixedPositions]);
 
   useEffect(() => {
     if (inputNameRef.current) {
@@ -157,39 +161,20 @@ const AddSectionContainer = ({
   }, []);
 
   useEffect(() => {
-    // console.log('Selected Program:', selectedProgram);
-    // console.log('Selected Year Level:', selectedYearLevel);
-
     if (selectedProgram && selectedYearLevel) {
       const program = Object.values(programs).find(
         (p) => p.id === selectedProgram
       );
 
-      // console.log('program[selectedYearLevel].subjects:', program[selectedYearLevel].subjects);
-
       if (program) {
         setSelectedSubjects(program[selectedYearLevel].subjects || []); // Ensure it accesses the subjects correctly
+        setFixedDays(program[selectedYearLevel].fixedDays || {});
+        setFixedPositions(program[selectedYearLevel].fixedPositions || {});
         setSelectedShift(program[selectedYearLevel].shift || 0);
         setSelectedStartTime(program[selectedYearLevel].startTime || 0);
-      } else {
-        setSelectedSubjects([]);
       }
     }
   }, [selectedProgram, selectedYearLevel, programs]);
-
-  useEffect(() => {
-    const newSubjectUnits = {};
-    selectedSubjects.forEach((subject) => {
-      if (!subjectUnits.hasOwnProperty(subject)) {
-        newSubjectUnits[subject] = 0;
-      } else {
-        newSubjectUnits[subject] = subjectUnits[subject];
-      }
-    });
-    if (JSON.stringify(newSubjectUnits) !== JSON.stringify(subjectUnits)) {
-      setSubjectUnits(newSubjectUnits);
-    }
-  }, [selectedSubjects]);
 
   useEffect(() => {
     if (programStatus === 'idle') {
@@ -294,105 +279,70 @@ const AddSectionContainer = ({
         </select>
       </div>
 
-      <div className="mt-4 text-sm">
-        <div className="m-1">Selected Subjects:</div>
-        {/* Header */}
-        <div className="grid grid-cols-3 gap-4 bg-gray-200 border border-gray-300 px-4 py-2">
-          <div className="text-left">Subjects</div>
-          <div className="text-left">Units</div>
-          <div className="text-left">Priority</div>
-        </div>
-
-        {/* Selected Subjects Display */}
-        {selectedSubjects.map((subjectID) => (
-          <div key={subjectID} className="grid grid-cols-3 gap-4 border-b border-gray-300 px-4 py-2">
-            {/* Subject Name */}
-            <div>
-              {subjects[subjectID]?.subject || 'Unknown Subject'}
-            </div>
-
-            {/* Units Input */}
-            <div className="flex items-center">
-              <input
-                type="text"
-                placeholder="Units"
-                className="input w-full"
-                value={subjectUnits[subjectID] ?? 0}
-                onChange={(e) => {
-                  setSubjectUnits({
-                    ...subjectUnits,
-                    [subjectID]: parseInt(e.target.value, 10) || 0,
-                  });
-                }}
-              />
-              <div className="join join-item join-vertical flex w-20 items-center border-l border-gray-300">
-                <button
-                  className="join-item h-1/2 w-full bg-secondary hover:brightness-110 flex justify-center"
-                  onClick={() => {
-                    setSubjectUnits({
-                      ...subjectUnits,
-                      [subjectID]: (subjectUnits[subjectID] || 0) + 1,
-                    });
-                  }}
-                >
-                  <BiChevronUp size={24} />
-                </button>
-                <button
-                  className="join-item h-1/2 w-full bg-secondary hover:brightness-110 flex justify-center"
-                  onClick={() => {
-                    setSubjectUnits({
-                      ...subjectUnits,
-                      [subjectID]: Math.max((subjectUnits[subjectID] || 0) - 1, 0),
-                    });
-                  }}
-                >
-                  <BiChevronDown size={24} />
-                </button>
-              </div>
-            </div>
-
-            {/* Priority Input */}
-            <div className="flex items-center">
-              <input
-                type="text"
-                placeholder="Priority"
-                className="input w-full"
-                value={subjectPriorities[subjectID] ?? 0}
-                onChange={(e) => {
-                  setSubjectPriorities({
-                    ...subjectPriorities,
-                    [subjectID]: parseInt(e.target.value, 10) || 0,
-                  });
-                }}
-              />
-              <div className="join join-item join-vertical flex w-20 items-center border-l border-gray-300">
-                <button
-                  className="join-item h-1/2 w-full bg-secondary hover:brightness-110 flex justify-center"
-                  onClick={() => {
-                    setSubjectPriorities({
-                      ...subjectPriorities,
-                      [subjectID]: (subjectPriorities[subjectID] || 0) + 1,
-                    });
-                  }}
-                >
-                  <BiChevronUp size={24} />
-                </button>
-                <button
-                  className="join-item h-1/2 w-full bg-secondary hover:brightness-110 flex justify-center"
-                  onClick={() => {
-                    setSubjectPriorities({
-                      ...subjectPriorities,
-                      [subjectID]: Math.max((subjectPriorities[subjectID] || 0) - 1),
-                    });
-                  }}
-                >
-                  <BiChevronDown size={24} />
-                </button>
-              </div>
-            </div>
+      { selectedSubjects.length > 0 && 
+        <>
+          <div className="mt-4 text-sm">
+              <table className="min-w-full bg-white font-normal border border-gray-300">
+                <thead>
+                <tr>
+                  <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Subject</th>
+                  <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Duration (min)</th>
+                  <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Weekly Minutes</th>
+                  <th className="py-2 px-4 border-b border-gray-200 font-normal text-left"># of Classes</th>
+                </tr>
+                </thead>
+                <tbody>
+                  {selectedSubjects.map((subjectID) => (
+                    <tr key={subjectID}>
+                      {/* Subject */}
+                      <td className='p-2'> 
+                        {subjects[subjectID]?.subject || 'Unknown Subject, ID: ' + subjectID}
+                      </td>
+                      {/* Duration */}
+                      <td className='p-2'>
+                        {subjects[subjectID]?.classDuration || 'N/A'}
+                      </td>
+                      {/* Weekly Minutes */}
+                      <td className='p-2'>
+                        {subjects[subjectID]?.weeklyMinutes || 'N/A'}
+                      </td>
+                      {/* # of Classes */}
+                      <td>
+                        { (Math.min(Math.ceil(subjects[subjectID]?.weeklyMinutes / subjects[subjectID]?.classDuration), numOfSchoolDays)) || 'N/A'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
           </div>
-        ))}
-      </div>
+
+          <button
+            className='btn'
+            onClick={() =>     
+              document.getElementById(`assign_fixed_sched_modal_section(0)-grade(${selectedYearLevel})`).showModal()                      
+            }
+          >
+            Edit Section Fixed Schedule(s)
+          </button>
+          <FixedScheduleMaker 
+            key={selectedYearLevel}
+
+            addingMode={0}
+            isForSection={true}
+
+            pvs={1}
+            section={0}
+            grade={selectedYearLevel}
+
+            selectedSubjects={selectedSubjects}
+            fixedDays={fixedDays} setFixedDays={setFixedDays}
+            fixedPositions={fixedPositions} setFixedPositions={setFixedPositions}
+            
+            numOfSchoolDays={numOfSchoolDays}
+          />
+
+        </>
+      }
 
       {errorMessage && (
         <p className="text-red-500 text-sm my-4 font-medium select-none ">{errorMessage}</p>
@@ -426,7 +376,7 @@ const SectionListContainer = ({ editable = false }) => {
     (state) => state.teacher
   );
 
-  const [openAddSectionContainer, setOpenAddSectionContainer] = useState(false);
+  const numOfSchoolDays = parseInt(localStorage.getItem('numOfSchoolDays'), 10);
 
   const [errorMessage, setErrorMessage] = useState('');
   const [errorField, setErrorField] = useState([]);
@@ -437,12 +387,17 @@ const SectionListContainer = ({ editable = false }) => {
   const [editSectionId, setEditSectionId] = useState('');
   const [editSectionValue, setEditSectionValue] = useState('');
   const [editSectionSubjects, setEditSectionSubjects] = useState([]);
-  const [editSectionUnitsAndPriority, setEditSectionUnitsAndPriority] = useState({});
   const [editSectionShift, setEditSectionShift] = useState(0);
   const [editSectionStartTime, setEditSectionStartTime] = useState('');
 
+  const [editSectionFixedDays, setEditSectionFixedDays] = useState({});
+  const [editSectionFixedPositions, setEditSectionFixedPositions] = useState({});
+
   const [searchSectionResult, setSearchSectionResult] = useState(sections);
   const [searchSectionValue, setSearchSectionValue] = useState('');
+
+  const [currEditProgram, setCurrEditProgram] = useState('');
+  const [currEditYear, setCurrEditYear] = useState('');
 
   const handleEditSectionClick = (section) => {
     setEditSectionId(section.id);
@@ -450,39 +405,23 @@ const SectionListContainer = ({ editable = false }) => {
     setEditSectionAdviser(section.teacher);
     setEditSectionProg(section.program);
     setEditSectionYear(section.year);
-
     setEditSectionShift(section.shift);
     setEditSectionStartTime(getTimeSlotString(section.startTime));
+    setEditSectionSubjects(section.subjects);
+    setEditSectionFixedDays(section.fixedDays);
+    setEditSectionFixedPositions(section.fixedPositions);
 
-    // Convert section.subjects object keys to an array
-    const subjectsArray = Object.keys(section.subjects);
-
-    const subjectsWithUnitsAndPriority = subjectsArray.map((subjectId) => {
-      const [units, priority] = section.subjects[subjectId] || [0, 0]; // Destructure units and priority
-      return {
-        id: subjectId,
-        name: subjects[subjectId]?.subject || 'Unknown Subject',
-        units,
-        priority, // Include priority
-      };
-    });
-
-    setEditSectionSubjects(subjectsWithUnitsAndPriority.map(({ id }) => id));
-
-    setEditSectionUnitsAndPriority(
-      subjectsWithUnitsAndPriority.reduce((acc, { id, units, priority }) => {
-        acc[id] = [units, priority];
-        return acc;
-      }, {})
-    );
+    setCurrEditProgram(section.program);
+    setCurrEditYear(section.year);
   };
 
   const handleSaveSectionEditClick = (sectionId) => {
 
-    if (!editSectionAdviser || !editSectionValue || !editSectionProg || !editSectionYear || editSectionSubjects.length === 0 || editSectionUnitsAndPriority.length === 0) {
+    if (!editSectionAdviser || !editSectionValue || !editSectionProg || !editSectionYear || editSectionSubjects.length === 0) {
       toast.error('Please fill out all required fields.', {
         style: { backgroundColor: 'red', color: 'white' },
       });
+
       return;
     }
 
@@ -491,10 +430,6 @@ const SectionListContainer = ({ editable = false }) => {
 
     if (editSectionValue.trim().toLowerCase() === currentSection.trim().toLowerCase()
       && editSectionAdviser === currentSectionAdviser) {
-      const updatedUnits = {};
-      editSectionSubjects.forEach((subjectId) => {
-        updatedUnits[subjectId] = editSectionUnitsAndPriority[subjectId] || [0, 0];
-      });
 
       dispatch(
         editSection({
@@ -504,7 +439,9 @@ const SectionListContainer = ({ editable = false }) => {
             teacher: editSectionAdviser,
             program: editSectionProg,
             section: editSectionValue,
-            subjects: updatedUnits,
+            subjects: editSectionSubjects,
+            fixedDays: editSectionFixedDays,
+            fixedPositions: editSectionFixedPositions,
             year: editSectionYear,
             shift: editSectionShift,
             startTime: getTimeSlotIndex(editSectionStartTime),
@@ -522,7 +459,11 @@ const SectionListContainer = ({ editable = false }) => {
       setEditSectionProg('');
       setEditSectionYear('');
       setEditSectionSubjects([]);
-      setEditSectionUnitsAndPriority({});
+      setEditSectionFixedDays({});
+      setEditSectionFixedPositions({});
+
+      setCurrEditProgram('');
+      setCurrEditYear('');
     } else {
       const duplicateSection = Object.values(sections).find(
         (section) => section.section.trim().toLowerCase() === editSectionValue.trim().toLowerCase()
@@ -544,11 +485,6 @@ const SectionListContainer = ({ editable = false }) => {
           style: { backgroundColor: 'red', color: 'white' },
         });
       } else {
-        const updatedUnits = {};
-        editSectionSubjects.forEach((subjectId) => {
-          updatedUnits[subjectId] = editSectionUnitsAndPriority[subjectId] || [0, 0];
-        });
-
         dispatch(
           editSection({
             sectionId,
@@ -557,7 +493,9 @@ const SectionListContainer = ({ editable = false }) => {
               teacher: editSectionAdviser,
               program: editSectionProg,
               section: editSectionValue,
-              subjects: updatedUnits,
+              subjects: editSectionSubjects,
+              fixedDays: editSectionFixedDays,
+              fixedPositions: editSectionFixedPositions,
               year: editSectionYear,
               shift: editSectionShift,
               startTime: getTimeSlotIndex(editSectionStartTime),
@@ -571,10 +509,13 @@ const SectionListContainer = ({ editable = false }) => {
         setEditSectionProg('');
         setEditSectionYear('');
         setEditSectionSubjects([]);
-        setEditSectionUnitsAndPriority({});
+        setEditSectionFixedDays({});
+        setEditSectionFixedPositions({});
+
+        setCurrEditProgram('');
+        setCurrEditYear('');
       }
     }
-
   };
 
   const handleCancelSectionEditClick = () => {
@@ -584,7 +525,11 @@ const SectionListContainer = ({ editable = false }) => {
     setEditSectionProg('');
     setEditSectionYear('');
     setEditSectionSubjects([]);
-    setEditSectionUnitsAndPriority({});
+    setEditSectionFixedDays({});
+    setEditSectionFixedPositions({});
+
+    setCurrEditProgram('');
+    setCurrEditYear('');
   };
 
   const renderTimeOptions = () => {
@@ -602,6 +547,30 @@ const SectionListContainer = ({ editable = false }) => {
         {time}
       </option>
     ));
+  };
+  
+  const handleClose = () => {
+    const modal = document.getElementById('add_section_modal');
+    if (modal) {
+      modal.close();
+      setErrorMessage('');
+      setErrorField([]);
+    } else {
+      console.error("Modal with ID 'add_section_modal' not found.");
+    }
+  };
+
+  const deleteModal = (id) => {
+    const deleteModalElement = document.getElementById("delete_modal");
+    deleteModalElement.showModal();  // Show the modal
+
+    const deleteButton = document.getElementById("delete_button");
+    deleteButton.onclick = () => handleDelete(id);  // Dynamically assign delete logic
+  };
+
+  const handleDelete = (id) => {
+    dispatch(removeSection(id));  // Perform the delete action
+    document.getElementById("delete_modal").close(); // Close the modal after deleting
   };
 
   const debouncedSearch = useCallback(
@@ -639,6 +608,33 @@ const SectionListContainer = ({ editable = false }) => {
   }, [searchSectionValue, sections, debouncedSearch, subjects]);
 
   useEffect(() => {
+    if (
+      editSectionYear !== undefined &&
+      editSectionProg !== undefined &&
+      (currEditYear !== editSectionYear || currEditProgram !== editSectionProg)
+    ) {
+      setCurrEditProgram(editSectionProg);
+      setCurrEditYear(editSectionYear);
+
+      const program = Object.values(programs).find(
+        (p) => p.id === editSectionProg
+      );
+
+      if (program) {
+        setEditSectionSubjects(program[editSectionYear]?.subjects || []);
+        setEditSectionFixedDays(program[editSectionYear]?.fixedDays || {});
+        setEditSectionFixedPositions(program[editSectionYear]?.fixedPositions || {});
+      }
+    }
+  }, [editSectionYear, editSectionProg, programs]); // Add `programs` as a dependency
+
+  useEffect(() => {
+    console.log('editSectionSubjects:', editSectionSubjects);
+    console.log('editSectionFixedDays:', editSectionFixedDays);
+    console.log('editSectionFixedPositions:', editSectionFixedPositions);
+  }, [editSectionSubjects, editSectionFixedDays, editSectionFixedPositions]);
+
+  useEffect(() => {
     if (sectionStatus === 'idle') {
       dispatch(fetchSections());
     }
@@ -666,37 +662,12 @@ const SectionListContainer = ({ editable = false }) => {
     console.log('editSectionAdviser: ', editSectionAdviser);
   }, [editSectionAdviser]);
 
-  const handleClose = () => {
-    const modal = document.getElementById('add_section_modal');
-    if (modal) {
-      modal.close();
-      setErrorMessage('');
-      setErrorField([]);
-    } else {
-      console.error("Modal with ID 'add_section_modal' not found.");
-    }
-  };
-
-  const deleteModal = (id) => {
-    const deleteModalElement = document.getElementById("delete_modal");
-    deleteModalElement.showModal();  // Show the modal
-
-    const deleteButton = document.getElementById("delete_button");
-    deleteButton.onclick = () => handleDelete(id);  // Dynamically assign delete logic
-  };
-
-  const handleDelete = (id) => {
-    dispatch(removeSection(id));  // Perform the delete action
-    document.getElementById("delete_modal").close(); // Close the modal after deleting
-  };
-
-
   const itemsPerPage = 10; // Adjust this to change items per page
   const [currentPage, setCurrentPage] = useState(1);
 
   // Calculate total pages based on filtered sections
   const totalPages = Math.ceil(Object.values(searchSectionResult).length / itemsPerPage);
-
+  
   // Get current items
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -706,7 +677,7 @@ const SectionListContainer = ({ editable = false }) => {
     <React.Fragment>
       <div className="w-full">
         <div className="flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5">
-
+        
           {/* Pagination */}
           {currentItems.length > 0 && (
             <div className="join flex justify-center mb-4 md:mb-0">
@@ -759,6 +730,7 @@ const SectionListContainer = ({ editable = false }) => {
             </label>
           </div>
 
+
           {editable && (
             <div className="w-full mt-4 md:mt-0 md:w-auto">
               <button
@@ -769,7 +741,9 @@ const SectionListContainer = ({ editable = false }) => {
               </button>
 
               <dialog id="add_section_modal" className="modal modal-bottom sm:modal-middle">
-                <div className="modal-box">
+
+                <div className="modal-box" style={{ width: '50%', maxWidth: 'none' }}>
+
                   <AddSectionContainer
                     close={() => document.getElementById('add_section_modal').close()}
                     reduxField={['section', 'subjects', 'units']}
@@ -778,11 +752,12 @@ const SectionListContainer = ({ editable = false }) => {
                     setErrorMessage={setErrorMessage}
                     errorField={errorField}
                     setErrorField={setErrorField}
+
                   />
                   <div className="modal-action">
                     <button
                       className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                      onClick={handleClose}
+                      onClick={() => document.getElementById('add_section_modal').close()}
                     >
                       ✕
                     </button>
@@ -795,15 +770,16 @@ const SectionListContainer = ({ editable = false }) => {
 
         {/* Section Table */}
         <div className="overflow-x-auto">
-          <table className="table table-sm table-zebra md:table-md w-full">
+          <table className="table table-sm table-zebra min-w-full">
             <thead>
               <tr>
-                <th className="w-8">#</th>
+                {/* <th className="w-8">#</th> */}
                 <th>Section ID</th>
                 <th>Section</th>
                 <th>Adviser</th>
-                <th>Program</th>
-                <th>Year</th>
+                {/* <th>Program</th> */}
+                {/* <th>Year</th> */}
+
                 <th>Subjects</th>
                 {editable && <th className="text-right">Actions</th>}
               </tr>
@@ -818,17 +794,73 @@ const SectionListContainer = ({ editable = false }) => {
               ) : (
                 currentItems.map(([, section], index) => (
                   <tr key={section.id} className="group hover">
-                    <td>{index + indexOfFirstItem + 1}</td>
+
+                    {/* <td>{index + indexOfFirstItem + 1}</td> */}
+
+                    {/* Section ID */}
                     <th>{section.id}</th>
+
+                    {/* Section Name, Shift, and Start Time */}
                     <td>
                       {editSectionId === section.id ? (
                         <>
-                          <input
-                            type="text"
-                            value={editSectionValue}
-                            onChange={(e) => setEditSectionValue(e.target.value)}
-                            className="input input-bordered input-sm w-full"
-                          />
+                          {/* Section Name */}
+                          <div className="flex items-center mb-2">
+                            <label htmlFor="section-name" className="mr-2">
+                              Name:
+                            </label>
+                            <input
+                              type="text"
+                              id="section-name"
+                              value={editSectionValue}
+                              onChange={(e) => setEditSectionValue(e.target.value)}
+                              className="input input-bordered input-sm w-full"
+                            />
+                          </div>
+
+                          {/* Section Program */}
+                          <div className="flex items-center mb-2">
+                            <label htmlFor="section-name" className="mr-2">
+                              Program:
+                            </label>
+                            <select
+                              value={editSectionProg}
+                              onChange={(e) => {
+                                const newProgram = parseInt(e.target.value, 10);
+                                setEditSectionProg(newProgram);
+                              }}
+                              className="select select-bordered"
+                            >
+                              {Object.entries(programs).map(([key, program]) => (
+                                <option key={key} value={key}>
+                                  {program.program}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          {/* Section Year */}
+                          <div className="flex items-center mb-2">
+                            <label htmlFor="section-name" className="mr-2">
+                              Year:
+                            </label>
+                            <select
+                              value={editSectionYear}
+                              onChange={(e) => {
+                                const newYear = parseInt(e.target.value, 10);
+                                setEditSectionYear(newYear);
+                              }}
+                              className="select select-bordered"
+                            >
+                              {[7, 8, 9, 10].map((year) => (
+                                <option key={year} value={year}>
+                                  {year}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          {/* Section Shift */}
                           <div className="mt-2">
                             <label className="mr-2">Shift:</label>
                             <label className="mr-2">
@@ -856,6 +888,9 @@ const SectionListContainer = ({ editable = false }) => {
                               PM
                             </label>
                           </div>
+
+                          {/* Section Start Time (AM or PM) */}
+
                           <div>
                             <label>Start Time:</label>
                             <select
@@ -868,7 +903,13 @@ const SectionListContainer = ({ editable = false }) => {
                         </>
                       ) : (
                         <>
-                          <div className="text-base font-bold">{section.section}</div>
+                          <div className="text-base font-bold">
+                            {`${section.year} -  ${section.section}`}
+                          </div>
+                          <div className='mt-1'>
+                            {`(${programs[section.program]?.program})`}
+                          </div>
+
                           <div className="flex items-center mt-2">
                             <span className="inline-block bg-blue-500 text-white text-sm font-semibold py-1 px-3 rounded-lg">
                               {section.shift === 0 ? 'AM' : 'PM'}
@@ -880,6 +921,9 @@ const SectionListContainer = ({ editable = false }) => {
                         </>
                       )}
                     </td>
+
+                    {/* Adviser */}
+
                     <td>
                       {editSectionId === section.id ? (
                         <select
@@ -900,130 +944,106 @@ const SectionListContainer = ({ editable = false }) => {
                         teachers[section.teacher]?.teacher || 'Unknown Teacher'
                       )}
                     </td>
-                    <td>
-                      {editSectionId === section.id ? (
-                        <select
-                          value={editSectionProg}
-                          onChange={(e) => {
-                            const newProgram = parseInt(e.target.value, 10);
-                            setEditSectionProg(newProgram);
-                            const subjectsForProgramAndYear =
-                              programs[newProgram]?.[section.year]?.subjects || [];
-                            setEditSectionSubjects(subjectsForProgramAndYear);
-                            const updatedUnits = {};
-                            subjectsForProgramAndYear.forEach((subjectId) => {
-                              updatedUnits[subjectId] = 0;
-                            });
-                            setEditSectionUnitsAndPriority(updatedUnits);
-                          }}
-                          className="select select-bordered"
-                        >
-                          {Object.entries(programs).map(([key, program]) => (
-                            <option key={key} value={key}>
-                              {program.program}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        programs[section.program]?.program || 'Unknown Program'
-                      )}
-                    </td>
-                    <td>
-                      {editSectionId === section.id ? (
-                        <select
-                          value={editSectionYear}
-                          onChange={(e) => {
-                            const newYear = parseInt(e.target.value, 10);
-                            setEditSectionYear(newYear);
-                            const subjectsForProgramAndYear =
-                              programs[editSectionProg]?.[newYear]?.subjects || [];
-                            setEditSectionSubjects(subjectsForProgramAndYear);
-                            const updatedUnits = {};
-                            subjectsForProgramAndYear.forEach((subjectId) => {
-                              updatedUnits[subjectId] = 0;
-                            });
-                            setEditSectionUnitsAndPriority(updatedUnits);
-                          }}
-                          className="select select-bordered"
-                        >
-                          {[7, 8, 9, 10].map((year) => (
-                            <option key={year} value={year}>
-                              {year}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        section.year
-                      )}
-                    </td>
+                    
+                    {/* Subject Details */}
                     <td className="flex gap-1 flex-wrap">
-                      {editSectionId === section.id ? (
-                        <div className="space-y-2">
-                          {editSectionSubjects.map((subjectId) => (
-                            <div
-                              key={subjectId}
-                              className="px-2 flex items-center border border-gray-500 border-opacity-30"
-                            >
-                              <div className="mr-2">
-                                {subjects[subjectId]?.subject || 'Unknown Subject'}
-                              </div>
-                              <input
-                                type="number"
-                                value={editSectionUnitsAndPriority[subjectId][0] || 0}
-                                onChange={(e) =>
-                                  setEditSectionUnitsAndPriority({
-                                    ...editSectionUnitsAndPriority,
-                                    [subjectId]: [
-                                      parseInt(e.target.value, 10) || 0, // Set units
-                                      editSectionUnitsAndPriority[subjectId]?.[1] || 0, // Preserve priority
-                                    ],
-                                  })
-                                }
-                                className="input input-xs w-16"
-                              />
-                              <span className="text-xs ml-1">unit(s)</span>
+                      <div className='overflow-x-auto mt-2'>
+                        <table className='min-w-full bg-white border border-gray-300'>
+                          <thead>
+                            <tr>
+                              <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Subject</th>
+                              <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Duration (min)</th>
+                              <th className="py-2 px-4 border-b border-gray-200 font-normal text-left">Weekly Minutes</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {Array.isArray(section.subjects) && section.subjects.length > 0 ? (
+                              section.subjects.map((subjectID, index) => (
+                                <tr key={index} className="border-b border-gray-200">
+                                  {/* Subject Name */}
+                                  <td className="py-2 px-4 border-b border-gray-200">
+                                    {subjects[subjectID].subject || 'Unknown Subject, ID: ' + subjectID}
+                                  </td>
 
-                              <input
-                                type="number"
-                                value={editSectionUnitsAndPriority[subjectId][1] || 0} // Priority input
-                                onChange={(e) =>
-                                  setEditSectionUnitsAndPriority({
-                                    ...editSectionUnitsAndPriority,
-                                    [subjectId]: [
-                                      editSectionUnitsAndPriority[subjectId]?.[0] || 0, // Preserve units
-                                      parseInt(e.target.value, 10) || 0, // Set priority
-                                    ],
-                                  })
-                                }
-                                className="input input-xs w-16 ml-2" // Add some margin for spacing
-                              />
-                              <span className="text-xs ml-1">priority</span>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        subjectStatus === 'succeeded' && (
-                          <div className="space-y-2">
-                            {Object.keys(section.subjects).map((subjectID) => (
-                              <div
-                                key={subjectID}
-                                className="px-2 py-1 flex items-center border border-gray-500 border-opacity-30"
-                              >
-                                <div className="mr-2">
-                                  {subjects[subjectID]?.subject || 'Unknown Subject'}
-                                </div>
-                                <div className="text-xs opacity-75">
-                                  <span className="mr-1">{section.subjects[subjectID][0]}</span>
-                                  <span>unit(s)</span>
-                                  <span> </span>
-                                  <span>priority</span>
-                                  <span className="mr-1">({section.subjects[subjectID][1]})</span>
-                                </div>
-                              </div>
-                            ))}
+                                  {/* Duration */}
+                                  <td className="py-2 px-4 border-b border-gray-200">
+                                    {subjects[subjectID].classDuration || ''}
+                                  </td>
+
+                                  {/* Weekly Minutes */}
+                                  <td className="py-2 px-4 border-b border-gray-200">
+                                    {subjects[subjectID].weeklyMinutes || ''}
+                                  </td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan="4" className="py-2 px-4 text-center border-b border-gray-200">
+                                  No subjects selected
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+
+                        { editSectionId === section.id ? (
+                          <div className='p-2 flex justify-center'>
+                            <button
+                              className='btn'
+                              onClick={() =>     
+                                document.getElementById(`assign_fixed_sched_modal_section(${section.id})-grade(${editSectionYear})`).showModal()                      
+                              }
+                            >
+                              View Fixed Schedules
+                            </button>
+
+                            <FixedScheduleMaker
+                              key={editSectionYear}
+
+                              viewingMode={0}
+                              isForSection={true}
+
+                              pvs={1}
+                              section={section.id}
+                              grade={editSectionYear}
+
+                              selectedSubjects={editSectionSubjects}
+                              fixedDays={editSectionFixedDays} setFixedDays={setEditSectionFixedDays}
+                              fixedPositions={editSectionFixedPositions} setFixedPositions={setEditSectionFixedPositions}
+                              
+                              numOfSchoolDays={numOfSchoolDays}
+                            />
                           </div>
-                        )
-                      )}
+                        ) : (
+                          <div className='p-2 flex justify-center'>
+                            <button
+                              className='btn'
+                              onClick={() =>     
+                                document.getElementById(`assign_fixed_sched_modal_section(${section.id})-grade(${section.year})`).showModal()                      
+                              }
+                            >
+                              View Fixed Schedules
+                            </button>
+
+                            <FixedScheduleMaker
+                              key={section.year}
+
+                              viewingMode={1}
+                              isForSection={true}
+
+                              pvs={1}
+                              section={section.id}
+                              grade={section.year}
+
+                              selectedSubjects={section.subjects || []}
+                              fixedDays={section.fixedDays || {}}
+                              fixedPositions={section.fixedPositions || {}}
+
+                              numOfSchoolDays={numOfSchoolDays}
+                            />
+                          </div>
+                        )}
+                      </div>
                     </td>
 
                     {editable && (
@@ -1086,6 +1106,7 @@ const SectionListContainer = ({ editable = false }) => {
                               </form>
                             </dialog>
 
+
                           </>
                         )}
                       </td>
@@ -1096,10 +1117,7 @@ const SectionListContainer = ({ editable = false }) => {
             </tbody>
           </table>
         </div>
-
-
       </div>
-
     </React.Fragment>
   );
 };

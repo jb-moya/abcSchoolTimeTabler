@@ -261,9 +261,9 @@ const SearchableDropdownToggler = ({
     return pattern.test(subject.subject);
   });
 
-  useEffect(() => {
-    console.log(searchResults);
-  }, [searchResults]);
+  // useEffect(() => {
+  //   console.log(searchResults);
+  // }, [searchResults]);
 
   const handleInputChange = (e) => {
     setSearchSubjectValue(e.target.value);
@@ -275,7 +275,7 @@ const SearchableDropdownToggler = ({
       : [...selectedList, subjectID];
 
     setSelectedList(updatedList);
-    console.log(`Updated selected list:`, updatedList); // Log updated selected list
+    // console.log(`Updated selected list:`, updatedList); // Log updated selected list
   };
 
   return (
@@ -296,7 +296,7 @@ const SearchableDropdownToggler = ({
       </div>
       <ul
         tabIndex={0}
-        className="dropdown-content menu bg-base-100 rounded-box z-[1] w-60 p-2 shadow "
+        className="dropdown-content menu bg-base-100 rounded-box z-[1] w-42 h-auto shadow max-h-48 overflow-y-auto" // Updated here
       >
         <li>
           <input
