@@ -65,7 +65,7 @@ const AddSectionContainer = ({
 
   const handleAddEntry = () => {
 
-    if (inputValue === '' || selectedAdviser === '' || selectedProgram === '' || selectedYearLevel === '' || selectedSubjects.length === 0 || subjectUnits.length === 0 || subjectPriorities.length === 0) {
+    if (inputValue === '' || selectedAdviser === '' || selectedProgram === '' || selectedYearLevel === '' || selectedSubjects.length === 0) {
       const errorFields = [];
       if (inputValue === '') errorFields.push('name');
       if (selectedAdviser === '') errorFields.push('adviser');
@@ -745,7 +745,7 @@ const SectionListContainer = ({ editable = false }) => {
                 <div className="modal-box" style={{ width: '50%', maxWidth: 'none' }}>
 
                   <AddSectionContainer
-                    close={() => document.getElementById('add_section_modal').close()}
+                    close={handleClose}
                     reduxField={['section', 'subjects', 'units']}
                     reduxFunction={addSection}
                     errorMessage={errorMessage}
@@ -757,7 +757,7 @@ const SectionListContainer = ({ editable = false }) => {
                   <div className="modal-action">
                     <button
                       className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                      onClick={() => document.getElementById('add_section_modal').close()}
+                      onClick={handleClose}
                     >
                       ✕
                     </button>

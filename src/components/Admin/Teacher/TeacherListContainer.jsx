@@ -45,8 +45,6 @@ const AddTeacherContainer = ({
 
   const handleAddTeacher = () => {
 
-    handleReset();
-
     if (!teacherName.trim()) {
       setErrorMessage('Teacher name cannot be empty.');
       setErrorField('name');
@@ -307,8 +305,6 @@ const TeacherListContainer = ({ editable = false }) => {
 
   const [searchTeacherResult, setSearchTeacherResult] = useState(teachers);
   const [searchTeacherValue, setSearcTeacherValue] = useState('');
-  // const [openAddTeacherContainer, setOpenAddTeacherContainer] = useState(false);
-  // const [editSubjectCurr, setEditSubjectCurr] = useState([]);
 
   const handleEditTeacherClick = (teacher) => {
     setEditTeacherId(teacher.id);

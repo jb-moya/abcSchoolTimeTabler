@@ -31,13 +31,10 @@ const AddTeacherRankContainer = ({
   const dispatch = useDispatch();
 
   const [rankValue, setRankValue] = useState('');
-  // const [rankLoad, setRankLoad] = useState(1800);
-
-  // const rankLoadInHours = rankLoad / 60;
   
   const handleAddRank = () => {
     
-    if (!rankValue.trim() || rankLoad === 0) {
+    if (!rankValue.trim()) {
       setErrorMessage('All fields are required.');
       if (rankValue === ""){
         setErrorField('rank');
@@ -59,7 +56,6 @@ const AddTeacherRankContainer = ({
       dispatch(
         reduxFunction({
           rank: rankValue,
-          // load: rankLoad,
         })
       );
     }
@@ -77,15 +73,10 @@ const AddTeacherRankContainer = ({
     
   };
 
-  const handleRankLoadChange = (e) => {
-    setRankLoad(Number(e.target.value) * 60);
-  };
-
   const handleReset = () => {
     setErrorField('');
     setErrorMessage('');
     setRankValue('');
-    // setRankLoad(1800);
   };
 
   useEffect(() => {
@@ -122,24 +113,6 @@ const AddTeacherRankContainer = ({
         />
       </div>
 
-      {/* Rank Load */}
-      {/* <div className="mb-4">
-        <label className="block text-sm font-medium mb-1" htmlFor="rankLoad">
-          Input Rank Load (hours):
-        </label>
-        <input
-          id="rankLoad"
-          type="number"
-          className={`input input-bordered w-full ${errorField === 'load' ? 'border-red-500' : ''
-          }`}
-          value={rankLoadInHours}
-          onChange={handleRankLoadChange}
-          min={10}
-          max={40}
-          step={1}
-        />
-      </div>
-
       {errorMessage && (
         <p className="text-red-500 text-sm my-4 font-medium select-none ">{errorMessage}</p>
       )}
@@ -153,7 +126,6 @@ const AddTeacherRankContainer = ({
         </button>
       </div>
     </div>
-
   );
 };
 
@@ -169,21 +141,13 @@ const TeacherRankListContainer = ({ editable = false }) => {
 
   const [editRankId, setEditRankId] = useState(null);
   const [editRankValue, setEditRankValue] = useState('');
-  // const [editRankLoad, setEditRankLoad] = useState(1800);
 
   const [searchRankResult, setSearchRankResult] = useState(ranks);
   const [searchRankValue, setSearchRankValue] = useState('');
 
-  // const rankLoadInHours = editRankLoad / 60;
-
-  const handleRankLoadChange = (e) => {
-    setEditRankLoad(Number(e.target.value) * 60);
-  };
-
   const handleEditRankClick = (rank) => {
     setEditRankId(rank.id);
     setEditRankValue(rank.rank);
-    // setEditRankLoad(rank.load);
   };
 
   const handleSaveRankEditClick = (rankId) => {
@@ -203,14 +167,12 @@ const TeacherRankListContainer = ({ editable = false }) => {
           rankId,
           updatedRank: {
             rank: editRankValue,
-            // load: editRankLoad,
           },
         })
       );
 
       setEditRankId(null);
       setEditRankValue('');
-      // setEditRankLoad(0);
     } else {
       const duplicateRank = Object.values(ranks).find(
         (rank) => rank.rank.trim().toLowerCase() === editRankValue.trim().toLowerCase()
@@ -227,7 +189,6 @@ const TeacherRankListContainer = ({ editable = false }) => {
             rankId,
             updatedRank: {
               rank: editRankValue,
-              // load: editRankLoad,
             },
           })
         );
@@ -237,7 +198,6 @@ const TeacherRankListContainer = ({ editable = false }) => {
         });
         setEditRankId(null);
         setEditRankValue('');
-        // setEditRankLoad(0);
       }
     }
   };
@@ -245,7 +205,31 @@ const TeacherRankListContainer = ({ editable = false }) => {
   const handleCancelRankEditClick = () => {
     setEditRankId(null);
     setEditRankValue('');
-    // setEditRankLoad(0);
+    setEditRankLoad(0);
+  };
+
+  const handleClose = () => {
+    const modal = document.getElementById('add_rank_modal');
+    if (modal) {
+      modal.close();
+      setErrorMessage('');
+      setErrorField('');
+    } else {
+      console.error("Modal with ID 'add_teacher_modal' not found.");
+    }
+  };
+
+  const deleteModal = (id) => {
+    const deleteModalElement = document.getElementById("delete_modal");
+    deleteModalElement.showModal();  
+
+    const deleteButton = document.getElementById("delete_button");
+    deleteButton.onclick = () => handleDelete(id);  
+  };
+
+  const handleDelete = (id) => {
+    dispatch(removeRank(id));  
+    document.getElementById("delete_modal").close(); 
   };
 
   const debouncedSearch = useCallback(
@@ -279,31 +263,6 @@ const TeacherRankListContainer = ({ editable = false }) => {
     }
   }, [rankStatus, dispatch]);
 
-  const handleClose = () => {
-    const modal = document.getElementById('add_rank_modal');
-    if (modal) {
-      modal.close();
-      setErrorMessage('');
-      setErrorField('');
-    } else {
-      console.error("Modal with ID 'add_teacher_modal' not found.");
-    }
-  };
-
-  const deleteModal = (id) => {
-    const deleteModalElement = document.getElementById("delete_modal");
-    deleteModalElement.showModal();  
-
-    const deleteButton = document.getElementById("delete_button");
-    deleteButton.onclick = () => handleDelete(id);  
-  };
-
-  const handleDelete = (id) => {
-    dispatch(removeRank(id));  
-    document.getElementById("delete_modal").close(); 
-  };
-
-  
   const itemsPerPage = 10; // Change this to adjust the number of items per page
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -414,7 +373,6 @@ const TeacherRankListContainer = ({ editable = false }) => {
               <th className="w-8">#</th>
               <th className="whitespace-nowrap">Rank ID</th>
               <th className="whitespace-nowrap">Rank</th>
-              {/* <th className="whitespace-nowrap max-w-xs">Weekly Load (hours)</th> */}
               {editable && <th className="w-28 text-right">Actions</th>}
             </tr>
           </thead>
@@ -442,29 +400,6 @@ const TeacherRankListContainer = ({ editable = false }) => {
                       rank.rank
                     )}
                   </td>
-                  {/* <td className="flex gap-1 flex-wrap">
-                    {editRankId === rank.id ? (
-                      <>
-                        <div className="mb-4">
-                          <label className="block text-sm font-medium mb-1" htmlFor="rankLoad">
-                            Input Rank Load (hours):
-                          </label>
-                          <input
-                            id="rankLoad"
-                            type="number"
-                            className="input input-bordered w-full"
-                            value={rankLoadInHours}
-                            onChange={handleRankLoadChange}
-                            min={10}
-                            max={40}
-                            step={1}
-                          />
-                        </div>
-                      </>
-                    ) : (
-                      rank.load / 60
-                    )}
-                  </td> */}
                   {editable && (
                     <td className="w-28 text-right">
                       {editRankId === rank.id ? (
@@ -541,8 +476,6 @@ const TeacherRankListContainer = ({ editable = false }) => {
           </tbody>
         </table>
       </div>
-        
-
     </div>
   </React.Fragment>
   );

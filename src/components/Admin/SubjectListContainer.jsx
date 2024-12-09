@@ -47,8 +47,6 @@ const AddSubjectContainer = ({
 
   const handleAddSubject = () => {
 
-    handleReset();
-
     if (!subjectName.trim()) {
       setErrorMessage('Subject name cannot be empty');
       setErrorField('name'); // Highlight Subject Name input
@@ -182,7 +180,6 @@ const AddSubjectContainer = ({
     </div>
   );
 };
-
 
 const SubjectListContainer = ({ editable = false }) => {
   const dispatch = useDispatch();

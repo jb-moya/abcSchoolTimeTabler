@@ -17,14 +17,13 @@ import { getTimeSlotIndex, getTimeSlotString } from './timeSlotMapper';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
-import { toast } from 'sonner';
-
-import FixedScheduleMaker from './FixedSchedules/fixedScheduleMaker';
-
 import { toast } from "sonner";
 import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 
+import FixedScheduleMaker from './FixedSchedules/fixedScheduleMaker';
+
 const AddProgramContainer = ({
+  close,
   reduxField,
   reduxFunction,
   morningStartTime,
@@ -186,7 +185,6 @@ const AddProgramContainer = ({
 
   const handleAddEntry = () => {
 
-
     if (!inputValue.trim()) {
       setErrorMessage('Program name cannot be empty');
       setErrorField('program');
@@ -313,7 +311,6 @@ const AddProgramContainer = ({
   };
 
   const handleClose = () => {
-
     setInputValue('');
     setSelectedSubjects({
       7: [],
@@ -355,10 +352,11 @@ const AddProgramContainer = ({
     }
   }, []);
 
-  return 
+  return (
     <dialog id="add_program_modal" className="modal modal-bottom sm:modal-middle">
       <div className="modal-box" style={{ width: '50%', maxWidth: 'none' }}>
         <div className="p-6">
+
           {/* Header section with centered "Add {reduxField}" */}
           <div className="flex justify-between mb-4">
             <h3 className="text-lg font-bold text-center w-full">
@@ -471,26 +469,12 @@ const AddProgramContainer = ({
               </div>
             ))}
           </div>
-        
-          {/* Add button centered at the bottom */}
-          <div className="flex mt-6 justify-center gap-2">
-            <button className="btn btn-secondary" onClick={handleReset}>
-              Reset
-            </button>
-            <div className="flex justify-end space-x-2">
-              <button className="btn btn-primary flex items-center" onClick={handleAddEntry}>
-                <div>Add {reduxField[0]}</div>
-                <IoAdd size={20} className="ml-2" />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+        </div>
 
-       {errorMessage && (
+        {errorMessage && (
         <p className="text-red-500 text-sm my-4 font-medium select-none ">{errorMessage}</p>
-       )}
-    
+        )}
+
         {/* Add button centered at the bottom */}
         <div className="flex mt-6 justify-center gap-2">
           <button className="btn btn-secondary" onClick={handleReset}>
@@ -512,10 +496,9 @@ const AddProgramContainer = ({
             ✕
           </button>
         </div>
-        
+      
       </div>
     </dialog>
-  
   );  
 };
 
@@ -1170,7 +1153,6 @@ const ProgramListContainer = ({ editable = false }) => {
     document.getElementById("delete_modal").close(); 
   };
 
-  
   const handleClose = () => {
     const modal = document.getElementById('add_program_modal');
     if (modal) {
@@ -1180,9 +1162,8 @@ const ProgramListContainer = ({ editable = false }) => {
     } else {
         console.error("Modal with ID 'add_program_modal' not found.");
     }
-};
+  };
 
-  
   return (
     <React.Fragment>
       <div className="">
@@ -1250,10 +1231,15 @@ const ProgramListContainer = ({ editable = false }) => {
               Add Program <IoAdd size={20} className="ml-2" />
             </button>
             <AddProgramContainer
+              close={handleClose}
               reduxField={['program', 'subjects']}
               reduxFunction={addProgram}
               morningStartTime={morningStartTime}
               afternoonStartTime={afternoonStartTime}
+              errorMessage={errorMessage}
+              setErrorMessage={setErrorMessage}
+              errorField={errorField}
+              setErrorField={setErrorField}
             />
           </div>
         )}
