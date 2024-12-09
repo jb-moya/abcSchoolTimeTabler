@@ -12,6 +12,7 @@ export const STORE_NAMES = {
   SECTIONS: 'sections',
   PROGRAMS: 'programs',
   DEPARTMENTS: 'departments',
+  BUILDINGS: 'buildings',
 };
 
 export const initDB = async () => {

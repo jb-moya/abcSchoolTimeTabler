@@ -192,7 +192,7 @@ const AddTeacherContainer = ({
       {/* Assigning of Subjects */}
       <div className="mt-5">
         <div>
-          <h4 className="font-bold align-right">Selected Subjects:</h4>
+          <h4 className="font-bold align-right my-2">Selected Subjects:</h4>
           <div className="flex gap-2 flex-wrap">
             {selectedSubjects.length === 0 ? (
               <span className="text-gray-500 mt-1">No subjects selected</span>
