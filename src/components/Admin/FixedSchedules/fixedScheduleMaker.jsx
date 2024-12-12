@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { DndContext } from '@dnd-kit/core';
-import { produce } from "immer";
+import { produce } from 'immer';
 
-import ContainerSpawn  from './containerSpawn';
+import ContainerSpawn from './containerSpawn';
 import DroppableSchedCell from './droppableSchedCell';
 import { ReserveDay, ReservePosition } from './reservation';
 import { darkColors } from './bgColors';
@@ -17,39 +17,42 @@ const FixedScheduleMaker = ({
     grade = 0,
     section = 0,
 
+    totalTimeslot,
     isForSection = false,
     selectedSubjects = [],
     fixedDays = [],
     setFixedDays = () => {},
     fixedPositions = {},
     setFixedPositions = () => {},
-    
-    numOfSchoolDays = 0, 
-}) => {
 
+    numOfSchoolDays = 0,
+}) => {
     const subjects = useSelector((state) => state.subject.subjects);
 
-    const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const dayNames = [
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+        'Sunday',
+    ];
 
     const [editMode, setEditMode] = useState(false);
 
     const [subs, setSubs] = useState([]);
-    const [days, setDays] =  useState({});
-    const [positions, setPositions] =  useState({}); 
+    const [days, setDays] = useState({});
+    const [positions, setPositions] = useState({});
 
     const [subjectsPerPosition, setSubjectsPerPosition] = useState([]);
     const [mergeData, setMergeData] = useState({});
 
-    // Initialize days and positions when fixedDays or fixedPositions change
     useEffect(() => {
-        const subjects = getSubjectsPerPosition();
-        setSubjectsPerPosition(subjects);
-    
-        const ranges = findConsecutiveRanges(subjects);
-        setMergeData(ranges);
-    }, [subs, days, positions]);
-
-    useEffect(() => {
+        // console.log(
+        //     'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA selectedSubjects',
+        //     selectedSubjects
+        // );
         setSubs(produce(selectedSubjects, (draft) => draft));
         setDays(produce(fixedDays, (draft) => draft));
         setPositions(produce(fixedPositions, (draft) => draft));
@@ -64,7 +67,7 @@ const FixedScheduleMaker = ({
 
         for (let i = 0; i < subjs.length; i++) {
             const subject = subjs[i];
-            
+
             const fixedDay = days[subject] || [];
             const fixedPos = positions[subject] || [];
 
@@ -75,18 +78,27 @@ const FixedScheduleMaker = ({
                 if (day !== 0 && pos !== 0) {
                     subjectPositionArray[pos - 1][day - 1] = subject;
                 }
-            };
-        };
+            }
+        }
 
         return subjectPositionArray;
     };
+
+    // Initialize days and positions when fixedDays or fixedPositions change
+    useEffect(() => {
+        const subjects = getSubjectsPerPosition();
+        setSubjectsPerPosition(subjects);
+
+        const ranges = findConsecutiveRanges(subjects);
+        setMergeData(ranges);
+    }, [subs, days, positions]);
 
     const findConsecutiveRanges = (schedule) => {
         const mergeData = schedule.map((days, idx) => {
             const ranges = [];
             let start = null;
             let currentSubject = null;
-    
+
             for (let i = 0; i < days.length; i++) {
                 if (days[i] !== 0) {
                     if (start === null) {
@@ -98,7 +110,7 @@ const FixedScheduleMaker = ({
                         ranges.push({
                             start: { dayIndex: start, positionIndex: idx },
                             end: { dayIndex: i - 1, positionIndex: idx },
-                            subject: currentSubject
+                            subject: currentSubject,
                         });
                         start = i; // Start a new range
                         currentSubject = days[i];
@@ -109,26 +121,26 @@ const FixedScheduleMaker = ({
                         ranges.push({
                             start: { dayIndex: start, positionIndex: idx },
                             end: { dayIndex: i - 1, positionIndex: idx },
-                            subject: currentSubject
+                            subject: currentSubject,
                         });
                         start = null;
                         currentSubject = null;
                     }
                 }
             }
-    
+
             // Add the final range if still open
             if (start !== null) {
                 ranges.push({
                     start: { dayIndex: start, positionIndex: idx },
                     end: { dayIndex: days.length - 1, positionIndex: idx },
-                    subject: currentSubject
+                    subject: currentSubject,
                 });
             }
-    
+
             return ranges;
         });
-    
+
         return mergeData;
     };
 
@@ -153,8 +165,13 @@ const FixedScheduleMaker = ({
         );
 
         setEditMode(false);
-        document.getElementById(pvs === 0 ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})` 
-            : `assign_fixed_sched_modal_section(${section})-grade(${grade})`).close();
+        document
+            .getElementById(
+                pvs === 0
+                    ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})`
+                    : `assign_fixed_sched_modal_section(${section})-grade(${grade})`
+            )
+            .close();
     };
 
     const handleCancel = () => {
@@ -163,8 +180,13 @@ const FixedScheduleMaker = ({
         setPositions(produce(fixedPositions, (draft) => draft));
 
         setEditMode(false);
-        document.getElementById(pvs === 0 ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})` 
-            : `assign_fixed_sched_modal_section(${section})-grade(${grade})`).close();
+        document
+            .getElementById(
+                pvs === 0
+                    ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})`
+                    : `assign_fixed_sched_modal_section(${section})-grade(${grade})`
+            )
+            .close();
     };
 
     const handleClose = () => {
@@ -173,8 +195,13 @@ const FixedScheduleMaker = ({
         setPositions(produce(fixedPositions, (draft) => draft));
 
         setEditMode(false);
-        document.getElementById(pvs === 0 ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})` 
-            : `assign_fixed_sched_modal_section(${section})-grade(${grade})`).close();
+        document
+            .getElementById(
+                pvs === 0
+                    ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})`
+                    : `assign_fixed_sched_modal_section(${section})-grade(${grade})`
+            )
+            .close();
     };
 
     const toggleViewMode = () => {
@@ -185,17 +212,22 @@ const FixedScheduleMaker = ({
     const handleDragEnd = (event) => {
         const { active, over } = event;
         if (!over) return;
-    
+
         const draggedSubjectID = active.data.current.subjectID;
         const targetContainerID = over.data.current.subjectID;
-    
+
         // Dragged and target container details
-        const { grade: draggedGrade, dayIdx: draggedDay, posIdx: draggedPos } = active.data.current;
+        const {
+            grade: draggedGrade,
+            dayIdx: draggedDay,
+            posIdx: draggedPos,
+        } = active.data.current;
         const { day: targetDay, position: targetPos } = over.data.current;
-    
+
         // Skip if dragged item is being dropped on itself or an invalid container
-        if (draggedSubjectID !== targetContainerID && targetContainerID !== -1) return;
-    
+        if (draggedSubjectID !== targetContainerID && targetContainerID !== -1)
+            return;
+
         // Helper function to count slots
         const countSlots = (subs, key, targetValue, excludedValue) =>
             subs.reduce((count, subID) => {
@@ -204,7 +236,9 @@ const FixedScheduleMaker = ({
                     count +
                     items.filter(
                         (item, idx) =>
-                            item === targetValue && targetValue !== excludedValue && targetValue !== 0
+                            item === targetValue &&
+                            targetValue !== excludedValue &&
+                            targetValue !== 0
                     ).length
                 );
             }, 0);
@@ -222,13 +256,24 @@ const FixedScheduleMaker = ({
             targetPos,
             positions[draggedSubjectID]?.[draggedDay]
         );
-    
+
+        // console.log(
+        //     '%c Oh my heavens! ',
+        //     'background: #222; color: #bada55',
+        //     daySlots,
+        //     positionSlots
+        // );
+
         // Validate slots
-        if (daySlots === subs.length && positionSlots >= numOfSchoolDays) {
-            alert(`No spots left in ${dayNames[targetDay - 1]} and position ${targetPos}.`);
+        if (daySlots === totalTimeslot && positionSlots >= numOfSchoolDays) {
+            alert(
+                `No spots left in ${
+                    dayNames[targetDay - 1]
+                } and position ${targetPos}.`
+            );
             return;
         }
-        if (daySlots === subs.length) {
+        if (daySlots === totalTimeslot) {
             alert(`No spots left in ${dayNames[targetDay - 1]}.`);
             return;
         }
@@ -236,246 +281,276 @@ const FixedScheduleMaker = ({
             alert(`No spots left in position ${targetPos}.`);
             return;
         }
-    
+
         // Check if the target spot is occupied
         const isOccupied = subs.some((subID) =>
-            days[subID]?.some((day, idx) => day === targetDay && positions[subID]?.[idx] === targetPos && targetDay !== 0 && targetPos !== 0)
+            days[subID]?.some(
+                (day, idx) =>
+                    day === targetDay &&
+                    positions[subID]?.[idx] === targetPos &&
+                    targetDay !== 0 &&
+                    targetPos !== 0
+            )
         );
-    
+
         if (isOccupied) {
             alert('This spot is already taken!');
             return;
         }
-    
+
         // Update state
         setDays((prev) => {
             const updatedDays = { ...prev };
-            
+
             updatedDays[draggedSubjectID] = [...(prev[draggedSubjectID] || [])];
-            
+
             updatedDays[draggedSubjectID][draggedDay] = targetDay;
             return updatedDays;
         });
-        
+
         setPositions((prev) => {
             const updatedPositions = { ...prev };
 
-            updatedPositions[draggedSubjectID] = [...(prev[draggedSubjectID] || [])];
+            updatedPositions[draggedSubjectID] = [
+                ...(prev[draggedSubjectID] || []),
+            ];
 
             updatedPositions[draggedSubjectID][draggedDay] = targetPos;
             return updatedPositions;
         });
-        
     };
 
     return (
-        <dialog id={pvs === 0 ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})` 
-            : `assign_fixed_sched_modal_section(${section})-grade(${grade})`}  
-                className="modal modal-bottom sm:modal-middle">
-            <div 
-                className="modal-box" 
+        <dialog
+            id={
+                pvs === 0
+                    ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})`
+                    : `assign_fixed_sched_modal_section(${section})-grade(${grade})`
+            }
+            className="modal modal-bottom sm:modal-middle"
+        >
+            <div
+                className="modal-box"
                 style={{
-                    width: '80%', 
+                    width: '80%',
                     maxWidth: 'none',
-                }}  
+                }}
             >
-                <div 
-                    className="p-3"
-                    >
-                    <div className='pt-2 pb-4 text-2xl font-bold'>
+                <div className="p-3">
+                    <div className="pt-2 pb-4 text-2xl font-bold">
                         Fixed Schedules
                     </div>
-                    
-                    {
-                        viewingMode === 0 &&
 
+                    {viewingMode === 0 && (
                         <div className="flex justify-center items-center space-x-2 m-3 text-base">
-                            <div className={``}>
-                                View
-                            </div>
-                            <input 
-                                type="checkbox" 
-                                className="toggle" 
-                                checked={editMode} 
-                                onChange={toggleViewMode} 
+                            <div className={``}>View</div>
+                            <input
+                                type="checkbox"
+                                className="toggle"
+                                checked={editMode}
+                                onChange={toggleViewMode}
                             />
-                            <div>
-                                Edit
-                            </div>
+                            <div>Edit</div>
                         </div>
-                    }
+                    )}
 
-                    
                     <div className="text-sm flex flex-col space-y-4">
-                        <DndContext 
-                            onDragEnd={handleDragEnd}
-                        >
+                        <DndContext onDragEnd={handleDragEnd}>
                             <div className="flex">
-                                { editMode &&
+                                {editMode && (
                                     <div className="flex flex-col w-4/12">
                                         {/* Spawn point(s) for subject blocks */}
                                         {subs?.map((subject, index) => (
-                                            <div className='flex flex-wrap' key={`g${grade}-s${subject}`}>
-                                                <div 
+                                            <div
+                                                className="flex flex-wrap"
+                                                key={`g${grade}-s${subject}`}
+                                            >
+                                                <div
                                                     key={`spawn_label-g${grade}-s${subject}`}
-                                                    className='w-3/12 flex justify-center items-center border border-gray rounded-tl-lg rounded-bl-lg truncate'
+                                                    className="w-3/12 bg-yellow-200 flex justify-center items-center border border-gray rounded-tl-lg rounded-bl-lg truncate"
                                                     style={{
-                                                        backgroundColor: darkColors[index % darkColors.length], // Background color
+                                                        backgroundColor:
+                                                            darkColors[
+                                                                index %
+                                                                    darkColors.length
+                                                            ], // Background color
                                                         color: 'white',
                                                     }}
                                                 >
                                                     {subjects[subject]?.subject}
                                                 </div>
-                                                <div className='w-8/12'>
-                                                    <ContainerSpawn 
-                                                        key={`spawn-g${grade}-s${subject}`} 
-
+                                                <div className="w-8/12">
+                                                    <ContainerSpawn
+                                                        key={`spawn-g${grade}-s${subject}`}
                                                         editMode={editMode}
-
                                                         subjectID={subject}
                                                         position={0}
                                                         day={0}
                                                         grade={grade}
-
                                                         colorIndex={index}
-                                                        
                                                         selectedSubjects={subs}
                                                         fixedDays={days}
-                                                        fixedPositions={positions}
+                                                        fixedPositions={
+                                                            positions
+                                                        }
                                                     />
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
-                                }
-                                <div className={`p-4 ${editMode ? 'w-8/12' : 'w-full'}`}>
-                                    <div className='p-2'>
-
+                                )}
+                                <div
+                                    className={`p-4 ${
+                                        editMode ? 'w-8/12' : 'w-full'
+                                    }`}
+                                >
+                                    <div className="p-2">
                                         {/* Header */}
                                         {subs?.length > 0 && (
                                             <div className="flex flex-wrap justify-center items-center">
-                                            {/* Empty cell */}
+                                                {/* Empty cell */}
                                                 <div className="w-20 h-16 bg-transparent border border-transparent"></div>
 
                                                 {/* Days */}
                                                 <div className="flex flex-wrap">
-                                                    {Array.from({ length: numOfSchoolDays }).map((_, i) => {
-                                                    const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-                                                    const dayName = daysOfWeek[i % 7]; // Handle wrap-around for more than 7 days
+                                                    {Array.from({
+                                                        length: numOfSchoolDays,
+                                                    }).map((_, i) => {
+                                                        const daysOfWeek = [
+                                                            'Mon',
+                                                            'Tue',
+                                                            'Wed',
+                                                            'Thu',
+                                                            'Fri',
+                                                            'Sat',
+                                                            'Sun',
+                                                        ];
+                                                        const dayName =
+                                                            daysOfWeek[i % 7]; // Handle wrap-around for more than 7 days
 
-                                                    return (
-                                                        <div
-                                                            key={i}
-                                                            className="w-20 h-16 bg-blue-900 border flex items-center justify-center text-white font-bold"
-                                                        >
-                                                            {dayName}
-                                                        </div>
-                                                    );
+                                                        return (
+                                                            <div
+                                                                key={i}
+                                                                className="w-20 h-16 bg-blue-900 border flex items-center justify-center text-white font-bold"
+                                                            >
+                                                                {dayName}
+                                                            </div>
+                                                        );
                                                     })}
                                                 </div>
-                                                    
-                                                <div className='w-10 h-16 bg-transparent border border-transparent'>
-                                                </div>
+
+                                                <div className="w-10 h-16 bg-transparent border border-transparent"></div>
                                             </div>
                                         )}
-
                                         {/* Schedule */}
-                                        {subs?.map((subject, subIndex) => (
-                                            <div key={subIndex} className="flex flex-wrap justify-center items-center">
-
+                                        {/* {subs?.map((subject, subIndex) => ( */}
+                                        {Array.from(
+                                            { length: totalTimeslot },
+                                            (_, index) => index + 1
+                                        )?.map((subject, subIndex) => (
+                                            <div
+                                                key={subIndex}
+                                                className="flex flex-wrap justify-center items-center"
+                                            >
                                                 <div className="w-20 h-20 bg-blue-700 text-white font-bold border flex items-center justify-center">
                                                     {subIndex + 1}
                                                 </div>
 
                                                 {/* Droppable cells for schedule */}
-                                                {Array.from({ length:numOfSchoolDays }).map((_, index) => (
+                                                {Array.from({
+                                                    length: numOfSchoolDays,
+                                                }).map((_, index) => (
                                                     <DroppableSchedCell
                                                         key={`drop-g${grade}-d${index}-p${subIndex}`}
-
                                                         editMode={editMode}
-
                                                         subjectID={-1}
                                                         day={index + 1}
                                                         position={subIndex + 1}
                                                         grade={grade}
-
-                                                        mergeData={mergeData[subIndex]}
-
+                                                        mergeData={
+                                                            mergeData[subIndex]
+                                                        }
+                                                        totalTimeslot={
+                                                            totalTimeslot
+                                                        }
                                                         selectedSubjects={subs}
                                                         fixedDays={days}
-                                                        fixedPositions={positions}
+                                                        fixedPositions={
+                                                            positions
+                                                        }
                                                     />
                                                 ))}
 
                                                 {/* Reserve position */}
-                                                <ReservePosition 
-                                                    key={`reservePos-g${grade}-p${subIndex + 1}`}
+                                                <ReservePosition
+                                                    key={`reservePos-g${grade}-p${
+                                                        subIndex + 1
+                                                    }`}
                                                     editMode={editMode}
-
                                                     grade={grade}
                                                     subjectID={-1}
                                                     day={0}
                                                     position={subIndex + 1}
-
                                                     subs={subs}
-                                                    days={days} setDays={setDays}
-                                                    positions={positions} setPositions={setPositions}
+                                                    days={days}
+                                                    setDays={setDays}
+                                                    positions={positions}
+                                                    setPositions={setPositions}
                                                 />
                                             </div>
                                         ))}
-
                                         {/* Reserve day */}
                                         {subs?.length > 0 && (
-                                            <div key="reserveDay" className="flex flex-wrap justify-center items-center">
+                                            <div
+                                                key="reserveDay"
+                                                className="flex flex-wrap justify-center items-center"
+                                            >
+                                                <div className="w-20 h-10 bg-transparent border border-transparent"></div>
 
-                                                <div className="w-20 h-10 bg-transparent border border-transparent">
-                                                </div>
-
-                                                {Array.from({ length:numOfSchoolDays }).map((_, index) => (
+                                                {Array.from({
+                                                    length: numOfSchoolDays,
+                                                }).map((_, index) => (
                                                     <ReserveDay
-                                                        key={`reserveDay-g${grade}-d${index + 1}`}
+                                                        key={`reserveDay-g${grade}-d${
+                                                            index + 1
+                                                        }`}
                                                         editMode={editMode}
-
                                                         grade={grade}
                                                         subjectID={-1}
                                                         day={index + 1}
                                                         position={0}
-
                                                         subs={subs}
-                                                        days={days} setDays={setDays}
-                                                        positions={positions}  setPositions={setPositions}
+                                                        days={days}
+                                                        setDays={setDays}
+                                                        positions={positions}
+                                                        setPositions={
+                                                            setPositions
+                                                        }
                                                     />
                                                 ))}
 
-                                                <div className="w-10 h-10 bg-transparent border border-transparent">
-                                                </div>
-
+                                                <div className="w-10 h-10 bg-transparent border border-transparent"></div>
                                             </div>
                                         )}
                                     </div>
-                                    
                                 </div>
                             </div>
                         </DndContext>
                     </div>
-                    
-                    { editMode && 
-                        <div className='m-2 p-2 flex gap-3 justify-center'>
-                        <button 
-                            className='btn btn-primary'
-                            onClick={handleSave}
-                        >
-                            Save
-                        </button>
-                        <button 
-                            className='btn'
-                            onClick={handleCancel}
-                        >
-                            Cancel
-                        </button>
+
+                    {editMode && (
+                        <div className="m-2 p-2 flex gap-3 justify-center">
+                            <button
+                                className="btn btn-primary"
+                                onClick={handleSave}
+                            >
+                                Save
+                            </button>
+                            <button className="btn" onClick={handleCancel}>
+                                Cancel
+                            </button>
                         </div>
-                    }
-                    
+                    )}
                 </div>
                 <div className="modal-action w-full">
                     <button
@@ -488,7 +563,6 @@ const FixedScheduleMaker = ({
             </div>
         </dialog>
     );
-
 };
 
 export default FixedScheduleMaker;

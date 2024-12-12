@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDroppable } from '@dnd-kit/core';
-import { useSelector } from'react-redux';
+import { useSelector } from 'react-redux';
 import DraggableSchedules from './draggableSchedules';
 
 const DroppableSchedCell = ({
@@ -12,13 +12,17 @@ const DroppableSchedCell = ({
     grade,
 
     mergeData,
-
+    totalTimeslot,
     selectedSubjects,
     fixedDays,
     fixedPositions,
 }) => {
+    // console.log('🚀 ~ selectedSubjects : : : : :', selectedSubjects);
 
-    const numOfSchoolDays = parseInt(localStorage.getItem('numOfSchoolDays'), 10);
+    const numOfSchoolDays = parseInt(
+        localStorage.getItem('numOfSchoolDays'),
+        10
+    );
 
     const subjects = useSelector((state) => state.subject.subjects);
 
@@ -38,29 +42,34 @@ const DroppableSchedCell = ({
     const checkIfFull = () => {
         let daySlots = 0;
         let positionSlots = 0;
-        
-        {selectedSubjects?.map((subID, index) => {
-            const subjectDays = fixedDays[subID] || [];
-            const subjectPositions = fixedPositions[subID] || [];
 
-            for (let i = 0; i < subjectDays.length; i++) {
-                if (subjectDays[i] === day) {
-                    daySlots += 1;
+        {
+            selectedSubjects?.map((subID, index) => {
+                const subjectDays = fixedDays[subID] || [];
+                const subjectPositions = fixedPositions[subID] || [];
+
+                for (let i = 0; i < subjectDays.length; i++) {
+                    if (subjectDays[i] === day) {
+                        daySlots += 1;
+                    }
+
+                    if (subjectPositions[i] === position) {
+                        positionSlots += 1;
+                    }
                 }
+            });
+        }
 
-                if (subjectPositions[i] === position) {
-                    positionSlots += 1;
-                }
-            }
-        })}
-
-        if (daySlots === selectedSubjects.length || positionSlots >= numOfSchoolDays) {
+        if (
+            daySlots === selectedSubjects.length ||
+            positionSlots >= numOfSchoolDays
+        ) {
             setIsFull(true);
             return;
         }
 
         setIsFull(false);
-    }
+    };
 
     const { setNodeRef } = useDroppable({
         id: `drop-g${grade}-d${day}-p${position}`,
@@ -70,32 +79,38 @@ const DroppableSchedCell = ({
     return (
         <div
             ref={editMode ? setNodeRef : null}
-            className={`w-20 h-20 bg-blue-200 flex justify-center items-center ${isFull ? 'bg-gray-200' : ''}`}
-        > 
+            className={`w-20 h-20 bg-pink-500 flex justify-center items-center ${
+                isFull ? 'bg-gray-200' : ''
+            }`}
+        >
+            {/* {Array.from(
+                { length: totalTimeslot },
+                (_, index) => index + 1
+            )?.map((subject, index) => { */}
             {selectedSubjects?.map((subject, index) => {
                 const arrayLength = fixedDays?.[subject]?.length || 0;
 
                 return Array.from({ length: arrayLength }).map((_, idx) => {
-                    if (fixedDays?.[subject]?.[idx] === day && fixedPositions?.[subject]?.[idx] === position) {
+                    if (
+                        fixedDays?.[subject]?.[idx] === day &&
+                        fixedPositions?.[subject]?.[idx] === position
+                    ) {
                         return (
-                            <DraggableSchedules 
+                            <DraggableSchedules
                                 editMode={editMode}
-
-                                key={idx} 
-
+                                key={idx}
                                 subjectID={subject}
                                 grade={grade}
                                 dayIdx={idx}
                                 posIdx={idx}
-
                                 // Visuals only
                                 day={day}
                                 pos={position}
                                 mergeData={mergeData}
-
                                 colorIdx={index}
-
-                                subjectName={subjects[subject]?.subject || 'Unknown'}
+                                subjectName={
+                                    subjects[subject]?.subject || 'Unknown'
+                                }
                             />
                         );
                     }

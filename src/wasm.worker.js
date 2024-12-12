@@ -47,8 +47,15 @@ const getTimetable = async (params) =>
                 params.sectionSubjectOrders
             );
 
-            const resultBuff = wasm._malloc(params.resultLength * 8);
-            const resultBuff_2 = wasm._malloc(params.resultLength * 8);
+            const resultTimetableBuff = wasm._malloc(
+                params.resultTimetableLength * 8
+            );
+            const resultTimetable_2 = wasm._malloc(
+                params.resultTimetableLength * 8
+            );
+            const resultViolationBuff = wasm._malloc(
+                params.resultViolationLength * 8
+            );
 
             const enable_logging = false;
 
@@ -75,7 +82,7 @@ const getTimetable = async (params) =>
                 params.minTotalClassDurationForTwoBreaks
             );
             console.log('defaultClassDuration', params.defaultClassDuration);
-            console.log('resultLength', params.resultLength);
+            console.log('resultTimetableLength', params.resultTimetableLength);
             console.log('offset', params.offset);
 
             wasm._runExperiment(
@@ -105,19 +112,20 @@ const getTimetable = async (params) =>
                 params.teacherBreakThreshold,
                 params.minTotalClassDurationForTwoBreaks,
                 params.defaultClassDuration,
-                params.resultLength,
+                params.resultTimetableLength,
                 params.offset,
-                resultBuff,
-                resultBuff_2,
+                resultTimetableBuff,
+                resultTimetable_2,
+                resultViolationBuff,
 
                 enable_logging
             );
 
             const timetable = [];
 
-            for (let i = 0; i < params.resultLength; i++) {
-                let result = wasm.getValue(resultBuff + i * 8, 'i64');
-                let result_2 = wasm.getValue(resultBuff_2 + i * 8, 'i64');
+            for (let i = 0; i < params.resultTimetableLength; i++) {
+                let result = wasm.getValue(resultTimetableBuff + i * 8, 'i64');
+                let result_2 = wasm.getValue(resultTimetable_2 + i * 8, 'i64');
 
                 let resultArray = unpackIntegers(result);
                 let resultArray_2 = unpackIntegers(result_2);
@@ -135,12 +143,36 @@ const getTimetable = async (params) =>
                 timetable.push(combined);
             }
 
+            for (let i = 0; i < params.resultViolationLength; i++) {
+                let result = wasm.getValue(resultViolationBuff + i * 8, 'i64');
+
+                let resultArray = unpackIntegers(result);
+
+                if (
+                    resultArray[0] == -1 &&
+                    resultArray[1] == -1 &&
+                    resultArray[2] == -1 &&
+                    resultArray[3] == -1 &&
+                    resultArray[4] == -1
+                ) {
+                    console.log('done');
+                    break;
+                }
+
+                console.log('🚀 ~ newPromise ~ resultArray:', resultArray);
+            }
+
             // console.log("resultBuff", resultBuff, timetable);
 
             wasm._free(sectionSubjectsBuff);
+            wasm._free(sectionSubjectDurationsBuff);
+            wasm._free(sectionSubjectOrdersBuff);
+            wasm._free(sectionStartsBuff);
             wasm._free(teacherSubjectsBuff);
-            wasm._free(resultBuff);
-            wasm._free(resultBuff_2);
+            wasm._free(sectionSubjectUnitsBuff);
+            wasm._free(resultTimetableBuff);
+            wasm._free(resultTimetable_2);
+            wasm._free(resultViolationBuff);
 
             resolve({ timetable, status: 'success' });
         } catch (error) {

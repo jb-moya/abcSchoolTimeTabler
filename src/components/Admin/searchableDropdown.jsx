@@ -124,7 +124,6 @@
 
 // export default SearchableDropdownToggler;
 
-
 // import { useRef } from "react";
 // import { IoChevronDown, IoRemove, IoAdd } from "react-icons/io5";
 // import { useSelector } from "react-redux";
@@ -175,9 +174,9 @@
 //     <div>
 //     {/* Button to open the modal */}
 //     <button className="btn m-1" onClick={openModal}>
-//       {isEditMode 
-//         ? `Edit Subject(s) (${selectedList.length})` 
-//         : `Selected Subjects: ${selectedList.length}`} 
+//       {isEditMode
+//         ? `Edit Subject(s) (${selectedList.length})`
+//         : `Selected Subjects: ${selectedList.length}`}
 //     </button>
 
 //     {/* Nested Modal */}
@@ -244,39 +243,39 @@ import escapeRegExp from "@utils/escapeRegExp";
 import clsx from "clsx";
 
 const SearchableDropdownToggler = ({
-  selectedList,
-  setSelectedList,
-  isEditMode = false,
+    selectedList,
+    setSelectedList,
+    isEditMode = false,
 }) => {
-  const subjects = useSelector((state) => state.subject.subjects);
-  const [searchSubjectValue, setSearchSubjectValue] = useState("");
-  const searchInputRef = useRef(null);
+    const subjects = useSelector((state) => state.subject.subjects);
+    const [searchSubjectValue, setSearchSubjectValue] = useState('');
+    const searchInputRef = useRef(null);
 
-  const searchResults = filterObject(subjects, ([, subject]) => {
-    const escapedSearchValue = escapeRegExp(searchSubjectValue)
-      .split("\\*")
-      .join(".*");
+    const searchResults = filterObject(subjects, ([, subject]) => {
+        const escapedSearchValue = escapeRegExp(searchSubjectValue)
+            .split('\\*')
+            .join('.*');
 
-    const pattern = new RegExp(escapedSearchValue, "i");
-    return pattern.test(subject.subject);
-  });
+        const pattern = new RegExp(escapedSearchValue, 'i');
+        return pattern.test(subject.subject);
+    });
 
-  // useEffect(() => {
-  //   console.log(searchResults);
-  // }, [searchResults]);
+    // useEffect(() => {
+    //   console.log(searchResults);
+    // }, [searchResults]);
 
-  const handleInputChange = (e) => {
-    setSearchSubjectValue(e.target.value);
-  };
+    const handleInputChange = (e) => {
+        setSearchSubjectValue(e.target.value);
+    };
 
-  const toggleSubject = (subjectID) => {
-    const updatedList = selectedList.includes(subjectID)
-      ? selectedList.filter((id) => id !== subjectID)
-      : [...selectedList, subjectID];
+    const toggleSubject = (subjectID) => {
+        const updatedList = selectedList.includes(subjectID)
+            ? selectedList.filter((id) => id !== subjectID)
+            : [...selectedList, subjectID];
 
-    setSelectedList(updatedList);
-    // console.log(`Updated selected list:`, updatedList); // Log updated selected list
-  };
+        setSelectedList(updatedList);
+        // console.log(`Updated selected list:`, updatedList); // Log updated selected list
+    };
 
   return (
     <div className="dropdown w-full max-w-md md:max-w-lg lg:max-w-xl">
