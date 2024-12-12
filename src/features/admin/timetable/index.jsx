@@ -1067,7 +1067,7 @@ function Timetable() {
                        },
                    })
                );
-           };
+           }
         });
 
         if (Object.keys(sectionsStore).length === 0) return;

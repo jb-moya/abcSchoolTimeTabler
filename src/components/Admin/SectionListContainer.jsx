@@ -91,10 +91,10 @@ const AddSectionContainer = ({
 
         programs[selectedProgram][selectedYearLevel].subjects.forEach(
             (subject) => {
-                totalNumOfClasses += Math.ceil(
+                totalNumOfClasses += Math.min(Math.ceil(
                     subjects[subject].weeklyMinutes /
                         subjects[subject].classDuration
-                );
+                ), numOfSchoolDays);
             }
         );
 
@@ -518,10 +518,10 @@ const SectionListContainer = ({
             console.log('gradeInfo.subjects', sectionSubjects);
 
             sectionSubjects.forEach((subject) => {
-                totalNumOfClasses += Math.ceil(
+                totalNumOfClasses += Math.min(Math.ceil(
                     subjects[subject].weeklyMinutes /
                         subjects[subject].classDuration
-                );
+                ), numOfSchoolDays);
             });
 
 

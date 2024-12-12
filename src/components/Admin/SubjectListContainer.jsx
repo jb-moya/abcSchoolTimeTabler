@@ -19,21 +19,21 @@ import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 
-import {toast } from "sonner";
+import { toast } from 'sonner';
 import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 
 const AddSubjectContainer = ({
-  close,
-  reduxFunction,
-  errorMessage,
-  setErrorMessage,
-  errorField,
-  setErrorField,
-  defaultSubjectClassDuration,
+    close,
+    reduxFunction,
+    errorMessage,
+    setErrorMessage,
+    errorField,
+    setErrorField,
+    defaultSubjectClassDuration,
 }) => {
-  const inputNameRef = useRef();
-  const dispatch = useDispatch();
-  const subjects = useSelector((state) => state.subject.subjects);
+    const inputNameRef = useRef();
+    const dispatch = useDispatch();
+    const subjects = useSelector((state) => state.subject.subjects);
 
     const dayNames = [
         'Monday',
@@ -45,76 +45,80 @@ const AddSubjectContainer = ({
         'Sunday',
     ];
 
-  const [subjectName, setSubjectName] = useState('');
-  const [classSubjectDuration, setClassSubjectDuration] = useState(
-    defaultSubjectClassDuration || 10
-  );
-  
-  const [subjectWeeklyMinutes, setSubjectWeeklyMinutes] = useState(100);
+    const [subjectName, setSubjectName] = useState('');
+    const [classSubjectDuration, setClassSubjectDuration] = useState(
+        defaultSubjectClassDuration || 10
+    );
 
-  const handleAddSubject = () => {
+    const [subjectWeeklyMinutes, setSubjectWeeklyMinutes] = useState(100);
 
-    if (!subjectName.trim()) {
-      setErrorMessage('Subject name cannot be empty');
-      setErrorField('name'); // Highlight Subject Name input
-      return;
-    } else if (!classSubjectDuration) {
-      setErrorMessage('Class duration cannot be empty');
-      setErrorField('duration'); // Highlight Class Duration input
-      return;
-    } else if (!subjectWeeklyMinutes) {
-      alert('Subject weekly minutes cannot be empty');
-      return;
-    }
+    const handleAddSubject = () => {
+        if (!subjectName.trim()) {
+            setErrorMessage('Subject name cannot be empty');
+            setErrorField('name'); // Highlight Subject Name input
+            return;
+        } else if (!classSubjectDuration) {
+            setErrorMessage('Class duration cannot be empty');
+            setErrorField('duration'); // Highlight Class Duration input
+            return;
+        } else if (!subjectWeeklyMinutes) {
+            alert('Subject weekly minutes cannot be empty');
+            return;
+        }
 
         const classDuration = parseInt(classSubjectDuration, 10);
         const weeklyMinutes = parseInt(subjectWeeklyMinutes, 10);
 
-    const duplicateSubject = Object.values(subjects).find(
-      (subject) =>
-        subject.subject.trim().toLowerCase() === subjectName.trim().toLowerCase()
-    );
+        const duplicateSubject = Object.values(subjects).find(
+            (subject) =>
+                subject.subject.trim().toLowerCase() ===
+                subjectName.trim().toLowerCase()
+        );
 
-    if (duplicateSubject) {
-      setErrorMessage('A subject with this name already exists');
-      setErrorField('name');
-    } else {
-      dispatch(
-        reduxFunction({
-          subject: subjectName,
-          classDuration: classDuration,
-          weeklyMinutes: weeklyMinutes,
-        })
-      );
+        if (duplicateSubject) {
+            setErrorMessage('A subject with this name already exists');
+            setErrorField('name');
+        } else {
+            dispatch(
+                reduxFunction({
+                    subject: subjectName,
+                    classDuration: classDuration,
+                    weeklyMinutes: weeklyMinutes,
+                })
+            );
 
-      toast.success('Subject added successfully', {
-        style: { backgroundColor: 'green', color: 'white', bordercolor: 'green' },
-      });
+            toast.success('Subject added successfully', {
+                style: {
+                    backgroundColor: 'green',
+                    color: 'white',
+                    bordercolor: 'green',
+                },
+            });
 
-      handleReset();
-      close();
-    }
-  };
+            handleReset();
+            close();
+        }
+    };
 
-  const handleReset = () => {
-    setSubjectName('');
-    setClassSubjectDuration(defaultSubjectClassDuration || 10);
-    setSubjectWeeklyMinutes(100);
+    const handleReset = () => {
+        setSubjectName('');
+        setClassSubjectDuration(defaultSubjectClassDuration || 10);
+        setSubjectWeeklyMinutes(100);
 
-    setErrorMessage('');
-    setErrorField('');
-    if (inputNameRef.current) {
-      inputNameRef.current.focus();
-    }
-  };
-  
-  // Tracks which input field has an error
-  useEffect(() => {
-    if (!close) {
-      setErrorMessage('');
-      setErrorField('');
-    }
-  }, [close, setErrorMessage, setErrorField]);
+        setErrorMessage('');
+        setErrorField('');
+        if (inputNameRef.current) {
+            inputNameRef.current.focus();
+        }
+    };
+
+    // Tracks which input field has an error
+    useEffect(() => {
+        if (!close) {
+            setErrorMessage('');
+            setErrorField('');
+        }
+    }, [close, setErrorMessage, setErrorField]);
 
     useEffect(() => {
         if (inputNameRef.current) {
@@ -122,75 +126,86 @@ const AddSubjectContainer = ({
         }
     }, []);
 
-  return (
-    <div>
-      <h3 className="text-lg font-bold mb-4">Add New Subject</h3>
+    return (
+        <div>
+            <h3 className="text-lg font-bold mb-4">Add New Subject</h3>
 
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">Subject Name:</label>
-        <input
-          type="text"
-          className={`input input-bordered w-full ${errorField === 'name' ? 'border-red-500' : ''
-            }`}
-          value={subjectName}
-          onChange={(e) => setSubjectName(e.target.value)}
-          placeholder="Enter subject name"
-          ref={inputNameRef}
-        />
-      </div>
+            <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">
+                    Subject Name:
+                </label>
+                <input
+                    type="text"
+                    className={`input input-bordered w-full ${
+                        errorField === 'name' ? 'border-red-500' : ''
+                    }`}
+                    value={subjectName}
+                    onChange={(e) => setSubjectName(e.target.value)}
+                    placeholder="Enter subject name"
+                    ref={inputNameRef}
+                />
+            </div>
 
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">
-          Class Duration (minutes):
-        </label>
-        <input
-          type="number"
-          className={`input input-bordered w-full ${errorField === 'duration' ? 'border-red-500' : ''
-            }`}
-          value={classSubjectDuration}
-          onChange={(e) => setClassSubjectDuration(Number(e.target.value))}
-          placeholder="Enter class duration"
-          step={5}
-          min={10}
-        />
-      </div>
-      
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">
-          Subject's Weekly Time Requirement (minutes):
-        </label>
-        <input
-          type="number"
-          className="input input-bordered w-full"
-          value={subjectWeeklyMinutes}
-          onChange={(e) => {
-            const value = Number(e.target.value);
-            setSubjectWeeklyMinutes(value);
-          }}
-          placeholder="Enter subject's weekly minutes"
-          step={5}
-        />
-      </div>
+            <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">
+                    Class Duration (minutes):
+                </label>
+                <input
+                    type="number"
+                    className={`input input-bordered w-full ${
+                        errorField === 'duration' ? 'border-red-500' : ''
+                    }`}
+                    value={classSubjectDuration}
+                    onChange={(e) =>
+                        setClassSubjectDuration(Number(e.target.value))
+                    }
+                    placeholder="Enter class duration"
+                    step={5}
+                    min={10}
+                />
+            </div>
 
-      {errorMessage && (
-        <p className="text-red-500 text-sm my-4 font-medium select-none ">{errorMessage}</p>
-      )}
+            <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">
+                    Subject's Weekly Time Requirement (minutes):
+                </label>
+                <input
+                    type="number"
+                    className="input input-bordered w-full"
+                    value={subjectWeeklyMinutes}
+                    onChange={(e) => {
+                        const value = Number(e.target.value);
+                        setSubjectWeeklyMinutes(value);
+                    }}
+                    placeholder="Enter subject's weekly minutes"
+                    step={5}
+                />
+            </div>
 
-      <div className="flex justify-center gap-2">
-        <button className="btn btn-secondary border-0" onClick={handleReset}>
-          Reset
-        </button>
-        <button className="btn btn-primary" onClick={handleAddSubject}>
-          Add Subject
-        </button>
-      </div>
-    </div>
-  );
+            {errorMessage && (
+                <p className="text-red-500 text-sm my-4 font-medium select-none ">
+                    {errorMessage}
+                </p>
+            )}
+
+            <div className="flex justify-center gap-2">
+                <button
+                    className="btn btn-secondary border-0"
+                    onClick={handleReset}
+                >
+                    Reset
+                </button>
+                <button className="btn btn-primary" onClick={handleAddSubject}>
+                    Add Subject
+                </button>
+            </div>
+        </div>
+    );
 };
 
-const SubjectListContainer = ({ 
-  numOfSchoolDays: externalNumOfSchoolDays,
-  editable = false 
+const SubjectListContainer = ({
+    numOfSchoolDays: externalNumOfSchoolDays,
+    editable = false,
 }) => {
     const dispatch = useDispatch();
 
@@ -204,97 +219,79 @@ const SubjectListContainer = ({
         (state) => state.section
     );
 
-  const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
-    return externalNumOfSchoolDays ?? (Number(localStorage.getItem('numOfSchoolDays')) || 0);
-  });
-  const defaultSubjectClassDuration = localStorage.getItem('defaultSubjectClassDuration');
-
-  const [errorMessage, setErrorMessage] = useState('');
-  const [errorField, setErrorField] = useState('');
-
-  const [editSubjectId, setEditSubjectId] = useState(null);
-  const [searchSubjectResult, setSearchSubjectResult] = useState(subjects);
-  const [editSubjectValue, setEditSubjectValue] = useState('');
-  const [editClassDuration, setEditClassDuration] = useState(0);
-  const [editSubjectWeeklyMinutes, setEditSubjectWeeklyMinutes] = useState(0);
-
-  const [searchSubjectValue, setSearchSubjectValue] = useState('');
-  const [openAddSubjectContainer, setOpenAddSubjectContainer] =
-      useState(false);
-
-  const handleEditSubjectClick = (subject) => {
-    setEditSubjectId(subject.id);
-    setEditSubjectValue(subject.subject);
-    setEditClassDuration(subject.classDuration);
-    setEditSubjectWeeklyMinutes(subject.weeklyMinutes);
-  };
-
-  const handleSaveSubjectEditClick = (subjectId) => {
-
-    if (!editSubjectValue.trim()) {
-      alert('Subject name cannot be empty');
-      return;
-    } else if (!editClassDuration) {
-      alert('Class duration cannot be empty');
-      return;
-    } else if (!editSubjectWeeklyMinutes) {
-      alert('Subject weekly minutes cannot be empty');
-      return;
-    }
-
-    const currentSubject = subjects[subjectId]?.subject || '';
-
-    if (editSubjectValue.trim().toLowerCase() === currentSubject.toLowerCase()) {
-      dispatch(
-        editSubject({
-          subjectId,
-          updatedSubject: {
-            subject: editSubjectValue,
-            classDuration: editClassDuration,
-            weeklyMinutes: editSubjectWeeklyMinutes,
-          },
-        })
-      );
-
-      updateSubjectDependencies();
-  
-      toast.success('Data and dependencies updated successfully', {
-        style: { backgroundColor: 'green', color: 'white', bordercolor: 'green', },
-      });
-
-      setEditSubjectId(null);
-      setEditSubjectValue('');
-      setEditClassDuration(0);
-      setEditSubjectWeeklyMinutes(0);
-    } else {
-      const duplicateSubject = Object.values(subjects).find(
-        (subject) => subject.subject.trim().toLowerCase() === editSubjectValue.trim().toLowerCase()
-      );
-
-      if (duplicateSubject) {
-        alert('A subject with this name already exists.');
-      } else if (editSubjectValue.trim()) {
-        dispatch(
-          editSubject({
-            subjectId,
-            updatedSubject: {
-              subject: editSubjectValue,
-              classDuration: editClassDuration,
-              weeklyMinutes: editSubjectWeeklyMinutes,
-            },
-          })
+    const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
+        return (
+            externalNumOfSchoolDays ??
+            (Number(localStorage.getItem('numOfSchoolDays')) || 0)
         );
+    });
+    const defaultSubjectClassDuration = localStorage.getItem(
+        'defaultSubjectClassDuration'
+    );
+
+    const [errorMessage, setErrorMessage] = useState('');
+    const [errorField, setErrorField] = useState('');
+
+    const [editSubjectId, setEditSubjectId] = useState(null);
+    const [searchSubjectResult, setSearchSubjectResult] = useState(subjects);
+    const [editSubjectValue, setEditSubjectValue] = useState('');
+    const [editClassDuration, setEditClassDuration] = useState(0);
+    const [editSubjectWeeklyMinutes, setEditSubjectWeeklyMinutes] = useState(0);
+
+    const [searchSubjectValue, setSearchSubjectValue] = useState('');
+    const [openAddSubjectContainer, setOpenAddSubjectContainer] =
+        useState(false);
+
+    const handleEditSubjectClick = (subject) => {
+        setEditSubjectId(subject.id);
+        setEditSubjectValue(subject.subject);
+        setEditClassDuration(subject.classDuration);
+        setEditSubjectWeeklyMinutes(subject.weeklyMinutes);
+    };
+
+    const handleSaveSubjectEditClick = (subjectId) => {
+        if (!editSubjectValue.trim()) {
+            alert('Subject name cannot be empty');
+            return;
+        } else if (!editClassDuration) {
+            alert('Class duration cannot be empty');
+            return;
+        } else if (!editSubjectWeeklyMinutes) {
+            alert('Subject weekly minutes cannot be empty');
+            return;
+        }
+
+        const currentSubject = subjects[subjectId]?.subject || '';
+
+        if (
+            editSubjectValue.trim().toLowerCase() ===
+            currentSubject.toLowerCase()
+        ) {
+            dispatch(
+                editSubject({
+                    subjectId,
+                    updatedSubject: {
+                        subject: editSubjectValue,
+                        classDuration: editClassDuration,
+                        weeklyMinutes: editSubjectWeeklyMinutes,
+                    },
+                })
+            );
+
             updateSubjectDependencies();
-            // console.log('after :D subjects', subjects);
-            toast.success('Data and dependencies updated successfully!', {
+
+            toast.success('Data and dependencies updated successfully', {
                 style: {
-                    backgroundColor: '#28a745',
-                    color: '#fff',
-                    borderColor: '#28a745',
+                    backgroundColor: 'green',
+                    color: 'white',
+                    bordercolor: 'green',
                 },
             });
 
-            resetInputs();
+            setEditSubjectId(null);
+            setEditSubjectValue('');
+            setEditClassDuration(0);
+            setEditSubjectWeeklyMinutes(0);
         } else {
             const duplicateSubject = Object.values(subjects).find(
                 (subject) =>
@@ -315,38 +312,79 @@ const SubjectListContainer = ({
                         },
                     })
                 );
+                updateSubjectDependencies();
+                // console.log('after :D subjects', subjects);
+                toast.success('Data and dependencies updated successfully!', {
+                    style: {
+                        backgroundColor: '#28a745',
+                        color: '#fff',
+                        borderColor: '#28a745',
+                    },
+                });
 
-        updateSubjectDependencies();
-        
-        toast.success('Data and dependencies updated successfully', {
-          style: { backgroundColor: 'green', color: 'white', bordercolor: 'green', },
-        });
-  
+                resetInputs();
+            } else {
+                const duplicateSubject = Object.values(subjects).find(
+                    (subject) =>
+                        subject.subject.trim().toLowerCase() ===
+                        editSubjectValue.trim().toLowerCase()
+                );
+
+                if (duplicateSubject) {
+                    alert('A subject with this name already exists.');
+                } else if (editSubjectValue.trim()) {
+                    dispatch(
+                        editSubject({
+                            subjectId,
+                            updatedSubject: {
+                                subject: editSubjectValue,
+                                classDuration: editClassDuration,
+                                weeklyMinutes: editSubjectWeeklyMinutes,
+                            },
+                        })
+                    );
+
+                    updateSubjectDependencies();
+
+                    toast.success(
+                        'Data and dependencies updated successfully',
+                        {
+                            style: {
+                                backgroundColor: 'green',
+                                color: 'white',
+                                bordercolor: 'green',
+                            },
+                        }
+                    );
+
+                    setEditSubjectId(null);
+                    setEditSubjectValue('');
+                    setEditClassDuration(0);
+                    setEditSubjectWeeklyMinutes(0);
+                }
+            }
+        }
+    };
+
+    const handleCancelSubjectEditClick = () => {
         setEditSubjectId(null);
         setEditSubjectValue('');
         setEditClassDuration(0);
         setEditSubjectWeeklyMinutes(0);
-      }
-    }
-    }
-  };
+    };
 
-  const handleCancelSubjectEditClick = () => {
-    setEditSubjectId(null);
-    setEditSubjectValue('');
-    setEditClassDuration(0);
-    setEditSubjectWeeklyMinutes(0);
-  };
-
-  const updateSubjectDependencies = () => {
+    const updateSubjectDependencies = () => {
         // Update subject dependencies in PROGRAMS
 
         function calculateTotalTimeslots(subjects, program) {
             const totalNumOfClasses = program.subjects.reduce(
                 (total, subject) => {
-                    const classesPerWeek = Math.ceil(
-                        subjects[subject].weeklyMinutes /
-                            subjects[subject].classDuration
+                    const classesPerWeek = Math.min(
+                        Math.ceil(
+                            subjects[subject].weeklyMinutes /
+                                subjects[subject].classDuration
+                        ),
+                        numOfSchoolDays
                     );
                     return total + classesPerWeek;
                 },
@@ -579,12 +617,18 @@ const SubjectListContainer = ({
             //     subjectsMap.set(subject.id, true)
             // );
 
-      fixedDays.forEach((day, index) => {
-        const pos = fixedPositions[index];
-        if ((day !== 0 && pos !== 0) || (day !== 0 && pos === 0) || (day === 0 && pos !== 0) && !dayPositionMap.has(`${day}-${pos}`)) {
-          dayPositionMap.set(`${day}-${pos}`, [day, pos]);
-        }
-      });
+            fixedDays.forEach((day, index) => {
+                const pos = fixedPositions[index];
+                if (
+                    (day !== 0 && pos !== 0) ||
+                    (day !== 0 && pos === 0) ||
+                    (day === 0 &&
+                        pos !== 0 &&
+                        !dayPositionMap.has(`${day}-${pos}`))
+                ) {
+                    dayPositionMap.set(`${day}-${pos}`, [day, pos]);
+                }
+            });
 
             // Now we process the day-position pairs efficiently
             let result = [];
@@ -605,119 +649,121 @@ const SubjectListContainer = ({
                 ([_, pos]) => pos
             );
 
-      if (originalSection !== newSection) {
-        dispatch(
-          editSection({
-            sectionId: newSection.id,
-            updatedSection: {
-              id: newSection.id,
-              teacher: newSection.teacher,
-              program: newSection.program,
-              section: newSection.section,
-              subjects: newSection.subjects,
-              fixedDays: newSection.fixedDays,
-              fixedPositions: newSection.fixedPositions,
-              year: newSection.year,
-              shift: newSection.shift,
-              startTime: getTimeSlotIndex(newSection.startTime || '06:00 AM'),
-            },
-          })
-        );
-      };
+            if (originalSection !== newSection) {
+                dispatch(
+                    editSection({
+                        sectionId: newSection.id,
+                        updatedSection: {
+                            id: newSection.id,
+                            teacher: newSection.teacher,
+                            program: newSection.program,
+                            section: newSection.section,
+                            subjects: newSection.subjects,
+                            fixedDays: newSection.fixedDays,
+                            fixedPositions: newSection.fixedPositions,
+                            year: newSection.year,
+                            shift: newSection.shift,
+                            startTime: getTimeSlotIndex(
+                                newSection.startTime || '06:00 AM'
+                            ),
+                        },
+                    })
+                );
+            }
+        });
+    };
 
-    });
+    const handleClose = () => {
+        const modal = document.getElementById('add_subject_modal');
+        if (modal) {
+            modal.close();
+            setErrorMessage('');
+            setErrorField('');
+        } else {
+            console.error("Modal with ID 'add_subject_modal' not found.");
+        }
+    };
 
-  };
-  
-  const handleClose = () => {
-    const modal = document.getElementById('add_subject_modal');
-    if (modal) {
-        modal.close();
-        setErrorMessage('');
-        setErrorField('');
-    } else {
-        console.error("Modal with ID 'add_subject_modal' not found.");
-    }
-  };
-  
-  const deleteModal = (id) => {
-    const deleteModalElement = document.getElementById("delete_modal");
-    deleteModalElement.showModal();  
+    const deleteModal = (id) => {
+        const deleteModalElement = document.getElementById('delete_modal');
+        deleteModalElement.showModal();
 
-    const deleteButton = document.getElementById("delete_button");
-    deleteButton.onclick = () => handleDelete(id);  
-  };
+        const deleteButton = document.getElementById('delete_button');
+        deleteButton.onclick = () => handleDelete(id);
+    };
 
-  const handleDelete = (id) => {
-    dispatch(removeSubject(id));  
-    document.getElementById("delete_modal").close(); 
-  };
+    const handleDelete = (id) => {
+        dispatch(removeSubject(id));
+        document.getElementById('delete_modal').close();
+    };
 
-  const debouncedSearch = useCallback(
-      debounce((searchValue, subjects) => {
-          setSearchSubjectResult(
-              filterObject(subjects, ([, subject]) => {
-                  const escapedSearchValue = escapeRegExp(searchValue)
-                      .split('\\*')
-                      .join('.*');
+    const debouncedSearch = useCallback(
+        debounce((searchValue, subjects) => {
+            setSearchSubjectResult(
+                filterObject(subjects, ([, subject]) => {
+                    const escapedSearchValue = escapeRegExp(searchValue)
+                        .split('\\*')
+                        .join('.*');
 
-                  const pattern = new RegExp(escapedSearchValue, 'i');
+                    const pattern = new RegExp(escapedSearchValue, 'i');
 
-        return pattern.test(subject.subject);
-      })
+                    return pattern.test(subject.subject);
+                })
+            );
+        }, 200),
+        []
     );
-  }, 200),
-  []
-  );
-  
-  useEffect(() => {
-    if (externalNumOfSchoolDays !== undefined) {
-      setNumOfSchoolDays(externalNumOfSchoolDays);
-    }
-  }, [externalNumOfSchoolDays]);
 
-  useEffect(() => {
-    console.log('numOfSchoolDays:', numOfSchoolDays);
-  }, [numOfSchoolDays]);
+    useEffect(() => {
+        if (externalNumOfSchoolDays !== undefined) {
+            setNumOfSchoolDays(externalNumOfSchoolDays);
+        }
+    }, [externalNumOfSchoolDays]);
 
-  // Initialization of stores
-  useEffect(() => {
-    if (subjectStatus === 'idle') {
-      dispatch(fetchSubjects());
-    }
-  }, [subjectStatus, dispatch]);
+    useEffect(() => {
+        console.log('numOfSchoolDays:', numOfSchoolDays);
+    }, [numOfSchoolDays]);
 
-  useEffect(() => {
-      if (programStatus === 'idle') {
-          dispatch(fetchPrograms());
-      }
-  }, [programStatus, dispatch]);
+    // Initialization of stores
+    useEffect(() => {
+        if (subjectStatus === 'idle') {
+            dispatch(fetchSubjects());
+        }
+    }, [subjectStatus, dispatch]);
 
-  useEffect(() => {
-      if (sectionStatus === 'idle') {
-          dispatch(fetchSections());
-      }
-  }, [sectionStatus, dispatch]);
+    useEffect(() => {
+        if (programStatus === 'idle') {
+            dispatch(fetchPrograms());
+        }
+    }, [programStatus, dispatch]);
 
-  useEffect(() => {
-      debouncedSearch(searchSubjectValue, subjects);
-  }, [searchSubjectValue, subjects, debouncedSearch]);
+    useEffect(() => {
+        if (sectionStatus === 'idle') {
+            dispatch(fetchSections());
+        }
+    }, [sectionStatus, dispatch]);
 
-  const itemsPerPage = 10; // Change this to adjust the number of items per page
-  const [currentPage, setCurrentPage] = useState(1);
+    useEffect(() => {
+        debouncedSearch(searchSubjectValue, subjects);
+    }, [searchSubjectValue, subjects, debouncedSearch]);
 
-  // Calculate total pages
-  const totalPages = Math.ceil(
-      Object.values(searchSubjectResult).length / itemsPerPage
-  );
+    const itemsPerPage = 10; // Change this to adjust the number of items per page
+    const [currentPage, setCurrentPage] = useState(1);
 
-  // Get current items
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = Object.entries(searchSubjectResult).slice(indexOfFirstItem, indexOfLastItem);
+    // Calculate total pages
+    const totalPages = Math.ceil(
+        Object.values(searchSubjectResult).length / itemsPerPage
+    );
 
+    // Get current items
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = Object.entries(searchSubjectResult).slice(
+        indexOfFirstItem,
+        indexOfLastItem
+    );
 
-  return (
+    return (
         <div className="w-full">
             <div className="flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5">
                 {/* Pagination */}
@@ -793,31 +839,40 @@ const SubjectListContainer = ({
                             Add Subject <IoAdd size={20} className="ml-2" />
                         </button>
 
-            {/* Modal for adding subject */}
-            <dialog id="add_subject_modal" className="modal modal-bottom sm:modal-middle">
-              <div className="modal-box">
-                <AddSubjectContainer
-                  close={() => document.getElementById('add_subject_modal').close()}
-                  reduxFunction={addSubject}
-                  errorMessage={errorMessage}
-                  setErrorMessage={setErrorMessage}
-                  errorField={errorField}
-                  setErrorField={setErrorField}
-                  defaultSubjectClassDuration={defaultSubjectClassDuration}
-                />
-                <div className="modal-action">
-                  <button
-                    className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                    onClick={handleClose}
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-            </dialog>
-          </div>
-        )}
-      </div>
+                        {/* Modal for adding subject */}
+                        <dialog
+                            id="add_subject_modal"
+                            className="modal modal-bottom sm:modal-middle"
+                        >
+                            <div className="modal-box">
+                                <AddSubjectContainer
+                                    close={() =>
+                                        document
+                                            .getElementById('add_subject_modal')
+                                            .close()
+                                    }
+                                    reduxFunction={addSubject}
+                                    errorMessage={errorMessage}
+                                    setErrorMessage={setErrorMessage}
+                                    errorField={errorField}
+                                    setErrorField={setErrorField}
+                                    defaultSubjectClassDuration={
+                                        defaultSubjectClassDuration
+                                    }
+                                />
+                                <div className="modal-action">
+                                    <button
+                                        className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                                        onClick={handleClose}
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            </div>
+                        </dialog>
+                    </div>
+                )}
+            </div>
 
             {/* Table */}
             <div className="overflow-x-auto">
@@ -890,109 +945,156 @@ const SubjectListContainer = ({
                                         )}
                                     </td>
 
-                  {/* Weekly Minutes */}
-                  <td>
-                    {editSubjectId === subject.id ? (
-                      <input
-                        type="number"
-                        value={editSubjectWeeklyMinutes}
-                        onChange={(e) => {
-                          const newDuration = Number(e.target.value);
-                          setEditSubjectWeeklyMinutes(newDuration);
-                        }}
-                        className="input input-bordered input-sm w-full"
-                        placeholder="Enter subject weekly minutes"
-                        step={5}
-                      />
-                    ) : (
-                        `${subject.weeklyMinutes}`
-                    )}
-                  </td>
-                  <td>
-                    {Math.min(Math.ceil(subject.weeklyMinutes / subject.classDuration), numOfSchoolDays)}
-                  </td>
-                  {editable && (
-                    <td className="w-28 text-right">
-                      {editSubjectId === subject.id ? (
-                        <>
-                          <button
-                            className="btn btn-xs btn-ghost text-green-500"
-                            onClick={() => handleSaveSubjectEditClick(subject.id)}
-                          >
-                            Save
-                          </button>
-                          <button
-                            className="btn btn-xs btn-ghost text-red-500"
-                            onClick={() => handleCancelSubjectEditClick()}
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            className="btn btn-xs btn-ghost text-blue-500"
-                            onClick={() => handleEditSubjectClick(subject)}
-                          >
-                            <RiEdit2Fill size={20} />
-                          </button>
+                                    {/* Weekly Minutes */}
+                                    <td>
+                                        {editSubjectId === subject.id ? (
+                                            <input
+                                                type="number"
+                                                value={editSubjectWeeklyMinutes}
+                                                onChange={(e) => {
+                                                    const newDuration = Number(
+                                                        e.target.value
+                                                    );
+                                                    setEditSubjectWeeklyMinutes(
+                                                        newDuration
+                                                    );
+                                                }}
+                                                className="input input-bordered input-sm w-full"
+                                                placeholder="Enter subject weekly minutes"
+                                                step={5}
+                                            />
+                                        ) : (
+                                            `${subject.weeklyMinutes}`
+                                        )}
+                                    </td>
+                                    <td>
+                                        {Math.min(
+                                            Math.ceil(
+                                                subject.weeklyMinutes /
+                                                    subject.classDuration
+                                            ),
+                                            numOfSchoolDays
+                                        )}
+                                    </td>
+                                    {editable && (
+                                        <td className="w-28 text-right">
+                                            {editSubjectId === subject.id ? (
+                                                <>
+                                                    <button
+                                                        className="btn btn-xs btn-ghost text-green-500"
+                                                        onClick={() =>
+                                                            handleSaveSubjectEditClick(
+                                                                subject.id
+                                                            )
+                                                        }
+                                                    >
+                                                        Save
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-xs btn-ghost text-red-500"
+                                                        onClick={() =>
+                                                            handleCancelSubjectEditClick()
+                                                        }
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <button
+                                                        className="btn btn-xs btn-ghost text-blue-500"
+                                                        onClick={() =>
+                                                            handleEditSubjectClick(
+                                                                subject
+                                                            )
+                                                        }
+                                                    >
+                                                        <RiEdit2Fill
+                                                            size={20}
+                                                        />
+                                                    </button>
 
+                                                    <button
+                                                        className="btn btn-xs btn-ghost text-red-500"
+                                                        onClick={() =>
+                                                            deleteModal(
+                                                                subject.id
+                                                            )
+                                                        }
+                                                    >
+                                                        <RiDeleteBin7Line
+                                                            size={20}
+                                                        />
+                                                    </button>
 
-                          <button
-                            className="btn btn-xs btn-ghost text-red-500"
-                            onClick={() => deleteModal(subject.id)}
-                          >
-                            <RiDeleteBin7Line size={20} />
-                          </button>
+                                                    {/* Modal for deleting an item */}
+                                                    <dialog
+                                                        id="delete_modal"
+                                                        className="modal modal-bottom sm:modal-middle"
+                                                    >
+                                                        <form
+                                                            method="dialog"
+                                                            className="modal-box"
+                                                        >
+                                                            {/* Icon and message */}
+                                                            <div className="flex flex-col items-center justify-center">
+                                                                <TrashIcon
+                                                                    className="text-red-500 mb-4"
+                                                                    width={40}
+                                                                    height={40}
+                                                                />
+                                                                <h3 className="font-bold text-lg text-center">
+                                                                    Are you sure
+                                                                    you want to
+                                                                    delete this
+                                                                    item?
+                                                                </h3>
+                                                                <p className="text-sm text-gray-500 text-center">
+                                                                    This action
+                                                                    cannot be
+                                                                    undone.
+                                                                </p>
+                                                            </div>
 
-                          {/* Modal for deleting an item */}
-                          <dialog id="delete_modal" className="modal modal-bottom sm:modal-middle">
-                            <form method="dialog" className="modal-box">
-                              {/* Icon and message */}
-                              <div className="flex flex-col items-center justify-center">
-                                <TrashIcon className="text-red-500 mb-4" width={40} height={40} />
-                                <h3 className="font-bold text-lg text-center">
-                                  Are you sure you want to delete this item?
-                                </h3>
-                                <p className="text-sm text-gray-500 text-center">
-                                  This action cannot be undone.
-                                </p>
-                              </div>
+                                                            {/* Modal actions */}
+                                                            <div className="modal-action flex justify-center">
+                                                                {/* Close Button */}
+                                                                <button
+                                                                    className="btn btn-sm btn-ghost"
+                                                                    onClick={() =>
+                                                                        document
+                                                                            .getElementById(
+                                                                                'delete_modal'
+                                                                            )
+                                                                            .close()
+                                                                    }
+                                                                    aria-label="Cancel deletion"
+                                                                >
+                                                                    Cancel
+                                                                </button>
 
-                              {/* Modal actions */}
-                              <div className="modal-action flex justify-center">
-                                {/* Close Button */}
-                                <button
-                                  className="btn btn-sm btn-ghost"
-                                  onClick={() => document.getElementById("delete_modal").close()}
-                                  aria-label="Cancel deletion"
-                                >
-                                  Cancel
-                                </button>
-
-                                {/* Confirm Delete Button */}
-                                <button
-                                  className="btn btn-sm btn-error text-white"
-                                  id="delete_button"
-                                >
-                                  Delete
-                                </button>
-                              </div>
-                            </form>
-                          </dialog>
-                        </>
-                      )}
-                    </td>
-                  )}
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-    </div>
-  );
+                                                                {/* Confirm Delete Button */}
+                                                                <button
+                                                                    className="btn btn-sm btn-error text-white"
+                                                                    id="delete_button"
+                                                                >
+                                                                    Delete
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    </dialog>
+                                                </>
+                                            )}
+                                        </td>
+                                    )}
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
 };
 
 export default SubjectListContainer;

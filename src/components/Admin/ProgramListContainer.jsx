@@ -367,10 +367,10 @@ const AddProgramContainer = ({
 
             selectedSubjects[grade].forEach((subject) => {
                 // console.log('updating timeslot checekr');
-                totalNumOfClasses += Math.ceil(
+                totalNumOfClasses += Math.min(Math.ceil(
                     subjects[subject].weeklyMinutes /
                         subjects[subject].classDuration
-                );
+                ), numOfSchoolDays);
             });
 
             let totalTimeslot = Math.ceil(totalNumOfClasses / numOfSchoolDays);
@@ -1332,9 +1332,12 @@ const ProgramListContainer = ({
                 // console.log('gradeInfo.subjects', gradeInfo.subjects);
 
                 gradeInfo.subjects.forEach((subject) => {
-                    totalNumOfClasses += Math.ceil(
-                        subjects[subject].weeklyMinutes /
-                            subjects[subject].classDuration
+                    totalNumOfClasses += Math.min(
+                        Math.ceil(
+                            subjects[subject].weeklyMinutes /
+                                subjects[subject].classDuration
+                        ),
+                        numOfSchoolDays
                     );
                 });
 
