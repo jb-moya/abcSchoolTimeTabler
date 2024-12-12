@@ -1,3 +1,4 @@
+import { useDispatch } from 'react-redux';
 import { useState, useEffect } from 'react';
 import packInt16ToInt32 from '@utils/packInt16ToInt32';
 import { useSelector } from 'react-redux';
@@ -16,28 +17,38 @@ import TeacherListContainer from '@components/Admin/Teacher/TeacherListContainer
 import SectionListContainer from '@components/Admin/SectionListContainer';
 import ExportImportDBButtons from '@components/Admin/ExportImportDBButtons';
 
+import { getTimeSlotIndex } from '@components/Admin/timeSlotMapper';
+
 import { getTimeSlotString } from '../../../components/Admin/timeSlotMapper';
 import Breadcrumbs from '@components/Admin/Breadcrumbs';
 import {
     clearAllEntriesAndResetIDs,
 } from "@src/indexedDB";
 
+import { fetchSections, editSection } from '@features/sectionSlice';
+import { fetchPrograms, editProgram } from '@features/programSlice';
+import { fetchSubjects } from '@features/subjectSlice';
+import { original } from 'immer';
 
 const getTimetable = wrap(new WasmWorker());
 
 function Timetable() {
+    const dispatch = useDispatch();
 
     const links = [
         { name: 'Home', href: '/' },
         // { name: 'Modify Subjects', href: '/modify-subjects' },
       ];
 
-    const { subjects: subjectsStore } = useSelector((state) => state.subject);
+    const { subjects: subjectsStore, status: subjectStatus } = useSelector((state) => state.subject);
     const { teachers: teachersStore } = useSelector((state) => state.teacher);
-    const { sections: sectionsStore } = useSelector((state) => state.section);
-    const { programs: programsStore } = useSelector((state) => state.program);
+    const { sections: sectionsStore, status: sectionStatus } = useSelector((state) => state.section);
+    const { programs: programsStore, status: programStatus } = useSelector((state) => state.program);
 
-    const numOfSchoolDays = Number(localStorage.getItem('numOfSchoolDays'));
+    const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
+        return localStorage.getItem('numOfSchoolDays') || 5;
+    });
+    const [prevNumOfSchoolDays, setPrevNumOfSchoolDays] = useState(numOfSchoolDays);
 
     const [sectionTimetables, setSectionTimetables] = useState({});
     const [teacherTimetables, setTeacherTimetables] = useState({});
@@ -713,6 +724,197 @@ function Timetable() {
         clearAllEntriesAndResetIDs();
     };
 
+    const handleNumOfSchoolDaysChange = () => {
+        localStorage.setItem('numOfSchoolDays', numOfSchoolDays);
+
+        if (numOfSchoolDays === prevNumOfSchoolDays) return;
+        setPrevNumOfSchoolDays(numOfSchoolDays);
+
+        if (Object.keys(programsStore).length === 0) return;
+
+        // Update program fixed days and fixed positions
+        Object.entries(programsStore).forEach(([progId, prog]) => {
+
+           const originalProgram = JSON.parse(JSON.stringify(prog));
+           const newProgram = JSON.parse(JSON.stringify(prog));
+
+           [7, 8, 9, 10].forEach((grade) => {
+               if (newProgram[grade].subjects.length === 0) return;
+
+                newProgram[grade].subjects.map((subId) => {
+
+                    if ((subjectsStore[subId].weeklyMinutes / subjectsStore[subId].classDuration) <= numOfSchoolDays) return;
+                    
+                    const fixedDays = newProgram[grade].fixedDays[subId];
+                    const fixedPositions = newProgram[grade].fixedPositions[subId];
+
+                    for (let i = 0; i < fixedDays.length; i++) {
+                        if (fixedDays[i] > numOfSchoolDays) {
+                            fixedDays[i] = 0;
+                            fixedPositions[i] = 0;
+                        }
+                    }
+
+                    const numOfClasses = Math.min(
+                        Math.ceil(subjectsStore[subId].weeklyMinutes / subjectsStore[subId].classDuration),
+                        numOfSchoolDays
+                    );
+                    
+                    const dayPositionMap = new Map();
+
+                    fixedDays.forEach((day, index) => {
+                        const pos = fixedPositions[index];
+                        if ((day !== 0 && pos !== 0) || (day !== 0 && pos === 0) || (day === 0 && pos !== 0) && !dayPositionMap.has(`${day}-${pos}`)) {
+                            dayPositionMap.set(`${day}-${pos}`, [day, pos]);
+                        }
+                    });
+
+                    // console.log('dayPositionMap', dayPositionMap);
+
+                    let result = [];
+                    dayPositionMap.forEach(([day, pos]) => {
+                        if (result.length < numOfClasses) {
+                            result.push([day, pos]);
+                        }
+                    });
+                
+                    // console.log('result1', result);
+
+                    // Pad with [0, 0] if necessary
+                    while (result.length < numOfClasses) {
+                        result.push([0, 0]);
+                    }
+
+                    // console.log('result2', result);
+                    
+                    newProgram[grade].fixedDays[subId] = result.map(([day]) => day);
+                    newProgram[grade].fixedPositions[subId] = result.map(([_, pos]) => pos);
+                })
+           });
+
+           console.log('originalProgram:', originalProgram);
+           console.log('newProgram:', newProgram);
+
+           if (originalProgram !== newProgram) {
+               dispatch(
+                   editProgram({
+                       programId: newProgram.id,
+                       updatedProgram: {
+                           program: newProgram.program,
+                           7: {
+                                subjects: newProgram[7].subjects,
+                                fixedDays: newProgram[7].fixedDays,
+                                fixedPositions: newProgram[7].fixedPositions,
+                                shift: newProgram[7].shift,
+                                startTime: getTimeSlotIndex(newProgram[7].startTime || '06:00 AM'),
+                           },
+                           8:  {
+                                subjects: newProgram[8].subjects,
+                                fixedDays: newProgram[8].fixedDays,
+                                fixedPositions: newProgram[8].fixedPositions,
+                                shift: newProgram[8].shift,
+                                startTime: getTimeSlotIndex(newProgram[8].startTime || '06:00 AM'),
+                           },
+                           9:  {
+                                subjects: newProgram[9].subjects,
+                                fixedDays: newProgram[9].fixedDays,
+                                fixedPositions: newProgram[9].fixedPositions,
+                                shift: newProgram[9].shift,
+                                startTime: getTimeSlotIndex(newProgram[9].startTime || '06:00 AM'),
+                           },
+                           10:  {
+                                subjects: newProgram[10].subjects,
+                                fixedDays: newProgram[10].fixedDays,
+                                fixedPositions: newProgram[10].fixedPositions,
+                                shift: newProgram[10].shift,
+                                startTime: getTimeSlotIndex(newProgram[10].startTime || '06:00 AM'),
+                           },
+                       },
+                   })
+               );
+           };
+        });
+
+        if (Object.keys(sectionsStore).length === 0) return;
+
+        // Update section fixed days and fixed positions
+        Object.entries(sectionsStore).forEach(([secId, sec]) => {
+            const originalSection = JSON.parse(JSON.stringify(sec));
+            const newSection = JSON.parse(JSON.stringify(sec));
+
+            newSection.subjects.map((subId) => {
+
+                if ((subjectsStore[subId].weeklyMinutes / subjectsStore[subId].classDuration) <= numOfSchoolDays) return;
+
+                const fixedDays = newSection.fixedDays[subId];
+                const fixedPositions = newSection.fixedPositions[subId];
+
+                for (let i = 0; i < fixedDays.length; i++) {
+                    if (fixedDays[i] > numOfSchoolDays) {
+                        fixedDays[i] = 0;
+                        fixedPositions[i] = 0;
+                    }
+                }
+                
+                const numOfClasses = Math.min(
+                    Math.ceil(subjectsStore[subId].weeklyMinutes / subjectsStore[subId].classDuration),
+                    numOfSchoolDays
+                );
+                
+                const dayPositionMap = new Map();
+
+                fixedDays.forEach((day, index) => {
+                    const pos = fixedPositions[index];
+                    if ((day !== 0 && pos !== 0) || (day !== 0 && pos === 0) || (day === 0 && pos !== 0) && !dayPositionMap.has(`${day}-${pos}`)) {
+                        dayPositionMap.set(`${day}-${pos}`, [day, pos]);
+                    }
+                });
+
+                // console.log('dayPositionMap', dayPositionMap);
+
+                let result = [];
+                dayPositionMap.forEach(([day, pos]) => {
+                    if (result.length < numOfClasses) {
+                        result.push([day, pos]);
+                    }
+                });
+            
+                // console.log('result1', result);
+
+                // Pad with [0, 0] if necessary
+                while (result.length < numOfClasses) {
+                    result.push([0, 0]);
+                }
+
+                // console.log('result2', result);
+                
+                newSection.fixedDays[subId] = result.map(([day]) => day);
+                newSection.fixedPositions[subId] = result.map(([_, pos]) => pos);
+            });
+
+            if (originalSection !== newSection) {
+                dispatch(
+                    editSection({
+                        sectionId: newSection.id,
+                        updatedSection: {
+                            id: newSection.id,
+                            teacher: newSection.teacher,
+                            program: newSection.program,
+                            section: newSection.section,
+                            subjects: newSection.subjects,
+                            fixedDays: newSection.fixedDays,
+                            fixedPositions: newSection.fixedPositions,
+                            year: newSection.year,
+                            shift: newSection.shift,
+                            startTime: getTimeSlotIndex(newSection.startTime || '06:00 AM'),
+                        },
+                    })
+                );
+            };
+        });
+
+    };
+
     useEffect(() => {
         // Function to handle the beforeunload event
         const handleBeforeUnload = (event) => {
@@ -730,6 +932,28 @@ function Timetable() {
             window.removeEventListener('beforeunload', handleBeforeUnload);
         };
     }, [timetableGenerationStatus]); // The effect depends on the isProcessRunning state
+
+    useEffect(() => {
+        handleNumOfSchoolDaysChange();
+    }, [numOfSchoolDays]);
+
+    useEffect(() => {
+        if (sectionStatus === 'idle') {
+            dispatch(fetchSections());
+        }
+    }, [sectionStatus, dispatch]);
+
+    useEffect(() => {
+        if (programStatus === 'idle') {
+            dispatch(fetchPrograms());
+        }
+    }, [programStatus, dispatch]);
+
+    useEffect(() => {
+        if (subjectStatus === 'idle') {
+            dispatch(fetchSubjects());
+        }
+    }, [subjectStatus, dispatch]);
 
     return (
         <div className="App container mx-auto px-4 py-6">
@@ -764,7 +988,10 @@ function Timetable() {
             </div>
 
             <div className="mb-6">
-                <Configuration />
+                <Configuration 
+                    numOfSchoolDays={numOfSchoolDays}
+                    setNumOfSchoolDays={setNumOfSchoolDays}
+                />
             </div>
 
             {/* Responsive card layout for Subject and Teacher Lists */}
@@ -781,7 +1008,9 @@ function Timetable() {
             <div >
                 <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
                     <h2 className="text-lg font-semibold mb-4">Subjects</h2>
-                    <SubjectListContainer/>
+                    <SubjectListContainer
+                        numOfSchoolDays={numOfSchoolDays}
+                    />
                 </div>
 
                 <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
@@ -792,14 +1021,18 @@ function Timetable() {
                 {/* Program Lists */}
                 <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
                     <h2 className="text-lg font-semibold mb-4">Programs</h2>
-                    <ProgramListContainer />
+                    <ProgramListContainer 
+                        numOfSchoolDays={numOfSchoolDays}
+                    />
                 </div>
 
                 {/* Section List with the Generate Timetable Button */}
                 <div className="mt-6">
                     <div className="bg-base-100 p-6 rounded-lg shadow-lg">
                         <h2 className="text-lg font-semibold mb-4">Sections</h2>
-                        <SectionListContainer />
+                        <SectionListContainer 
+                            numOfSchoolDays={numOfSchoolDays}
+                        />
                         <div className="mt-4">
                             <ViolationList violations={violations} />
                         </div>

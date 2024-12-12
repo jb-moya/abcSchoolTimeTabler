@@ -30,7 +30,9 @@ const AddSectionContainer = ({
   errorMessage,
   setErrorMessage,
   errorField,
-  setErrorField, }) => {
+  setErrorField, 
+  numOfSchoolDays,
+}) => {
 
   const inputNameRef = useRef();
   const dispatch = useDispatch();
@@ -46,7 +48,7 @@ const AddSectionContainer = ({
   );
   const { sections } = useSelector((state) => state.section);
 
-  const numOfSchoolDays = parseInt(localStorage.getItem('numOfSchoolDays'), 10);
+  // const numOfSchoolDays = parseInt(localStorage.getItem('numOfSchoolDays'), 10);
 
   const [inputValue, setInputValue] = useState('');
   const [selectedAdviser, setSelectedAdviser] = useState('');
@@ -361,7 +363,10 @@ const AddSectionContainer = ({
   );
 };
 
-const SectionListContainer = ({ editable = false }) => {
+const SectionListContainer = ({ 
+  numOfSchoolDays: externalNumOfSchoolDays,
+  editable = false 
+}) => {
   const dispatch = useDispatch();
   const { subjects, status: subjectStatus } = useSelector(
     (state) => state.subject
@@ -376,7 +381,9 @@ const SectionListContainer = ({ editable = false }) => {
     (state) => state.teacher
   );
 
-  const numOfSchoolDays = parseInt(localStorage.getItem('numOfSchoolDays'), 10);
+  const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
+    return externalNumOfSchoolDays ?? (Number(localStorage.getItem('numOfSchoolDays')) || 0);
+  });
 
   const [errorMessage, setErrorMessage] = useState('');
   const [errorField, setErrorField] = useState([]);
@@ -604,6 +611,16 @@ const SectionListContainer = ({ editable = false }) => {
   );
 
   useEffect(() => {
+    if (externalNumOfSchoolDays !== undefined) {
+      setNumOfSchoolDays(externalNumOfSchoolDays);
+    }
+  }, [externalNumOfSchoolDays]);
+
+  useEffect(() => {
+    console.log('numOfSchoolDays:', numOfSchoolDays);
+  }, [numOfSchoolDays]);
+
+  useEffect(() => {
     debouncedSearch(searchSectionValue, sections, subjects);
   }, [searchSectionValue, sections, debouncedSearch, subjects]);
 
@@ -752,7 +769,7 @@ const SectionListContainer = ({ editable = false }) => {
                     setErrorMessage={setErrorMessage}
                     errorField={errorField}
                     setErrorField={setErrorField}
-
+                    numOfSchoolDays={numOfSchoolDays}
                   />
                   <div className="modal-action">
                     <button

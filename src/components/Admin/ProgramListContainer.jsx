@@ -32,13 +32,12 @@ const AddProgramContainer = ({
   setErrorMessage,
   errorField,
   setErrorField,
+  numOfSchoolDays,
 }) => {
   const inputNameRef = useRef();
   const subjects = useSelector((state) => state.subject.subjects);
   const programs = useSelector((state) => state.program.programs);
   const dispatch = useDispatch();
-
-  const numOfSchoolDays = parseInt(localStorage.getItem('numOfSchoolDays'), 10);
 
   const [inputValue, setInputValue] = useState('');
   const [selectedSubjects, setSelectedSubjects] = useState({
@@ -502,7 +501,10 @@ const AddProgramContainer = ({
   );  
 };
 
-const ProgramListContainer = ({ editable = false }) => {
+const ProgramListContainer = ({ 
+  numOfSchoolDays: externalNumOfSchoolDays,
+  editable = false 
+}) => {
   const dispatch = useDispatch();
 
   const { programs, status: programStatus } = useSelector(
@@ -519,8 +521,11 @@ const ProgramListContainer = ({ editable = false }) => {
 
   const [errorMessage, setErrorMessage] = useState('');
   const [errorField, setErrorField] = useState('');
+
+  const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
+    return externalNumOfSchoolDays ?? (Number(localStorage.getItem('numOfSchoolDays')) || 0);
+  });
   
-  const numOfSchoolDays = parseInt(localStorage.getItem('numOfSchoolDays'), 10);
   const morningStartTime = localStorage.getItem('morningStartTime') || '06:00 AM';
   const afternoonStartTime = localStorage.getItem('afternoonStartTime') || '01:00 PM';
 
@@ -542,7 +547,6 @@ const ProgramListContainer = ({ editable = false }) => {
     9: '06:00 AM',
     10: '06:00 AM',
   });
-
   const [editFixedDays, setEditFixedDays] = useState({
     7: {},
     8: {},
@@ -1103,9 +1107,14 @@ const ProgramListContainer = ({ editable = false }) => {
   );
 
   useEffect(() => {
-    console.log('editFixedDays', editFixedDays);
-    console.log('editFixedPositions', editFixedPositions);
-  }, [editFixedDays, editFixedPositions])
+    if (externalNumOfSchoolDays !== undefined) {
+      setNumOfSchoolDays(externalNumOfSchoolDays);
+    }
+  }, [externalNumOfSchoolDays]);
+
+  useEffect(() => {
+    console.log("numOfSchoolDays:", numOfSchoolDays);
+  }, [numOfSchoolDays])
 
   useEffect(() => {
     debouncedSearch(searchProgramValue, programs, subjects);
@@ -1240,6 +1249,7 @@ const ProgramListContainer = ({ editable = false }) => {
               setErrorMessage={setErrorMessage}
               errorField={errorField}
               setErrorField={setErrorField}
+              numOfSchoolDays={numOfSchoolDays}
             />
           </div>
         )}

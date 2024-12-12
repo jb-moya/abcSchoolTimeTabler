@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 
-function Configuration() {
-    const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
-        return localStorage.getItem('numOfSchoolDays') || 5;
-    });
+function Configuration({
+    numOfSchoolDays,
+    setNumOfSchoolDays,
+}) {
     const [defaultSubjectClassDuration, setDefaultSubjectClassDuration] = useState(() => {
         return localStorage.getItem('defaultSubjectClassDuration') || 10;
     });
@@ -13,6 +13,11 @@ function Configuration() {
     const [afternoonStartTime, setAfternoonStartTime] = useState(() => {
         return localStorage.getItem('afternoonStartTime') || '01:00 PM';
     });
+
+    const handleNumOfSchoolDaysChange = (e) => {
+        const newValue = parseInt(e.target.value, 10);
+        setNumOfSchoolDays(newValue);
+    };
 
     const generateTimeOptions = (startHour, endHour, isMorning) => {
         const times = [];
@@ -25,10 +30,6 @@ function Configuration() {
         }
         return times;
     };
-
-    useEffect(() => {
-        localStorage.setItem('numOfSchoolDays', numOfSchoolDays);
-    }, [numOfSchoolDays]);
 
     useEffect(() => {
         localStorage.setItem('defaultSubjectClassDuration', defaultSubjectClassDuration);
@@ -58,7 +59,8 @@ function Configuration() {
                         placeholder="e.g., 5 (Mon-Fri)"
                         className="input input-bordered w-full"
                         value={numOfSchoolDays}
-                        onChange={(e) => setNumOfSchoolDays(e.target.value)}
+                        onChange={handleNumOfSchoolDaysChange}
+                        max={7}
                     />
                 </div>
 

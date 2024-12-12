@@ -79,9 +79,6 @@ export const programSlice = createSlice({
       const programId = action.payload;
       delete state.programs[programId];
     },
-    setUpdatedSections: (state, action) => {
-      state.sections = action.payload; // Replace the old sections with updated ones
-    },
     setStatusIdle: (state) => {
       state.status = 'idle';
     },
@@ -106,7 +103,6 @@ export const {
   addProgramSync,
   editProgramSync,
   removeProgramSync,
-  setUpdatedSections,
   setStatusIdle: setProgramStatusIdle,
 } = programSlice.actions;
 

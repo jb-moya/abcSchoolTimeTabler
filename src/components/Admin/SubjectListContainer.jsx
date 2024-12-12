@@ -13,7 +13,7 @@ import {
 import { fetchPrograms, editProgram } from '@features/programSlice';
 import { fetchSections, editSection } from '@features/sectionSlice';
 
-import { getTimeSlotIndex, getTimeSlotString } from './timeSlotMapper';
+import { getTimeSlotIndex } from './timeSlotMapper';
 
 import { IoAdd, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
@@ -181,14 +181,19 @@ const AddSubjectContainer = ({
   );
 };
 
-const SubjectListContainer = ({ editable = false }) => {
+const SubjectListContainer = ({ 
+  numOfSchoolDays: externalNumOfSchoolDays,
+  editable = false 
+}) => {
   const dispatch = useDispatch();
 
   const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
   const { programs, status: programStatus } = useSelector((state) => state.program);
   const { sections, status: sectionStatus } = useSelector((state) => state.section);
 
-  const numOfSchoolDays = parseInt(localStorage.getItem('numOfSchoolDays'), 10);
+  const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
+    return externalNumOfSchoolDays ?? (Number(localStorage.getItem('numOfSchoolDays')) || 0);
+  });
   const defaultSubjectClassDuration = localStorage.getItem('defaultSubjectClassDuration');
 
   const [errorMessage, setErrorMessage] = useState('');
@@ -319,7 +324,7 @@ const SubjectListContainer = ({ editable = false }) => {
     
         fixedDays.forEach((day, index) => {
           const pos = fixedPositions[index];
-          if (day !== 0 && pos !== 0 && !dayPositionMap.has(`${day}-${pos}`)) {
+          if ((day !== 0 && pos !== 0) || (day !== 0 && pos === 0) || (day === 0 && pos !== 0) && !dayPositionMap.has(`${day}-${pos}`)) {
             dayPositionMap.set(`${day}-${pos}`, [day, pos]);
           }
         });
@@ -404,7 +409,7 @@ const SubjectListContainer = ({ editable = false }) => {
 
       fixedDays.forEach((day, index) => {
         const pos = fixedPositions[index];
-        if (day !== 0 && pos !== 0 && !dayPositionMap.has(`${day}-${pos}`)) {
+        if ((day !== 0 && pos !== 0) || (day !== 0 && pos === 0) || (day === 0 && pos !== 0) && !dayPositionMap.has(`${day}-${pos}`)) {
           dayPositionMap.set(`${day}-${pos}`, [day, pos]);
         }
       });
@@ -491,6 +496,16 @@ const SubjectListContainer = ({ editable = false }) => {
     []
   );
   
+  useEffect(() => {
+    if (externalNumOfSchoolDays !== undefined) {
+      setNumOfSchoolDays(externalNumOfSchoolDays);
+    }
+  }, [externalNumOfSchoolDays]);
+
+  useEffect(() => {
+    console.log('numOfSchoolDays:', numOfSchoolDays);
+  }, [numOfSchoolDays]);
+
   // Initialization of stores
   useEffect(() => {
     if (subjectStatus === 'idle') {

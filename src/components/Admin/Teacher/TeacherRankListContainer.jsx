@@ -72,7 +72,7 @@ const AddTeacherRankContainer = ({
     }
     
   };
-
+  
   const handleReset = () => {
     setErrorField('');
     setErrorMessage('');
@@ -276,207 +276,208 @@ const TeacherRankListContainer = ({ editable = false }) => {
 
   return (
     <React.Fragment>
-    <div className="w-full">
-    <div className="flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5">
-      {/* Pagination */}
-      {currentItems.length > 0 && (
-        <div className="join flex justify-center mb-4 md:mb-0">
-          <button
-            className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
-            onClick={() => {
-              if (currentPage > 1) {
-                setCurrentPage(currentPage - 1);
-              }
-              handleCancelRankEditClick();
-            }}
-            disabled={currentPage === 1}
-          >
-            «
-          </button>
-          <button className="join-item btn">
-            Page {currentPage} of {totalPages}
-          </button>
-          <button
-            className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
-            onClick={() => {
-              if (currentPage < totalPages) {
-                setCurrentPage(currentPage + 1);
-              }
-              handleCancelRankEditClick();
-            }}
-            disabled={currentPage === totalPages}
-          >
-            »
-          </button>
-        </div>
-      )}
+      <div className="w-full">
+        <div className="flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5">
 
-      {currentItems.length === 0 && currentPage > 1 && (
-        <div className="hidden">
-          {setCurrentPage(currentPage - 1)}
-        </div>
-      )}
-
-      {/* Search Rank */}
-      <div className="flex-grow w-full md:w-1/3 lg:w-1/4">
-        <label className="input input-bordered flex items-center gap-2 w-full">
-          <input
-            type="text"
-            className="grow p-3 text-sm w-full"
-            placeholder="Search Rank"
-            value={searchRankValue}
-            onChange={(e) => setSearchRankValue(e.target.value)}
-          />
-          <IoSearch className="text-xl" />
-        </label>
-      </div>
-
-      {/* Add Rank Button (only when editable) */}
-      {editable && (
-        <div className="w-full mt-4 md:mt-0 md:w-auto">
-          <button
-            className="btn btn-primary h-12 flex items-center justify-center w-full md:w-52"
-            onClick={() => document.getElementById('add_rank_modal').showModal()}
-          >
-            Add Rank <IoAdd size={20} className="ml-2" />
-          </button>
-
-          {/* Modal for adding rank */}
-          <dialog id="add_rank_modal" className="modal modal-bottom sm:modal-middle">
-            <div className="modal-box">
-              <AddTeacherRankContainer
-                close={() => document.getElementById('add_rank_modal').close()}
-                reduxFunction={addRank}
-                errorMessage={errorMessage}
-                setErrorMessage={setErrorMessage}
-                errorField={errorField}
-                setErrorField={setErrorField}
-              />
-              <div className="modal-action">
-                <button
-                  className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                  onClick={handleClose}
-                >
-                  ✕
-                </button>
-              </div>
+          {/* Pagination */}
+          {currentItems.length > 0 && (
+            <div className="join flex justify-center mb-4 md:mb-0">
+              <button
+                className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
+                onClick={() => {
+                  if (currentPage > 1) {
+                    setCurrentPage(currentPage - 1);
+                  }
+                  handleCancelRankEditClick();
+                }}
+                disabled={currentPage === 1}
+              >
+                «
+              </button>
+              <button className="join-item btn">
+                Page {currentPage} of {totalPages}
+              </button>
+              <button
+                className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
+                onClick={() => {
+                  if (currentPage < totalPages) {
+                    setCurrentPage(currentPage + 1);
+                  }
+                  handleCancelRankEditClick();
+                }}
+                disabled={currentPage === totalPages}
+              >
+                »
+              </button>
             </div>
-          </dialog>
+          )}
+
+          {currentItems.length === 0 && currentPage > 1 && (
+            <div className="hidden">
+              {setCurrentPage(currentPage - 1)}
+            </div>
+          )}
+
+          {/* Search Rank */}
+          <div className="flex-grow w-full md:w-1/3 lg:w-1/4">
+            <label className="input input-bordered flex items-center gap-2 w-full">
+              <input
+                type="text"
+                className="grow p-3 text-sm w-full"
+                placeholder="Search Rank"
+                value={searchRankValue}
+                onChange={(e) => setSearchRankValue(e.target.value)}
+              />
+              <IoSearch className="text-xl" />
+            </label>
+          </div>
+
+          {/* Add Rank Button (only when editable) */}
+          {editable && (
+            <div className="w-full mt-4 md:mt-0 md:w-auto">
+              <button
+                className="btn btn-primary h-12 flex items-center justify-center w-full md:w-52"
+                onClick={() => document.getElementById('add_rank_modal').showModal()}
+              >
+                Add Rank <IoAdd size={20} className="ml-2" />
+              </button>
+
+              {/* Modal for adding rank */}
+              <dialog id="add_rank_modal" className="modal modal-bottom sm:modal-middle">
+                <div className="modal-box">
+                  <AddTeacherRankContainer
+                    close={() => document.getElementById('add_rank_modal').close()}
+                    reduxFunction={addRank}
+                    errorMessage={errorMessage}
+                    setErrorMessage={setErrorMessage}
+                    errorField={errorField}
+                    setErrorField={setErrorField}
+                  />
+                  <div className="modal-action">
+                    <button
+                      className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                      onClick={handleClose}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              </dialog>
+            </div>
+          )}
+
         </div>
-      )}
-
-      </div>
-      <div className='overflow-x-auto'>
-      <table className="table table-sm table-zebra w-full">
-          <thead>
-            <tr>
-              <th className="w-8">#</th>
-              <th className="whitespace-nowrap">Rank ID</th>
-              <th className="whitespace-nowrap">Rank</th>
-              {editable && <th className="w-28 text-right">Actions</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {currentItems.length === 0 ? (
+        <div className='overflow-x-auto'>
+          <table className="table table-sm table-zebra w-full">
+            <thead>
               <tr>
-                <td colSpan="5" className="text-center">
-                  No ranks found
-                </td>
+                <th className="w-8">#</th>
+                <th className="whitespace-nowrap">Rank ID</th>
+                <th className="whitespace-nowrap">Rank</th>
+                {editable && <th className="w-28 text-right">Actions</th>}
               </tr>
-            ) : (
-              currentItems.map(([, rank], index) => (
-                <tr key={rank.id} className="group hover">
-                  <td>{index + indexOfFirstItem + 1}</td>
-                  <th>{rank.id}</th>
-                  <td>
-                    {editRankId === rank.id ? (
-                      <input
-                        type="text"
-                        className="input input-bordered input-sm w-full"
-                        value={editRankValue}
-                        onChange={(e) => setEditRankValue(e.target.value)}
-                      />
-                    ) : (
-                      rank.rank
-                    )}
+            </thead>
+            <tbody>
+              {currentItems.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="text-center">
+                    No ranks found
                   </td>
-                  {editable && (
-                    <td className="w-28 text-right">
+                </tr>
+              ) : (
+                currentItems.map(([, rank], index) => (
+                  <tr key={rank.id} className="group hover">
+                    <td>{index + indexOfFirstItem + 1}</td>
+                    <th>{rank.id}</th>
+                    <td>
                       {editRankId === rank.id ? (
-                        <>
-                          <button
-                            className="btn btn-xs btn-ghost text-green-500"
-                            onClick={() => handleSaveRankEditClick(rank.id)}
-                          >
-                            Save
-                          </button>
-                          <button
-                            className="btn btn-xs btn-ghost text-red-500"
-                            onClick={() => handleCancelRankEditClick()}
-                          >
-                            Cancel
-                          </button>
-                        </>
+                        <input
+                          type="text"
+                          className="input input-bordered input-sm w-full"
+                          value={editRankValue}
+                          onChange={(e) => setEditRankValue(e.target.value)}
+                        />
                       ) : (
-                        <>
-                          <button
-                            className="btn btn-xs btn-ghost text-blue-500"
-                            onClick={() => handleEditRankClick(rank)}
-                          >
-                            <RiEdit2Fill size={20} />
-                          </button>
-                          <button
-                            className="btn btn-xs btn-ghost text-red-500"
-                            onClick={() => deleteModal(rank.id)}
-                          >
-                            <RiDeleteBin7Line size={20} />
-                          </button>
-
-                          <dialog id="delete_modal" className="modal modal-bottom sm:modal-middle">
-                            <form method="dialog" className="modal-box">
-                              {/* Icon and message */}
-                              <div className="flex flex-col items-center justify-center">
-                                <TrashIcon className="text-red-500 mb-4" width={40} height={40} />
-                                <h3 className="font-bold text-lg text-center">
-                                  Are you sure you want to delete this item?
-                                </h3>
-                                <p className="text-sm text-gray-500 text-center">
-                                  This action cannot be undone.
-                                </p>
-                              </div>
-
-                              {/* Modal actions */}
-                              <div className="modal-action flex justify-center">
-                                {/* Close Button */}
-                                <button
-                                  className="btn btn-sm btn-ghost"
-                                  onClick={() => document.getElementById("delete_modal").close()}
-                                  aria-label="Cancel deletion"
-                                >
-                                  Cancel
-                                </button>
-
-                                {/* Confirm Delete Button */}
-                                <button
-                                  className="btn btn-sm btn-error text-white"
-                                  id="delete_button"
-                                >
-                                  Delete
-                                </button>
-                              </div>
-                            </form>
-                          </dialog>
-                        </>
+                        rank.rank
                       )}
                     </td>
-                  )}
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+                    {editable && (
+                      <td className="w-28 text-right">
+                        {editRankId === rank.id ? (
+                          <>
+                            <button
+                              className="btn btn-xs btn-ghost text-green-500"
+                              onClick={() => handleSaveRankEditClick(rank.id)}
+                            >
+                              Save
+                            </button>
+                            <button
+                              className="btn btn-xs btn-ghost text-red-500"
+                              onClick={() => handleCancelRankEditClick()}
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              className="btn btn-xs btn-ghost text-blue-500"
+                              onClick={() => handleEditRankClick(rank)}
+                            >
+                              <RiEdit2Fill size={20} />
+                            </button>
+                            <button
+                              className="btn btn-xs btn-ghost text-red-500"
+                              onClick={() => deleteModal(rank.id)}
+                            >
+                              <RiDeleteBin7Line size={20} />
+                            </button>
+
+                            <dialog id="delete_modal" className="modal modal-bottom sm:modal-middle">
+                              <form method="dialog" className="modal-box">
+                                {/* Icon and message */}
+                                <div className="flex flex-col items-center justify-center">
+                                  <TrashIcon className="text-red-500 mb-4" width={40} height={40} />
+                                  <h3 className="font-bold text-lg text-center">
+                                    Are you sure you want to delete this item?
+                                  </h3>
+                                  <p className="text-sm text-gray-500 text-center">
+                                    This action cannot be undone.
+                                  </p>
+                                </div>
+
+                                {/* Modal actions */}
+                                <div className="modal-action flex justify-center">
+                                  {/* Close Button */}
+                                  <button
+                                    className="btn btn-sm btn-ghost"
+                                    onClick={() => document.getElementById("delete_modal").close()}
+                                    aria-label="Cancel deletion"
+                                  >
+                                    Cancel
+                                  </button>
+
+                                  {/* Confirm Delete Button */}
+                                  <button
+                                    className="btn btn-sm btn-error text-white"
+                                    id="delete_button"
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              </form>
+                            </dialog>
+                          </>
+                        )}
+                      </td>
+                    )}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
   </React.Fragment>
   );
 };
