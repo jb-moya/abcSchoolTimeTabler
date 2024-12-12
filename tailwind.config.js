@@ -40,8 +40,8 @@
 // }
 
 /** /** @type {import('tailwindcss').Config} */
-const { dark } = require('daisyui/src/theming/themes');
-const defaultTheme = require('tailwindcss/defaultTheme');
+import { dark } from 'daisyui/src/theming/themes';
+import { defaultTheme } from 'daisyui/src/theming/themes';
 
 module.exports = {
   content: [

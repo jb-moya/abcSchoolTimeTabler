@@ -239,8 +239,6 @@ const SubjectListContainer = ({
     const [editSubjectWeeklyMinutes, setEditSubjectWeeklyMinutes] = useState(0);
 
     const [searchSubjectValue, setSearchSubjectValue] = useState('');
-    const [openAddSubjectContainer, setOpenAddSubjectContainer] =
-        useState(false);
 
     const handleEditSubjectClick = (subject) => {
         setEditSubjectId(subject.id);
@@ -374,7 +372,8 @@ const SubjectListContainer = ({
     };
 
     const updateSubjectDependencies = () => {
-        // Update subject dependencies in PROGRAMS
+
+        if (Object.keys(programs).length === 0) return;
 
         function calculateTotalTimeslots(subjects, program) {
             const totalNumOfClasses = program.subjects.reduce(
@@ -394,15 +393,16 @@ const SubjectListContainer = ({
             return Math.ceil(totalNumOfClasses / numOfSchoolDays);
         }
 
+        // Update subject dependencies in PROGRAMS
         Object.entries(programs).forEach(([id, program]) => {
             const originalProgram = JSON.parse(JSON.stringify(program));
             const newProgram = JSON.parse(JSON.stringify(program));
 
-            // console.log('originalProgram', originalProgram, newProgram);
-            console.log('outdated  newProgram', newProgram);
+            console.log('originalProgradsm', originalProgram);
+            console.log('newProgarm', newProgram);
 
             [7, 8, 9, 10].forEach((grade) => {
-                if (!newProgram[grade].subjects.includes(editSubjectId)) {
+                if (!newProgram[grade].subjects.length === 0) {
                     return;
                 }
 
@@ -425,93 +425,89 @@ const SubjectListContainer = ({
                 );
 
                 if (newTotalTimeslot < originalTotalTimeslot) {
-                    for (
-                        let timeslot = originalTotalTimeslot;
-                        timeslot > newTotalTimeslot;
-                        timeslot--
-                    ) {
-                        // console.log(
-                        //     'f epfdfp ',
-                        //     newProgram[grade].fixedPositions
-                        // );
-                        Object.entries(
-                            newProgram[grade].fixedPositions
-                        ).forEach(([subjectId, fixedPosition]) => {
-                            // console.log('subjectId', subjectId);
-                            // console.log('fixedPosition', fixedPosition);
-                            fixedPosition.forEach((item, i) => {
-                                if (item == timeslot) {
-                                    // console.log(
-                                    //     fixedPosition,
-                                    //     'resetting',
-                                    //     fixedPosition[i],
-                                    //     'to 0'
-                                    // );
-                                    fixedPosition[i] = 0;
-                                    newProgram[grade].fixedDays[subjectId][
-                                        i
-                                    ] = 0;
-                                } // reset all positions to zero if timeslot is removed
-                            });
+                    Object.entries(
+                        newProgram[grade].fixedPositions
+                    ).forEach(([subjectId, fixedPosition]) => {
+
+                        fixedPosition.forEach((item, i) => {
+                            if (item > newTotalTimeslot) {
+                                
+                                fixedPosition[i] = 0;
+                                newProgram[grade].fixedDays[subjectId][
+                                    i
+                                ] = 0;
+                            } 
                         });
-                    }
+
+                    });
                 }
 
-                const numOfClasses = Math.min(
-                    Math.ceil(editSubjectWeeklyMinutes / editClassDuration),
-                    numOfSchoolDays
-                );
+                console.log('newProgram[grade].subjects', newProgram[grade].subjects);
 
-                const fixedDays = newProgram[grade].fixedDays[editSubjectId];
-                const fixedPositions =
-                    newProgram[grade].fixedPositions[editSubjectId];
+                // Loop through all subjects of the year level
+                for (let subjectID of newProgram[grade].subjects) {
 
-                // Skip if both arrays are already of the correct length
-                if (
-                    fixedDays.length === numOfClasses &&
-                    fixedPositions.length === numOfClasses
-                ) {
-                    return;
-                }
+                    // Retrieve the number of classes allowed for the subject
+                    let numOfClasses = 0;
+                    if (subjectID === editSubjectId)
+                    {
+                        numOfClasses = Math.min(
+                            Math.ceil(editSubjectWeeklyMinutes / editClassDuration),
+                            numOfSchoolDays
+                        );
+                    } else {
+                        numOfClasses = Math.min(
+                            Math.ceil(subjects[subjectID].weeklyMinutes / subjects[subjectID].classDuration),
+                            numOfSchoolDays
+                        );
+                    } 
+    
+                    const fixedDays = newProgram[grade].fixedDays[subjectID];
+                    const fixedPositions = newProgram[grade].fixedPositions[subjectID];
+                    
+                    console.log('grade', grade);
+                    console.log('subjectID', subjectID);
+                    console.log('numOfClasses', numOfClasses);
+    
+                    // Skip if both arrays are already of the correct length
+                    if (fixedDays.length === numOfClasses && fixedPositions.length === numOfClasses) continue;
+                    
+                    // Use hash maps to quickly look up subjects and day-position pairs
+                    const dayPositionMap = new Map();
 
-                // Use hash maps to quickly look up subjects and day-position pairs
-                const dayPositionMap = new Map();
-                // const subjectsMap = new Map();
-                // newProgram[grade].subjects.forEach((subject) =>
-                //     subjectsMap.set(subject.id, true)
-                // );
+                    fixedDays.forEach((day, index) => {
+                        const pos = fixedPositions[index];
+                        if (
+                            ((day !== 0 && pos === 0) ||
+                            (day === 0 && pos !== 0) || 
+                            (day !== 0 && pos !== 0)) &&
+                            !dayPositionMap.has(`${day}-${pos}`)
+                        ) {
+                            dayPositionMap.set(`${day}-${pos}`, [day, pos]);
+                        }
+                    });
 
-                fixedDays.forEach((day, index) => {
-                    const pos = fixedPositions[index];
-                    if (
-                        day !== 0 &&
-                        pos !== 0 &&
-                        !dayPositionMap.has(`${day}-${pos}`)
-                    ) {
-                        dayPositionMap.set(`${day}-${pos}`, [day, pos]);
+                    // Now we process the day-position pairs efficiently
+                    let result = [];
+                    dayPositionMap.forEach(([day, pos]) => {
+                        if (result.length < numOfClasses) {
+                            result.push([day, pos]);
+                        }
+                    });
+
+                    // Pad with [0, 0] if necessary
+                    while (result.length < numOfClasses) {
+                        result.push([0, 0]);
                     }
-                });
 
-                // Now we process the day-position pairs efficiently
-                let result = [];
-                dayPositionMap.forEach(([day, pos]) => {
-                    if (result.length < numOfClasses) {
-                        result.push([day, pos]);
-                    }
-                });
-
-                // Pad with [0, 0] if necessary
-                while (result.length < numOfClasses) {
-                    result.push([0, 0]);
+                    // Split the combined array back into fixedDays and fixedPositions
+                    newProgram[grade].fixedDays[subjectID] = result.map(
+                        ([day]) => day
+                    );
+                    newProgram[grade].fixedPositions[subjectID] = result.map(
+                        ([_, pos]) => pos
+                    );
                 }
-
-                // Split the combined array back into fixedDays and fixedPositions
-                newProgram[grade].fixedDays[editSubjectId] = result.map(
-                    ([day]) => day
-                );
-                newProgram[grade].fixedPositions[editSubjectId] = result.map(
-                    ([_, pos]) => pos
-                );
             });
 
             const updateProgramDetails = (newProgram, grade) => ({
@@ -547,6 +543,8 @@ const SubjectListContainer = ({
             }
         });
 
+        if (Object.keys(sections).length === 0) return;
+
         // Update subject dependencies in SECTIONS
         Object.entries(sections).forEach(([id, section]) => {
             const originalSection = JSON.parse(JSON.stringify(section));
@@ -572,27 +570,17 @@ const SubjectListContainer = ({
                 newSection
             );
 
-            if (newTotalTimeslot < originalTotalTimeslot) {
-                for (
-                    let timeslot = originalTotalTimeslot;
-                    timeslot > newTotalTimeslot;
-                    timeslot--
-                ) {
-                    // console.log(
-                    //     'f epfdfp ',
-                    //     newProgram[grade].fixedPositions
-                    // );
-                    Object.entries(newSection.fixedPositions).forEach(
-                        ([subjectId, fixedPosition]) => {
-                            fixedPosition.forEach((item, i) => {
-                                if (item == timeslot) {
-                                    fixedPosition[i] = 0;
-                                    newSection.fixedDays[subjectId][i] = 0;
-                                } // reset all positions to zero if timeslot is removed
-                            });
-                        }
-                    );
-                }
+            if (newTotalTimeslot < originalTotalTimeslot) {               
+                Object.entries(newSection.fixedPositions).forEach(
+                    ([subjectId, fixedPosition]) => {
+                        fixedPosition.forEach((item, i) => {
+                            if (item > newTotalTimeslot) {
+                                fixedPosition[i] = 0;
+                                newSection.fixedDays[subjectId][i] = 0;
+                            } // reset all positions to zero if timeslot is removed
+                        });
+                    }
+                );              
             }
 
             const numOfClasses = Math.min(
@@ -604,28 +592,20 @@ const SubjectListContainer = ({
             const fixedPositions = newSection.fixedPositions[editSubjectId];
 
             // Skip if both arrays are already of the correct length
-            if (
-                fixedDays.length === numOfClasses &&
-                fixedPositions.length === numOfClasses
-            )
-                return;
+            if (fixedDays.length === numOfClasses && fixedPositions.length === numOfClasses) return;
 
             // Use hash maps to quickly look up subjects and day-position pairs
             const dayPositionMap = new Map();
-            // const subjectsMap = new Map();
-            // newSection.subjects.forEach((subject) =>
-            //     subjectsMap.set(subject.id, true)
-            // );
 
             fixedDays.forEach((day, index) => {
                 const pos = fixedPositions[index];
                 if (
-                    (day !== 0 && pos !== 0) ||
-                    (day !== 0 && pos === 0) ||
-                    (day === 0 &&
-                        pos !== 0 &&
-                        !dayPositionMap.has(`${day}-${pos}`))
-                ) {
+                    ((day !== 0 && pos === 0) ||
+                    (day === 0 && pos !== 0) || 
+                    (day !== 0 && pos !== 0)) &&
+                    !dayPositionMap.has(`${day}-${pos}`)
+                ) 
+                {
                     dayPositionMap.set(`${day}-${pos}`, [day, pos]);
                 }
             });
@@ -637,6 +617,8 @@ const SubjectListContainer = ({
                     result.push([day, pos]);
                 }
             });
+
+            console.log('fafaf dayPositionMap', dayPositionMap);
 
             // Pad with [0, 0] if necessary
             while (result.length < numOfClasses) {

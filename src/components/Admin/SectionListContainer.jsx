@@ -24,18 +24,18 @@ import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 import FixedScheduleMaker from './FixedSchedules/fixedScheduleMaker';
 
 const AddSectionContainer = ({
-  close,
-  reduxField,
-  reduxFunction,
-  errorMessage,
-  setErrorMessage,
-  errorField,
-  setErrorField, 
-  numOfSchoolDays,
+    close,
+    reduxField,
+    reduxFunction,
+    errorMessage,
+    setErrorMessage,
+    errorField,
+    setErrorField, 
+    numOfSchoolDays,
 }) => {
 
-  const inputNameRef = useRef();
-  const dispatch = useDispatch();
+    const inputNameRef = useRef();
+    const dispatch = useDispatch();
 
     const { programs, status: programStatus } = useSelector(
         (state) => state.program
@@ -52,13 +52,13 @@ const AddSectionContainer = ({
 
   // const numOfSchoolDays = parseInt(localStorage.getItem('numOfSchoolDays'), 10);
 
-  const [inputValue, setInputValue] = useState('');
-  const [selectedAdviser, setSelectedAdviser] = useState('');
-  const [selectedProgram, setSelectedProgram] = useState('');
-  const [selectedYearLevel, setSelectedYearLevel] = useState('');
-  const [selectedSubjects, setSelectedSubjects] = useState([]);
-  const [selectedShift, setSelectedShift] = useState(0);
-  const [selectedStartTime, setSelectedStartTime] = useState(0);
+    const [inputValue, setInputValue] = useState('');
+    const [selectedAdviser, setSelectedAdviser] = useState('');
+    const [selectedProgram, setSelectedProgram] = useState('');
+    const [selectedYearLevel, setSelectedYearLevel] = useState('');
+    const [selectedSubjects, setSelectedSubjects] = useState([]);
+    const [selectedShift, setSelectedShift] = useState(0);
+    const [selectedStartTime, setSelectedStartTime] = useState(0);
 
     const [fixedDays, setFixedDays] = useState({});
     const [fixedPositions, setFixedPositions] = useState({});
@@ -117,22 +117,22 @@ const AddSectionContainer = ({
         setInputValue(e.target.value);
     };
 
-  const handleAddEntry = () => {
+    const handleAddEntry = () => {
 
-    if (inputValue === '' || selectedAdviser === '' || selectedProgram === '' || selectedYearLevel === '' || selectedSubjects.length === 0) {
-      const errorFields = [];
-      if (inputValue === '') errorFields.push('name');
-      if (selectedAdviser === '') errorFields.push('adviser');
-      if (selectedProgram === '') errorFields.push('program');
-      if (selectedYearLevel === '') errorFields.push('yearLevel');
-      if (selectedSubjects.length === 0) errorFields.push('subjects');
+        if (inputValue === '' || selectedAdviser === '' || selectedProgram === '' || selectedYearLevel === '' || selectedSubjects.length === 0) {
+            const errorFields = [];
+            if (inputValue === '') errorFields.push('name');
+            if (selectedAdviser === '') errorFields.push('adviser');
+            if (selectedProgram === '') errorFields.push('program');
+            if (selectedYearLevel === '') errorFields.push('yearLevel');
+            if (selectedSubjects.length === 0) errorFields.push('subjects');
 
-      if (errorFields.length > 0) {
-        setErrorMessage('All fields are required.');
-        setErrorField(errorFields);
-        return;
-      }
-    }
+            if (errorFields.length > 0) {
+            setErrorMessage('All fields are required.');
+            setErrorField(errorFields);
+            return;
+            }
+        }
 
         const duplicateSection = Object.values(sections).find(
             (section) =>
@@ -144,66 +144,65 @@ const AddSectionContainer = ({
             (section) => section.teacher === selectedAdviser
         );
 
-    if (duplicateSection) {
-      setErrorMessage('Section already exists.');
-      setErrorField('name');
-      return;
-    } else if (duplicateAdviser) {
-      setErrorMessage(`Teacher is already assigned as adviser of section '${duplicateAdviser.section}'`);
-      setErrorField('adviser');
-      // alert(`Teacher is already assigned as adviser of section '${duplicateAdviser.section}'`);
-      return;
-    } else {
-      dispatch(
-        reduxFunction({
-          [reduxField[0]]: inputValue,
-          teacher: selectedAdviser,
-          program: selectedProgram,
-          year: selectedYearLevel,
-          subjects: selectedSubjects,
-          fixedDays: fixedDays,
-          fixedPositions: fixedPositions,
-          shift: selectedShift,
-          startTime: selectedStartTime,
-        })
-      );
-      setInputValue('');
-      setSelectedProgram('');
-      setSelectedYearLevel('');
-      setSelectedSubjects([]);
-      setSelectedShift(0);
-      setSelectedStartTime(0);
-      setFixedDays({});
-      setFixedPositions({});
-    }
+        if (duplicateSection) {
+            setErrorMessage('Section already exists.');
+            setErrorField('name');
+            return;
+        } else if (duplicateAdviser) {
+            setErrorMessage(`Teacher is already assigned as adviser of section '${duplicateAdviser.section}'`);
+            setErrorField('adviser');
+            // alert(`Teacher is already assigned as adviser of section '${duplicateAdviser.section}'`);
+            return;
+        } else {
+            dispatch(
+                reduxFunction({
+                [reduxField[0]]: inputValue,
+                teacher: selectedAdviser,
+                program: selectedProgram,
+                year: selectedYearLevel,
+                subjects: selectedSubjects,
+                fixedDays: fixedDays,
+                fixedPositions: fixedPositions,
+                shift: selectedShift,
+                startTime: selectedStartTime,
+                })
+            );
+            setInputValue('');
+            setSelectedProgram('');
+            setSelectedYearLevel('');
+            setSelectedSubjects([]);
+            setSelectedShift(0);
+            setSelectedStartTime(0);
+            setFixedDays({});
+            setFixedPositions({});
+        }
 
-    toast.success('Teacher added successfully', {
-      style: { backgroundColor: 'green', color: 'white', bordercolor: 'green', },
-    });
+        toast.success('Teacher added successfully', {
+            style: { backgroundColor: 'green', color: 'white', bordercolor: 'green', },
+        });
 
-    handleReset();
-    close();
+        handleReset();
+        close();
 
-    if (inputNameRef.current) {
-      inputNameRef.current.focus();
-      inputNameRef.current.select();
-    }
-  };
+        if (inputNameRef.current) {
+            inputNameRef.current.focus();
+            inputNameRef.current.select();
+        }
+    };
 
-  const handleReset = () => {
-
-    setErrorMessage('');
-    setErrorField([]);
-    setInputValue('');
-    setSelectedProgram('');
-    setSelectedYearLevel('');
-    setSelectedAdviser('');
-    setSelectedSubjects([]);
-    setSelectedShift(0);
-    setSelectedStartTime(0);
-    setFixedDays({});
-    setFixedPositions({});
-  };
+    const handleReset = () => {
+        setErrorMessage('');
+        setErrorField([]);
+        setInputValue('');
+        setSelectedProgram('');
+        setSelectedYearLevel('');
+        setSelectedAdviser('');
+        setSelectedSubjects([]);
+        setSelectedShift(0);
+        setSelectedStartTime(0);
+        setFixedDays({});
+        setFixedPositions({});
+    };
 
     useEffect(() => {
         console.log('fixedDays:', fixedDays);
@@ -272,84 +271,69 @@ const AddSectionContainer = ({
                     onChange={handleInputChange}
                 />
             </div>
-      <div className="mb-4">
-        <label className="label">
-          <span className="label-text">Section Name</span>
-        </label>
-        <input
-          type="text"
-          ref={inputNameRef}
-          placeholder={`Section Name`}
-          required
-          className={`input input-bordered input-md w-full ${errorField.includes('name') ? 'border-red-500' : ''
-            }`}
-          value={inputValue}
-          onChange={handleInputChange}
-        />
-      </div>
 
-      <div className="mt-3">
-        <label className="label">
-          <span className="label-text">Assign Adviser</span>
-        </label>
-        <select
-          className={`select select-bordered w-full ${errorField.includes('adviser') ? 'border-red-500' : ''
-            }`}
-          value={selectedAdviser}
-          onChange={(e) => setSelectedAdviser(parseInt(e.target.value, 10))}
-        >
-          <option value="" disabled>
-            Assign an adviser
-          </option>
-          {Object.keys(teachers).map((key) => (
-            <option key={teachers[key].id} value={teachers[key].id}>
-              {teachers[key].teacher}
-            </option>
-          ))}
-        </select>
-      </div>
+            <div className="mt-3">
+                <label className="label">
+                <span className="label-text">Assign Adviser</span>
+                </label>
+                <select
+                className={`select select-bordered w-full ${errorField.includes('adviser') ? 'border-red-500' : ''
+                    }`}
+                value={selectedAdviser}
+                onChange={(e) => setSelectedAdviser(parseInt(e.target.value, 10))}
+                >
+                <option value="" disabled>
+                    Assign an adviser
+                </option>
+                {Object.keys(teachers).map((key) => (
+                    <option key={teachers[key].id} value={teachers[key].id}>
+                    {teachers[key].teacher}
+                    </option>
+                ))}
+                </select>
+            </div>
 
-      <div className="mt-3">
-        <label className="label">
-          <span className="label-text">Select Program</span>
-        </label>
-        <select
-          className={`select select-bordered w-full ${errorField.includes('program') ? 'border-red-500' : ''
-            }`}
-          value={selectedProgram}
-          onChange={(e) => setSelectedProgram(parseInt(e.target.value, 10))}
-        >
-          <option value="" disabled>
-            Select a program
-          </option>
-          {Object.keys(programs).map((key) => (
-            <option key={programs[key].id} value={programs[key].id}>
-              {programs[key].program}
-            </option>
-          ))}
-        </select>
-      </div>
+            <div className="mt-3">
+                <label className="label">
+                <span className="label-text">Select Program</span>
+                </label>
+                <select
+                className={`select select-bordered w-full ${errorField.includes('program') ? 'border-red-500' : ''
+                    }`}
+                value={selectedProgram}
+                onChange={(e) => setSelectedProgram(parseInt(e.target.value, 10))}
+                >
+                <option value="" disabled>
+                    Select a program
+                </option>
+                {Object.keys(programs).map((key) => (
+                    <option key={programs[key].id} value={programs[key].id}>
+                    {programs[key].program}
+                    </option>
+                ))}
+                </select>
+            </div>
 
-      <div className="mt-3">
-        <label className="label">
-          <span className="label-text">Select Year Level</span>
-        </label>
-        <select
-          className={`select select-bordered w-full ${errorField.includes('yearLevel') ? 'border-red-500' : ''
-            }`}
-          value={selectedYearLevel}
-          onChange={(e) => setSelectedYearLevel(parseInt(e.target.value, 10))}
-        >
-          <option value="" disabled>
-            Select a year level
-          </option>
-          {[7, 8, 9, 10].map((level) => (
-            <option key={level} value={level}>
-              Grade {level}
-            </option>
-          ))}
-        </select>
-      </div>
+            <div className="mt-3">
+                <label className="label">
+                <span className="label-text">Select Year Level</span>
+                </label>
+                <select
+                className={`select select-bordered w-full ${errorField.includes('yearLevel') ? 'border-red-500' : ''
+                    }`}
+                value={selectedYearLevel}
+                onChange={(e) => setSelectedYearLevel(parseInt(e.target.value, 10))}
+                >
+                <option value="" disabled>
+                    Select a year level
+                </option>
+                {[7, 8, 9, 10].map((level) => (
+                    <option key={level} value={level}>
+                    Grade {level}
+                    </option>
+                ))}
+                </select>
+            </div>
 
             {selectedSubjects.length > 0 && (
                 <>
@@ -434,9 +418,9 @@ const AddSectionContainer = ({
                 </>
             )}
 
-      {errorMessage && (
-        <p className="text-red-500 text-sm my-4 font-medium select-none ">{errorMessage}</p>
-      )}
+            {errorMessage && (
+                <p className="text-red-500 text-sm my-4 font-medium select-none ">{errorMessage}</p>
+            )}
 
             <div className="flex justify-center gap-4 mt-4">
                 <button className="btn btn-secondary" onClick={handleReset}>
@@ -454,26 +438,26 @@ const SectionListContainer = ({
   numOfSchoolDays: externalNumOfSchoolDays,
   editable = false 
 }) => {
-  const dispatch = useDispatch();
-  const { subjects, status: subjectStatus } = useSelector(
-    (state) => state.subject
-  );
-  const { sections, status: sectionStatus } = useSelector(
-    (state) => state.section
-  );
-  const { programs, status: programStatus } = useSelector(
-    (state) => state.program
-  );
-  const { teachers, status: teacherStatus } = useSelector(
-    (state) => state.teacher
-  );
+    const dispatch = useDispatch();
+    const { subjects, status: subjectStatus } = useSelector(
+        (state) => state.subject
+    );
+    const { sections, status: sectionStatus } = useSelector(
+        (state) => state.section
+    );
+    const { programs, status: programStatus } = useSelector(
+        (state) => state.program
+    );
+    const { teachers, status: teacherStatus } = useSelector(
+        (state) => state.teacher
+    );
 
-  const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
-    return externalNumOfSchoolDays ?? (Number(localStorage.getItem('numOfSchoolDays')) || 0);
-  });
+    const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
+        return externalNumOfSchoolDays ?? (Number(localStorage.getItem('numOfSchoolDays')) || 0);
+    });
 
-  const [errorMessage, setErrorMessage] = useState('');
-  const [errorField, setErrorField] = useState([]);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [errorField, setErrorField] = useState([]);
 
     const [editSectionAdviser, setEditSectionAdviser] = useState('');
     const [editSectionProg, setEditSectionProg] = useState('');
@@ -485,9 +469,7 @@ const SectionListContainer = ({
     const [editSectionStartTime, setEditSectionStartTime] = useState('');
 
     const [editSectionFixedDays, setEditSectionFixedDays] = useState({});
-    const [editSectionFixedPositions, setEditSectionFixedPositions] = useState(
-        {}
-    );
+    const [editSectionFixedPositions, setEditSectionFixedPositions] = useState({});
 
     const [sectionTotalTimeslot, setSectionTotalTimeslot] = useState({});
 
@@ -560,43 +542,43 @@ const SectionListContainer = ({
         setCurrEditYear(section.year);
     };
 
-  const handleSaveSectionEditClick = (sectionId) => {
+    const handleSaveSectionEditClick = (sectionId) => {
 
-    if (!editSectionAdviser || !editSectionValue || !editSectionProg || !editSectionYear || editSectionSubjects.length === 0) {
-      toast.error('Please fill out all required fields.', {
-        style: { backgroundColor: 'red', color: 'white' },
-      });
+        if (!editSectionAdviser || !editSectionValue || !editSectionProg || !editSectionYear || editSectionSubjects.length === 0) {
+        toast.error('Please fill out all required fields.', {
+            style: { backgroundColor: 'red', color: 'white' },
+        });
 
-      return;
-    }
+        return;
+        }
 
         const currentSection = sections[sectionId]?.section || '';
         const currentSectionAdviser = sections[sectionId]?.teacher || '';
 
-    if (editSectionValue.trim().toLowerCase() === currentSection.trim().toLowerCase()
-      && editSectionAdviser === currentSectionAdviser) {
+        if (editSectionValue.trim().toLowerCase() === currentSection.trim().toLowerCase()
+            && editSectionAdviser === currentSectionAdviser) {
 
-      dispatch(
-        editSection({
-          sectionId,
-          updatedSection: {
-            id: sectionId,
-            teacher: editSectionAdviser,
-            program: editSectionProg,
-            section: editSectionValue,
-            subjects: editSectionSubjects,
-            fixedDays: editSectionFixedDays,
-            fixedPositions: editSectionFixedPositions,
-            year: editSectionYear,
-            shift: editSectionShift,
-            startTime: getTimeSlotIndex(editSectionStartTime),
-          },
-        })
-      );
+            dispatch(
+                editSection({
+                sectionId,
+                updatedSection: {
+                    id: sectionId,
+                    teacher: editSectionAdviser,
+                    program: editSectionProg,
+                    section: editSectionValue,
+                    subjects: editSectionSubjects,
+                    fixedDays: editSectionFixedDays,
+                    fixedPositions: editSectionFixedPositions,
+                    year: editSectionYear,
+                    shift: editSectionShift,
+                    startTime: getTimeSlotIndex(editSectionStartTime),
+                },
+                })
+            );
 
-      toast.success('Section added successfully', {
-        style: { backgroundColor: 'green', color: 'white', bordercolor: 'green' },
-      });
+            toast.success('Section added successfully', {
+                style: { backgroundColor: 'green', color: 'white', bordercolor: 'green' },
+            });
 
             // Reset the editing state
             setEditSectionId('');
@@ -609,6 +591,7 @@ const SectionListContainer = ({
 
             setCurrEditProgram('');
             setCurrEditYear('');
+
         } else {
             const duplicateSection = Object.values(sections).find(
                 (section) =>
@@ -622,33 +605,33 @@ const SectionListContainer = ({
 
             // console.log('duplicateAdviser: ', duplicateAdviser);
 
-      if (duplicateSection) {
-        toast.error('Section name already taken.', {
-          style: { backgroundColor: 'red', color: 'white' },
-        });
-        return;
-      } else if (duplicateAdviser) {
-        toast.error(`Adviser already assigned to section '${duplicateAdviser.section}'`, {
-          style: { backgroundColor: 'red', color: 'white' },
-        });
-      } else {
-        dispatch(
-          editSection({
-            sectionId,
-            updatedSection: {
-              id: sectionId,
-              teacher: editSectionAdviser,
-              program: editSectionProg,
-              section: editSectionValue,
-              subjects: editSectionSubjects,
-              fixedDays: editSectionFixedDays,
-              fixedPositions: editSectionFixedPositions,
-              year: editSectionYear,
-              shift: editSectionShift,
-              startTime: getTimeSlotIndex(editSectionStartTime),
-            },
-          })
-        );
+            if (duplicateSection) {
+                toast.error('Section name already taken.', {
+                    style: { backgroundColor: 'red', color: 'white' },
+                });
+                return;
+            } else if (duplicateAdviser) {
+                toast.error(`Adviser already assigned to section '${duplicateAdviser.section}'`, {
+                    tyle: { backgroundColor: 'red', color: 'white' },
+                });
+            } else {
+                dispatch(
+                    editSection({
+                        sectionId,
+                        updatedSection: {
+                        id: sectionId,
+                        teacher: editSectionAdviser,
+                        program: editSectionProg,
+                        section: editSectionValue,
+                        subjects: editSectionSubjects,
+                        fixedDays: editSectionFixedDays,
+                        fixedPositions: editSectionFixedPositions,
+                        year: editSectionYear,
+                        shift: editSectionShift,
+                        startTime: getTimeSlotIndex(editSectionStartTime),
+                        },
+                    })
+                );
 
                 // Reset the editing state
                 setEditSectionId('');
@@ -679,86 +662,86 @@ const SectionListContainer = ({
         setCurrEditYear('');
     };
 
-  const renderTimeOptions = () => {
-    const times =
-      editSectionShift === 0
-        ? Array.from({ length: 36 }, (_, i) => {
-          const hours = 6 + Math.floor(i / 6);
-          const minutes = (i % 6) * 10;
-          return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} AM`;
-        })
-        : ['01:00 PM']; // Only one option for PM
+    const renderTimeOptions = () => {
+        const times =
+        editSectionShift === 0
+            ? Array.from({ length: 36 }, (_, i) => {
+            const hours = 6 + Math.floor(i / 6);
+            const minutes = (i % 6) * 10;
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} AM`;
+            })
+            : ['01:00 PM']; // Only one option for PM
 
-    return times.map((time) => (
-      <option key={time} value={time}>
-        {time}
-      </option>
-    ));
-  };
+        return times.map((time) => (
+            <option key={time} value={time}>
+                {time}
+            </option>
+        ));
+    };
   
-  const handleClose = () => {
-    const modal = document.getElementById('add_section_modal');
-    if (modal) {
-      modal.close();
-      setErrorMessage('');
-      setErrorField([]);
-    } else {
-      console.error("Modal with ID 'add_section_modal' not found.");
-    }
-  };
+    const handleClose = () => {
+        const modal = document.getElementById('add_section_modal');
+        if (modal) {
+            modal.close();
+            setErrorMessage('');
+            setErrorField([]);
+        } else {
+            console.error("Modal with ID 'add_section_modal' not found.");
+        }
+    };
 
-  const deleteModal = (id) => {
-    const deleteModalElement = document.getElementById("delete_modal");
-    deleteModalElement.showModal();  // Show the modal
+    const deleteModal = (id) => {
+        const deleteModalElement = document.getElementById("delete_modal");
+        deleteModalElement.showModal();  // Show the modal
 
-    const deleteButton = document.getElementById("delete_button");
-    deleteButton.onclick = () => handleDelete(id);  // Dynamically assign delete logic
-  };
+        const deleteButton = document.getElementById("delete_button");
+        deleteButton.onclick = () => handleDelete(id);  // Dynamically assign delete logic
+    };
 
-  const handleDelete = (id) => {
-    dispatch(removeSection(id));  // Perform the delete action
-    document.getElementById("delete_modal").close(); // Close the modal after deleting
-  };
+    const handleDelete = (id) => {
+        dispatch(removeSection(id));  // Perform the delete action
+        document.getElementById("delete_modal").close(); // Close the modal after deleting
+    };
 
-  const debouncedSearch = useCallback(
-    debounce((searchValue, sections, subjects) => {
-      setSearchSectionResult(
-        filterObject(sections, ([, section]) => {
-          const escapedSearchValue = escapeRegExp(searchValue)
-            .split('\\*')
-            .join('.*');
+    const debouncedSearch = useCallback(
+        debounce((searchValue, sections, subjects) => {
+        setSearchSectionResult(
+            filterObject(sections, ([, section]) => {
+            const escapedSearchValue = escapeRegExp(searchValue)
+                .split('\\*')
+                .join('.*');
 
-                    const sectionSubjectsName = Object.keys(section.subjects)
-                        .map((subjectID) => subjects[subjectID]?.subject || '')
-                        .join(' ');
+                        const sectionSubjectsName = Object.keys(section.subjects)
+                            .map((subjectID) => subjects[subjectID]?.subject || '')
+                            .join(' ');
 
-                    const pattern = new RegExp(escapedSearchValue, 'i');
+                        const pattern = new RegExp(escapedSearchValue, 'i');
 
-                    // Check if program or year level matches the search value
-                    const programMatches = pattern.test(section.program);
-                    const yearLevelMatches = pattern.test(section.year); // Ensure `year` is the correct property name
+                        // Check if program or year level matches the search value
+                        const programMatches = pattern.test(section.program);
+                        const yearLevelMatches = pattern.test(section.year); // Ensure `year` is the correct property name
 
-          return (
-            pattern.test(section.section) ||
-            programMatches ||
-            yearLevelMatches ||
-            pattern.test(sectionSubjectsName)
-          );
-        })
-      );
-    }, 200),
-    []
-  );
+            return (
+                pattern.test(section.section) ||
+                programMatches ||
+                yearLevelMatches ||
+                pattern.test(sectionSubjectsName)
+            );
+            })
+        );
+        }, 200),
+        []
+    );
 
-  useEffect(() => {
-    if (externalNumOfSchoolDays !== undefined) {
-      setNumOfSchoolDays(externalNumOfSchoolDays);
-    }
-  }, [externalNumOfSchoolDays]);
+    useEffect(() => {
+        if (externalNumOfSchoolDays !== undefined) {
+        setNumOfSchoolDays(externalNumOfSchoolDays);
+        }
+    }, [externalNumOfSchoolDays]);
 
-  useEffect(() => {
-    console.log('numOfSchoolDays:', numOfSchoolDays);
-  }, [numOfSchoolDays]);
+    useEffect(() => {
+        console.log('numOfSchoolDays:', numOfSchoolDays);
+    }, [numOfSchoolDays]);
 
     useEffect(() => {
         debouncedSearch(searchSectionValue, sections, subjects);
@@ -816,26 +799,26 @@ const SectionListContainer = ({
         }
     }, [subjectStatus, dispatch]);
 
-  useEffect(() => {
-    if (teacherStatus === 'idle') {
-      dispatch(fetchTeachers());
-    }
-  }, [teacherStatus, dispatch]);
+    useEffect(() => {
+        if (teacherStatus === 'idle') {
+        dispatch(fetchTeachers());
+        }
+    }, [teacherStatus, dispatch]);
 
-  useEffect(() => {
-    console.log('editSectionAdviser: ', editSectionAdviser);
-  }, [editSectionAdviser]);
+    useEffect(() => {
+        console.log('editSectionAdviser: ', editSectionAdviser);
+    }, [editSectionAdviser]);
 
     const itemsPerPage = 10; // Adjust this to change items per page
     const [currentPage, setCurrentPage] = useState(1);
 
-  // Calculate total pages based on filtered sections
-  const totalPages = Math.ceil(Object.values(searchSectionResult).length / itemsPerPage);
-  
-  // Get current items
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = Object.entries(searchSectionResult).slice(indexOfFirstItem, indexOfLastItem);
+    // Calculate total pages based on filtered sections
+    const totalPages = Math.ceil(Object.values(searchSectionResult).length / itemsPerPage);
+    
+    // Get current items
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = Object.entries(searchSectionResult).slice(indexOfFirstItem, indexOfLastItem);
 
     return (
         <React.Fragment>
@@ -885,6 +868,7 @@ const SectionListContainer = ({
                             {setCurrentPage(currentPage - 1)}
                         </div>
                     )}
+
                     {/* Search Section */}
                     <div className="flex-grow w-full md:w-1/3 lg:w-1/4">
                         <label className="input input-bordered flex items-center gap-2 w-full">
@@ -914,33 +898,31 @@ const SectionListContainer = ({
                                 Add Section <IoAdd size={20} className="ml-2" />
                             </button>
 
-              <dialog id="add_section_modal" className="modal modal-bottom sm:modal-middle">
-
-                <div className="modal-box" style={{ width: '50%', maxWidth: 'none' }}>
-
-                  <AddSectionContainer
-                    close={handleClose}
-                    reduxField={['section', 'subjects', 'units']}
-                    reduxFunction={addSection}
-                    errorMessage={errorMessage}
-                    setErrorMessage={setErrorMessage}
-                    errorField={errorField}
-                    setErrorField={setErrorField}
-                    numOfSchoolDays={numOfSchoolDays}
-                  />
-                  <div className="modal-action">
-                    <button
-                      className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                      onClick={handleClose}
-                    >
-                      ✕
-                    </button>
-                  </div>
+                            <dialog id="add_section_modal" className="modal modal-bottom sm:modal-middle">
+                                <div className="modal-box" style={{ width: '50%', maxWidth: 'none' }}>
+                                    <AddSectionContainer
+                                        close={handleClose}
+                                        reduxField={['section', 'subjects', 'units']}
+                                        reduxFunction={addSection}
+                                        errorMessage={errorMessage}
+                                        setErrorMessage={setErrorMessage}
+                                        errorField={errorField}
+                                        setErrorField={setErrorField}
+                                        numOfSchoolDays={numOfSchoolDays}
+                                    />
+                                    <div className="modal-action">
+                                        <button
+                                            className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                                            onClick={handleClose}
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                </div>
+                            </dialog>
+                        </div>
+                     )}
                 </div>
-              </dialog>
-            </div>
-          )}
-        </div>
 
                 {/* Section Table */}
                 <div className="overflow-x-auto">
@@ -1486,13 +1468,13 @@ const SectionListContainer = ({
                     )}
                   </tr>
                 ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </React.Fragment>
-  );
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </React.Fragment>
+    );
 };
 
 export default SectionListContainer;
