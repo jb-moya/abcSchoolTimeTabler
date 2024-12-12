@@ -192,7 +192,7 @@ const SubjectListContainer = ({
   numOfSchoolDays: externalNumOfSchoolDays,
   editable = false 
 }) => {
-  const dispatch = useDispatch();
+    const dispatch = useDispatch();
 
     const { subjects, status: subjectStatus } = useSelector(
         (state) => state.subject
@@ -212,16 +212,15 @@ const SubjectListContainer = ({
   const [errorMessage, setErrorMessage] = useState('');
   const [errorField, setErrorField] = useState('');
 
-    const [editSubjectId, setEditSubjectId] = useState(null);
-    const [searchSubjectResult, setSearchSubjectResult] = useState(subjects);
-    const [editSubjectValue, setEditSubjectValue] = useState('');
-    const [editClassDuration, setEditClassDuration] = useState(0);
-    const [editSubjectWeeklyMinutes, setEditSubjectWeeklyMinutes] = useState(0);
+  const [editSubjectId, setEditSubjectId] = useState(null);
+  const [searchSubjectResult, setSearchSubjectResult] = useState(subjects);
+  const [editSubjectValue, setEditSubjectValue] = useState('');
+  const [editClassDuration, setEditClassDuration] = useState(0);
+  const [editSubjectWeeklyMinutes, setEditSubjectWeeklyMinutes] = useState(0);
 
   const [searchSubjectValue, setSearchSubjectValue] = useState('');
-    const [searchSubjectValue, setSearchSubjectValue] = useState('');
-    const [openAddSubjectContainer, setOpenAddSubjectContainer] =
-        useState(false);
+  const [openAddSubjectContainer, setOpenAddSubjectContainer] =
+      useState(false);
 
   const handleEditSubjectClick = (subject) => {
     setEditSubjectId(subject.id);
@@ -329,6 +328,7 @@ const SubjectListContainer = ({
         setEditSubjectWeeklyMinutes(0);
       }
     }
+    }
   };
 
   const handleCancelSubjectEditClick = () => {
@@ -337,22 +337,8 @@ const SubjectListContainer = ({
     setEditClassDuration(0);
     setEditSubjectWeeklyMinutes(0);
   };
-                updateSubjectDependencies();
 
-                toast.success('Data and dependencies updated successfully!', {
-                    style: {
-                        backgroundColor: '#28a745',
-                        color: '#fff',
-                        borderColor: '#28a745',
-                    },
-                });
-
-                resetInputs();
-            }
-        }
-    };
-
-    const updateSubjectDependencies = () => {
+  const updateSubjectDependencies = () => {
         // Update subject dependencies in PROGRAMS
 
         function calculateTotalTimeslots(subjects, program) {
@@ -667,21 +653,21 @@ const SubjectListContainer = ({
     document.getElementById("delete_modal").close(); 
   };
 
-    const debouncedSearch = useCallback(
-        debounce((searchValue, subjects) => {
-            setSearchSubjectResult(
-                filterObject(subjects, ([, subject]) => {
-                    const escapedSearchValue = escapeRegExp(searchValue)
-                        .split('\\*')
-                        .join('.*');
+  const debouncedSearch = useCallback(
+      debounce((searchValue, subjects) => {
+          setSearchSubjectResult(
+              filterObject(subjects, ([, subject]) => {
+                  const escapedSearchValue = escapeRegExp(searchValue)
+                      .split('\\*')
+                      .join('.*');
 
-                    const pattern = new RegExp(escapedSearchValue, 'i');
+                  const pattern = new RegExp(escapedSearchValue, 'i');
 
-          return pattern.test(subject.subject);
-        })
-      );
-    }, 200),
-    []
+        return pattern.test(subject.subject);
+      })
+    );
+  }, 200),
+  []
   );
   
   useEffect(() => {
@@ -701,29 +687,29 @@ const SubjectListContainer = ({
     }
   }, [subjectStatus, dispatch]);
 
-    useEffect(() => {
-        if (programStatus === 'idle') {
-            dispatch(fetchPrograms());
-        }
-    }, [programStatus, dispatch]);
+  useEffect(() => {
+      if (programStatus === 'idle') {
+          dispatch(fetchPrograms());
+      }
+  }, [programStatus, dispatch]);
 
-    useEffect(() => {
-        if (sectionStatus === 'idle') {
-            dispatch(fetchSections());
-        }
-    }, [sectionStatus, dispatch]);
+  useEffect(() => {
+      if (sectionStatus === 'idle') {
+          dispatch(fetchSections());
+      }
+  }, [sectionStatus, dispatch]);
 
-    useEffect(() => {
-        debouncedSearch(searchSubjectValue, subjects);
-    }, [searchSubjectValue, subjects, debouncedSearch]);
+  useEffect(() => {
+      debouncedSearch(searchSubjectValue, subjects);
+  }, [searchSubjectValue, subjects, debouncedSearch]);
 
-    const itemsPerPage = 10; // Change this to adjust the number of items per page
-    const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10; // Change this to adjust the number of items per page
+  const [currentPage, setCurrentPage] = useState(1);
 
-    // Calculate total pages
-    const totalPages = Math.ceil(
-        Object.values(searchSubjectResult).length / itemsPerPage
-    );
+  // Calculate total pages
+  const totalPages = Math.ceil(
+      Object.values(searchSubjectResult).length / itemsPerPage
+  );
 
   // Get current items
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -731,7 +717,7 @@ const SubjectListContainer = ({
   const currentItems = Object.entries(searchSubjectResult).slice(indexOfFirstItem, indexOfLastItem);
 
 
-    return (
+  return (
         <div className="w-full">
             <div className="flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5">
                 {/* Pagination */}
