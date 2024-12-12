@@ -3,12 +3,11 @@ import { useSelector } from 'react-redux';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { useDispatch } from 'react-redux';
 
-
 import {
-  fetchSubjects,
-  addSubject,
-  editSubject,
-  removeSubject,
+    fetchSubjects,
+    addSubject,
+    editSubject,
+    removeSubject,
 } from '@features/subjectSlice';
 import { fetchPrograms, editProgram } from '@features/programSlice';
 import { fetchSections, editSection } from '@features/sectionSlice';
@@ -22,689 +21,921 @@ import escapeRegExp from '@utils/escapeRegExp';
 import { toast } from 'sonner';
 
 const AddSubjectContainer = ({
-  close,
-  reduxFunction,
-  defaultSubjectClassDuration,
+    close,
+    reduxFunction,
+    defaultSubjectClassDuration,
 }) => {
-  const inputNameRef = useRef();
-  const dispatch = useDispatch();
+    const inputNameRef = useRef();
+    const dispatch = useDispatch();
 
-  const subjects = useSelector((state) => state.subject.subjects);
+    const subjects = useSelector((state) => state.subject.subjects);
 
-  const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const dayNames = [
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+        'Sunday',
+    ];
 
-  const [subjectName, setSubjectName] = useState('');
-  const [classSubjectDuration, setClassSubjectDuration] = useState(
-    defaultSubjectClassDuration || 10 // Ensure it defaults to 10 if undefined
-  );
-  const [subjectWeeklyMinutes, setSubjectWeeklyMinutes] = useState(100);
-
-  const handleAddSubject = () => {
-
-    if (!subjectName.trim()) {
-      alert('Subject name cannot be empty');
-      return;
-    } else if (!classSubjectDuration) {
-      alert('Class duration cannot be empty');
-      return;
-    } else if (!subjectWeeklyMinutes) {
-      alert('Subject weekly minutes cannot be empty');
-      return;
-    }
-
-    const classDuration = parseInt(classSubjectDuration, 10);
-    const weeklyMinutes = parseInt(subjectWeeklyMinutes, 10);
-
-    const duplicateSubject = Object.values(subjects).find(
-      (subject) => subject.subject.trim().toLowerCase() === subjectName.trim().toLowerCase()
+    const [subjectName, setSubjectName] = useState('');
+    const [classSubjectDuration, setClassSubjectDuration] = useState(
+        defaultSubjectClassDuration || 10 // Ensure it defaults to 10 if undefined
     );
-  
-    if (duplicateSubject) {
-      alert('A subject with this name already exists.');
-    } else {
-      dispatch(
-        reduxFunction({
-          subject: subjectName,
-          classDuration: classDuration,
-          weeklyMinutes: weeklyMinutes,
-        })
-      );
-      
-      toast.success('Subject added successfully!', {
-        style: {
-          backgroundColor: '#28a745', 
-          borderColor: '#28a745',
-          color: '#fff',               
-        },
-      });
+    const [subjectWeeklyMinutes, setSubjectWeeklyMinutes] = useState(100);
 
-      // Reset input fields
-      setSubjectName('');
-      setClassSubjectDuration(defaultSubjectClassDuration || 10);
-      setSubjectWeeklyMinutes(100);
-  
-      if (inputNameRef.current) {
-        inputNameRef.current.focus();
-      }
-    }
-  };
+    const handleAddSubject = () => {
+        if (!subjectName.trim()) {
+            alert('Subject name cannot be empty');
+            return;
+        } else if (!classSubjectDuration) {
+            alert('Class duration cannot be empty');
+            return;
+        } else if (!subjectWeeklyMinutes) {
+            alert('Subject weekly minutes cannot be empty');
+            return;
+        }
 
-  const handleReset = () => {
-    setSubjectName('');
-    setClassSubjectDuration(defaultSubjectClassDuration || 10);
-    setSubjectWeeklyMinutes(100);
-  };
+        const classDuration = parseInt(classSubjectDuration, 10);
+        const weeklyMinutes = parseInt(subjectWeeklyMinutes, 10);
 
-  useEffect(() => {
-    if (inputNameRef.current) {
-      inputNameRef.current.focus();
-    }
-  }, []);
+        const duplicateSubject = Object.values(subjects).find(
+            (subject) =>
+                subject.subject.trim().toLowerCase() ===
+                subjectName.trim().toLowerCase()
+        );
 
-  return (
-    <div>
-      <div>
-        <h3 className="text-lg font-bold mb-4">Add New Subject</h3>
-      </div>
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">Subject Name:</label>
-        <input
-          type="text"
-          className="input input-bordered w-full"
-          value={subjectName}
-          onChange={(e) => setSubjectName(e.target.value)}
-          placeholder="Enter subject name"
-          ref={inputNameRef}
-        />
-      </div>
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">
-          Class Duration (minutes):
-        </label>
-        <input
-          type="number"
-          className="input input-bordered w-full"
-          value={classSubjectDuration}
-          onChange={(e) => {
-            const value = Number(e.target.value);
-            setClassSubjectDuration(value);
-          }}
-          placeholder="Enter class duration"
-          step={5}
-          min={10}
-        />
-      </div>
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">
-          Subject's Weekly Time Requirement (minutes):
-        </label>
-        <input
-          type="number"
-          className="input input-bordered w-full"
-          value={subjectWeeklyMinutes}
-          onChange={(e) => {
-            const value = Number(e.target.value);
-            setSubjectWeeklyMinutes(value);
-          }}
-          placeholder="Enter subject's weekly minutes"
-          step={5}
-        />
-      </div>
-      <div className="flex justify-center gap-2">
-        <button className="btn btn-secondary border-0" onClick={handleReset}>
-          Reset
-        </button>
-        <div className="flex justify-end space-x-2">
-          <button className="btn btn-primary" onClick={handleAddSubject}>
-            Add Subject
-          </button>
+        if (duplicateSubject) {
+            alert('A subject with this name already exists.');
+        } else {
+            dispatch(
+                reduxFunction({
+                    subject: subjectName,
+                    classDuration: classDuration,
+                    weeklyMinutes: weeklyMinutes,
+                })
+            );
+
+            toast.success('Subject added successfully!', {
+                style: {
+                    backgroundColor: '#28a745',
+                    borderColor: '#28a745',
+                    color: '#fff',
+                },
+            });
+
+            // Reset input fields
+            setSubjectName('');
+            setClassSubjectDuration(defaultSubjectClassDuration || 10);
+            setSubjectWeeklyMinutes(100);
+
+            if (inputNameRef.current) {
+                inputNameRef.current.focus();
+            }
+        }
+    };
+
+    const handleReset = () => {
+        setSubjectName('');
+        setClassSubjectDuration(defaultSubjectClassDuration || 10);
+        setSubjectWeeklyMinutes(100);
+    };
+
+    useEffect(() => {
+        if (inputNameRef.current) {
+            inputNameRef.current.focus();
+        }
+    }, []);
+
+    return (
+        <div>
+            <div>
+                <h3 className="text-lg font-bold mb-4">Add New Subject</h3>
+            </div>
+            <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">
+                    Subject Name:
+                </label>
+                <input
+                    type="text"
+                    className="input input-bordered w-full"
+                    value={subjectName}
+                    onChange={(e) => setSubjectName(e.target.value)}
+                    placeholder="Enter subject name"
+                    ref={inputNameRef}
+                />
+            </div>
+            <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">
+                    Class Duration (minutes):
+                </label>
+                <input
+                    type="number"
+                    className="input input-bordered w-full"
+                    value={classSubjectDuration}
+                    onChange={(e) => {
+                        const value = Number(e.target.value);
+                        setClassSubjectDuration(value);
+                    }}
+                    placeholder="Enter class duration"
+                    step={5}
+                    min={10}
+                />
+            </div>
+            <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">
+                    Subject's Weekly Time Requirement (minutes):
+                </label>
+                <input
+                    type="number"
+                    className="input input-bordered w-full"
+                    value={subjectWeeklyMinutes}
+                    onChange={(e) => {
+                        const value = Number(e.target.value);
+                        setSubjectWeeklyMinutes(value);
+                    }}
+                    placeholder="Enter subject's weekly minutes"
+                    step={5}
+                />
+            </div>
+            <div className="flex justify-center gap-2">
+                <button
+                    className="btn btn-secondary border-0"
+                    onClick={handleReset}
+                >
+                    Reset
+                </button>
+                <div className="flex justify-end space-x-2">
+                    <button
+                        className="btn btn-primary"
+                        onClick={handleAddSubject}
+                    >
+                        Add Subject
+                    </button>
+                </div>
+            </div>
         </div>
-      </div>
-      
-    </div>
-  );
+    );
 };
 
 const SubjectListContainer = ({ editable = false }) => {
-  const dispatch = useDispatch();
+    const dispatch = useDispatch();
 
-  const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
-  const { programs, status: programStatus } = useSelector((state) => state.program);
-  const { sections, status: sectionStatus } = useSelector((state) => state.section);
+    const { subjects, status: subjectStatus } = useSelector(
+        (state) => state.subject
+    );
+    const { programs, status: programStatus } = useSelector(
+        (state) => state.program
+    );
+    const { sections, status: sectionStatus } = useSelector(
+        (state) => state.section
+    );
 
-  const numOfSchoolDays = parseInt(localStorage.getItem('numOfSchoolDays'), 10);
-  const defaultSubjectClassDuration = localStorage.getItem('defaultSubjectClassDuration');
+    const numOfSchoolDays = parseInt(
+        localStorage.getItem('numOfSchoolDays'),
+        10
+    );
+    const defaultSubjectClassDuration = localStorage.getItem(
+        'defaultSubjectClassDuration'
+    );
 
-  const [editSubjectId, setEditSubjectId] = useState(null);
-  const [searchSubjectResult, setSearchSubjectResult] = useState(subjects);
-  const [editSubjectValue, setEditSubjectValue] = useState('');
-  const [editClassDuration, setEditClassDuration] = useState(0);
-  const [editSubjectWeeklyMinutes, setEditSubjectWeeklyMinutes] = useState(0);
+    const [editSubjectId, setEditSubjectId] = useState(null);
+    const [searchSubjectResult, setSearchSubjectResult] = useState(subjects);
+    const [editSubjectValue, setEditSubjectValue] = useState('');
+    const [editClassDuration, setEditClassDuration] = useState(0);
+    const [editSubjectWeeklyMinutes, setEditSubjectWeeklyMinutes] = useState(0);
 
-  const [searchSubjectValue, setSearchSubjectValue] = useState('');
-  const [openAddSubjectContainer, setOpenAddSubjectContainer] = useState(false);
+    const [searchSubjectValue, setSearchSubjectValue] = useState('');
+    const [openAddSubjectContainer, setOpenAddSubjectContainer] =
+        useState(false);
 
-  const handleEditSubjectClick = (subject) => {
-    setEditSubjectId(subject.id);
-    setEditSubjectValue(subject.subject);
-    setEditClassDuration(subject.classDuration);
-    setEditSubjectWeeklyMinutes(subject.weeklyMinutes);
-  };
+    const handleEditSubjectClick = (subject) => {
+        console.log('edittingigntintgingi n  nn n n n n n subject:', subject);
+        setEditSubjectId(subject.id);
+        setEditSubjectValue(subject.subject);
+        setEditClassDuration(subject.classDuration);
+        setEditSubjectWeeklyMinutes(subject.weeklyMinutes);
+    };
 
-  const handleSaveSubjectEditClick = (subjectId) => {
+    useEffect(() => {
+        console.log('editClassDuration:', editClassDuration);
+    }, [editClassDuration]);
 
-    if (!editSubjectValue.trim()) {
-      alert('Subject name cannot be empty');
-      return;
-    } else if (!editClassDuration) {
-      alert('Class duration cannot be empty');
-      return;
-    } else if (!editSubjectWeeklyMinutes) {
-      alert('Subject weekly minutes cannot be empty');
-      return;
-    }
-
-    const currentSubject = subjects[subjectId]?.subject || '';
-  
-    if (editSubjectValue.trim().toLowerCase() === currentSubject.toLowerCase()) {
-      dispatch(
-        editSubject({
-          subjectId,
-          updatedSubject: {
-            subject: editSubjectValue,
-            classDuration: editClassDuration,
-            weeklyMinutes: editSubjectWeeklyMinutes,
-          },
-        })
-      );
-
-      updateSubjectDependencies();
-  
-      toast.success('Data and dependencies updated successfully!', {
-        style: {
-          backgroundColor: '#28a745', 
-          color: '#fff',        
-          borderColor: '#28a745',   
-        },
-      });
-  
-      setEditSubjectId(null);
-      setEditSubjectValue('');
-      setEditClassDuration(0);
-      setEditSubjectWeeklyMinutes(0);
-      
-    } else {
-      const duplicateSubject = Object.values(subjects).find(
-        (subject) => subject.subject.trim().toLowerCase() === editSubjectValue.trim().toLowerCase()
-      );
-  
-      if (duplicateSubject) {
-        alert('A subject with this name already exists.');
-      } else if (editSubjectValue.trim()) {
-        dispatch(
-          editSubject({
-            subjectId,
-            updatedSubject: {
-              subject: editSubjectValue,
-              classDuration: editClassDuration,
-              weeklyMinutes: editSubjectWeeklyMinutes,
-            },
-          })
-        );
-
-        updateSubjectDependencies();
-        
-        toast.success('Data and dependencies updated successfully!', {
-          style: {
-            backgroundColor: '#28a745', 
-            color: '#fff',        
-            borderColor: '#28a745',   
-          },
-        });
-  
+    const resetInputs = () => {
         setEditSubjectId(null);
         setEditSubjectValue('');
         setEditClassDuration(0);
         setEditSubjectWeeklyMinutes(0);
-      }
-    }
-  };  
+    };
 
-  const handleCancelSubjectEditClick = () => {
-    setEditSubjectId(null);
-    setEditSubjectValue('');
-    setEditClassDuration(0);
-    setEditSubjectWeeklyMinutes(0);
-  };
-
-  const updateSubjectDependencies = () => {
-    
-    // Update subject dependencies in PROGRAMS
-    Object.entries(programs).forEach(([id, program]) => {
-      const originalProgram = JSON.parse(JSON.stringify(program));
-      const newProgram = JSON.parse(JSON.stringify(program));
-    
-      [7, 8, 9, 10].forEach((grade) => {
-        if (!newProgram[grade].subjects.includes(editSubjectId)) return;
-    
-        const numOfClasses = Math.min(
-          Math.ceil(editSubjectWeeklyMinutes / editClassDuration),
-          numOfSchoolDays
-        );
-    
-        const fixedDays = newProgram[grade].fixedDays[editSubjectId];
-        const fixedPositions = newProgram[grade].fixedPositions[editSubjectId];
-    
-        // Skip if both arrays are already of the correct length
-        if (fixedDays.length === numOfClasses && fixedPositions.length === numOfClasses) return;
-    
-        // Use hash maps to quickly look up subjects and day-position pairs
-        const dayPositionMap = new Map();
-        const subjectsMap = new Map();
-        newProgram[grade].subjects.forEach(subject => subjectsMap.set(subject.id, true));
-    
-        fixedDays.forEach((day, index) => {
-          const pos = fixedPositions[index];
-          if (day !== 0 && pos !== 0 && !dayPositionMap.has(`${day}-${pos}`)) {
-            dayPositionMap.set(`${day}-${pos}`, [day, pos]);
-          }
-        });
-    
-        // Now we process the day-position pairs efficiently
-        let result = [];
-        dayPositionMap.forEach(([day, pos]) => {
-          if (result.length < numOfClasses) {
-            result.push([day, pos]);
-          }
-        });
-    
-        // Pad with [0, 0] if necessary
-        while (result.length < numOfClasses) {
-          result.push([0, 0]);
+    const handleSaveSubjectEditClick = (subjectId) => {
+        if (!editSubjectValue.trim()) {
+            alert('Subject name cannot be empty');
+            return;
+        } else if (!editClassDuration) {
+            alert('Class duration cannot be empty');
+            return;
+        } else if (!editSubjectWeeklyMinutes) {
+            alert('Subject weekly minutes cannot be empty');
+            return;
         }
-    
-        // Split the combined array back into fixedDays and fixedPositions
-        newProgram[grade].fixedDays[editSubjectId] = result.map(([day]) => day);
-        newProgram[grade].fixedPositions[editSubjectId] = result.map(([_, pos]) => pos);
-      });
-    
-      if (originalProgram !== newProgram) {
-        dispatch(
-          editProgram({
-            programId: newProgram.id,
-            updatedProgram: {
-              program: newProgram.program,
-              7: {
-                subjects: newProgram[7].subjects,
-                fixedDays: newProgram[7].fixedDays,
-                fixedPositions: newProgram[7].fixedPositions,
-                shift: newProgram[7].shift,
-                startTime: getTimeSlotIndex(newProgram[7].startTime || '06:00 AM'),
-              },
-              8: {
-                subjects: newProgram[8].subjects,
-                fixedDays: newProgram[8].fixedDays,
-                fixedPositions: newProgram[8].fixedPositions,
-                shift: newProgram[8].shift,
-                startTime: getTimeSlotIndex(newProgram[8].startTime || '06:00 AM'),
-              },
-              9: {
-                subjects: newProgram[9].subjects,
-                fixedDays: newProgram[9].fixedDays,
-                fixedPositions: newProgram[9].fixedPositions,
-                shift: newProgram[9].shift,
-                startTime: getTimeSlotIndex(newProgram[9].startTime || '06:00 AM'),
-              },
-              10: {
-                subjects: newProgram[10].subjects,
-                fixedDays: newProgram[10].fixedDays,
-                fixedPositions: newProgram[10].fixedPositions,
-                shift: newProgram[10].shift,
-                startTime: getTimeSlotIndex(newProgram[10].startTime || '06:00 AM'),
-              },
-            },
-          })
-        );
-      } 
-    });
 
-    // Update subject dependencies in SECTIONS
-    Object.entries(sections).forEach(([id, section]) => {
-      const originalSection = JSON.parse(JSON.stringify(section));
-      const newSection = JSON.parse(JSON.stringify(section));
+        const currentSubject = subjects[subjectId]?.subject || '';
 
-      if (!newSection.subjects.includes(editSubjectId)) return;
+        if (
+            editSubjectValue.trim().toLowerCase() ===
+            currentSubject.toLowerCase()
+        ) {
+            // console.log('subjects', subjects);
+            dispatch(
+                editSubject({
+                    subjectId,
+                    updatedSubject: {
+                        subject: editSubjectValue,
+                        classDuration: editClassDuration,
+                        weeklyMinutes: editSubjectWeeklyMinutes,
+                    },
+                })
+            );
 
-      const numOfClasses = Math.min(Math.ceil(editSubjectWeeklyMinutes / editClassDuration), numOfSchoolDays);
+            updateSubjectDependencies();
+            // console.log('after :D subjects', subjects);
+            toast.success('Data and dependencies updated successfully!', {
+                style: {
+                    backgroundColor: '#28a745',
+                    color: '#fff',
+                    borderColor: '#28a745',
+                },
+            });
 
-      const fixedDays = newSection.fixedDays[editSubjectId];
-      const fixedPositions = newSection.fixedPositions[editSubjectId];
+            resetInputs();
+        } else {
+            const duplicateSubject = Object.values(subjects).find(
+                (subject) =>
+                    subject.subject.trim().toLowerCase() ===
+                    editSubjectValue.trim().toLowerCase()
+            );
 
-      // Skip if both arrays are already of the correct length
-      if (fixedDays.length === numOfClasses && fixedPositions.length === numOfClasses) return;
+            if (duplicateSubject) {
+                alert('A subject with this name already exists.');
+            } else if (editSubjectValue.trim()) {
+                dispatch(
+                    editSubject({
+                        subjectId,
+                        updatedSubject: {
+                            subject: editSubjectValue,
+                            classDuration: editClassDuration,
+                            weeklyMinutes: editSubjectWeeklyMinutes,
+                        },
+                    })
+                );
 
-      // Use hash maps to quickly look up subjects and day-position pairs
-      const dayPositionMap = new Map();
-      const subjectsMap = new Map();
-      newSection.subjects.forEach(subject => subjectsMap.set(subject.id, true));
+                updateSubjectDependencies();
 
-      fixedDays.forEach((day, index) => {
-        const pos = fixedPositions[index];
-        if (day !== 0 && pos !== 0 && !dayPositionMap.has(`${day}-${pos}`)) {
-          dayPositionMap.set(`${day}-${pos}`, [day, pos]);
+                toast.success('Data and dependencies updated successfully!', {
+                    style: {
+                        backgroundColor: '#28a745',
+                        color: '#fff',
+                        borderColor: '#28a745',
+                    },
+                });
+
+                resetInputs();
+            }
         }
-      });
+    };
 
-      // Now we process the day-position pairs efficiently
-      let result = [];
-      dayPositionMap.forEach(([day, pos]) => {
-        if (result.length < numOfClasses) {
-          result.push([day, pos]);
+    const updateSubjectDependencies = () => {
+        // Update subject dependencies in PROGRAMS
+
+        function calculateTotalTimeslots(subjects, program) {
+            const totalNumOfClasses = program.subjects.reduce(
+                (total, subject) => {
+                    const classesPerWeek = Math.ceil(
+                        subjects[subject].weeklyMinutes /
+                            subjects[subject].classDuration
+                    );
+                    return total + classesPerWeek;
+                },
+                0
+            );
+
+            return Math.ceil(totalNumOfClasses / numOfSchoolDays);
         }
-      });
 
-      // Pad with [0, 0] if necessary
-      while (result.length < numOfClasses) {
-        result.push([0, 0]);
-      }
+        Object.entries(programs).forEach(([id, program]) => {
+            const originalProgram = JSON.parse(JSON.stringify(program));
+            const newProgram = JSON.parse(JSON.stringify(program));
 
-      // Split the combined array back into fixedDays and fixedPositions
-      newSection.fixedDays[editSubjectId] = result.map(([day]) => day);
-      newSection.fixedPositions[editSubjectId] = result.map(([_, pos]) => pos);
+            // console.log('originalProgram', originalProgram, newProgram);
+            console.log('outdated  newProgram', newProgram);
 
-      if (originalSection !== newSection) {
-        dispatch(
-          editSection({
-            sectionId: newSection.id,
-            updatedSection: {
-              id: newSection.id,
-              teacher: newSection.teacher,
-              program: newSection.program,
-              section: newSection.section,
-              subjects: newSection.subjects,
-              fixedDays: newSection.fixedDays,
-              fixedPositions: newSection.fixedPositions,
-              year: newSection.year,
-              shift: newSection.shift,
-              startTime: getTimeSlotIndex(newSection.startTime || '06:00 AM'),
-            },
-          })
-        );
-      };
-
-    });
-
-  };
-
-  const debouncedSearch = useCallback(
-    debounce((searchValue, subjects) => {
-      setSearchSubjectResult(
-        filterObject(subjects, ([, subject]) => {
-          const escapedSearchValue = escapeRegExp(searchValue)
-            .split('\\*')
-            .join('.*');
-
-          const pattern = new RegExp(escapedSearchValue, 'i');
-
-          return pattern.test(subject.subject);
-        })
-      );
-    }, 200),
-    []
-  );
-  
-  // Initialization of stores
-  useEffect(() => {
-    if (subjectStatus === 'idle') {
-      dispatch(fetchSubjects());
-    }
-  }, [subjectStatus, dispatch]);
-
-  useEffect(() => {
-    if (programStatus === 'idle') {
-      dispatch(fetchPrograms());
-    }
-  }, [programStatus, dispatch]);
-
-  useEffect(() => {
-    if (sectionStatus === 'idle') {
-      dispatch(fetchSections());
-    }
-  }, [sectionStatus, dispatch]);
-
-  useEffect(() => {
-    debouncedSearch(searchSubjectValue, subjects);
-  }, [searchSubjectValue, subjects, debouncedSearch]);
-
-  const itemsPerPage = 10; // Change this to adjust the number of items per page
-  const [currentPage, setCurrentPage] = useState(1);
-
-  // Calculate total pages
-  const totalPages = Math.ceil(Object.values(searchSubjectResult).length / itemsPerPage);
-
-  // Get current items
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = Object.entries(searchSubjectResult).slice(indexOfFirstItem, indexOfLastItem);
-
-  return (
-    <div className="w-full">
-
-      <div className="flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5">
-        {/* Pagination */}
-        {currentItems.length > 0 && (
-          <div className="join flex justify-center  mb-4 md:mb-0">
-            <button
-              className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
-              onClick={() => {
-                if (currentPage > 1) {
-                  setCurrentPage(currentPage - 1);
+            [7, 8, 9, 10].forEach((grade) => {
+                if (!newProgram[grade].subjects.includes(editSubjectId)) {
+                    return;
                 }
-                handleCancelSubjectEditClick();
-              }}
-              disabled={currentPage === 1}
-            >
-              «
-            </button>
-            <button className="join-item btn">
-              Page {currentPage} of {totalPages}
-            </button>
-            <button
-              className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
-              onClick={() => {
-                if (currentPage < totalPages) {
-                  setCurrentPage(currentPage + 1);
+
+                const originalTotalTimeslot = calculateTotalTimeslots(
+                    subjects,
+                    originalProgram[grade]
+                );
+
+                const newTotalTimeslot = calculateTotalTimeslots(
+                    {
+                        ...subjects,
+                        [editSubjectId]: {
+                            ...subjects[editSubjectId],
+                            subject: editSubjectValue,
+                            classDuration: editClassDuration,
+                            weeklyMinutes: editSubjectWeeklyMinutes,
+                        },
+                    },
+                    newProgram[grade]
+                );
+
+                if (newTotalTimeslot < originalTotalTimeslot) {
+                    for (
+                        let timeslot = originalTotalTimeslot;
+                        timeslot > newTotalTimeslot;
+                        timeslot--
+                    ) {
+                        // console.log(
+                        //     'f epfdfp ',
+                        //     newProgram[grade].fixedPositions
+                        // );
+                        Object.entries(
+                            newProgram[grade].fixedPositions
+                        ).forEach(([subjectId, fixedPosition]) => {
+                            // console.log('subjectId', subjectId);
+                            // console.log('fixedPosition', fixedPosition);
+                            fixedPosition.forEach((item, i) => {
+                                if (item == timeslot) {
+                                    // console.log(
+                                    //     fixedPosition,
+                                    //     'resetting',
+                                    //     fixedPosition[i],
+                                    //     'to 0'
+                                    // );
+                                    fixedPosition[i] = 0;
+                                    newProgram[grade].fixedDays[subjectId][
+                                        i
+                                    ] = 0;
+                                } // reset all positions to zero if timeslot is removed
+                            });
+                        });
+                    }
                 }
-                handleCancelSubjectEditClick();
-              }}
-              disabled={currentPage === totalPages}
-            >
-              »
-            </button>
-          </div>
-        )}
 
-        {currentItems.length === 0 && currentPage > 1 && (
-          <div className="hidden">
-            {setCurrentPage(currentPage - 1)}
-          </div>
-        )}
+                const numOfClasses = Math.min(
+                    Math.ceil(editSubjectWeeklyMinutes / editClassDuration),
+                    numOfSchoolDays
+                );
 
-        {/* Search Subject */}
-        <div className="flex-grow w-full md:w-1/3 lg:w-1/4">
-          <label className="input input-bordered flex items-center gap-2 w-full">
-            <input
-              type="text"
-              className="grow p-3 text-sm w-full"
-              placeholder="Search Subject"
-              value={searchSubjectValue}
-              onChange={(e) => setSearchSubjectValue(e.target.value)}
-            />
-            <IoSearch className="text-xl" />
-          </label>
-        </div>
+                const fixedDays = newProgram[grade].fixedDays[editSubjectId];
+                const fixedPositions =
+                    newProgram[grade].fixedPositions[editSubjectId];
 
-        {/* Add Subject Button (only when editable) */}
-        {editable && (
-          <div className="w-full mt-4 md:mt-0 md:w-auto">
-            <button
-              className="btn btn-primary h-12 flex items-center justify-center w-full md:w-52"
-              onClick={() => document.getElementById('add_subject_modal').showModal()}
-            >
-              Add Subject <IoAdd size={20} className="ml-2" />
-            </button>
+                // Skip if both arrays are already of the correct length
+                if (
+                    fixedDays.length === numOfClasses &&
+                    fixedPositions.length === numOfClasses
+                ) {
+                    return;
+                }
 
-            {/* Modal for adding subject */}
-            <dialog id="add_subject_modal" className="modal modal-bottom sm:modal-middle">
-              <div className="modal-box">
-                <AddSubjectContainer
-                  close={() => document.getElementById('add_subject_modal').close()}
-                  reduxFunction={addSubject}
-                  defaultSubjectClassDuration={defaultSubjectClassDuration}
-                />
-                <div className="modal-action">
-                  <button
-                    className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                    onClick={() => document.getElementById('add_subject_modal').close()}
-                  >
-                    ✕
-                  </button>
+                // Use hash maps to quickly look up subjects and day-position pairs
+                const dayPositionMap = new Map();
+                // const subjectsMap = new Map();
+                // newProgram[grade].subjects.forEach((subject) =>
+                //     subjectsMap.set(subject.id, true)
+                // );
+
+                fixedDays.forEach((day, index) => {
+                    const pos = fixedPositions[index];
+                    if (
+                        day !== 0 &&
+                        pos !== 0 &&
+                        !dayPositionMap.has(`${day}-${pos}`)
+                    ) {
+                        dayPositionMap.set(`${day}-${pos}`, [day, pos]);
+                    }
+                });
+
+                // Now we process the day-position pairs efficiently
+                let result = [];
+                dayPositionMap.forEach(([day, pos]) => {
+                    if (result.length < numOfClasses) {
+                        result.push([day, pos]);
+                    }
+                });
+
+                // Pad with [0, 0] if necessary
+                while (result.length < numOfClasses) {
+                    result.push([0, 0]);
+                }
+
+                // Split the combined array back into fixedDays and fixedPositions
+                newProgram[grade].fixedDays[editSubjectId] = result.map(
+                    ([day]) => day
+                );
+                newProgram[grade].fixedPositions[editSubjectId] = result.map(
+                    ([_, pos]) => pos
+                );
+            });
+
+            const updateProgramDetails = (newProgram, grade) => ({
+                subjects: newProgram[grade].subjects,
+                fixedDays: newProgram[grade].fixedDays,
+                fixedPositions: newProgram[grade].fixedPositions,
+                shift: newProgram[grade].shift,
+                startTime: getTimeSlotIndex(
+                    newProgram[grade].startTime || '06:00 AM' // TODO: David: paano kung panghapon ung section?
+                ),
+            });
+
+            console.log('updated newProgram', newProgram);
+
+            if (originalProgram !== newProgram) {
+                dispatch(
+                    editProgram({
+                        programId: newProgram.id,
+                        updatedProgram: {
+                            program: newProgram.program,
+                            ...[7, 8, 9, 10].reduce((grades, grade) => {
+                                grades[grade] = updateProgramDetails(
+                                    newProgram,
+                                    grade
+                                );
+                                return grades;
+                            }, {}),
+                        },
+                    })
+                );
+            } else {
+                console.log('no changes');
+            }
+        });
+
+        // Update subject dependencies in SECTIONS
+        Object.entries(sections).forEach(([id, section]) => {
+            const originalSection = JSON.parse(JSON.stringify(section));
+            const newSection = JSON.parse(JSON.stringify(section));
+
+            if (!newSection.subjects.includes(editSubjectId)) return;
+
+            const originalTotalTimeslot = calculateTotalTimeslots(
+                subjects,
+                newSection
+            );
+
+            const newTotalTimeslot = calculateTotalTimeslots(
+                {
+                    ...subjects,
+                    [editSubjectId]: {
+                        ...subjects[editSubjectId],
+                        subject: editSubjectValue,
+                        classDuration: editClassDuration,
+                        weeklyMinutes: editSubjectWeeklyMinutes,
+                    },
+                },
+                newSection
+            );
+
+            if (newTotalTimeslot < originalTotalTimeslot) {
+                for (
+                    let timeslot = originalTotalTimeslot;
+                    timeslot > newTotalTimeslot;
+                    timeslot--
+                ) {
+                    // console.log(
+                    //     'f epfdfp ',
+                    //     newProgram[grade].fixedPositions
+                    // );
+                    Object.entries(newSection.fixedPositions).forEach(
+                        ([subjectId, fixedPosition]) => {
+                            fixedPosition.forEach((item, i) => {
+                                if (item == timeslot) {
+                                    fixedPosition[i] = 0;
+                                    newSection.fixedDays[subjectId][i] = 0;
+                                } // reset all positions to zero if timeslot is removed
+                            });
+                        }
+                    );
+                }
+            }
+
+            const numOfClasses = Math.min(
+                Math.ceil(editSubjectWeeklyMinutes / editClassDuration),
+                numOfSchoolDays
+            );
+
+            const fixedDays = newSection.fixedDays[editSubjectId];
+            const fixedPositions = newSection.fixedPositions[editSubjectId];
+
+            // Skip if both arrays are already of the correct length
+            if (
+                fixedDays.length === numOfClasses &&
+                fixedPositions.length === numOfClasses
+            )
+                return;
+
+            // Use hash maps to quickly look up subjects and day-position pairs
+            const dayPositionMap = new Map();
+            // const subjectsMap = new Map();
+            // newSection.subjects.forEach((subject) =>
+            //     subjectsMap.set(subject.id, true)
+            // );
+
+            fixedDays.forEach((day, index) => {
+                const pos = fixedPositions[index];
+                if (
+                    day !== 0 &&
+                    pos !== 0 &&
+                    !dayPositionMap.has(`${day}-${pos}`)
+                ) {
+                    dayPositionMap.set(`${day}-${pos}`, [day, pos]);
+                }
+            });
+
+            // Now we process the day-position pairs efficiently
+            let result = [];
+            dayPositionMap.forEach(([day, pos]) => {
+                if (result.length < numOfClasses) {
+                    result.push([day, pos]);
+                }
+            });
+
+            // Pad with [0, 0] if necessary
+            while (result.length < numOfClasses) {
+                result.push([0, 0]);
+            }
+
+            // Split the combined array back into fixedDays and fixedPositions
+            newSection.fixedDays[editSubjectId] = result.map(([day]) => day);
+            newSection.fixedPositions[editSubjectId] = result.map(
+                ([_, pos]) => pos
+            );
+
+            if (originalSection !== newSection) {
+                dispatch(
+                    editSection({
+                        sectionId: newSection.id,
+                        updatedSection: {
+                            id: newSection.id,
+                            teacher: newSection.teacher,
+                            program: newSection.program,
+                            section: newSection.section,
+                            subjects: newSection.subjects,
+                            fixedDays: newSection.fixedDays,
+                            fixedPositions: newSection.fixedPositions,
+                            year: newSection.year,
+                            shift: newSection.shift,
+                            startTime: getTimeSlotIndex(
+                                newSection.startTime || '06:00 AM'
+                            ),
+                        },
+                    })
+                );
+            }
+        });
+    };
+
+    const debouncedSearch = useCallback(
+        debounce((searchValue, subjects) => {
+            setSearchSubjectResult(
+                filterObject(subjects, ([, subject]) => {
+                    const escapedSearchValue = escapeRegExp(searchValue)
+                        .split('\\*')
+                        .join('.*');
+
+                    const pattern = new RegExp(escapedSearchValue, 'i');
+
+                    return pattern.test(subject.subject);
+                })
+            );
+        }, 200),
+        []
+    );
+
+    // Initialization of stores
+    useEffect(() => {
+        if (subjectStatus === 'idle') {
+            dispatch(fetchSubjects());
+        }
+    }, [subjectStatus, dispatch]);
+
+    useEffect(() => {
+        if (programStatus === 'idle') {
+            dispatch(fetchPrograms());
+        }
+    }, [programStatus, dispatch]);
+
+    useEffect(() => {
+        if (sectionStatus === 'idle') {
+            dispatch(fetchSections());
+        }
+    }, [sectionStatus, dispatch]);
+
+    useEffect(() => {
+        debouncedSearch(searchSubjectValue, subjects);
+    }, [searchSubjectValue, subjects, debouncedSearch]);
+
+    const itemsPerPage = 10; // Change this to adjust the number of items per page
+    const [currentPage, setCurrentPage] = useState(1);
+
+    // Calculate total pages
+    const totalPages = Math.ceil(
+        Object.values(searchSubjectResult).length / itemsPerPage
+    );
+
+    // Get current items
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = Object.entries(searchSubjectResult).slice(
+        indexOfFirstItem,
+        indexOfLastItem
+    );
+
+    return (
+        <div className="w-full">
+            <div className="flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5">
+                {/* Pagination */}
+                {currentItems.length > 0 && (
+                    <div className="join flex justify-center  mb-4 md:mb-0">
+                        <button
+                            className={`join-item btn ${
+                                currentPage === 1 ? 'btn-disabled' : ''
+                            }`}
+                            onClick={() => {
+                                if (currentPage > 1) {
+                                    setCurrentPage(currentPage - 1);
+                                }
+                                resetInputs();
+                            }}
+                            disabled={currentPage === 1}
+                        >
+                            «
+                        </button>
+                        <button className="join-item btn">
+                            Page {currentPage} of {totalPages}
+                        </button>
+                        <button
+                            className={`join-item btn ${
+                                currentPage === totalPages ? 'btn-disabled' : ''
+                            }`}
+                            onClick={() => {
+                                if (currentPage < totalPages) {
+                                    setCurrentPage(currentPage + 1);
+                                }
+                                resetInputs();
+                            }}
+                            disabled={currentPage === totalPages}
+                        >
+                            »
+                        </button>
+                    </div>
+                )}
+
+                {currentItems.length === 0 && currentPage > 1 && (
+                    <div className="hidden">
+                        {setCurrentPage(currentPage - 1)}
+                    </div>
+                )}
+
+                {/* Search Subject */}
+                <div className="flex-grow w-full md:w-1/3 lg:w-1/4">
+                    <label className="input input-bordered flex items-center gap-2 w-full">
+                        <input
+                            type="text"
+                            className="grow p-3 text-sm w-full"
+                            placeholder="Search Subject"
+                            value={searchSubjectValue}
+                            onChange={(e) =>
+                                setSearchSubjectValue(e.target.value)
+                            }
+                        />
+                        <IoSearch className="text-xl" />
+                    </label>
                 </div>
-              </div>
-            </dialog>
-          </div>
-        )}
-      </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="table table-sm table-zebra md:table-md w-full">
-          <thead>
-            <tr>
-              {/* <th className="w-8">#</th> */}
-              <th>ID</th>
-              <th>Subject</th>
-              <th>Duration (min)</th>
-              <th>Weekly Requirement (min)</th>
-              <th># of Classes (Max: {numOfSchoolDays})</th>
-              {editable && <th className="text-left">Actions</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {currentItems.length === 0 ? (
-              <tr>
-                <td colSpan="5" className="text-center">
-                  No subjects found
-                </td>
-              </tr>
-            ) : (
-              currentItems.map(([, subject], index) => (
-                <tr key={subject.id} className="group hover">
-                  {/* <td>{index + indexOfFirstItem + 1}</td> */}
+                {/* Add Subject Button (only when editable) */}
+                {editable && (
+                    <div className="w-full mt-4 md:mt-0 md:w-auto">
+                        <button
+                            className="btn btn-primary h-12 flex items-center justify-center w-full md:w-52"
+                            onClick={() =>
+                                document
+                                    .getElementById('add_subject_modal')
+                                    .showModal()
+                            }
+                        >
+                            Add Subject <IoAdd size={20} className="ml-2" />
+                        </button>
 
-                  {/* Subject ID */}
-                  <th>{subject.id}</th>
+                        {/* Modal for adding subject */}
+                        <dialog
+                            id="add_subject_modal"
+                            className="modal modal-bottom sm:modal-middle"
+                        >
+                            <div className="modal-box">
+                                <AddSubjectContainer
+                                    close={() =>
+                                        document
+                                            .getElementById('add_subject_modal')
+                                            .close()
+                                    }
+                                    reduxFunction={addSubject}
+                                    defaultSubjectClassDuration={
+                                        defaultSubjectClassDuration
+                                    }
+                                />
+                                <div className="modal-action">
+                                    <button
+                                        className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                                        onClick={() =>
+                                            document
+                                                .getElementById(
+                                                    'add_subject_modal'
+                                                )
+                                                .close()
+                                        }
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            </div>
+                        </dialog>
+                    </div>
+                )}
+            </div>
 
-                  {/* Subject Name */}
-                  <td>
-                    {editSubjectId === subject.id ? (
-                      <input
-                        type="text"
-                        value={editSubjectValue}
-                        onChange={(e) => setEditSubjectValue(e.target.value)}
-                        className="input input-bordered input-sm w-full"
-                      />
-                    ) : (
-                      subject.subject
-                    )}
-                  </td>
+            {/* Table */}
+            <div className="overflow-x-auto">
+                <table className="table table-sm table-zebra md:table-md w-full">
+                    <thead>
+                        <tr>
+                            {/* <th className="w-8">#</th> */}
+                            <th>ID</th>
+                            <th>Subject</th>
+                            <th>Duration (min)</th>
+                            <th>Weekly Requirement (min)</th>
+                            <th># of Classes (Max: {numOfSchoolDays})</th>
+                            {editable && <th className="text-left">Actions</th>}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {currentItems.length === 0 ? (
+                            <tr>
+                                <td colSpan="5" className="text-center">
+                                    No subjects found
+                                </td>
+                            </tr>
+                        ) : (
+                            currentItems.map(([, subject], index) => (
+                                <tr key={subject.id} className="group hover">
+                                    {/* <td>{index + indexOfFirstItem + 1}</td> */}
 
-                  {/* Duration */}
-                  <td>
-                    {editSubjectId === subject.id ? (
-                      <input
-                        type="number"
-                        value={editClassDuration}
-                        onChange={(e) => {
-                          const newDuration = Number(e.target.value);
-                          setEditClassDuration(newDuration);
-                        }}
-                        className="input input-bordered input-sm w-full"
-                        placeholder="Enter class duration"
-                        step={5}
-                        min={10}
-                      />
-                    ) : (
-                      `${subject.classDuration}`
-                    )}
-                  </td>
+                                    {/* Subject ID */}
+                                    <th>{subject.id}</th>
 
-                  {/* Weekly Minutes */}
-                  <td>
-                    {editSubjectId === subject.id ? (
-                      <input
-                        type="number"
-                        value={editSubjectWeeklyMinutes}
-                        onChange={(e) => {
-                          const newDuration = Number(e.target.value);
-                          setEditSubjectWeeklyMinutes(newDuration);
-                        }}
-                        className="input input-bordered input-sm w-full"
-                        placeholder="Enter subject weekly minutes"
-                        step={5}
-                      />
-                    ) : (
-                        `${subject.weeklyMinutes}`
-                    )}
-                  </td>
-                  <td>
-                    {Math.min(Math.ceil(subject.weeklyMinutes / subject.classDuration), numOfSchoolDays)}
-                  </td>
-                  {editable && (
-                    <td className="w-28 text-right">
-                      {editSubjectId === subject.id ? (
-                        <>
-                          <button
-                            className="btn btn-xs btn-ghost text-green-500"
-                            onClick={() => handleSaveSubjectEditClick(subject.id)}
-                          >
-                            Save
-                          </button>
-                          <button
-                            className="btn btn-xs btn-ghost text-red-500"
-                            onClick={() => handleCancelSubjectEditClick()}
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            className="btn btn-xs btn-ghost text-blue-500"
-                            onClick={() => handleEditSubjectClick(subject)}
-                          >
-                            <RiEdit2Fill size={20} />
-                          </button>
-                          <button
-                            className="btn btn-xs btn-ghost text-red-500"
-                            onClick={() => dispatch(removeSubject(subject.id))}
-                          >
-                            <RiDeleteBin7Line size={20} />
-                          </button>
-                        </>
-                      )}
-                    </td>
-                  )}
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+                                    {/* Subject Name */}
+                                    <td>
+                                        {editSubjectId === subject.id ? (
+                                            <input
+                                                type="text"
+                                                value={editSubjectValue}
+                                                onChange={(e) =>
+                                                    setEditSubjectValue(
+                                                        e.target.value
+                                                    )
+                                                }
+                                                className="input input-bordered input-sm w-full"
+                                            />
+                                        ) : (
+                                            subject.subject
+                                        )}
+                                    </td>
 
-      </div>
+                                    {/* Duration */}
+                                    <td>
+                                        {editSubjectId === subject.id ? (
+                                            <input
+                                                type="number"
+                                                value={editClassDuration}
+                                                onChange={(e) => {
+                                                    const newDuration = Number(
+                                                        e.target.value
+                                                    );
+                                                    setEditClassDuration(
+                                                        newDuration
+                                                    );
+                                                }}
+                                                className="input input-bordered input-sm w-full"
+                                                placeholder="Enter class duration"
+                                                step={5}
+                                                min={10}
+                                            />
+                                        ) : (
+                                            `${subject.classDuration}`
+                                        )}
+                                    </td>
 
-    </div>
-  );
+                                    {/* Weekly Minutes */}
+                                    <td>
+                                        {editSubjectId === subject.id ? (
+                                            <input
+                                                type="number"
+                                                value={editSubjectWeeklyMinutes}
+                                                onChange={(e) => {
+                                                    const newDuration = Number(
+                                                        e.target.value
+                                                    );
+                                                    setEditSubjectWeeklyMinutes(
+                                                        newDuration
+                                                    );
+                                                }}
+                                                className="input input-bordered input-sm w-full"
+                                                placeholder="Enter subject weekly minutes"
+                                                step={5}
+                                            />
+                                        ) : (
+                                            `${subject.weeklyMinutes}`
+                                        )}
+                                    </td>
+                                    <td>
+                                        {Math.min(
+                                            Math.ceil(
+                                                subject.weeklyMinutes /
+                                                    subject.classDuration
+                                            ),
+                                            numOfSchoolDays
+                                        )}
+                                    </td>
+                                    {editable && (
+                                        <td className="w-28 text-right">
+                                            {editSubjectId === subject.id ? (
+                                                <>
+                                                    <button
+                                                        className="btn btn-xs btn-ghost text-green-500"
+                                                        onClick={() =>
+                                                            handleSaveSubjectEditClick(
+                                                                subject.id
+                                                            )
+                                                        }
+                                                    >
+                                                        Save
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-xs btn-ghost text-red-500"
+                                                        onClick={() =>
+                                                            resetInputs()
+                                                        }
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <button
+                                                        className="btn btn-xs btn-ghost text-blue-500"
+                                                        onClick={() =>
+                                                            handleEditSubjectClick(
+                                                                subject
+                                                            )
+                                                        }
+                                                    >
+                                                        <RiEdit2Fill
+                                                            size={20}
+                                                        />
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-xs btn-ghost text-red-500"
+                                                        onClick={() =>
+                                                            dispatch(
+                                                                removeSubject(
+                                                                    subject.id
+                                                                )
+                                                            )
+                                                        }
+                                                    >
+                                                        <RiDeleteBin7Line
+                                                            size={20}
+                                                        />
+                                                    </button>
+                                                </>
+                                            )}
+                                        </td>
+                                    )}
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
 };
 
 export default SubjectListContainer;

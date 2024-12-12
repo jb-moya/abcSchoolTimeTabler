@@ -83,48 +83,149 @@ function Timetable() {
         );
 
         const subjectMapReverse = Object.entries(subjectsStore).reduce(
-            (acc, [, value], index) => {
-                acc[value.id] = index;
-                return acc;
-            },
-            {}
-        );
-
-        const teacherMap = Object.entries(teachersStore).reduce(
-            (acc, [, value], index) => {
-                acc[index] = {
-                    subjects: value.subjects.map(
-                        (subjectID) => subjectMapReverse[subjectID]
+            (acc, [, subject], index) => {
+                acc[subject.id] = {
+                    id: index,
+                    numOfClasses: Math.min(
+                        Math.ceil(
+                            subject.weeklyMinutes / subject.classDuration
+                        ),
+                        numOfSchoolDays
                     ),
-                    id: value.id,
+                    classDuration: subject.classDuration,
                 };
                 return acc;
             },
             {}
         );
 
-        const sectionMap = Object.entries(sectionsStore).reduce(
-            (acc, [, value], index) => {
-                // Assuming value.subjects is an object with subject IDs as keys
-                const subjectIDs = Object.keys(value.subjects);
+        const teacherMap = Object.entries(teachersStore).reduce(
+            (acc, [, teacher], index) => {
+                acc[index] = {
+                    subjects: teacher.subjects.map(
+                        (subjectID) => subjectMapReverse[subjectID].id
+                    ),
+                    id: teacher.id,
+                };
+                return acc;
+            },
+            {}
+        );
+
+        let currentClassBlockID = 0;
+        let classBlock = new Map();
+
+        const sectionSubjectConfigurationArray = [];
+
+        Object.entries(sectionsStore).forEach(([key, section]) => {
+            console.log('GUGU', key, section);
+
+            const fixedDays = section.fixedDays;
+            const fixedPositions = section.fixedPositions;
+
+            const set = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+            Object.keys(fixedPositions).forEach((subjectID) => {
+                fixedPositions[subjectID].forEach((day) => {
+                    set.delete(fixedPositions[subjectID][day]);
+                });
+            });
+
+            console.log('set heh', set, set.size);
+
+            section.subjects.forEach((subjectID) => {
+                const consistentEveryDay = fixedDays[subjectID].every(
+                    (element) => element === 0
+                );
+
+                if (consistentEveryDay) {
+                    sectionSubjectConfigurationArray.push([
+                        subjectMapReverse[subjectID].id,
+                        0,
+                        subjectMapReverse[subjectID].numOfClasses,
+                        subjectMapReverse[subjectID].classDuration,
+                        fixedDays[subjectID][0],
+                    ]);
+                }
+            });
+        });
+
+        // const result = Object.entries(sectionsStore).map(([key, section]) => {
+        //     console.log('vvvv ~ handleButtonClick ~ section:', section);
+
+        //     // return { key, value };
+        // });
+
+        // Do something with key and value
+        // const subjectIDs = Object.keys(section.subjects);
+        // console.log("🚀 ~ handleButtonClick =- ~ subjectIDs:", subjectIDs)
+        const classBlockConfigMap = Object.entries(sectionsStore).reduce(
+            (acc, [, section], index) => {
+                console.log('🚀 ~ sectionMap ~ section:', section);
+
+                // Assuming section.subjects is an object with subject IDs as keys
+                const subjectIDs = Object.keys(section.subjects);
 
                 acc[index] = {
                     // Map over the subject IDs to transform them using subjectMapReverse
-                    subjects: subjectIDs.map(
-                        (subjectID) => subjectMapReverse[subjectID]
-                    ),
-                    // Process the units associated with each subject
-                    subjectUnits: Object.keys(value.subjects).reduce(
-                        (unitAcc, subjectID) => {
-                            let mappedKey = subjectMapReverse[subjectID];
-                            unitAcc[mappedKey] = value.subjects[subjectID]; // Use value.subjects[subjectID] to get the number of units
-                            return unitAcc;
-                        },
-                        {}
-                    ),
+                    // subjects: subjectIDs.map(
+                    //     (subjectID) => subjectMapReverse[subjectID]
+                    // ),
 
-                    startTime: value.startTime,
-                    id: value.id,
+                    // Process the units associated with each subject
+                    // subjectUnits: Object.keys(section.subjects).reduce(
+                    //     (unitAcc, subjectID) => {
+                    //         let mappedKey = subjectMapReverse[subjectID];
+                    //         console.log(
+                    //             '🚀 ~ handleButtonClick ~ mappedKey:',
+                    //             mappedKey
+                    //         );
+
+                    //         unitAcc[mappedKey] = section.subjects[subjectID];
+                    //         return unitAcc;
+                    //     },
+                    //     {}
+                    // ),
+
+                    startTime: section.startTime,
+                    id: section.id,
+                };
+
+                return acc;
+            },
+            {}
+        );
+
+        const sectionMap = Object.entries(sectionsStore).reduce(
+            (acc, [, section], index) => {
+                console.log('🚀 ~ sectionMap ~ section:', section);
+
+                // Assuming section.subjects is an object with subject IDs as keys
+                const subjectIDs = Object.keys(section.subjects);
+
+                acc[index] = {
+                    // Map over the subject IDs to transform them using subjectMapReverse
+                    // subjects: subjectIDs.map(
+                    //     (subjectID) => subjectMapReverse[subjectID]
+                    // ),
+
+                    // Process the units associated with each subject
+                    // subjectUnits: Object.keys(section.subjects).reduce(
+                    //     (unitAcc, subjectID) => {
+                    //         let mappedKey = subjectMapReverse[subjectID];
+                    //         console.log(
+                    //             '🚀 ~ handleButtonClick ~ mappedKey:',
+                    //             mappedKey
+                    //         );
+
+                    //         unitAcc[mappedKey] = section.subjects[subjectID];
+                    //         return unitAcc;
+                    //     },
+                    //     {}
+                    // ),
+
+                    startTime: section.startTime,
+                    id: section.id,
                 };
 
                 return acc;
@@ -137,8 +238,18 @@ function Timetable() {
         console.log('teacherMap', teacherMap);
         console.log('sectionMap', sectionMap);
 
-        let defaultClassDuration = 4;
-        let breakTimeDuration = 3;
+        let defaultClassDuration = 40;
+        let breakTimeDuration = 30;
+
+        let maxTeacherWorkLoad = 300;
+        let minTeacherWorkLoad = 10;
+
+        let timeDivision = 10;
+
+        defaultClassDuration /= timeDivision;
+        breakTimeDuration /= timeDivision;
+        maxTeacherWorkLoad /= timeDivision;
+        minTeacherWorkLoad /= timeDivision;
 
         const sectionSubjectArray = [];
         const sectionSubjectUnitArray = [];
@@ -172,56 +283,55 @@ function Timetable() {
         minTotalClassDurationForTwoBreaks /= offset;
 
         // let cellCount = 0;
-        for (const [
-            sectionKey,
-            { subjects, startTime, subjectUnits },
-        ] of Object.entries(sectionMap)) {
-            // console.log('🚀 ~ handleButtonClick ~ startTime:', startTime);
+        for (const [sectionKey, section] of Object.entries(sectionMap)) {
+            console.log('🚀 ~ handleButtonClick ~ section:', section);
             // let rowCount = 0;
 
-            for (const subject of subjects) {
-                sectionSubjectArray.push(packInt16ToInt32(sectionKey, subject));
-            }
+            // for (const subject of subjects) {
+            //     sectionSubjectArray.push(packInt16ToInt32(sectionKey, subject));
+            // }
 
-            for (const subject of Object.keys(subjectUnits)) {
-                // console.log('🚀 ~ handleButtonClick ~ subject:', subject);
-                const unitCount = subjectUnits[subject][0];
+            // for (const subject of Object.keys(subjectUnits)) {
+            //     // console.log('🚀 ~ handleButtonClick ~ subject:', subject);
+            //     const unitCount = subjectUnits[subject][0];
 
-                if (unitCount === 0) {
-                    // cellCount++;
-                    // rowCount += numOfSchoolDays;
-                    // console.log("🚀 ~ handleButtonClick ~ numOfSchoolDays:", typeof numOfSchoolDays)
-                } else {
-                    // cellCount += unitCount;
-                    // rowCount += unitCount;
-                }
+            //     if (unitCount === 0) {
+            //         // cellCount++;
+            //         // rowCount += numOfSchoolDays;
+            //         // console.log("🚀 ~ handleButtonClick ~ numOfSchoolDays:", typeof numOfSchoolDays)
+            //     } else {
+            //         // cellCount += unitCount;
+            //         // rowCount += unitCount;
+            //     }
 
-                sectionSubjectUnitArray.push(
-                    packInt16ToInt32(subject, subjectUnits[subject][0])
-                );
+            //     sectionSubjectUnitArray.push(
+            //         packInt16ToInt32(subject, subjectUnits[subject][0])
+            //     );
 
-                sectionStartArray[sectionKey] = startTime;
+            //     sectionStartArray[sectionKey] = startTime;
 
-                // TODO: might there be code smell on how it stores
+            //     // TODO: might there be code smell on how it stores
 
-                sectionSubjectDurationArray.push(
-                    packInt16ToInt32(
-                        subject,
-                        subjectsStore[subjectMap[subject]].classDuration / 10 -
-                            offset
-                    )
-                );
+            //     sectionSubjectDurationArray.push(
+            //         packInt16ToInt32(
+            //             subject,
+            //             subjectsStore[subjectMap[subject]].classDuration / 10 -
+            //                 offset
+            //         )
+            //     );
 
-                sectionSubjectOrderArray.push(
-                    packInt16ToInt32(subject, subjectUnits[subject][1])
-                );
-            }
+            //     sectionSubjectOrderArray.push(
+            //         packInt16ToInt32(subject, subjectUnits[subject][1])
+            //     );
+            // }
 
             // console.log('🚀 ~ handleButtonClick ~ rowCount:', rowCount);
             // rowCount = Math.trunc(rowCount / numOfSchoolDays);
             // let numOfBreak = rowCount < 10 ? 1 : 2;
             // cellCount += numOfBreak;
         }
+
+        return;
 
         const sectionSubjects = new Int32Array([...sectionSubjectArray]);
         const sectionSubjectUnits = new Int32Array([
@@ -240,7 +350,6 @@ function Timetable() {
         const beesOnlooker = 2;
         const beesScout = 1;
         const totalTeachers = Object.keys(teacherMap).length;
-        const totalSchoolClass = sectionSubjectArray.length;
         const totalSections = Object.keys(sectionMap).length;
 
         const limits = totalTeachers * totalSections;
@@ -248,222 +357,279 @@ function Timetable() {
         const sectionStarts = new Int32Array([...sectionStartArray]);
 
         const teacherSubjectArray = [];
+        const teacherWeekLoadConfigArray = [];
 
         for (const [teacherKey, { subjects }] of Object.entries(teacherMap)) {
             for (const subject of subjects) {
                 teacherSubjectArray.push(packInt16ToInt32(teacherKey, subject));
+                teacherWeekLoadConfigArray.push(
+                    packInt16ToInt32(maxTeacherWorkLoad, minTeacherWorkLoad)
+                );
             }
         }
 
         const teacherSubjects = new Int32Array([...teacherSubjectArray]);
+        const teacherWeekLoadConfig = new Int32Array([
+            ...teacherWeekLoadConfigArray,
+        ]);
 
-        const breakTimeslotAllowance = 6;
+        const subjectFixedTeacherSection = new Int32Array([-1]);
+        const subjectFixedTeacher = new Int32Array([-1]);
+
         const teacherBreakThreshold = 4;
 
         const numOfViolationType = 7;
 
-        const params = {
+        const resultTimetableLength =
+            totalSections *
+            Object.entries(subjectsStore).length *
+            numOfSchoolDays;
+
+        const resultViolationLength =
+            numOfViolationType * totalSections +
+            numOfViolationType * totalTeachers;
+
+        const teacherMiddleTimePointGrowAllowanceForBreakTimeslot = 4;
+
+        const params2 = {
             maxIterations: maxIterations,
             numTeachers: totalTeachers,
-            totalSchoolClass: totalSchoolClass,
+            totalSectionSubjects: null,
             totalSection: totalSections,
-
-            sectionSubjects: sectionSubjects,
-            sectionSubjectDurations: sectionSubjectDurations,
-            sectionSubjectOrders: sectionSubjectOrders,
-            sectionStarts: sectionStarts,
+            numberOfSubjectConfiguration: null,
+            sectionConfiguration: null,
+            sectionSubjectConfiguration: null,
+            subjectConfigurationSubjectUnits: null,
+            subjectConfigurationSubjectDuration: null,
+            subjectConfigurationSubjectFixedTimeslot: null,
+            subjectConfigurationSubjectFixedDay: null,
+            subjectFixedTeacherSection: subjectFixedTeacherSection,
+            subjectFixedTeacher: subjectFixedTeacher,
+            sectionStart: sectionStarts,
             teacherSubjects: teacherSubjects,
-            sectionSubjectUnits: sectionSubjectUnits,
+            teacherWeekLoadConfig: teacherWeekLoadConfig,
             teacherSubjectsLength: teacherSubjects.length,
-
             beesPopulation: beesPopulations,
             beesEmployed: beesEmployed,
             beesOnlooker: beesOnlooker,
             beesScout: beesScout,
-            limits: limits,
+            limit: limits,
             workWeek: numOfSchoolDays,
-
-            maxTeacherWorkLoad: 9,
             breakTimeDuration: breakTimeDuration,
-            breakTimeslotAllowance: breakTimeslotAllowance,
             teacherBreakThreshold: teacherBreakThreshold,
+            teacherMiddleTimePointGrowAllowanceForBreakTimeslot:
+                teacherMiddleTimePointGrowAllowanceForBreakTimeslot,
             minTotalClassDurationForTwoBreaks:
                 minTotalClassDurationForTwoBreaks,
             defaultClassDuration: defaultClassDuration,
-            // resultLength: cellCount,
-            resultTimetableLength:
-                totalSections *
-                Object.entries(subjectsStore).length *
-                numOfSchoolDays,
-            resultViolationLength:
-                numOfViolationType * totalSections +
-                numOfViolationType * totalTeachers,
-
-            offset: offset,
+            offsetDuration: offset,
+            resultTimetableLength: resultTimetableLength,
+            resultViolationLength: resultViolationLength,
+            enableLogging: false,
         };
+
+        // const params = {
+        //     maxIterations: maxIterations,
+        //     numTeachers: totalTeachers,
+        //     totalSchoolClass: totalSchoolClass,
+        //     totalSection: totalSections,
+
+        //     sectionSubjects: sectionSubjects,
+        //     sectionSubjectDurations: sectionSubjectDurations,
+        //     sectionSubjectOrders: sectionSubjectOrders,
+        //     sectionStarts: sectionStarts,
+        //     teacherSubjects: teacherSubjects,
+        //     sectionSubjectUnits: sectionSubjectUnits,
+        //     teacherSubjectsLength: teacherSubjects.length,
+
+        //     beesPopulation: beesPopulations,
+        //     beesEmployed: beesEmployed,
+        //     beesOnlooker: beesOnlooker,
+        //     beesScout: beesScout,
+        //     limits: limits,
+        //     workWeek: numOfSchoolDays,
+
+        //     maxTeacherWorkLoad: 9,
+        //     breakTimeDuration: breakTimeDuration,
+        //     breakTimeslotAllowance: breakTimeslotAllowance,
+        //     teacherBreakThreshold: teacherBreakThreshold,
+        //     minTotalClassDurationForTwoBreaks:
+        //         minTotalClassDurationForTwoBreaks,
+        //     defaultClassDuration: defaultClassDuration,
+        //     resultTimetableLength:
+        //         totalSections *
+        //         Object.entries(subjectsStore).length *
+        //         numOfSchoolDays,
+        //     resultViolationLength:
+        //         numOfViolationType * totalSections +
+        //         numOfViolationType * totalTeachers,
+
+        //     offset: offset,
+        // };
 
         setTimetableGenerationStatus('running');
         const { timetable: generatedTimetable, status } = await getTimetable(
-            params
+            // params2
+            {}
         );
         setTimetableGenerationStatus(status);
 
         // const timetableMap = [];
-        const sectionTimetable = new Map();
-        const teacherTimetable = new Map();
-        const teacherTakenTime = new Map();
+        // const sectionTimetable = new Map();
+        // const teacherTimetable = new Map();
+        // const teacherTakenTime = new Map();
 
-        function addToMap(map, key, value) {
-            map.push([key, value]);
-            map.sort((a, b) => a[0] - b[0]);
-        }
+        // function addToMap(map, key, value) {
+        //     map.push([key, value]);
+        //     map.sort((a, b) => a[0] - b[0]);
+        // }
 
-        const addTimeslotToTimetable = (
-            timetableMap,
-            section_id,
-            subject_id,
-            teacher_id,
-            start,
-            end,
-            day,
-            fieldName1,
-            fieldName2,
-            containerName
-        ) => {
-            const timeslotData = {
-                section: section_id,
-                subject: subject_id,
-                teacher: teacher_id,
-                fieldName1: fieldName1,
-                fieldName2: fieldName2,
-                day: day,
-                end: end,
-            };
+        // const addTimeslotToTimetable = (
+        //     timetableMap,
+        //     section_id,
+        //     subject_id,
+        //     teacher_id,
+        //     start,
+        //     end,
+        //     day,
+        //     fieldName1,
+        //     fieldName2,
+        //     containerName
+        // ) => {
+        //     const timeslotData = {
+        //         section: section_id,
+        //         subject: subject_id,
+        //         teacher: teacher_id,
+        //         fieldName1: fieldName1,
+        //         fieldName2: fieldName2,
+        //         day: day,
+        //         end: end,
+        //     };
 
-            if (timetableMap.has(section_id)) {
-                const timetable = timetableMap.get(section_id);
-                addToMap(timetable.get('timetable'), start, timeslotData);
-            } else {
-                const timetable = new Map();
-                timetable.set('containerName', containerName);
-                timetable.set('timetable', []);
-                addToMap(timetable.get('timetable'), start, timeslotData);
-                timetableMap.set(section_id, timetable);
-            }
-        };
+        //     if (timetableMap.has(section_id)) {
+        //         const timetable = timetableMap.get(section_id);
+        //         addToMap(timetable.get('timetable'), start, timeslotData);
+        //     } else {
+        //         const timetable = new Map();
+        //         timetable.set('containerName', containerName);
+        //         timetable.set('timetable', []);
+        //         addToMap(timetable.get('timetable'), start, timeslotData);
+        //         timetableMap.set(section_id, timetable);
+        //     }
+        // };
 
-        for (const entry of generatedTimetable) {
-            // console.log('🚀 ~ handleButtonClick ~ entry of timetable:', entry);
+        // for (const entry of generatedTimetable) {
+        //     // console.log('🚀 ~ handleButtonClick ~ entry of timetable:', entry);
 
-            // console.log('x', teacher_id, start, end);
+        //     // console.log('x', teacher_id, start, end);
 
-            const section_id = sectionMap[entry[0]].id;
-            const subject_id = subjectMap[entry[1]] || null;
-            const teacher_id = (teacherMap[entry[2]] || { id: null }).id;
-            const timeslot = entry[3];
-            const day = entry[4];
+        //     const section_id = sectionMap[entry[0]].id;
+        //     const subject_id = subjectMap[entry[1]] || null;
+        //     const teacher_id = (teacherMap[entry[2]] || { id: null }).id;
+        //     const timeslot = entry[3];
+        //     const day = entry[4];
 
-            const start = Number(entry[5]);
-            const end = Number(entry[6]);
+        //     const start = Number(entry[5]);
+        //     const end = Number(entry[6]);
 
-            addTimeslotToTimetable(
-                sectionTimetable,
-                section_id,
-                subject_id,
-                teacher_id,
-                start,
-                end,
-                day,
-                subjectsStore[subject_id]?.subject || null,
-                teachersStore[teacher_id]?.teacher || null,
-                sectionsStore[section_id]?.section
-            );
+        //     addTimeslotToTimetable(
+        //         sectionTimetable,
+        //         section_id,
+        //         subject_id,
+        //         teacher_id,
+        //         start,
+        //         end,
+        //         day,
+        //         subjectsStore[subject_id]?.subject || null,
+        //         teachersStore[teacher_id]?.teacher || null,
+        //         sectionsStore[section_id]?.section
+        //     );
 
-            if (teacher_id == null) {
-                continue;
-            }
+        //     if (teacher_id == null) {
+        //         continue;
+        //     }
 
-            if (teacherTakenTime.has(teacher_id)) {
-                for (let time = start; time < end; time++) {
-                    teacherTakenTime.get(teacher_id).add(time);
-                }
-            } else {
-                let takenTime = [];
+        //     if (teacherTakenTime.has(teacher_id)) {
+        //         for (let time = start; time < end; time++) {
+        //             teacherTakenTime.get(teacher_id).add(time);
+        //         }
+        //     } else {
+        //         let takenTime = [];
 
-                for (let time = start; time < end; time++) {
-                    takenTime.push(time);
-                }
+        //         for (let time = start; time < end; time++) {
+        //             takenTime.push(time);
+        //         }
 
-                teacherTakenTime.set(teacher_id, new Set(takenTime));
-            }
+        //         teacherTakenTime.set(teacher_id, new Set(takenTime));
+        //     }
 
-            addTimeslotToTimetable(
-                teacherTimetable,
-                teacher_id,
-                subject_id,
-                section_id,
-                start,
-                end,
-                day,
-                sectionsStore[section_id]?.section,
-                subjectsStore[subject_id]?.subject,
-                teachersStore[teacher_id]?.teacher
-            );
-        }
+        //     addTimeslotToTimetable(
+        //         teacherTimetable,
+        //         teacher_id,
+        //         subject_id,
+        //         section_id,
+        //         start,
+        //         end,
+        //         day,
+        //         sectionsStore[section_id]?.section,
+        //         subjectsStore[subject_id]?.subject,
+        //         teachersStore[teacher_id]?.teacher
+        //     );
+        // }
 
-        teacherTakenTime.forEach((timeSet, teacher_id) => {
-            let timeArray = Array.from(timeSet);
-            timeArray.sort((a, b) => a - b);
+        // teacherTakenTime.forEach((timeSet, teacher_id) => {
+        //     let timeArray = Array.from(timeSet);
+        //     timeArray.sort((a, b) => a - b);
 
-            console.log('b teacher_id: ', teacher_id, timeArray);
+        //     console.log('b teacher_id: ', teacher_id, timeArray);
 
-            teacherTakenTime.set(teacher_id, timeArray); // Update the map correctly using set()
-        });
+        //     teacherTakenTime.set(teacher_id, timeArray); // Update the map correctly using set()
+        // });
 
-        // console.log('teacherTakenTime: ', teacherTakenTime);
-        teacherTakenTime.forEach((set, key) => {
-            console.log('c key: ', key, set);
+        // // console.log('teacherTakenTime: ', teacherTakenTime);
+        // teacherTakenTime.forEach((set, key) => {
+        //     console.log('c key: ', key, set);
 
-            let teacherStartTime = 0;
-            let currentTime = teacherStartTime;
+        //     let teacherStartTime = 0;
+        //     let currentTime = teacherStartTime;
 
-            set.forEach((value) => {
-                if (value - currentTime > 1) {
-                    const result = [];
+        //     set.forEach((value) => {
+        //         if (value - currentTime > 1) {
+        //             const result = [];
 
-                    for (let i = currentTime; i <= value; i++) {
-                        result.push(i + 1);
-                    }
+        //             for (let i = currentTime; i <= value; i++) {
+        //                 result.push(i + 1);
+        //             }
 
-                    const teacher = teacherTimetable.get(key).get('timetable');
-                    teacher.push([
-                        currentTime == 0 ? currentTime : currentTime + 1,
-                        {
-                            section: null,
-                            subject: null,
-                            teacher: null,
-                            fieldName1: null,
-                            fieldName2: null,
-                            day: null,
-                            end: value,
-                        },
-                    ]);
+        //             const teacher = teacherTimetable.get(key).get('timetable');
+        //             teacher.push([
+        //                 currentTime == 0 ? currentTime : currentTime + 1,
+        //                 {
+        //                     section: null,
+        //                     subject: null,
+        //                     teacher: null,
+        //                     fieldName1: null,
+        //                     fieldName2: null,
+        //                     day: null,
+        //                     end: value,
+        //                 },
+        //             ]);
 
-                    // console.log('🚀 ~ s', teacher);
-                    // console.log('🚀 ~ set.forEach ~ teacher:', teacher);
-                }
+        //             // console.log('🚀 ~ s', teacher);
+        //             // console.log('🚀 ~ set.forEach ~ teacher:', teacher);
+        //         }
 
-                currentTime = value;
-            });
-        });
+        //         currentTime = value;
+        //     });
+        // });
 
-        // console.log("timetable", timetableMap);
-        console.log('section timetable', sectionTimetable);
-        console.log('teacher timetable', teacherTimetable);
+        // // console.log("timetable", timetableMap);
+        // console.log('section timetable', sectionTimetable);
+        // console.log('teacher timetable', teacherTimetable);
 
-        // // setTimetable(timetableMap);
-        setSectionTimetables(sectionTimetable);
-        setTeacherTimetables(teacherTimetable);
+        // // // setTimetable(timetableMap);
+        // setSectionTimetables(sectionTimetable);
+        // setTeacherTimetables(teacherTimetable);
     };
 
     const handleSchedExport = () => {
@@ -809,9 +975,9 @@ function Timetable() {
                             'btn-error': timetableGenerationStatus === 'error',
                         })}
                         onClick={() => {
-                            if (validate()) {
-                                handleButtonClick();
-                            }
+                            // if (validate()) {
+                            handleButtonClick();
+                            // }
                         }}
                         disabled={timetableGenerationStatus === 'running'}
                     >
