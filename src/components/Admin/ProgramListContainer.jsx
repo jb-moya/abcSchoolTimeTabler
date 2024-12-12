@@ -17,27 +17,27 @@ import { getTimeSlotIndex, getTimeSlotString } from './timeSlotMapper';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
-import { toast } from "sonner";
+import { toast } from 'sonner';
 import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 
 import FixedScheduleMaker from './FixedSchedules/fixedScheduleMaker';
 
 const AddProgramContainer = ({
-  close,
-  reduxField,
-  reduxFunction,
-  morningStartTime,
-  afternoonStartTime,
-  errorMessage,
-  setErrorMessage,
-  errorField,
-  setErrorField,
-  numOfSchoolDays,
+    close,
+    reduxField,
+    reduxFunction,
+    morningStartTime,
+    afternoonStartTime,
+    errorMessage,
+    setErrorMessage,
+    errorField,
+    setErrorField,
+    numOfSchoolDays,
 }) => {
-  const inputNameRef = useRef();
-  const subjects = useSelector((state) => state.subject.subjects);
-  const programs = useSelector((state) => state.program.programs);
-  const dispatch = useDispatch();
+    const inputNameRef = useRef();
+    const subjects = useSelector((state) => state.subject.subjects);
+    const programs = useSelector((state) => state.program.programs);
+    const dispatch = useDispatch();
 
     const [inputValue, setInputValue] = useState('');
     const [selectedSubjects, setSelectedSubjects] = useState({
@@ -194,46 +194,44 @@ const AddProgramContainer = ({
         }));
     };
 
-  const handleAddEntry = () => {
-
-    if (!inputValue.trim()) {
-      setErrorMessage('Program name cannot be empty');
-      setErrorField('program');
-      return;
-    } else if (selectedSubjects[7].length === 0) {
-      setErrorMessage('Select at least one subject for grade 7');
-      setErrorField('sub7');
-      return;
-    } else if (selectedShifts[7] === undefined || !startTimes[7]) {
-      setErrorMessage('Select shift and start time for grade 7');
-      setErrorField('subTime7');
-      return;
-    } else if (selectedSubjects[8].length === 0) {  
-      setErrorMessage('Select at least one subject for grade 8');
-      setErrorField('sub8');
-      return;
-    } else if (selectedShifts[8] === undefined || !startTimes[8]) {
-      setErrorMessage('Select shift and start time for grade 8');
-      setErrorField('subTime8');
-      return;
-    } else if (selectedSubjects[9].length === 0) {  
-      setErrorMessage('Select at least one subject for grade 9');
-      setErrorField('sub9');
-      return;
-    } else if (selectedShifts[9] === undefined || !startTimes[9]) {
-      setErrorMessage('Select shift and start time for grade 9');
-      setErrorField('subTime9');
-      return;
-    } else if (selectedSubjects[10].length === 0) {  
-      setErrorMessage('Select at least one subject for grade 10');
-      setErrorField('sub10');
-      return; 
-      return;
-    } else if (selectedShifts[10] === undefined || !startTimes[10]) {
-      setErrorMessage('Select shift and start time for grade 10');
-      setErrorField('subTime10');
-      return;
-    }
+    const handleAddEntry = () => {
+        if (!inputValue.trim()) {
+            setErrorMessage('Program name cannot be empty');
+            setErrorField('program');
+            return;
+        } else if (selectedSubjects[7].length === 0) {
+            setErrorMessage('Select at least one subject for grade 7');
+            setErrorField('sub7');
+            return;
+        } else if (selectedShifts[7] === undefined || !startTimes[7]) {
+            setErrorMessage('Select shift and start time for grade 7');
+            setErrorField('subTime7');
+            return;
+        } else if (selectedSubjects[8].length === 0) {
+            setErrorMessage('Select at least one subject for grade 8');
+            setErrorField('sub8');
+            return;
+        } else if (selectedShifts[8] === undefined || !startTimes[8]) {
+            setErrorMessage('Select shift and start time for grade 8');
+            setErrorField('subTime8');
+            return;
+        } else if (selectedSubjects[9].length === 0) {
+            setErrorMessage('Select at least one subject for grade 9');
+            setErrorField('sub9');
+            return;
+        } else if (selectedShifts[9] === undefined || !startTimes[9]) {
+            setErrorMessage('Select shift and start time for grade 9');
+            setErrorField('subTime9');
+            return;
+        } else if (selectedSubjects[10].length === 0) {
+            setErrorMessage('Select at least one subject for grade 10');
+            setErrorField('sub10');
+            return;
+        } else if (selectedShifts[10] === undefined || !startTimes[10]) {
+            setErrorMessage('Select shift and start time for grade 10');
+            setErrorField('subTime10');
+            return;
+        }
 
         const duplicateProgram = Object.values(programs).find(
             (program) =>
@@ -241,87 +239,91 @@ const AddProgramContainer = ({
                 inputValue.trim().toLowerCase()
         );
 
-    if (duplicateProgram) {
-      setErrorMessage('A program with this name already exists.');
-      setErrorField('program');
-    } else {
-      dispatch(
-        reduxFunction({
-          [reduxField[0]]: inputValue,
-          7: {
-            subjects: selectedSubjects[7],
-            fixedDays: fixedDays[7],
-            fixedPositions: fixedPositions[7],
-            shift: selectedShifts[7],
-            startTime: getTimeSlotIndex(startTimes[7]),
-          },
-          8: {
-            subjects: selectedSubjects[8],
-            fixedDays: fixedDays[8],
-            fixedPositions: fixedPositions[8],
-            shift: selectedShifts[8],
-            startTime: getTimeSlotIndex(startTimes[8]),
-          },
-          9: {
-            subjects: selectedSubjects[9],
-            fixedDays: fixedDays[9],
-            fixedPositions: fixedPositions[9],
-            shift: selectedShifts[9],
-            startTime: getTimeSlotIndex(startTimes[9]),
-          },
-          10: {
-            subjects: selectedSubjects[10],
-            fixedDays: fixedDays[10],
-            fixedPositions: fixedPositions[10],
-            shift: selectedShifts[10],
-            startTime: getTimeSlotIndex(startTimes[10]),
-          },
-        })
-      );
+        if (duplicateProgram) {
+            setErrorMessage('A program with this name already exists.');
+            setErrorField('program');
+        } else {
+            dispatch(
+                reduxFunction({
+                    [reduxField[0]]: inputValue,
+                    7: {
+                        subjects: selectedSubjects[7],
+                        fixedDays: fixedDays[7],
+                        fixedPositions: fixedPositions[7],
+                        shift: selectedShifts[7],
+                        startTime: getTimeSlotIndex(startTimes[7]),
+                    },
+                    8: {
+                        subjects: selectedSubjects[8],
+                        fixedDays: fixedDays[8],
+                        fixedPositions: fixedPositions[8],
+                        shift: selectedShifts[8],
+                        startTime: getTimeSlotIndex(startTimes[8]),
+                    },
+                    9: {
+                        subjects: selectedSubjects[9],
+                        fixedDays: fixedDays[9],
+                        fixedPositions: fixedPositions[9],
+                        shift: selectedShifts[9],
+                        startTime: getTimeSlotIndex(startTimes[9]),
+                    },
+                    10: {
+                        subjects: selectedSubjects[10],
+                        fixedDays: fixedDays[10],
+                        fixedPositions: fixedPositions[10],
+                        shift: selectedShifts[10],
+                        startTime: getTimeSlotIndex(startTimes[10]),
+                    },
+                })
+            );
 
-      toast.success('Program added successfully!', {
-        style: { backgroundColor: 'green', color: 'white', bordercolor: 'green' },
-      });
-      handleReset();
-      close();
-    }
-  };
+            toast.success('Program added successfully!', {
+                style: {
+                    backgroundColor: 'green',
+                    color: 'white',
+                    bordercolor: 'green',
+                },
+            });
+            handleReset();
+            close();
+        }
+    };
 
-  const handleReset = () => {
-    setErrorField('');
-    setErrorMessage('');
-    setInputValue('');
-    setSelectedSubjects({
-      7: [],
-      8: [],
-      9: [],
-      10: [],
-    });
-    setFixedDays({
-      7: {},
-      8: {},
-      9: {},
-      10: {},
-    });
-    setFixedPositions({
-      7: {},
-      8: {},
-      9: {},
-      10: {},
-    });
-    setSelectedShifts({
-      7: 0,
-      8: 0,
-      9: 0,
-      10: 0,
-    });
-    setStartTimes({
-      7: morningStartTime,
-      8: morningStartTime,
-      9: morningStartTime,
-      10: morningStartTime,
-    });
-  };
+    const handleReset = () => {
+        setErrorField('');
+        setErrorMessage('');
+        setInputValue('');
+        setSelectedSubjects({
+            7: [],
+            8: [],
+            9: [],
+            10: [],
+        });
+        setFixedDays({
+            7: {},
+            8: {},
+            9: {},
+            10: {},
+        });
+        setFixedPositions({
+            7: {},
+            8: {},
+            9: {},
+            10: {},
+        });
+        setSelectedShifts({
+            7: 0,
+            8: 0,
+            9: 0,
+            10: 0,
+        });
+        setStartTimes({
+            7: morningStartTime,
+            8: morningStartTime,
+            9: morningStartTime,
+            10: morningStartTime,
+        });
+    };
 
     const handleClose = () => {
         setInputValue('');
@@ -585,11 +587,11 @@ const AddProgramContainer = ({
     );
 };
 
-const ProgramListContainer = ({ 
-  numOfSchoolDays: externalNumOfSchoolDays,
-  editable = false 
+const ProgramListContainer = ({
+    numOfSchoolDays: externalNumOfSchoolDays,
+    editable = false,
 }) => {
-  const dispatch = useDispatch();
+    const dispatch = useDispatch();
 
     const { programs, status: programStatus } = useSelector(
         (state) => state.program
@@ -603,15 +605,20 @@ const ProgramListContainer = ({
         (state) => state.section
     );
 
-  const [errorMessage, setErrorMessage] = useState('');
-  const [errorField, setErrorField] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
+    const [errorField, setErrorField] = useState('');
 
-  const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
-    return externalNumOfSchoolDays ?? (Number(localStorage.getItem('numOfSchoolDays')) || 0);
-  });
-  
-  const morningStartTime = localStorage.getItem('morningStartTime') || '06:00 AM';
-  const afternoonStartTime = localStorage.getItem('afternoonStartTime') || '01:00 PM';
+    const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
+        return (
+            externalNumOfSchoolDays ??
+            (Number(localStorage.getItem('numOfSchoolDays')) || 0)
+        );
+    });
+
+    const morningStartTime =
+        localStorage.getItem('morningStartTime') || '06:00 AM';
+    const afternoonStartTime =
+        localStorage.getItem('afternoonStartTime') || '01:00 PM';
 
     const [editProgramId, setEditProgramId] = useState(null);
     const [editProgramValue, setEditProgramValue] = useState('');
@@ -619,30 +626,30 @@ const ProgramListContainer = ({
     const [searchProgramResult, setSearchProgramResult] = useState(programs);
     const [searchProgramValue, setSearchProgramValue] = useState('');
 
-  const [selectedShifts, setSelectedShifts] = useState({
-    7: 0,
-    8: 0,
-    9: 0,
-    10: 0,
-  });
-  const [startTimes, setStartTimes] = useState({
-    7: '06:00 AM',
-    8: '06:00 AM',
-    9: '06:00 AM',
-    10: '06:00 AM',
-  });
-  const [editFixedDays, setEditFixedDays] = useState({
-    7: {},
-    8: {},
-    9: {},
-    10: {},
-  });
-  const [editFixedPositions, setEditFixedPositions] = useState({ 
-    7: {},
-    8: {},
-    9: {},  
-    10: {},
-  });
+    const [selectedShifts, setSelectedShifts] = useState({
+        7: 0,
+        8: 0,
+        9: 0,
+        10: 0,
+    });
+    const [startTimes, setStartTimes] = useState({
+        7: '06:00 AM',
+        8: '06:00 AM',
+        9: '06:00 AM',
+        10: '06:00 AM',
+    });
+    const [editFixedDays, setEditFixedDays] = useState({
+        7: {},
+        8: {},
+        9: {},
+        10: {},
+    });
+    const [editFixedPositions, setEditFixedPositions] = useState({
+        7: {},
+        8: {},
+        9: {},
+        10: {},
+    });
 
     const renderTimeOptions = (shift) => {
         const times =
@@ -789,81 +796,80 @@ const ProgramListContainer = ({
         });
     };
 
-  const handleSaveProgramEditClick = (programId) => {
-
-    if (!editProgramValue.trim()) {
-      toast.error('Program name cannot be empty', {
-        style: {
-          backgroundColor: 'red',
-          color: 'white',
-        },
-      });
-      return;
-    } else if (editProgramCurr[7].length === 0) {
-      toast.error('Select at least one subject for grade 7', {
-        style: {
-          backgroundColor: 'red',
-          color: 'white',
-        },
-      });
-      return;
-    } else if (selectedShifts[7] === undefined || !startTimes[7]) {
-      toast.error('Select shift and start time for grade 7', {
-        style: {
-          backgroundColor: 'red',
-          color: 'white',
-        },
-      });
-      return;
-    } else if (editProgramCurr[8].length === 0) {  
-      toast.error('Select at least one subject for grade 8', {
-        style: {
-          backgroundColor: 'red',
-          color: 'white',
-        },
-      });
-      return;
-    } else if (selectedShifts[8] === undefined || !startTimes[8]) {
-      toast.error('Select shift and start time for grade 8', {
-        style: {
-          backgroundColor: 'red',
-          color: 'white',
-        },
-      });
-      return;
-    } else if (editProgramCurr[9].length === 0) {  
-      toast.error('Select at least one subject for grade 9', {
-        style: {
-          backgroundColor: 'red',
-          color: 'white',
-        },
-      });
-      return;
-    } else if (selectedShifts[9] === undefined || !startTimes[9]) {
-      toast.error('Select shift and start time for grade 9', {
-        style: {
-          backgroundColor: 'red',
-          color: 'white',
-        },
-      });
-      return;
-    } else if (editProgramCurr[10].length === 0) {   
-      toast.error('Select at least one subject for grade 10', {
-        style: {
-          backgroundColor: 'red',
-          color: 'white',
-        },
-      });
-      return;
-    } else if (selectedShifts[10] === undefined || !startTimes[10]) {
-      toast.error('Select shift and start time for grade 10', {
-        style: {
-          backgroundColor: 'red',
-          color: 'white',
-        },
-      });
-      return;
-    }
+    const handleSaveProgramEditClick = (programId) => {
+        if (!editProgramValue.trim()) {
+            toast.error('Program name cannot be empty', {
+                style: {
+                    backgroundColor: 'red',
+                    color: 'white',
+                },
+            });
+            return;
+        } else if (editProgramCurr[7].length === 0) {
+            toast.error('Select at least one subject for grade 7', {
+                style: {
+                    backgroundColor: 'red',
+                    color: 'white',
+                },
+            });
+            return;
+        } else if (selectedShifts[7] === undefined || !startTimes[7]) {
+            toast.error('Select shift and start time for grade 7', {
+                style: {
+                    backgroundColor: 'red',
+                    color: 'white',
+                },
+            });
+            return;
+        } else if (editProgramCurr[8].length === 0) {
+            toast.error('Select at least one subject for grade 8', {
+                style: {
+                    backgroundColor: 'red',
+                    color: 'white',
+                },
+            });
+            return;
+        } else if (selectedShifts[8] === undefined || !startTimes[8]) {
+            toast.error('Select shift and start time for grade 8', {
+                style: {
+                    backgroundColor: 'red',
+                    color: 'white',
+                },
+            });
+            return;
+        } else if (editProgramCurr[9].length === 0) {
+            toast.error('Select at least one subject for grade 9', {
+                style: {
+                    backgroundColor: 'red',
+                    color: 'white',
+                },
+            });
+            return;
+        } else if (selectedShifts[9] === undefined || !startTimes[9]) {
+            toast.error('Select shift and start time for grade 9', {
+                style: {
+                    backgroundColor: 'red',
+                    color: 'white',
+                },
+            });
+            return;
+        } else if (editProgramCurr[10].length === 0) {
+            toast.error('Select at least one subject for grade 10', {
+                style: {
+                    backgroundColor: 'red',
+                    color: 'white',
+                },
+            });
+            return;
+        } else if (selectedShifts[10] === undefined || !startTimes[10]) {
+            toast.error('Select shift and start time for grade 10', {
+                style: {
+                    backgroundColor: 'red',
+                    color: 'white',
+                },
+            });
+            return;
+        }
 
         const currentProgram = programs[programId]?.program || '';
 
@@ -960,50 +966,58 @@ const ProgramListContainer = ({
                     editProgramValue.trim().toLowerCase()
             );
 
-      if (duplicateProgram) {
-        toast.error('A program with this name already exists!', {
-          style: {
-            backgroundColor: 'red',
-            color: 'white',
-          },
-        });
-      } else if (editProgramValue.trim()) {
-        dispatch(
-          editProgram({
-            programId,
-            updatedProgram: {
-              program: editProgramValue,
-              7: {
-                subjects: editProgramCurr[7],
-                fixedDays: editFixedDays[7],
-                fixedPositions: editFixedPositions[7],
-                shift: selectedShifts[7],
-                startTime: getTimeSlotIndex(startTimes[7] || '06:00 AM'),
-              },
-              8: {
-                subjects: editProgramCurr[8],
-                fixedDays: editFixedDays[8],
-                fixedPositions: editFixedPositions[8],
-                shift: selectedShifts[8],
-                startTime: getTimeSlotIndex(startTimes[8] || '06:00 AM'),
-              },
-              9: {
-                subjects: editProgramCurr[9],
-                fixedDays: editFixedDays[9],
-                fixedPositions: editFixedPositions[9],
-                shift: selectedShifts[9],
-                startTime: getTimeSlotIndex(startTimes[9] || '06:00 AM'),
-              },
-              10: {
-                subjects: editProgramCurr[10],
-                fixedDays: editFixedDays[10],
-                fixedPositions: editFixedPositions[10],
-                shift: selectedShifts[10],
-                startTime: getTimeSlotIndex(startTimes[10] || '06:00 AM'),
-              },
-            },
-          })
-        );
+            if (duplicateProgram) {
+                toast.error('A program with this name already exists!', {
+                    style: {
+                        backgroundColor: 'red',
+                        color: 'white',
+                    },
+                });
+            } else if (editProgramValue.trim()) {
+                dispatch(
+                    editProgram({
+                        programId,
+                        updatedProgram: {
+                            program: editProgramValue,
+                            7: {
+                                subjects: editProgramCurr[7],
+                                fixedDays: editFixedDays[7],
+                                fixedPositions: editFixedPositions[7],
+                                shift: selectedShifts[7],
+                                startTime: getTimeSlotIndex(
+                                    startTimes[7] || '06:00 AM'
+                                ),
+                            },
+                            8: {
+                                subjects: editProgramCurr[8],
+                                fixedDays: editFixedDays[8],
+                                fixedPositions: editFixedPositions[8],
+                                shift: selectedShifts[8],
+                                startTime: getTimeSlotIndex(
+                                    startTimes[8] || '06:00 AM'
+                                ),
+                            },
+                            9: {
+                                subjects: editProgramCurr[9],
+                                fixedDays: editFixedDays[9],
+                                fixedPositions: editFixedPositions[9],
+                                shift: selectedShifts[9],
+                                startTime: getTimeSlotIndex(
+                                    startTimes[9] || '06:00 AM'
+                                ),
+                            },
+                            10: {
+                                subjects: editProgramCurr[10],
+                                fixedDays: editFixedDays[10],
+                                fixedPositions: editFixedPositions[10],
+                                shift: selectedShifts[10],
+                                startTime: getTimeSlotIndex(
+                                    startTimes[10] || '06:00 AM'
+                                ),
+                            },
+                        },
+                    })
+                );
 
                 updateProgramDependencies();
 
@@ -1232,15 +1246,15 @@ const ProgramListContainer = ({
         []
     );
 
-  useEffect(() => {
-    if (externalNumOfSchoolDays !== undefined) {
-      setNumOfSchoolDays(externalNumOfSchoolDays);
-    }
-  }, [externalNumOfSchoolDays]);
+    useEffect(() => {
+        if (externalNumOfSchoolDays !== undefined) {
+            setNumOfSchoolDays(externalNumOfSchoolDays);
+        }
+    }, [externalNumOfSchoolDays]);
 
-  useEffect(() => {
-    console.log("numOfSchoolDays:", numOfSchoolDays);
-  }, [numOfSchoolDays])
+    useEffect(() => {
+        console.log('numOfSchoolDays:', numOfSchoolDays);
+    }, [numOfSchoolDays]);
 
     useEffect(() => {
         debouncedSearch(searchProgramValue, programs, subjects);
@@ -1264,78 +1278,6 @@ const ProgramListContainer = ({
         }
     }, [subjectStatus, dispatch]);
 
-  const itemsPerPage = 3; // Change this to adjust the number of items per page
-  const [currentPage, setCurrentPage] = useState(1);
-  
-  // Calculate total pages
-  const totalPages = Math.ceil(Object.values(searchProgramResult).length / itemsPerPage);
-  
-  // Get current items
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = Object.entries(searchProgramResult).slice(indexOfFirstItem, indexOfLastItem);
-
-  const deleteModal = (id) => {
-    const deleteModalElement = document.getElementById("delete_modal");
-    deleteModalElement.showModal();  
-
-    const deleteButton = document.getElementById("delete_button");
-    deleteButton.onclick = () => handleDelete(id);  
-  };
-
-  const handleDelete = (id) => {
-    dispatch(removeProgram(id));  
-    document.getElementById("delete_modal").close(); 
-  };
-
-  const handleClose = () => {
-    const modal = document.getElementById('add_program_modal');
-    if (modal) {
-        modal.close();
-        setErrorMessage('');
-        setErrorField('');
-    } else {
-        console.error("Modal with ID 'add_program_modal' not found.");
-    }
-  };
-
-  return (
-    <React.Fragment>
-      <div className="">
-
-      <div className="flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5">
-        {/* Pagination */}
-        {currentItems.length > 0 && (
-          <div className="join flex justify-center mb-4 md:mb-0">
-            <button
-              className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
-              onClick={() => {
-                if (currentPage > 1) {
-                  setCurrentPage(currentPage - 1);
-                }
-                handleCancelProgramEditClick();
-              }}
-              disabled={currentPage === 1}
-            >
-              «
-            </button>
-            <button className="join-item btn">
-              Page {currentPage} of {totalPages}
-            </button>
-            <button
-              className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
-              onClick={() => {
-                if (currentPage < totalPages) {
-                  setCurrentPage(currentPage + 1);
-                }
-                handleCancelProgramEditClick();
-              }}
-              disabled={currentPage === totalPages}
-            >
-              »
-            </button>
-          </div>
-        )}
     const itemsPerPage = 3; // Change this to adjust the number of items per page
     const [currentPage, setCurrentPage] = useState(1);
 
@@ -1416,11 +1358,34 @@ const ProgramListContainer = ({
         // );
     }, [gradeTotalTimeslot]);
 
+    const deleteModal = (id) => {
+        const deleteModalElement = document.getElementById('delete_modal');
+        deleteModalElement.showModal();
+
+        const deleteButton = document.getElementById('delete_button');
+        deleteButton.onclick = () => handleDelete(id);
+    };
+
+    const handleDelete = (id) => {
+        dispatch(removeProgram(id));
+        document.getElementById('delete_modal').close();
+    };
+
+    const handleClose = () => {
+        const modal = document.getElementById('add_program_modal');
+        if (modal) {
+            modal.close();
+            setErrorMessage('');
+            setErrorField('');
+        } else {
+            console.error("Modal with ID 'add_program_modal' not found.");
+        }
+    };
+
     return (
         <React.Fragment>
             <div className="">
                 <div className="flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5">
-                    {/* Pagination */}
                     {currentItems.length > 0 && (
                         <div className="join flex justify-center mb-4 md:mb-0">
                             <button
@@ -1465,7 +1430,6 @@ const ProgramListContainer = ({
                         </div>
                     )}
 
-                    {/* Search Program */}
                     <div className="flex-grow w-full md:w-1/3 lg:w-1/4">
                         <label className="input input-bordered flex items-center gap-2 w-full">
                             <input
@@ -1481,31 +1445,34 @@ const ProgramListContainer = ({
                         </label>
                     </div>
 
-        {editable && (
-          <div className="w-full mt-4 md:mt-0 md:w-auto">
-            <button
-              className="btn btn-primary h-12 flex items-center justify-center w-full md:w-52"
-              onClick={() => document.getElementById('add_program_modal').showModal()}
-            >
-              Add Program <IoAdd size={20} className="ml-2" />
-            </button>
-            <AddProgramContainer
-              close={handleClose}
-              reduxField={['program', 'subjects']}
-              reduxFunction={addProgram}
-              morningStartTime={morningStartTime}
-              afternoonStartTime={afternoonStartTime}
-              errorMessage={errorMessage}
-              setErrorMessage={setErrorMessage}
-              errorField={errorField}
-              setErrorField={setErrorField}
-              numOfSchoolDays={numOfSchoolDays}
-            />
-          </div>
-        )}
-      </div>
+                    {editable && (
+                        <div className="w-full mt-4 md:mt-0 md:w-auto">
+                            <button
+                                className="btn btn-primary h-12 flex items-center justify-center w-full md:w-52"
+                                onClick={() =>
+                                    document
+                                        .getElementById('add_program_modal')
+                                        .showModal()
+                                }
+                            >
+                                Add Program <IoAdd size={20} className="ml-2" />
+                            </button>
+                            <AddProgramContainer
+                                close={handleClose}
+                                reduxField={['program', 'subjects']}
+                                reduxFunction={addProgram}
+                                morningStartTime={morningStartTime}
+                                afternoonStartTime={afternoonStartTime}
+                                errorMessage={errorMessage}
+                                setErrorMessage={setErrorMessage}
+                                errorField={errorField}
+                                setErrorField={setErrorField}
+                                numOfSchoolDays={numOfSchoolDays}
+                            />
+                        </div>
+                    )}
+                </div>
 
-                {/* Responsive Table */}
                 <div className="overflow-x-auto">
                     <table className="table table-sm table-zebra w-full">
                         <thead>
@@ -1554,8 +1521,6 @@ const ProgramListContainer = ({
                                             )}
                                         </td>
                                         <td className="">
-                                            {' '}
-                                            {/* This can remain as is for additional styling */}
                                             {editProgramId === program.id ? (
                                                 <div>
                                                     {[7, 8, 9, 10].map(
