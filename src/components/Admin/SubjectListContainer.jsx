@@ -406,11 +406,6 @@ const SubjectListContainer = ({
                     return;
                 }
 
-                const originalTotalTimeslot = calculateTotalTimeslots(
-                    subjects,
-                    originalProgram[grade]
-                );
-
                 const newTotalTimeslot = calculateTotalTimeslots(
                     {
                         ...subjects,
@@ -424,38 +419,16 @@ const SubjectListContainer = ({
                     newProgram[grade]
                 );
 
-                if (newTotalTimeslot < originalTotalTimeslot) {
-                    for (
-                        let timeslot = originalTotalTimeslot;
-                        timeslot > newTotalTimeslot;
-                        timeslot--
-                    ) {
-                        // console.log(
-                        //     'f epfdfp ',
-                        //     newProgram[grade].fixedPositions
-                        // );
-                        Object.entries(
-                            newProgram[grade].fixedPositions
-                        ).forEach(([subjectId, fixedPosition]) => {
-                            // console.log('subjectId', subjectId);
-                            // console.log('fixedPosition', fixedPosition);
-                            fixedPosition.forEach((item, i) => {
-                                if (item == timeslot) {
-                                    // console.log(
-                                    //     fixedPosition,
-                                    //     'resetting',
-                                    //     fixedPosition[i],
-                                    //     'to 0'
-                                    // );
-                                    fixedPosition[i] = 0;
-                                    newProgram[grade].fixedDays[subjectId][
-                                        i
-                                    ] = 0;
-                                } // reset all positions to zero if timeslot is removed
-                            });
+                Object.entries(newProgram[grade].fixedPositions).forEach(
+                    ([subjectId, fixedPosition]) => {
+                        fixedPosition.forEach((item, i) => {
+                            if (item > newTotalTimeslot) {
+                                fixedPosition[i] = 0;
+                                newProgram[grade].fixedDays[subjectId][i] = 0;
+                            } // reset all positions to zero if timeslot is removed
                         });
                     }
-                }
+                );
 
                 const numOfClasses = Math.min(
                     Math.ceil(editSubjectWeeklyMinutes / editClassDuration),

@@ -73,8 +73,10 @@ const DraggableSchedules = ({
             ref={editMode ? setNodeRef : null}
             {...(editMode ? listeners : {})}
             {...(editMode ? attributes : {})}
-            className={`w-10 h-16 p-4 ${colorClass} ${compBorder} ${
-                editMode ? 'cursor-grab shadow-sm hover:shadow-md' : ''
+            className={`w-20 h-16 p-4 ${colorClass} ${compBorder} ${
+                editMode
+                    ? 'ring-black hover:ring-2 ring-inset cursor-grab shadow-sm hover:shadow-lg'
+                    : ''
             }`}
             style={editMode ? style : undefined}
         >
