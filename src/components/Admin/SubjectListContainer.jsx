@@ -50,7 +50,7 @@ const AddSubjectContainer = ({
         defaultSubjectClassDuration || 10
     );
 
-    const [subjectWeeklyMinutes, setSubjectWeeklyMinutes] = useState(100);
+    const [subjectWeeklyMinutes, setSubjectWeeklyMinutes] = useState(200);
 
     const handleAddSubject = () => {
         if (!subjectName.trim()) {
@@ -103,7 +103,7 @@ const AddSubjectContainer = ({
     const handleReset = () => {
         setSubjectName('');
         setClassSubjectDuration(defaultSubjectClassDuration || 10);
-        setSubjectWeeklyMinutes(100);
+        setSubjectWeeklyMinutes(200);
 
         setErrorMessage('');
         setErrorField('');

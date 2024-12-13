@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useDraggable } from '@dnd-kit/core';
 
-import { lightColors } from './bgColors';
+import { dragColors } from './bgColors';
 
 const DraggableSchedules = ({
     editMode,
@@ -31,7 +31,7 @@ const DraggableSchedules = ({
           }
         : undefined;
 
-    const colorClass = lightColors[colorIdx % lightColors.length];
+    const colorClass = dragColors[colorIdx % dragColors.length];
 
     const checkPosition = () => {
         if (mergeData === undefined || mergeData === null) return 'rounded';
@@ -73,7 +73,7 @@ const DraggableSchedules = ({
             ref={editMode ? setNodeRef : null}
             {...(editMode ? listeners : {})}
             {...(editMode ? attributes : {})}
-            className={`w-10 h-16 p-4 ${colorClass} ${compBorder} ${
+            className={`w-20 h-16 p-4 ${colorClass} ${compBorder} ${
                 editMode ? 'cursor-grab shadow-sm hover:shadow-md' : ''
             }`}
             style={editMode ? style : undefined}

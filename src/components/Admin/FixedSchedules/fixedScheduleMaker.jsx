@@ -6,7 +6,7 @@ import { produce } from 'immer';
 import ContainerSpawn from './containerSpawn';
 import DroppableSchedCell from './droppableSchedCell';
 import { ReserveDay, ReservePosition } from './reservation';
-import { darkColors } from './bgColors';
+import { spawnColors } from './bgColors';
 
 const FixedScheduleMaker = ({
     viewingMode = 0,
@@ -229,7 +229,7 @@ const FixedScheduleMaker = ({
             return;
 
         // Helper function to count slots
-        const countSlots = (subs, key, targetValue, excludedValue) =>
+        const countSlots = (subs, key, otherKey, targetValue, excludedValue) =>
             subs.reduce((count, subID) => {
                 const items = key === 'days' ? days[subID] : positions[subID];
                 return (
@@ -247,12 +247,14 @@ const FixedScheduleMaker = ({
         const daySlots = countSlots(
             subs,
             'days',
+            'positions',
             targetDay,
             days[draggedSubjectID]?.[draggedDay]
         );
         const positionSlots = countSlots(
             subs,
             'positions',
+            'days',
             targetPos,
             positions[draggedSubjectID]?.[draggedDay]
         );
@@ -370,11 +372,11 @@ const FixedScheduleMaker = ({
                                                     className="w-3/12 bg-yellow-200 flex justify-center items-center border border-gray rounded-tl-lg rounded-bl-lg truncate"
                                                     style={{
                                                         backgroundColor:
-                                                            darkColors[
+                                                            spawnColors[
                                                                 index %
-                                                                    darkColors.length
+                                                                    spawnColors.length
                                                             ], // Background color
-                                                        color: 'white',
+                                                        color: 'black',
                                                     }}
                                                 >
                                                     {subjects[subject]?.subject}
