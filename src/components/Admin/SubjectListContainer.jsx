@@ -372,7 +372,6 @@ const SubjectListContainer = ({
     };
 
     const updateSubjectDependencies = () => {
-
         if (Object.keys(programs).length === 0) return;
 
         function calculateTotalTimeslots(subjects, program) {
@@ -419,54 +418,58 @@ const SubjectListContainer = ({
                     newProgram[grade]
                 );
 
-                if (newTotalTimeslot < originalTotalTimeslot) {
-                    Object.entries(
-                        newProgram[grade].fixedPositions
-                    ).forEach(([subjectId, fixedPosition]) => {
-
+                Object.entries(newProgram[grade].fixedPositions).forEach(
+                    ([subjectId, fixedPosition]) => {
                         fixedPosition.forEach((item, i) => {
                             if (item > newTotalTimeslot) {
-                                
                                 fixedPosition[i] = 0;
-                                newProgram[grade].fixedDays[subjectId][
-                                    i
-                                ] = 0;
-                            } 
+                                newProgram[grade].fixedDays[subjectId][i] = 0;
+                            }
                         });
+                    }
+                );
 
-                    });
-                }
-
-                console.log('newProgram[grade].subjects', newProgram[grade].subjects);
+                console.log(
+                    'newProgram[grade].subjects',
+                    newProgram[grade].subjects
+                );
 
                 // Loop through all subjects of the year level
                 for (let subjectID of newProgram[grade].subjects) {
-
                     // Retrieve the number of classes allowed for the subject
                     let numOfClasses = 0;
-                    if (subjectID === editSubjectId)
-                    {
+                    if (subjectID === editSubjectId) {
                         numOfClasses = Math.min(
-                            Math.ceil(editSubjectWeeklyMinutes / editClassDuration),
+                            Math.ceil(
+                                editSubjectWeeklyMinutes / editClassDuration
+                            ),
                             numOfSchoolDays
                         );
                     } else {
                         numOfClasses = Math.min(
-                            Math.ceil(subjects[subjectID].weeklyMinutes / subjects[subjectID].classDuration),
+                            Math.ceil(
+                                subjects[subjectID].weeklyMinutes /
+                                    subjects[subjectID].classDuration
+                            ),
                             numOfSchoolDays
                         );
-                    } 
-    
+                    }
+
                     const fixedDays = newProgram[grade].fixedDays[subjectID];
-                    const fixedPositions = newProgram[grade].fixedPositions[subjectID];
-                    
+                    const fixedPositions =
+                        newProgram[grade].fixedPositions[subjectID];
+
                     console.log('grade', grade);
                     console.log('subjectID', subjectID);
                     console.log('numOfClasses', numOfClasses);
-    
+
                     // Skip if both arrays are already of the correct length
-                    if (fixedDays.length === numOfClasses && fixedPositions.length === numOfClasses) continue;
-                    
+                    if (
+                        fixedDays.length === numOfClasses &&
+                        fixedPositions.length === numOfClasses
+                    )
+                        continue;
+
                     // Use hash maps to quickly look up subjects and day-position pairs
                     const dayPositionMap = new Map();
 
@@ -474,8 +477,8 @@ const SubjectListContainer = ({
                         const pos = fixedPositions[index];
                         if (
                             ((day !== 0 && pos === 0) ||
-                            (day === 0 && pos !== 0) || 
-                            (day !== 0 && pos !== 0)) &&
+                                (day === 0 && pos !== 0) ||
+                                (day !== 0 && pos !== 0)) &&
                             !dayPositionMap.has(`${day}-${pos}`)
                         ) {
                             dayPositionMap.set(`${day}-${pos}`, [day, pos]);
@@ -565,7 +568,7 @@ const SubjectListContainer = ({
                 newSection
             );
 
-            if (newTotalTimeslot < originalTotalTimeslot) {               
+            if (newTotalTimeslot < originalTotalTimeslot) {
                 Object.entries(newSection.fixedPositions).forEach(
                     ([subjectId, fixedPosition]) => {
                         fixedPosition.forEach((item, i) => {
@@ -575,7 +578,7 @@ const SubjectListContainer = ({
                             } // reset all positions to zero if timeslot is removed
                         });
                     }
-                );              
+                );
             }
 
             const numOfClasses = Math.min(
@@ -587,7 +590,11 @@ const SubjectListContainer = ({
             const fixedPositions = newSection.fixedPositions[editSubjectId];
 
             // Skip if both arrays are already of the correct length
-            if (fixedDays.length === numOfClasses && fixedPositions.length === numOfClasses) return;
+            if (
+                fixedDays.length === numOfClasses &&
+                fixedPositions.length === numOfClasses
+            )
+                return;
 
             // Use hash maps to quickly look up subjects and day-position pairs
             const dayPositionMap = new Map();
@@ -596,11 +603,10 @@ const SubjectListContainer = ({
                 const pos = fixedPositions[index];
                 if (
                     ((day !== 0 && pos === 0) ||
-                    (day === 0 && pos !== 0) || 
-                    (day !== 0 && pos !== 0)) &&
+                        (day === 0 && pos !== 0) ||
+                        (day !== 0 && pos !== 0)) &&
                     !dayPositionMap.has(`${day}-${pos}`)
-                ) 
-                {
+                ) {
                     dayPositionMap.set(`${day}-${pos}`, [day, pos]);
                 }
             });
