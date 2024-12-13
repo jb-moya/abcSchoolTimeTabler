@@ -967,6 +967,14 @@ function Timetable() {
 
         if (Object.keys(programsStore).length === 0) return;
 
+        // Precompute values
+        const classCountLookup = {};
+        Object.entries(subjectsStore).forEach(([subjectID, subject]) => {
+            classCountLookup[subjectID] = 
+                Math.ceil(subject.weeklyMinutes / subject.classDuration),
+                numOfSchoolDays;
+        });
+
         // Update program fixed days and fixed positions
         Object.entries(programsStore).forEach(([progId, prog]) => {
 
@@ -978,7 +986,7 @@ function Timetable() {
 
                 newProgram[grade].subjects.map((subId) => {
 
-                    if ((subjectsStore[subId].weeklyMinutes / subjectsStore[subId].classDuration) <= numOfSchoolDays) return;
+                    if (classCountLookup[subId] <= numOfSchoolDays) return;
                     
                     const fixedDays = newProgram[grade].fixedDays[subId];
                     const fixedPositions = newProgram[grade].fixedPositions[subId];
@@ -991,7 +999,7 @@ function Timetable() {
                     }
 
                     const numOfClasses = Math.min(
-                        Math.ceil(subjectsStore[subId].weeklyMinutes / subjectsStore[subId].classDuration),
+                        classCountLookup[subId],
                         numOfSchoolDays
                     );
                     
@@ -999,7 +1007,10 @@ function Timetable() {
 
                     fixedDays.forEach((day, index) => {
                         const pos = fixedPositions[index];
-                        if ((day !== 0 && pos !== 0) || (day !== 0 && pos === 0) || (day === 0 && pos !== 0) && !dayPositionMap.has(`${day}-${pos}`)) {
+                        if ((day !== 0 && pos !== 0) || 
+                            (day !== 0 && pos === 0) || 
+                            (day === 0 && pos !== 0) && 
+                            !dayPositionMap.has(`${day}-${pos}`)) {
                             dayPositionMap.set(`${day}-${pos}`, [day, pos]);
                         }
                     });
@@ -1079,7 +1090,7 @@ function Timetable() {
 
             newSection.subjects.map((subId) => {
 
-                if ((subjectsStore[subId].weeklyMinutes / subjectsStore[subId].classDuration) <= numOfSchoolDays) return;
+                if (classCountLookup[subId] <= numOfSchoolDays) return;
 
                 const fixedDays = newSection.fixedDays[subId];
                 const fixedPositions = newSection.fixedPositions[subId];
@@ -1092,7 +1103,7 @@ function Timetable() {
                 }
                 
                 const numOfClasses = Math.min(
-                    Math.ceil(subjectsStore[subId].weeklyMinutes / subjectsStore[subId].classDuration),
+                    classCountLookup[subId],
                     numOfSchoolDays
                 );
                 
@@ -1195,7 +1206,10 @@ function Timetable() {
             <div className="mb-6 flex justify-between items-center">
                 <Breadcrumbs title="Timetable" links={links} />
                 <div className="flex items-center gap-2">
-                    <ExportImportDBButtons onClear={handleClearAndRefresh} />
+                    <ExportImportDBButtons 
+                        onClear={handleClearAndRefresh} 
+                        numOfSchoolDays = {numOfSchoolDays} 
+                    />
                     <button
                         className={clsx('btn btn-primary', {
                             'cursor-not-allowed':

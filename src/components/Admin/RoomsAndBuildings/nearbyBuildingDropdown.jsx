@@ -7,17 +7,21 @@ const NearbyBuildingDropdown = ({
   availableBuildings,
   nearbyBuildings,
   setNearbyBuildings,
+  currentBuildingId, // Add this prop
 }) => {
   const [searchValue, setSearchValue] = useState("");
   const searchInputRef = useRef(null);
 
-  const filteredBuildings = availableBuildings.filter((building) => {
-    const escapedSearchValue = escapeRegExp(searchValue)
-      .split("\\*")
-      .join(".*");
-    const pattern = new RegExp(escapedSearchValue, "i");
-    return pattern.test(building.name);
-  });
+  // Filter out the current building
+  const filteredBuildings = availableBuildings
+    .filter((building) => building.id !== currentBuildingId)
+    .filter((building) => {
+      const escapedSearchValue = escapeRegExp(searchValue)
+        .split("\\")
+        .join(".");
+      const pattern = new RegExp(escapedSearchValue, "i");
+      return pattern.test(building.name);
+    });
 
   const handleToggleBuilding = (buildingId) => {
     const updatedList = nearbyBuildings.some((b) => b.id === buildingId)
@@ -77,6 +81,22 @@ const NearbyBuildingDropdown = ({
           )}
         </div>
       </ul>
+
+      {/* Display the selected nearby buildings as badges */}
+      {nearbyBuildings.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-3">
+          {nearbyBuildings.map((building) => (
+            <span
+              key={building.id}
+              className="badge badge-primary gap-2 cursor-pointer"
+              onClick={() => handleToggleBuilding(building.id)}
+            >
+              {building.name}
+              <IoRemove size={16} className="ml-2" />
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

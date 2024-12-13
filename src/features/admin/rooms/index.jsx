@@ -1,5 +1,5 @@
 import Breadcrumbs from '@components/Admin/Breadcrumbs';
-import RoomMapping from '@components/Admin/RoomMapping';
+import RoomMapping from '@components/Admin/RoomsAndBuildings/RoomMapping';
 
 
 function Rooms() {
