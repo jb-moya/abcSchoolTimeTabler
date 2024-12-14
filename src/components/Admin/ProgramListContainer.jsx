@@ -1247,6 +1247,12 @@ const ProgramListContainer = ({
     );
 
     useEffect(() => {
+        console.log('editProgramCurr:', editProgramCurr);
+        console.log('editFixedDays:', editFixedDays);
+        console.log('editFixedPositions:', editFixedPositions);
+    }, [editProgramCurr, editFixedDays, editFixedPositions]);
+
+    useEffect(() => {
         if (externalNumOfSchoolDays !== undefined) {
             setNumOfSchoolDays(externalNumOfSchoolDays);
         }
@@ -1294,72 +1300,72 @@ const ProgramListContainer = ({
         indexOfLastItem
     );
 
-    const [gradeTotalTimeslot, setGradeTotalTimeslot] = useState({});
+    // const [gradeTotalTimeslot, setGradeTotalTimeslot] = useState({});
 
-    useEffect(() => {
-        if (programStatus !== 'succeeded' || subjectStatus !== 'succeeded') {
-            console.log(
-                'Programs or Subjects not loaded yet. Skipping gradeTotalTimeslot calculation.'
-            );
-            return;
-        } else {
-            console.log(
-                'Programs and Subjects loaded. Calculating gradeTotalTimeslot.'
-            );
-        }
+    // useEffect(() => {
+    //     if (programStatus !== 'succeeded' || subjectStatus !== 'succeeded') {
+    //         console.log(
+    //             'Programs or Subjects not loaded yet. Skipping gradeTotalTimeslot calculation.'
+    //         );
+    //         return;
+    //     } else {
+    //         console.log(
+    //             'Programs and Subjects loaded. Calculating gradeTotalTimeslot.'
+    //         );
+    //     }
 
-        const newGradeTotalTimeslot = {};
-        // console.log('programssssssssss', programs);
+    //     const newGradeTotalTimeslot = {};
+    //     // console.log('programssssssssss', programs);
 
-        if (Object.keys(programs).length === 0) {
-            console.log('No data to process');
-            return;
-        }
+    //     if (Object.keys(programs).length === 0) {
+    //         console.log('No data to process');
+    //         return;
+    //     }
 
-        Object.entries(programs).forEach(([programID, program]) => {
-            // console.log('>', programID, 'program', program);
+    //     Object.entries(programs).forEach(([programID, program]) => {
+    //         // console.log('>', programID, 'program', program);
 
-            if (!newGradeTotalTimeslot[programID]) {
-                newGradeTotalTimeslot[programID] = {};
-            }
+    //         if (!newGradeTotalTimeslot[programID]) {
+    //             newGradeTotalTimeslot[programID] = {};
+    //         }
 
-            [7, 8, 9, 10].forEach((grade) => {
-                let gradeInfo = program[grade];
+    //         [7, 8, 9, 10].forEach((grade) => {
+    //             let gradeInfo = program[grade];
 
-                let totalNumOfClasses = 0;
+    //             let totalNumOfClasses = 0;
 
-                // console.log('grade', gradeInfo);
-                // console.log('gradeInfo.subjects', gradeInfo.subjects);
+    //             // console.log('grade', gradeInfo);
+    //             // console.log('gradeInfo.subjects', gradeInfo.subjects);
 
-                gradeInfo.subjects.forEach((subject) => {
-                    totalNumOfClasses += Math.min(
-                        Math.ceil(
-                            subjects[subject].weeklyMinutes /
-                                subjects[subject].classDuration
-                        ),
-                        numOfSchoolDays
-                    );
-                });
+    //             gradeInfo.subjects.forEach((subject) => {
+    //                 totalNumOfClasses += Math.min(
+    //                     Math.ceil(
+    //                         subjects[subject].weeklyMinutes /
+    //                             subjects[subject].classDuration
+    //                     ),
+    //                     numOfSchoolDays
+    //                 );
+    //             });
 
-                let totalTimeslot = Math.ceil(
-                    totalNumOfClasses / numOfSchoolDays
-                );
+    //             let totalTimeslot = Math.ceil(
+    //                 totalNumOfClasses / numOfSchoolDays
+    //             );
 
-                newGradeTotalTimeslot[programID][grade] = totalTimeslot;
-            });
-        });
+    //             newGradeTotalTimeslot[programID][grade] = totalTimeslot;
+    //         });
+    //     });
 
-        // console.log('newGradeTotalTimeslot', newGradeTotalTimeslot);
+    //     // console.log('newGradeTotalTimeslot', newGradeTotalTimeslot);
 
-        setGradeTotalTimeslot(newGradeTotalTimeslot);
-    }, [subjects, numOfSchoolDays, programs, programStatus, subjectStatus]);
+    //     setGradeTotalTimeslot(newGradeTotalTimeslot);
+    // }, [subjects, numOfSchoolDays, programs, programStatus, subjectStatus]);
 
-    useEffect(() => {
-        // console.log(
-        //     'BAT DI KA NAG U U P D A T E  G gradeTotalTimeslot ',
-        //     gradeTotalTimeslot
-        // );
-    }, [gradeTotalTimeslot]);
+    // useEffect(() => {
+    //     // console.log(
+    //     //     'BAT DI KA NAG U U P D A T E  G gradeTotalTimeslot ',
+    //     //     gradeTotalTimeslot
+    //     // );
+    // }, [gradeTotalTimeslot]);
 
     const deleteModal = (id) => {
         const deleteModalElement = document.getElementById('delete_modal');
@@ -1688,60 +1694,19 @@ const ProgramListContainer = ({
                                                                         Grade{' '}
                                                                         {grade}
                                                                     </button>
-
-                                                                    {gradeTotalTimeslot[
-                                                                        program
-                                                                            .id
-                                                                    ] && (
-                                                                        <FixedScheduleMaker
-                                                                            key={
-                                                                                grade
-                                                                            }
-                                                                            viewingMode={
-                                                                                0
-                                                                            }
-                                                                            pvs={
-                                                                                0
-                                                                            }
-                                                                            program={
-                                                                                editProgramId
-                                                                            }
-                                                                            grade={
-                                                                                grade
-                                                                            }
-                                                                            selectedSubjects={
-                                                                                editProgramCurr[
-                                                                                    grade
-                                                                                ]
-                                                                            }
-                                                                            totalTimeslot={
-                                                                                gradeTotalTimeslot[
-                                                                                    editProgramId
-                                                                                ][
-                                                                                    grade
-                                                                                ]
-                                                                            }
-                                                                            fixedDays={
-                                                                                editFixedDays[
-                                                                                    grade
-                                                                                ]
-                                                                            }
-                                                                            setFixedDays={
-                                                                                setEditFixedDays
-                                                                            }
-                                                                            fixedPositions={
-                                                                                editFixedPositions[
-                                                                                    grade
-                                                                                ]
-                                                                            }
-                                                                            setFixedPositions={
-                                                                                setEditFixedPositions
-                                                                            }
-                                                                            numOfSchoolDays={
-                                                                                numOfSchoolDays
-                                                                            }
-                                                                        />
-                                                                    )}
+                                                                    <FixedScheduleMaker
+                                                                        key={grade}
+                                                                        viewingMode={0}
+                                                                        pvs={0}
+                                                                        program={editProgramId}
+                                                                        grade={grade}
+                                                                        selectedSubjects={editProgramCurr[grade] || []}
+                                                                        fixedDays={editFixedDays[grade] || {}}
+                                                                        setFixedDays={setEditFixedDays}
+                                                                        fixedPositions={editFixedPositions[grade] || {}}
+                                                                        setFixedPositions={setEditFixedPositions}
+                                                                        numOfSchoolDays={numOfSchoolDays}
+                                                                    />
                                                                 </div>
                                                             </div>
                                                         )
@@ -1829,61 +1794,18 @@ const ProgramListContainer = ({
                                                                                 grade
                                                                             }
                                                                         </button>
-
-                                                                        {gradeTotalTimeslot[
-                                                                            program
-                                                                                .id
-                                                                        ] && (
-                                                                            <FixedScheduleMaker
-                                                                                key={
-                                                                                    grade
-                                                                                }
-                                                                                viewingMode={
-                                                                                    1
-                                                                                }
-                                                                                pvs={
-                                                                                    0
-                                                                                }
-                                                                                program={
-                                                                                    program.id
-                                                                                }
-                                                                                grade={
-                                                                                    grade
-                                                                                }
-                                                                                totalTimeslot={
-                                                                                    gradeTotalTimeslot[
-                                                                                        program
-                                                                                            .id
-                                                                                    ][
-                                                                                        grade
-                                                                                    ]
-                                                                                }
-                                                                                selectedSubjects={
-                                                                                    program[
-                                                                                        grade
-                                                                                    ]
-                                                                                        ?.subjects ||
-                                                                                    []
-                                                                                }
-                                                                                fixedDays={
-                                                                                    program[
-                                                                                        grade
-                                                                                    ]
-                                                                                        ?.fixedDays ||
-                                                                                    {}
-                                                                                }
-                                                                                fixedPositions={
-                                                                                    program[
-                                                                                        grade
-                                                                                    ]
-                                                                                        ?.fixedPositions ||
-                                                                                    {}
-                                                                                }
-                                                                                numOfSchoolDays={
-                                                                                    numOfSchoolDays
-                                                                                }
-                                                                            />
-                                                                        )}
+                                                                        <FixedScheduleMaker
+                                                                            key={grade}
+                                                                            viewingMode={1}
+                                                                            pvs={0}
+                                                                            program={program.id}
+                                                                            grade={grade}
+                                                                            
+                                                                            selectedSubjects={program[grade]?.subjects || []}
+                                                                            fixedDays={program[grade] ?.fixedDays || {}}
+                                                                            fixedPositions={program[grade] ?.fixedPositions || {}}
+                                                                            numOfSchoolDays={numOfSchoolDays}
+                                                                        />
                                                                     </div>
                                                                 </div>
                                                             </div>

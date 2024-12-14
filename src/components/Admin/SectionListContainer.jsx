@@ -473,52 +473,52 @@ const SectionListContainer = ({
 
     const [sectionTotalTimeslot, setSectionTotalTimeslot] = useState({});
 
-    useEffect(() => {
-        if (sectionStatus !== 'succeeded' || subjectStatus !== 'succeeded') {
-            console.log(
-                'Programs or Subjects not loaded yet. Skipping gradeTotalTimeslot calculation.'
-            );
-            return;
-        }
+    // useEffect(() => {
+    //     if (sectionStatus !== 'succeeded' || subjectStatus !== 'succeeded') {
+    //         console.log(
+    //             'Programs or Subjects not loaded yet. Skipping gradeTotalTimeslot calculation.'
+    //         );
+    //         return;
+    //     }
 
-        const newSectionTotalTimeslot = {};
+    //     const newSectionTotalTimeslot = {};
 
-        console.log('sectionsssssssssss', sections);
+    //     console.log('sectionsssssssssss', sections);
 
-        if (Object.keys(sections).length === 0) {
-            console.log('No data to process');
-            return;
-        }
+    //     if (Object.keys(sections).length === 0) {
+    //         console.log('No data to process');
+    //         return;
+    //     }
 
-        Object.entries(sections).forEach(([sectionID, section]) => {
-            console.log('>', sectionID, 'section', sections);
+    //     Object.entries(sections).forEach(([sectionID, section]) => {
+    //         console.log('>', sectionID, 'section', sections);
 
-            let sectionSubjects = section.subjects;
+    //         let sectionSubjects = section.subjects;
 
-            let totalNumOfClasses = 0;
+    //         let totalNumOfClasses = 0;
 
-            console.log('gradeInfo.subjects', sectionSubjects);
+    //         console.log('gradeInfo.subjects', sectionSubjects);
 
-            sectionSubjects.forEach((subject) => {
-                totalNumOfClasses += Math.min(Math.ceil(
-                    subjects[subject].weeklyMinutes /
-                        subjects[subject].classDuration
-                ), numOfSchoolDays);
-            });
+    //         sectionSubjects.forEach((subject) => {
+    //             totalNumOfClasses += Math.min(Math.ceil(
+    //                 subjects[subject].weeklyMinutes /
+    //                     subjects[subject].classDuration
+    //             ), numOfSchoolDays);
+    //         });
 
 
-            console.log("heheheh eh ehe");
+    //         console.log("heheheh eh ehe");
 
-            let totalTimeslot = Math.ceil(totalNumOfClasses / numOfSchoolDays);
+    //         let totalTimeslot = Math.ceil(totalNumOfClasses / numOfSchoolDays);
 
-            console.log('totalTimeslot', totalTimeslot);
-            newSectionTotalTimeslot[sectionID] = totalTimeslot;
-        });
+    //         console.log('totalTimeslot', totalTimeslot);
+    //         newSectionTotalTimeslot[sectionID] = totalTimeslot;
+    //     });
 
-        console.log('newGradeTotalTimeslot', newSectionTotalTimeslot);
+    //     console.log('newGradeTotalTimeslot', newSectionTotalTimeslot);
 
-        setSectionTotalTimeslot(newSectionTotalTimeslot);
-    }, [subjects, numOfSchoolDays, sections, sectionStatus, subjectStatus]);
+    //     setSectionTotalTimeslot(newSectionTotalTimeslot);
+    // }, [subjects, numOfSchoolDays, sections, sectionStatus, subjectStatus]);
 
     const [searchSectionResult, setSearchSectionResult] = useState(sections);
     const [searchSectionValue, setSearchSectionValue] = useState('');
@@ -1334,11 +1334,11 @@ const SectionListContainer = ({
                                                             fixedDays={
                                                                 editSectionFixedDays
                                                             }
-                                                            totalTimeslot={
-                                                                sectionTotalTimeslot[
-                                                                    section.id
-                                                                ]
-                                                            }
+                                                            // totalTimeslot={
+                                                            //     sectionTotalTimeslot[
+                                                            //         section.id
+                                                            //     ]
+                                                            // }
                                                             setFixedDays={
                                                                 setEditSectionFixedDays
                                                             }
@@ -1383,11 +1383,11 @@ const SectionListContainer = ({
                                                                 section.fixedDays ||
                                                                 {}
                                                             }
-                                                            totalTimeslot={
-                                                                sectionTotalTimeslot[
-                                                                    section.id
-                                                                ]
-                                                            }
+                                                            // totalTimeslot={
+                                                            //     sectionTotalTimeslot[
+                                                            //         section.id
+                                                            //     ]
+                                                            // }
                                                             fixedPositions={
                                                                 section.fixedPositions ||
                                                                 {}

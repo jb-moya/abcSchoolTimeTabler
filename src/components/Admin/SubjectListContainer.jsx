@@ -320,7 +320,7 @@ const SubjectListContainer = ({
                     },
                 });
 
-                resetInputs();
+                // resetInputs();
             } else {
                 const duplicateSubject = Object.values(subjects).find(
                     (subject) =>
@@ -442,7 +442,29 @@ const SubjectListContainer = ({
                     });
                 }
 
-                console.log('newProgram[grade].subjects', newProgram[grade].subjects);
+                console.log('newTotalTimeslot', newTotalTimeslot);
+
+                console.log(`newProgram[${grade}].subjects`, newProgram[grade].subjects);
+
+                let dayTimeSlots = {};
+                let positionTimeSlots = {};
+
+                for (let subjectID of newProgram[grade].subjects) {
+                    const { fixedDays, fixedPositions } = newProgram[grade];
+                    
+                    fixedDays[subjectID].forEach((day, i) => {
+                        const position = fixedPositions[subjectID][i];
+                
+                        if (day || position) { // Only process non-zero day or position
+                            dayTimeSlots[day] ??= newTotalTimeslot; // Use nullish coalescing assignment
+                            positionTimeSlots[position] ??= numOfSchoolDays;
+                        }
+                    });
+                }                
+
+                console.log('dayTimeSlots', dayTimeSlots);
+
+                console.log('positionTimeSlots', positionTimeSlots);
 
                 // Loop through all subjects of the year level
                 for (let subjectID of newProgram[grade].subjects) {
@@ -461,39 +483,51 @@ const SubjectListContainer = ({
                             numOfSchoolDays
                         );
                     } 
-    
-                    const fixedDays = newProgram[grade].fixedDays[subjectID];
-                    const fixedPositions = newProgram[grade].fixedPositions[subjectID];
-                    
                     console.log('grade', grade);
                     console.log('subjectID', subjectID);
                     console.log('numOfClasses', numOfClasses);
     
+                    const fixedDays = newProgram[grade].fixedDays[subjectID];
+                    const fixedPositions = newProgram[grade].fixedPositions[subjectID];
+                    
+                    console.log('fixedDays', fixedDays);
+                    console.log('fixedPositions', fixedPositions);
+    
                     // Skip if both arrays are already of the correct length
-                    if (fixedDays.length === numOfClasses && fixedPositions.length === numOfClasses) continue;
+                    // if (fixedDays.length === numOfClasses && fixedPositions.length === numOfClasses) continue;
                     
                     // Use hash maps to quickly look up subjects and day-position pairs
                     const dayPositionMap = new Map();
 
                     fixedDays.forEach((day, index) => {
                         const pos = fixedPositions[index];
+                        console.log('day', day);
+                        console.log('pos', pos);
                         if (
-                            ((day !== 0 && pos === 0) ||
-                            (day === 0 && pos !== 0) || 
-                            (day !== 0 && pos !== 0)) &&
-                            !dayPositionMap.has(`${day}-${pos}`)
+                            (
+                                (day !== 0 && pos === 0) ||
+                                (day === 0 && pos !== 0) || 
+                                (day !== 0 && pos !== 0)) &&
+                                !dayPositionMap.has(`${day}-${pos}`
+                            )
                         ) {
                             dayPositionMap.set(`${day}-${pos}`, [day, pos]);
                         }
                     });
 
+                    console.log('dayPositionMap', dayPositionMap);
+
                     // Now we process the day-position pairs efficiently
                     let result = [];
                     dayPositionMap.forEach(([day, pos]) => {
-                        if (result.length < numOfClasses) {
+                        if (result.length < numOfClasses && dayTimeSlots[day] > 0 && positionTimeSlots[pos] > 0) {
                             result.push([day, pos]);
+                            dayTimeSlots[day]--;
+                            positionTimeSlots[pos]--;
                         }
                     });
+
+                    console.log('result', result);
 
                     // Pad with [0, 0] if necessary
                     while (result.length < numOfClasses) {
@@ -591,8 +625,21 @@ const SubjectListContainer = ({
             const fixedDays = newSection.fixedDays[editSubjectId];
             const fixedPositions = newSection.fixedPositions[editSubjectId];
 
-            // Skip if both arrays are already of the correct length
-            if (fixedDays.length === numOfClasses && fixedPositions.length === numOfClasses) return;
+            let dayTimeSlots = {};
+            let positionTimeSlots = {};
+
+            for (let subjectID of newSection.subjects) {
+                const { fixedDays, fixedPositions } = newSection;
+                
+                fixedDays[subjectID].forEach((day, i) => {
+                    const position = fixedPositions[subjectID][i];
+            
+                    if (day || position) { // Only process non-zero day or position
+                        dayTimeSlots[day] ??= newTotalTimeslot; // Use nullish coalescing assignment
+                        positionTimeSlots[position] ??= numOfSchoolDays;
+                    }
+                });
+            }    
 
             // Use hash maps to quickly look up subjects and day-position pairs
             const dayPositionMap = new Map();
@@ -613,7 +660,7 @@ const SubjectListContainer = ({
             // Now we process the day-position pairs efficiently
             let result = [];
             dayPositionMap.forEach(([day, pos]) => {
-                if (result.length < numOfClasses) {
+                if (result.length < numOfClasses && dayTimeSlots[day] > 0 && positionTimeSlots[pos] > 0) {
                     result.push([day, pos]);
                 }
             });

@@ -17,7 +17,7 @@ const FixedScheduleMaker = ({
     grade = 0,
     section = 0,
 
-    totalTimeslot,
+    // totalTimeslot,
     isForSection = false,
     selectedSubjects = [],
     fixedDays = [],
@@ -48,6 +48,8 @@ const FixedScheduleMaker = ({
     const [subjectsPerPosition, setSubjectsPerPosition] = useState([]);
     const [mergeData, setMergeData] = useState({});
 
+    const [totalTimeslot, setTotalTimeslot] = useState(0);
+
     useEffect(() => {
         // console.log(
         //     'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA selectedSubjects',
@@ -61,9 +63,21 @@ const FixedScheduleMaker = ({
     const getSubjectsPerPosition = () => {
         const subjs = subs || [];
 
-        const subjectPositionArray = subs.map(() => {
-            return Array(parseInt(numOfSchoolDays, 10)).fill(0);
-        });
+        let totalTimeslots = subjs.reduce(
+            (sum, subj) => sum + Math.min(
+                Math.ceil(subjects[subj].weeklyMinutes / subjects[subj].classDuration),
+                numOfSchoolDays
+            ),
+            0
+        );
+        
+        const m = Math.ceil(totalTimeslots / numOfSchoolDays);
+        
+        const subjectPositionArray = Array.from({ length: m }, () => 
+            Array(numOfSchoolDays).fill(0)
+        );                
+
+        console.log('subjectPositionArray', subjectPositionArray);
 
         for (let i = 0; i < subjs.length; i++) {
             const subject = subjs[i];
@@ -84,14 +98,45 @@ const FixedScheduleMaker = ({
         return subjectPositionArray;
     };
 
+    const calculateTotalTimeslot = () => {
+        let total = 0;
+
+        for (let i = 0; i < subs.length; i++) {
+            const numOfClasses = Math.min(
+                Math.ceil(
+                    subjects[subs[i]].weeklyMinutes / subjects[subs[i]].classDuration
+                ),
+                numOfSchoolDays
+            );
+
+            total += numOfClasses;
+        }
+
+        return Math.ceil(total / numOfSchoolDays);
+    };
+
     // Initialize days and positions when fixedDays or fixedPositions change
     useEffect(() => {
+        console.log('subs', subs);
+        console.log('days', days);
+        console.log('positions', positions);
+
+
         const subjects = getSubjectsPerPosition();
         setSubjectsPerPosition(subjects);
 
         const ranges = findConsecutiveRanges(subjects);
         setMergeData(ranges);
+
+        const totalTimeRow = calculateTotalTimeslot();
+        setTotalTimeslot(totalTimeRow);
     }, [subs, days, positions]);
+
+    useEffect(() => {
+        // console.log('subjectsPerPosition', subjectsPerPosition);
+        // console.log('mergeData', mergeData);
+        console.log('totalTimeslot', totalTimeslot);
+    }, [totalTimeslot]);
 
     const findConsecutiveRanges = (schedule) => {
         const mergeData = schedule.map((days, idx) => {
@@ -140,6 +185,8 @@ const FixedScheduleMaker = ({
 
             return ranges;
         });
+
+        console.log('mergeData', mergeData);
 
         return mergeData;
     };
@@ -227,6 +274,8 @@ const FixedScheduleMaker = ({
         // Skip if dragged item is being dropped on itself or an invalid container
         if (draggedSubjectID !== targetContainerID && targetContainerID !== -1)
             return;
+
+        console.log('subjectsPerPosition', subjectsPerPosition);
 
         // Helper function to count slots
         const countSlots = (subs, key, otherKey, targetValue, excludedValue) =>
@@ -446,10 +495,7 @@ const FixedScheduleMaker = ({
                                         )}
                                         {/* Schedule */}
                                         {/* {subs?.map((subject, subIndex) => ( */}
-                                        {Array.from(
-                                            { length: totalTimeslot },
-                                            (_, index) => index + 1
-                                        )?.map((subject, subIndex) => (
+                                        {Array.from({ length: totalTimeslot }).map((_, subIndex) => (
                                             <div
                                                 key={subIndex}
                                                 className="flex flex-wrap justify-center items-center"
@@ -459,9 +505,7 @@ const FixedScheduleMaker = ({
                                                 </div>
 
                                                 {/* Droppable cells for schedule */}
-                                                {Array.from({
-                                                    length: numOfSchoolDays,
-                                                }).map((_, index) => (
+                                                {Array.from({ length: numOfSchoolDays }).map((_, index) => (
                                                     <DroppableSchedCell
                                                         key={`drop-g${grade}-d${index}-p${subIndex}`}
                                                         editMode={editMode}
@@ -469,25 +513,17 @@ const FixedScheduleMaker = ({
                                                         day={index + 1}
                                                         position={subIndex + 1}
                                                         grade={grade}
-                                                        mergeData={
-                                                            mergeData[subIndex]
-                                                        }
-                                                        totalTimeslot={
-                                                            totalTimeslot
-                                                        }
+                                                        mergeData={mergeData[subIndex]}
+                                                        totalTimeslot={totalTimeslot}
                                                         selectedSubjects={subs}
                                                         fixedDays={days}
-                                                        fixedPositions={
-                                                            positions
-                                                        }
+                                                        fixedPositions={positions}
                                                     />
                                                 ))}
 
                                                 {/* Reserve position */}
                                                 <ReservePosition
-                                                    key={`reservePos-g${grade}-p${
-                                                        subIndex + 1
-                                                    }`}
+                                                    key={`reservePos-g${grade}-p${subIndex + 1}`}
                                                     editMode={editMode}
                                                     grade={grade}
                                                     subjectID={-1}
@@ -501,6 +537,7 @@ const FixedScheduleMaker = ({
                                                 />
                                             </div>
                                         ))}
+
                                         {/* Reserve day */}
                                         {subs?.length > 0 && (
                                             <div
