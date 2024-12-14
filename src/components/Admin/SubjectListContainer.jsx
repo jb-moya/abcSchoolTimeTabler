@@ -488,7 +488,7 @@ const SubjectListContainer = ({
                     console.log('fixedPositions', fixedPositions);
 
                     // Skip if both arrays are already of the correct length
-                    // if (
+                    if (
                         fixedDays.length === numOfClasses &&
                         fixedPositions.length === numOfClasses
                     )
