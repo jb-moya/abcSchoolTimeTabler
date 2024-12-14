@@ -12,7 +12,7 @@ const DroppableSchedCell = ({
     grade,
 
     mergeData,
-    totalTimeslot,
+    totalTimeslot = 0,
     selectedSubjects,
     fixedDays,
     fixedPositions,
@@ -61,7 +61,8 @@ const DroppableSchedCell = ({
         }
 
         if (
-            daySlots === selectedSubjects.length ||
+            // daySlots === selectedSubjects.length ||
+            daySlots === totalTimeslot ||
             positionSlots >= numOfSchoolDays
         ) {
             setIsFull(true);

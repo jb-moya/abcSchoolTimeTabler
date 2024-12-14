@@ -100,6 +100,8 @@ const AddSectionContainer = ({
 
         let totalTimeslot = Math.ceil(totalNumOfClasses / numOfSchoolDays);
 
+        totalTimeslot += totalTimeslot >= 10 ? 2 : 1;
+
         setTotalTimeslot(totalTimeslot);
     }, [
         subjects,

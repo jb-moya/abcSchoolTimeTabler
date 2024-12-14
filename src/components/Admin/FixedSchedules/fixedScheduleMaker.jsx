@@ -71,10 +71,15 @@ const FixedScheduleMaker = ({
             0
         );
         
-        const m = Math.ceil(totalTimeslots / numOfSchoolDays);
+        let subjectPositionArrayLength = Math.ceil(
+            totalTimeslots / numOfSchoolDays
+        );
+
+        subjectPositionArrayLength += subjectPositionArrayLength >= 10 ? 2 : 1;
         
-        const subjectPositionArray = Array.from({ length: m }, () => 
-            Array(numOfSchoolDays).fill(0)
+        const subjectPositionArray = Array.from(
+            { length: subjectPositionArrayLength },
+            () => Array(numOfSchoolDays).fill(0)
         );                
 
         console.log('subjectPositionArray', subjectPositionArray);
@@ -128,7 +133,10 @@ const FixedScheduleMaker = ({
         const ranges = findConsecutiveRanges(subjects);
         setMergeData(ranges);
 
-        const totalTimeRow = calculateTotalTimeslot();
+        let totalTimeRow = calculateTotalTimeslot();
+
+        totalTimeRow += totalTimeRow >= 10 ? 2 : 1;
+
         setTotalTimeslot(totalTimeRow);
     }, [subs, days, positions]);
 
