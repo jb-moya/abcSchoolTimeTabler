@@ -487,13 +487,6 @@ const SubjectListContainer = ({
                     console.log('fixedDays', fixedDays);
                     console.log('fixedPositions', fixedPositions);
 
-                    // Skip if both arrays are already of the correct length
-                    if (
-                        fixedDays.length === numOfClasses &&
-                        fixedPositions.length === numOfClasses
-                    )
-                        continue;
-
                     // Use hash maps to quickly look up subjects and day-position pairs
                     const dayPositionMap = new Map();
 
@@ -659,6 +652,8 @@ const SubjectListContainer = ({
             dayPositionMap.forEach(([day, pos]) => {
                 if (result.length < numOfClasses && dayTimeSlots[day] > 0 && positionTimeSlots[pos] > 0) {
                     result.push([day, pos]);
+                    dayTimeSlots[day] -= 1;
+                    positionTimeSlots[pos] -= 1;
                 }
             });
 
