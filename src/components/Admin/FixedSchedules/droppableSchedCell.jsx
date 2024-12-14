@@ -79,9 +79,11 @@ const DroppableSchedCell = ({
     return (
         <div
             ref={editMode ? setNodeRef : null}
-            className={`w-20 h-20 bg-pink-500 flex justify-center items-center ${
+            className={`w-20 h-20 flex justify-center items-center ${
                 isFull ? 'bg-gray-200' : ''
-            }`}
+            }
+                ${editMode ? 'hover:bg-slate-500' : ''}
+                    `}
         >
             {/* {Array.from(
                 { length: totalTimeslot },
