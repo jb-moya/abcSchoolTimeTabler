@@ -35,7 +35,7 @@ const ContainerSpawn = ({
     return (
         <div 
             ref={setNodeRef} 
-            className="w-full h-auto min-h-16 bg-transparent border border-gray rounded-tr-lg rounded-br-lg flex items-center">
+            className="w-full h-auto min-h-20 bg-transparent border border-gray rounded-tr-lg rounded-br-lg flex items-center">
             <div className="flex flex-wrap gap-1 p-1">
                 {selectedSubjects?.map((subject, index) => {
                     const arrayLength = fixedDays?.[subject]?.length || 0;
