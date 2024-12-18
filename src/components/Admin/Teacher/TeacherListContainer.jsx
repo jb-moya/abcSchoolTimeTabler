@@ -8,6 +8,7 @@ import {
 } from '@features/teacherSlice';
 import { fetchSubjects } from '@features/subjectSlice';
 import { fetchRanks } from '@features/rankSlice';
+import { fetchDepartments } from '@features/departmentSlice';
 import debounce from 'debounce';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import SearchableDropdownToggler from '../searchableDropdown';
@@ -34,12 +35,18 @@ const AddTeacherContainer = ({
   const { ranks, status: rankStatus } = useSelector(
     (state) => state.rank
   );
+
+  const { departments, status: departmentStatus } = useSelector(
+    (state) => state.department
+  );
+
   const { teachers } = useSelector((state) => state.teacher);
 
   const dispatch = useDispatch();
 
   const [teacherName, setTeacherName] = useState('');
   const [teacherRank, setTeacherRank] = useState(null);
+  const [teacherDepartment, setTeacherDepartment] = useState(null);
   const [selectedSubjects, setSelectedSubjects] = useState([]);
   const [assignedYearLevels, setAssignedYearLevels] = useState([]);
 
@@ -52,6 +59,10 @@ const AddTeacherContainer = ({
     } else if (teacherRank === null) {
       setErrorMessage('Please assign teacher rank.');
       setErrorField('rank');
+      return;
+    } else if (teacherDepartment === null) {
+      setErrorMessage('Please assign teacher department.');
+      setErrorField('department');
       return;
     } else if (selectedSubjects.length === 0) {
       setErrorMessage('Please assign subject specialization(s).');
@@ -76,6 +87,7 @@ const AddTeacherContainer = ({
         reduxFunction({
           teacher: teacherName,
           rank: teacherRank,
+          department: teacherDepartment,
           subjects: selectedSubjects,
           yearLevels: assignedYearLevels,
         })
@@ -99,6 +111,10 @@ const AddTeacherContainer = ({
     setTeacherRank(parseInt(event.target.value));
   };
 
+  const handleDepartmentChange = (event) => {
+    setTeacherDepartment(parseInt(event.target.value));
+  };
+
   const handleYearLevelChange = (yearLevel) => {
     setAssignedYearLevels((prevLevels) => {
       if (prevLevels.includes(yearLevel)) {
@@ -114,6 +130,7 @@ const AddTeacherContainer = ({
     setErrorField('');
     setErrorMessage('');
     setTeacherName('');
+    setTeacherDepartment(null);
     setSelectedSubjects([]);
     setAssignedYearLevels([]);
     setTeacherRank(null);
@@ -136,6 +153,12 @@ const AddTeacherContainer = ({
       dispatch(fetchRanks());
     }
   }, [dispatch, rankStatus]);
+
+  useEffect(() => {
+    if (departmentStatus === 'idle') {
+      dispatch(fetchDepartments());
+    }
+  }, [dispatch, departmentStatus]);
 
   useEffect(() => {
     console.log(ranks);
@@ -183,6 +206,30 @@ const AddTeacherContainer = ({
             ))
           ) : (
             <option disabled>No ranks available</option>
+          )}
+        </select>
+      </div>
+
+      {/* Departments */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-1" htmlFor="teacherDepartment">Select Department:</label>
+        <select
+          id="teacherDepartment"
+          className="input input-bordered w-full"
+          value={teacherDepartment || ''}
+          onChange={handleDepartmentChange}
+        >
+          <option value="" disabled>
+            Select department
+          </option>
+          {departments && Object.keys(departments).length > 0 ? (
+            Object.values(departments).map((department) => (
+              <option key={department.id} value={department.id}>
+             {`${department.name || ''}${teachers[department.head]?.teacher ? ` - ${teachers[department.head]?.teacher}` : ''}`}
+              </option> 
+            ))
+          ) : (
+            <option disabled>No departments available</option>
           )}
         </select>
       </div>
@@ -294,11 +341,18 @@ const TeacherListContainer = ({ editable = false }) => {
     (state) => state.rank
   );
 
+  const { departments, status: departmentStatus } = useSelector(
+    (state) => state.department
+  );
+
   const [errorMessage, setErrorMessage] = useState('');
   const [errorField, setErrorField] = useState('');
 
   const [editTeacherId, setEditTeacherId] = useState(null);
   const [editTeacherRank, setEditTeacherRank] = useState(0);
+
+  const [editTeacherDepartment, setEditTeacherDepartment] = useState(0);
+
   const [editTeacherValue, setEditTeacherValue] = useState('');
   const [editTeacherCurr, setEditTeacherCurr] = useState([]);
   const [editTeacherYearLevels, setEditTeacherYearLevels] = useState([]);
@@ -363,6 +417,7 @@ const TeacherListContainer = ({ editable = false }) => {
             teacherId,
             updatedTeacher: {
               teacher: editTeacherValue,
+              department: editTeacherDepartment,
               rank: editTeacherRank,
               subjects: editTeacherCurr,
               yearLevels: editTeacherYearLevels,
@@ -389,6 +444,11 @@ const TeacherListContainer = ({ editable = false }) => {
   const handleRankChange = (event) => {
     setEditTeacherRank(parseInt(event.target.value));
   };
+
+  const handleDepartmentChange = (event) => {
+    setEditTeacherDepartment(parseInt(event.target.value));
+  };
+
 
   const handleYearLevelChange = (level) => {
     if (editTeacherYearLevels.includes(level)) {
@@ -444,7 +504,14 @@ const TeacherListContainer = ({ editable = false }) => {
       dispatch(fetchRanks());
     }
   }, [rankStatus, dispatch]);
-  
+
+  useEffect(() => {
+    if (departmentStatus === 'idle') {
+      dispatch(fetchDepartments());
+    }
+  }, [departmentStatus, dispatch]);
+
+
   const itemsPerPage = 10; // Change this to adjust the number of items per page
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -469,15 +536,15 @@ const TeacherListContainer = ({ editable = false }) => {
 
   const deleteModal = (id) => {
     const deleteModalElement = document.getElementById("delete_modal");
-    deleteModalElement.showModal();  
+    deleteModalElement.showModal();
 
     const deleteButton = document.getElementById("delete_button");
-    deleteButton.onclick = () => handleDelete(id);  
+    deleteButton.onclick = () => handleDelete(id);
   };
 
   const handleDelete = (id) => {
-    dispatch(removeTeacher(id));  
-    document.getElementById("delete_modal").close(); 
+    dispatch(removeTeacher(id));
+    document.getElementById("delete_modal").close();
   };
 
 
@@ -581,6 +648,7 @@ const TeacherListContainer = ({ editable = false }) => {
                 <th className="whitespace-nowrap">Teacher ID</th>
                 <th className="whitespace-nowrap">Teacher</th>
                 <th className="whitespace-nowrap">Rank</th>
+                <th className="whitespace-nowrap">Department</th>
                 <th className="whitespace-nowrap max-w-xs">Subject Specialization</th>
                 <th className="whitespace-nowrap max-w-xs">Assigned Year Level(s)</th>
                 {editable && <th className="w-28 text-right">Actions</th>}
@@ -637,6 +705,35 @@ const TeacherListContainer = ({ editable = false }) => {
                         ranks[teacher.rank]?.rank || "Unknown Rank"
                       )}
                     </td>
+
+                    <td>
+                      {editTeacherId === teacher.id ? (
+                        <div>
+                          <select
+                            id="teacherDepartment"
+                            className="input input-bordered input-sm w-full"
+                            value={editTeacherDepartment || ''}
+                            onChange={handleDepartmentChange}
+                          >
+                            <option value="" disabled>
+                              Select department
+                            </option>
+                            {departments && Object.keys(departments).length > 0 ? (
+                              Object.values(departments).map((department) => (
+                                <option key={department.id} value={department.id}>
+                                  {`${department.name || ''}${department.head ? ` - ${department.head}` : ''}`}
+                                </option>
+                              ))
+                            ) : (
+                              <option disabled>No departments available</option>
+                            )}
+                          </select>
+                        </div>
+                      ) : (
+                        departments?.[String(teacher.department)]?.name || "Unknown Department"
+                      )}
+                    </td>
+
                     <td className="flex gap-1 flex-wrap">
                       {editTeacherId === teacher.id ? (
                         <>
@@ -777,39 +874,39 @@ const TeacherListContainer = ({ editable = false }) => {
                             </button>
 
                             <dialog id="delete_modal" className="modal modal-bottom sm:modal-middle">
-                            <form method="dialog" className="modal-box">
-                              {/* Icon and message */}
-                              <div className="flex flex-col items-center justify-center">
-                                <TrashIcon className="text-red-500 mb-4" width={40} height={40} />
-                                <h3 className="font-bold text-lg text-center">
-                                  Are you sure you want to delete this item?
-                                </h3>
-                                <p className="text-sm text-gray-500 text-center">
-                                  This action cannot be undone.
-                                </p>
-                              </div>
+                              <form method="dialog" className="modal-box">
+                                {/* Icon and message */}
+                                <div className="flex flex-col items-center justify-center">
+                                  <TrashIcon className="text-red-500 mb-4" width={40} height={40} />
+                                  <h3 className="font-bold text-lg text-center">
+                                    Are you sure you want to delete this item?
+                                  </h3>
+                                  <p className="text-sm text-gray-500 text-center">
+                                    This action cannot be undone.
+                                  </p>
+                                </div>
 
-                              {/* Modal actions */}
-                              <div className="modal-action flex justify-center">
-                                {/* Close Button */}
-                                <button
-                                  className="btn btn-sm btn-ghost"
-                                  onClick={() => document.getElementById("delete_modal").close()}
-                                  aria-label="Cancel deletion"
-                                >
-                                  Cancel
-                                </button>
+                                {/* Modal actions */}
+                                <div className="modal-action flex justify-center">
+                                  {/* Close Button */}
+                                  <button
+                                    className="btn btn-sm btn-ghost"
+                                    onClick={() => document.getElementById("delete_modal").close()}
+                                    aria-label="Cancel deletion"
+                                  >
+                                    Cancel
+                                  </button>
 
-                                {/* Confirm Delete Button */}
-                                <button
-                                  className="btn btn-sm btn-error text-white"
-                                  id="delete_button"
-                                >
-                                  Delete
-                                </button>
-                              </div>
-                            </form>
-                          </dialog>
+                                  {/* Confirm Delete Button */}
+                                  <button
+                                    className="btn btn-sm btn-error text-white"
+                                    id="delete_button"
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              </form>
+                            </dialog>
                           </>
                         )}
                       </td>
