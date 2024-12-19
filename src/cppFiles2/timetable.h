@@ -83,7 +83,7 @@ struct Timetable {
 	                             TimeDuration duration,
 	                             int unit_count,
 	                             Timeslot fixed_timeslot,
-	                             std::vector<ScheduledDay> fixed_days);
+	                             ScheduledDay fixed_days);
 
 	Section& getSectionById(SectionID section_id);
 	Teacher& getTeacherById(TeacherID teacher_id);
@@ -141,7 +141,7 @@ struct Timetable {
 	void initializeTeacherSubjects(int teacher_subjects_length, int32_t* teacher_subjects);
 	void initializeSectionSubjects(int total_section_subjects, int32_t* section_subject_configuration);
 
-	TeacherID getRandomInitialTeacher(Section& section, SubjectID subject_id);
+	TeacherID getRandomInitialTeacher(Section& section, SubjectID subject_id, TimeDuration class_duration) const;
 
 	void modify(Section& selected_section,
 	            int choice,
@@ -162,9 +162,11 @@ struct Timetable {
 
 	void moveTeacherClassCountToNewDay(TeacherID teacher_id, ScheduledDay from_day, ScheduledDay to_day);
 
-	void categorizeSubjects(Section& section,
-	                        std::vector<SubjectID>& full_week_day_subjects,
-	                        std::vector<SubjectID>& special_unit_subjects) const;
+	void initializeClassBlock(Section& section,
+	                          std::vector<SchoolClass>& with_fixed_full_week_day_subjects,
+	                          std::vector<SchoolClass>& with_fixed_special_unit_subjects,
+	                          std::vector<SchoolClass>& dynamic_full_week_day_subjects,
+	                          std::vector<SchoolClass>& dynamic_special_unit_subjects);
 
 	std::vector<Timeslot> getBreaks(const Section& section) const;
 	void setupTimeslots(int total_timeslot, std::deque<Timeslot>& timeslot_keys, std::map<Timeslot, std::vector<ScheduledDay>>& timeslots, const std::vector<Timeslot>& skips) const;

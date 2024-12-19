@@ -18,7 +18,7 @@ import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { BiChevronDown, BiChevronUp } from 'react-icons/bi';
 
-import { toast } from "sonner";
+import { toast } from 'sonner';
 import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 
 import FixedScheduleMaker from './FixedSchedules/fixedScheduleMaker';
@@ -30,10 +30,9 @@ const AddSectionContainer = ({
     errorMessage,
     setErrorMessage,
     errorField,
-    setErrorField, 
+    setErrorField,
     numOfSchoolDays,
 }) => {
-
     const inputNameRef = useRef();
     const dispatch = useDispatch();
 
@@ -50,7 +49,7 @@ const AddSectionContainer = ({
         (state) => state.section
     );
 
-  // const numOfSchoolDays = parseInt(localStorage.getItem('numOfSchoolDays'), 10);
+    // const numOfSchoolDays = parseInt(localStorage.getItem('numOfSchoolDays'), 10);
 
     const [inputValue, setInputValue] = useState('');
     const [selectedAdviser, setSelectedAdviser] = useState('');
@@ -91,10 +90,13 @@ const AddSectionContainer = ({
 
         programs[selectedProgram][selectedYearLevel].subjects.forEach(
             (subject) => {
-                totalNumOfClasses += Math.min(Math.ceil(
-                    subjects[subject].weeklyMinutes /
-                        subjects[subject].classDuration
-                ), numOfSchoolDays);
+                totalNumOfClasses += Math.min(
+                    Math.ceil(
+                        subjects[subject].weeklyMinutes /
+                            subjects[subject].classDuration
+                    ),
+                    numOfSchoolDays
+                );
             }
         );
 
@@ -120,8 +122,13 @@ const AddSectionContainer = ({
     };
 
     const handleAddEntry = () => {
-
-        if (inputValue === '' || selectedAdviser === '' || selectedProgram === '' || selectedYearLevel === '' || selectedSubjects.length === 0) {
+        if (
+            inputValue === '' ||
+            selectedAdviser === '' ||
+            selectedProgram === '' ||
+            selectedYearLevel === '' ||
+            selectedSubjects.length === 0
+        ) {
             const errorFields = [];
             if (inputValue === '') errorFields.push('name');
             if (selectedAdviser === '') errorFields.push('adviser');
@@ -130,9 +137,9 @@ const AddSectionContainer = ({
             if (selectedSubjects.length === 0) errorFields.push('subjects');
 
             if (errorFields.length > 0) {
-            setErrorMessage('All fields are required.');
-            setErrorField(errorFields);
-            return;
+                setErrorMessage('All fields are required.');
+                setErrorField(errorFields);
+                return;
             }
         }
 
@@ -151,22 +158,24 @@ const AddSectionContainer = ({
             setErrorField('name');
             return;
         } else if (duplicateAdviser) {
-            setErrorMessage(`Teacher is already assigned as adviser of section '${duplicateAdviser.section}'`);
+            setErrorMessage(
+                `Teacher is already assigned as adviser of section '${duplicateAdviser.section}'`
+            );
             setErrorField('adviser');
             // alert(`Teacher is already assigned as adviser of section '${duplicateAdviser.section}'`);
             return;
         } else {
             dispatch(
                 reduxFunction({
-                [reduxField[0]]: inputValue,
-                teacher: selectedAdviser,
-                program: selectedProgram,
-                year: selectedYearLevel,
-                subjects: selectedSubjects,
-                fixedDays: fixedDays,
-                fixedPositions: fixedPositions,
-                shift: selectedShift,
-                startTime: selectedStartTime,
+                    [reduxField[0]]: inputValue,
+                    teacher: selectedAdviser,
+                    program: selectedProgram,
+                    year: selectedYearLevel,
+                    subjects: selectedSubjects,
+                    fixedDays: fixedDays,
+                    fixedPositions: fixedPositions,
+                    shift: selectedShift,
+                    startTime: selectedStartTime,
                 })
             );
             setInputValue('');
@@ -180,7 +189,11 @@ const AddSectionContainer = ({
         }
 
         toast.success('Teacher added successfully', {
-            style: { backgroundColor: 'green', color: 'white', bordercolor: 'green', },
+            style: {
+                backgroundColor: 'green',
+                color: 'white',
+                bordercolor: 'green',
+            },
         });
 
         handleReset();
@@ -276,64 +289,73 @@ const AddSectionContainer = ({
 
             <div className="mt-3">
                 <label className="label">
-                <span className="label-text">Assign Adviser</span>
+                    <span className="label-text">Assign Adviser</span>
                 </label>
                 <select
-                className={`select select-bordered w-full ${errorField.includes('adviser') ? 'border-red-500' : ''
+                    className={`select select-bordered w-full ${
+                        errorField.includes('adviser') ? 'border-red-500' : ''
                     }`}
-                value={selectedAdviser}
-                onChange={(e) => setSelectedAdviser(parseInt(e.target.value, 10))}
+                    value={selectedAdviser}
+                    onChange={(e) =>
+                        setSelectedAdviser(parseInt(e.target.value, 10))
+                    }
                 >
-                <option value="" disabled>
-                    Assign an adviser
-                </option>
-                {Object.keys(teachers).map((key) => (
-                    <option key={teachers[key].id} value={teachers[key].id}>
-                    {teachers[key].teacher}
+                    <option value="" disabled>
+                        Assign an adviser
                     </option>
-                ))}
+                    {Object.keys(teachers).map((key) => (
+                        <option key={teachers[key].id} value={teachers[key].id}>
+                            {teachers[key].teacher}
+                        </option>
+                    ))}
                 </select>
             </div>
 
             <div className="mt-3">
                 <label className="label">
-                <span className="label-text">Select Program</span>
+                    <span className="label-text">Select Program</span>
                 </label>
                 <select
-                className={`select select-bordered w-full ${errorField.includes('program') ? 'border-red-500' : ''
+                    className={`select select-bordered w-full ${
+                        errorField.includes('program') ? 'border-red-500' : ''
                     }`}
-                value={selectedProgram}
-                onChange={(e) => setSelectedProgram(parseInt(e.target.value, 10))}
+                    value={selectedProgram}
+                    onChange={(e) =>
+                        setSelectedProgram(parseInt(e.target.value, 10))
+                    }
                 >
-                <option value="" disabled>
-                    Select a program
-                </option>
-                {Object.keys(programs).map((key) => (
-                    <option key={programs[key].id} value={programs[key].id}>
-                    {programs[key].program}
+                    <option value="" disabled>
+                        Select a program
                     </option>
-                ))}
+                    {Object.keys(programs).map((key) => (
+                        <option key={programs[key].id} value={programs[key].id}>
+                            {programs[key].program}
+                        </option>
+                    ))}
                 </select>
             </div>
 
             <div className="mt-3">
                 <label className="label">
-                <span className="label-text">Select Year Level</span>
+                    <span className="label-text">Select Year Level</span>
                 </label>
                 <select
-                className={`select select-bordered w-full ${errorField.includes('yearLevel') ? 'border-red-500' : ''
+                    className={`select select-bordered w-full ${
+                        errorField.includes('yearLevel') ? 'border-red-500' : ''
                     }`}
-                value={selectedYearLevel}
-                onChange={(e) => setSelectedYearLevel(parseInt(e.target.value, 10))}
+                    value={selectedYearLevel}
+                    onChange={(e) =>
+                        setSelectedYearLevel(parseInt(e.target.value, 10))
+                    }
                 >
-                <option value="" disabled>
-                    Select a year level
-                </option>
-                {[7, 8, 9, 10].map((level) => (
-                    <option key={level} value={level}>
-                    Grade {level}
+                    <option value="" disabled>
+                        Select a year level
                     </option>
-                ))}
+                    {[7, 8, 9, 10].map((level) => (
+                        <option key={level} value={level}>
+                            Grade {level}
+                        </option>
+                    ))}
                 </select>
             </div>
 
@@ -409,7 +431,7 @@ const AddSectionContainer = ({
                         pvs={1}
                         section={0}
                         grade={selectedYearLevel}
-                        totalTimeslot={totalTimeslot}
+                        // totalTimeslot={totalTimeslot}
                         selectedSubjects={selectedSubjects}
                         fixedDays={fixedDays}
                         setFixedDays={setFixedDays}
@@ -421,7 +443,9 @@ const AddSectionContainer = ({
             )}
 
             {errorMessage && (
-                <p className="text-red-500 text-sm my-4 font-medium select-none ">{errorMessage}</p>
+                <p className="text-red-500 text-sm my-4 font-medium select-none ">
+                    {errorMessage}
+                </p>
             )}
 
             <div className="flex justify-center gap-4 mt-4">
@@ -436,9 +460,9 @@ const AddSectionContainer = ({
     );
 };
 
-const SectionListContainer = ({ 
-  numOfSchoolDays: externalNumOfSchoolDays,
-  editable = false 
+const SectionListContainer = ({
+    numOfSchoolDays: externalNumOfSchoolDays,
+    editable = false,
 }) => {
     const dispatch = useDispatch();
     const { subjects, status: subjectStatus } = useSelector(
@@ -455,7 +479,10 @@ const SectionListContainer = ({
     );
 
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
-        return externalNumOfSchoolDays ?? (Number(localStorage.getItem('numOfSchoolDays')) || 0);
+        return (
+            externalNumOfSchoolDays ??
+            (Number(localStorage.getItem('numOfSchoolDays')) || 0)
+        );
     });
 
     const [errorMessage, setErrorMessage] = useState('');
@@ -471,7 +498,9 @@ const SectionListContainer = ({
     const [editSectionStartTime, setEditSectionStartTime] = useState('');
 
     const [editSectionFixedDays, setEditSectionFixedDays] = useState({});
-    const [editSectionFixedPositions, setEditSectionFixedPositions] = useState({});
+    const [editSectionFixedPositions, setEditSectionFixedPositions] = useState(
+        {}
+    );
 
     const [sectionTotalTimeslot, setSectionTotalTimeslot] = useState({});
 
@@ -507,7 +536,6 @@ const SectionListContainer = ({
     //                     subjects[subject].classDuration
     //             ), numOfSchoolDays);
     //         });
-
 
     //         console.log("heheheh eh ehe");
 
@@ -545,41 +573,52 @@ const SectionListContainer = ({
     };
 
     const handleSaveSectionEditClick = (sectionId) => {
+        if (
+            !editSectionAdviser ||
+            !editSectionValue ||
+            !editSectionProg ||
+            !editSectionYear ||
+            editSectionSubjects.length === 0
+        ) {
+            toast.error('Please fill out all required fields.', {
+                style: { backgroundColor: 'red', color: 'white' },
+            });
 
-        if (!editSectionAdviser || !editSectionValue || !editSectionProg || !editSectionYear || editSectionSubjects.length === 0) {
-        toast.error('Please fill out all required fields.', {
-            style: { backgroundColor: 'red', color: 'white' },
-        });
-
-        return;
+            return;
         }
 
         const currentSection = sections[sectionId]?.section || '';
         const currentSectionAdviser = sections[sectionId]?.teacher || '';
 
-        if (editSectionValue.trim().toLowerCase() === currentSection.trim().toLowerCase()
-            && editSectionAdviser === currentSectionAdviser) {
-
+        if (
+            editSectionValue.trim().toLowerCase() ===
+                currentSection.trim().toLowerCase() &&
+            editSectionAdviser === currentSectionAdviser
+        ) {
             dispatch(
                 editSection({
-                sectionId,
-                updatedSection: {
-                    id: sectionId,
-                    teacher: editSectionAdviser,
-                    program: editSectionProg,
-                    section: editSectionValue,
-                    subjects: editSectionSubjects,
-                    fixedDays: editSectionFixedDays,
-                    fixedPositions: editSectionFixedPositions,
-                    year: editSectionYear,
-                    shift: editSectionShift,
-                    startTime: getTimeSlotIndex(editSectionStartTime),
-                },
+                    sectionId,
+                    updatedSection: {
+                        id: sectionId,
+                        teacher: editSectionAdviser,
+                        program: editSectionProg,
+                        section: editSectionValue,
+                        subjects: editSectionSubjects,
+                        fixedDays: editSectionFixedDays,
+                        fixedPositions: editSectionFixedPositions,
+                        year: editSectionYear,
+                        shift: editSectionShift,
+                        startTime: getTimeSlotIndex(editSectionStartTime),
+                    },
                 })
             );
 
             toast.success('Section added successfully', {
-                style: { backgroundColor: 'green', color: 'white', bordercolor: 'green' },
+                style: {
+                    backgroundColor: 'green',
+                    color: 'white',
+                    bordercolor: 'green',
+                },
             });
 
             // Reset the editing state
@@ -593,7 +632,6 @@ const SectionListContainer = ({
 
             setCurrEditProgram('');
             setCurrEditYear('');
-
         } else {
             const duplicateSection = Object.values(sections).find(
                 (section) =>
@@ -613,24 +651,27 @@ const SectionListContainer = ({
                 });
                 return;
             } else if (duplicateAdviser) {
-                toast.error(`Adviser already assigned to section '${duplicateAdviser.section}'`, {
-                    tyle: { backgroundColor: 'red', color: 'white' },
-                });
+                toast.error(
+                    `Adviser already assigned to section '${duplicateAdviser.section}'`,
+                    {
+                        tyle: { backgroundColor: 'red', color: 'white' },
+                    }
+                );
             } else {
                 dispatch(
                     editSection({
                         sectionId,
                         updatedSection: {
-                        id: sectionId,
-                        teacher: editSectionAdviser,
-                        program: editSectionProg,
-                        section: editSectionValue,
-                        subjects: editSectionSubjects,
-                        fixedDays: editSectionFixedDays,
-                        fixedPositions: editSectionFixedPositions,
-                        year: editSectionYear,
-                        shift: editSectionShift,
-                        startTime: getTimeSlotIndex(editSectionStartTime),
+                            id: sectionId,
+                            teacher: editSectionAdviser,
+                            program: editSectionProg,
+                            section: editSectionValue,
+                            subjects: editSectionSubjects,
+                            fixedDays: editSectionFixedDays,
+                            fixedPositions: editSectionFixedPositions,
+                            year: editSectionYear,
+                            shift: editSectionShift,
+                            startTime: getTimeSlotIndex(editSectionStartTime),
                         },
                     })
                 );
@@ -666,13 +707,15 @@ const SectionListContainer = ({
 
     const renderTimeOptions = () => {
         const times =
-        editSectionShift === 0
-            ? Array.from({ length: 36 }, (_, i) => {
-            const hours = 6 + Math.floor(i / 6);
-            const minutes = (i % 6) * 10;
-            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} AM`;
-            })
-            : ['01:00 PM']; // Only one option for PM
+            editSectionShift === 0
+                ? Array.from({ length: 36 }, (_, i) => {
+                      const hours = 6 + Math.floor(i / 6);
+                      const minutes = (i % 6) * 10;
+                      return `${String(hours).padStart(2, '0')}:${String(
+                          minutes
+                      ).padStart(2, '0')} AM`;
+                  })
+                : ['01:00 PM']; // Only one option for PM
 
         return times.map((time) => (
             <option key={time} value={time}>
@@ -680,7 +723,7 @@ const SectionListContainer = ({
             </option>
         ));
     };
-  
+
     const handleClose = () => {
         const modal = document.getElementById('add_section_modal');
         if (modal) {
@@ -693,51 +736,51 @@ const SectionListContainer = ({
     };
 
     const deleteModal = (id) => {
-        const deleteModalElement = document.getElementById("delete_modal");
-        deleteModalElement.showModal();  // Show the modal
+        const deleteModalElement = document.getElementById('delete_modal');
+        deleteModalElement.showModal(); // Show the modal
 
-        const deleteButton = document.getElementById("delete_button");
-        deleteButton.onclick = () => handleDelete(id);  // Dynamically assign delete logic
+        const deleteButton = document.getElementById('delete_button');
+        deleteButton.onclick = () => handleDelete(id); // Dynamically assign delete logic
     };
 
     const handleDelete = (id) => {
-        dispatch(removeSection(id));  // Perform the delete action
-        document.getElementById("delete_modal").close(); // Close the modal after deleting
+        dispatch(removeSection(id)); // Perform the delete action
+        document.getElementById('delete_modal').close(); // Close the modal after deleting
     };
 
     const debouncedSearch = useCallback(
         debounce((searchValue, sections, subjects) => {
-        setSearchSectionResult(
-            filterObject(sections, ([, section]) => {
-            const escapedSearchValue = escapeRegExp(searchValue)
-                .split('\\*')
-                .join('.*');
+            setSearchSectionResult(
+                filterObject(sections, ([, section]) => {
+                    const escapedSearchValue = escapeRegExp(searchValue)
+                        .split('\\*')
+                        .join('.*');
 
-                        const sectionSubjectsName = Object.keys(section.subjects)
-                            .map((subjectID) => subjects[subjectID]?.subject || '')
-                            .join(' ');
+                    const sectionSubjectsName = Object.keys(section.subjects)
+                        .map((subjectID) => subjects[subjectID]?.subject || '')
+                        .join(' ');
 
-                        const pattern = new RegExp(escapedSearchValue, 'i');
+                    const pattern = new RegExp(escapedSearchValue, 'i');
 
-                        // Check if program or year level matches the search value
-                        const programMatches = pattern.test(section.program);
-                        const yearLevelMatches = pattern.test(section.year); // Ensure `year` is the correct property name
+                    // Check if program or year level matches the search value
+                    const programMatches = pattern.test(section.program);
+                    const yearLevelMatches = pattern.test(section.year); // Ensure `year` is the correct property name
 
-            return (
-                pattern.test(section.section) ||
-                programMatches ||
-                yearLevelMatches ||
-                pattern.test(sectionSubjectsName)
+                    return (
+                        pattern.test(section.section) ||
+                        programMatches ||
+                        yearLevelMatches ||
+                        pattern.test(sectionSubjectsName)
+                    );
+                })
             );
-            })
-        );
         }, 200),
         []
     );
 
     useEffect(() => {
         if (externalNumOfSchoolDays !== undefined) {
-        setNumOfSchoolDays(externalNumOfSchoolDays);
+            setNumOfSchoolDays(externalNumOfSchoolDays);
         }
     }, [externalNumOfSchoolDays]);
 
@@ -803,7 +846,7 @@ const SectionListContainer = ({
 
     useEffect(() => {
         if (teacherStatus === 'idle') {
-        dispatch(fetchTeachers());
+            dispatch(fetchTeachers());
         }
     }, [teacherStatus, dispatch]);
 
@@ -815,12 +858,17 @@ const SectionListContainer = ({
     const [currentPage, setCurrentPage] = useState(1);
 
     // Calculate total pages based on filtered sections
-    const totalPages = Math.ceil(Object.values(searchSectionResult).length / itemsPerPage);
-    
+    const totalPages = Math.ceil(
+        Object.values(searchSectionResult).length / itemsPerPage
+    );
+
     // Get current items
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = Object.entries(searchSectionResult).slice(indexOfFirstItem, indexOfLastItem);
+    const currentItems = Object.entries(searchSectionResult).slice(
+        indexOfFirstItem,
+        indexOfLastItem
+    );
 
     return (
         <React.Fragment>
@@ -900,11 +948,21 @@ const SectionListContainer = ({
                                 Add Section <IoAdd size={20} className="ml-2" />
                             </button>
 
-                            <dialog id="add_section_modal" className="modal modal-bottom sm:modal-middle">
-                                <div className="modal-box" style={{ width: '50%', maxWidth: 'none' }}>
+                            <dialog
+                                id="add_section_modal"
+                                className="modal modal-bottom sm:modal-middle"
+                            >
+                                <div
+                                    className="modal-box"
+                                    style={{ width: '50%', maxWidth: 'none' }}
+                                >
                                     <AddSectionContainer
                                         close={handleClose}
-                                        reduxField={['section', 'subjects', 'units']}
+                                        reduxField={[
+                                            'section',
+                                            'subjects',
+                                            'units',
+                                        ]}
                                         reduxFunction={addSection}
                                         errorMessage={errorMessage}
                                         setErrorMessage={setErrorMessage}
@@ -923,7 +981,7 @@ const SectionListContainer = ({
                                 </div>
                             </dialog>
                         </div>
-                     )}
+                    )}
                 </div>
 
                 {/* Section Table */}
@@ -1403,73 +1461,115 @@ const SectionListContainer = ({
                                             </div>
                                         </td>
 
-                    {editable && (
-                      <td className="w-28 text-right">
-                        {editSectionId === section.id ? (
-                          <>
-                            <button
-                              className="btn btn-xs btn-ghost text-green-500"
-                              onClick={() => handleSaveSectionEditClick(section.id)}
-                            >
-                              Save
-                            </button>
-                            <button
-                              className="btn btn-xs btn-ghost text-red-500"
-                              onClick={() => handleCancelSectionEditClick()}
-                            >
-                              Cancel
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button
-                              className="btn btn-xs btn-ghost text-blue-500"
-                              onClick={() => handleEditSectionClick(section)}
-                            >
-                              <RiEdit2Fill />
-                            </button>
-                            <button
-                              className="btn btn-xs btn-ghost text-red-500"
-                              onClick={() => deleteModal(section.id)} // Call deleteModal with the section.id
-                            >
-                              <RiDeleteBin7Line />
-                            </button>
+                                        {editable && (
+                                            <td className="w-28 text-right">
+                                                {editSectionId ===
+                                                section.id ? (
+                                                    <>
+                                                        <button
+                                                            className="btn btn-xs btn-ghost text-green-500"
+                                                            onClick={() =>
+                                                                handleSaveSectionEditClick(
+                                                                    section.id
+                                                                )
+                                                            }
+                                                        >
+                                                            Save
+                                                        </button>
+                                                        <button
+                                                            className="btn btn-xs btn-ghost text-red-500"
+                                                            onClick={() =>
+                                                                handleCancelSectionEditClick()
+                                                            }
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <button
+                                                            className="btn btn-xs btn-ghost text-blue-500"
+                                                            onClick={() =>
+                                                                handleEditSectionClick(
+                                                                    section
+                                                                )
+                                                            }
+                                                        >
+                                                            <RiEdit2Fill />
+                                                        </button>
+                                                        <button
+                                                            className="btn btn-xs btn-ghost text-red-500"
+                                                            onClick={() =>
+                                                                deleteModal(
+                                                                    section.id
+                                                                )
+                                                            } // Call deleteModal with the section.id
+                                                        >
+                                                            <RiDeleteBin7Line />
+                                                        </button>
 
-                            <dialog id="delete_modal" className="modal modal-bottom sm:modal-middle">
-                              <form method="dialog" className="modal-box">
-                                <div className="flex flex-col items-center justify-center">
-                                  <TrashIcon className="text-red-500 mb-4" width={40} height={40} />
-                                  <h3 className="font-bold text-lg text-center">
-                                    Are you sure you want to delete this section?
-                                  </h3>
-                                  <p className="text-sm text-gray-500 text-center">
-                                    This action cannot be undone.
-                                  </p>
-                                </div>
-                                <div className="modal-action flex justify-center">
-                                  <button
-                                    className="btn btn-sm btn-ghost"
-                                    onClick={() => document.getElementById('delete_modal').close()}
-                                  >
-                                    Cancel
-                                  </button>
-                                  <button
-                                    id="delete_button"
-                                    className="btn btn-sm btn-error text-white"
-                                  >
-                                    Delete
-                                  </button>
-                                </div>
-                              </form>
-                            </dialog>
-
-
-                          </>
-                        )}
-                      </td>
-                    )}
-                  </tr>
-                ))
+                                                        <dialog
+                                                            id="delete_modal"
+                                                            className="modal modal-bottom sm:modal-middle"
+                                                        >
+                                                            <form
+                                                                method="dialog"
+                                                                className="modal-box"
+                                                            >
+                                                                <div className="flex flex-col items-center justify-center">
+                                                                    <TrashIcon
+                                                                        className="text-red-500 mb-4"
+                                                                        width={
+                                                                            40
+                                                                        }
+                                                                        height={
+                                                                            40
+                                                                        }
+                                                                    />
+                                                                    <h3 className="font-bold text-lg text-center">
+                                                                        Are you
+                                                                        sure you
+                                                                        want to
+                                                                        delete
+                                                                        this
+                                                                        section?
+                                                                    </h3>
+                                                                    <p className="text-sm text-gray-500 text-center">
+                                                                        This
+                                                                        action
+                                                                        cannot
+                                                                        be
+                                                                        undone.
+                                                                    </p>
+                                                                </div>
+                                                                <div className="modal-action flex justify-center">
+                                                                    <button
+                                                                        className="btn btn-sm btn-ghost"
+                                                                        onClick={() =>
+                                                                            document
+                                                                                .getElementById(
+                                                                                    'delete_modal'
+                                                                                )
+                                                                                .close()
+                                                                        }
+                                                                    >
+                                                                        Cancel
+                                                                    </button>
+                                                                    <button
+                                                                        id="delete_button"
+                                                                        className="btn btn-sm btn-error text-white"
+                                                                    >
+                                                                        Delete
+                                                                    </button>
+                                                                </div>
+                                                            </form>
+                                                        </dialog>
+                                                    </>
+                                                )}
+                                            </td>
+                                        )}
+                                    </tr>
+                                ))
                             )}
                         </tbody>
                     </table>

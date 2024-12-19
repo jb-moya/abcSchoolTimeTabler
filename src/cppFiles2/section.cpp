@@ -5,13 +5,13 @@
 
 int Section::total_section;
 
-SubjectConfiguration& Section::getSubject(SubjectID subject_id) {
-	return *subject_configurations[subject_id];
-}
+// SubjectConfiguration& Section::getSubject(SubjectID subject_id) {
+// 	return *subject_configurations[subject_id];
+// }
 
 void Section::addSubject(const std::shared_ptr<SubjectConfiguration>& subject_configuration_) {
-	SubjectID subject_id = subject_configuration_->getSubjectId();
-	subject_configurations[subject_id] = subject_configuration_;
+	// SubjectID subject_id = subject_configuration_->getSubjectId();
+	subject_configurations.push_back(subject_configuration_);
 }
 
 bool Section::isDynamicSubjectConsistentDuration() const {
@@ -28,11 +28,25 @@ TeacherID Section::getClassTimeslotTeacherID(ScheduledDay day, Timeslot timeslot
 	return classTimeslot.teacher_id;
 }
 
-void Section::assignBreaks(std::vector<Timeslot>& breaks) {
-	for (Timeslot break_slot : breaks) {
-		addClass(break_slot, ScheduledDay::EVERYDAY, SchoolClass{-1, -1});
-		timeslot_manager.addBreakSlot(break_slot);
+SchoolClass Section::getSchoolClass(Timeslot timeslot, ScheduledDay day) const {
+	auto timeslot_it = classes.find(timeslot);
+	if (timeslot_it == classes.end()) {
+		print("cannot find timeslot", timeslot);
+		throw std::runtime_error("Class timeslot not found");
 	}
+
+	auto day_it = timeslot_it->second.find(day);
+	if (day_it == timeslot_it->second.end()) {
+		print("cannot find day", static_cast<int>(day));
+		throw std::runtime_error("Class day not found");
+	}
+
+	return day_it->second;
+}
+
+void Section::assignBreak(Timeslot break_slot, TimeDuration break_duration, Timeslot fixed_timeslot, ScheduledDay day) {
+	addClass(break_slot, ScheduledDay::EVERYDAY, SchoolClass{-1, -1, break_duration, true, fixed_timeslot, day});
+	timeslot_manager.addBreakSlot(break_slot);
 }
 
 void Section::adjustBreakslots(Timeslot timeslot_1, Timeslot timeslot_2) {
@@ -101,7 +115,7 @@ ScheduledDay Section::getRandomDynamicTimeslotDay(Timeslot timeslot) {
 std::unordered_set<ScheduledDay> Section::getAllScheduledDayOnClasstimeslot(Timeslot timeslot) const {
 	if (classes.find(timeslot) == classes.end()) {
 		print("cannot find timeslot", timeslot);
-		return {};
+		throw std::runtime_error("Class timeslot not found");
 	};
 
 	// does this only include the day that has class
@@ -135,7 +149,7 @@ SectionID Section::getId() const {
 	return id;
 }
 
-const std::unordered_map<SubjectID, std::shared_ptr<SubjectConfiguration>>& Section::getSubjectConfigurations() const {
+const std::vector<std::shared_ptr<SubjectConfiguration>>& Section::getSubjectConfigurations() const {
 	return subject_configurations;
 }
 
@@ -249,8 +263,8 @@ bool Section::isInSegmentedTimeslot(Timeslot timeslot) const {
 const std::unordered_set<Timeslot>& Section::getBreakSlots() const {
 	return timeslot_manager.getBreakSlots();
 }
-const std::unordered_set<Timeslot>& Section::getSegmentedTimeslot() const {
-	return timeslot_manager.getSegmentedTimeslot();
+const std::unordered_set<Timeslot>& Section::getDynamicSegmentedTimeslot() const {
+	return timeslot_manager.getDynamicSegmentedTimeslot();
 }
 bool Section::isPairTimeslotDurationEqual(std::pair<Timeslot, Timeslot> selected_timeslots) const {
 	return timeslot_manager.isPairTimeslotDurationEqual(selected_timeslots);

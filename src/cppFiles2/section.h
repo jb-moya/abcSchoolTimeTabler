@@ -28,7 +28,7 @@ class Section {
 	TimeDuration total_duration;
 	bool has_violation;
 
-	std::unordered_map<SubjectID, std::shared_ptr<SubjectConfiguration>> subject_configurations;
+	std::vector<std::shared_ptr<SubjectConfiguration>> subject_configurations;
 	std::map<Timeslot, std::unordered_map<ScheduledDay, SchoolClass>> classes;
 	std::unordered_map<SubjectID, TeacherID> subject_fixed_teacher;
 	std::unordered_set<TeacherID> utilized_teachers;
@@ -78,6 +78,7 @@ class Section {
 	TimePoint getStartTime() const;
 	SubjectID getClassTimeslotSubjectID(ScheduledDay day, Timeslot timeslot) const;
 	TeacherID getClassTimeslotTeacherID(ScheduledDay day, Timeslot timeslot) const;
+	SchoolClass getSchoolClass(Timeslot timeslot, ScheduledDay day) const;
 	ScheduledDay getRandomClassTimeslotWorkingDays(Timeslot timeslot) const;
 	std::unordered_set<ScheduledDay> getAllScheduledDayOnClasstimeslot(Timeslot timeslot) const;
 
@@ -85,16 +86,16 @@ class Section {
 	bool isDynamicSubjectConsistentDuration() const;
 
 	// Getters for Containers
-	const std::unordered_map<SubjectID, std::shared_ptr<SubjectConfiguration>>& getSubjectConfigurations() const;
+	const std::vector<std::shared_ptr<SubjectConfiguration>>& getSubjectConfigurations() const;
 	const std::unordered_map<Timeslot, ClassStartEnd>& getTimeRange() const;
 	const std::unordered_set<TeacherID>& getUtilizedTeachers() const;
 
 	// Accessing and Modifying Specific Subject
-	SubjectConfiguration& getSubject(SubjectID subject_id);
+	// SubjectConfiguration& getSubject(SubjectID subject_id);
 	std::map<Timeslot, std::unordered_map<ScheduledDay, SchoolClass>>& getClasses();
 
 	void updateClassTimeslotDay(ScheduledDay day, Timeslot timeslot, SchoolClass& school_class);
-	void assignBreaks(std::vector<Timeslot>& breaks);
+	void assignBreak(Timeslot breaks, TimeDuration break_duration, Timeslot fixed_timeslot, ScheduledDay day);
 
 	void addBreakSlot(Timeslot break_slot);
 	void addSegmentedTimeSlot(Timeslot timeslot);
@@ -117,7 +118,7 @@ class Section {
 	bool isInBreakSlots(Timeslot timeslot) const;
 	bool isInSegmentedTimeslot(Timeslot timeslot) const;
 	const std::unordered_set<Timeslot>& getBreakSlots() const;
-	const std::unordered_set<Timeslot>& getSegmentedTimeslot() const;
+	const std::unordered_set<Timeslot>& getDynamicSegmentedTimeslot() const;
 
 	bool isPairTimeslotDurationEqual(std::pair<Timeslot, Timeslot> selected_timeslots) const;
 

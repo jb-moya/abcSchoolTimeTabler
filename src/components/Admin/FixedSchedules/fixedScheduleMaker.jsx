@@ -7,6 +7,7 @@ import ContainerSpawn from './containerSpawn';
 import DroppableSchedCell from './droppableSchedCell';
 import { ReserveDay, ReservePosition } from './reservation';
 import { spawnColors } from './bgColors';
+import calculateTotalTimeslot from '../../../utils/calculateTotalTimeslot';
 
 const FixedScheduleMaker = ({
     viewingMode = 0,
@@ -27,7 +28,7 @@ const FixedScheduleMaker = ({
 
     numOfSchoolDays = 0,
 }) => {
-    const subjects = useSelector((state) => state.subject.subjects);
+    const subjectsStore = useSelector((state) => state.subject.subjects);
 
     const dayNames = [
         'Monday',
@@ -65,7 +66,7 @@ const FixedScheduleMaker = ({
 
         let totalTimeslots = subjs.reduce(
             (sum, subj) => sum + Math.min(
-                Math.ceil(subjects[subj].weeklyMinutes / subjects[subj].classDuration),
+                Math.ceil(subjectsStore[subj].weeklyMinutes / subjectsStore[subj].classDuration),
                 numOfSchoolDays
             ),
             0
@@ -103,29 +104,11 @@ const FixedScheduleMaker = ({
         return subjectPositionArray;
     };
 
-    const calculateTotalTimeslot = () => {
-        let total = 0;
-
-        for (let i = 0; i < subs.length; i++) {
-            const numOfClasses = Math.min(
-                Math.ceil(
-                    subjects[subs[i]].weeklyMinutes / subjects[subs[i]].classDuration
-                ),
-                numOfSchoolDays
-            );
-
-            total += numOfClasses;
-        }
-
-        return Math.ceil(total / numOfSchoolDays);
-    };
-
     // Initialize days and positions when fixedDays or fixedPositions change
     useEffect(() => {
         console.log('subs', subs);
         console.log('days', days);
         console.log('positions', positions);
-
 
         const subjects = getSubjectsPerPosition();
         setSubjectsPerPosition(subjects);
@@ -133,12 +116,16 @@ const FixedScheduleMaker = ({
         const ranges = findConsecutiveRanges(subjects);
         setMergeData(ranges);
 
-        let totalTimeRow = calculateTotalTimeslot();
+        let totalTimeRow = calculateTotalTimeslot(
+            subjectsStore,
+            subs,
+            numOfSchoolDays
+        );
 
         totalTimeRow += totalTimeRow >= 10 ? 2 : 1;
 
         setTotalTimeslot(totalTimeRow);
-    }, [subs, days, positions]);
+    }, [subs, days, positions, numOfSchoolDays]);
 
     useEffect(() => {
         // console.log('subjectsPerPosition', subjectsPerPosition);
@@ -352,6 +339,9 @@ const FixedScheduleMaker = ({
             )
         );
 
+        console.log("targetPos", targetPos);
+        console.log("targetDay", targetDay);
+
         if (isOccupied) {
             alert('This spot is already taken!');
             return;
@@ -436,7 +426,7 @@ const FixedScheduleMaker = ({
                                                         color: 'black',
                                                     }}
                                                 >
-                                                    {subjects[subject]?.subject}
+                                                    {subjectsStore[subject]?.subject}
                                                 </div>
                                                 <div className="w-8/12">
                                                     <ContainerSpawn

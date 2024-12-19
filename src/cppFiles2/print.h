@@ -186,7 +186,6 @@ inline void printConfiguration(int max_iterations,
                                int teacher_break_threshold,
                                TimeDuration min_total_class_duration_for_two_breaks,
                                TimeDuration default_class_duration,
-                               int result_buff_length,
                                TimePoint offset_duration,
                                bool enable_logging,
                                std::string time_issued) {
@@ -206,7 +205,6 @@ inline void printConfiguration(int max_iterations,
 	print("teacher_break_threshold", teacher_break_threshold);
 	print("min_total_class_duration_for_two_breaks", min_total_class_duration_for_two_breaks);
 	print("default_class_duration", default_class_duration);
-	print("result_buff_length", result_buff_length);
 	print("offset_duration", offset_duration);
 	print("enable_logging", enable_logging);
 	print("time_issued", time_issued);

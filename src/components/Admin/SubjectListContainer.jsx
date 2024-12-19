@@ -21,6 +21,7 @@ import escapeRegExp from '@utils/escapeRegExp';
 
 import { toast } from 'sonner';
 import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
+import calculateTotalTimeslot from '../../utils/calculateTotalTimeslot';
 
 const AddSubjectContainer = ({
     close,
@@ -374,24 +375,6 @@ const SubjectListContainer = ({
     const updateSubjectDependencies = () => {
         if (Object.keys(programs).length === 0) return;
 
-        function calculateTotalTimeslots(subjects, program) {
-            const totalNumOfClasses = program.subjects.reduce(
-                (total, subject) => {
-                    const classesPerWeek = Math.min(
-                        Math.ceil(
-                            subjects[subject].weeklyMinutes /
-                                subjects[subject].classDuration
-                        ),
-                        numOfSchoolDays
-                    );
-                    return total + classesPerWeek;
-                },
-                0
-            );
-
-            return Math.ceil(totalNumOfClasses / numOfSchoolDays);
-        }
-
         // Update subject dependencies in PROGRAMS
         Object.entries(programs).forEach(([id, program]) => {
             const originalProgram = JSON.parse(JSON.stringify(program));
@@ -405,7 +388,7 @@ const SubjectListContainer = ({
                     return;
                 }
 
-                const newTotalTimeslot = calculateTotalTimeslots(
+                const newTotalTimeslot = calculateTotalTimeslot(
                     {
                         ...subjects,
                         [editSubjectId]: {
@@ -415,7 +398,8 @@ const SubjectListContainer = ({
                             weeklyMinutes: editSubjectWeeklyMinutes,
                         },
                     },
-                    newProgram[grade]
+                    newProgram[grade].subjects,
+                    numOfSchoolDays
                 );
 
                 Object.entries(newProgram[grade].fixedPositions).forEach(
@@ -577,12 +561,13 @@ const SubjectListContainer = ({
 
             if (!newSection.subjects.includes(editSubjectId)) return;
 
-            const originalTotalTimeslot = calculateTotalTimeslots(
+            const originalTotalTimeslot = calculateTotalTimeslot(
                 subjects,
-                newSection
+                newSection.subjects,
+                numOfSchoolDays
             );
 
-            const newTotalTimeslot = calculateTotalTimeslots(
+            const newTotalTimeslot = calculateTotalTimeslot(
                 {
                     ...subjects,
                     [editSubjectId]: {
@@ -592,7 +577,8 @@ const SubjectListContainer = ({
                         weeklyMinutes: editSubjectWeeklyMinutes,
                     },
                 },
-                newSection
+                newSection.subjects,
+                numOfSchoolDays
             );
 
             if (newTotalTimeslot < originalTotalTimeslot) {

@@ -46,12 +46,12 @@ const AddProgramContainer = ({
         9: [],
         10: [],
     });
-    const [gradeTotalTimeslot, setGradeTotalTimeslot] = useState({
-        7: null,
-        8: null,
-        9: null,
-        10: null,
-    });
+    // const [gradeTotalTimeslot, setGradeTotalTimeslot] = useState({
+    //     7: null,
+    //     8: null,
+    //     9: null,
+    //     10: null,
+    // });
     const [fixedDays, setFixedDays] = useState({
         7: {},
         8: {},
@@ -361,30 +361,30 @@ const AddProgramContainer = ({
         document.getElementById('add_program_modal').close();
     };
 
-    useEffect(() => {
-        [7, 8, 9, 10].forEach((grade) => {
-            let totalNumOfClasses = 0;
+    // useEffect(() => {
+    //     [7, 8, 9, 10].forEach((grade) => {
+    //         let totalNumOfClasses = 0;
 
-            selectedSubjects[grade].forEach((subject) => {
-                // console.log('updating timeslot checekr');
-                totalNumOfClasses += Math.min(Math.ceil(
-                    subjects[subject].weeklyMinutes /
-                        subjects[subject].classDuration
-                ), numOfSchoolDays);
-            });
+    //         selectedSubjects[grade].forEach((subject) => {
+    //             // console.log('updating timeslot checekr');
+    //             totalNumOfClasses += Math.min(Math.ceil(
+    //                 subjects[subject].weeklyMinutes /
+    //                     subjects[subject].classDuration
+    //             ), numOfSchoolDays);
+    //         });
 
-            let totalTimeslot = Math.ceil(totalNumOfClasses / numOfSchoolDays);
+    //         let totalTimeslot = Math.ceil(totalNumOfClasses / numOfSchoolDays);
 
-            setGradeTotalTimeslot((prevState) => ({
-                ...prevState,
-                [grade]: totalTimeslot,
-            }));
-        });
-    }, [selectedSubjects, subjects, numOfSchoolDays]);
+    //         setGradeTotalTimeslot((prevState) => ({
+    //             ...prevState,
+    //             [grade]: totalTimeslot,
+    //         }));
+    //     });
+    // }, [selectedSubjects, subjects, numOfSchoolDays]);
 
-    useEffect(() => {
-        // console.log(gradeTotalTimeslot);
-    }, [gradeTotalTimeslot]);
+    // useEffect(() => {
+    //     // console.log(gradeTotalTimeslot);
+    // }, [gradeTotalTimeslot]);
 
     useEffect(() => {
         if (inputNameRef.current) {
@@ -533,9 +533,9 @@ const AddProgramContainer = ({
                                             pvs={0}
                                             program={0}
                                             grade={grade}
-                                            totalTimeslot={
-                                                gradeTotalTimeslot[grade]
-                                            }
+                                            // totalTimeslot={
+                                            //     gradeTotalTimeslot[grade]
+                                            // }
                                             selectedSubjects={
                                                 selectedSubjects[grade]
                                             }

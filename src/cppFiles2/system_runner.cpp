@@ -40,7 +40,6 @@ void runExperiment(
     int teacher_middle_time_point_grow_allowance_for_break_timeslot,
     TimeDuration min_total_class_duration_for_two_breaks,
     TimeDuration default_class_duration,
-    int result_buff_length,
     TimePoint offset_duration,
     int64_t* result_timetable,
     int64_t* result_timetable_2,
@@ -111,7 +110,7 @@ void runExperiment(
 
 	printConfiguration(max_iterations, num_teachers, total_section_subjects, total_section, teacher_subjects_length,
 	                   bees_population, bees_employed, bees_onlooker, bees_scout, limit, work_week,
-	                   break_time_duration, teacher_break_threshold, min_total_class_duration_for_two_breaks, default_class_duration, result_buff_length, offset_duration, enable_logging, tm.getStartTime());
+	                   break_time_duration, teacher_break_threshold, min_total_class_duration_for_two_breaks, default_class_duration, offset_duration, enable_logging, tm.getStartTime());
 
 	abc.run();
 
@@ -140,7 +139,7 @@ void runExperiment(
 		std::ofstream txt_file(name_file);
 		logResults(txt_file, final_bee.total_cost, tm.getTimelapse(), tm.getStartDate(), tm.getStartTime(), final_iteration_count, max_iterations, num_teachers, total_section_subjects,
 		           total_section, teacher_subjects_length, bees_population, bees_employed, bees_onlooker, bees_scout, limit, work_week, break_time_duration,
-		           teacher_break_threshold, min_total_class_duration_for_two_breaks, default_class_duration, result_buff_length, offset_duration, enable_logging);
+		           teacher_break_threshold, min_total_class_duration_for_two_breaks, default_class_duration, offset_duration, enable_logging);
 
 		// logCosts(costs, txt_file);
 		logConflicts(&final_bee, txt_file);

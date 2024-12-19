@@ -12,14 +12,14 @@ TimeDuration SubjectConfiguration::getDuration() const {
 	return duration;
 }
 
-int SubjectConfiguration::getUnits() const {
-    return units;
+bool SubjectConfiguration::isConsistentEveryday() const {
+	return is_consistent_everyday;
 }
 
 Timeslot SubjectConfiguration::getFixedTimeslot() const {
 	return fixed_timeslot;
 }
 
-std::vector<ScheduledDay> SubjectConfiguration::getFixedDays() const {
-	return fixed_days;
+ScheduledDay SubjectConfiguration::getFixedDay() const {
+	return fixed_day;
 }

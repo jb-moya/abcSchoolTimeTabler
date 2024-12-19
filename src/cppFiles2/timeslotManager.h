@@ -16,7 +16,7 @@ class TimeslotManager {
 	std::unordered_map<Timeslot, std::set<ScheduledDay>> dynamic_timeslot_day;
 	std::vector<Timeslot> dynamic_timeslot;
 	std::unordered_map<Timeslot, ClassStartEnd> time_range;
-	std::unordered_set<Timeslot> segmented_timeslot;
+	std::unordered_set<Timeslot> dynamic_segmented_timeslot;
 	std::unordered_set<Timeslot> break_slots;
 
    public:
@@ -41,7 +41,7 @@ class TimeslotManager {
 	bool isInBreakSlots(Timeslot timeslot) const;
 	bool isInSegmentedTimeslot(Timeslot timeslot) const;
 	const std::unordered_set<Timeslot>& getBreakSlots() const;
-	const std::unordered_set<Timeslot>& getSegmentedTimeslot() const;
+	const std::unordered_set<Timeslot>& getDynamicSegmentedTimeslot() const;
 
 	bool isPairTimeslotDurationEqual(std::pair<Timeslot, Timeslot> selected_timeslots) const;
 
