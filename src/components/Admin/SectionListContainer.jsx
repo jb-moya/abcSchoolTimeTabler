@@ -1090,21 +1090,6 @@ const SectionListContainer = ({
         setCurrEditYear('');
     };
 
-    const resetStates = () => {
-        // Reset the editing state
-        setEditSectionId('');
-        setEditSectionValue('');
-        setEditSectionProg('');
-        setEditSectionYear('');
-        setEditSectionSubjects([]);
-        setEditSectionFixedDays({});
-        setEditSectionFixedPositions({});
-        setEditAdditionalScheds([]);
-
-        setCurrEditProgram('');
-        setCurrEditYear('');
-    };
-
     const debouncedSearch = useCallback(
         debounce((searchValue, sections, subjects) => {
             setSearchSectionResult(

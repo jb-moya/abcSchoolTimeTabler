@@ -26,7 +26,7 @@ const FixedScheduleMaker = ({
     grade = 0,
     section = 0,
 
-    // totalTimeRows,
+    // totalTimeslot,
     isForSection = false,
     selectedSubjects = [],
     fixedDays = [],
@@ -37,7 +37,7 @@ const FixedScheduleMaker = ({
     numOfSchoolDays = 0,
 }) => {
     const subjectsStore = useSelector((state) => state.subject.subjects);
-    console.log('🚀 ~ subjectsStore:', subjectsStore);
+    // console.log('🚀 ~ subjectsStore:', subjectsStore);
 
     const dayNames = [
         'Monday',
@@ -58,34 +58,17 @@ const FixedScheduleMaker = ({
     const [subjectsPerPosition, setSubjectsPerPosition] = useState([]);
     const [mergeData, setMergeData] = useState({});
 
-    const [totalTimeRows, setTotalTimeRows] = useState(0);
-
-    // To reduce re-computations
-    const [prevTimeRows, setPrevTimeRows] = useState(0);
-    const [prevSubsPerPos, setPrevSubsPerPos] = useState([]);
+    const [totalTimeslot, setTotalTimeslot] = useState(0);
 
     useEffect(() => {
+        // console.log(
+        //     'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA selectedSubjects',
+        //     selectedSubjects
+        // );
         setSubs(produce(selectedSubjects, (draft) => draft));
         setDays(produce(fixedDays, (draft) => draft));
         setPositions(produce(fixedPositions, (draft) => draft));
     }, [selectedSubjects, fixedDays, fixedPositions]);
-
-    const calculateTotalTimeslot = () => {
-        let total = 0;
-
-        for (let i = 0; i < subs.length; i++) {
-            const numOfClasses = Math.min(
-                Math.ceil(
-                    subjects[subs[i]].weeklyMinutes / subjects[subs[i]].classDuration
-                ),
-                numOfSchoolDays
-            );
-
-            total += numOfClasses;
-        }
-
-        return Math.ceil(total / numOfSchoolDays);
-    };
 
     const getSubjectsPerPosition = () => {
         const subjs = subs || [];
@@ -104,7 +87,7 @@ const FixedScheduleMaker = ({
         );
 
         let subjectPositionArrayLength = Math.ceil(
-            totalTimeRows / numOfSchoolDays
+            totalTimeslots / numOfSchoolDays
         );
 
         subjectPositionArrayLength += subjectPositionArrayLength >= 10 ? 2 : 1;
@@ -137,9 +120,9 @@ const FixedScheduleMaker = ({
 
     // Initialize days and positions when fixedDays or fixedPositions change
     useEffect(() => {
-        console.log('subs', subs);
-        console.log('days', days);
-        console.log('positions', positions);
+        // console.log('subs', subs);
+        // console.log('days', days);
+        // console.log('positions', positions);
 
         const subjects = getSubjectsPerPosition();
         setSubjectsPerPosition(subjects);
@@ -161,7 +144,7 @@ const FixedScheduleMaker = ({
     useEffect(() => {
         // console.log('subjectsPerPosition', subjectsPerPosition);
         // console.log('mergeData', mergeData);
-        console.log('totalTimeslot', totalTimeslot);
+        // console.log('totalTimeslot', totalTimeslot);
     }, [totalTimeslot]);
 
     const findConsecutiveRanges = (schedule) => {
@@ -216,20 +199,6 @@ const FixedScheduleMaker = ({
 
         return mergeData;
     };
-
-    // Initialize days and positions when fixedDays or fixedPositions change
-    useEffect(() => {
-        const totalTimeRow = calculateTotalTimeslot();
-        setTotalTimeRows(totalTimeRow);
-        setPrevTimeRows(totalTimeRow);
-        
-        const subjects = getSubjectsPerPosition();
-        setSubjectsPerPosition(subjects);
-        setPrevSubsPerPos(subjects);
-
-        const ranges = findConsecutiveRanges(subjects);
-        setMergeData(ranges);
-    }, [subs, days, positions]);
 
     const handleSave = () => {
         setFixedDays((prev) =>
@@ -315,6 +284,8 @@ const FixedScheduleMaker = ({
         if (draggedSubjectID !== targetContainerID && targetContainerID !== -1)
             return;
 
+        // console.log('subjectsPerPosition', subjectsPerPosition);
+
         // Helper function to count slots
         const countSlots = (subs, key, otherKey, targetValue, excludedValue) =>
             subs.reduce((count, subID) => {
@@ -354,7 +325,7 @@ const FixedScheduleMaker = ({
         // );
 
         // Validate slots
-        if (daySlots === totalTimeRows && positionSlots >= numOfSchoolDays) {
+        if (daySlots === totalTimeslot && positionSlots >= numOfSchoolDays) {
             alert(
                 `No spots left in ${
                     dayNames[targetDay - 1]
@@ -362,7 +333,7 @@ const FixedScheduleMaker = ({
             );
             return;
         }
-        if (daySlots === totalTimeRows) {
+        if (daySlots === totalTimeslot) {
             alert(`No spots left in ${dayNames[targetDay - 1]}.`);
             return;
         }
@@ -382,8 +353,8 @@ const FixedScheduleMaker = ({
             )
         );
 
-        console.log('targetPos', targetPos);
-        console.log('targetDay', targetDay);
+        // console.log('targetPos', targetPos);
+        // console.log('targetDay', targetDay);
 
         if (isOccupied) {
             alert('This spot is already taken!');
