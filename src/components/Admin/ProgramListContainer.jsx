@@ -22,6 +22,233 @@ import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 
 import FixedScheduleMaker from './FixedSchedules/fixedScheduleMaker';
 
+const AdditionalScheduleForProgram = ({
+    viewingMode = 0,
+    programID = 0,
+    grade = 0,
+
+    arrayIndex = 0,
+
+    progYearSubjects = [],
+
+    numOfSchoolDays = 1,
+
+    additionalSchedsOfProgYear = [],
+    setAdditionalScheds = () => {},
+}) => {
+
+    const subjects = useSelector((state) => state.subject.subjects);
+
+    const [schedName, setSchedName] = useState(additionalSchedsOfProgYear.name);
+    const [schedSubject, setSchedSubject] = useState(additionalSchedsOfProgYear.subject);
+    const [schedDuration, setSchedDuration] = useState(additionalSchedsOfProgYear.duration);
+    const [schedFrequency, setSchedFrequency] = useState(additionalSchedsOfProgYear.frequency);
+    const [schedShown, setSchedShown] = useState(false);
+
+    const handleSave = () => {
+        const newSched = {
+            name: schedName,
+            subject: schedSubject,
+            duration: schedDuration,
+            frequency: schedFrequency,
+            shown: schedShown,
+        };
+
+        setAdditionalScheds((prev) => {
+            const updatedScheds = { ...prev };
+    
+            const updatedGradeScheds = [...(updatedScheds[grade] || [])];
+    
+            updatedGradeScheds[arrayIndex] = newSched;
+    
+            updatedScheds[grade] = updatedGradeScheds;
+    
+            return updatedScheds;
+        });    
+        
+        document.getElementById(`add_additional_sched_modal_${viewingMode}_grade-${grade}_prog-${programID}_idx-${arrayIndex}`).close();
+    };
+
+    const handleClose = () => {
+        const modal = document.getElementById(`add_additional_sched_modal_${viewingMode}_grade-${grade}_prog-${programID}_idx-${arrayIndex}`);
+
+        resetStates();
+
+        if (modal) {
+            modal.close();
+        }
+    };
+
+    const resetStates = () => {
+        setSchedName(additionalSchedsOfProgYear.name);
+        setSchedSubject(additionalSchedsOfProgYear.subject);
+        setSchedDuration(additionalSchedsOfProgYear.duration);
+        setSchedFrequency(additionalSchedsOfProgYear.frequency);
+        setSchedShown(additionalSchedsOfProgYear.frequency);
+    };
+
+    useEffect(() => {
+        setSchedName(additionalSchedsOfProgYear.name || '');
+        setSchedSubject(additionalSchedsOfProgYear.subject || 0);
+        setSchedDuration(additionalSchedsOfProgYear.duration || 0);
+        setSchedFrequency(additionalSchedsOfProgYear.frequency || '');
+        setSchedShown(additionalSchedsOfProgYear.shown || false);
+    }, [additionalSchedsOfProgYear]);
+    
+
+    // useEffect(() => {
+    //     console.log('schedName', schedName);
+    //     console.log('schedSubject', schedSubject);
+    //     console.log('typeof schedSubject', typeof schedSubject);
+    //     console.log('schedDuration', schedDuration);
+    //     console.log('schedFrequency', schedFrequency);
+    //     console.log('schedShown', schedShown);
+    // }, [schedName, schedSubject, schedDuration, schedFrequency, schedShown]);
+
+    return (
+        <dialog
+            id={`add_additional_sched_modal_${viewingMode}_grade-${grade}_prog-${programID}_idx-${arrayIndex}`}
+            className='modal modal-bottom sm:modal-middle'
+        >
+            <div
+                className='modal-box'
+            >
+
+                <div>
+                    <div className='mb-3 text-center text-lg font-bold'>
+                        {viewingMode === 1 ? (
+                            <div>View Mode</div>
+                        ) : (
+                            <div>Edit Mode</div>
+                        )}
+                    </div>
+                
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1">
+                            Schedule Name:
+                        </label>
+                        <input
+                            type="text"
+                            // ref={inputNameRef}
+                            className="input input-bordered w-full"
+                            value={schedName}
+                            onChange={(e) => setSchedName(e.target.value)}
+                            placeholder="Enter schedule name"
+                            readOnly={viewingMode !== 0}
+                        />
+                    </div>
+                    <div className='mb-4'>
+                        <label className='block text-sm font-medium mb-1'>
+                            Subject:
+                        </label>
+                        {viewingMode === 0 ? (
+                            <select
+                                className='input input-bordered w-full'
+                                value={schedSubject === 0 ? 0 : schedSubject}
+                                onChange={(e) => setSchedSubject(Number(e.target.value))}
+                            >
+                                <option
+                                    value={0}
+                                    className='text-gray-400'
+                                >
+                                    N/A
+                                </option>
+                                {progYearSubjects.map((id) => (
+                                    <option key={id} value={id}>
+                                        {subjects[id]?.subject}
+                                    </option>
+                                ))}
+                            </select>
+                        ) : (
+                            <input
+                                type='text'
+                                className='input input-bordered w-full'
+                                value={
+                                    subjects[schedSubject]?.subject || 'N/A'
+                                }
+                                readOnly
+                            />
+                        )}
+                    </div>
+                    <div className='mb-4'>
+                        <label className='block text-sm font-medium mb-1'>
+                            Duration (in minutes):
+                        </label>
+                        <input
+                            type='number'
+                            className='input input-bordered w-full'
+                            value={schedDuration}
+                            onChange={(e) => setSchedDuration(Number(e.target.value))}
+                            placeholder='Enter duration'
+                            readOnly={viewingMode !== 0}
+                        />
+                    </div>
+                    <div className='mb-4'>
+                        <label className='block text-sm font-medium mb-1'>
+                            Frequency:
+                        </label>
+                        <input
+                            type='number'
+                            className='input input-bordered w-full'
+                            value={schedFrequency}
+                            onChange={(e) => setSchedFrequency(Number(e.target.value))}
+                            placeholder='Enter frequency'
+                            min={1}
+                            max={numOfSchoolDays}
+                            readOnly={viewingMode !== 0}
+                        />
+                    </div>
+                    <div className='mb-4'>
+                        <label className='block text-sm font-medium mb-1'>
+                            Must Appear on Schedule:
+                        </label>
+                        <select
+                            className='input input-bordered w-full'
+                            value={schedShown ? 'Yes' : 'No'}
+                            onChange={(e) => setSchedShown(e.target.value === 'Yes')}
+                            readOnly={viewingMode !== 0}
+                        >
+                            <option value='Yes'>Yes</option>
+                            <option value='No'>No</option>
+                        </select>
+                    </div>
+
+                    <div className='mt-4 text-center text-lg font-bold'>
+                        {viewingMode !== 1 && (
+                            <div
+                                className='flex flex-wrap gap-2 justify-center'
+                            >
+                                <button
+                                    className='btn btn-sm rounded-lg bg-green-600 text-white hover:bg-green-500'
+                                    onClick={handleSave}
+                                >
+                                    Save
+                                </button>
+                                <button
+                                    className='btn btn-sm rounded-lg bg-red-600 text-white hover:bg-red-500'
+                                    onClick={handleClose}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="modal-action w-full mt-0">
+                    <button
+                        className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                        onClick={handleClose}
+                    >
+                        ✕
+                    </button>
+                </div>
+
+            </div>
+        </dialog>
+    );
+};
+
 const AddProgramContainer = ({
     close,
     reduxField,
@@ -75,6 +302,12 @@ const AddProgramContainer = ({
         8: morningStartTime,
         9: morningStartTime,
         10: morningStartTime,
+    });
+    const [additionalScheds, setAdditionalScheds] = useState({
+        7: [],
+        8: [],
+        9: [],
+        10: [],
     });
 
     const handleStartTimeChange = (grade, time) => {
@@ -194,7 +427,31 @@ const AddProgramContainer = ({
         }));
     };
 
+    const handleDeleteAdditionalSchedule = (grade, index) => {
+        setAdditionalScheds((prevScheds) => ({
+            ...prevScheds,
+            [grade]: prevScheds[grade].filter((_, i) => i !== index),
+        }));
+    };    
+
+    const handleAddAdditionalSchedule = (grade) => {
+        setAdditionalScheds((prevScheds) => ({
+            ...prevScheds,
+            [grade]: [
+                ...prevScheds[grade],
+                { 
+                    name: '', 
+                    subject: 0,
+                    duration: 60,
+                    frequency: 1,
+                    shown: true,
+                },
+            ],
+        }));
+    };
+    
     const handleAddEntry = () => {
+
         if (!inputValue.trim()) {
             setErrorMessage('Program name cannot be empty');
             setErrorField('program');
@@ -252,6 +509,7 @@ const AddProgramContainer = ({
                         fixedPositions: fixedPositions[7],
                         shift: selectedShifts[7],
                         startTime: getTimeSlotIndex(startTimes[7]),
+                        additionalScheds: additionalScheds[7],
                     },
                     8: {
                         subjects: selectedSubjects[8],
@@ -259,6 +517,7 @@ const AddProgramContainer = ({
                         fixedPositions: fixedPositions[8],
                         shift: selectedShifts[8],
                         startTime: getTimeSlotIndex(startTimes[8]),
+                        additionalScheds: additionalScheds[8],
                     },
                     9: {
                         subjects: selectedSubjects[9],
@@ -266,6 +525,7 @@ const AddProgramContainer = ({
                         fixedPositions: fixedPositions[9],
                         shift: selectedShifts[9],
                         startTime: getTimeSlotIndex(startTimes[9]),
+                        additionalScheds: additionalScheds[9],
                     },
                     10: {
                         subjects: selectedSubjects[10],
@@ -273,6 +533,7 @@ const AddProgramContainer = ({
                         fixedPositions: fixedPositions[10],
                         shift: selectedShifts[10],
                         startTime: getTimeSlotIndex(startTimes[10]),
+                        additionalScheds: additionalScheds[10],
                     },
                 })
             );
@@ -431,101 +692,106 @@ const AddProgramContainer = ({
                         {[7, 8, 9, 10].map((grade) => (
                             <div
                                 key={grade}
-                                className="bg-white shadow-md rounded-lg p-4"
                             >
-                                <h3 className="font-bold mb-2">{`Grade ${grade}`}</h3>
-
-                                {/* Shift selection */}
-                                <div className="mt-2 mb-2">
-                                    <label className="mr-2">Shift:</label>
-                                    <label className="mr-2">
-                                        <input
-                                            type="radio"
-                                            value={selectedShifts[grade]}
-                                            checked={
-                                                selectedShifts[grade] === 0
-                                            }
-                                            onChange={() =>
-                                                handleShiftSelection(grade, 0)
-                                            }
-                                        />
-                                        AM
-                                    </label>
-                                    <label>
-                                        <input
-                                            type="radio"
-                                            value={selectedShifts[grade]}
-                                            checked={
-                                                selectedShifts[grade] === 1
-                                            }
-                                            onChange={() =>
-                                                handleShiftSelection(grade, 1)
-                                            }
-                                        />
-                                        PM
-                                    </label>
+                                <div>
+                                    <h3 className="font-bold mb-2">{`Grade ${grade}`}</h3>
                                 </div>
-
-                                {/* Start time selection */}
-                                <div className="mt-2">
-                                    <label className="mr-2">Start Time:</label>
-                                    <select
-                                        className="input input-bordered"
-                                        value={startTimes[grade]}
-                                        onChange={(e) =>
-                                            handleStartTimeChange(
-                                                grade,
-                                                e.target.value
-                                            )
-                                        }
+                                <div className='flex flex-wrap'>
+                                    <div
+                                        key={grade}
+                                        className="w-7/12 bg-white shadow-md rounded-lg p-4"
                                     >
-                                        {renderTimeOptions(
-                                            selectedShifts[grade]
-                                        )}
-                                    </select>
-                                </div>
+                                        {/* Shift selection */}
+                                        <div className="mt-2 mb-2">
+                                            <label className="mr-2">Shift:</label>
+                                            <label className="mr-2">
+                                                <input
+                                                    type="radio"
+                                                    value={selectedShifts[grade]}
+                                                    checked={
+                                                        selectedShifts[grade] === 0
+                                                    }
+                                                    onChange={() =>
+                                                        handleShiftSelection(grade, 0)
+                                                    }
+                                                />
+                                                AM
+                                            </label>
+                                            <label>
+                                                <input
+                                                    type="radio"
+                                                    value={selectedShifts[grade]}
+                                                    checked={
+                                                        selectedShifts[grade] === 1
+                                                    }
+                                                    onChange={() =>
+                                                        handleShiftSelection(grade, 1)
+                                                    }
+                                                />
+                                                PM
+                                            </label>
+                                        </div>
 
-                                {/* Subject selection */}
-                                <div className="flex items-center mb-2 py-4 flex-wrap">
-                                    <div className="m-1">
-                                        <SearchableDropdownToggler
-                                            selectedList={
-                                                selectedSubjects[grade]
-                                            }
-                                            setSelectedList={(list) =>
-                                                handleSubjectSelection(
-                                                    grade,
-                                                    list
-                                                )
-                                            }
-                                        />
-                                    </div>
-                                    {selectedSubjects[grade]?.map(
-                                        (id, index) => (
-                                            <div key={id} className="p-2">
-                                                <div className="h-10 w-20 bg-green-400 rounded-md flex items-center justify-center truncate">
-                                                    {subjects[id]?.subject}
-                                                </div>
-                                            </div>
-                                        )
-                                    )}
-                                </div>
-
-                                {/* Setting of fixed schedule (optional) */}
-                                {selectedSubjects[grade]?.length > 0 && (
-                                    <div>
-                                        <button
-                                            className="btn btn-primary"
-                                            onClick={() =>
-                                                document
-                                                    .getElementById(
-                                                        `assign_fixed_sched_modal_prog(0)-grade(${grade})`
+                                        {/* Start time selection */}
+                                        <div className="mt-2">
+                                            <label className="mr-2">Start Time:</label>
+                                            <select
+                                                className="input input-bordered"
+                                                value={startTimes[grade]}
+                                                onChange={(e) =>
+                                                    handleStartTimeChange(
+                                                        grade,
+                                                        e.target.value
                                                     )
-                                                    .showModal()
-                                            }
-                                        >
-                                            Open Fixed Schedule Maker
-                                        </button>
+                                                }
+                                            >
+                                                {renderTimeOptions(
+                                                    selectedShifts[grade]
+                                                )}
+                                            </select>
+                                        </div>
+
+                                        {/* Subject selection */}
+                                        <div className="flex items-center mb-2 py-4 flex-wrap">
+                                            <div className="m-1">
+                                                <SearchableDropdownToggler
+                                                    selectedList={
+                                                        selectedSubjects[grade]
+                                                    }
+                                                    setSelectedList={(list) =>
+                                                        handleSubjectSelection(
+                                                            grade,
+                                                            list
+                                                        )
+                                                    }
+                                                />
+                                            </div>
+                                            {selectedSubjects[grade]?.map(
+                                                (id, index) => (
+                                                    <div key={id} className="p-2">
+                                                        <div className="h-10 w-20 bg-green-400 rounded-md flex items-center justify-center truncate">
+                                                            {subjects[id]?.subject}
+                                                        </div>
+                                                    </div>
+                                                )
+                                            )}
+                                        </div>
+
+                                        {/* Setting of fixed schedule (optional) */}
+                                        {selectedSubjects[grade]?.length > 0 && (
+                                            <div>
+                                                <button
+                                                    className="btn btn-primary"
+                                                    onClick={() =>
+                                                        document
+                                                            .getElementById(
+                                                                `assign_fixed_sched_modal_prog(0)-grade(${grade})`
+                                                            )
+                                                            .showModal()
+                                                    }
+                                                >
+                                                    Open Fixed Schedule Maker
+                                                </button>
 
                                         <FixedScheduleMaker
                                             key={grade}
@@ -552,6 +818,106 @@ const AddProgramContainer = ({
                                     </div>
                                 )}
                             </div>
+                                                
+                                    <div
+                                        className='w-5/12 p-1 rounded-lg'
+                                    >
+                                        <div className='font-bold bg-blue-200 rounded-lg'>
+                                            Additional Schedules
+                                        </div>
+
+                                        {/* Button to add schedules */}
+                                        <button
+                                            onClick={() => handleAddAdditionalSchedule(grade)}
+                                            className='flex flex-wrap items-right text-xs mt-2 bg-blue-500 text-white px-2 py-1 rounded-lg hover:bg-blue-600'
+                                        >
+                                            Add Schedule
+                                        </button>
+
+                                        {/* Render the ScheduleComponent as many times as specified */}
+                                        <div
+                                            className='mt-2 overflow-y-auto max-h-36 border border-gray-300 rounded-lg'
+                                            style={{ scrollbarWidth: 'thin', scrollbarColor: '#a0aec0 #edf2f7' }} // Optional for styled scrollbars
+                                        >
+                                            {additionalScheds[grade].map((sched, index) => (
+                                                <div
+                                                    key={index}
+                                                    className='flex flex-wrap'
+                                                >
+                                                    <button
+                                                        className='w-1/12 border rounded-l-lg hover:bg-gray-200 flex items-center justify-center'
+                                                        onClick={() => handleDeleteAdditionalSchedule(grade, index)}
+                                                    >
+                                                        <RiDeleteBin7Line
+                                                            size={15}
+                                                        />
+                                                    </button>
+                                                    <div
+                                                        className='w-10/12'
+                                                    >
+                                                        <button
+                                                            className="w-full bg-gray-100 p-2 border shadow-sm hover:bg-gray-200"
+                                                            onClick={() => document
+                                                                .getElementById(
+                                                                    `add_additional_sched_modal_1_grade-${grade}_prog-0_idx-${index}`
+                                                                )
+                                                                .showModal()}
+                                                        >
+                                                            {sched.name || sched.subject ? (
+                                                                // Content to show when both are not empty
+                                                                <>
+                                                                    <p>Name: {sched.name}</p>
+                                                                    <p>Subject: {sched.subject === 0 ? 'N/A' : subjects[sched.subject].subject}</p>
+                                                                </>
+                                                            ) : (
+                                                                // Content to show when either is empty
+                                                                <p>Untitled Schedule {index + 1}</p>
+                                                            )}
+                                                        </button>
+                                                        <AdditionalScheduleForProgram
+                                                            viewingMode={1}
+                                                            programID={0}
+                                                            grade={grade}
+                                                            arrayIndex={index}
+
+                                                            additionalSchedsOfProgYear={sched}
+                                                        />
+                                                    </div>
+                                                    <div 
+                                                        className='w-1/12  flex items-center justify-center border rounded-r-lg hover:bg-gray-200'
+                                                    >
+                                                        <button
+                                                            onClick={() => document
+                                                                .getElementById(
+                                                                    `add_additional_sched_modal_0_grade-${grade}_prog-0_idx-${index}`
+                                                                )
+                                                                .showModal()}
+                                                        >
+                                                            <RiEdit2Fill
+                                                                size={15}
+                                                            />
+                                                        </button>
+                                                        <AdditionalScheduleForProgram
+                                                            viewingMode={0}
+                                                            programID={0}
+                                                            grade={grade}
+                                                            arrayIndex={index}
+                                                            numOfSchoolDays={numOfSchoolDays}
+                                                            progYearSubjects={selectedSubjects[grade]}
+                                                            additionalSchedsOfProgYear={sched}
+                                                            setAdditionalScheds={setAdditionalScheds}
+                                                        />
+                                                    </div>
+                                                    
+                                                </div>
+                                            ))}
+
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                            
                         ))}
                     </div>
 
@@ -620,12 +986,12 @@ const ProgramListContainer = ({
     const afternoonStartTime =
         localStorage.getItem('afternoonStartTime') || '01:00 PM';
 
-    const [editProgramId, setEditProgramId] = useState(null);
-    const [editProgramValue, setEditProgramValue] = useState('');
-    const [editProgramCurr, setEditProgramCurr] = useState([]);
     const [searchProgramResult, setSearchProgramResult] = useState(programs);
     const [searchProgramValue, setSearchProgramValue] = useState('');
 
+    const [editProgramId, setEditProgramId] = useState(null);
+    const [editProgramValue, setEditProgramValue] = useState('');
+    const [editProgramCurr, setEditProgramCurr] = useState([]);
     const [selectedShifts, setSelectedShifts] = useState({
         7: 0,
         8: 0,
@@ -649,6 +1015,20 @@ const ProgramListContainer = ({
         8: {},
         9: {},
         10: {},
+    });
+    const [editAdditionalScheds, setEditAdditionalScheds] = useState({
+        7: [],
+        8: [],
+        9: [],
+        10: [],
+    });
+
+    // For auto updates in sections
+    const [sectionDetailsToUpdate, setSectionDetailsToUpdate] = useState({
+        shift: false,
+        startTime: false,
+        fixedScheds: false,
+        additionalScheds: false,
     });
 
     const renderTimeOptions = (shift) => {
@@ -748,6 +1128,29 @@ const ProgramListContainer = ({
         }));
     };
 
+    const handleAddAdditionalSchedule = (grade) => {
+        setEditAdditionalScheds((prevScheds) => ({
+            ...prevScheds,
+            [grade]: [
+                ...prevScheds[grade],
+                { 
+                    name: '', 
+                    subject: 0,
+                    duration: 60,
+                    frequency: 1,
+                    shown: true,
+                },
+            ],
+        }));
+    };
+
+    const handleDeleteAdditionalSchedule = (grade, index) => {
+        setEditAdditionalScheds((prevScheds) => ({
+            ...prevScheds,
+            [grade]: prevScheds[grade].filter((_, i) => i !== index),
+        }));
+    };
+
     const handleShiftSelection = (grade, shift) => {
         setSelectedShifts((prevState) => ({
             ...prevState,
@@ -793,6 +1196,12 @@ const ProgramListContainer = ({
             8: program[8]?.fixedPositions || {},
             9: program[9]?.fixedPositions || {},
             10: program[10]?.fixedPositions || {},
+        });
+        setEditAdditionalScheds({
+            7: program[7]?.additionalScheds || [],
+            8: program[8]?.additionalScheds || [],
+            9: program[9]?.additionalScheds || [],
+            10: program[10]?.additionalScheds || [],
         });
     };
 
@@ -890,6 +1299,7 @@ const ProgramListContainer = ({
                             startTime: getTimeSlotIndex(
                                 startTimes[7] || '06:00 AM'
                             ),
+                            additionalScheds: editAdditionalScheds[7],
                         },
                         8: {
                             subjects: editProgramCurr[8],
@@ -899,6 +1309,7 @@ const ProgramListContainer = ({
                             startTime: getTimeSlotIndex(
                                 startTimes[8] || '06:00 AM'
                             ),
+                            additionalScheds: editAdditionalScheds[8],
                         },
                         9: {
                             subjects: editProgramCurr[9],
@@ -908,6 +1319,7 @@ const ProgramListContainer = ({
                             startTime: getTimeSlotIndex(
                                 startTimes[9] || '06:00 AM'
                             ),
+                            additionalScheds: editAdditionalScheds[9],
                         },
                         10: {
                             subjects: editProgramCurr[10],
@@ -917,6 +1329,7 @@ const ProgramListContainer = ({
                             startTime: getTimeSlotIndex(
                                 startTimes[10] || '06:00 AM'
                             ),
+                            additionalScheds: editAdditionalScheds[10],
                         },
                     },
                 })
@@ -932,33 +1345,7 @@ const ProgramListContainer = ({
                 },
             });
 
-            setEditProgramId(null);
-            setEditProgramValue('');
-            setEditProgramCurr([]);
-            setStartTimes({
-                7: '06:00 AM',
-                8: '06:00 AM',
-                9: '06:00 AM',
-                10: '06:00 AM',
-            });
-            setSelectedShifts({
-                7: 0,
-                8: 0,
-                9: 0,
-                10: 0,
-            });
-            setEditFixedDays({
-                7: {},
-                8: {},
-                9: {},
-                10: {},
-            });
-            setEditFixedPositions({
-                7: {},
-                8: {},
-                9: {},
-                10: {},
-            });
+            resetStates();
         } else {
             const duplicateProgram = Object.values(programs).find(
                 (program) =>
@@ -987,6 +1374,7 @@ const ProgramListContainer = ({
                                 startTime: getTimeSlotIndex(
                                     startTimes[7] || '06:00 AM'
                                 ),
+                                additionalScheds: editAdditionalScheds[7],
                             },
                             8: {
                                 subjects: editProgramCurr[8],
@@ -996,6 +1384,7 @@ const ProgramListContainer = ({
                                 startTime: getTimeSlotIndex(
                                     startTimes[8] || '06:00 AM'
                                 ),
+                                additionalScheds: editAdditionalScheds[8],
                             },
                             9: {
                                 subjects: editProgramCurr[9],
@@ -1005,6 +1394,7 @@ const ProgramListContainer = ({
                                 startTime: getTimeSlotIndex(
                                     startTimes[9] || '06:00 AM'
                                 ),
+                                additionalScheds: editAdditionalScheds[9],
                             },
                             10: {
                                 subjects: editProgramCurr[10],
@@ -1014,6 +1404,7 @@ const ProgramListContainer = ({
                                 startTime: getTimeSlotIndex(
                                     startTimes[10] || '06:00 AM'
                                 ),
+                                additionalScheds: editAdditionalScheds[10],
                             },
                         },
                     })
@@ -1029,65 +1420,9 @@ const ProgramListContainer = ({
                     },
                 });
 
-                setEditProgramId(null);
-                setEditProgramValue('');
-                setEditProgramCurr([]);
-                setStartTimes({
-                    7: '06:00 AM',
-                    8: '06:00 AM',
-                    9: '06:00 AM',
-                    10: '06:00 AM',
-                });
-                setSelectedShifts({
-                    7: 0,
-                    8: 0,
-                    9: 0,
-                    10: 0,
-                });
-                setEditFixedDays({
-                    7: {},
-                    8: {},
-                    9: {},
-                    10: {},
-                });
-                setEditFixedPositions({
-                    7: {},
-                    8: {},
-                    9: {},
-                    10: {},
-                });
+                resetStates();
             }
         }
-    };
-
-    const handleCancelProgramEditClick = () => {
-        setEditProgramId(null);
-        setEditProgramValue('');
-        setEditProgramCurr([]);
-        setStartTimes({
-            7: '06:00 AM',
-            8: '06:00 AM',
-            9: '06:00 AM',
-            10: '06:00 AM',
-        });
-        setSelectedShifts({
-            7: 0,
-            8: 0,
-            9: 0,
-            10: 0,
-        });
-        setEditFixedDays({
-            7: {},
-            8: {},
-            9: {},
-            10: {},
-        });
-        setEditFixedPositions({
-            7: {},
-            8: {},
-            9: {},
-            10: {},
-        });
     };
 
     const updateProgramDependencies = () => {
@@ -1174,10 +1509,12 @@ const ProgramListContainer = ({
                             newSubjDays.push(day);
                             newSubjPositions.push(position);
                             dayPositionMap.set(`${day}-${position}`, true);
-                        } else if (Number(day) + Number(position) === 1) {
-                            newSubjDays.push(day);
-                            newSubjPositions.push(position);
-                        } else {
+                        } 
+                        // else if (Number(day) + Number(position) === 1) {
+                        //     newSubjDays.push(day);
+                        //     newSubjPositions.push(position);
+                        // } 
+                        else {
                             newSubjDays.push(0);
                             newSubjPositions.push(0);
                         }
@@ -1209,6 +1546,42 @@ const ProgramListContainer = ({
                     })
                 );
             }
+        });
+    };
+
+    const resetStates = () => {
+        setEditProgramId(null);
+        setEditProgramValue('');
+        setEditProgramCurr([]);
+        setStartTimes({
+            7: '06:00 AM',
+            8: '06:00 AM',
+            9: '06:00 AM',
+            10: '06:00 AM',
+        });
+        setSelectedShifts({
+            7: 0,
+            8: 0,
+            9: 0,
+            10: 0,
+        });
+        setEditFixedDays({
+            7: {},
+            8: {},
+            9: {},
+            10: {},
+        });
+        setEditFixedPositions({
+            7: {},
+            8: {},
+            9: {},
+            10: {},
+        });
+        setEditAdditionalScheds({
+            7: [],
+            8: [],
+            9: [],
+            10: [],
         });
     };
 
@@ -1246,21 +1619,25 @@ const ProgramListContainer = ({
         []
     );
 
-    useEffect(() => {
-        console.log('editProgramCurr:', editProgramCurr);
-        console.log('editFixedDays:', editFixedDays);
-        console.log('editFixedPositions:', editFixedPositions);
-    }, [editProgramCurr, editFixedDays, editFixedPositions]);
+    // useEffect(() => {
+    //     console.log('editProgramCurr:', editProgramCurr);
+    //     console.log('editFixedDays:', editFixedDays);
+    //     console.log('editFixedPositions:', editFixedPositions);
+    // }, [editProgramCurr, editFixedDays, editFixedPositions]);
 
-    useEffect(() => {
-        if (externalNumOfSchoolDays !== undefined) {
-            setNumOfSchoolDays(externalNumOfSchoolDays);
-        }
-    }, [externalNumOfSchoolDays]);
+    // useEffect(() => {
+    //     if (externalNumOfSchoolDays !== undefined) {
+    //         setNumOfSchoolDays(externalNumOfSchoolDays);
+    //     }
+    // }, [externalNumOfSchoolDays]);
 
-    useEffect(() => {
-        console.log('numOfSchoolDays:', numOfSchoolDays);
-    }, [numOfSchoolDays]);
+    // useEffect(() => {
+    //     // console.log('numOfSchoolDays:', numOfSchoolDays);
+    // }, [numOfSchoolDays]);
+
+    // useEffect(() => {
+    //     console.log('editAdditionalScheds:', editAdditionalScheds);
+    // }, [editAdditionalScheds]);
 
     useEffect(() => {
         debouncedSearch(searchProgramValue, programs, subjects);
@@ -1367,6 +1744,8 @@ const ProgramListContainer = ({
     //     // );
     // }, [gradeTotalTimeslot]);
 
+    // Functions for deletion functionality
+    
     const deleteModal = (id) => {
         const deleteModalElement = document.getElementById('delete_modal');
         deleteModalElement.showModal();
@@ -1380,6 +1759,7 @@ const ProgramListContainer = ({
         document.getElementById('delete_modal').close();
     };
 
+    // To handle closing of add program modal
     const handleClose = () => {
         const modal = document.getElementById('add_program_modal');
         if (modal) {
@@ -1389,6 +1769,21 @@ const ProgramListContainer = ({
         } else {
             console.error("Modal with ID 'add_program_modal' not found.");
         }
+    };
+
+    const handleConfirmationModalClose = () => {
+
+        setSectionDetailsToUpdate({
+            shift: false,
+            startTime: false,
+            fixedScheds: false,
+            additionalScheds: false,
+        })
+
+        document.
+            getElementById(`confirm_program_edit_modal`).
+                close()
+
     };
 
     return (
@@ -1405,7 +1800,7 @@ const ProgramListContainer = ({
                                     if (currentPage > 1) {
                                         setCurrentPage(currentPage - 1);
                                     }
-                                    handleCancelProgramEditClick();
+                                    resetStates();
                                 }}
                                 disabled={currentPage === 1}
                             >
@@ -1424,7 +1819,7 @@ const ProgramListContainer = ({
                                     if (currentPage < totalPages) {
                                         setCurrentPage(currentPage + 1);
                                     }
-                                    handleCancelProgramEditClick();
+                                    resetStates();
                                 }}
                                 disabled={currentPage === totalPages}
                             >
@@ -1486,13 +1881,14 @@ const ProgramListContainer = ({
                     <table className="table table-sm table-zebra w-full">
                         <thead>
                             <tr>
-                                <th className="w-auto">#</th>
-                                <th className="w-auto">Program ID</th>
-                                <th className="w-auto">Program</th>
-                                <th>
+                                <th className="w-1/12">#</th>
+                                <th className="w-1/12">Program ID</th>
+                                <th className="w-1/12">Program</th>
+                                <th className="w-5/12">
                                     Shift, Start Time, and Subjects (per year
                                     level)
                                 </th>
+                                <th className="w-auto">Additional Schedules</th>
                                 {editable && (
                                     <th className="w-auto">Actions</th>
                                 )}
@@ -1814,6 +2210,194 @@ const ProgramListContainer = ({
                                                 </div>
                                             )}
                                         </td>
+                                        <td>
+                                            {editProgramId === program.id ? (
+                                                <>
+                                                    <div>
+                                                        {[7, 8, 9, 10].map(
+                                                            (grade) => (
+                                                                <div
+                                                                    key={`edit-add-sched-edit-prog(${program.id})-grade(${grade})`}
+                                                                    className='mt-2 overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg'
+                                                                    style={{ scrollbarWidth: 'thin', scrollbarColor: '#a0aec0 #edf2f7' }} // Optional for styled scrollbars
+                                                                >
+                                                                    <div
+                                                                        className='flex flex-wrap'
+                                                                        style={{
+                                                                            position: 'sticky',
+                                                                            top: 0,
+                                                                            zIndex: 1,
+                                                                            backgroundColor: 'white',
+                                                                        }}
+                                                                    >
+                                                                        <div
+                                                                            className='w-9/12 font-bold p-2 border-b border-gray-300'
+                                                                            
+                                                                        >
+                                                                            Grade {grade}
+                                                                        </div>
+                                                                        <div
+                                                                            className='w-3/12 flex justify-center items-center border-b border-gray-300'
+                                                                        >
+                                                                            <button
+                                                                                className='w-3/4 bg-green-700 m-2 font-bold text-white rounded-lg hover:bg-green-500'
+                                                                                onClick={() => handleAddAdditionalSchedule(grade)}
+                                                                            >
+                                                                                +
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                    {
+                                                                        editAdditionalScheds[grade].map((sched, index) => (
+                                                                            <div
+                                                                                key={index}
+                                                                                className='flex flex-wrap'
+                                                                            >
+                                                                                <button
+                                                                                    className='w-1/12 border rounded-l-lg bg-blue-200 hover:bg-blue-100 flex items-center justify-center'
+                                                                                    onClick={() => handleDeleteAdditionalSchedule(grade, index)}
+                                                                                >
+                                                                                    <RiDeleteBin7Line
+                                                                                        size={15}
+                                                                                    />
+                                                                                </button>
+                                                                                <div
+                                                                                    className='w-10/12'
+                                                                                >
+                                                                                    <button
+                                                                                        className="w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-gray-200"
+                                                                                        onClick={() => document
+                                                                                            .getElementById(
+                                                                                                `add_additional_sched_modal_1_grade-${grade}_prog-${program.id}_idx-${index}`
+                                                                                            )
+                                                                                            .showModal()}
+                                                                                    >
+                                                                                        {sched.name || sched.subject ? (
+                                                                                            // Content to show when both are not empty
+                                                                                            <>
+                                                                                                <p>Name: {sched.name}</p>
+                                                                                                <p>Subject: {sched.subject === 0 ? 'N/A' : subjects[sched.subject].subject}</p>
+                                                                                            </>
+                                                                                        ) : (
+                                                                                            // Content to show when either is empty
+                                                                                            <p>Untitled Schedule {index + 1}</p>
+                                                                                        )}
+                                                                                    </button>
+                                                                                    <AdditionalScheduleForProgram
+                                                                                        viewingMode={1}
+                                                                                        programID={program.id}
+                                                                                        grade={grade}
+                                                                                        arrayIndex={index}
+
+                                                                                        additionalSchedsOfProgYear={sched}
+                                                                                    />
+                                                                                </div>
+                                                                                <div
+                                                                                    className='w-1/12 text-xs font-bold rounded-r-lg bg-blue-200 hover:bg-blue-100 flex text-center justify-center items-center p-2 cursor-pointer'
+                                                                                >
+                                                                                    <button
+                                                                                        onClick={() => document
+                                                                                            .getElementById(
+                                                                                                `add_additional_sched_modal_0_grade-${grade}_prog-${program.id}_idx-${index}`
+                                                                                            )
+                                                                                            .showModal()}
+                                                                                    >
+                                                                                        <RiEdit2Fill
+                                                                                            size={15}
+                                                                                        />
+                                                                                    </button>
+                                                                                    <AdditionalScheduleForProgram
+                                                                                        viewingMode={0}
+                                                                                        programID={program.id}
+                                                                                        grade={grade}
+                                                                                        arrayIndex={index}
+                                                                                        numOfSchoolDays={numOfSchoolDays}
+                                                                                        progYearSubjects={editProgramCurr[grade]}
+                                                                                        additionalSchedsOfProgYear={sched}
+                                                                                        setAdditionalScheds={setEditAdditionalScheds}
+                                                                                    />
+                                                                                </div>
+                                                                            </div>
+                                                                        )
+                                                                    )}
+                                                                </div>
+                                                            )
+                                                        )}
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div>
+                                                        {[7, 8, 9, 10].map(
+                                                            (grade) => (
+                                                                <div
+                                                                    key={`edit-add-sched-view-prog(${program.id})-grade(${grade})`}
+                                                                    className='mt-2 overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg'
+                                                                    style={{ scrollbarWidth: 'thin', scrollbarColor: '#a0aec0 #edf2f7' }} // Optional for styled scrollbars
+                                                                >
+                                                                    <div
+                                                                        className='font-bold p-2 border-b border-gray-300'
+                                                                        style={{
+                                                                            position: 'sticky',
+                                                                            top: 0,
+                                                                            zIndex: 1,
+                                                                            backgroundColor: 'white',
+                                                                        }}
+                                                                    >
+                                                                        Grade {grade}
+                                                                    </div>
+                                                                    {
+                                                                        program[grade]?.additionalScheds.map((sched, index) => (
+                                                                            <div
+                                                                                key={index}
+                                                                                className='flex flex-wrap'
+                                                                            >
+                                                                                <div
+                                                                                    className='w-1/12 text-xs font-bold bg-blue-100 flex text-center justify-center items-center p-2'
+                                                                                >
+                                                                                    {index + 1}
+                                                                                </div>
+                                                                                <div
+                                                                                    className='w-11/12'
+                                                                                >
+                                                                                    <button
+                                                                                        className="w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-gray-200"
+                                                                                        onClick={() => document
+                                                                                            .getElementById(
+                                                                                                `add_additional_sched_modal_1_grade-${grade}_prog-${program.id}_idx-${index}`
+                                                                                            )
+                                                                                            .showModal()}
+                                                                                    >
+                                                                                        {sched.name || sched.subject ? (
+                                                                                            // Content to show when both are not empty
+                                                                                            <>
+                                                                                                <p>Name: {sched.name}</p>
+                                                                                                <p>Subject: {sched.subject === 0 ? 'N/A' : subjects[sched.subject].subject}</p>
+                                                                                            </>
+                                                                                        ) : (
+                                                                                            // Content to show when either is empty
+                                                                                            <p>Untitled Schedule {index + 1}</p>
+                                                                                        )}
+                                                                                    </button>
+                                                                                    <AdditionalScheduleForProgram
+                                                                                        viewingMode={1}
+                                                                                        programID={program.id}
+                                                                                        grade={grade}
+                                                                                        arrayIndex={index}
+
+                                                                                        additionalSchedsOfProgYear={sched}
+                                                                                    />
+                                                                                </div>
+                                                                            </div>
+                                                                        )
+                                                                    )}
+                                                                </div>
+                                                            )
+                                                        )}
+                                                    </div>
+                                                </>
+                                            )}
+                                        </td>
                                         {editable && (
                                             <td>
                                                 {editProgramId ===
@@ -1821,10 +2405,17 @@ const ProgramListContainer = ({
                                                     <>
                                                         <button
                                                             className="btn btn-sm btn-outline"
-                                                            onClick={() =>
-                                                                handleSaveProgramEditClick(
-                                                                    program.id
-                                                                )
+                                                            // onClick={() =>
+                                                            //     handleSaveProgramEditClick(
+                                                            //         program.id
+                                                            //     )
+                                                            // }
+                                                            onClick={
+                                                                () => document
+                                                                    .getElementById(
+                                                                        `confirm_program_edit_modal`
+                                                                    )
+                                                                .showModal()
                                                             }
                                                         >
                                                             Save
@@ -1832,7 +2423,7 @@ const ProgramListContainer = ({
                                                         <button
                                                             className="btn btn-sm btn-outline"
                                                             onClick={
-                                                                handleCancelProgramEditClick
+                                                                resetStates
                                                             }
                                                         >
                                                             Cancel
@@ -1876,6 +2467,122 @@ const ProgramListContainer = ({
                         </tbody>
                     </table>
                 </div>
+                
+                {/* Modal for confirming program modifications */}
+                <dialog
+                    id="confirm_program_edit_modal"
+                    className="modal modal-bottom sm:modal-middle"
+                >
+                    <div
+                        className="modal-box"
+                        style={{ width: '30%', maxWidth: 'none' }}
+                    >
+                        <div>
+                            <div className='mb-3 text-center text-lg font-bold'>
+                                Confirmation for Modifications on Program
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div
+                                className='m-2 p-2'
+                            >
+                                Your modifications in this program will be saved as well in all associated sections. Please select which section details you would like to update.
+                            </div>
+                            <div className='flex justify-center items-center'>
+                                <div className='text-left'>
+                                    <label>
+                                        <input
+                                        type="checkbox"
+                                        name="shift"
+                                        className='mr-2'
+                                        checked={sectionDetailsToUpdate.shift}
+                                        onChange={(e) =>
+                                            setSectionDetailsToUpdate((prev) => ({
+                                            ...prev,
+                                            shift: e.target.checked,
+                                            }))
+                                        }
+                                        />
+                                        Update Shift
+                                    </label>
+                                    <br />
+                                    <label>
+                                        <input
+                                        type="checkbox"
+                                        name="startTime"
+                                        className='mr-2'
+                                        checked={sectionDetailsToUpdate.startTime}
+                                        onChange={(e) =>
+                                            setSectionDetailsToUpdate((prev) => ({
+                                            ...prev,
+                                            startTime: e.target.checked,
+                                            }))
+                                        }
+                                        />
+                                        Update Start Time
+                                    </label>
+                                    <br />
+                                    <label>
+                                        <input
+                                        type="checkbox"
+                                        name="fixedScheds"
+                                        className='mr-2'
+                                        checked={sectionDetailsToUpdate.fixedScheds}
+                                        onChange={(e) =>
+                                            setSectionDetailsToUpdate((prev) => ({
+                                            ...prev,
+                                            fixedScheds: e.target.checked,
+                                            }))
+                                        }
+                                        />
+                                        Update Fixed Schedules
+                                    </label>
+                                    <br />
+                                    <label>
+                                        <input
+                                        type="checkbox"
+                                        name="additionalScheds"
+                                        className='mr-2'
+                                        checked={sectionDetailsToUpdate.additionalScheds}
+                                        onChange={(e) =>
+                                            setSectionDetailsToUpdate((prev) => ({
+                                            ...prev,
+                                            additionalScheds: e.target.checked,
+                                            }))
+                                        }
+                                        />
+                                        Update Additional Schedules
+                                    </label>
+                                </div>
+                            </div>
+                            <div
+                                className='mt-4 flex justify-center items-center gap-3'
+                            >
+                                <button
+                                    className='btn btn-sm bg-green-400 hover:bg-green-200'
+                                >
+                                    Confirm
+                                </button>
+                                <button
+                                    className='btn btn-sm'
+                                    onClick={handleConfirmationModalClose}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div className="modal-action w-full mt-0">
+                            <button
+                                className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                                onClick={handleConfirmationModalClose}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+                </dialog>
             </div>
         </React.Fragment>
     );

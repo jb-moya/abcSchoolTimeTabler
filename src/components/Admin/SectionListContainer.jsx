@@ -23,6 +23,234 @@ import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 
 import FixedScheduleMaker from './FixedSchedules/fixedScheduleMaker';
 
+const AdditionalScheduleForSection = ({
+    viewingMode = 0,
+    sectionID = 0,
+    grade = 0,
+
+    arrayIndex = 0,
+
+    sectionSubjects = [],
+
+    numOfSchoolDays = 1,
+
+    additionalSchedsOfSection = [],
+    setAdditionalScheds = () => {},
+}) => {
+
+    const subjects = useSelector((state) => state.subject.subjects);
+
+    const [schedName, setSchedName] = useState(additionalSchedsOfSection.name);
+    const [schedSubject, setSchedSubject] = useState(additionalSchedsOfSection.subject);
+    const [schedDuration, setSchedDuration] = useState(additionalSchedsOfSection.duration);
+    const [schedFrequency, setSchedFrequency] = useState(additionalSchedsOfSection.frequency);
+    const [schedShown, setSchedShown] = useState(false);
+
+    const handleSave = () => {
+        const newSched = {
+            name: schedName,
+            subject: schedSubject,
+            duration: schedDuration,
+            frequency: schedFrequency,
+            shown: schedShown,
+        };
+
+        // console.log('Old Sched: ', additionalSchedsOfSection);
+
+        setAdditionalScheds((prev) => {
+            const updatedScheds = [ ...prev];
+            updatedScheds[arrayIndex] = newSched;
+
+            // console.log('Updated Scheds:', updatedScheds);
+
+            return updatedScheds;
+        });        
+
+        resetStates();
+           
+        document.getElementById(`add_additional_sched_modal_${viewingMode}_grade-${grade}_sec-${sectionID}_idx-${arrayIndex}`).close();
+    };
+
+    const handleClose = () => {
+        const modal = document.getElementById(`add_additional_sched_modal_${viewingMode}_grade-${grade}_sec-${sectionID}_idx-${arrayIndex}`);
+
+        resetStates();
+
+        if (modal) {
+            modal.close();
+        }
+    };
+
+    const resetStates = () => {
+        setSchedName(additionalSchedsOfSection.name);
+        setSchedSubject(additionalSchedsOfSection.subject);
+        setSchedDuration(additionalSchedsOfSection.duration);
+        setSchedFrequency(additionalSchedsOfSection.frequency);
+        setSchedShown(additionalSchedsOfSection.frequency);
+    };
+
+    useEffect(() => {
+        setSchedName(additionalSchedsOfSection.name || '');
+        setSchedSubject(additionalSchedsOfSection.subject || 0);
+        setSchedDuration(additionalSchedsOfSection.duration || 0);
+        setSchedFrequency(additionalSchedsOfSection.frequency || '');
+        setSchedShown(additionalSchedsOfSection.shown || false);
+    }, [additionalSchedsOfSection]);
+    
+
+    // useEffect(() => {
+    //     console.log('schedName', schedName);
+    //     console.log('schedSubject', schedSubject);
+    //     console.log('typeof schedSubject', typeof schedSubject);
+    //     console.log('schedDuration', schedDuration);
+    //     console.log('schedFrequency', schedFrequency);
+    //     console.log('schedShown', schedShown);
+    // }, [schedName, schedSubject, schedDuration, schedFrequency, schedShown]);
+
+    return (
+        <dialog
+            id={`add_additional_sched_modal_${viewingMode}_grade-${grade}_sec-${sectionID}_idx-${arrayIndex}`}
+            className='modal modal-bottom sm:modal-middle'
+        >
+            <div
+                className='modal-box'
+            >
+
+                <div>
+                    <div className='mb-3 text-center text-lg font-bold'>
+                        {viewingMode === 1 ? (
+                            <div>View Mode</div>
+                        ) : (
+                            <div>Edit Mode</div>
+                        )}
+                    </div>
+                
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1">
+                            Schedule Name:
+                        </label>
+                        <input
+                            type="text"
+                            // ref={inputNameRef}
+                            className="input input-bordered w-full"
+                            value={schedName}
+                            onChange={(e) => setSchedName(e.target.value)}
+                            placeholder="Enter schedule name"
+                            readOnly={viewingMode !== 0}
+                        />
+                    </div>
+                    <div className='mb-4'>
+                        <label className='block text-sm font-medium mb-1'>
+                            Subject:
+                        </label>
+                        {viewingMode === 0 ? (
+                            <select
+                                className='input input-bordered w-full'
+                                value={schedSubject === 0 ? 0 : schedSubject}
+                                onChange={(e) => setSchedSubject(Number(e.target.value))}
+                            >
+                                <option
+                                    value={0}
+                                    className='text-gray-400'
+                                >
+                                    N/A
+                                </option>
+                                {sectionSubjects.map((id) => (
+                                    <option key={id} value={id}>
+                                        {subjects[id]?.subject}
+                                    </option>
+                                ))}
+                            </select>
+                        ) : (
+                            <input
+                                type='text'
+                                className='input input-bordered w-full'
+                                value={
+                                    subjects[schedSubject]?.subject || 'N/A'
+                                }
+                                readOnly
+                            />
+                        )}
+                    </div>
+                    <div className='mb-4'>
+                        <label className='block text-sm font-medium mb-1'>
+                            Duration (in minutes):
+                        </label>
+                        <input
+                            type='number'
+                            className='input input-bordered w-full'
+                            value={schedDuration}
+                            onChange={(e) => setSchedDuration(Number(e.target.value))}
+                            placeholder='Enter duration'
+                            readOnly={viewingMode !== 0}
+                        />
+                    </div>
+                    <div className='mb-4'>
+                        <label className='block text-sm font-medium mb-1'>
+                            Frequency:
+                        </label>
+                        <input
+                            type='number'
+                            className='input input-bordered w-full'
+                            value={schedFrequency}
+                            onChange={(e) => setSchedFrequency(Number(e.target.value))}
+                            placeholder='Enter frequency'
+                            min={1}
+                            max={numOfSchoolDays}
+                            readOnly={viewingMode !== 0}
+                        />
+                    </div>
+                    <div className='mb-4'>
+                        <label className='block text-sm font-medium mb-1'>
+                            Must Appear on Schedule:
+                        </label>
+                        <select
+                            className='input input-bordered w-full'
+                            value={schedShown ? 'Yes' : 'No'}
+                            onChange={(e) => setSchedShown(e.target.value === 'Yes')}
+                            readOnly={viewingMode !== 0}
+                        >
+                            <option value='Yes'>Yes</option>
+                            <option value='No'>No</option>
+                        </select>
+                    </div>
+
+                    <div className='mt-4 text-center text-lg font-bold'>
+                        {viewingMode !== 1 && (
+                            <div
+                                className='flex flex-wrap gap-2 justify-center'
+                            >
+                                <button
+                                    className='btn btn-sm rounded-lg bg-green-600 text-white hover:bg-green-500'
+                                    onClick={handleSave}
+                                >
+                                    Save
+                                </button>
+                                <button
+                                    className='btn btn-sm rounded-lg bg-red-600 text-white hover:bg-red-500'
+                                    onClick={handleClose}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="modal-action w-full mt-0">
+                    <button
+                        className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                        onClick={handleClose}
+                    >
+                        ✕
+                    </button>
+                </div>
+
+            </div>
+        </dialog>
+    );
+};
+
 const AddSectionContainer = ({
     close,
     reduxField,
@@ -58,9 +286,9 @@ const AddSectionContainer = ({
     const [selectedSubjects, setSelectedSubjects] = useState([]);
     const [selectedShift, setSelectedShift] = useState(0);
     const [selectedStartTime, setSelectedStartTime] = useState(0);
-
     const [fixedDays, setFixedDays] = useState({});
     const [fixedPositions, setFixedPositions] = useState({});
+    const [additionalScheds, setAdditionalScheds] = useState([]);
 
     const [totalTimeslot, setTotalTimeslot] = useState(null);
 
@@ -167,25 +395,19 @@ const AddSectionContainer = ({
         } else {
             dispatch(
                 reduxFunction({
-                    [reduxField[0]]: inputValue,
-                    teacher: selectedAdviser,
-                    program: selectedProgram,
-                    year: selectedYearLevel,
-                    subjects: selectedSubjects,
-                    fixedDays: fixedDays,
-                    fixedPositions: fixedPositions,
-                    shift: selectedShift,
-                    startTime: selectedStartTime,
+                [reduxField[0]]: inputValue,
+                teacher: selectedAdviser,
+                program: selectedProgram,
+                year: selectedYearLevel,
+                subjects: selectedSubjects,
+                fixedDays: fixedDays,
+                fixedPositions: fixedPositions,
+                shift: selectedShift,
+                startTime: selectedStartTime,
+                additionalScheds: additionalScheds,
                 })
             );
-            setInputValue('');
-            setSelectedProgram('');
-            setSelectedYearLevel('');
-            setSelectedSubjects([]);
-            setSelectedShift(0);
-            setSelectedStartTime(0);
-            setFixedDays({});
-            setFixedPositions({});
+            handleReset();
         }
 
         toast.success('Teacher added successfully', {
@@ -217,12 +439,8 @@ const AddSectionContainer = ({
         setSelectedStartTime(0);
         setFixedDays({});
         setFixedPositions({});
+        setAdditionalScheds([]);
     };
-
-    useEffect(() => {
-        console.log('fixedDays:', fixedDays);
-        console.log('fixedPositions:', fixedPositions);
-    }, [fixedDays, fixedPositions]);
 
     useEffect(() => {
         if (inputNameRef.current) {
@@ -231,19 +449,34 @@ const AddSectionContainer = ({
     }, []);
 
     useEffect(() => {
+        console.log('additionalScheds:', additionalScheds);
+    }, [additionalScheds]);
+
+    useEffect(() => {
         if (selectedProgram && selectedYearLevel) {
             const program = Object.values(programs).find(
                 (p) => p.id === selectedProgram
             );
 
             if (program) {
-                setSelectedSubjects(program[selectedYearLevel].subjects || []); // Ensure it accesses the subjects correctly
-                setFixedDays(program[selectedYearLevel].fixedDays || {});
+                setSelectedSubjects(
+                    program[selectedYearLevel].subjects || []
+                );
+                setFixedDays(
+                    program[selectedYearLevel].fixedDays || {}
+                );
                 setFixedPositions(
                     program[selectedYearLevel].fixedPositions || {}
                 );
-                setSelectedShift(program[selectedYearLevel].shift || 0);
-                setSelectedStartTime(program[selectedYearLevel].startTime || 0);
+                setAdditionalScheds(
+                    program[selectedYearLevel].additionalScheds || []
+                );
+                setSelectedShift(
+                    program[selectedYearLevel].shift || 0
+                );
+                setSelectedStartTime(
+                    program[selectedYearLevel].startTime || 0
+                );
             }
         }
     }, [selectedProgram, selectedYearLevel, programs]);
@@ -424,6 +657,7 @@ const AddSectionContainer = ({
                     >
                         Edit Section Fixed Schedule(s)
                     </button>
+
                     <FixedScheduleMaker
                         key={selectedYearLevel}
                         addingMode={0}
@@ -441,6 +675,97 @@ const AddSectionContainer = ({
                     />
                 </>
             )}
+
+            { 
+                additionalScheds.length > 0 &&
+                <div
+                    className='flex flex-col justify-center items-center'
+                >
+                    <div
+                        className='mt-2 w-1/4 border border-gray-300 rounded-t-lg font-bold'
+                    >
+                        Additional Schedules
+                    </div>
+                    <div
+                        className='w-1/4 overflow-y-auto max-h-36 border border-gray-300 rounded-b-lg'
+                        style={{ scrollbarWidth: 'thin', scrollbarColor: '#a0aec0 #edf2f7' }} // Optional for styled scrollbars
+                    >
+                        {additionalScheds.map((sched, index) => (
+                            <div
+                                key={index}
+                                className='flex flex-wrap'
+                            >
+                                <button
+                                    className='w-1/12 border rounded-l-lg hover:bg-gray-200 flex items-center justify-center'
+                                    // onClick={() => handleDeleteAdditionalSchedule(grade, index)}
+                                >
+                                    <RiDeleteBin7Line
+                                        size={15}
+                                    />
+                                </button>
+                                <div
+                                    className='w-10/12'
+                                >
+                                    <button
+                                        className="w-full bg-gray-100 p-2 border shadow-sm hover:bg-gray-200"
+                                        onClick={() => document
+                                            .getElementById(
+                                                `add_additional_sched_modal_1_grade-${selectedYearLevel}_sec-0_idx-${index}`
+                                            )
+                                            .showModal()}
+                                    >
+                                        {sched.name || sched.subject ? (
+                                            // Content to show when both are not empty
+                                            <>
+                                                <p>Name: {sched.name}</p>
+                                                <p>Subject: {sched.subject === 0 ? 'N/A' : subjects[sched.subject].subject}</p>
+                                            </>
+                                        ) : (
+                                            // Content to show when either is empty
+                                            <p>Untitled Schedule {index + 1}</p>
+                                        )}
+                                    </button>
+                                    <AdditionalScheduleForSection
+                                        viewingMode={1}
+                                        sectionID={0}
+                                        grade={selectedYearLevel}
+                                        arrayIndex={index}
+
+                                        additionalSchedsOfSection={sched}
+                                    />
+                                </div>
+                                <div 
+                                    className='w-1/12  flex items-center justify-center border rounded-r-lg hover:bg-gray-200'
+                                >
+                                    <button
+                                        onClick={() => document
+                                            .getElementById(
+                                                `add_additional_sched_modal_0_grade-${selectedYearLevel}_sec-0_idx-${index}`
+                                            )
+                                            .showModal()}
+                                    >
+                                        <RiEdit2Fill
+                                            size={15}
+                                        />
+                                    </button>
+                                    <AdditionalScheduleForSection
+                                        viewingMode={0}
+                                        sectionID={0}
+                                        grade={selectedYearLevel}
+                                        arrayIndex={index}
+                                        numOfSchoolDays={numOfSchoolDays}
+                                        sectionSubjects={selectedSubjects}
+                                        additionalSchedsOfSection={sched}
+                                        setAdditionalScheds={setAdditionalScheds}
+                                    />
+                                </div>
+                                
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            }
+            
 
             {errorMessage && (
                 <p className="text-red-500 text-sm my-4 font-medium select-none ">
@@ -498,9 +823,8 @@ const SectionListContainer = ({
     const [editSectionStartTime, setEditSectionStartTime] = useState('');
 
     const [editSectionFixedDays, setEditSectionFixedDays] = useState({});
-    const [editSectionFixedPositions, setEditSectionFixedPositions] = useState(
-        {}
-    );
+    const [editSectionFixedPositions, setEditSectionFixedPositions] = useState({});
+    const [editAdditionalScheds, setEditAdditionalScheds] = useState([]);
 
     const [sectionTotalTimeslot, setSectionTotalTimeslot] = useState({});
 
@@ -567,6 +891,7 @@ const SectionListContainer = ({
         setEditSectionSubjects(section.subjects);
         setEditSectionFixedDays(section.fixedDays);
         setEditSectionFixedPositions(section.fixedPositions);
+        setEditAdditionalScheds(section.additionalScheds);
 
         setCurrEditProgram(section.program);
         setCurrEditYear(section.year);
@@ -597,19 +922,20 @@ const SectionListContainer = ({
         ) {
             dispatch(
                 editSection({
-                    sectionId,
-                    updatedSection: {
-                        id: sectionId,
-                        teacher: editSectionAdviser,
-                        program: editSectionProg,
-                        section: editSectionValue,
-                        subjects: editSectionSubjects,
-                        fixedDays: editSectionFixedDays,
-                        fixedPositions: editSectionFixedPositions,
-                        year: editSectionYear,
-                        shift: editSectionShift,
-                        startTime: getTimeSlotIndex(editSectionStartTime),
-                    },
+                sectionId,
+                updatedSection: {
+                    id: sectionId,
+                    teacher: editSectionAdviser,
+                    program: editSectionProg,
+                    section: editSectionValue,
+                    subjects: editSectionSubjects,
+                    fixedDays: editSectionFixedDays,
+                    fixedPositions: editSectionFixedPositions,
+                    year: editSectionYear,
+                    shift: editSectionShift,
+                    startTime: getTimeSlotIndex(editSectionStartTime),
+                    additionalScheds: editAdditionalScheds,
+                },
                 })
             );
 
@@ -621,17 +947,8 @@ const SectionListContainer = ({
                 },
             });
 
-            // Reset the editing state
-            setEditSectionId('');
-            setEditSectionValue('');
-            setEditSectionProg('');
-            setEditSectionYear('');
-            setEditSectionSubjects([]);
-            setEditSectionFixedDays({});
-            setEditSectionFixedPositions({});
+            resetStates();
 
-            setCurrEditProgram('');
-            setCurrEditYear('');
         } else {
             const duplicateSection = Object.values(sections).find(
                 (section) =>
@@ -662,31 +979,22 @@ const SectionListContainer = ({
                     editSection({
                         sectionId,
                         updatedSection: {
-                            id: sectionId,
-                            teacher: editSectionAdviser,
-                            program: editSectionProg,
-                            section: editSectionValue,
-                            subjects: editSectionSubjects,
-                            fixedDays: editSectionFixedDays,
-                            fixedPositions: editSectionFixedPositions,
-                            year: editSectionYear,
-                            shift: editSectionShift,
-                            startTime: getTimeSlotIndex(editSectionStartTime),
+                        id: sectionId,
+                        teacher: editSectionAdviser,
+                        program: editSectionProg,
+                        section: editSectionValue,
+                        subjects: editSectionSubjects,
+                        fixedDays: editSectionFixedDays,
+                        fixedPositions: editSectionFixedPositions,
+                        year: editSectionYear,
+                        shift: editSectionShift,
+                        startTime: getTimeSlotIndex(editSectionStartTime),
+                        additionalScheds: editAdditionalScheds,
                         },
                     })
                 );
 
-                // Reset the editing state
-                setEditSectionId('');
-                setEditSectionValue('');
-                setEditSectionProg('');
-                setEditSectionYear('');
-                setEditSectionSubjects([]);
-                setEditSectionFixedDays({});
-                setEditSectionFixedPositions({});
-
-                setCurrEditProgram('');
-                setCurrEditYear('');
+                resetStates();
             }
         }
     };
@@ -705,6 +1013,25 @@ const SectionListContainer = ({
         setCurrEditYear('');
     };
 
+    const handleAddAdditionalSchedule = () => {
+        setEditAdditionalScheds((prevScheds) => [
+            ...prevScheds,
+            { 
+                name: '', 
+                subject: 0,
+                duration: 60,
+                frequency: 1,
+                shown: true,
+            },
+        ]);
+    };
+    
+    const handleDeleteAdditionalSchedule = (index) => {
+        setEditAdditionalScheds((prevScheds) =>
+            prevScheds.filter((_, i) => i !== index)
+        );
+    };
+    
     const renderTimeOptions = () => {
         const times =
             editSectionShift === 0
@@ -746,6 +1073,36 @@ const SectionListContainer = ({
     const handleDelete = (id) => {
         dispatch(removeSection(id)); // Perform the delete action
         document.getElementById('delete_modal').close(); // Close the modal after deleting
+    };
+
+    const resetStates = () => {
+        // Reset the editing state
+        setEditSectionId('');
+        setEditSectionValue('');
+        setEditSectionProg('');
+        setEditSectionYear('');
+        setEditSectionSubjects([]);
+        setEditSectionFixedDays({});
+        setEditSectionFixedPositions({});
+        setEditAdditionalScheds([]);
+
+        setCurrEditProgram('');
+        setCurrEditYear('');
+    };
+
+    const resetStates = () => {
+        // Reset the editing state
+        setEditSectionId('');
+        setEditSectionValue('');
+        setEditSectionProg('');
+        setEditSectionYear('');
+        setEditSectionSubjects([]);
+        setEditSectionFixedDays({});
+        setEditSectionFixedPositions({});
+        setEditAdditionalScheds([]);
+
+        setCurrEditProgram('');
+        setCurrEditYear('');
     };
 
     const debouncedSearch = useCallback(
@@ -990,14 +1347,15 @@ const SectionListContainer = ({
                         <thead>
                             <tr>
                                 {/* <th className="w-8">#</th> */}
-                                <th>Section ID</th>
-                                <th>Section</th>
-                                <th>Adviser</th>
+                                <th className="w-1">Section ID</th>
+                                <th className="w-48">Section</th>
+                                <th className="w-40">Adviser</th>
                                 {/* <th>Program</th> */}
                                 {/* <th>Year</th> */}
-                                <th>Subjects</th>
+                                <th className="w-72">Subjects</th>
+                                <th className="w-48">Additional Schedules</th>
                                 {editable && (
-                                    <th className="text-right">Actions</th>
+                                    <th className="w-12 text-right">Actions</th>
                                 )}
                             </tr>
                         </thead>
@@ -1017,7 +1375,7 @@ const SectionListContainer = ({
                                         {/* <td>{index + indexOfFirstItem + 1}</td> */}
 
                                         {/* Section ID */}
-                                        <th>{section.id}</th>
+                                        <td>{section.id}</td>
 
                                         {/* Section Name, Shift, and Start Time */}
                                         <td>
@@ -1461,52 +1819,212 @@ const SectionListContainer = ({
                                             </div>
                                         </td>
 
+                                        <td>
+                                            {editSectionId === section.id ? (
+                                                <> 
+                                                    <div
+                                                        key={`edit-add-sched-edit-section(${editSectionId})`}
+                                                        className='mt-2 overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg'
+                                                        style={{ scrollbarWidth: 'thin', scrollbarColor: '#a0aec0 #edf2f7' }} // Optional for styled scrollbars
+                                                    >
+                                                        <div
+                                                            className='flex flex-wrap'
+                                                            style={{
+                                                                position: 'sticky',
+                                                                top: 0,
+                                                                zIndex: 1,
+                                                                backgroundColor: 'white',
+                                                            }}
+                                                        >
+                                                            <div
+                                                                className='w-9/12 font-bold p-2 border-b border-gray-300'
+                                                                
+                                                            >
+                                                                Grade {editSectionYear}
+                                                            </div>
+                                                            <div
+                                                                className='w-3/12 flex justify-center items-center border-b border-gray-300'
+                                                            >
+                                                                <button
+                                                                    className='w-3/4 bg-green-700 m-2 font-bold text-white rounded-lg hover:bg-green-500'
+                                                                    onClick={handleAddAdditionalSchedule}
+                                                                >
+                                                                    +
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        {
+                                                            editAdditionalScheds.map((sched, index) => (
+                                                                <div
+                                                                    key={index}
+                                                                    className='flex flex-wrap'
+                                                                >
+                                                                    <button
+                                                                        className='w-1/12 border rounded-l-lg bg-blue-200 hover:bg-blue-100 flex items-center justify-center'
+                                                                        onClick={() => handleDeleteAdditionalSchedule(index)}
+                                                                    >
+                                                                        <RiDeleteBin7Line
+                                                                            size={15}
+                                                                        />
+                                                                    </button>
+                                                                    <div
+                                                                        className='w-10/12'
+                                                                    >
+                                                                        <button
+                                                                            className="w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-gray-200"
+                                                                            onClick={() => document
+                                                                                .getElementById(
+                                                                                    `add_additional_sched_modal_1_grade-${editSectionYear}_sec-${editSectionId}_idx-${index}`
+                                                                                )
+                                                                                .showModal()}
+                                                                        >
+                                                                            {sched.name || sched.subject ? (
+                                                                                // Content to show when both are not empty
+                                                                                <>
+                                                                                    <p>Name: {sched.name}</p>
+                                                                                    <p>Subject: {sched.subject === 0 ? 'N/A' : subjects[sched.subject].subject}</p>
+                                                                                </>
+                                                                            ) : (
+                                                                                // Content to show when either is empty
+                                                                                <p>Untitled Schedule {index + 1}</p>
+                                                                            )}
+                                                                        </button>
+                                                                        <AdditionalScheduleForSection
+                                                                            viewingMode={1}
+                                                                            sectionID={editSectionId}
+                                                                            grade={editSectionYear}
+                                                                            arrayIndex={index}
+
+                                                                            additionalSchedsOfSection={sched}
+                                                                        />
+                                                                    </div>
+                                                                    <div
+                                                                        className='w-1/12 text-xs font-bold rounded-r-lg bg-blue-200 hover:bg-blue-100 flex text-center justify-center items-center p-2 cursor-pointer'
+                                                                    >
+                                                                        <button
+                                                                            onClick={() => document
+                                                                                .getElementById(
+                                                                                    `add_additional_sched_modal_0_grade-${editSectionYear}_sec-${editSectionId}_idx-${index}`
+                                                                                )
+                                                                                .showModal()}
+                                                                        >
+                                                                            <RiEdit2Fill
+                                                                                size={15}
+                                                                            />
+                                                                        </button>
+                                                                        <AdditionalScheduleForSection
+                                                                            viewingMode={0}
+                                                                            sectionID={editSectionId}
+                                                                            grade={editSectionYear}
+                                                                            arrayIndex={index}
+                                                                            numOfSchoolDays={numOfSchoolDays}
+                                                                            sectionSubjects={editSectionSubjects}
+                                                                            additionalSchedsOfSection={sched}
+                                                                            setAdditionalScheds={setEditAdditionalScheds}
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            )
+                                                        )}
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div
+                                                        key={`edit-add-sched-view-section(${section.id})`}
+                                                        className='overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg'
+                                                        style={{ scrollbarWidth: 'thin', scrollbarColor: '#a0aec0 #edf2f7' }} // Optional for styled scrollbars
+                                                    >
+                                                        <div
+                                                            className='font-bold p-2 border-b border-gray-300 bg-gray-300'
+                                                            style={{
+                                                                position: 'sticky',
+                                                                top: 0,
+                                                                zIndex: 1,
+                                                            }}
+                                                        >
+                                                        </div>
+                                                        {
+                                                        section.additionalScheds.map((sched, index) => (
+                                                            <div
+                                                                key={index}
+                                                                className='flex flex-wrap'
+                                                            >
+                                                                <div
+                                                                    className='w-1/12 text-xs font-bold bg-blue-100 flex text-center justify-center items-center p-2'
+                                                                >
+                                                                    {index + 1}
+                                                                </div>
+                                                                <div
+                                                                    className='w-11/12'
+                                                                >
+                                                                    <button
+                                                                        className="w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-white"
+                                                                        onClick={() => document
+                                                                            .getElementById(
+                                                                                `add_additional_sched_modal_1_grade-${section.year}_sec-${section.id}_idx-${index}`
+                                                                            )
+                                                                            .showModal()}
+                                                                    >
+                                                                        {sched.name || sched.subject ? (
+                                                                            // Content to show when both are not empty
+                                                                            <>
+                                                                                <p>Name: {sched.name}</p>
+                                                                                <p>Subject: {sched.subject === 0 ? 'N/A' : subjects[sched.subject].subject}</p>
+                                                                            </>
+                                                                        ) : (
+                                                                            // Content to show when either is empty
+                                                                            <p>Untitled Schedule {index + 1}</p>
+                                                                        )}
+                                                                    </button>
+                                                                    <AdditionalScheduleForSection
+                                                                        viewingMode={1}
+                                                                        sectionID={section.id}
+                                                                        grade={section.year}
+                                                                        arrayIndex={index}
+
+                                                                        additionalSchedsOfSection={sched}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                            )
+                                                        )}
+                                                    </div>
+                                                </>
+                                            )}
+                                        </td>
+
                                         {editable && (
-                                            <td className="w-28 text-right">
-                                                {editSectionId ===
-                                                section.id ? (
-                                                    <>
-                                                        <button
-                                                            className="btn btn-xs btn-ghost text-green-500"
-                                                            onClick={() =>
-                                                                handleSaveSectionEditClick(
-                                                                    section.id
-                                                                )
-                                                            }
-                                                        >
-                                                            Save
-                                                        </button>
-                                                        <button
-                                                            className="btn btn-xs btn-ghost text-red-500"
-                                                            onClick={() =>
-                                                                handleCancelSectionEditClick()
-                                                            }
-                                                        >
-                                                            Cancel
-                                                        </button>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <button
-                                                            className="btn btn-xs btn-ghost text-blue-500"
-                                                            onClick={() =>
-                                                                handleEditSectionClick(
-                                                                    section
-                                                                )
-                                                            }
-                                                        >
-                                                            <RiEdit2Fill />
-                                                        </button>
-                                                        <button
-                                                            className="btn btn-xs btn-ghost text-red-500"
-                                                            onClick={() =>
-                                                                deleteModal(
-                                                                    section.id
-                                                                )
-                                                            } // Call deleteModal with the section.id
-                                                        >
-                                                            <RiDeleteBin7Line />
-                                                        </button>
+                                        <td className="w-28 text-right">
+                                            {editSectionId === section.id ? (
+                                            <>
+                                                <button
+                                                className="btn btn-xs btn-ghost text-green-500"
+                                                onClick={() => handleSaveSectionEditClick(section.id)}
+                                                >
+                                                Save
+                                                </button>
+                                                <button
+                                                className="btn btn-xs btn-ghost text-red-500"
+                                                onClick={() => handleCancelSectionEditClick()}
+                                                >
+                                                Cancel
+                                                </button>
+                                            </>
+                                            ) : (
+                                            <>
+                                                <button
+                                                className="btn btn-xs btn-ghost text-blue-500"
+                                                onClick={() => handleEditSectionClick(section)}
+                                                >
+                                                <RiEdit2Fill />
+                                                </button>
+                                                <button
+                                                className="btn btn-xs btn-ghost text-red-500"
+                                                onClick={() => deleteModal(section.id)} // Call deleteModal with the section.id
+                                                >
+                                                <RiDeleteBin7Line />
+                                                </button>
 
                                                         <dialog
                                                             id="delete_modal"
