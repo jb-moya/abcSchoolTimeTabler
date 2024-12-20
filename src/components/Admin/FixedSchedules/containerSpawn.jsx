@@ -33,50 +33,44 @@ const ContainerSpawn = ({
     });
 
     return (
-        
-            <div
-                ref={setNodeRef}
-                className={
-                    'w-full p-2 min-h-24 bg-transparent flex items-center'
-                }
-            >
-                <div className="flex flex-wrap gap-2">
-                    {selectedSubjects?.map((subject, index) => {
-                        const arrayLength = fixedDays?.[subject]?.length || 0;
+        <div
+            ref={setNodeRef}
+            className={'w-full p-2 min-h-13 flex items-center'}
+        >
+            <div className="flex flex-wrap gap-2">
+                {selectedSubjects?.map((subject, index) => {
+                    const arrayLength = fixedDays?.[subject]?.length || 0;
 
-                        return Array.from({ length: arrayLength }).map(
-                            (_, idx) => {
-                                if (
-                                    fixedDays?.[subject]?.[idx] === day &&
-                                    fixedPositions?.[subject]?.[idx] ===
-                                        position &&
-                                    subject === subjectID
-                                ) {
-                                    return (
-                                        <DraggableSchedules
-                                            key={idx}
-                                            editMode={editMode}
-                                            subjectID={subjectID}
-                                            grade={grade}
-                                            dayIdx={idx}
-                                            posIdx={idx}
-                                            // Visuals only
-                                            day={day}
-                                            pos={position}
-                                            colorIdx={colorIndex}
-                                            subjectName={
-                                                subjects[subjectID]?.subject ||
-                                                'Unknown'
-                                            }
-                                        />
-                                    );
-                                }
-                                return null;
-                            }
-                        );
-                    })}
-                </div>
+                    return Array.from({ length: arrayLength }).map((_, idx) => {
+                        if (
+                            fixedDays?.[subject]?.[idx] === day &&
+                            fixedPositions?.[subject]?.[idx] === position &&
+                            subject === subjectID
+                        ) {
+                            return (
+                                <DraggableSchedules
+                                    key={idx}
+                                    editMode={editMode}
+                                    subjectID={subjectID}
+                                    grade={grade}
+                                    dayIdx={idx}
+                                    posIdx={idx}
+                                    // Visuals only
+                                    day={day}
+                                    pos={position}
+                                    colorIdx={colorIndex}
+                                    subjectName={
+                                        subjects[subjectID]?.subject ||
+                                        'Unknown'
+                                    }
+                                />
+                            );
+                        }
+                        return null;
+                    });
+                })}
             </div>
+        </div>
     );
 };
 

@@ -683,9 +683,17 @@ function Timetable() {
 
             const numberOfBreak = totalTimeslot >= 10 ? 2 : 1;
 
-            totalTimeslot += totalTimeslot >= 10 ? 2 : 1;
+            totalTimeslot += numberOfBreak;
 
-            const notAllowedBreakslotGap = 2;
+            // const notAllowedBreakslotGap = totalTimeslot >= 7 ? 2 : 1;
+
+            let notAllowedBreakslotGap = 0;
+            if (totalTimeslot >= 5) {
+                notAllowedBreakslotGap = 3;
+            }
+            // else if (totalTimeslot >= 7) {
+            //     notAllowedBreakslotGap = 3;
+            // }
 
             const isDynamicSubjectConsistentDuration = 0;
 
