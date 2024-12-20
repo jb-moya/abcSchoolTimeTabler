@@ -357,7 +357,7 @@ const FixedScheduleMaker = ({
         // console.log('targetDay', targetDay);
 
         if (isOccupied) {
-            alert('This spot is already taken!');
+            // alert('This spot is already taken!');
             return;
         }
 
@@ -431,7 +431,7 @@ const FixedScheduleMaker = ({
                     )}
                 </div>
 
-                <div className=" max-h-[60vh] max-w-[120vw] text-sm  overflow-scroll">
+                <div className=" max-h-[60vh] max-w-full text-sm  overflow-scroll">
                     <DndContext onDragEnd={handleDragEnd}>
                         <div className="flex gap-10 justify-center">
                             <div className="flex flex-col w-6/12">
@@ -461,7 +461,7 @@ const FixedScheduleMaker = ({
                                                 ],
                                         }}
                                     >
-                                        <div className="w-10/12">
+                                        <div className="w-12/12">
                                             <div
                                                 key={`spawn_label-g${grade}-s${subject}`}
                                                 className="px-2 flex max-w-fit text-lg rounded-br-lg rounded-tl-sm mb-2"
@@ -504,7 +504,7 @@ const FixedScheduleMaker = ({
                                     {/* Header */}
                                     {subs?.length > 0 && (
                                         <div className="grid grid-cols-6 gap-0">
-                                            <div className="w-20 h-20 font-bold"></div>
+                                            <div className="w-20 h-7 font-bold"></div>
                                             {Array.from({
                                                 length: numOfSchoolDays,
                                             }).map((_, i) => {
@@ -523,7 +523,7 @@ const FixedScheduleMaker = ({
                                                 return (
                                                     <div
                                                         key={i}
-                                                        className="w-20 h-20 bg-blue-900 border border-gray-400 border-opacity-50 flex items-center justify-center text-white font-bold"
+                                                        className="w-20 bg-blue-900 border border-gray-400 border-opacity-50 flex items-center justify-center text-white font-bold"
                                                     >
                                                         {dayName}
                                                     </div>
@@ -540,7 +540,7 @@ const FixedScheduleMaker = ({
                                             key={subIndex}
                                             className="grid grid-cols-6 gap-0"
                                         >
-                                            <div className="w-20 h-20 bg-blue-700 text-white font-bold border border-gray-400 border-opacity-50 flex items-center justify-center">
+                                            <div className="w-20 h-14 bg-blue-700 text-white font-bold border border-gray-400 border-opacity-50 flex items-center justify-center">
                                                 {subIndex + 1}
                                             </div>
 

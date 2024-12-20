@@ -80,8 +80,8 @@ const DroppableSchedCell = ({
     return (
         <div
             ref={editMode ? setNodeRef : null}
-            className={`w-20 h-20 justify-center items-center border border-gray-400 border-opacity-20 ${
-                isFull ? 'bg-gray-200' : ''
+            className={`w-20 h-14 flex justify-center items-center border border-gray-400 border-opacity-20 ${
+                isFull ? 'bg-gray-200 bg-opacity-30' : ''
             }
                 ${editMode ? 'hover:bg-slate-300' : ''}
                     `}

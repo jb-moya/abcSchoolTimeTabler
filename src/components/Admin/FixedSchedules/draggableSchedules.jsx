@@ -77,14 +77,14 @@ const DraggableSchedules = ({
                 ref={editMode ? setNodeRef : null}
                 {...(editMode ? listeners : {})}
                 {...(editMode ? attributes : {})}
-                className={`w-20 h-20 p-1 flex items-center justify-center ${colorClass} ${compBorder} ${
+                className={`w-20 h-10 p-1 flex items-center justify-center ${colorClass} ${compBorder} ${
                     editMode
                         ? 'ring-black hover:ring-2 ring-inset cursor-grab shadow-sm hover:shadow-lg'
                         : ''
                 }`}
                 style={editMode ? style : undefined}
             >
-                <h3 className="font-medium truncate text-black text-xs">
+                <h3 className="font-medium text-black text-xs text-center">
                     <div className="">{subjectName}</div>
                 </h3>
             </div>
