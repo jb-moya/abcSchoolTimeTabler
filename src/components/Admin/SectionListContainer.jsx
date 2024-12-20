@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 
 import FixedScheduleMaker from './FixedSchedules/fixedScheduleMaker';
+import clsx from 'clsx';
 
 const AdditionalScheduleForSection = ({
     viewingMode = 0,
@@ -37,13 +38,18 @@ const AdditionalScheduleForSection = ({
     additionalSchedsOfSection = [],
     setAdditionalScheds = () => {},
 }) => {
-
     const subjects = useSelector((state) => state.subject.subjects);
 
     const [schedName, setSchedName] = useState(additionalSchedsOfSection.name);
-    const [schedSubject, setSchedSubject] = useState(additionalSchedsOfSection.subject);
-    const [schedDuration, setSchedDuration] = useState(additionalSchedsOfSection.duration);
-    const [schedFrequency, setSchedFrequency] = useState(additionalSchedsOfSection.frequency);
+    const [schedSubject, setSchedSubject] = useState(
+        additionalSchedsOfSection.subject
+    );
+    const [schedDuration, setSchedDuration] = useState(
+        additionalSchedsOfSection.duration
+    );
+    const [schedFrequency, setSchedFrequency] = useState(
+        additionalSchedsOfSection.frequency
+    );
     const [schedShown, setSchedShown] = useState(false);
 
     const handleSave = () => {
@@ -58,21 +64,27 @@ const AdditionalScheduleForSection = ({
         // console.log('Old Sched: ', additionalSchedsOfSection);
 
         setAdditionalScheds((prev) => {
-            const updatedScheds = [ ...prev];
+            const updatedScheds = [...prev];
             updatedScheds[arrayIndex] = newSched;
 
             // console.log('Updated Scheds:', updatedScheds);
 
             return updatedScheds;
-        });        
+        });
 
         resetStates();
-           
-        document.getElementById(`add_additional_sched_modal_${viewingMode}_grade-${grade}_sec-${sectionID}_idx-${arrayIndex}`).close();
+
+        document
+            .getElementById(
+                `add_additional_sched_modal_${viewingMode}_grade-${grade}_sec-${sectionID}_idx-${arrayIndex}`
+            )
+            .close();
     };
 
     const handleClose = () => {
-        const modal = document.getElementById(`add_additional_sched_modal_${viewingMode}_grade-${grade}_sec-${sectionID}_idx-${arrayIndex}`);
+        const modal = document.getElementById(
+            `add_additional_sched_modal_${viewingMode}_grade-${grade}_sec-${sectionID}_idx-${arrayIndex}`
+        );
 
         resetStates();
 
@@ -96,7 +108,6 @@ const AdditionalScheduleForSection = ({
         setSchedFrequency(additionalSchedsOfSection.frequency || '');
         setSchedShown(additionalSchedsOfSection.shown || false);
     }, [additionalSchedsOfSection]);
-    
 
     // useEffect(() => {
     //     console.log('schedName', schedName);
@@ -110,21 +121,18 @@ const AdditionalScheduleForSection = ({
     return (
         <dialog
             id={`add_additional_sched_modal_${viewingMode}_grade-${grade}_sec-${sectionID}_idx-${arrayIndex}`}
-            className='modal modal-bottom sm:modal-middle'
+            className="modal modal-bottom sm:modal-middle"
         >
-            <div
-                className='modal-box'
-            >
-
+            <div className="modal-box">
                 <div>
-                    <div className='mb-3 text-center text-lg font-bold'>
+                    <div className="mb-3 text-center text-lg font-bold">
                         {viewingMode === 1 ? (
                             <div>View Mode</div>
                         ) : (
                             <div>Edit Mode</div>
                         )}
                     </div>
-                
+
                     <div className="mb-4">
                         <label className="block text-sm font-medium mb-1">
                             Schedule Name:
@@ -136,23 +144,23 @@ const AdditionalScheduleForSection = ({
                             value={schedName}
                             onChange={(e) => setSchedName(e.target.value)}
                             placeholder="Enter schedule name"
+                            disabled={viewingMode !== 0}
                             readOnly={viewingMode !== 0}
                         />
                     </div>
-                    <div className='mb-4'>
-                        <label className='block text-sm font-medium mb-1'>
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1">
                             Subject:
                         </label>
                         {viewingMode === 0 ? (
                             <select
-                                className='input input-bordered w-full'
+                                className="input input-bordered w-full"
                                 value={schedSubject === 0 ? 0 : schedSubject}
-                                onChange={(e) => setSchedSubject(Number(e.target.value))}
+                                onChange={(e) =>
+                                    setSchedSubject(Number(e.target.value))
+                                }
                             >
-                                <option
-                                    value={0}
-                                    className='text-gray-400'
-                                >
+                                <option value={0} className="text-gray-400">
                                     N/A
                                 </option>
                                 {sectionSubjects.map((id) => (
@@ -163,71 +171,80 @@ const AdditionalScheduleForSection = ({
                             </select>
                         ) : (
                             <input
-                                type='text'
-                                className='input input-bordered w-full'
-                                value={
-                                    subjects[schedSubject]?.subject || 'N/A'
-                                }
+                                type="text"
+                                className="input input-bordered w-full"
+                                value={subjects[schedSubject]?.subject || 'N/A'}
+                                disabled
                                 readOnly
                             />
                         )}
                     </div>
-                    <div className='mb-4'>
-                        <label className='block text-sm font-medium mb-1'>
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1">
                             Duration (in minutes):
                         </label>
                         <input
-                            type='number'
-                            className='input input-bordered w-full'
+                            type="number"
+                            className="input input-bordered w-full"
                             value={schedDuration}
-                            onChange={(e) => setSchedDuration(Number(e.target.value))}
-                            placeholder='Enter duration'
+                            onChange={(e) =>
+                                setSchedDuration(Number(e.target.value))
+                            }
+                            placeholder="Enter duration"
+                            disabled={viewingMode !== 0}
                             readOnly={viewingMode !== 0}
                         />
                     </div>
-                    <div className='mb-4'>
-                        <label className='block text-sm font-medium mb-1'>
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1">
                             Frequency:
                         </label>
                         <input
-                            type='number'
-                            className='input input-bordered w-full'
+                            type="number"
+                            className="input input-bordered w-full"
                             value={schedFrequency}
-                            onChange={(e) => setSchedFrequency(Number(e.target.value))}
-                            placeholder='Enter frequency'
+                            onChange={(e) =>
+                                setSchedFrequency(Number(e.target.value))
+                            }
+                            placeholder="Enter frequency"
                             min={1}
                             max={numOfSchoolDays}
+                            disabled={viewingMode !== 0}
                             readOnly={viewingMode !== 0}
                         />
                     </div>
-                    <div className='mb-4'>
-                        <label className='block text-sm font-medium mb-1'>
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1">
                             Must Appear on Schedule:
                         </label>
                         <select
-                            className='input input-bordered w-full'
+                            className={clsx('input input-bordered w-full', {
+                                'pointer-events-none': viewingMode !== 0,
+                                select: viewingMode === 0,
+                            })}
                             value={schedShown ? 'Yes' : 'No'}
-                            onChange={(e) => setSchedShown(e.target.value === 'Yes')}
+                            onChange={(e) =>
+                                setSchedShown(e.target.value === 'Yes')
+                            }
+                            disabled={viewingMode !== 0}
                             readOnly={viewingMode !== 0}
                         >
-                            <option value='Yes'>Yes</option>
-                            <option value='No'>No</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
                         </select>
                     </div>
 
-                    <div className='mt-4 text-center text-lg font-bold'>
+                    <div className="mt-4 text-center text-lg font-bold">
                         {viewingMode !== 1 && (
-                            <div
-                                className='flex flex-wrap gap-2 justify-center'
-                            >
+                            <div className="flex flex-wrap gap-2 justify-center">
                                 <button
-                                    className='btn btn-sm rounded-lg bg-green-600 text-white hover:bg-green-500'
+                                    className="btn btn-sm rounded-lg bg-green-600 text-white hover:bg-green-500"
                                     onClick={handleSave}
                                 >
                                     Save
                                 </button>
                                 <button
-                                    className='btn btn-sm rounded-lg bg-red-600 text-white hover:bg-red-500'
+                                    className="btn btn-sm rounded-lg bg-red-600 text-white hover:bg-red-500"
                                     onClick={handleClose}
                                 >
                                     Cancel
@@ -245,7 +262,6 @@ const AdditionalScheduleForSection = ({
                         ✕
                     </button>
                 </div>
-
             </div>
         </dialog>
     );
@@ -395,16 +411,16 @@ const AddSectionContainer = ({
         } else {
             dispatch(
                 reduxFunction({
-                [reduxField[0]]: inputValue,
-                teacher: selectedAdviser,
-                program: selectedProgram,
-                year: selectedYearLevel,
-                subjects: selectedSubjects,
-                fixedDays: fixedDays,
-                fixedPositions: fixedPositions,
-                shift: selectedShift,
-                startTime: selectedStartTime,
-                additionalScheds: additionalScheds,
+                    [reduxField[0]]: inputValue,
+                    teacher: selectedAdviser,
+                    program: selectedProgram,
+                    year: selectedYearLevel,
+                    subjects: selectedSubjects,
+                    fixedDays: fixedDays,
+                    fixedPositions: fixedPositions,
+                    shift: selectedShift,
+                    startTime: selectedStartTime,
+                    additionalScheds: additionalScheds,
                 })
             );
             handleReset();
@@ -459,24 +475,16 @@ const AddSectionContainer = ({
             );
 
             if (program) {
-                setSelectedSubjects(
-                    program[selectedYearLevel].subjects || []
-                );
-                setFixedDays(
-                    program[selectedYearLevel].fixedDays || {}
-                );
+                setSelectedSubjects(program[selectedYearLevel].subjects || []);
+                setFixedDays(program[selectedYearLevel].fixedDays || {});
                 setFixedPositions(
                     program[selectedYearLevel].fixedPositions || {}
                 );
                 setAdditionalScheds(
                     program[selectedYearLevel].additionalScheds || []
                 );
-                setSelectedShift(
-                    program[selectedYearLevel].shift || 0
-                );
-                setSelectedStartTime(
-                    program[selectedYearLevel].startTime || 0
-                );
+                setSelectedShift(program[selectedYearLevel].shift || 0);
+                setSelectedStartTime(program[selectedYearLevel].startTime || 0);
             }
         }
     }, [selectedProgram, selectedYearLevel, programs]);
@@ -676,49 +684,49 @@ const AddSectionContainer = ({
                 </>
             )}
 
-            { 
-                additionalScheds.length > 0 &&
-                <div
-                    className='flex flex-col justify-center items-center'
-                >
-                    <div
-                        className='mt-2 w-1/4 border border-gray-300 rounded-t-lg font-bold'
-                    >
+            {additionalScheds.length > 0 && (
+                <div className="flex flex-col justify-center items-center">
+                    <div className="mt-2 w-1/4 border border-gray-300 rounded-t-lg font-bold">
                         Additional Schedules
                     </div>
                     <div
-                        className='w-1/4 overflow-y-auto max-h-36 border border-gray-300 rounded-b-lg'
-                        style={{ scrollbarWidth: 'thin', scrollbarColor: '#a0aec0 #edf2f7' }} // Optional for styled scrollbars
+                        className="w-1/4 overflow-y-auto max-h-36 border border-gray-300 rounded-b-lg"
+                        style={{
+                            scrollbarWidth: 'thin',
+                            scrollbarColor: '#a0aec0 #edf2f7',
+                        }} // Optional for styled scrollbars
                     >
                         {additionalScheds.map((sched, index) => (
-                            <div
-                                key={index}
-                                className='flex flex-wrap'
-                            >
+                            <div key={index} className="flex flex-wrap">
                                 <button
-                                    className='w-1/12 border rounded-l-lg hover:bg-gray-200 flex items-center justify-center'
+                                    className="w-1/12 border rounded-l-lg hover:bg-gray-200 flex items-center justify-center"
                                     // onClick={() => handleDeleteAdditionalSchedule(grade, index)}
                                 >
-                                    <RiDeleteBin7Line
-                                        size={15}
-                                    />
+                                    <RiDeleteBin7Line size={15} />
                                 </button>
-                                <div
-                                    className='w-10/12'
-                                >
+                                <div className="w-10/12">
                                     <button
                                         className="w-full bg-gray-100 p-2 border shadow-sm hover:bg-gray-200"
-                                        onClick={() => document
-                                            .getElementById(
-                                                `add_additional_sched_modal_1_grade-${selectedYearLevel}_sec-0_idx-${index}`
-                                            )
-                                            .showModal()}
+                                        onClick={() =>
+                                            document
+                                                .getElementById(
+                                                    `add_additional_sched_modal_1_grade-${selectedYearLevel}_sec-0_idx-${index}`
+                                                )
+                                                .showModal()
+                                        }
                                     >
                                         {sched.name || sched.subject ? (
                                             // Content to show when both are not empty
                                             <>
                                                 <p>Name: {sched.name}</p>
-                                                <p>Subject: {sched.subject === 0 ? 'N/A' : subjects[sched.subject].subject}</p>
+                                                <p>
+                                                    Subject:{' '}
+                                                    {sched.subject === 0
+                                                        ? 'N/A'
+                                                        : subjects[
+                                                              sched.subject
+                                                          ].subject}
+                                                </p>
                                             </>
                                         ) : (
                                             // Content to show when either is empty
@@ -730,23 +738,20 @@ const AddSectionContainer = ({
                                         sectionID={0}
                                         grade={selectedYearLevel}
                                         arrayIndex={index}
-
                                         additionalSchedsOfSection={sched}
                                     />
                                 </div>
-                                <div 
-                                    className='w-1/12  flex items-center justify-center border rounded-r-lg hover:bg-gray-200'
-                                >
+                                <div className="w-1/12  flex items-center justify-center border rounded-r-lg hover:bg-gray-200">
                                     <button
-                                        onClick={() => document
-                                            .getElementById(
-                                                `add_additional_sched_modal_0_grade-${selectedYearLevel}_sec-0_idx-${index}`
-                                            )
-                                            .showModal()}
+                                        onClick={() =>
+                                            document
+                                                .getElementById(
+                                                    `add_additional_sched_modal_0_grade-${selectedYearLevel}_sec-0_idx-${index}`
+                                                )
+                                                .showModal()
+                                        }
                                     >
-                                        <RiEdit2Fill
-                                            size={15}
-                                        />
+                                        <RiEdit2Fill size={15} />
                                     </button>
                                     <AdditionalScheduleForSection
                                         viewingMode={0}
@@ -756,16 +761,16 @@ const AddSectionContainer = ({
                                         numOfSchoolDays={numOfSchoolDays}
                                         sectionSubjects={selectedSubjects}
                                         additionalSchedsOfSection={sched}
-                                        setAdditionalScheds={setAdditionalScheds}
+                                        setAdditionalScheds={
+                                            setAdditionalScheds
+                                        }
                                     />
                                 </div>
-                                
                             </div>
                         ))}
                     </div>
                 </div>
-            }
-            
+            )}
 
             {errorMessage && (
                 <p className="text-red-500 text-sm my-4 font-medium select-none ">
@@ -823,7 +828,9 @@ const SectionListContainer = ({
     const [editSectionStartTime, setEditSectionStartTime] = useState('');
 
     const [editSectionFixedDays, setEditSectionFixedDays] = useState({});
-    const [editSectionFixedPositions, setEditSectionFixedPositions] = useState({});
+    const [editSectionFixedPositions, setEditSectionFixedPositions] = useState(
+        {}
+    );
     const [editAdditionalScheds, setEditAdditionalScheds] = useState([]);
 
     const [sectionTotalTimeslot, setSectionTotalTimeslot] = useState({});
@@ -922,20 +929,20 @@ const SectionListContainer = ({
         ) {
             dispatch(
                 editSection({
-                sectionId,
-                updatedSection: {
-                    id: sectionId,
-                    teacher: editSectionAdviser,
-                    program: editSectionProg,
-                    section: editSectionValue,
-                    subjects: editSectionSubjects,
-                    fixedDays: editSectionFixedDays,
-                    fixedPositions: editSectionFixedPositions,
-                    year: editSectionYear,
-                    shift: editSectionShift,
-                    startTime: getTimeSlotIndex(editSectionStartTime),
-                    additionalScheds: editAdditionalScheds,
-                },
+                    sectionId,
+                    updatedSection: {
+                        id: sectionId,
+                        teacher: editSectionAdviser,
+                        program: editSectionProg,
+                        section: editSectionValue,
+                        subjects: editSectionSubjects,
+                        fixedDays: editSectionFixedDays,
+                        fixedPositions: editSectionFixedPositions,
+                        year: editSectionYear,
+                        shift: editSectionShift,
+                        startTime: getTimeSlotIndex(editSectionStartTime),
+                        additionalScheds: editAdditionalScheds,
+                    },
                 })
             );
 
@@ -948,7 +955,6 @@ const SectionListContainer = ({
             });
 
             resetStates();
-
         } else {
             const duplicateSection = Object.values(sections).find(
                 (section) =>
@@ -979,17 +985,17 @@ const SectionListContainer = ({
                     editSection({
                         sectionId,
                         updatedSection: {
-                        id: sectionId,
-                        teacher: editSectionAdviser,
-                        program: editSectionProg,
-                        section: editSectionValue,
-                        subjects: editSectionSubjects,
-                        fixedDays: editSectionFixedDays,
-                        fixedPositions: editSectionFixedPositions,
-                        year: editSectionYear,
-                        shift: editSectionShift,
-                        startTime: getTimeSlotIndex(editSectionStartTime),
-                        additionalScheds: editAdditionalScheds,
+                            id: sectionId,
+                            teacher: editSectionAdviser,
+                            program: editSectionProg,
+                            section: editSectionValue,
+                            subjects: editSectionSubjects,
+                            fixedDays: editSectionFixedDays,
+                            fixedPositions: editSectionFixedPositions,
+                            year: editSectionYear,
+                            shift: editSectionShift,
+                            startTime: getTimeSlotIndex(editSectionStartTime),
+                            additionalScheds: editAdditionalScheds,
                         },
                     })
                 );
@@ -1016,8 +1022,8 @@ const SectionListContainer = ({
     const handleAddAdditionalSchedule = () => {
         setEditAdditionalScheds((prevScheds) => [
             ...prevScheds,
-            { 
-                name: '', 
+            {
+                name: '',
                 subject: 0,
                 duration: 60,
                 frequency: 1,
@@ -1025,13 +1031,13 @@ const SectionListContainer = ({
             },
         ]);
     };
-    
+
     const handleDeleteAdditionalSchedule = (index) => {
         setEditAdditionalScheds((prevScheds) =>
             prevScheds.filter((_, i) => i !== index)
         );
     };
-    
+
     const renderTimeOptions = () => {
         const times =
             editSectionShift === 0
@@ -1806,106 +1812,167 @@ const SectionListContainer = ({
 
                                         <td>
                                             {editSectionId === section.id ? (
-                                                <> 
+                                                <>
                                                     <div
                                                         key={`edit-add-sched-edit-section(${editSectionId})`}
-                                                        className='mt-2 overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg'
-                                                        style={{ scrollbarWidth: 'thin', scrollbarColor: '#a0aec0 #edf2f7' }} // Optional for styled scrollbars
+                                                        className="mt-2 overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg"
+                                                        style={{
+                                                            scrollbarWidth:
+                                                                'thin',
+                                                            scrollbarColor:
+                                                                '#a0aec0 #edf2f7',
+                                                        }} // Optional for styled scrollbars
                                                     >
                                                         <div
-                                                            className='flex flex-wrap'
+                                                            className="flex flex-wrap"
                                                             style={{
-                                                                position: 'sticky',
+                                                                position:
+                                                                    'sticky',
                                                                 top: 0,
                                                                 zIndex: 1,
-                                                                backgroundColor: 'white',
+                                                                backgroundColor:
+                                                                    'white',
                                                             }}
                                                         >
-                                                            <div
-                                                                className='w-9/12 font-bold p-2 border-b border-gray-300'
-                                                                
-                                                            >
-                                                                Grade {editSectionYear}
+                                                            <div className="w-9/12 font-bold p-2 border-b border-gray-300">
+                                                                Grade{' '}
+                                                                {
+                                                                    editSectionYear
+                                                                }
                                                             </div>
-                                                            <div
-                                                                className='w-3/12 flex justify-center items-center border-b border-gray-300'
-                                                            >
+                                                            <div className="w-3/12 flex justify-center items-center border-b border-gray-300">
                                                                 <button
-                                                                    className='w-3/4 bg-green-700 m-2 font-bold text-white rounded-lg hover:bg-green-500'
-                                                                    onClick={handleAddAdditionalSchedule}
+                                                                    className="w-3/4 bg-green-700 m-2 font-bold text-white rounded-lg hover:bg-green-500"
+                                                                    onClick={
+                                                                        handleAddAdditionalSchedule
+                                                                    }
                                                                 >
                                                                     +
                                                                 </button>
                                                             </div>
                                                         </div>
-                                                        {
-                                                            editAdditionalScheds.map((sched, index) => (
+                                                        {editAdditionalScheds.map(
+                                                            (sched, index) => (
                                                                 <div
                                                                     key={index}
-                                                                    className='flex flex-wrap'
+                                                                    className="flex flex-wrap"
                                                                 >
                                                                     <button
-                                                                        className='w-1/12 border rounded-l-lg bg-blue-200 hover:bg-blue-100 flex items-center justify-center'
-                                                                        onClick={() => handleDeleteAdditionalSchedule(index)}
+                                                                        className="w-1/12 border rounded-l-lg bg-blue-200 hover:bg-blue-100 flex items-center justify-center"
+                                                                        onClick={() =>
+                                                                            handleDeleteAdditionalSchedule(
+                                                                                index
+                                                                            )
+                                                                        }
                                                                     >
                                                                         <RiDeleteBin7Line
-                                                                            size={15}
+                                                                            size={
+                                                                                15
+                                                                            }
                                                                         />
                                                                     </button>
-                                                                    <div
-                                                                        className='w-10/12'
-                                                                    >
+                                                                    <div className="w-10/12">
                                                                         <button
                                                                             className="w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-gray-200"
-                                                                            onClick={() => document
-                                                                                .getElementById(
-                                                                                    `add_additional_sched_modal_1_grade-${editSectionYear}_sec-${editSectionId}_idx-${index}`
-                                                                                )
-                                                                                .showModal()}
+                                                                            onClick={() =>
+                                                                                document
+                                                                                    .getElementById(
+                                                                                        `add_additional_sched_modal_1_grade-${editSectionYear}_sec-${editSectionId}_idx-${index}`
+                                                                                    )
+                                                                                    .showModal()
+                                                                            }
                                                                         >
-                                                                            {sched.name || sched.subject ? (
+                                                                            {sched.name ||
+                                                                            sched.subject ? (
                                                                                 // Content to show when both are not empty
                                                                                 <>
-                                                                                    <p>Name: {sched.name}</p>
-                                                                                    <p>Subject: {sched.subject === 0 ? 'N/A' : subjects[sched.subject].subject}</p>
+                                                                                    <p>
+                                                                                        Name:{' '}
+                                                                                        {
+                                                                                            sched.name
+                                                                                        }
+                                                                                    </p>
+                                                                                    <p>
+                                                                                        Subject:{' '}
+                                                                                        {sched.subject ===
+                                                                                        0
+                                                                                            ? 'N/A'
+                                                                                            : subjects[
+                                                                                                  sched
+                                                                                                      .subject
+                                                                                              ]
+                                                                                                  .subject}
+                                                                                    </p>
                                                                                 </>
                                                                             ) : (
                                                                                 // Content to show when either is empty
-                                                                                <p>Untitled Schedule {index + 1}</p>
+                                                                                <p>
+                                                                                    Untitled
+                                                                                    Schedule{' '}
+                                                                                    {index +
+                                                                                        1}
+                                                                                </p>
                                                                             )}
                                                                         </button>
                                                                         <AdditionalScheduleForSection
-                                                                            viewingMode={1}
-                                                                            sectionID={editSectionId}
-                                                                            grade={editSectionYear}
-                                                                            arrayIndex={index}
-
-                                                                            additionalSchedsOfSection={sched}
+                                                                            viewingMode={
+                                                                                1
+                                                                            }
+                                                                            sectionID={
+                                                                                editSectionId
+                                                                            }
+                                                                            grade={
+                                                                                editSectionYear
+                                                                            }
+                                                                            arrayIndex={
+                                                                                index
+                                                                            }
+                                                                            additionalSchedsOfSection={
+                                                                                sched
+                                                                            }
                                                                         />
                                                                     </div>
-                                                                    <div
-                                                                        className='w-1/12 text-xs font-bold rounded-r-lg bg-blue-200 hover:bg-blue-100 flex text-center justify-center items-center p-2 cursor-pointer'
-                                                                    >
+                                                                    <div className="w-1/12 text-xs font-bold rounded-r-lg bg-blue-200 hover:bg-blue-100 flex text-center justify-center items-center p-2 cursor-pointer">
                                                                         <button
-                                                                            onClick={() => document
-                                                                                .getElementById(
-                                                                                    `add_additional_sched_modal_0_grade-${editSectionYear}_sec-${editSectionId}_idx-${index}`
-                                                                                )
-                                                                                .showModal()}
+                                                                            onClick={() =>
+                                                                                document
+                                                                                    .getElementById(
+                                                                                        `add_additional_sched_modal_0_grade-${editSectionYear}_sec-${editSectionId}_idx-${index}`
+                                                                                    )
+                                                                                    .showModal()
+                                                                            }
                                                                         >
                                                                             <RiEdit2Fill
-                                                                                size={15}
+                                                                                size={
+                                                                                    15
+                                                                                }
                                                                             />
                                                                         </button>
                                                                         <AdditionalScheduleForSection
-                                                                            viewingMode={0}
-                                                                            sectionID={editSectionId}
-                                                                            grade={editSectionYear}
-                                                                            arrayIndex={index}
-                                                                            numOfSchoolDays={numOfSchoolDays}
-                                                                            sectionSubjects={editSectionSubjects}
-                                                                            additionalSchedsOfSection={sched}
-                                                                            setAdditionalScheds={setEditAdditionalScheds}
+                                                                            viewingMode={
+                                                                                0
+                                                                            }
+                                                                            sectionID={
+                                                                                editSectionId
+                                                                            }
+                                                                            grade={
+                                                                                editSectionYear
+                                                                            }
+                                                                            arrayIndex={
+                                                                                index
+                                                                            }
+                                                                            numOfSchoolDays={
+                                                                                numOfSchoolDays
+                                                                            }
+                                                                            sectionSubjects={
+                                                                                editSectionSubjects
+                                                                            }
+                                                                            additionalSchedsOfSection={
+                                                                                sched
+                                                                            }
+                                                                            setAdditionalScheds={
+                                                                                setEditAdditionalScheds
+                                                                            }
                                                                         />
                                                                     </div>
                                                                 </div>
@@ -1917,61 +1984,95 @@ const SectionListContainer = ({
                                                 <>
                                                     <div
                                                         key={`edit-add-sched-view-section(${section.id})`}
-                                                        className='overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg'
-                                                        style={{ scrollbarWidth: 'thin', scrollbarColor: '#a0aec0 #edf2f7' }} // Optional for styled scrollbars
+                                                        className="overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg"
+                                                        style={{
+                                                            scrollbarWidth:
+                                                                'thin',
+                                                            scrollbarColor:
+                                                                '#a0aec0 #edf2f7',
+                                                        }} // Optional for styled scrollbars
                                                     >
                                                         <div
-                                                            className='font-bold p-2 border-b border-gray-300 bg-gray-300'
+                                                            className="font-bold p-2 border-b border-gray-300 bg-gray-300"
                                                             style={{
-                                                                position: 'sticky',
+                                                                position:
+                                                                    'sticky',
                                                                 top: 0,
                                                                 zIndex: 1,
                                                             }}
-                                                        >
-                                                        </div>
-                                                        {
-                                                        section.additionalScheds.map((sched, index) => (
-                                                            <div
-                                                                key={index}
-                                                                className='flex flex-wrap'
-                                                            >
+                                                        ></div>
+                                                        {section.additionalScheds.map(
+                                                            (sched, index) => (
                                                                 <div
-                                                                    className='w-1/12 text-xs font-bold bg-blue-100 flex text-center justify-center items-center p-2'
+                                                                    key={index}
+                                                                    className="flex flex-wrap"
                                                                 >
-                                                                    {index + 1}
+                                                                    <div className="w-1/12 text-xs font-bold bg-blue-100 flex text-center justify-center items-center p-2">
+                                                                        {index +
+                                                                            1}
+                                                                    </div>
+                                                                    <div className="w-11/12">
+                                                                        <button
+                                                                            className="w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-white"
+                                                                            onClick={() =>
+                                                                                document
+                                                                                    .getElementById(
+                                                                                        `add_additional_sched_modal_1_grade-${section.year}_sec-${section.id}_idx-${index}`
+                                                                                    )
+                                                                                    .showModal()
+                                                                            }
+                                                                        >
+                                                                            {sched.name ||
+                                                                            sched.subject ? (
+                                                                                // Content to show when both are not empty
+                                                                                <>
+                                                                                    <p>
+                                                                                        Name:{' '}
+                                                                                        {
+                                                                                            sched.name
+                                                                                        }
+                                                                                    </p>
+                                                                                    <p>
+                                                                                        Subject:{' '}
+                                                                                        {sched.subject ===
+                                                                                        0
+                                                                                            ? 'N/A'
+                                                                                            : subjects[
+                                                                                                  sched
+                                                                                                      .subject
+                                                                                              ]
+                                                                                                  .subject}
+                                                                                    </p>
+                                                                                </>
+                                                                            ) : (
+                                                                                // Content to show when either is empty
+                                                                                <p>
+                                                                                    Untitled
+                                                                                    Schedule{' '}
+                                                                                    {index +
+                                                                                        1}
+                                                                                </p>
+                                                                            )}
+                                                                        </button>
+                                                                        <AdditionalScheduleForSection
+                                                                            viewingMode={
+                                                                                1
+                                                                            }
+                                                                            sectionID={
+                                                                                section.id
+                                                                            }
+                                                                            grade={
+                                                                                section.year
+                                                                            }
+                                                                            arrayIndex={
+                                                                                index
+                                                                            }
+                                                                            additionalSchedsOfSection={
+                                                                                sched
+                                                                            }
+                                                                        />
+                                                                    </div>
                                                                 </div>
-                                                                <div
-                                                                    className='w-11/12'
-                                                                >
-                                                                    <button
-                                                                        className="w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-white"
-                                                                        onClick={() => document
-                                                                            .getElementById(
-                                                                                `add_additional_sched_modal_1_grade-${section.year}_sec-${section.id}_idx-${index}`
-                                                                            )
-                                                                            .showModal()}
-                                                                    >
-                                                                        {sched.name || sched.subject ? (
-                                                                            // Content to show when both are not empty
-                                                                            <>
-                                                                                <p>Name: {sched.name}</p>
-                                                                                <p>Subject: {sched.subject === 0 ? 'N/A' : subjects[sched.subject].subject}</p>
-                                                                            </>
-                                                                        ) : (
-                                                                            // Content to show when either is empty
-                                                                            <p>Untitled Schedule {index + 1}</p>
-                                                                        )}
-                                                                    </button>
-                                                                    <AdditionalScheduleForSection
-                                                                        viewingMode={1}
-                                                                        sectionID={section.id}
-                                                                        grade={section.year}
-                                                                        arrayIndex={index}
-
-                                                                        additionalSchedsOfSection={sched}
-                                                                    />
-                                                                </div>
-                                                            </div>
                                                             )
                                                         )}
                                                     </div>
@@ -1980,36 +2081,51 @@ const SectionListContainer = ({
                                         </td>
 
                                         {editable && (
-                                        <td className="w-28 text-right">
-                                            {editSectionId === section.id ? (
-                                            <>
-                                                <button
-                                                className="btn btn-xs btn-ghost text-green-500"
-                                                onClick={() => handleSaveSectionEditClick(section.id)}
-                                                >
-                                                Save
-                                                </button>
-                                                <button
-                                                className="btn btn-xs btn-ghost text-red-500"
-                                                onClick={() => handleCancelSectionEditClick()}
-                                                >
-                                                Cancel
-                                                </button>
-                                            </>
-                                            ) : (
-                                            <>
-                                                <button
-                                                className="btn btn-xs btn-ghost text-blue-500"
-                                                onClick={() => handleEditSectionClick(section)}
-                                                >
-                                                <RiEdit2Fill />
-                                                </button>
-                                                <button
-                                                className="btn btn-xs btn-ghost text-red-500"
-                                                onClick={() => deleteModal(section.id)} // Call deleteModal with the section.id
-                                                >
-                                                <RiDeleteBin7Line />
-                                                </button>
+                                            <td className="w-28 text-right">
+                                                {editSectionId ===
+                                                section.id ? (
+                                                    <>
+                                                        <button
+                                                            className="btn btn-xs btn-ghost text-green-500"
+                                                            onClick={() =>
+                                                                handleSaveSectionEditClick(
+                                                                    section.id
+                                                                )
+                                                            }
+                                                        >
+                                                            Save
+                                                        </button>
+                                                        <button
+                                                            className="btn btn-xs btn-ghost text-red-500"
+                                                            onClick={() =>
+                                                                handleCancelSectionEditClick()
+                                                            }
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <button
+                                                            className="btn btn-xs btn-ghost text-blue-500"
+                                                            onClick={() =>
+                                                                handleEditSectionClick(
+                                                                    section
+                                                                )
+                                                            }
+                                                        >
+                                                            <RiEdit2Fill />
+                                                        </button>
+                                                        <button
+                                                            className="btn btn-xs btn-ghost text-red-500"
+                                                            onClick={() =>
+                                                                deleteModal(
+                                                                    section.id
+                                                                )
+                                                            } // Call deleteModal with the section.id
+                                                        >
+                                                            <RiDeleteBin7Line />
+                                                        </button>
 
                                                         <dialog
                                                             id="delete_modal"
