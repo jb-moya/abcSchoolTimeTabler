@@ -25,6 +25,7 @@ const AddBuildingContainer = ({
 
   const dispatch = useDispatch();
   const inputBuildingNameRef = useRef();
+  const fileInputRef = useRef(null);
 
   const [buildingName, setBuildingName] = useState("");
   const [numberOfFloors, setNumberOfFloors] = useState(1);
@@ -107,6 +108,7 @@ const AddBuildingContainer = ({
   // };
 
   const handleReset = () => {
+    setBuildingImage(null);
     setBuildingName("");
     setNumberOfFloors(1);
     setNumberOfRooms([]);
@@ -278,13 +280,16 @@ const AddBuildingContainer = ({
           <div>
             <label className="block text-sm font-medium mb-2">Building Image:</label>
             <label className="form-control w-full">
-              <input
-                type="file"
-                accept="image/*"
-                className={`file-input file-input-bordered w-full ${errorField === "buildingImage" ? "border-red-500" : ""}`}
-                onChange={handleImageUpload}
-              />
-            </label>
+                <input
+                  ref={fileInputRef} // Reference for resetting input
+                  type="file"
+                  accept="image/jpeg, image/png, image/jpg"
+                  className={`file-input file-input-bordered w-full ${
+                    errorField === "buildingImage" ? "border-red-500" : ""
+                  }`}
+                  onChange={handleImageUpload} // Call image upload handler
+                />
+              </label>
             {previewImage && (
               <div>
                 <img
@@ -452,7 +457,29 @@ const RoomListContainer = ({ editable = false }) => {
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
+    
     if (file) {
+      // Validate file type
+      const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
+      if (!allowedTypes.includes(file.type)) {
+        alert("Only JPEG and PNG files are allowed.");
+        e.target.value = null; // Reset the file input
+        setEditBuildingImage(null);
+        setEditPreviewImage(null);
+        return;
+      }
+  
+      // Validate file size (example: max 2MB)
+      const maxSizeInBytes = 2 * 1024 * 1024; // 2MB
+      if (file.size > maxSizeInBytes) {
+        alert("File size exceeds the 2MB limit.");
+        e.target.value = null; // Reset the file input
+        setEditBuildingImage(null);
+        setEditPreviewImage(null);
+        return;
+      }
+  
+      // Process valid file
       const reader = new FileReader();
       reader.onload = () => {
         setEditBuildingImage(reader.result); // Save the Base64 string of the image
@@ -460,10 +487,12 @@ const RoomListContainer = ({ editable = false }) => {
       };
       reader.readAsDataURL(file); // Read file as Base64 string
     } else {
-      setEditBuildingImage(null); // Reset file name if no file is selected
-      setEditPreviewImage(null); // Reset preview if no file is selected
+      // Reset if no file is selected
+      setEditBuildingImage(null);
+      setEditPreviewImage(null);
     }
   };
+  
 
   const handleEdit = (building) => {
 
