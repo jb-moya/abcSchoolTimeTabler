@@ -38,7 +38,6 @@ void runExperiment(
     int teacher_middle_time_point_grow_allowance_for_break_timeslot,
     TimeDuration min_total_class_duration_for_two_breaks,
     TimeDuration default_class_duration,
-    int result_buff_length,
     TimePoint offset_duration,
     int64_t* result_timetable,
     int64_t* result_timetable_2,

@@ -1,5 +1,6 @@
 import { expose } from 'comlink';
-import abcWasm from './cppFiles2/abc2.js';
+// import abcWasm from './cppFiles2/abc2.js';
+import abcWasm from './cppFiles2/abc5.js';
 import { unpackIntegers } from './utils/packInt16ToInt64.js';
 
 function allocateAndSetBuffer(wasm, dataArray) {
@@ -15,6 +16,44 @@ function allocateAndSetBuffer(wasm, dataArray) {
     return buffer;
 }
 
+/**
+ * Asynchronously generates a timetable based on the provided parameters.
+ *
+ * @param {Object} params - The parameters for the timetable generation.
+ * @param {number} params.maxIterations - The maximum number of iterations to run.
+ * @param {number} params.numTeachers - The number of teachers.
+ * @param {number} params.totalSectionSubjects - The total number of section subjects.
+ * @param {number} params.totalSection - The total number of sections.
+ * @param {number} params.numberOfSubjectConfiguration - The total number of subject configurations.
+ * @param {Int32Array} params.sectionConfiguration - Array specifying section configurations.
+ * @param {Int32Array} params.sectionSubjectConfiguration - Array specifying section subject configurations.
+ * @param {Int32Array} params.subjectConfigurationSubjectUnits - Array specifying subject unit counts.
+ * @param {Int32Array} params.subjectConfigurationSubjectDuration - Array specifying subject durations.
+ * @param {Int32Array} params.subjectConfigurationSubjectFixedTimeslot - Array specifying fixed timeslots for subjects.
+ * @param {Int32Array} params.subjectConfigurationSubjectFixedDay - Array specifying fixed days for subjects.
+ * @param {Int32Array} params.subjectFixedTeacherSection - Array linking fixed teachers to specific sections.
+ * @param {Int32Array} params.subjectFixedTeacher - Array linking fixed teachers to subjects.
+ * @param {Int32Array} params.sectionStart - Array specifying section start times.
+ * @param {Int32Array} params.teacherSubjects - Array mapping teachers to subjects.
+ * @param {Int32Array} params.teacherWeekLoadConfig - Array specifying weekly load configurations for teachers.
+ * @param {number} params.teacherSubjectsLength - The length of the teacher subjects array.
+ * @param {number} params.beesPopulation - The total number of bees in the algorithm's population.
+ * @param {number} params.beesEmployed - The number of employed bees in the algorithm.
+ * @param {number} params.beesOnlooker - The number of onlooker bees in the algorithm.
+ * @param {number} params.beesScout - The number of scout bees in the algorithm.
+ * @param {number} params.limit - The limit parameter for the algorithm.
+ * @param {number} params.workWeek - The number of days in a work week.
+ * @param {number} params.breakTimeDuration - Duration specifying break times.
+ * @param {number} params.teacherBreakThreshold - Threshold for teachers requiring a break.
+ * @param {number} params.teacherMiddleTimePointGrowAllowanceForBreakTimeslot - Allowance for growing break timeslots near the middle of the timepoint.
+ * @param {number} params.minTotalClassDurationForTwoBreaks - Duration specifying the minimum total class duration for two breaks.
+ * @param {number} params.defaultClassDuration - Duration specifying the default class duration.
+ * @param {number} params.offsetDuration - Duration specifying the offset duration.
+ * @param {number} params.resultTimetableLength - The length of the result timetable array.
+ * @param {number} params.resultViolationLength - The length of the result violation array.
+ * @param {boolean} params.enableLogging - Flag to enable or disable logging during execution.
+ * @returns {Promise<void>} Resolves when the timetable generation is complete.
+ */
 const getTimetable = async (params) =>
     new Promise(async (resolve, reject) => {
         try {
@@ -22,29 +61,52 @@ const getTimetable = async (params) =>
 
             console.log('wasm', params.sectionSubjects);
 
-            const sectionSubjectsBuff = allocateAndSetBuffer(
+            const sectionConfigurationBuff = allocateAndSetBuffer(
                 wasm,
-                params.sectionSubjects
+                params.sectionConfiguration
             );
-            const sectionSubjectUnitsBuff = allocateAndSetBuffer(
+            const sectionSubjectConfigurationBuff = allocateAndSetBuffer(
                 wasm,
-                params.sectionSubjectUnits
+                params.sectionSubjectConfiguration
+            );
+            const subjectConfigurationSubjectUnitsBuff = allocateAndSetBuffer(
+                wasm,
+                params.subjectConfigurationSubjectUnits
+            );
+            const subjectConfigurationSubjectDurationBuff =
+                allocateAndSetBuffer(
+                    wasm,
+                    params.subjectConfigurationSubjectDuration
+                );
+            const subjectConfigurationSubjectFixedTimeslotBuff =
+                allocateAndSetBuffer(
+                    wasm,
+                    params.subjectConfigurationSubjectFixedTimeslot
+                );
+            const subjectConfigurationSubjectFixedDayBuff =
+                allocateAndSetBuffer(
+                    wasm,
+                    params.subjectConfigurationSubjectFixedDay
+                );
+            const subjectFixedTeacherSectionBuff = allocateAndSetBuffer(
+                wasm,
+                params.subjectFixedTeacherSection
+            );
+            const subjectFixedTeacherBuff = allocateAndSetBuffer(
+                wasm,
+                params.subjectFixedTeacher
+            );
+            const sectionStartBuff = allocateAndSetBuffer(
+                wasm,
+                params.sectionStart
             );
             const teacherSubjectsBuff = allocateAndSetBuffer(
                 wasm,
                 params.teacherSubjects
             );
-            const sectionStartsBuff = allocateAndSetBuffer(
+            const teacherWeekLoadConfigBuff = allocateAndSetBuffer(
                 wasm,
-                params.sectionStarts
-            );
-            const sectionSubjectDurationsBuff = allocateAndSetBuffer(
-                wasm,
-                params.sectionSubjectDurations
-            );
-            const sectionSubjectOrdersBuff = allocateAndSetBuffer(
-                wasm,
-                params.sectionSubjectOrders
+                params.teacherWeekLoadConfig
             );
 
             const resultTimetableBuff = wasm._malloc(
@@ -57,68 +119,120 @@ const getTimetable = async (params) =>
                 params.resultViolationLength * 8
             );
 
-            const enable_logging = false;
-
-            console.log('maxIterations', params.maxIterations);
-            console.log('numTeachers', params.numTeachers);
-            console.log('totalSchoolClass', params.totalSchoolClass);
-            console.log('totalSection', params.totalSection);
-            console.log('teacherSubjectsLength', params.teacherSubjectsLength);
-            console.log('beesPopulation', params.beesPopulation);
-            console.log('beesEmployed', params.beesEmployed);
-            console.log('beesOnlooker', params.beesOnlooker);
-            console.log('beesScout', params.beesScout);
-            console.log('limits', params.limits);
-            console.log('workWeek', params.workWeek);
-            console.log('maxTeacherWorkLoad', params.maxTeacherWorkLoad);
-            console.log('breakTimeDuration', params.breakTimeDuration);
             console.log(
-                'breakTimeslotAllowance',
-                params.breakTimeslotAllowance
+                '🚀 ~ newPromise ~ params.offsetDuration:',
+                params.offsetDuration
             );
-            console.log('teacherBreakThreshold', params.teacherBreakThreshold);
             console.log(
-                'minTotalClassDurationForTwoBreaks',
+                '🚀 ~ newPromise ~ params.offsetDuration:',
+                params.offsetDuration
+            );
+
+            console.log(
+                '🚀 ~ newPromise ~ params.offsetDuration:',
+                params.offsetDuration
+            );
+            console.log(
+                '🚀 ~ newPromise ~ params.defaultClassDuration:',
+                params.defaultClassDuration
+            );
+            console.log(
+                '🚀 ~ newPromise ~ params.minTotalClassDurationForTwoBreaks:',
                 params.minTotalClassDurationForTwoBreaks
             );
-            console.log('defaultClassDuration', params.defaultClassDuration);
-            console.log('resultTimetableLength', params.resultTimetableLength);
-            console.log('offset', params.offset);
+            console.log(
+                '🚀 ~ newPromise ~ params.teacherMiddleTimePointGrowAllowanceForBreakTimeslot:',
+                params.teacherMiddleTimePointGrowAllowanceForBreakTimeslot
+            );
+            console.log(
+                '🚀 ~ newPromise ~ params.teacherBreakThreshold:',
+                params.teacherBreakThreshold
+            );
+            console.log(
+                '🚀 ~ newPromise ~ params.breakTimeDuration:',
+                params.breakTimeDuration
+            );
+            console.log('🚀 ~ newPromise ~ params.workWeek:', params.workWeek);
+            console.log('🚀 ~ newPromise ~ params.limit:', params.limit);
+            console.log(
+                '🚀 ~ newPromise ~ params.beesOnlooker:',
+                params.beesOnlooker
+            );
+            console.log(
+                '🚀 ~ newPromise ~ params.beesScout:',
+                params.beesScout
+            );
+            console.log(
+                '🚀 ~ newPromise ~ params.beesEmployed:',
+                params.beesEmployed
+            );
+            console.log(
+                '🚀 ~ newPromise ~ params.beesPopulation:',
+                params.beesPopulation
+            );
+            console.log(
+                '🚀 ~ newPromise ~ params.teacherSubjectsLength:',
+                params.teacherSubjectsLength
+            );
+            console.log(
+                '🚀 ~ newPromise ~ params.numberOfSubjectConfiguration:',
+                params.numberOfSubjectConfiguration
+            );
+            console.log(
+                '🚀 ~ newPromise ~ params.totalSection:',
+                params.totalSection
+            );
+            console.log(
+                '🚀 ~ newPromise ~ params.totalSectionSubjects:',
+                params.totalSectionSubjects
+            );
+            console.log(
+                '🚀 ~ newPromise ~ params.numTeachers:',
+                params.numTeachers
+            );
+            console.log(
+                '🚀 ~ newPromise ~ params.maxIterations:',
+                params.maxIterations
+            );
 
             wasm._runExperiment(
                 params.maxIterations,
                 params.numTeachers,
-                params.totalSchoolClass,
+                params.totalSectionSubjects,
                 params.totalSection,
+                params.numberOfSubjectConfiguration,
 
-                sectionSubjectsBuff,
-                sectionSubjectDurationsBuff,
-                sectionSubjectOrdersBuff,
-                sectionStartsBuff,
+                sectionConfigurationBuff,
+                sectionSubjectConfigurationBuff,
+                subjectConfigurationSubjectUnitsBuff,
+                subjectConfigurationSubjectDurationBuff,
+                subjectConfigurationSubjectFixedTimeslotBuff,
+                subjectConfigurationSubjectFixedDayBuff,
+                subjectFixedTeacherSectionBuff,
+                subjectFixedTeacherBuff,
+                sectionStartBuff,
                 teacherSubjectsBuff,
-                sectionSubjectUnitsBuff,
+                teacherWeekLoadConfigBuff,
 
                 params.teacherSubjectsLength,
                 params.beesPopulation,
                 params.beesEmployed,
                 params.beesOnlooker,
                 params.beesScout,
-                params.limits,
+                params.limit,
                 params.workWeek,
 
-                params.maxTeacherWorkLoad,
                 params.breakTimeDuration,
-                params.breakTimeslotAllowance,
                 params.teacherBreakThreshold,
+                params.teacherMiddleTimePointGrowAllowanceForBreakTimeslot,
                 params.minTotalClassDurationForTwoBreaks,
                 params.defaultClassDuration,
-                params.resultTimetableLength,
-                params.offset,
+                params.offsetDuration,
                 resultTimetableBuff,
                 resultTimetable_2,
                 resultViolationBuff,
 
-                enable_logging
+                params.enableLogging
             );
 
             const timetable = [];
@@ -130,6 +244,7 @@ const getTimetable = async (params) =>
                 let resultArray = unpackIntegers(result);
                 let resultArray_2 = unpackIntegers(result_2);
 
+                // -1 is the sentinel value for the end of the result array
                 if (
                     resultArray_2[2] == -1 &&
                     resultArray_2[3] == -1 &&
@@ -162,14 +277,19 @@ const getTimetable = async (params) =>
                 console.log('🚀 ~ newPromise ~ resultArray:', resultArray);
             }
 
-            // console.log("resultBuff", resultBuff, timetable);
+            console.log("timetable result", timetable);
 
-            wasm._free(sectionSubjectsBuff);
-            wasm._free(sectionSubjectDurationsBuff);
-            wasm._free(sectionSubjectOrdersBuff);
-            wasm._free(sectionStartsBuff);
+            wasm._free(sectionConfigurationBuff);
+            wasm._free(sectionSubjectConfigurationBuff);
+            wasm._free(subjectConfigurationSubjectUnitsBuff);
+            wasm._free(subjectConfigurationSubjectDurationBuff);
+            wasm._free(subjectConfigurationSubjectFixedTimeslotBuff);
+            wasm._free(subjectConfigurationSubjectFixedDayBuff);
+            wasm._free(subjectFixedTeacherSectionBuff);
+            wasm._free(subjectFixedTeacherBuff);
+            wasm._free(sectionStartBuff);
             wasm._free(teacherSubjectsBuff);
-            wasm._free(sectionSubjectUnitsBuff);
+            wasm._free(teacherWeekLoadConfigBuff);
             wasm._free(resultTimetableBuff);
             wasm._free(resultTimetable_2);
             wasm._free(resultViolationBuff);

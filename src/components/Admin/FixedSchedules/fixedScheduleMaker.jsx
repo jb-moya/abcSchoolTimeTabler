@@ -7,6 +7,15 @@ import ContainerSpawn from './containerSpawn';
 import DroppableSchedCell from './droppableSchedCell';
 import { ReserveDay, ReservePosition } from './reservation';
 import { spawnColors } from './bgColors';
+import calculateTotalTimeslot from '../../../utils/calculateTotalTimeslot';
+
+const hexToRgba = (hex, alpha) => {
+    const [r, g, b] = hex
+        .replace(/^#/, '')
+        .match(/.{2}/g)
+        .map((x) => parseInt(x, 16));
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
 
 const FixedScheduleMaker = ({
     viewingMode = 0,
@@ -27,7 +36,8 @@ const FixedScheduleMaker = ({
 
     numOfSchoolDays = 0,
 }) => {
-    const subjects = useSelector((state) => state.subject.subjects);
+    const subjectsStore = useSelector((state) => state.subject.subjects);
+    console.log('🚀 ~ subjectsStore:', subjectsStore);
 
     const dayNames = [
         'Monday',
@@ -64,23 +74,28 @@ const FixedScheduleMaker = ({
         const subjs = subs || [];
 
         let totalTimeslots = subjs.reduce(
-            (sum, subj) => sum + Math.min(
-                Math.ceil(subjects[subj].weeklyMinutes / subjects[subj].classDuration),
-                numOfSchoolDays
-            ),
+            (sum, subj) =>
+                sum +
+                Math.min(
+                    Math.ceil(
+                        subjectsStore[subj].weeklyMinutes /
+                            subjectsStore[subj].classDuration
+                    ),
+                    numOfSchoolDays
+                ),
             0
         );
-        
+
         let subjectPositionArrayLength = Math.ceil(
             totalTimeslots / numOfSchoolDays
         );
 
         subjectPositionArrayLength += subjectPositionArrayLength >= 10 ? 2 : 1;
-        
+
         const subjectPositionArray = Array.from(
             { length: subjectPositionArrayLength },
             () => Array(numOfSchoolDays).fill(0)
-        );                
+        );
 
         console.log('subjectPositionArray', subjectPositionArray);
 
@@ -103,29 +118,11 @@ const FixedScheduleMaker = ({
         return subjectPositionArray;
     };
 
-    const calculateTotalTimeslot = () => {
-        let total = 0;
-
-        for (let i = 0; i < subs.length; i++) {
-            const numOfClasses = Math.min(
-                Math.ceil(
-                    subjects[subs[i]].weeklyMinutes / subjects[subs[i]].classDuration
-                ),
-                numOfSchoolDays
-            );
-
-            total += numOfClasses;
-        }
-
-        return Math.ceil(total / numOfSchoolDays);
-    };
-
     // Initialize days and positions when fixedDays or fixedPositions change
     useEffect(() => {
         console.log('subs', subs);
         console.log('days', days);
         console.log('positions', positions);
-
 
         const subjects = getSubjectsPerPosition();
         setSubjectsPerPosition(subjects);
@@ -133,12 +130,16 @@ const FixedScheduleMaker = ({
         const ranges = findConsecutiveRanges(subjects);
         setMergeData(ranges);
 
-        let totalTimeRow = calculateTotalTimeslot();
+        let totalTimeRow = calculateTotalTimeslot(
+            subjectsStore,
+            subs,
+            numOfSchoolDays
+        );
 
         totalTimeRow += totalTimeRow >= 10 ? 2 : 1;
 
         setTotalTimeslot(totalTimeRow);
-    }, [subs, days, positions]);
+    }, [subs, days, positions, numOfSchoolDays]);
 
     useEffect(() => {
         // console.log('subjectsPerPosition', subjectsPerPosition);
@@ -352,6 +353,9 @@ const FixedScheduleMaker = ({
             )
         );
 
+        console.log('targetPos', targetPos);
+        console.log('targetDay', targetDay);
+
         if (isOccupied) {
             alert('This spot is already taken!');
             return;
@@ -386,26 +390,25 @@ const FixedScheduleMaker = ({
                     ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})`
                     : `assign_fixed_sched_modal_section(${section})-grade(${grade})`
             }
-            className="modal modal-bottom sm:modal-middle"
+            className="modal sm:modal-middle "
+            onClose={handleCancel}
         >
             <div
-                className="modal-box"
+                className="modal-box relative overflow-hidden"
                 style={{
                     width: '80%',
                     maxWidth: 'none',
                 }}
             >
-                <div className="p-3">
-                    <div className="pt-2 pb-4 text-2xl font-bold">
-                        Fixed Schedules
-                    </div>
+                <div className="px-3 flex items-center mb-10">
+                    <div className="text-2xl font-bold">Fixed Schedules</div>
 
                     {viewingMode === 0 && (
-                        <div className="flex justify-center items-center space-x-2 m-3 text-base">
-                            <div className={``}>View</div>
+                        <div className="pl-4 flex items-center justify-center space-x-2 m-3 text-base">
+                            <div>View</div>
                             <input
                                 type="checkbox"
-                                className="toggle"
+                                className="toggle toggle-success toggle-lg"
                                 checked={editMode}
                                 onChange={toggleViewMode}
                             />
@@ -413,124 +416,184 @@ const FixedScheduleMaker = ({
                         </div>
                     )}
 
-                    <div className="text-sm flex flex-col space-y-4">
-                        <DndContext onDragEnd={handleDragEnd}>
-                            <div className="flex">
-                                {editMode && (
-                                    <div className="flex flex-col w-4/12">
-                                        {/* Spawn point(s) for subject blocks */}
-                                        {subs?.map((subject, index) => (
+                    {editMode && (
+                        <div className="ml-auto pr-10 flex gap-3 justify-center">
+                            <button
+                                className="btn btn-primary"
+                                onClick={handleSave}
+                            >
+                                Save
+                            </button>
+                            <button className="btn" onClick={handleCancel}>
+                                Cancel
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                <div className=" max-h-[60vh] max-w-[120vw] text-sm  overflow-scroll">
+                    <DndContext onDragEnd={handleDragEnd}>
+                        <div className="flex gap-10 justify-center">
+                            <div className="flex flex-col w-6/12">
+                                {/* Spawn point(s) for subject blocks */}
+                                <div className="font-bold">Subjects</div>
+                                {subs?.map((subject, index) => (
+                                    <div
+                                        className="my-2 rounded-lg "
+                                        key={`g${grade}-s${subject}`}
+                                        style={{
+                                            // backgroundColor:
+                                            //     spawnColors[
+                                            //         index %
+                                            //             spawnColors.length
+                                            //     ],
+                                            backgroundColor: hexToRgba(
+                                                spawnColors[
+                                                    index % spawnColors.length
+                                                ],
+                                                0.1
+                                            ),
+                                            borderWidth: '2px', // Width of the left border
+                                            borderLeftStyle: 'solid', // Style of the border (solid, dashed, dotted, etc.)
+                                            borderColor:
+                                                spawnColors[
+                                                    index % spawnColors.length
+                                                ],
+                                        }}
+                                    >
+                                        <div className="w-10/12">
                                             <div
-                                                className="flex flex-wrap"
-                                                key={`g${grade}-s${subject}`}
+                                                key={`spawn_label-g${grade}-s${subject}`}
+                                                className="px-2 flex max-w-fit text-lg rounded-br-lg rounded-tl-sm mb-2"
+                                                style={{
+                                                    backgroundColor:
+                                                        spawnColors[
+                                                            index %
+                                                                spawnColors.length
+                                                        ], // Background color
+                                                    color: 'black',
+                                                }}
                                             >
-                                                <div
-                                                    key={`spawn_label-g${grade}-s${subject}`}
-                                                    className="w-3/12 bg-yellow-200 flex justify-center items-center border border-gray rounded-tl-lg rounded-bl-lg truncate"
-                                                    style={{
-                                                        backgroundColor:
-                                                            spawnColors[
-                                                                index %
-                                                                    spawnColors.length
-                                                            ], // Background color
-                                                        color: 'black',
-                                                    }}
-                                                >
-                                                    {subjects[subject]?.subject}
-                                                </div>
-                                                <div className="w-8/12">
-                                                    <ContainerSpawn
-                                                        key={`spawn-g${grade}-s${subject}`}
-                                                        editMode={editMode}
-                                                        subjectID={subject}
-                                                        position={0}
-                                                        day={0}
-                                                        grade={grade}
-                                                        colorIndex={index}
-                                                        selectedSubjects={subs}
-                                                        fixedDays={days}
-                                                        fixedPositions={
-                                                            positions
-                                                        }
-                                                    />
-                                                </div>
+                                                {
+                                                    subjectsStore[subject]
+                                                        ?.subject
+                                                }
+                                                {/* {
+                                                    subjectsStore[subject]
+                                                        ?.id
+                                                } */}
                                             </div>
-                                        ))}
+                                            <ContainerSpawn
+                                                key={`spawn-g${grade}-s${subject}`}
+                                                editMode={editMode}
+                                                subjectID={subject}
+                                                position={0}
+                                                day={0}
+                                                grade={grade}
+                                                colorIndex={index}
+                                                selectedSubjects={subs}
+                                                fixedDays={days}
+                                                fixedPositions={positions}
+                                            />
+                                        </div>
                                     </div>
-                                )}
-                                <div
-                                    className={`p-4 ${
-                                        editMode ? 'w-8/12' : 'w-full'
-                                    }`}
-                                >
-                                    <div className="p-2">
-                                        {/* Header */}
-                                        {subs?.length > 0 && (
-                                            <div className="flex flex-wrap justify-center items-center">
-                                                {/* Empty cell */}
-                                                <div className="w-20 h-16 bg-transparent border border-transparent"></div>
+                                ))}
+                            </div>
+                            <div className={`min-w-max ${editMode ? '' : ''}`}>
+                                <div>
+                                    {/* Header */}
+                                    {subs?.length > 0 && (
+                                        <div className="grid grid-cols-6 gap-0">
+                                            <div className="w-20 h-20 font-bold"></div>
+                                            {Array.from({
+                                                length: numOfSchoolDays,
+                                            }).map((_, i) => {
+                                                const daysOfWeek = [
+                                                    'Mon',
+                                                    'Tue',
+                                                    'Wed',
+                                                    'Thu',
+                                                    'Fri',
+                                                    'Sat',
+                                                    'Sun',
+                                                ];
+                                                const dayName =
+                                                    daysOfWeek[i % 7]; // Handle wrap-around for more than 7 days
 
-                                                {/* Days */}
-                                                <div className="flex flex-wrap">
-                                                    {Array.from({
-                                                        length: numOfSchoolDays,
-                                                    }).map((_, i) => {
-                                                        const daysOfWeek = [
-                                                            'Mon',
-                                                            'Tue',
-                                                            'Wed',
-                                                            'Thu',
-                                                            'Fri',
-                                                            'Sat',
-                                                            'Sun',
-                                                        ];
-                                                        const dayName =
-                                                            daysOfWeek[i % 7]; // Handle wrap-around for more than 7 days
-
-                                                        return (
-                                                            <div
-                                                                key={i}
-                                                                className="w-20 h-16 bg-blue-900 border flex items-center justify-center text-white font-bold"
-                                                            >
-                                                                {dayName}
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-
-                                                <div className="w-10 h-16 bg-transparent border border-transparent"></div>
+                                                return (
+                                                    <div
+                                                        key={i}
+                                                        className="w-20 h-20 bg-blue-900 border border-gray-400 border-opacity-50 flex items-center justify-center text-white font-bold"
+                                                    >
+                                                        {dayName}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                    {/* Schedule */}
+                                    {/* {subs?.map((subject, subIndex) => ( */}
+                                    {Array.from({
+                                        length: totalTimeslot,
+                                    }).map((_, subIndex) => (
+                                        <div
+                                            key={subIndex}
+                                            className="grid grid-cols-6 gap-0"
+                                        >
+                                            <div className="w-20 h-20 bg-blue-700 text-white font-bold border border-gray-400 border-opacity-50 flex items-center justify-center">
+                                                {subIndex + 1}
                                             </div>
-                                        )}
-                                        {/* Schedule */}
-                                        {/* {subs?.map((subject, subIndex) => ( */}
-                                        {Array.from({ length: totalTimeslot }).map((_, subIndex) => (
-                                            <div
-                                                key={subIndex}
-                                                className="flex flex-wrap justify-center items-center"
-                                            >
-                                                <div className="w-20 h-20 bg-blue-700 text-white font-bold border flex items-center justify-center">
-                                                    {subIndex + 1}
-                                                </div>
 
-                                                {/* Droppable cells for schedule */}
-                                                {Array.from({ length: numOfSchoolDays }).map((_, index) => (
-                                                    <DroppableSchedCell
-                                                        key={`drop-g${grade}-d${index}-p${subIndex}`}
-                                                        editMode={editMode}
-                                                        subjectID={-1}
-                                                        day={index + 1}
-                                                        position={subIndex + 1}
-                                                        grade={grade}
-                                                        mergeData={mergeData[subIndex]}
-                                                        totalTimeslot={totalTimeslot}
-                                                        selectedSubjects={subs}
-                                                        fixedDays={days}
-                                                        fixedPositions={positions}
-                                                    />
-                                                ))}
+                                            {/* Droppable cells for schedule */}
+                                            {Array.from({
+                                                length: numOfSchoolDays,
+                                            }).map((_, index) => (
+                                                <DroppableSchedCell
+                                                    key={`drop-g${grade}-d${index}-p${subIndex}`}
+                                                    editMode={editMode}
+                                                    subjectID={-1}
+                                                    day={index + 1}
+                                                    position={subIndex + 1}
+                                                    grade={grade}
+                                                    mergeData={
+                                                        mergeData[subIndex]
+                                                    }
+                                                    totalTimeslot={
+                                                        totalTimeslot
+                                                    }
+                                                    selectedSubjects={subs}
+                                                    fixedDays={days}
+                                                    fixedPositions={positions}
+                                                />
+                                            ))}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </DndContext>
+                </div>
 
-                                                {/* Reserve position */}
-                                                <ReservePosition
+                <div className="modal-action w-full">
+                    <button
+                        className="btn btn-lg btn-circle btn-ghost absolute right-2 top-2"
+                        onClick={handleClose}
+                    >
+                        ✕
+                    </button>
+                </div>
+            </div>
+        </dialog>
+    );
+};
+
+export default FixedScheduleMaker;
+
+{
+    /* Reserve position */
+}
+{
+    /* <ReservePosition
                                                     key={`reservePos-g${grade}-p${subIndex + 1}`}
                                                     editMode={editMode}
                                                     grade={grade}
@@ -542,12 +605,13 @@ const FixedScheduleMaker = ({
                                                     setDays={setDays}
                                                     positions={positions}
                                                     setPositions={setPositions}
-                                                />
-                                            </div>
-                                        ))}
-
-                                        {/* Reserve day */}
-                                        {subs?.length > 0 && (
+                                                /> */
+}
+{
+    /* Reserve day */
+}
+{
+    /* {subs?.length > 0 && (
                                             <div
                                                 key="reserveDay"
                                                 className="flex flex-wrap justify-center items-center"
@@ -578,38 +642,5 @@ const FixedScheduleMaker = ({
 
                                                 <div className="w-10 h-10 bg-transparent border border-transparent"></div>
                                             </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </DndContext>
-                    </div>
-
-                    {editMode && (
-                        <div className="m-2 p-2 flex gap-3 justify-center">
-                            <button
-                                className="btn btn-primary"
-                                onClick={handleSave}
-                            >
-                                Save
-                            </button>
-                            <button className="btn" onClick={handleCancel}>
-                                Cancel
-                            </button>
-                        </div>
-                    )}
-                </div>
-                <div className="modal-action w-full">
-                    <button
-                        className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                        onClick={handleClose}
-                    >
-                        ✕
-                    </button>
-                </div>
-            </div>
-        </dialog>
-    );
-};
-
-export default FixedScheduleMaker;
+                                        )} */
+}

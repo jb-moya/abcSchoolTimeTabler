@@ -74,6 +74,7 @@ void test_generate_timetable() {
 	// int limit = (total_section * (num_teachers));
 	int limit = (total_section * (num_teachers)) * 3;
 	int default_units = 0;
+	ScheduledDay default_fixed_day = ScheduledDay::ANYDAY;
 
 	Timeslot default_fixed_timeslot = 0;
 
@@ -155,11 +156,12 @@ void test_generate_timetable() {
 	// 	section_start[i] = 20;
 	// }
 
-	uint8_t default_fixed_day = assignFixedDay(true, false, false, false, false, false, false, false);
-
 	std::vector<std::vector<int>> subject_configure;
+	// subject_configure.push_back({0, 1, default_class_duration, 3, default_fixed_day});
+	// for (SubjectID subject_id = 1; subject_id < num_subjects; ++subject_id) {
 	for (SubjectID subject_id = 0; subject_id < num_subjects; ++subject_id) {
-		subject_configure.push_back({subject_id, default_units, default_class_duration, default_fixed_timeslot, default_fixed_day});
+		// for (SubjectID subject_id = 0; subject_id < num_subjects; ++subject_id) {
+		subject_configure.push_back({subject_id, default_units, default_class_duration, default_fixed_timeslot, static_cast<int>(default_fixed_day)});
 	}
 
 	int number_of_subject_configuration = subject_configure.size();
@@ -196,9 +198,9 @@ void test_generate_timetable() {
 	}
 
 	for (int i = 0; i < total_section; ++i) {
-		int num_break = 1;
+		int num_break = 0;
 		// int total_timeslot = 7;  // dependent on subject and their units
-		int total_timeslot = 8;  // dependent on subject and their units
+		int total_timeslot = 7;  // dependent on subject and their units
 		int not_allowed_breakslot_gap = 2;
 		int is_dynamic_subject_consistent_duration = 0;
 
@@ -224,7 +226,7 @@ void test_generate_timetable() {
 	          << beesScout << ", "
 	          << limit << std::endl;
 
-	int result_buff_length = 9999;  // arbitrary
+	return;
 
 	bool enable_logging = true;
 	runExperiment(
@@ -233,7 +235,7 @@ void test_generate_timetable() {
 	    total_section_subjects,
 	    total_section,
 	    number_of_subject_configuration,
-
+		
 	    section_configuration,
 	    section_subject_configuration,
 	    subject_configuration_subject_units,
@@ -259,7 +261,6 @@ void test_generate_timetable() {
 	    teacher_middle_time_point_grow_allowance_for_break_timeslot,
 	    min_total_class_duration_for_two_breaks,
 	    default_class_duration,
-	    result_buff_length,
 	    offset,
 	    resultTimetable,
 	    resultTimetable_2,

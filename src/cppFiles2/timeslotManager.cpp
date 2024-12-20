@@ -10,13 +10,13 @@ bool TimeslotManager::isInBreakSlots(Timeslot timeslot) const {
 	return break_slots.find(timeslot) != break_slots.end();
 }
 bool TimeslotManager::isInSegmentedTimeslot(Timeslot timeslot) const {
-	return segmented_timeslot.find(timeslot) != segmented_timeslot.end();
+	return dynamic_segmented_timeslot.find(timeslot) != dynamic_segmented_timeslot.end();
 }
 void TimeslotManager::removeSegmentedTimeSlot(Timeslot timeslot) {
-	segmented_timeslot.erase(timeslot);
+	dynamic_segmented_timeslot.erase(timeslot);
 }
 void TimeslotManager::addSegmentedTimeSlot(Timeslot timeslot) {
-	segmented_timeslot.insert(timeslot);
+	dynamic_segmented_timeslot.insert(timeslot);
 }
 
 ClassStartEnd TimeslotManager::getClassStartTime(Timeslot timeslot) const {
@@ -72,7 +72,7 @@ const std::unordered_set<Timeslot>& TimeslotManager::getBreakSlots() const {
 TimePoint TimeslotManager::getTimeslotStart(Timeslot timeslot) const {
 	auto it = time_range.find(timeslot);
 	if (it == time_range.end()) {
-		throw std::runtime_error(std::to_string(timeslot) + " Timeslot not found in time_range.");
+		throw std::runtime_error(std::to_string(timeslot) + " Timeslot not found in time_range. Cannot get start time.");
 	}
 	return time_range.find(timeslot)->second.start;
 }
@@ -80,7 +80,7 @@ TimePoint TimeslotManager::getTimeslotStart(Timeslot timeslot) const {
 TimePoint TimeslotManager::getTimeslotEnd(Timeslot timeslot) const {
 	auto it = time_range.find(timeslot);
 	if (it == time_range.end()) {
-		throw std::runtime_error(std::to_string(timeslot) + " Timeslot not found in time_range.");
+		throw std::runtime_error(std::to_string(timeslot) + " Timeslot not found in time_range. Cannot get end time.");
 	}
 	return time_range.find(timeslot)->second.end;
 }
@@ -100,8 +100,8 @@ void TimeslotManager::updateTimeslotEnd(Timeslot timeslot, TimePoint end) {
 	time_range.find(timeslot)->second.end = end;
 }
 
-const std::unordered_set<Timeslot>& TimeslotManager::getSegmentedTimeslot() const {
-	return segmented_timeslot;
+const std::unordered_set<Timeslot>& TimeslotManager::getDynamicSegmentedTimeslot() const {
+	return dynamic_segmented_timeslot;
 }
 
 bool TimeslotManager::isPairTimeslotDurationEqual(std::pair<Timeslot, Timeslot> selected_timeslots) const {

@@ -141,7 +141,6 @@ inline void logResults(std::ofstream& txt_file,
                        int teacher_break_threshold,
                        int min_total_class_duration_for_two_breaks,
                        int default_class_duration,
-                       int result_buff_length,
                        int offset_duration,
                        bool enable_logging) {
 	txt_file << "----------------------------------------------------------------------" << std::endl;
@@ -164,7 +163,6 @@ inline void logResults(std::ofstream& txt_file,
 	txt_file << "teacher_break_threshold: " << teacher_break_threshold << std::endl;
 	txt_file << "min_total_class_duration_for_two_breaks: " << min_total_class_duration_for_two_breaks << std::endl;
 	txt_file << "default_class_duration: " << default_class_duration << std::endl;
-	txt_file << "result_buff_length: " << result_buff_length << std::endl;
 	txt_file << "offset_duration: " << offset_duration << std::endl;
 	txt_file << "enable_logging: " << (enable_logging ? "true" : "false") << std::endl;
 

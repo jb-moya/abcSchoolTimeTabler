@@ -2,6 +2,7 @@
 #include "print.h"
 #include "random_util.h"
 #include "rotaryVector.h"
+#include "schoolClass.h"
 #include "timeManager.h"
 
 using namespace std;
@@ -104,8 +105,9 @@ void Timetable::initializeSubjectConfigurations(int number_of_subject_configurat
 		int subject_units = static_cast<int>(subject_configuration_subject_units[subject_configuration_id] & 0xFFFF);
 		TimeDuration subject_duration = static_cast<int>(subject_configuration_subject_duration[subject_configuration_id] & 0xFFFF);
 		Timeslot subject_fixed_timeslot = static_cast<int>(subject_configuration_subject_fixed_timeslot[subject_configuration_id] & 0xFFFF);
+		ScheduledDay subject_fixed_days = static_cast<ScheduledDay>(subject_configuration_subject_fixed_day[subject_configuration_id] & 0xFFFF);
 
-		std::vector<ScheduledDay> subject_fixed_days = extractFixedDays(static_cast<uint8_t>(subject_configuration_subject_fixed_day[subject_configuration_id]));
+		print("subject_configuration_id", subject_configuration_id, subject_id, subject_duration, subject_units, subject_fixed_timeslot, static_cast<int>(subject_fixed_days));
 
 		addSubjectConfiguration(subject_configuration_id, subject_id, subject_duration, subject_units, subject_fixed_timeslot, subject_fixed_days);
 	}
@@ -122,12 +124,13 @@ void Timetable::initializeSections(int number_of_section,
 		bool is_dynamic_subject_consistent_duration = static_cast<bool>(section_configuration[i] & 0xFF);
 		TimePoint start = static_cast<int>(section_start[i]);
 
-		// print("ff", section_id,
-		//       num_break,
-		//       total_timeslot,
-		//       not_allowed_breakslot_gap,
-		//       is_dynamic_subject_consistent_duration,
-		//       start);
+		print("section configuration",
+		      "section_id", section_id,
+		      "num_break", num_break,
+		      "total_timeslot", total_timeslot,
+		      "not_allowed_breakslot_gap", not_allowed_breakslot_gap,
+		      "is_dynamic_subject_consistent_duration", is_dynamic_subject_consistent_duration,
+		      "start", start);
 
 		addSection(section_id, num_break, start, total_timeslot, not_allowed_breakslot_gap, is_dynamic_subject_consistent_duration);
 	}
@@ -178,6 +181,8 @@ void Timetable::initializeSectionSubjects(int total_section_subjects, int32_t* s
 
 		section_id = static_cast<int>(section_subject_configuration[i] >> 16);
 		subject_configuration_id = static_cast<int>(section_subject_configuration[i] & 0xFFFF);
+
+		print("section_id", section_id, "subject_configuration_id", subject_configuration_id);
 
 		addSubjectToSection(section_id, subject_configuration_id);
 	}
@@ -240,7 +245,7 @@ void Timetable::moveTeacherClassCountToNewDay(TeacherID teacher_id, ScheduledDay
 	getTeacherById(teacher_id).incrementClassCount(static_cast<ScheduledDay>(to_day));
 }
 
-void Timetable::addSubjectConfiguration(SubjectConfigurationID id, SubjectID subject_id, TimeDuration duration, int units, Timeslot fixed_timeslot, std::vector<ScheduledDay> fixed_days) {
+void Timetable::addSubjectConfiguration(SubjectConfigurationID id, SubjectID subject_id, TimeDuration duration, int units, Timeslot fixed_timeslot, ScheduledDay fixed_days) {
 	auto subject_configuration = std::make_shared<SubjectConfiguration>(id, subject_id, duration, units, fixed_timeslot, fixed_days);
 	subject_configurations.push_back(subject_configuration);
 }
@@ -258,10 +263,13 @@ void Timetable::changeTeacher(Section& selected_section, Timeslot selected_times
 	selected_section.removeUtilizedTeacher(old_teacher);
 	selected_section.addUtilizedTeacher(new_teacher_id);
 
-	SchoolClass updated_school_class = SchoolClass{subject_id, new_teacher_id};
+	SchoolClass school_class = selected_section.getSchoolClass(selected_timeslot, day);
+	school_class.teacher_id = new_teacher_id;
+
+	// SchoolClass updated_school_class = SchoolClass{subject_id, new_teacher_id};
 	TeacherID old_teacher_id = selected_section.getClassTimeslotTeacherID(day, selected_timeslot);
 
-	selected_section.updateClassTimeslotDay(day, selected_timeslot, updated_school_class);
+	selected_section.updateClassTimeslotDay(day, selected_timeslot, school_class);
 }
 
 void Timetable::updateTeachersAndSections(
@@ -272,6 +280,8 @@ void Timetable::updateTeachersAndSections(
     bool is_skipping_between,
     Section& selected_section,
     bool is_reset) {
+	// print("updateTeachersAndSections", is_reset);
+
 	auto itUpPrev = std::prev(itUp);
 
 	auto timeslot_begin = selected_section.getClasses().begin();
@@ -292,8 +302,12 @@ void Timetable::updateTeachersAndSections(
 
 		if (day_zero != day_schedule.end()) {
 			SubjectID subject = day_zero->second.subject_id;
+			TimeDuration duration = day_zero->second.duration;
+			Timeslot timeslot = day_zero->second.fixed_timeslot;
 
-			TimeDuration duration = (subject == -1) ? Timetable::getBreakTimeDuration() : selected_section.getSubject(subject).getDuration();
+			// print("duration", subject, day_zero->second.teacher_id, timeslot, duration);
+
+			// TimeDuration duration = (subject == -1) ? Timetable::getBreakTimeDuration() : selected_section.getSubject(subject).getDuration();
 			TeacherID teacher_id = day_zero->second.teacher_id;
 
 			if (!is_reset) {
@@ -329,8 +343,7 @@ void Timetable::updateTeachersAndSections(
 
 			for (const auto& day : it->second) {
 				SubjectID subject = day.second.subject_id;
-
-				TimeDuration duration = selected_section.getSubject(subject).getDuration();
+				TimeDuration duration = day.second.duration;
 
 				max_duration = std::max(max_duration, duration);
 				TeacherID teacher_id = day.second.teacher_id;
@@ -410,11 +423,14 @@ void Timetable::setClasstimeslot(Section& section) {
 	const auto& classes = section.getClasses();
 
 	for (const auto& [timeslot, day_school_class] : classes) {
+		print("timeslot", timeslot);
+
 		if (day_school_class.count(ScheduledDay::EVERYDAY)) {
 			const SchoolClass& schoolClass = day_school_class.at(ScheduledDay::EVERYDAY);
 			SubjectID subject_id = schoolClass.subject_id;
 
-			TimeDuration duration = (subject_id == -1) ? Timetable::getBreakTimeDuration() : section.getSubject(subject_id).getDuration();
+			TimeDuration duration = schoolClass.duration;
+			// TimeDuration duration = (subject_id == -1) ? Timetable::getBreakTimeDuration() : section.getSubject(subject_id).getDuration();
 
 			section.setTimeRange(timeslot, ClassStartEnd{class_start, class_start + duration});
 			class_start += duration;
@@ -426,7 +442,8 @@ void Timetable::setClasstimeslot(Section& section) {
 				if (day_school_class.count(static_cast<ScheduledDay>(i))) {
 					SubjectID subject_id = day_school_class.at(static_cast<ScheduledDay>(i)).subject_id;
 
-					TimeDuration subject_duration = section.getSubject(subject_id).getDuration();
+					TimeDuration subject_duration = day_school_class.at(static_cast<ScheduledDay>(i)).duration;
+					// TimeDuration subject_duration = section.getSubject(subject_id).getDuration();
 					if (subject_duration > max_duration) {
 						max_duration = subject_duration;
 					}
@@ -451,11 +468,12 @@ std::vector<Timeslot> Timetable::getBreaks(const Section& section) const {
 	    total_timeslot,
 	    num_breaks,
 	    gap,
-	    num_breaks == 1 ? gap + 1 : gap);
+	    num_breaks == 1 ? gap + 1 : gap);  // FIXME: temporary fix. make this dynamic
 
 	// FIXME: temporary fix might be code smell
 	// Calculate the reverse index based on the current try count
 	int index = (possible_breaks.size() - (s_rotary_timeslot.getTotalTry() % possible_breaks.size())) % possible_breaks.size();
+	// int index = s_rotary_timeslot.getTotalTry() % possible_breaks.size();
 
 	return possible_breaks[index];
 }
@@ -473,38 +491,54 @@ void Timetable::setupTimeslots(int total_timeslot, std::deque<Timeslot>& timeslo
 	}
 }
 
-void Timetable::categorizeSubjects(Section& section,
-                                   std::vector<SubjectID>& full_week_day_subjects,
-                                   std::vector<SubjectID>& special_unit_subjects) const {
-	const auto& subject_configurations = section.getSubjectConfigurations();
-	for (const auto& [subject_id, _] : subject_configurations) {
-		int units = section.getSubject(subject_id).getUnits();
-		std::vector<ScheduledDay> fixed_days = section.getSubject(subject_id).getFixedDays();
-
-		if (units == 0) {
-			full_week_day_subjects.push_back(subject_id);
-		} else {
-			if (std::find(fixed_days.begin(), fixed_days.end(), ScheduledDay::ANYDAY) != fixed_days.end()) {
-				special_unit_subjects.push_back(subject_id);
-				std::rotate(special_unit_subjects.rbegin(), special_unit_subjects.rbegin() + 1, special_unit_subjects.rend());
-			} else {
-				special_unit_subjects.push_back(subject_id);
-			}
-		}
-	}
-}
-
-TeacherID Timetable::getRandomInitialTeacher(Section& section, SubjectID subject_id) {
+TeacherID Timetable::getRandomInitialTeacher(Section& section, SubjectID subject_id, TimeDuration class_duration) const {
 	TeacherID fixed_teacher_id = section.getSubjectFixedTeacher(subject_id);
 	if (fixed_teacher_id == -1) {
-		TimeDuration subject_duration = section.getSubject(subject_id).getDuration() * Timetable::getWorkWeek();  // TODO: not elegant
-		TeacherID queued_teacher = Timetable::s_subject_teacher_queue.getTeacher(subject_id, subject_duration);
+		TeacherID queued_teacher = Timetable::s_subject_teacher_queue.getTeacher(subject_id, class_duration);
 		TeacherID selected_teacher = queued_teacher != -1 ? queued_teacher : getRandomTeacher(subject_id);
 		// return selected_teacher;
 		return getRandomTeacher(subject_id);
 	}
 
 	return fixed_teacher_id;
+}
+
+void Timetable::initializeClassBlock(Section& section,
+                                     std::vector<SchoolClass>& with_fixed_full_week_day_subjects,
+                                     std::vector<SchoolClass>& with_fixed_special_unit_subjects,
+                                     std::vector<SchoolClass>& dynamic_full_week_day_subjects,
+                                     std::vector<SchoolClass>& dynamic_special_unit_subjects) {
+	const auto& subject_configurations = section.getSubjectConfigurations();
+	for (const auto& subject_configuration : subject_configurations) {
+		SubjectID subject_id = subject_configuration->getSubjectId();
+		TimeDuration duration = subject_configuration->getDuration();
+		bool is_consistent_everyday = subject_configuration->isConsistentEveryday();
+		Timeslot fixed_timeslot = subject_configuration->getFixedTimeslot();
+		ScheduledDay fixed_days = subject_configuration->getFixedDay();
+
+		TeacherID teacher_id = getRandomInitialTeacher(section, subject_id, duration);
+
+		SchoolClass school_class = SchoolClass{subject_id, teacher_id, duration, is_consistent_everyday, fixed_timeslot, fixed_days};
+
+		if (is_consistent_everyday == 0) {
+			if (fixed_timeslot == 0) {
+				dynamic_full_week_day_subjects.push_back(school_class);
+			} else {
+				with_fixed_full_week_day_subjects.push_back(school_class);
+			}
+		} else {
+			if (fixed_timeslot == 0 && fixed_days == ScheduledDay::ANYDAY) {
+				dynamic_special_unit_subjects.push_back(school_class);
+			} else {
+				if (fixed_timeslot != 0 && fixed_days != ScheduledDay::ANYDAY) {
+					with_fixed_special_unit_subjects.push_back(school_class);
+					std::rotate(with_fixed_special_unit_subjects.rbegin(), with_fixed_special_unit_subjects.rbegin() + 1, with_fixed_special_unit_subjects.rend());
+				} else {
+					with_fixed_special_unit_subjects.push_back(school_class);
+				}
+			}
+		}
+	}
 }
 
 void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teachers) {
@@ -514,130 +548,164 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 	}
 
 	for (auto& [section_id, section] : sections) {
-		// print("section", section_id);
-		std::vector<Timeslot> breaks = getBreaks(section);
-		// std::vector<Timeslot> breaks = {3};
-
-		printContainer(breaks);
-
-		section.assignBreaks(breaks);
-
-		// for (Timeslot timeslot : breaks) {
-		// 	section.addDynamicTimeSlot(timeslot);
-		// }
-
 		std::deque<Timeslot> timeslot_keys;
 		std::map<Timeslot, std::vector<ScheduledDay>> timeslots;
-		setupTimeslots(section.getTotalTimeslot(), timeslot_keys, timeslots, breaks);
+		setupTimeslots(section.getTotalTimeslot(), timeslot_keys, timeslots, std::vector<Timeslot>());
 
-		std::vector<SubjectID> full_week_day_subjects;
-		std::vector<SubjectID> special_unit_subjects;
-		categorizeSubjects(section, full_week_day_subjects, special_unit_subjects);
+		std::vector<SchoolClass> with_fixed_full_week_day_subjects;
+		std::vector<SchoolClass> with_fixed_special_unit_subjects;
+		std::vector<SchoolClass> dynamic_full_week_day_subjects;
+		std::vector<SchoolClass> dynamic_special_unit_subjects;
+		initializeClassBlock(section, with_fixed_full_week_day_subjects, with_fixed_special_unit_subjects, dynamic_full_week_day_subjects, dynamic_special_unit_subjects);
 
-		for (const auto& subject_id : full_week_day_subjects) {
-			Timeslot fixed_timeslot = section.getSubject(subject_id).getFixedTimeslot();
+		for (auto& school_class : with_fixed_special_unit_subjects) {
+			TeacherID selected_teacher = school_class.teacher_id;
+			Timeslot school_class_timeslot = school_class.fixed_timeslot;
+			ScheduledDay school_class_day = school_class.fixed_days;
+			section.addUtilizedTeacher(selected_teacher);
 
-			TeacherID selected_teacher = getRandomInitialTeacher(section, subject_id);
+			Timeslot timeslot_key = school_class_timeslot;
 
+			if (timeslot_key == 0) {
+				auto it = std::find_if(timeslot_keys.begin(), timeslot_keys.end(),
+				                       [&timeslots](int key) { return timeslots[key].size() > 0; });
+
+				if (it == timeslot_keys.end()) {
+					print("no more timeslots");
+					break;
+				}
+
+				timeslot_key = *it;
+			}
+
+			ScheduledDay day = school_class_day;
+			if (school_class_day == ScheduledDay::ANYDAY) {
+				std::vector<ScheduledDay>& days = timeslots[timeslot_key];
+				std::uniform_int_distribution<int> dis_work_day(0, days.size() - 1);
+				day = days[dis_work_day(randomizer_engine)];
+				section.addDynamicTimeSlotDay(timeslot_key, static_cast<ScheduledDay>(day));
+			}
+
+			school_class.fixed_days = day;
+
+			section.addClass(timeslot_key, static_cast<ScheduledDay>(day), school_class);
+			getTeacherById(selected_teacher).incrementClassCount(static_cast<ScheduledDay>(day));
+
+			section.addSegmentedTimeSlot(timeslot_key);
+
+			timeslots[timeslot_key].erase(std::remove(timeslots[timeslot_key].begin(), timeslots[timeslot_key].end(), day), timeslots[timeslot_key].end());
+			if (timeslots[timeslot_key].size() == 0) {
+				timeslot_keys.erase(std::remove(timeslot_keys.begin(), timeslot_keys.end(), timeslot_key), timeslot_keys.end());
+				timeslots.erase(timeslot_key);
+			}
+		}
+
+		for (const auto& school_class : with_fixed_full_week_day_subjects) {
+			TeacherID selected_teacher = school_class.teacher_id;
 			section.addUtilizedTeacher(selected_teacher);
 
 			for (int day = 1; day <= Timetable::getWorkWeek(); ++day) {
 				getTeacherById(selected_teacher).incrementClassCount(static_cast<ScheduledDay>(day));
 			}
 
-			if (fixed_timeslot == 0) {
-				Timeslot timeslot_key = timeslot_keys.front();
+			Timeslot timeslot_key = school_class.fixed_timeslot;
 
-				timeslot_keys.erase(std::remove(timeslot_keys.begin(), timeslot_keys.end(), timeslot_key), timeslot_keys.end());
+			timeslot_keys.erase(std::remove(timeslot_keys.begin(), timeslot_keys.end(), timeslot_key), timeslot_keys.end());
 
-				section.addClass(timeslot_key, ScheduledDay::EVERYDAY, SchoolClass{subject_id, selected_teacher});
+			section.addClass(timeslot_key, ScheduledDay::EVERYDAY, school_class);
 
-				section.addDynamicTimeSlot(timeslot_key);
-
-				timeslots.erase(timeslot_key);
-			} else {
-				Timeslot timeslot_key = fixed_timeslot;
-
-				timeslot_keys.erase(std::remove(timeslot_keys.begin(), timeslot_keys.end(), timeslot_key), timeslot_keys.end());
-
-				section.addClass(timeslot_key, ScheduledDay::EVERYDAY, SchoolClass{subject_id, selected_teacher});
-
-				timeslots.erase(timeslot_key);
-			}
+			timeslots.erase(timeslot_key);
 		}
 
-		for (const auto& subject_id : special_unit_subjects) {
-			Timeslot fixed_timeslot = section.getSubject(subject_id).getFixedTimeslot();
-			int units = section.getSubject(subject_id).getUnits();
+		// print("section", section_id);
+		std::vector<Timeslot> breaks = getBreaks(section);
 
-			TeacherID selected_teacher = getRandomInitialTeacher(section, subject_id);
+		// printContainer(breaks);
 
-			std::vector<ScheduledDay> fixed_days = section.getSubject(subject_id).getFixedDays();
+		for (Timeslot timeslot : breaks) {
+			Timeslot break_slot = timeslot;
 
+			auto available = std::find(timeslot_keys.begin(), timeslot_keys.end(), break_slot) != timeslot_keys.end();
+
+			if (!available) {
+				// find random that is empty throughout the week
+				auto it = std::find_if(timeslot_keys.begin(), timeslot_keys.end(),
+				                       [&timeslots](int key) { return timeslots[key].size() == 5; });
+
+				if (it == timeslot_keys.end()) {
+					print("no more timeslots");
+					break;
+				}
+
+				break_slot = *it;
+			}
+
+			timeslot_keys.erase(std::remove(timeslot_keys.begin(), timeslot_keys.end(), break_slot), timeslot_keys.end());
+			timeslots.erase(break_slot);
+
+			section.assignBreak(break_slot, Timetable::getBreakTimeDuration(), 0, ScheduledDay::EVERYDAY);
+			section.addDynamicTimeSlot(break_slot);
+		}
+
+		for (const auto& school_class : dynamic_full_week_day_subjects) {
+			TeacherID selected_teacher = school_class.teacher_id;
 			section.addUtilizedTeacher(selected_teacher);
 
-			// set of fixed day
+			for (int day = 1; day <= Timetable::getWorkWeek(); ++day) {
+				getTeacherById(selected_teacher).incrementClassCount(static_cast<ScheduledDay>(day));
+			}
 
-			for (int iter = 1; iter <= units; ++iter) {
-				if (fixed_timeslot == 0) {
-					auto it = std::find_if(timeslot_keys.begin(), timeslot_keys.end(),
-					                       [&timeslots](int key) { return timeslots[key].size() > 0; });
+			auto it = std::find_if(timeslot_keys.begin(), timeslot_keys.end(),
+			                       [&timeslots](int key) { return timeslots[key].size() == 5; });
 
-					if (it == timeslot_keys.end()) {
-						print("no more timeslots");
-						break;
-					}
+			if (it == timeslot_keys.end()) {
+				print("no more timeslots");
+				break;
+			}
 
-					Timeslot timeslot = *it;
+			Timeslot timeslot_key = *it;
 
-					ScheduledDay day;
-					if (std::find(fixed_days.begin(), fixed_days.end(), ScheduledDay::ANYDAY) != fixed_days.end()) {
-						std::vector<ScheduledDay>& days = timeslots[timeslot];
-						std::uniform_int_distribution<int> dis_work_day(0, days.size() - 1);
-						day = days[dis_work_day(randomizer_engine)];
-						section.addDynamicTimeSlotDay(timeslot, static_cast<ScheduledDay>(day));
-					} else {
-						std::uniform_int_distribution<int> dis_work_day(0, fixed_days.size() - 1);
-						day = fixed_days[dis_work_day(randomizer_engine)];
+			timeslot_keys.erase(std::remove(timeslot_keys.begin(), timeslot_keys.end(), timeslot_key), timeslot_keys.end());
 
-						fixed_days.erase(std::remove(fixed_days.begin(), fixed_days.end(), day), fixed_days.end());
-					}
+			section.addClass(timeslot_key, ScheduledDay::EVERYDAY, school_class);
 
-					section.addClass(timeslot, static_cast<ScheduledDay>(day), SchoolClass{subject_id, selected_teacher});
-					getTeacherById(selected_teacher).incrementClassCount(static_cast<ScheduledDay>(day));
-					section.addSegmentedTimeSlot(timeslot);
+			section.addDynamicTimeSlot(timeslot_key);
 
-					timeslots[timeslot].erase(std::remove(timeslots[timeslot].begin(), timeslots[timeslot].end(), day), timeslots[timeslot].end());
-					if (timeslots[timeslot].size() == 0) {
-						timeslot_keys.erase(it);
-						timeslots.erase(timeslot);
-					}
-				} else {
-					Timeslot timeslot_key = fixed_timeslot;
+			timeslots.erase(timeslot_key);
+		}
 
-					ScheduledDay day;
-					if (std::find(fixed_days.begin(), fixed_days.end(), ScheduledDay::ANYDAY) != fixed_days.end()) {
-						std::vector<ScheduledDay>& days = timeslots[timeslot_key];
-						std::uniform_int_distribution<int> dis_work_day(0, days.size() - 1);
-						day = days[dis_work_day(randomizer_engine)];
-						section.addDynamicTimeSlotDay(timeslot_key, static_cast<ScheduledDay>(day));
-					} else {
-						std::uniform_int_distribution<int> dis_work_day(0, fixed_days.size() - 1);
-						day = fixed_days[dis_work_day(randomizer_engine)];
+		for (auto& school_class : dynamic_special_unit_subjects) {
+			TeacherID selected_teacher = school_class.teacher_id;
+			Timeslot school_class_timeslot = school_class.fixed_timeslot;
+			ScheduledDay school_class_day = school_class.fixed_days;
+			section.addUtilizedTeacher(selected_teacher);
 
-						fixed_days.erase(std::remove(fixed_days.begin(), fixed_days.end(), day), fixed_days.end());
-					}
+			auto it = std::find_if(timeslot_keys.begin(), timeslot_keys.end(),
+			                       [&timeslots](int key) { return timeslots[key].size() > 0; });
 
-					section.addClass(timeslot_key, static_cast<ScheduledDay>(day), SchoolClass{subject_id, selected_teacher});
+			if (it == timeslot_keys.end()) {
+				print("no more timeslots");
+				break;
+			}
 
-					section.addSegmentedTimeSlot(timeslot_key);
+			Timeslot timeslot_key = timeslot_key = *it;
 
-					timeslots[timeslot_key].erase(std::remove(timeslots[timeslot_key].begin(), timeslots[timeslot_key].end(), day), timeslots[timeslot_key].end());
-					if (timeslots[timeslot_key].size() == 0) {
-						timeslot_keys.erase(std::remove(timeslot_keys.begin(), timeslot_keys.end(), timeslot_key), timeslot_keys.end());
-						timeslots.erase(timeslot_key);
-					}
-				}
+			std::vector<ScheduledDay>& days = timeslots[timeslot_key];
+			std::uniform_int_distribution<int> dis_work_day(0, days.size() - 1);
+			ScheduledDay day = days[dis_work_day(randomizer_engine)];
+			section.addDynamicTimeSlotDay(timeslot_key, static_cast<ScheduledDay>(day));
+
+			school_class.fixed_days = day;
+
+			section.addClass(timeslot_key, static_cast<ScheduledDay>(day), school_class);
+			getTeacherById(selected_teacher).incrementClassCount(static_cast<ScheduledDay>(day));
+
+			section.addSegmentedTimeSlot(timeslot_key);
+
+			timeslots[timeslot_key].erase(std::remove(timeslots[timeslot_key].begin(), timeslots[timeslot_key].end(), day), timeslots[timeslot_key].end());
+			if (timeslots[timeslot_key].size() == 0) {
+				timeslot_keys.erase(std::remove(timeslot_keys.begin(), timeslot_keys.end(), timeslot_key), timeslot_keys.end());
+				timeslots.erase(timeslot_key);
 			}
 		}
 
@@ -719,7 +787,7 @@ std::pair<Timeslot, Timeslot> Timetable::pickRandomTimeslots(Section& selected_s
 
 	} else if (field == 2) {
 		std::vector<Timeslot> timeslots;
-		for (const auto& entry : selected_section.getSegmentedTimeslot()) {
+		for (const auto& entry : selected_section.getDynamicSegmentedTimeslot()) {
 			timeslots.push_back(entry);
 		}
 
@@ -756,9 +824,9 @@ Section& Timetable::pickRandomSection() {
 }
 
 int Timetable::pickRandomField(Section& selected_section) {
-	// return 1;llllll
+	return 1;
 
-	if (selected_section.getSegmentedTimeslot().empty()) {
+	if (selected_section.getDynamicSegmentedTimeslot().empty()) {
 		std::uniform_int_distribution<> dis(0, 1);
 
 		return dis(randomizer_engine);
@@ -801,7 +869,7 @@ void Timetable::modify(Section& selected_section,
 		selected_section.swapClassesByTimeslot(selected_timeslot_1, selected_timeslot_2);
 		selected_section.adjustBreakslots(itLow->first, itUpPrev->first);
 
-		if (!selected_section.getSegmentedTimeslot().empty()) {
+		if (!selected_section.getDynamicSegmentedTimeslot().empty()) {
 			selected_section.adjustSegmentedTimeslots(selected_timeslot_1, selected_timeslot_2);
 		}
 
@@ -838,7 +906,7 @@ void Timetable::modify(Section& selected_section,
 			TeacherID new_teacher = eligibility_manager.getNewRandomTeacher(selected_timeslot_subject_id, old_teacher_id);
 
 			std::unordered_map<Timeslot, std::vector<ScheduledDay>> all_segmented_class;
-			std::unordered_set<Timeslot> all_segmented_timeslot = selected_section.getSegmentedTimeslot();
+			std::unordered_set<Timeslot> all_segmented_timeslot = selected_section.getDynamicSegmentedTimeslot();
 
 			for (const int segmented_timeslot : all_segmented_timeslot) {
 				std::unordered_set<ScheduledDay> all_scheduled_days = selected_section.getAllScheduledDayOnClasstimeslot(segmented_timeslot);
