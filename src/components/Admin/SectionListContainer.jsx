@@ -144,7 +144,7 @@ const AdditionalScheduleForSection = ({
                             value={schedName}
                             onChange={(e) => setSchedName(e.target.value)}
                             placeholder="Enter schedule name"
-                            disabled={viewingMode !== 0}
+                            // disabled={viewingMode !== 0}
                             readOnly={viewingMode !== 0}
                         />
                     </div>
@@ -174,7 +174,7 @@ const AdditionalScheduleForSection = ({
                                 type="text"
                                 className="input input-bordered w-full"
                                 value={subjects[schedSubject]?.subject || 'N/A'}
-                                disabled
+                                // disabled
                                 readOnly
                             />
                         )}
@@ -191,7 +191,7 @@ const AdditionalScheduleForSection = ({
                                 setSchedDuration(Number(e.target.value))
                             }
                             placeholder="Enter duration"
-                            disabled={viewingMode !== 0}
+                            // disabled={viewingMode !== 0}
                             readOnly={viewingMode !== 0}
                         />
                     </div>
@@ -209,7 +209,7 @@ const AdditionalScheduleForSection = ({
                             placeholder="Enter frequency"
                             min={1}
                             max={numOfSchoolDays}
-                            disabled={viewingMode !== 0}
+                            // disabled={viewingMode !== 0}
                             readOnly={viewingMode !== 0}
                         />
                     </div>
@@ -226,7 +226,7 @@ const AdditionalScheduleForSection = ({
                             onChange={(e) =>
                                 setSchedShown(e.target.value === 'Yes')
                             }
-                            disabled={viewingMode !== 0}
+                            // disabled={viewingMode !== 0}
                             readOnly={viewingMode !== 0}
                         >
                             <option value="Yes">Yes</option>
@@ -1168,11 +1168,22 @@ const SectionListContainer = ({
         }
     }, [editSectionYear, editSectionProg, programs]); // Add `programs` as a dependency
 
+    // useEffect(() => {
+    //     console.log('editSectionId: ', editSectionId);
+    //     console.log('editSectionValue: ', editSectionValue);
+    //     console.log('editSectionAdviser: ', editSectionAdviser);
+    //     console.log('editSectionProg: ', editSectionProg);
+    //     console.log('editSectionYear: ', editSectionYear);
+    //     console.log('editSectionStartTime: ', editSectionStartTime);
+    //     console.log('editSectionShift: ', editSectionShift);
+    //     console.log('editSectionSubjects: ', editSectionSubjects);
+    //     console.log('editSectionFixedDays: ', editSectionFixedDays);
+    //     console.log('editSectionFixedPositions: ', editSectionFixedPositions);
+    // }, [editSectionId, editSectionValue, editSectionAdviser, editSectionProg, editSectionYear, editSectionStartTime, editSectionShift, editSectionSubjects, editSectionFixedDays, editSectionFixedPositions]);
+
     useEffect(() => {
-        console.log('editSectionSubjects:', editSectionSubjects);
-        console.log('editSectionFixedDays:', editSectionFixedDays);
-        console.log('editSectionFixedPositions:', editSectionFixedPositions);
-    }, [editSectionSubjects, editSectionFixedDays, editSectionFixedPositions]);
+        console.log('editSectionStartTime: ', editSectionStartTime);
+    }, [editSectionStartTime]);
 
     useEffect(() => {
         if (sectionStatus === 'idle') {

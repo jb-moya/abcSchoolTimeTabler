@@ -18,7 +18,8 @@ import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
 import { toast } from 'sonner';
-import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
+import { clsx } from 'clsx';
+// import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 
 import FixedScheduleMaker from './FixedSchedules/fixedScheduleMaker';
 
@@ -141,7 +142,7 @@ const AdditionalScheduleForProgram = ({
                             value={schedName}
                             onChange={(e) => setSchedName(e.target.value)}
                             placeholder="Enter schedule name"
-                            disabled={viewingMode !== 0}
+                            // disabled={viewingMode !== 0}
                             readOnly={viewingMode !== 0}
                         />
                     </div>
@@ -171,7 +172,7 @@ const AdditionalScheduleForProgram = ({
                                 type="text"
                                 className="input input-bordered w-full"
                                 value={subjects[schedSubject]?.subject || 'N/A'}
-                                disabled
+                                // disabled
                                 readOnly
                             />
                         )}
@@ -188,7 +189,7 @@ const AdditionalScheduleForProgram = ({
                                 setSchedDuration(Number(e.target.value))
                             }
                             placeholder="Enter duration"
-                            disabled={viewingMode !== 0}
+                            // disabled={viewingMode !== 0}
                             readOnly={viewingMode !== 0}
                         />
                     </div>
@@ -206,7 +207,7 @@ const AdditionalScheduleForProgram = ({
                             placeholder="Enter frequency"
                             min={1}
                             max={numOfSchoolDays}
-                            disabled={viewingMode !== 0}
+                            // disabled={viewingMode !== 0}
                             readOnly={viewingMode !== 0}
                         />
                     </div>
@@ -223,7 +224,7 @@ const AdditionalScheduleForProgram = ({
                             onChange={(e) =>
                                 setSchedShown(e.target.value === 'Yes')
                             }
-                            disabled={viewingMode !== 0}
+                            // disabled={viewingMode !== 0}
                             readOnly={viewingMode !== 0}
                         >
                             <option value="Yes">Yes</option>
@@ -1385,15 +1386,18 @@ const ProgramListContainer = ({
             const originalSection = JSON.parse(JSON.stringify(section));
             const newSection = JSON.parse(JSON.stringify(section));
 
+            console.log('xasdsadsa: ', newSection.startTime)
+            console.log('starting time: ', startTimes[newSection.year]);
+
             // Early return if section is not part of the edited program
             if (newSection.program !== editProgramId) return;
 
             // Update shift and start time (if true)
-            if (sectionDetailsToUpdate.shift === true)
+            if (sectionDetailsToUpdate.shiftAndStartTime === true)
+            {
                 newSection.shift = selectedShifts[newSection.year];
-
-            if (sectionDetailsToUpdate.startTime === true)
                 newSection.startTime = startTimes[newSection.year];
+            }
 
             // Update additional schedules (if true)
             if (sectionDetailsToUpdate.additionalScheds === true)
@@ -1412,96 +1416,93 @@ const ProgramListContainer = ({
 
                 // Early return if there are no changes
                 if (
-                    newSubs.size === originalSubs.size &&
-                    [...newSubs].every((subjectId) =>
-                        originalSubs.has(subjectId)
-                    )
-                )
-                    return;
-
-                // Add subjects from the edited program-year to the current section
-                editProgramCurr[newSection.year].forEach((subjectId) => {
-                    if (!originalSubs.has(subjectId)) {
-                        newSection.subjects.push(subjectId);
-                        originalSubs.add(subjectId);
-                    }
-                });
-
-                // Remove subjects from the current section that are not in the edited program-year
-                newSection.subjects = newSection.subjects.filter((subjectId) =>
-                    newSubs.has(subjectId)
-                );
-
-                // Update the section in the sections object
-                const newSubjsSet = new Set(newSection.subjects);
-
-                // Remove the fixed schedules from the current section that are not in the edited program-year
-                Object.keys(newSection.fixedDays).forEach((subjectId) => {
-                    if (!newSubjsSet.has(subjectId)) {
-                        delete newSection.fixedDays[subjectId];
-                        delete newSection.fixedPositions[subjectId];
-                    }
-                });
-
-                // Retrieve all occupied days and positions of the current section
-                const dayPositionMap = new Map();
-                Object.keys(newSection.fixedDays).forEach((subjectId) => {
-                    newSection.fixedDays[subjectId].forEach((day, index) => {
-                        const pos = newSection.fixedPositions[subjectId][index];
-                        if (
-                            day !== 0 &&
-                            pos !== 0 &&
-                            !dayPositionMap.has(`${day}-${pos}`)
-                        ) {
-                            dayPositionMap.set(`${day}-${pos}`, true);
+                    newSubs.size !== originalSubs.size ||
+                    !([...newSubs].every((subjectId) => originalSubs.has(subjectId)))
+                ) {
+                    // Add subjects from the edited program-year to the current section
+                    editProgramCurr[newSection.year].forEach((subjectId) => {
+                        if (!originalSubs.has(subjectId)) {
+                            newSection.subjects.push(subjectId);
+                            originalSubs.add(subjectId);
                         }
                     });
-                });
 
-                // Add fixed schedules from the edited program-year to the current section
-                newSection.subjects.forEach((subjectId) => {
-                    if (!(subjectId in newSection.fixedDays)) {
-                        let newSubjDays = [];
-                        let newSubjPositions = [];
+                    // Remove subjects from the current section that are not in the edited program-year
+                    newSection.subjects = newSection.subjects.filter((subjectId) =>
+                        newSubs.has(subjectId)
+                    );
 
-                        for (
-                            let i = 0;
-                            i <
-                            editFixedDays[newSection.year][subjectId].length;
-                            i++
-                        ) {
-                            const day =
-                                editFixedDays[newSection.year][subjectId][i];
-                            const position =
-                                editFixedPositions[newSection.year][subjectId][
-                                    i
-                                ];
+                    // Update the section in the sections object
+                    const newSubjsSet = new Set(newSection.subjects);
 
-                            // Check if the day-position combination is already occupied
+                    // Remove the fixed schedules from the current section that are not in the edited program-year
+                    Object.keys(newSection.fixedDays).forEach((subjectId) => {
+                        if (!newSubjsSet.has(subjectId)) {
+                            delete newSection.fixedDays[subjectId];
+                            delete newSection.fixedPositions[subjectId];
+                        }
+                    });
+
+                    // Retrieve all occupied days and positions of the current section
+                    const dayPositionMap = new Map();
+                    Object.keys(newSection.fixedDays).forEach((subjectId) => {
+                        newSection.fixedDays[subjectId].forEach((day, index) => {
+                            const pos = newSection.fixedPositions[subjectId][index];
                             if (
                                 day !== 0 &&
-                                position !== 0 &&
-                                !dayPositionMap.has(`${day}-${position}`)
+                                pos !== 0 &&
+                                !dayPositionMap.has(`${day}-${pos}`)
                             ) {
-                                newSubjDays.push(day);
-                                newSubjPositions.push(position);
-                                dayPositionMap.set(`${day}-${position}`, true);
+                                dayPositionMap.set(`${day}-${pos}`, true);
                             }
-                            // else if (Number(day) + Number(position) === 1) {
-                            //     newSubjDays.push(day);
-                            //     newSubjPositions.push(position);
-                            // }
-                            else {
-                                newSubjDays.push(0);
-                                newSubjPositions.push(0);
-                            }
-                        }
+                        });
+                    });
 
-                        newSection.fixedDays[subjectId] = newSubjDays;
-                        newSection.fixedPositions[subjectId] = newSubjPositions;
-                    }
-                });
-            }
+                    // Add fixed schedules from the edited program-year to the current section
+                    newSection.subjects.forEach((subjectId) => {
+                        if (!(subjectId in newSection.fixedDays)) {
+                            let newSubjDays = [];
+                            let newSubjPositions = [];
+
+                            for (
+                                let i = 0;
+                                i <
+                                editFixedDays[newSection.year][subjectId].length;
+                                i++
+                            ) {
+                                const day =
+                                    editFixedDays[newSection.year][subjectId][i];
+                                const position =
+                                    editFixedPositions[newSection.year][subjectId][
+                                        i
+                                    ];
+
+                                // Check if the day-position combination is already occupied
+                                if (
+                                    day !== 0 &&
+                                    position !== 0 &&
+                                    !dayPositionMap.has(`${day}-${position}`)
+                                ) {
+                                    newSubjDays.push(day);
+                                    newSubjPositions.push(position);
+                                    dayPositionMap.set(`${day}-${position}`, true);
+                                }
+                                // else if (Number(day) + Number(position) === 1) {
+                                //     newSubjDays.push(day);
+                                //     newSubjPositions.push(position);
+                                // }
+                                else {
+                                    newSubjDays.push(0);
+                                    newSubjPositions.push(0);
+                                }
+                            }
+
+                            newSection.fixedDays[subjectId] = newSubjDays;
+                            newSection.fixedPositions[subjectId] = newSubjPositions;
+                        }
+                    });
+                }
+            }      
 
             console.log('check', newSection);
 
@@ -1870,8 +1871,7 @@ const ProgramListContainer = ({
 
     const handleConfirmationModalClose = () => {
         setSectionDetailsToUpdate({
-            shift: false,
-            startTime: false,
+            shiftAndStartTime: false,
             fixedScheds: false,
             additionalScheds: false,
         });
@@ -2766,41 +2766,21 @@ const ProgramListContainer = ({
                                             name="shift"
                                             className="mr-2"
                                             checked={
-                                                sectionDetailsToUpdate.shift
+                                                sectionDetailsToUpdate.shiftAndStartTime
                                             }
                                             onChange={(e) =>
                                                 setSectionDetailsToUpdate(
                                                     (prev) => ({
                                                         ...prev,
-                                                        shift: e.target.checked,
+                                                        shiftAndStartTime: e.target.checked,
                                                     })
                                                 )
                                             }
                                         />
-                                        Update Shift
+                                        Update Shift and Start Time
                                     </label>
                                     <br />
-                                    <label>
-                                        <input
-                                            type="checkbox"
-                                            name="startTime"
-                                            className="mr-2"
-                                            checked={
-                                                sectionDetailsToUpdate.startTime
-                                            }
-                                            onChange={(e) =>
-                                                setSectionDetailsToUpdate(
-                                                    (prev) => ({
-                                                        ...prev,
-                                                        startTime:
-                                                            e.target.checked,
-                                                    })
-                                                )
-                                            }
-                                        />
-                                        Update Start Time
-                                    </label>
-                                    <br />
+                                    
                                     <label>
                                         <input
                                             type="checkbox"
