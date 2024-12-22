@@ -133,6 +133,16 @@ export const removeEntityFromDB = async (storeName, entityId) => {
         throw new Error('Dependency Error: Teacher is referenced by sections.');
       }
       
+    } else if (storeName === STORE_NAMES.RANKS) {
+      const teachers = await teachersStore.getAll();
+      const teacherDependent = teachers.find((teacher) =>
+        teacher.rank === entityId
+      );
+
+      if (teacherDependent) {
+        toast.error('Cannot delete rank as it is referenced by teachers.');
+        throw new Error('Dependency Error: Rank is referenced by teachers.');
+      }
     }
 
     // console.log("pumupunta pa rin ba rito?");
