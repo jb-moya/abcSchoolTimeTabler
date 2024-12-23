@@ -74,17 +74,32 @@ const AddBuildingContainer = ({
         const updatedRoomNames = [...roomNames];
         updatedRoomNames[floorIndex] = Array.from(
             { length: roomsCount },
-            (_, i) =>
-                updatedRoomNames[floorIndex]?.[i] ||
-                `${buildingName || 'room'} - ${(floorIndex + 1) * 100 + i + 1}`
+            (_, i) => ({
+                roomName:
+                    updatedRoomNames[floorIndex]?.[i]?.roomName ||
+                    `${buildingName || 'room'} - ${
+                        (floorIndex + 1) * 100 + i + 1
+                    }`,
+                isAvailable:
+                    updatedRoomNames[floorIndex]?.[i]?.isAvailable || true,
+            })
         );
         setRoomNames(updatedRoomNames);
     };
 
-    const handleRoomNameChange = (floorIndex, roomIndex, value) => {
+    const handleRoomAvailabilityChange = (floorIndex, roomIndex) => {
         const updatedRoomNames = [...roomNames];
         if (!updatedRoomNames[floorIndex]) updatedRoomNames[floorIndex] = [];
-        updatedRoomNames[floorIndex][roomIndex] = value;
+        updatedRoomNames[floorIndex][roomIndex].isAvailable =
+            !updatedRoomNames[floorIndex][roomIndex].isAvailable;
+
+        setRoomNames(updatedRoomNames);
+    };
+
+    const handleRoomNameChange = (floorIndex, roomIndex, newRoomName) => {
+        const updatedRoomNames = [...roomNames];
+        if (!updatedRoomNames[floorIndex]) updatedRoomNames[floorIndex] = [];
+        updatedRoomNames[floorIndex][roomIndex].roomName = newRoomName;
         setRoomNames(updatedRoomNames);
     };
 
@@ -153,7 +168,7 @@ const AddBuildingContainer = ({
         const hasEmptyRoomNames = roomNames.some(
             (floorRooms) =>
                 floorRooms.length === 0 ||
-                floorRooms.some((room) => !room.trim())
+                floorRooms.some((room) => !room.roomName.trim())
         );
         if (hasEmptyRoomNames) {
             setErrorMessage('Room names cannot be empty');
@@ -282,24 +297,47 @@ const AddBuildingContainer = ({
                             {Array.from(
                                 { length: numberOfRooms[floorIndex] || 0 },
                                 (_, roomIndex) => (
-                                    <input
+                                    <div
+                                        className="flex items-center mb-1 gap-4"
                                         key={roomIndex}
-                                        type="text"
-                                        className="input rounded-md input-sm input-bordered w-full mb-1"
-                                        placeholder={`Room ${roomIndex + 1}`}
-                                        value={
-                                            roomNames[floorIndex]?.[
-                                                roomIndex
-                                            ] || `Room ${roomIndex + 1}`
-                                        }
-                                        onChange={(e) =>
-                                            handleRoomNameChange(
-                                                floorIndex,
-                                                roomIndex,
-                                                e.target.value
-                                            )
-                                        }
-                                    />
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            className="toggle toggle-sm toggle-primary"
+                                            checked={
+                                                roomNames[floorIndex]?.[
+                                                    roomIndex
+                                                ]?.isAvailable || false
+                                            }
+                                            onChange={() =>
+                                                handleRoomAvailabilityChange(
+                                                    floorIndex,
+                                                    roomIndex
+                                                )
+                                            }
+                                        />
+                                        <input
+                                            key={roomIndex}
+                                            type="text"
+                                            className="input rounded-md input-sm input-bordered w-full mb-1"
+                                            placeholder={`Room ${
+                                                roomIndex + 1
+                                            }`}
+                                            value={
+                                                roomNames[floorIndex]?.[
+                                                    roomIndex
+                                                ]?.roomName ||
+                                                `Room ${roomIndex + 1}`
+                                            }
+                                            onChange={(e) =>
+                                                handleRoomNameChange(
+                                                    floorIndex,
+                                                    roomIndex,
+                                                    e.target.value
+                                                )
+                                            }
+                                        />
+                                    </div>
                                 )
                             )}
                         </div>
@@ -419,7 +457,9 @@ const RoomListContainer = ({ editable = false }) => {
                         .includes(lowerCaseSearchValue);
                     const roomMatch = building.rooms.some((floor) =>
                         floor.some((room) =>
-                            room.toLowerCase().includes(lowerCaseSearchValue)
+                            room.roomName
+                                .toLowerCase()
+                                .includes(lowerCaseSearchValue)
                         )
                     );
                     return nameMatch || roomMatch;
@@ -476,10 +516,20 @@ const RoomListContainer = ({ editable = false }) => {
             Array.from({ length: editNumberOfFloors }, (_, i) => prev[i] || [])
         );
     }, [editNumberOfFloors]);
-    const handleRoomNameChange = (floorIndex, roomIndex, value) => {
+
+    const handleRoomNameChange = (floorIndex, roomIndex, newRoomName) => {
         const updatedRoomNames = [...editRoomNames];
         if (!updatedRoomNames[floorIndex]) updatedRoomNames[floorIndex] = [];
-        updatedRoomNames[floorIndex][roomIndex] = value;
+        updatedRoomNames[floorIndex][roomIndex].roomName = newRoomName;
+        setEditRoomNames(updatedRoomNames);
+    };
+
+    const handleRoomAvailabilityChange = (floorIndex, roomIndex) => {
+        const updatedRoomNames = [...editRoomNames];
+        if (!updatedRoomNames[floorIndex]) updatedRoomNames[floorIndex] = [];
+        updatedRoomNames[floorIndex][roomIndex].isAvailable =
+            !updatedRoomNames[floorIndex][roomIndex].isAvailable;
+
         setEditRoomNames(updatedRoomNames);
     };
 
@@ -493,12 +543,17 @@ const RoomListContainer = ({ editable = false }) => {
         const updatedRoomNames = [...editRoomNames];
         updatedRoomNames[floorIndex] = Array.from(
             { length: count },
-            (_, i) =>
-                updatedRoomNames[floorIndex]?.[i] ||
-                `${editBuildingName || 'room'} - ${
-                    (floorIndex + 1) * 100 + i + 1
-                }`
+            (_, i) => ({
+                roomName:
+                    updatedRoomNames[floorIndex]?.[i]?.roomName ||
+                    `${editBuildingName || 'room'} - ${
+                        (floorIndex + 1) * 100 + i + 1
+                    }`,
+                isAvailable:
+                    updatedRoomNames[floorIndex]?.[i]?.isAvailable || true,
+            })
         );
+
         setEditRoomNames(updatedRoomNames);
     };
 
@@ -606,7 +661,7 @@ const RoomListContainer = ({ editable = false }) => {
         const hasEmptyRoomNames = editRoomNames.some(
             (floorRooms) =>
                 floorRooms.length === 0 ||
-                floorRooms.some((room) => !room.trim())
+                floorRooms.some((room) => !room.roomName.trim())
         );
         if (hasEmptyRoomNames) {
             setErrorMessage('All rooms must have names');
@@ -811,52 +866,180 @@ const RoomListContainer = ({ editable = false }) => {
             <dialog id="edit_building_modal" className="modal">
                 <div className="modal-box w-11/12 max-w-5xl">
                     <div className="p-4">
-                        <h3 className="text-xl font-bold text-center mb-4">
-                            Edit Building
-                        </h3>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">
-                                    Building Name:
-                                </label>
-                                <input
-                                    type="text"
-                                    className={`input input-bordered w-full ${
-                                        errorField === 'buildingName'
-                                            ? 'border-red-500'
-                                            : ''
-                                    }`}
-                                    value={editBuildingName}
-                                    onChange={(e) =>
-                                        setEditBuildingName(e.target.value)
-                                    }
-                                    ref={inputBuildingNameRef}
-                                />
+                        <div className="flex">
+                            <div className="w-3/12 p-2">
+                                {editPreviewImage && (
+                                    <img
+                                        src={editPreviewImage}
+                                        alt="Preview"
+                                        className="object-cover rounded-md"
+                                    />
+                                )}
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">
-                                    Number of Floors:
-                                </label>
-                                <input
-                                    type="number"
-                                    className={`input input-bordered w-full ${
-                                        errorField === 'floors'
-                                            ? 'border-red-500'
-                                            : ''
-                                    }`}
-                                    value={editNumberOfFloors}
-                                    onChange={(e) =>
-                                        setEditNumberOfFloors(
-                                            Math.max(1, Number(e.target.value))
-                                        )
-                                    }
-                                    min={1}
-                                />
+
+                            <div className="w-9/12 p-2">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-xl font-bold ">
+                                        Edit Building
+                                    </h3>
+
+                                    <div className="flex justify-center gap-4">
+                                        <button
+                                            className="btn btn-secondary"
+                                            onClick={
+                                                handleCancelBuildingEditClick
+                                            }
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            className="btn btn-primary"
+                                            onClick={
+                                                handleSaveBuildingEditClick
+                                            }
+                                        >
+                                            Update Building
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="divider"></div>
+
+                                <div className="flex gap-4">
+                                    <div className="w-6/12 flex flex-col gap-2">
+                                        <div className="flex items-center text-left">
+                                            <label className="text-sm  w-9/12">
+                                                Building Name:
+                                            </label>
+                                            <input
+                                                type="text"
+                                                className={`input input-sm input-bordered w-full ${
+                                                    errorField ===
+                                                    'buildingName'
+                                                        ? 'border-red-500'
+                                                        : ''
+                                                }`}
+                                                value={editBuildingName}
+                                                onChange={(e) =>
+                                                    setEditBuildingName(
+                                                        e.target.value
+                                                    )
+                                                }
+                                                ref={inputBuildingNameRef}
+                                            />
+                                        </div>
+
+                                        <div className="flex items-center text-left">
+                                            <label className="text-sm  w-9/12">
+                                                Number of Floors:
+                                            </label>
+                                            <input
+                                                type="number"
+                                                className={`input input-sm input-bordered w-full ${
+                                                    errorField === 'floors'
+                                                        ? 'border-red-500'
+                                                        : ''
+                                                }`}
+                                                value={editNumberOfFloors}
+                                                onChange={(e) =>
+                                                    setEditNumberOfFloors(
+                                                        Math.max(
+                                                            1,
+                                                            Number(
+                                                                e.target.value
+                                                            )
+                                                        )
+                                                    )
+                                                }
+                                                min={1}
+                                            />
+                                        </div>
+
+                                        <div className="">
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium mb-1">
+                                                        Building Image:
+                                                    </label>
+                                                    <label className="form-control w-full">
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            className={`file-input file-input-sm file-input-bordered w-full ${
+                                                                errorField ===
+                                                                'buildingImage'
+                                                                    ? 'border-red-500'
+                                                                    : ''
+                                                            }`}
+                                                            onChange={
+                                                                handleImageUpload
+                                                            }
+                                                        />
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="w-6/12">
+                                        <div>
+                                            <label className="block text-sm text-left pl-2 mb-1">
+                                                Nearby Buildings:
+                                            </label>
+                                            <NearbyBuildingDropdown
+                                                availableBuildings={
+                                                    availableBuildings
+                                                }
+                                                nearbyBuildings={
+                                                    editNearbyBuildings
+                                                }
+                                                setNearbyBuildings={
+                                                    setEditNearbyBuildings
+                                                }
+                                                currentBuildingId={
+                                                    editBuildingID
+                                                }
+                                            />
+                                        </div>
+                                        <div className="flex flex-wrap gap-2 mt-3">
+                                            {editNearbyBuildings.length > 0 &&
+                                                editNearbyBuildings.map(
+                                                    (id, index) => {
+                                                        const building =
+                                                            availableBuildings.find(
+                                                                (b) =>
+                                                                    b.id === id
+                                                            );
+                                                        return (
+                                                            building && (
+                                                                <span
+                                                                    key={`${building.id}-${index}`}
+                                                                    className="badge badge-primary gap-2 cursor-pointer"
+                                                                    onClick={() =>
+                                                                        handleBadgeRemove(
+                                                                            building.id
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    {
+                                                                        building.name
+                                                                    }
+                                                                </span>
+                                                            )
+                                                        );
+                                                    }
+                                                )}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <hr className="my-5"></hr>
+                        {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"> */}
+
+                        {/* </div> */}
+
+                        {/* <hr className="my-5"></hr> */}
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                             {Array.from(
@@ -908,26 +1091,51 @@ const RoomListContainer = ({ editable = false }) => {
                                                         ] || 0,
                                                 },
                                                 (_, roomIndex) => (
-                                                    <input
+                                                    <div
+                                                        className="flex items-center mb-1 gap-4"
                                                         key={roomIndex}
-                                                        type="text"
-                                                        className="input input-sm input-bordered w-full mb-2"
-                                                        placeholder={`Room ${
-                                                            roomIndex + 1
-                                                        }`}
-                                                        value={
-                                                            editRoomNames[
-                                                                floorIndex
-                                                            ]?.[roomIndex] || ''
-                                                        }
-                                                        onChange={(e) =>
-                                                            handleRoomNameChange(
-                                                                floorIndex,
-                                                                roomIndex,
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                    />
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            className="toggle toggle-sm toggle-primary"
+                                                            checked={
+                                                                editRoomNames[
+                                                                    floorIndex
+                                                                ]?.[roomIndex]
+                                                                    ?.isAvailable ||
+                                                                false
+                                                            }
+                                                            onChange={() =>
+                                                                handleRoomAvailabilityChange(
+                                                                    floorIndex,
+                                                                    roomIndex
+                                                                )
+                                                            }
+                                                        />
+
+                                                        <input
+                                                            type="text"
+                                                            className="input input-sm input-bordered w-full"
+                                                            placeholder={`Room ${
+                                                                roomIndex + 1
+                                                            }`}
+                                                            value={
+                                                                editRoomNames[
+                                                                    floorIndex
+                                                                ]?.[roomIndex]
+                                                                    ?.roomName ||
+                                                                ''
+                                                            }
+                                                            onChange={(e) =>
+                                                                handleRoomNameChange(
+                                                                    floorIndex,
+                                                                    roomIndex,
+                                                                    e.target
+                                                                        .value
+                                                                )
+                                                            }
+                                                        />
+                                                    </div>
                                                 )
                                             )}
                                         </div>
@@ -938,77 +1146,6 @@ const RoomListContainer = ({ editable = false }) => {
 
                         <hr className="my-5"></hr>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-2">
-                                        Building Image:
-                                    </label>
-                                    <label className="form-control w-full">
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            className={`file-input file-input-bordered w-full ${
-                                                errorField === 'buildingImage'
-                                                    ? 'border-red-500'
-                                                    : ''
-                                            }`}
-                                            onChange={handleImageUpload}
-                                        />
-                                    </label>
-                                    {editPreviewImage && (
-                                        <div>
-                                            <img
-                                                src={editPreviewImage}
-                                                alt="Preview"
-                                                className="mt-4 h-40 object-cover rounded-md"
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-2">
-                                        Nearby Buildings:
-                                    </label>
-                                    <NearbyBuildingDropdown
-                                        availableBuildings={availableBuildings}
-                                        nearbyBuildings={editNearbyBuildings}
-                                        setNearbyBuildings={
-                                            setEditNearbyBuildings
-                                        }
-                                        currentBuildingId={editBuildingID}
-                                    />
-                                </div>
-                                <div className="flex flex-wrap gap-2 mt-3">
-                                    {editNearbyBuildings.length > 0 &&
-                                        editNearbyBuildings.map((id, index) => {
-                                            const building =
-                                                availableBuildings.find(
-                                                    (b) => b.id === id
-                                                );
-                                            return (
-                                                building && (
-                                                    <span
-                                                        key={`${building.id}-${index}`}
-                                                        className="badge badge-primary gap-2 cursor-pointer"
-                                                        onClick={() =>
-                                                            handleBadgeRemove(
-                                                                building.id
-                                                            )
-                                                        }
-                                                    >
-                                                        {building.name}
-                                                    </span>
-                                                )
-                                            );
-                                        })}
-                                </div>
-                            </div>
-                        </div>
-
                         <hr className="my-5"></hr>
 
                         {errorMessage && (
@@ -1016,21 +1153,6 @@ const RoomListContainer = ({ editable = false }) => {
                                 {errorMessage}
                             </div>
                         )}
-
-                        <div className="flex justify-center gap-4">
-                            <button
-                                className="btn btn-secondary"
-                                onClick={handleCancelBuildingEditClick}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                className="btn btn-primary"
-                                onClick={handleSaveBuildingEditClick}
-                            >
-                                Update Building
-                            </button>
-                        </div>
                     </div>
                     <div className="modal-action">
                         <button
