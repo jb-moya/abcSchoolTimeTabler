@@ -14,6 +14,7 @@ import { IoAdd, IoSearch, IoTrashBin } from 'react-icons/io5';
 import debounce from 'debounce';
 import { toast } from 'sonner';
 import NearbyBuildingDropdown from './nearbyBuildingDropdown';
+import { CiImageOff } from 'react-icons/ci';
 
 const AddBuildingContainer = ({
     close,
@@ -178,6 +179,7 @@ const AddBuildingContainer = ({
                 floorRooms.length === 0 ||
                 floorRooms.some((room) => !room.roomName.trim())
         );
+
         if (hasEmptyRoomNames) {
             setErrorMessage('Room names cannot be empty');
             setErrorField('roomNames');
@@ -185,11 +187,11 @@ const AddBuildingContainer = ({
         }
 
         // Check if there is a building image
-        if (!buildingImage) {
-            setErrorMessage('Please upload a building image');
-            setErrorField('buildingImage');
-            return;
-        }
+        // if (!buildingImage) {
+        //     setErrorMessage('Please upload a building image');
+        //     setErrorField('buildingImage');
+        //     return;
+        // }
 
         // Check if there are at least three nearby buildings
         if (nearbyBuildings.length > 3 && availableBuildings.length == 0) {
@@ -227,51 +229,159 @@ const AddBuildingContainer = ({
     };
 
     return (
-        <div className="p-4">
-            <h3 className="text-xl font-bold text-center mb-4">
-                Add New Building
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label className="block text-sm font-medium mb-1">
-                        Building Name:
-                    </label>
-                    <input
-                        type="text"
-                        className={`input input-bordered w-full ${
-                            errorField === 'buildingName'
-                                ? 'border-red-500'
-                                : ''
-                        }`}
-                        value={buildingName}
-                        onChange={(e) => setBuildingName(e.target.value)}
-                        ref={inputBuildingNameRef}
-                    />
+        <>
+            <div className="flex gap-4 mb-4">
+                <div className="w-3/12 mt-2 items-center flex">
+                    {previewImage ? (
+                        <div className="w-auto relative rounded-md">
+                            <button
+                                className="btn btn-sm btn-circle shadow-lg btn-error absolute top-[-5px] right-[-5px]"
+                                onClick={() => setPreviewImage(null)}
+                            >
+                                <RiDeleteBin7Line size={20} />
+                            </button>
+                            <img
+                                src={previewImage}
+                                alt="Preview"
+                                className="object-cover aspect-square"
+                            />
+                        </div>
+                    ) : (
+                        <div className="flex justify-center rounded-md items-center w-full h-full opacity-50">
+                            <CiImageOff size={100} />
+                        </div>
+                    )}
                 </div>
-                <div>
-                    <label className="block text-sm font-medium mb-1">
-                        Number of Floors:
-                    </label>
-                    <input
-                        type="number"
-                        className={`input input-bordered w-full ${
-                            errorField === 'floors' ? 'border-red-500' : ''
-                        }`}
-                        value={numberOfFloors}
-                        onChange={(e) =>
-                            setNumberOfFloors(
-                                Math.max(1, Number(e.target.value))
-                            )
-                        }
-                        min={1}
-                    />
+
+                <div className="w-9/12 p-2">
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-xl font-bold ">Add new Building</h3>
+
+                        <div className="flex justify-center gap-4">
+                            <button
+                                className="btn btn-secondary"
+                                onClick={handleReset}
+                            >
+                                Reset
+                            </button>
+                            <button
+                                className="btn btn-primary"
+                                onClick={handleAddBuilding}
+                            >
+                                Add Building
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="divider"></div>
+
+                    <div className="flex gap-4">
+                        <div className="w-6/12 flex flex-col gap-2">
+                            <div className="flex items-center text-left">
+                                <label className="text-sm  w-9/12">
+                                    Building Name:
+                                </label>
+                                <input
+                                    type="text"
+                                    className={`input input-sm input-bordered w-full ${
+                                        errorField === 'buildingName'
+                                            ? 'border-red-500'
+                                            : ''
+                                    }`}
+                                    value={buildingName}
+                                    onChange={(e) =>
+                                        setBuildingName(e.target.value)
+                                    }
+                                    ref={inputBuildingNameRef}
+                                />
+                            </div>
+
+                            <div className="flex items-center text-left">
+                                <label className="text-sm  w-9/12">
+                                    Number of Floors:
+                                </label>
+                                <input
+                                    type="number"
+                                    className={`input input-sm input-bordered w-full ${
+                                        errorField === 'floors'
+                                            ? 'border-red-500'
+                                            : ''
+                                    }`}
+                                    value={numberOfFloors}
+                                    onChange={(e) =>
+                                        setNumberOfFloors(
+                                            Math.max(1, Number(e.target.value))
+                                        )
+                                    }
+                                    min={1}
+                                />
+                            </div>
+
+                            <div className="">
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">
+                                            Building Image:
+                                        </label>
+                                        <label className="form-control w-full">
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className={`file-input file-input-sm file-input-bordered w-full ${
+                                                    errorField ===
+                                                    'buildingImage'
+                                                        ? 'border-red-500'
+                                                        : ''
+                                                }`}
+                                                onChange={handleImageUpload}
+                                            />
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="w-6/12">
+                            <div>
+                                <label className="block text-sm text-left pl-2 mb-1">
+                                    Nearby Buildings:
+                                </label>
+                                <NearbyBuildingDropdown
+                                    availableBuildings={availableBuildings}
+                                    nearbyBuildings={nearbyBuildings}
+                                    setNearbyBuildings={setNearbyBuildings}
+                                />
+                            </div>
+                            {/* <div className="flex flex-wrap gap-2 mt-3">
+                                {nearbyBuildings.length > 0 &&
+                                    nearbyBuildings.map((id, index) => {
+                                        const building =
+                                            availableBuildings.find(
+                                                (b) => b.id === id
+                                            );
+                                        return (
+                                            building && (
+                                                <span
+                                                    key={`${building.id}-${index}`}
+                                                    className="badge badge-primary gap-2 cursor-pointer"
+                                                    onClick={() =>
+                                                        handleBadgeRemove(
+                                                            building.id
+                                                        )
+                                                    }
+                                                >
+                                                    {building.name}
+                                                </span>
+                                            )
+                                        );
+                                    })}
+                            </div> */}
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <hr className="my-5"></hr>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <div className="max-h-[60vh] overflow-scroll grid grid-cols-1 md:grid-cols-3 gap-2">
                 {Array.from({ length: numberOfFloors }, (_, floorIndex) => (
                     <div
                         key={floorIndex}
@@ -310,21 +420,6 @@ const AddBuildingContainer = ({
                                         key={roomIndex}
                                     >
                                         <input
-                                            type="checkbox"
-                                            className="toggle toggle-sm toggle-primary"
-                                            checked={
-                                                roomNames[floorIndex]?.[
-                                                    roomIndex
-                                                ]?.isAvailable || false
-                                            }
-                                            onChange={() =>
-                                                handleRoomAvailabilityChange(
-                                                    floorIndex,
-                                                    roomIndex
-                                                )
-                                            }
-                                        />
-                                        <input
                                             key={roomIndex}
                                             type="text"
                                             className="input rounded-md input-sm input-bordered w-full mb-1"
@@ -345,6 +440,21 @@ const AddBuildingContainer = ({
                                                 )
                                             }
                                         />
+                                        <input
+                                            type="checkbox"
+                                            className="toggle toggle-sm toggle-primary"
+                                            checked={
+                                                roomNames[floorIndex]?.[
+                                                    roomIndex
+                                                ]?.isAvailable || false
+                                            }
+                                            onChange={() =>
+                                                handleRoomAvailabilityChange(
+                                                    floorIndex,
+                                                    roomIndex
+                                                )
+                                            }
+                                        />
                                     </div>
                                 )
                             )}
@@ -352,69 +462,7 @@ const AddBuildingContainer = ({
                     </div>
                 ))}
             </div>
-
-            <hr className="my-5"></hr>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium mb-2">
-                            Building Image:
-                        </label>
-                        <label className="form-control w-full">
-                            <input
-                                ref={fileInputRef} // Reference for resetting input
-                                type="file"
-                                accept="image/jpeg, image/png, image/jpg"
-                                className={`file-input file-input-bordered w-full ${
-                                    errorField === 'buildingImage'
-                                        ? 'border-red-500'
-                                        : ''
-                                }`}
-                                onChange={handleImageUpload} // Call image upload handler
-                            />
-                        </label>
-                        {previewImage && (
-                            <div>
-                                <img
-                                    src={previewImage}
-                                    alt="Preview"
-                                    className="mt-4 h-40 object-cover rounded-md"
-                                />
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium mb-2">
-                            Nearby Buildings:
-                        </label>
-                        <NearbyBuildingDropdown
-                            availableBuildings={availableBuildings} // Full list of available buildings
-                            nearbyBuildings={nearbyBuildings} // Current state for selected buildings
-                            setNearbyBuildings={setNearbyBuildings} // Setter function to update selected buildings
-                        />
-                    </div>
-                </div>
-            </div>
-
-            <hr className="my-5"></hr>
-
-            {errorMessage && (
-                <div className="text-red-500 text-sm mb-4">{errorMessage}</div>
-            )}
-
-            <div className="flex justify-center gap-4">
-                <button className="btn btn-secondary" onClick={handleReset}>
-                    Reset
-                </button>
-                <button className="btn btn-primary" onClick={handleAddBuilding}>
-                    Add Building
-                </button>
-            </div>
-        </div>
+        </>
     );
 };
 
@@ -612,6 +660,8 @@ const RoomListContainer = ({ editable = false }) => {
     };
 
     const handleEdit = (building) => {
+        console.log('Editing building:', building);
+
         setEditBuildingID(building.id);
         setEditBuildingName(building.name || '');
         setEditNumberOfFloors(building.floors || 1);
@@ -639,7 +689,7 @@ const RoomListContainer = ({ editable = false }) => {
         console.log('Floors: ', editNumberOfFloors);
         console.log('Rooms: ', editNumberOfRooms);
         console.log('Room Names: ', editRoomNames);
-        // console.log('Building Images: ', editBuildingImage);
+        console.log('Building Images: ', editBuildingImage);
         console.log('Nearby Buildings: ', editNearbyBuildings);
         // console.log('Preview Image:', editPreviewImage);
     }, [
@@ -686,19 +736,23 @@ const RoomListContainer = ({ editable = false }) => {
         }
 
         // Check if building image is provided
-        if (!editBuildingImage) {
-            setErrorMessage('Building image cannot be empty');
-            setErrorField('buildingImage');
-            return;
-        }
+        // if (!editBuildingImage) {
+        //     setErrorMessage('Building image cannot be empty');
+        //     setErrorField('buildingImage');
+        //     return;
+        // }
 
+        // console.log(
+        //     '🚀 ~ handleSaveBuildingEditClick ~ updatedBuilding.editRoomNames:',
+        //     editBuildingImage
+        // );
         // Prepare updated building data
         const updatedBuilding = {
             id: editBuildingID,
             name: editBuildingName,
             floors: editNumberOfFloors,
             rooms: editRoomNames,
-            image: editBuildingImage,
+            image: editBuildingImage || null,
             nearbyBuildings: editNearbyBuildings.map((building) => ({
                 id: building.id,
                 name: building.name,
@@ -798,7 +852,7 @@ const RoomListContainer = ({ editable = false }) => {
                             Add Building <IoAdd size={20} className="ml-2" />
                         </button>
                         <dialog id="add_building_modal" className="modal">
-                            <div className="modal-box w-11/12 max-w-5xl">
+                            <div className="modal-box min-h-[95vh] max-w-5xl overflow-hidden">
                                 <AddBuildingContainer
                                     close={() =>
                                         document
@@ -838,14 +892,20 @@ const RoomListContainer = ({ editable = false }) => {
                             key={building.id}
                             className="card shadow-lg border border-gray-200 hover:shadow-xl p-4 cursor-pointer"
                         >
-                            <img
-                                src={
-                                    building.image ||
-                                    'https://via.placeholder.com/150'
-                                }
-                                alt={building.name}
-                                className="h-40 w-full object-cover mb-4 rounded"
-                            />
+                            {building.image ? (
+                                <img
+                                    src={
+                                        building.image ||
+                                        'https://via.placeholder.com/150'
+                                    }
+                                    alt={building.name}
+                                    className="h-40 w-full object-cover mb-4 rounded"
+                                />
+                            ) : (
+                                <div className="flex justify-center rounded-md items-center w-full h-40 opacity-50">
+                                    <CiImageOff size={100} />
+                                </div>
+                            )}
                             <h2 className="text-lg font-bold mb-2">
                                 {building.name}
                             </h2>
@@ -879,309 +939,301 @@ const RoomListContainer = ({ editable = false }) => {
             </div>
 
             {/* Edit Building Modal */}
-            <dialog id="edit_building_modal" className="modal">
-                <div className="modal-box w-11/12 max-w-5xl">
-                    <div className="p-4">
-                        <div className="flex">
-                            <div className="w-3/12 p-2">
-                                {editPreviewImage && (
+            <dialog id="edit_building_modal" className="modal relative">
+                <div
+                    className="modal-box w-8/12 min-h-[95vh] overflow-hidden"
+                    style={{
+                        maxWidth: 'none',
+                    }}
+                >
+                    <div className="flex gap-4 mb-4">
+                        <div className="w-3/12 mt-2 items-center flex">
+                            {editPreviewImage ? (
+                                <div className="w-auto relative rounded-md">
+                                    <button
+                                        className="btn btn-sm btn-circle shadow-lg btn-error absolute top-[-5px] right-[-5px]"
+                                        onClick={() => {
+                                            setEditBuildingImage(null);
+                                            setEditPreviewImage(null);
+                                        }}
+                                    >
+                                        <RiDeleteBin7Line size={20} />
+                                    </button>
                                     <img
                                         src={editPreviewImage}
                                         alt="Preview"
-                                        className="object-cover rounded-md"
+                                        className="object-cover aspect-square"
                                     />
-                                )}
-                            </div>
-
-                            <div className="w-9/12 p-2">
-                                <div className="flex items-center justify-between">
-                                    <h3 className="text-xl font-bold ">
-                                        Edit Building
-                                    </h3>
-
-                                    <div className="flex justify-center gap-4">
-                                        <button
-                                            className="btn btn-secondary"
-                                            onClick={
-                                                handleCancelBuildingEditClick
-                                            }
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            className="btn btn-primary"
-                                            onClick={
-                                                handleSaveBuildingEditClick
-                                            }
-                                        >
-                                            Update Building
-                                        </button>
-                                    </div>
                                 </div>
-
-                                <div className="divider"></div>
-
-                                <div className="flex gap-4">
-                                    <div className="w-6/12 flex flex-col gap-2">
-                                        <div className="flex items-center text-left">
-                                            <label className="text-sm  w-9/12">
-                                                Building Name:
-                                            </label>
-                                            <input
-                                                type="text"
-                                                className={`input input-sm input-bordered w-full ${
-                                                    errorField ===
-                                                    'buildingName'
-                                                        ? 'border-red-500'
-                                                        : ''
-                                                }`}
-                                                value={editBuildingName}
-                                                onChange={(e) =>
-                                                    setEditBuildingName(
-                                                        e.target.value
-                                                    )
-                                                }
-                                                ref={inputBuildingNameRef}
-                                            />
-                                        </div>
-
-                                        <div className="flex items-center text-left">
-                                            <label className="text-sm  w-9/12">
-                                                Number of Floors:
-                                            </label>
-                                            <input
-                                                type="number"
-                                                className={`input input-sm input-bordered w-full ${
-                                                    errorField === 'floors'
-                                                        ? 'border-red-500'
-                                                        : ''
-                                                }`}
-                                                value={editNumberOfFloors}
-                                                onChange={(e) =>
-                                                    setEditNumberOfFloors(
-                                                        Math.max(
-                                                            1,
-                                                            Number(
-                                                                e.target.value
-                                                            )
-                                                        )
-                                                    )
-                                                }
-                                                min={1}
-                                            />
-                                        </div>
-
-                                        <div className="">
-                                            <div className="space-y-4">
-                                                <div>
-                                                    <label className="block text-sm font-medium mb-1">
-                                                        Building Image:
-                                                    </label>
-                                                    <label className="form-control w-full">
-                                                        <input
-                                                            type="file"
-                                                            accept="image/*"
-                                                            className={`file-input file-input-sm file-input-bordered w-full ${
-                                                                errorField ===
-                                                                'buildingImage'
-                                                                    ? 'border-red-500'
-                                                                    : ''
-                                                            }`}
-                                                            onChange={
-                                                                handleImageUpload
-                                                            }
-                                                        />
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="w-6/12">
-                                        <div>
-                                            <label className="block text-sm text-left pl-2 mb-1">
-                                                Nearby Buildings:
-                                            </label>
-                                            <NearbyBuildingDropdown
-                                                availableBuildings={
-                                                    availableBuildings
-                                                }
-                                                nearbyBuildings={
-                                                    editNearbyBuildings
-                                                }
-                                                setNearbyBuildings={
-                                                    setEditNearbyBuildings
-                                                }
-                                                currentBuildingId={
-                                                    editBuildingID
-                                                }
-                                            />
-                                        </div>
-                                        <div className="flex flex-wrap gap-2 mt-3">
-                                            {editNearbyBuildings.length > 0 &&
-                                                editNearbyBuildings.map(
-                                                    (id, index) => {
-                                                        const building =
-                                                            availableBuildings.find(
-                                                                (b) =>
-                                                                    b.id === id
-                                                            );
-                                                        return (
-                                                            building && (
-                                                                <span
-                                                                    key={`${building.id}-${index}`}
-                                                                    className="badge badge-primary gap-2 cursor-pointer"
-                                                                    onClick={() =>
-                                                                        handleBadgeRemove(
-                                                                            building.id
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    {
-                                                                        building.name
-                                                                    }
-                                                                </span>
-                                                            )
-                                                        );
-                                                    }
-                                                )}
-                                        </div>
-                                    </div>
+                            ) : (
+                                <div className="flex justify-center rounded-md items-center w-full h-full opacity-50">
+                                    <CiImageOff size={100} />
                                 </div>
-                            </div>
-                        </div>
-
-                        {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"> */}
-
-                        {/* </div> */}
-
-                        {/* <hr className="my-5"></hr> */}
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                            {Array.from(
-                                { length: editNumberOfFloors },
-                                (_, floorIndex) => (
-                                    <div
-                                        key={floorIndex}
-                                        className="border rounded-lg p-3 bg-gray-50 shadow-sm"
-                                    >
-                                        <div className="flex mb-3 gap-1 items-center">
-                                            <div className="w-6/12 leading-none">
-                                                <h4 className="text-sm font-semibold">
-                                                    Floor {floorIndex + 1}
-                                                </h4>
-                                                <spn className="text-sm">
-                                                    room count:
-                                                </spn>
-                                            </div>
-                                            <input
-                                                type="number"
-                                                className="input input-bordered input-sm w-6/12"
-                                                value={
-                                                    editNumberOfRooms[
-                                                        floorIndex
-                                                    ] || 0
-                                                }
-                                                onChange={(e) =>
-                                                    handleNumberOfRoomsChange(
-                                                        floorIndex,
-                                                        e.target.value
-                                                    )
-                                                }
-                                                min={1}
-                                            />
-                                        </div>
-
-                                        <div
-                                            className="overflow-y-auto max-h-28 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200"
-                                            style={{
-                                                WebkitOverflowScrolling:
-                                                    'touch',
-                                            }}
-                                        >
-                                            {Array.from(
-                                                {
-                                                    length:
-                                                        editNumberOfRooms[
-                                                            floorIndex
-                                                        ] || 0,
-                                                },
-                                                (_, roomIndex) => (
-                                                    <div
-                                                        className="flex items-center mb-1 gap-4"
-                                                        key={roomIndex}
-                                                    >
-                                                        <input
-                                                            type="checkbox"
-                                                            className="toggle toggle-sm toggle-primary"
-                                                            checked={
-                                                                editRoomNames[
-                                                                    floorIndex
-                                                                ]?.[roomIndex]
-                                                                    ?.isAvailable ||
-                                                                false
-                                                            }
-                                                            onChange={(e) =>
-                                                                handleRoomAvailabilityChange(
-                                                                    floorIndex,
-                                                                    roomIndex
-                                                                )
-                                                            }
-                                                        />
-
-                                                        <input
-                                                            type="text"
-                                                            className="input input-sm input-bordered w-full"
-                                                            placeholder={`Room ${
-                                                                roomIndex + 1
-                                                            }`}
-                                                            value={
-                                                                editRoomNames[
-                                                                    floorIndex
-                                                                ]?.[roomIndex]
-                                                                    ?.roomName ||
-                                                                ''
-                                                            }
-                                                            onChange={(e) =>
-                                                                handleRoomNameChange(
-                                                                    floorIndex,
-                                                                    roomIndex,
-                                                                    e.target
-                                                                        .value
-                                                                )
-                                                            }
-                                                        />
-                                                    </div>
-                                                )
-                                            )}
-                                        </div>
-                                    </div>
-                                )
                             )}
                         </div>
 
-                        <hr className="my-5"></hr>
+                        <div className="w-9/12 p-2">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-xl font-bold ">
+                                    Edit Building
+                                </h3>
 
-                        <hr className="my-5"></hr>
-
-                        {errorMessage && (
-                            <div className="text-red-500 text-sm mb-4">
-                                {errorMessage}
+                                <div className="flex justify-center gap-4">
+                                    <button
+                                        className="btn btn-secondary"
+                                        onClick={handleCancelBuildingEditClick}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        className="btn btn-primary"
+                                        onClick={handleSaveBuildingEditClick}
+                                    >
+                                        Update Building
+                                    </button>
+                                </div>
                             </div>
+
+                            <div className="divider"></div>
+
+                            <div className="flex gap-4">
+                                <div className="w-6/12 flex flex-col gap-2">
+                                    <div className="flex items-center text-left">
+                                        <label className="text-sm  w-9/12">
+                                            Building Name:
+                                        </label>
+                                        <input
+                                            type="text"
+                                            className={`input input-sm input-bordered w-full ${
+                                                errorField === 'buildingName'
+                                                    ? 'border-red-500'
+                                                    : ''
+                                            }`}
+                                            value={editBuildingName}
+                                            onChange={(e) =>
+                                                setEditBuildingName(
+                                                    e.target.value
+                                                )
+                                            }
+                                            ref={inputBuildingNameRef}
+                                        />
+                                    </div>
+
+                                    <div className="flex items-center text-left">
+                                        <label className="text-sm  w-9/12">
+                                            Number of Floors:
+                                        </label>
+                                        <input
+                                            type="number"
+                                            className={`input input-sm input-bordered w-full ${
+                                                errorField === 'floors'
+                                                    ? 'border-red-500'
+                                                    : ''
+                                            }`}
+                                            value={editNumberOfFloors}
+                                            onChange={(e) =>
+                                                setEditNumberOfFloors(
+                                                    Math.max(
+                                                        1,
+                                                        Number(e.target.value)
+                                                    )
+                                                )
+                                            }
+                                            min={1}
+                                        />
+                                    </div>
+
+                                    <div className="">
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label className="block text-sm font-medium mb-1">
+                                                    Building Image:
+                                                </label>
+                                                <label className="form-control w-full">
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        className={`file-input file-input-sm file-input-bordered w-full ${
+                                                            errorField ===
+                                                            'buildingImage'
+                                                                ? 'border-red-500'
+                                                                : ''
+                                                        }`}
+                                                        onChange={
+                                                            handleImageUpload
+                                                        }
+                                                    />
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="w-6/12">
+                                    <div>
+                                        <label className="block text-sm text-left pl-2 mb-1">
+                                            Nearby Buildings:
+                                        </label>
+                                        <NearbyBuildingDropdown
+                                            availableBuildings={
+                                                availableBuildings
+                                            }
+                                            nearbyBuildings={
+                                                editNearbyBuildings
+                                            }
+                                            setNearbyBuildings={
+                                                setEditNearbyBuildings
+                                            }
+                                            currentBuildingId={editBuildingID}
+                                        />
+                                    </div>
+                                    <div className="flex flex-wrap gap-2 mt-3">
+                                        {editNearbyBuildings.length > 0 &&
+                                            editNearbyBuildings.map(
+                                                (id, index) => {
+                                                    const building =
+                                                        availableBuildings.find(
+                                                            (b) => b.id === id
+                                                        );
+                                                    return (
+                                                        building && (
+                                                            <span
+                                                                key={`${building.id}-${index}`}
+                                                                className="badge badge-primary gap-2 cursor-pointer"
+                                                                onClick={() =>
+                                                                    handleBadgeRemove(
+                                                                        building.id
+                                                                    )
+                                                                }
+                                                            >
+                                                                {building.name}
+                                                            </span>
+                                                        )
+                                                    );
+                                                }
+                                            )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="max-h-[60vh] grid grid-cols-1 md:grid-cols-3 gap-2 overflow-scroll">
+                        {Array.from(
+                            { length: editNumberOfFloors },
+                            (_, floorIndex) => (
+                                <div
+                                    key={floorIndex}
+                                    className="border rounded-lg p-3 bg-gray-50 shadow-sm"
+                                >
+                                    <div className="flex mb-3 gap-1 items-center">
+                                        <div className="w-6/12 leading-none">
+                                            <h4 className="text-sm font-semibold">
+                                                Floor {floorIndex + 1}
+                                            </h4>
+                                            <spn className="text-sm">
+                                                room count:
+                                            </spn>
+                                        </div>
+                                        <input
+                                            type="number"
+                                            className="input input-bordered input-sm w-6/12"
+                                            value={
+                                                editNumberOfRooms[floorIndex] ||
+                                                0
+                                            }
+                                            onChange={(e) =>
+                                                handleNumberOfRoomsChange(
+                                                    floorIndex,
+                                                    e.target.value
+                                                )
+                                            }
+                                            min={1}
+                                        />
+                                    </div>
+
+                                    <div
+                                        className="overflow-y-auto max-h-28 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200"
+                                        style={{
+                                            WebkitOverflowScrolling: 'touch',
+                                        }}
+                                    >
+                                        {Array.from(
+                                            {
+                                                length:
+                                                    editNumberOfRooms[
+                                                        floorIndex
+                                                    ] || 0,
+                                            },
+                                            (_, roomIndex) => (
+                                                <div
+                                                    className="flex items-center mb-1 gap-4"
+                                                    key={roomIndex}
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        className="input input-sm input-bordered w-full"
+                                                        placeholder={`Room ${
+                                                            roomIndex + 1
+                                                        }`}
+                                                        value={
+                                                            editRoomNames[
+                                                                floorIndex
+                                                            ]?.[roomIndex]
+                                                                ?.roomName || ''
+                                                        }
+                                                        onChange={(e) =>
+                                                            handleRoomNameChange(
+                                                                floorIndex,
+                                                                roomIndex,
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
+
+                                                    <input
+                                                        type="checkbox"
+                                                        className="toggle toggle-sm toggle-primary"
+                                                        checked={
+                                                            editRoomNames[
+                                                                floorIndex
+                                                            ]?.[roomIndex]
+                                                                ?.isAvailable ||
+                                                            false
+                                                        }
+                                                        onChange={(e) =>
+                                                            handleRoomAvailabilityChange(
+                                                                floorIndex,
+                                                                roomIndex
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
+                                            )
+                                        )}
+                                    </div>
+                                </div>
+                            )
                         )}
                     </div>
-                    <div className="modal-action">
-                        <button
-                            className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                            onClick={() =>
-                                document
-                                    .getElementById('edit_building_modal')
-                                    .close()
-                            }
-                        >
-                            ✕
-                        </button>
-                    </div>
+
+                    {errorMessage && (
+                        <div className="text-red-500 text-sm mb-4">
+                            {errorMessage}
+                        </div>
+                    )}
+                </div>
+                <div className="modal-action">
+                    <button
+                        className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                        onClick={() =>
+                            document
+                                .getElementById('edit_building_modal')
+                                .close()
+                        }
+                    >
+                        ✕
+                    </button>
                 </div>
             </dialog>
 
