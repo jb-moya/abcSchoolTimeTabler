@@ -87,19 +87,27 @@ const AddBuildingContainer = ({
         setRoomNames(updatedRoomNames);
     };
 
-    const handleRoomAvailabilityChange = (floorIndex, roomIndex) => {
+    const handleRoomNameChange = (floorIndex, roomIndex, newRoomName) => {
         const updatedRoomNames = [...roomNames];
         if (!updatedRoomNames[floorIndex]) updatedRoomNames[floorIndex] = [];
-        updatedRoomNames[floorIndex][roomIndex].isAvailable =
-            !updatedRoomNames[floorIndex][roomIndex].isAvailable;
+
+        updatedRoomNames[floorIndex][roomIndex] = {
+            ...updatedRoomNames[floorIndex][roomIndex],
+            roomName: newRoomName,
+        };
 
         setRoomNames(updatedRoomNames);
     };
 
-    const handleRoomNameChange = (floorIndex, roomIndex, newRoomName) => {
+    const handleRoomAvailabilityChange = (floorIndex, roomIndex) => {
         const updatedRoomNames = [...roomNames];
         if (!updatedRoomNames[floorIndex]) updatedRoomNames[floorIndex] = [];
-        updatedRoomNames[floorIndex][roomIndex].roomName = newRoomName;
+
+        updatedRoomNames[floorIndex][roomIndex] = {
+            ...updatedRoomNames[floorIndex][roomIndex],
+            isAvailable: !updatedRoomNames[floorIndex][roomIndex].isAvailable,
+        };
+
         setRoomNames(updatedRoomNames);
     };
 
@@ -520,15 +528,23 @@ const RoomListContainer = ({ editable = false }) => {
     const handleRoomNameChange = (floorIndex, roomIndex, newRoomName) => {
         const updatedRoomNames = [...editRoomNames];
         if (!updatedRoomNames[floorIndex]) updatedRoomNames[floorIndex] = [];
-        updatedRoomNames[floorIndex][roomIndex].roomName = newRoomName;
+
+        updatedRoomNames[floorIndex][roomIndex] = {
+            ...updatedRoomNames[floorIndex][roomIndex],
+            roomName: newRoomName,
+        };
+
         setEditRoomNames(updatedRoomNames);
     };
 
     const handleRoomAvailabilityChange = (floorIndex, roomIndex) => {
         const updatedRoomNames = [...editRoomNames];
         if (!updatedRoomNames[floorIndex]) updatedRoomNames[floorIndex] = [];
-        updatedRoomNames[floorIndex][roomIndex].isAvailable =
-            !updatedRoomNames[floorIndex][roomIndex].isAvailable;
+
+        updatedRoomNames[floorIndex][roomIndex] = {
+            ...updatedRoomNames[floorIndex][roomIndex],
+            isAvailable: !updatedRoomNames[floorIndex][roomIndex].isAvailable,
+        };
 
         setEditRoomNames(updatedRoomNames);
     };
@@ -1105,7 +1121,7 @@ const RoomListContainer = ({ editable = false }) => {
                                                                     ?.isAvailable ||
                                                                 false
                                                             }
-                                                            onChange={() =>
+                                                            onChange={(e) =>
                                                                 handleRoomAvailabilityChange(
                                                                     floorIndex,
                                                                     roomIndex
