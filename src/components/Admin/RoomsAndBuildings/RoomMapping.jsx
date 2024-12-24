@@ -282,7 +282,7 @@ const AddBuildingContainer = ({
                                 <h4 className="text-sm font-semibold">
                                     Floor {floorIndex + 1}
                                 </h4>
-                                <spn className="text-sm">room count:</spn>
+                                <span className="text-sm">room count:</span>
                             </div>
                             <input
                                 type="number"
@@ -1070,9 +1070,9 @@ const RoomListContainer = ({ editable = false }) => {
                                                 <h4 className="text-sm font-semibold">
                                                     Floor {floorIndex + 1}
                                                 </h4>
-                                                <spn className="text-sm">
+                                                <span className="text-sm">
                                                     room count:
-                                                </spn>
+                                                </span>
                                             </div>
                                             <input
                                                 type="number"
