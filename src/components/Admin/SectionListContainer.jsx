@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { useDispatch } from 'react-redux';
+
 import {
     fetchSections,
     addSection,
@@ -11,6 +12,8 @@ import {
 import { fetchPrograms } from '@features/programSlice';
 import { fetchSubjects } from '@features/subjectSlice';
 import { fetchTeachers } from '@features/teacherSlice';
+import { fetchBuildings } from '@features/buildingSlice';
+
 import { getTimeSlotString, getTimeSlotIndex } from './timeSlotMapper';
 import { IoAdd, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
@@ -21,6 +24,7 @@ import { BiChevronDown, BiChevronUp } from 'react-icons/bi';
 import { toast } from 'sonner';
 import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 
+import ViewRooms from './RoomsAndBuildings/ViewRooms';
 import FixedScheduleMaker from './FixedSchedules/fixedScheduleMaker';
 import clsx from 'clsx';
 
@@ -280,20 +284,25 @@ const AddSectionContainer = ({
     const inputNameRef = useRef();
     const dispatch = useDispatch();
 
+    const { buildings, status: buildingStatus } = useSelector(
+        (state) => state.building
+    );
+
     const { programs, status: programStatus } = useSelector(
         (state) => state.program
     );
+
     const { subjects, status: subjectStatus } = useSelector(
         (state) => state.subject
     );
+
     const { teachers, status: teacherStatus } = useSelector(
         (state) => state.teacher
     );
+
     const { sections, status: sectionStatus } = useSelector(
         (state) => state.section
     );
-
-    // const numOfSchoolDays = parseInt(localStorage.getItem('numOfSchoolDays'), 10);
 
     const [inputValue, setInputValue] = useState('');
     const [selectedAdviser, setSelectedAdviser] = useState('');
@@ -305,6 +314,11 @@ const AddSectionContainer = ({
     const [fixedDays, setFixedDays] = useState({});
     const [fixedPositions, setFixedPositions] = useState({});
     const [additionalScheds, setAdditionalScheds] = useState([]);
+    const [roomDetails, setRoomDetails] = useState({
+        buildingId: -1,
+        floorIdx: -1,
+        roomIdx: -1,
+    });
 
     const [totalTimeslot, setTotalTimeslot] = useState(null);
 
@@ -371,7 +385,8 @@ const AddSectionContainer = ({
             selectedAdviser === '' ||
             selectedProgram === '' ||
             selectedYearLevel === '' ||
-            selectedSubjects.length === 0
+            selectedSubjects.length === 0 ||
+            (roomDetails.buildingId === -1 || roomDetails.floorIdx === -1 || roomDetails.roomIdx === -1)
         ) {
             const errorFields = [];
             if (inputValue === '') errorFields.push('name');
@@ -379,6 +394,7 @@ const AddSectionContainer = ({
             if (selectedProgram === '') errorFields.push('program');
             if (selectedYearLevel === '') errorFields.push('yearLevel');
             if (selectedSubjects.length === 0) errorFields.push('subjects');
+            if (roomDetails.buildingId === -1 || roomDetails.floorIdx === -1 || roomDetails.roomIdx === -1) errorFields.push('room');
 
             if (errorFields.length > 0) {
                 setErrorMessage('All fields are required.');
@@ -421,12 +437,13 @@ const AddSectionContainer = ({
                     shift: selectedShift,
                     startTime: selectedStartTime,
                     additionalScheds: additionalScheds,
+                    roomDetails: roomDetails,
                 })
             );
             handleReset();
         }
 
-        toast.success('Teacher added successfully', {
+        toast.success('Section added successfully', {
             style: {
                 backgroundColor: 'green',
                 color: 'white',
@@ -456,7 +473,13 @@ const AddSectionContainer = ({
         setFixedDays({});
         setFixedPositions({});
         setAdditionalScheds([]);
+        setRoomDetails({ buildingId: -1, floorIdx: -1, roomIdx: -1 });
     };
+
+    useEffect(() => {
+        console.log('roomDetails:', roomDetails);
+    }, [roomDetails]);
+
 
     useEffect(() => {
         if (inputNameRef.current) {
@@ -490,6 +513,12 @@ const AddSectionContainer = ({
     }, [selectedProgram, selectedYearLevel, programs]);
 
     useEffect(() => {
+        if (buildingStatus === 'idle') {
+            dispatch(fetchBuildings());
+        }
+    }, [buildingStatus, dispatch]);
+
+    useEffect(() => {
         if (programStatus === 'idle') {
             dispatch(fetchPrograms());
         }
@@ -513,6 +542,7 @@ const AddSectionContainer = ({
                 <h3 className="text-lg font-bold mb-4">Add New Section</h3>
             </div>
 
+            {/* Section Name */}
             <div className="mb-4">
                 <label className="label">
                     <span className="label-text">Section Name</span>
@@ -528,6 +558,7 @@ const AddSectionContainer = ({
                 />
             </div>
 
+            {/* Section Adviser */}
             <div className="mt-3">
                 <label className="label">
                     <span className="label-text">Assign Adviser</span>
@@ -537,9 +568,7 @@ const AddSectionContainer = ({
                         errorField.includes('adviser') ? 'border-red-500' : ''
                     }`}
                     value={selectedAdviser}
-                    onChange={(e) =>
-                        setSelectedAdviser(parseInt(e.target.value, 10))
-                    }
+                    onChange={(e) => setSelectedAdviser(parseInt(e.target.value, 10))}
                 >
                     <option value="" disabled>
                         Assign an adviser
@@ -551,7 +580,72 @@ const AddSectionContainer = ({
                     ))}
                 </select>
             </div>
+            
+            {/* Room Details */}
+            <div className='mt-3'>
 
+                <label className="label">
+                    <span className="label-text">Room Details</span>
+                </label>
+
+                <div className='flex flex-wrap'>
+                    {/* Building */}
+                    <div className='w-1/4 flex flex-col justify-start'>
+                        <label className="label">
+                            <span className="label-text">Building</span>    
+                        </label>
+                        <input
+                            type="text"
+                            value={buildings[roomDetails.buildingId]?.name || ''}
+                            className="input input-bordered input-sm w-5/6"
+                            readOnly
+                        />
+                    </div>
+
+                    {/* Floor */}
+                    <div className='w-1/4 flex flex-col justify-start'>
+                        <label className="label">
+                            <span className="label-text">Floor</span>    
+                        </label>
+                        <input
+                            type="text"
+                            value={roomDetails.floorIdx !== -1 ? roomDetails.floorIdx + 1 : ''}
+                            className="input input-bordered input-sm w-5/6"
+                            readOnly
+                        />
+                    </div>
+
+                    {/* Room */}
+                    <div className='w-1/4 flex flex-col justify-start'>
+                        <label className="label">
+                            <span className="label-text">Room</span>    
+                        </label>
+                        <input
+                            type="text"
+                            value={buildings[roomDetails.buildingId]?.rooms[roomDetails.floorIdx][roomDetails.roomIdx].roomName || ''}
+                            className="input input-bordered input-sm w-5/6"
+                            readOnly
+                        />
+                    </div>
+
+                    <div className='w-1/4 flex justify-start items-end'>
+                        <button 
+                            className='btn btn-primary btn-sm'
+                            onClick={() => document.getElementById(`view_rooms_modal_viewMode(0)_section(0)_building(0)`).showModal()}
+                        >
+                            Select Room
+                        </button>
+                    </div>
+                    
+                    <ViewRooms 
+                        viewMode={0}
+                        roomDetails={roomDetails}
+                        setRoomDetails={setRoomDetails}
+                    />
+                </div>
+            </div>
+
+            {/* Program */}
             <div className="mt-3">
                 <label className="label">
                     <span className="label-text">Select Program</span>
@@ -575,7 +669,8 @@ const AddSectionContainer = ({
                     ))}
                 </select>
             </div>
-
+            
+            {/* Year Level */}
             <div className="mt-3">
                 <label className="label">
                     <span className="label-text">Select Year Level</span>
@@ -599,7 +694,8 @@ const AddSectionContainer = ({
                     ))}
                 </select>
             </div>
-
+            
+            {/* Subjects and Fixed Schedules */}
             {selectedSubjects.length > 0 && (
                 <>
                     <div className="mt-4 text-sm">
@@ -684,6 +780,7 @@ const AddSectionContainer = ({
                 </>
             )}
 
+            {/* Additional Schedules */}
             {additionalScheds.length > 0 && (
                 <div className="flex flex-col justify-center items-center">
                     <div className="mt-2 w-1/4 border border-gray-300 rounded-t-lg font-bold">
@@ -795,18 +892,27 @@ const SectionListContainer = ({
     editable = false,
 }) => {
     const dispatch = useDispatch();
+
+    const { buildings, status: buildingStatus } = useSelector(
+        (state) => state.building
+    );
+
     const { subjects, status: subjectStatus } = useSelector(
         (state) => state.subject
     );
+
     const { sections, status: sectionStatus } = useSelector(
         (state) => state.section
     );
+
     const { programs, status: programStatus } = useSelector(
         (state) => state.program
     );
+
     const { teachers, status: teacherStatus } = useSelector(
         (state) => state.teacher
     );
+
 
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
         return (
@@ -832,8 +938,11 @@ const SectionListContainer = ({
         {}
     );
     const [editAdditionalScheds, setEditAdditionalScheds] = useState([]);
-
-    const [sectionTotalTimeslot, setSectionTotalTimeslot] = useState({});
+    const [editRoomDetails, setEditRoomDetails] = useState({
+        buildingId: -1,
+        floorIdx: -1,
+        roomIdx: -1,
+    });
 
     // useEffect(() => {
     //     if (sectionStatus !== 'succeeded' || subjectStatus !== 'succeeded') {
@@ -899,6 +1008,11 @@ const SectionListContainer = ({
         setEditSectionFixedDays(section.fixedDays);
         setEditSectionFixedPositions(section.fixedPositions);
         setEditAdditionalScheds(section.additionalScheds);
+        setEditRoomDetails({
+            buildingId: section.roomDetails.buildingId,
+            floorIdx: section.roomDetails.floorIdx,
+            roomIdx: section.roomDetails.roomIdx,
+        });
 
         setCurrEditProgram(section.program);
         setCurrEditYear(section.year);
@@ -942,6 +1056,7 @@ const SectionListContainer = ({
                         shift: editSectionShift,
                         startTime: getTimeSlotIndex(editSectionStartTime),
                         additionalScheds: editAdditionalScheds,
+                        roomDetails: editRoomDetails,
                     },
                 })
             );
@@ -996,6 +1111,7 @@ const SectionListContainer = ({
                             shift: editSectionShift,
                             startTime: getTimeSlotIndex(editSectionStartTime),
                             additionalScheds: editAdditionalScheds,
+                            roomDetails: editRoomDetails,
                         },
                     })
                 );
@@ -1014,6 +1130,12 @@ const SectionListContainer = ({
         setEditSectionSubjects([]);
         setEditSectionFixedDays({});
         setEditSectionFixedPositions({});
+        setEditAdditionalScheds([]);
+        setEditRoomDetails({    
+            buildingId: -1,
+            floorIdx: -1,
+            roomIdx: -1,
+        });
 
         setCurrEditProgram('');
         setCurrEditYear('');
@@ -1126,6 +1248,7 @@ const SectionListContainer = ({
         []
     );
 
+
     useEffect(() => {
         if (externalNumOfSchoolDays !== undefined) {
             setNumOfSchoolDays(externalNumOfSchoolDays);
@@ -1168,22 +1291,11 @@ const SectionListContainer = ({
         }
     }, [editSectionYear, editSectionProg, programs]); // Add `programs` as a dependency
 
-    // useEffect(() => {
-    //     console.log('editSectionId: ', editSectionId);
-    //     console.log('editSectionValue: ', editSectionValue);
-    //     console.log('editSectionAdviser: ', editSectionAdviser);
-    //     console.log('editSectionProg: ', editSectionProg);
-    //     console.log('editSectionYear: ', editSectionYear);
-    //     console.log('editSectionStartTime: ', editSectionStartTime);
-    //     console.log('editSectionShift: ', editSectionShift);
-    //     console.log('editSectionSubjects: ', editSectionSubjects);
-    //     console.log('editSectionFixedDays: ', editSectionFixedDays);
-    //     console.log('editSectionFixedPositions: ', editSectionFixedPositions);
-    // }, [editSectionId, editSectionValue, editSectionAdviser, editSectionProg, editSectionYear, editSectionStartTime, editSectionShift, editSectionSubjects, editSectionFixedDays, editSectionFixedPositions]);
-
     useEffect(() => {
-        console.log('editSectionStartTime: ', editSectionStartTime);
-    }, [editSectionStartTime]);
+        if (buildingStatus === 'idle') {
+            dispatch(fetchBuildings());
+        }
+    }, [buildingStatus, dispatch]);
 
     useEffect(() => {
         if (sectionStatus === 'idle') {
@@ -1313,15 +1425,11 @@ const SectionListContainer = ({
                             >
                                 <div
                                     className="modal-box"
-                                    style={{ width: '50%', maxWidth: 'none' }}
+                                    style={{ width: '40%', maxWidth: 'none' }}
                                 >
                                     <AddSectionContainer
                                         close={handleClose}
-                                        reduxField={[
-                                            'section',
-                                            'subjects',
-                                            'units',
-                                        ]}
+                                        reduxField={['section', 'subjects', 'units',]}
                                         reduxFunction={addSection}
                                         errorMessage={errorMessage}
                                         setErrorMessage={setErrorMessage}
@@ -1349,15 +1457,15 @@ const SectionListContainer = ({
                         <thead>
                             <tr>
                                 {/* <th className="w-8">#</th> */}
-                                <th className="w-1">Section ID</th>
-                                <th className="w-48">Section</th>
-                                <th className="w-40">Adviser</th>
+                                <th className="w-1/12">Section ID</th>
+                                <th className="w-3/12">Section</th>
+                                <th className="w-2/12">Room Details</th>
                                 {/* <th>Program</th> */}
                                 {/* <th>Year</th> */}
-                                <th className="w-72">Subjects</th>
-                                <th className="w-48">Additional Schedules</th>
+                                <th className="w-2/12">Subjects</th>
+                                <th className="w-3/12">Additional Schedules</th>
                                 {editable && (
-                                    <th className="w-12 text-right">Actions</th>
+                                    <th className="w-1/12 text-right">Actions</th>
                                 )}
                             </tr>
                         </thead>
@@ -1566,81 +1674,147 @@ const SectionListContainer = ({
                                                             {renderTimeOptions()}
                                                         </select>
                                                     </div>
+
+                                                    {/* Section Adviser */}
+                                                    <div className='flex flex-wrap mt-2'>
+                                                        <div className='w-1/4 p-2 font-bold flex items-center justify-center'>
+                                                            Adviser:
+                                                        </div>
+                                                        <select
+                                                            className="w-3/4 select select-bordered"
+                                                            value={editSectionAdviser}
+                                                            onChange={(e) => setEditSectionAdviser(parseInt(e.target.value, 10))}
+                                                        >
+                                                            <option value="" disabled>
+                                                                Assign an adviser
+                                                            </option>
+                                                            {Object.keys(teachers).map(
+                                                                (key) => (
+                                                                    <option
+                                                                        key={teachers[key].id}
+                                                                        value={teachers[key].id}
+                                                                    >
+                                                                        {teachers[key].teacher}
+                                                                    </option>
+                                                                )
+                                                            )}
+                                                        </select>
+                                                    </div>
                                                 </>
                                             ) : (
                                                 <>
+                                                    {/* Section year and name */}
                                                     <div className="text-base font-bold">
                                                         {`${section.year} -  ${section.section}`}
                                                     </div>
+
+                                                    {/* Section program */}
                                                     <div className="mt-1">
                                                         {`(${
-                                                            programs[
-                                                                section.program
-                                                            ]?.program
+                                                            programs[section.program]?.program
                                                         })`}
                                                     </div>
+
+                                                    {/* Section shift and start time */}
                                                     <div className="flex items-center mt-2">
                                                         <span className="inline-block bg-blue-500 text-white text-sm font-semibold py-1 px-3 rounded-lg">
-                                                            {section.shift === 0
-                                                                ? 'AM'
-                                                                : 'PM'}
+                                                            {section.shift === 0 ? 'AM' : 'PM'}
                                                         </span>
                                                         <span className="ml-2 text-sm font-medium">
-                                                            {getTimeSlotString(
-                                                                section.startTime
-                                                            )}
+                                                            {getTimeSlotString(section.startTime)}
                                                         </span>
+                                                    </div>
+
+                                                    {/* Section Adviser */}
+                                                    <div className='flex flex-wrap mt-2'>
+                                                        <div className='w-1/4 p-2 font-bold flex items-center justify-center'>
+                                                            Adviser:
+                                                        </div>
+                                                        <div className='w-2/3 flex items-center justify-center bg-white border border-gray-300 rounded-lg m-1'>
+                                                            {teachers[section.teacher] ?.teacher || 'Unknown Teacher'}
+                                                        </div>
                                                     </div>
                                                 </>
                                             )}
                                         </td>
-
-                                        {/* Adviser */}
+                                        
+                                        {/* Section room (work in progress) */}
                                         <td>
-                                            {editSectionId === section.id ? (
-                                                <select
-                                                    className="select select-bordered w-full"
-                                                    value={editSectionAdviser}
-                                                    onChange={(e) =>
-                                                        setEditSectionAdviser(
-                                                            parseInt(
-                                                                e.target.value,
-                                                                10
-                                                            )
-                                                        )
-                                                    }
+                                            <div>
+
+                                                {/* Building */}
+                                                <div
+                                                    className='mb-5 flex flex-col justify-start'
                                                 >
-                                                    <option value="" disabled>
-                                                        Assign an adviser
-                                                    </option>
-                                                    {Object.keys(teachers).map(
-                                                        (key) => (
-                                                            <option
-                                                                key={
-                                                                    teachers[
-                                                                        key
-                                                                    ].id
-                                                                }
-                                                                value={
-                                                                    teachers[
-                                                                        key
-                                                                    ].id
-                                                                }
+                                                    <label
+                                                        className='h-1/2'
+                                                    >
+                                                        <span className="label-text">Building</span>
+                                                    </label>
+                                                    <div
+                                                        className='h-1/2 input input-bordered'
+                                                    >   
+                                                        {buildings[editSectionId === section.id ? editRoomDetails.buildingId : section.roomDetails.buildingId]?.name || 'Unknown Building'}
+                                                    </div>
+                                                </div>
+
+                                                {/* Floor */}
+                                                <div
+                                                    className='mb-5 flex flex-col justify-start'
+                                                >
+                                                    <label
+                                                        className='h-1/2'
+                                                    >   
+                                                        <span className="label-text">Floor</span>
+                                                    </label>
+                                                    <div
+                                                        className='h-1/2 input input-bordered'
+                                                    > 
+                                                        {(editSectionId === section.id ? editRoomDetails.floorIdx + 1 : section.roomDetails.floorIdx + 1) || 'Unknown Floor'} 
+                                                    </div>
+                                                </div>
+
+                                                {/* Room */}
+                                                <div
+                                                    className='mb-5 flex flex-col justify-start'
+                                                >
+                                                    <label
+                                                        className='h-1/2'
+                                                    >
+                                                        <span className="label-text">Room</span>
+                                                    </label>
+                                                    <div
+                                                        className='h-1/2 input input-bordered'
+                                                    > 
+                                                        {editSectionId === section.id ? buildings[editRoomDetails.buildingId]?.rooms[editRoomDetails.floorIdx][editRoomDetails.roomIdx]?.roomName : 
+                                                            buildings[section.roomDetails.buildingId]?.rooms[section.roomDetails.floorIdx][section.roomDetails.roomIdx]?.roomName
+                                                            
+                                                        
+                                                        || 'Unknown Room'}
+                                                    </div>
+                                                </div>
+
+                                                { editSectionId === section.id && (
+                                                    <div>
+                                                        <div className='w-1/4 flex justify-start items-end'>
+                                                            <button 
+                                                                className='btn btn-primary btn-sm'
+                                                                onClick={() => document.getElementById(`view_rooms_modal_viewMode(0)_section(${section.id})_building(0)`).showModal()}
                                                             >
-                                                                {
-                                                                    teachers[
-                                                                        key
-                                                                    ].teacher
-                                                                }
-                                                            </option>
-                                                        )
-                                                    )}
-                                                </select>
-                                            ) : (
-                                                teachers[section.teacher]
-                                                    ?.teacher ||
-                                                'Unknown Teacher'
-                                            )}
+                                                                Change Room
+                                                            </button>
+                                                        </div>
+                                                        
+                                                        <ViewRooms 
+                                                            viewMode={0}
+                                                            sectionId={section.id}
+                                                            roomDetails={editRoomDetails}
+                                                            setRoomDetails={setEditRoomDetails}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            
                                         </td>
 
                                         {/* Subject Details */}
