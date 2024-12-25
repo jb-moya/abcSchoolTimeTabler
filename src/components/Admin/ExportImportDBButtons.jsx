@@ -14,6 +14,7 @@ import { addSection } from "@features/sectionSlice";
 import { addTeacher, fetchTeachers } from "@features/teacherSlice";
 import { addProgram, fetchPrograms } from "@features/programSlice";
 import { addDepartment, fetchDepartments } from "../../features/departmentSlice";
+import { addBuilding, fetchBuildings } from "../../features/buildingSlice";
 
 import { addRank, fetchRanks } from "@features/rankSlice";
 
@@ -150,7 +151,9 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
     const subjectsMap = {};
     const teachersMap = {};
     const programsMap = {};
-    const ranksMap = {}
+    const ranksMap = {};
+    const buildingsMap = {};
+    const roomsMap = {};
 
     exportData.subjects.forEach(subject => {
       subjectsMap[subject.id] = subject.subject;
@@ -168,6 +171,12 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
       ranksMap[rank.id] = rank.rank;
     })
 
+    exportData.buildings.forEach(building => {
+      buildingsMap[building.id] = building.name;
+      roomsMap[building.id] = building.rooms;
+    });
+    console.log(roomsMap)
+
     const wb = XLSX.utils.book_new();
     
     // ---------------------------------------------
@@ -175,7 +184,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
     // ---------------------------------------------
     
     const subjectData = [
-      ['Subject', 'Class Duration', 'Weekly Requirement' ],//header
+      ['Subject', 'Class Duration', 'Weekly Minutes' ],//header
     ];
 
     exportData.subjects.forEach(subject => {
@@ -269,17 +278,16 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
 
     // Initialize sectionData with headers
     const sectionData = [
-        ['Section Name', 'Adviser', 'Program', 'Year', 'Subjects', 'Shift', 'Start Time']
+        ['Section Name', 'Adviser', 'Program', 'Year', 'Subjects', 'Shift', 'Start Time', 'Building', 'Floor', 'Room']
     ];
-
     // Loop through sections to build data rows
     exportData.sections.forEach(section => {
       const subjectNames = Object.entries(section.subjects)  // Get both subject IDs and [units, priority]
         .map((_,subjectId) => {  // Destructure the array to get units and priority
-            console.log(subjectId)
-            const subjectName = subjectsMap[subjectId];  // Get the subject name
-            return subjectName 
-                ? `${subjectName}`  // Format as 'Name (Units)(Priority)'
+            console.log('Subject ID: ', subjectId)
+            const subjectName = subjectsMap[subjectId + 1];  // Get the subject name
+            return subjectName
+                ? `${subjectName}`
                 : 'Unknown Subject';  // Handle case where subject name is not found
         })
         .join(', ');  // Join the subject strings with a comma
@@ -291,7 +299,10 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
           section.year,  // Year Level
           subjectNames,  // Subjects (names with units and priority, joined as a string)
           section.shift === 0 ? 'AM' : 'PM',  // Shift (AM/PM)
-          getTimeSlotString(section.startTime)  // Start Time (formatted)
+          getTimeSlotString(section.startTime),  // Start Time (formatted)
+          buildingsMap [section.roomDetails.buildingId] || 'Unknown Building',
+          section.roomDetails.floorIdx + 1 || 'Unknown Floor',
+          roomsMap [section.roomDetails.buildingId] [section.roomDetails.floorIdx] [section.roomDetails.roomIdx].roomName || 'Unknown Room'
       ];
   
       sectionData.push(sectionRow);
@@ -325,13 +336,57 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
       ['Department Name', 'Department Head' ],
     ];
 
-    exportData.departments.forEach(department => {
-      departmentData.push([department.name, department.head])
-    });
 
+    exportData.departments.forEach(department => {
+      const departmentHeadName = teachersMap[department.head] || 'Unknown Department Head';
+      
+      const departmentRow = [
+        department.name, // Department Name
+        departmentHeadName, // Department Head (Mapped Name)
+      ];
+      departmentData.push(departmentRow);
+    });
+    
     const departmentSheet = XLSX.utils.aoa_to_sheet(departmentData);
     XLSX.utils.book_append_sheet(wb, departmentSheet, "Departments");
 
+    // ---------------------------------------------
+    // ------ EXPORTING BUILDING TO WORKBOOK -------
+    // ---------------------------------------------
+
+    const buildingData = [];
+
+    // Determine the maximum number of floors across all buildings
+    const maxFloors = Math.max(
+      ...exportData.buildings.map(building => building.rooms.length)
+    );
+
+    // Create dynamic header for floors
+    const headers = ['Building Name', ...Array.from({ length: maxFloors }, (_, i) => `Floor ${i + 1}`)];
+    buildingData.push(headers);
+
+    // Populate rows for each building
+    exportData.buildings.forEach(building => {
+      const row = [building.name]; // Start with the building name
+
+      // Add room names for each floor, separated by commas
+      building.rooms.forEach(floor => {
+        row.push(floor.map(room => room.roomName).join(', '));
+      });
+
+      // Fill in empty columns if the building has fewer floors than maxFloors
+      while (row.length < headers.length) {
+        row.push('');
+      }
+
+      buildingData.push(row);
+    });
+
+    // Generate the XLSX sheet
+    const buildingSheet = XLSX.utils.aoa_to_sheet(buildingData);
+    XLSX.utils.book_append_sheet(wb, buildingSheet, "Buildings");
+    
+    
     // Generate Excel file and trigger download
     XLSX.writeFile(wb, `TIMETABLE DATA.xlsx`);
   };
@@ -344,6 +399,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
     const addedPrograms = [];
     const addedSections = [];
     const addedDepartments = [];
+    const addedBuildings = [];
 
     const unaddedSubjects = [];
     const unaddedTeachers = [];
@@ -351,6 +407,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
     const unaddedPrograms = [];
     const unaddedSections = [];
     const unaddedDepartments = [];
+    const unaddedBuildings = [];
 
     const normalizeKeys = (obj) => {
       const normalizedObj = {};
@@ -784,6 +841,42 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
         }
       })
     }
+
+    /*if (normalizedData['Buildings']) {
+      normalizedData['Buildings'].forEach((building) => {
+        if (building.buildingname === '' || building.buildingname === null || building.buildingname === undefined
+          || building.totalfloors === '' || building.totalfloors === null || building.totalfloors  === undefined
+          || building.rooms === '' || building.rooms === null || building.rooms  === undefined
+        ){
+          unaddedBuildings.push([0, building]);
+          return;
+        }
+        //Checking for duplicate building names
+        const isDuplicateName = addedBuildings.find((b) => b.departmenthead.trim().toLowerCase() === building.buildingname.trim().toLowerCase());
+        //console.log('Department Head',isDuplicateHead)
+        if (isDuplicateName){
+          unaddedBuildings.push([1, building]);
+          return;
+        } else {
+          //Get Building Total Floors
+          const isDuplicateTotalFloors = addedBuildings.find((b) => b.totalfloors.trim().toLowerCase() === building.totalfloors.trim().toLowerCase());
+            if (isDuplicateTotalFloors){//no match found
+              unaddedBuildings.push([2, building]);
+              return;
+            }
+            else {
+              dispatch(
+                addBuilding({
+                    name: building.buildingname,
+                    floors: building.totalfloors,
+                    rooms: building.rooms
+                })
+              );
+            addedBuildings.push(building);
+          }
+        }
+      })
+    }*/
 
     console.log('Violation 0 is for empty fields\nViolation 1 is for duplicate entries (any database)\nViolation 2 is for unknown subject\nViolation 3 is for unknown program or adviser\nViolation 4 is for multiple advisorship');
 
