@@ -114,6 +114,8 @@ void test_generate_timetable() {
 
 	int32_t* section_subjects = allocate(total_section_subjects);
 	int32_t* section_start = allocate(total_section);
+int32_t* section_location = allocate(total_section);
+	int32_t* building_info = allocate(total_section);
 	int32_t* teacher_subjects = allocate(teacher_subjects_length);
 
 	int32_t* teacher_week_load_config = allocate(num_teachers);
@@ -237,6 +239,7 @@ void test_generate_timetable() {
 	    number_of_subject_configuration,
 		
 	    section_configuration,
+section_location,
 	    section_subject_configuration,
 	    subject_configuration_subject_units,
 	    subject_configuration_subject_duration,
@@ -247,6 +250,7 @@ void test_generate_timetable() {
 	    section_start,
 	    teacher_subjects,
 	    teacher_week_load_config,
+building_info,
 
 	    teacher_subjects_length,
 	    beesPopulation,

@@ -218,6 +218,9 @@ const std::unordered_set<TeacherID>& Section::getUtilizedTeachers() const {
 TimePoint Section::getStartTime() const {
 	return start_time;
 }
+Location Section::getLocation() const {
+	return location;
+}
 void Section::addBreakSlot(Timeslot break_slot) {
 	timeslot_manager.addBreakSlot(break_slot);
 }

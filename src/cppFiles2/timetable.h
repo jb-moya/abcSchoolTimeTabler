@@ -25,6 +25,8 @@
 #include <vector>
 
 #include "bit_utils.h"
+#include "building.h"
+#include "location.h"
 #include "rotaryVector.h"
 #include "scheduledDay.h"
 #include "schoolClass.h"
@@ -56,6 +58,7 @@ struct Timetable {
 	std::vector<std::shared_ptr<SubjectConfiguration>> subject_configurations;
 	std::unordered_map<SectionID, Section> sections;
 	std::unordered_map<TeacherID, Teacher> teachers;
+	std::unordered_map<BuildingID, Building> buildings;
 
    public:
 	static void setTeacherBreakThreshold(int s_teacher_break_threshold);
@@ -87,6 +90,9 @@ struct Timetable {
 
 	Section& getSectionById(SectionID section_id);
 	Teacher& getTeacherById(TeacherID teacher_id);
+Building& getBuildingById(BuildingID building_id);
+
+	void connectBuildings(BuildingID building_id_1, BuildingID building_id_2);
 
 	static std::uniform_int_distribution<SectionID> s_random_section_id;
 	static std::uniform_int_distribution<int8_t> s_random_workDay;
@@ -110,7 +116,7 @@ struct Timetable {
 
 	static void addEligibleTeacher(SubjectID subjectId, TeacherID teacherId);
 
-	void addSection(SubjectID section_id, int num_break, TimePoint start_time, int total_timeslot, int not_allowed_breakslot_gap, bool is_dynamic_subject_consistent_duration);
+	void addSection(SubjectID section_id, int num_break, TimePoint start_time, int total_timeslot, int not_allowed_breakslot_gap, bool is_dynamic_subject_consistent_duration, Location location);
 	void addTeacher(TeacherID teacher_id, TimeDuration max_weekly_load, TimeDuration min_weekly_load);
 
 	void addSubjectToSection(SectionID section_id, SubjectConfigurationID subject_configuration_id);
@@ -125,6 +131,9 @@ struct Timetable {
 	void initializeRandomTimetable(std::unordered_set<TeacherID>& update_teachers);
 	void initializeSectionTimetable(SectionID section_id, Section& section);
 
+	void initializeBuildingAdjacency(int32_t* building_adjacency);
+	void initializeBuildingConfiguration(int32_t* building_info);
+
 	void initializeSubjectConfigurations(int number_of_subject_configuration,
 	                                     int32_t* subject_configuration_subject_units,
 	                                     int32_t* subject_configuration_subject_duration,
@@ -133,7 +142,8 @@ struct Timetable {
 
 	void initializeSections(int number_of_section,
 	                        int32_t* section_configuration,
-	                        int32_t* section_start);
+	                        int32_t* section_start,
+	                        int32_t* section_location);
 
 	void initializeSectionFixedSubjectTeacher(int32_t* subject_fixed_teacher_section, int32_t* subject_fixed_teacher);
 

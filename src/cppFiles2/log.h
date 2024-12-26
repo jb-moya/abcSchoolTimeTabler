@@ -230,7 +230,8 @@ inline void logConflicts(
 			auto nextIt = std::next(it);
 			while (it != time_points_class_count.end()) {
 				TimePoint time_point = it->first;
-				int time_point_class_count = it->second;
+auto& utilized_time_in_section = it->second;
+				int time_point_class_count = std::get<1>(utilized_time_in_section);
 
 				if (nextIt != time_points_class_count.end()) {
 					TimePoint next_time_point = nextIt->first;

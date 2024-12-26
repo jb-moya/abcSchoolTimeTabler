@@ -8,3 +8,4 @@ using SubjectConfigurationID = int;
 using TimeDuration = int; 
 using TimePoint = int;
 using Timeslot = int;
+using BuildingID = int;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -13,7 +14,7 @@ struct Teacher {
 	TimeDuration max_work_load;
 	TimeDuration min_work_load;
 
-	std::unordered_map<ScheduledDay, std::map<TimePoint, int>> utilized_time;
+	std::unordered_map<ScheduledDay, std::map<TimePoint, std::tuple<SectionID, int>>> utilized_time;
 	std::unordered_map<ScheduledDay, TimeDuration> day_total_work_load;
 
 	bool has_violation;
@@ -30,11 +31,10 @@ struct Teacher {
 
 	bool hasViolation() const;
 
-	const std::unordered_map<ScheduledDay, std::map<TimePoint, int>> getUtilizedTime() const;
+	const std::unordered_map<ScheduledDay, std::map<TimePoint, std::tuple<SectionID, int>>> getUtilizedTime() const;
 	const std::unordered_map<ScheduledDay, TimeDuration> getDayTotalWorkLoad() const;
 
-	void adjustUtilizedTime(int day, TimePoint timePoint, int value);
-	int incrementUtilizedTime(int day, TimePoint timePoint);
+	int incrementUtilizedTime(int day, TimePoint timePoint, SectionID section_id);
 	int decrementUtilizedTime(int day, TimePoint timePoint);
 
 	void incrementClassCount(ScheduledDay day);

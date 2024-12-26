@@ -14,6 +14,8 @@
 #include "subjectConfiguration.h"
 #include "teacher.h"
 #include "timeslotManager.h"
+#include "location.h"
+#include "scheduledDay.h"
 
 class Section {
    private:
@@ -32,6 +34,7 @@ class Section {
 	std::map<Timeslot, std::unordered_map<ScheduledDay, SchoolClass>> classes;
 	std::unordered_map<SubjectID, TeacherID> subject_fixed_teacher;
 	std::unordered_set<TeacherID> utilized_teachers;
+	Location location;
 
 	TimeslotManager timeslot_manager;
 
@@ -43,15 +46,16 @@ class Section {
 	        TimePoint start_,
 	        int total_timeslot_,
 	        int not_allowed_breakslot_gap_,
-	        bool is_dynamic_subject_consistent_duration_)
+	        bool is_dynamic_subject_consistent_duration_,
+			Location location_)
 	    : id(id_),
 	      num_break(num_break_),
 	      start_time(start_),
 	      total_timeslot(total_timeslot_),
 	      not_allowed_breakslot_gap(not_allowed_breakslot_gap_),
 	      is_dynamic_subject_consistent_duration(is_dynamic_subject_consistent_duration_),
-	      has_violation(false) {}
-
+	      has_violation(false),
+		  location(location_) {}
 	// Static Functions
 	static Section& getRandomSection();
 
@@ -76,6 +80,7 @@ class Section {
 	int getNotAllowedBreakslotGap() const;
 	TimeDuration getTotalDuration() const;
 	TimePoint getStartTime() const;
+	Location getLocation() const;
 	SubjectID getClassTimeslotSubjectID(ScheduledDay day, Timeslot timeslot) const;
 	TeacherID getClassTimeslotTeacherID(ScheduledDay day, Timeslot timeslot) const;
 	SchoolClass getSchoolClass(Timeslot timeslot, ScheduledDay day) const;

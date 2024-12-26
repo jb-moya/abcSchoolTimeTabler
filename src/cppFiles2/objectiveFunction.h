@@ -1,8 +1,11 @@
 #pragma once
 
-#include "bee.h"
-#include "print.h"
+#include <tuple>
 
+#include "bee.h"
+#include "location.h"
+#include "print.h"
+#include "scheduledDay.h"
 struct ObjectiveFunction {
 	static void evaluate(
 	    Bee& bee,
@@ -25,6 +28,7 @@ struct ObjectiveFunction {
 				bee.total_cost -= bee.teacher_violations[teacher_id].no_break;
 				bee.total_cost -= bee.teacher_violations[teacher_id].exceed_workload;
 				bee.total_cost -= bee.teacher_violations[teacher_id].below_min_workload;
+				bee.total_cost -= bee.teacher_violations[teacher_id].class_proximity;
 			}
 
 			bee.resetTeacherViolation(teacher_id);
@@ -68,11 +72,33 @@ struct ObjectiveFunction {
 
 				bool break_found = false;
 
+				SectionID previous_section_class = -1;
+
 				auto it = time_points_class_count.begin();
 				auto nextIt = std::next(it);
 				while (it != time_points_class_count.end()) {
 					TimePoint time_point = it->first;
-					int time_point_class_count = it->second;
+					auto& utilized_time_in_section = it->second;
+					SectionID section_id = std::get<0>(utilized_time_in_section);
+					int time_point_class_count = std::get<1>(utilized_time_in_section);
+
+					if (previous_section_class == -1) {
+						previous_section_class = section_id;
+					} else {
+						if (section_id != previous_section_class) {
+							Location from_section_location = bee.timetable.getSectionById(previous_section_class).getLocation();
+							Location to_section_location = bee.timetable.getSectionById(section_id).getLocation();
+
+							Building& from_building = bee.timetable.getBuildingById(from_section_location.building_id);
+							Building& to_building = bee.timetable.getBuildingById(to_section_location.building_id);
+
+							int distance = from_building.getDistanceTo(from_section_location, to_section_location, to_building);
+
+							bee.teacher_violations[teacher_id].class_proximity += distance;
+
+							previous_section_class = section_id;
+						}
+					}
 
 					// print("timeslot_key", timeslot_key, "class_count", class_count, "teacher_id", teacher_id);
 
@@ -119,12 +145,14 @@ struct ObjectiveFunction {
 				print("a", bee.teacher_violations[teacher_id].no_break);
 				print("a", bee.teacher_violations[teacher_id].exceed_workload);
 				print("a", bee.teacher_violations[teacher_id].below_min_workload);
+print("a", bee.teacher_violations[teacher_id].class_proximity);
 			}
 
 			bee.total_cost += bee.teacher_violations[teacher_id].class_timeslot_overlap;
 			bee.total_cost += bee.teacher_violations[teacher_id].no_break;
 			bee.total_cost += bee.teacher_violations[teacher_id].exceed_workload;
 			bee.total_cost += bee.teacher_violations[teacher_id].below_min_workload;
+bee.total_cost += bee.teacher_violations[teacher_id].class_proximity;
 
 			if (bee.teacher_violations[teacher_id].class_timeslot_overlap == 0 &&
 			    bee.teacher_violations[teacher_id].no_break == 0 &&
@@ -136,7 +164,7 @@ struct ObjectiveFunction {
 			}
 		}
 
-		return;
+		// return;
 
 		for (SectionID section_id : update_sections) {
 			// if (bee.timetable.Timetable::s_section_dynamic_subject_consistent_duration.find(section_id) != bee.timetable.Timetable::s_section_dynamic_subject_consistent_duration.end()) {

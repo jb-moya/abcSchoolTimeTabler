@@ -3,7 +3,7 @@ CXX = g++
 # CXXFLAGS = -Wall -Wextra -std=c++17 -g -MMD
 CXXFLAGS = -Wall -Wextra -std=c++17 -O3 -MMD
 TARGET = zapp_test_abc2
-SUFFIX = ""  # Default suffix is empty
+SUFFIX =  # Default suffix is empty
 FOLDER = exeFolder/
 OUTPUT = $(FOLDER)$(TARGET)$(SUFFIX)  # Output filename with folder and suffix
 # Source Files
@@ -19,7 +19,8 @@ abc.cpp \
 main.cpp \
 timeManager.cpp \
 rotaryVector.cpp \
-subjectTeacherQueue.cpp
+subjectTeacherQueue.cpp \
+nodeAdajency.cpp \
 
 # Header Files
 HEADERS = \
@@ -35,6 +36,9 @@ abc.h \
 timeManager.h \
 rotaryVector.h \
 subjectTeacherQueue.h \
+nodeAdajency.h \
+building.h \
+location.h \
 bit_utils.h \
 subjectEligibilityManager.h \
 scheduledDay.h \
@@ -43,7 +47,7 @@ schoolClass.h \
 bee.h \
 objectiveFunction.h \
 log.h
-
+# rm -Force *.o, *.d    
 # Test Source File
 TEST_SRC = test_file.cpp  # Your test file
 

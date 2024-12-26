@@ -12,6 +12,7 @@ struct teacherViolation {
 	unsigned long long no_break;
 	unsigned long long exceed_workload;
 	unsigned long long below_min_workload;
+	unsigned long long class_proximity;
 };
 
 struct sectionViolation {
@@ -30,6 +31,8 @@ struct Bee {
 		teacher_violations[teacher_id].class_timeslot_overlap = 0;
 		teacher_violations[teacher_id].no_break = 0;
 		teacher_violations[teacher_id].exceed_workload = 0;
+		teacher_violations[teacher_id].below_min_workload = 0;
+		teacher_violations[teacher_id].class_proximity = 0;
 	}
 
 	void resetSectionViolation(SectionID section_id) {

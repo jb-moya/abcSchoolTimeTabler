@@ -1,4 +1,5 @@
 
+#include "bit_utils.h"
 #include "print.h"
 #include "random_util.h"
 #include "rotaryVector.h"
@@ -57,12 +58,53 @@ void Timetable::reset() {
 	initializeRandomFieldDistribution(0, 0);
 }
 
+void Timetable::connectBuildings(BuildingID building_1, BuildingID building_2) {
+	Building::connectBuildings(building_1, building_2);
+}
+
+void Timetable::initializeBuildingAdjacency(int32_t* building_adjacency) {
+	for (int i = 0; building_adjacency[i] != -1; i++) {
+		int16_t building_id_1;
+		int16_t building_id_2;
+
+		unpackInt16FromInt32(building_adjacency[i], building_id_1, building_id_2);
+
+		connectBuildings(static_cast<BuildingID>(building_id_1), static_cast<BuildingID>(building_id_2));
+	}
+}
+
+void Timetable::initializeBuildingConfiguration(int32_t* building_info) {
+	std::vector<std::vector<int>> building_floor_room_counts;
+	for (int i = 0; building_info[i] != -1; i++) {
+		int16_t building_id_1;
+		int16_t floor_room_counts;
+
+		unpackInt16FromInt32(building_info[i], building_id_1, floor_room_counts);
+
+		if (building_id_1 >= building_floor_room_counts.size()) {
+			building_floor_room_counts.resize(building_id_1 + 1);
+		}
+
+		building_floor_room_counts[building_id_1].push_back(floor_room_counts);
+	}
+
+	for (int i = 0; i < building_floor_room_counts.size(); i++) {
+		buildings.emplace(i, Building(i, building_floor_room_counts[i]));
+	}
+}
+
 void Timetable::addEligibleTeacher(SubjectID subject_id, TeacherID teacher_id) {
 	s_subject_eligibility_manager.addTeacher(subject_id, teacher_id);
 };
 
-void Timetable::addSection(SectionID section_id, int num_break, TimePoint start_time, int total_timeslot, int not_allowed_breakslot_gap, bool is_dynamic_subject_consistent_duration) {
-	sections.emplace(section_id, Section(section_id, num_break, start_time, total_timeslot, not_allowed_breakslot_gap, is_dynamic_subject_consistent_duration));
+void Timetable::addSection(SectionID section_id,
+                           int num_break,
+                           TimePoint start_time,
+                           int total_timeslot,
+                           int not_allowed_breakslot_gap,
+                           bool is_dynamic_subject_consistent_duration,
+                           Location location) {
+	sections.emplace(section_id, Section(section_id, num_break, start_time, total_timeslot, not_allowed_breakslot_gap, is_dynamic_subject_consistent_duration, location));
 }
 
 void Timetable::addTeacher(TeacherID teacher_id, TimeDuration max_work_load, TimeDuration min_work_load) {
@@ -115,7 +157,8 @@ void Timetable::initializeSubjectConfigurations(int number_of_subject_configurat
 
 void Timetable::initializeSections(int number_of_section,
                                    int32_t* section_configuration,
-                                   int32_t* section_start) {
+                                   int32_t* section_start,
+                                   int32_t* section_location) {
 	for (SectionID i = 0; i < number_of_section; i++) {
 		SectionID section_id = i;
 		int num_break = static_cast<int>((section_configuration[i] >> 24) & 0xFF);
@@ -123,6 +166,9 @@ void Timetable::initializeSections(int number_of_section,
 		int not_allowed_breakslot_gap = static_cast<int>((section_configuration[i] >> 8) & 0xFF);
 		bool is_dynamic_subject_consistent_duration = static_cast<bool>(section_configuration[i] & 0xFF);
 		TimePoint start = static_cast<int>(section_start[i]);
+
+		Location location = {0, 0, 0};
+		unpackThreeSignedIntsFromInt32(section_location[i], location.building_id, location.floor, location.room);
 
 		print("section configuration",
 		      "section_id", section_id,
@@ -132,7 +178,7 @@ void Timetable::initializeSections(int number_of_section,
 		      "is_dynamic_subject_consistent_duration", is_dynamic_subject_consistent_duration,
 		      "start", start);
 
-		addSection(section_id, num_break, start, total_timeslot, not_allowed_breakslot_gap, is_dynamic_subject_consistent_duration);
+		addSection(section_id, num_break, start, total_timeslot, not_allowed_breakslot_gap, is_dynamic_subject_consistent_duration, location);
 	}
 }
 
@@ -203,6 +249,15 @@ Teacher& Timetable::getTeacherById(TeacherID teacher_id) {
 		return it->second;
 	} else {
 		throw std::runtime_error("Teacher ID not found");
+	}
+}
+
+Building& Timetable::getBuildingById(BuildingID building_id) {
+	auto it = buildings.find(building_id);
+	if (it != buildings.end()) {
+		return it->second;
+	} else {
+		throw std::runtime_error("Building ID not found");
 	}
 }
 
@@ -333,7 +388,7 @@ void Timetable::updateTeachersAndSections(
 								}
 							};
 						} else {
-							teacher.incrementUtilizedTime(i, start + time_point);
+							teacher.incrementUtilizedTime(i, start + time_point, selected_section.getId());
 						}
 					}
 				}
@@ -363,7 +418,7 @@ void Timetable::updateTeachersAndSections(
 							}
 						}
 					} else {
-						teacher.incrementUtilizedTime(static_cast<int>(day.first), start + time_point);
+						teacher.incrementUtilizedTime(static_cast<int>(day.first), start + time_point, selected_section.getId());
 					}
 				}
 			}
