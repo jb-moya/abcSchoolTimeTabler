@@ -21,11 +21,11 @@ TeacherID Teacher::getId() const {
 	return id;
 }
 
-int Teacher::getMaxWorkLoad() const {
+int Teacher::getMaxDayWorkLoad() const {
 	return max_work_load;
 }
 
-int Teacher::getMinWorkLoad() const {
+int Teacher::getMinDayWorkLoad() const {
 	return min_work_load;
 }
 

@@ -26,8 +26,8 @@ struct Teacher {
 	void initializeClass(int work_week);
 
 	TeacherID getId() const;
-	TimeDuration getMaxWorkLoad() const;
-	TimeDuration getMinWorkLoad() const;
+	TimeDuration getMaxDayWorkLoad() const;
+	TimeDuration getMinDayWorkLoad() const;
 
 	bool hasViolation() const;
 

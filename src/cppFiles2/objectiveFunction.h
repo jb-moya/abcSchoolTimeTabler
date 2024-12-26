@@ -38,8 +38,8 @@ struct ObjectiveFunction {
 			const auto& daily_class_schedule = teacher.getUtilizedTime();
 			const auto& total_day_work_load = teacher.getDayTotalWorkLoad();
 
-			const TimeDuration max_teacher_work_load = teacher.getMaxWorkLoad();
-			const TimeDuration min_teacher_work_load = teacher.getMinWorkLoad();
+			const TimeDuration max_teacher_work_load = teacher.getMaxDayWorkLoad();
+			const TimeDuration min_teacher_work_load = teacher.getMinDayWorkLoad();
 			const TimeDuration break_time_duration = bee.timetable.getBreakTimeDuration();
 
 			for (const auto& [day, time_points_class_count] : daily_class_schedule) {
