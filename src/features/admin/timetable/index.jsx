@@ -28,10 +28,12 @@ import { clearAllEntriesAndResetIDs } from '@src/indexedDB';
 import { fetchSections, editSection } from '@features/sectionSlice';
 import { fetchPrograms, editProgram } from '@features/programSlice';
 import { fetchSubjects } from '@features/subjectSlice';
+import { fetchBuildings } from '@features/buildingSlice';
 import { original } from 'immer';
 import calculateTotalTimeslot from '../../../utils/calculateTotalTimeslot';
 import deepEqual from '../../../utils/deepEqual';
 import gcdOfArray from '../../../utils/getGCD';
+import { packThreeSignedIntsToInt32 } from '../../../utils/packThreeSignedIntsToInt32';
 const getTimetable = wrap(new WasmWorker());
 
 function Timetable() {
@@ -44,6 +46,12 @@ function Timetable() {
 
     const { subjects: subjectsStore, status: subjectStatus } = useSelector(
         (state) => state.subject
+    );
+    const { buildings: buildingsStore, status: buildingStatus } = useSelector(
+        (state) => {
+            console.log('statee e e e ee  ee e e ', state);
+            return state.building;
+        }
     );
     const { teachers: teachersStore } = useSelector((state) => state.teacher);
     const { sections: sectionsStore, status: sectionStatus } = useSelector(
@@ -97,6 +105,69 @@ function Timetable() {
         return true;
     };
 
+    const mockBuildings = {
+        1: {
+            name: '1111',
+            floors: 2,
+            rooms: [['1111 - 101'], ['1111 - 201']],
+            nearbyBuildings: [2, 3, 4],
+            id: 1,
+        },
+        2: {
+            name: 'test',
+            floors: 4,
+            rooms: [
+                ['test - 101', 'test - 102', 'test - 103'],
+                [
+                    'test - 201',
+                    'test - 202',
+                    'test - 203',
+                    'test - 204',
+                    'test - 205',
+                    'test - 206',
+                ],
+                [
+                    'test - 301',
+                    'test - 302',
+                    'test - 303',
+                    'test - 304',
+                    'test - 305',
+                    'test - 306',
+                ],
+                [
+                    'test - 401',
+                    'test - 402',
+                    'test - 403',
+                    'test - 404',
+                    'test - 405',
+                    'test - 406',
+                ],
+            ],
+            nearbyBuildings: [],
+            id: 2,
+        },
+        3: {
+            name: 'mock',
+            floors: 3,
+            rooms: [['mock - 101'], ['mock - 201'], ['mock - 301']],
+            nearbyBuildings: [],
+            id: 3,
+        },
+        4: {
+            name: 'example',
+            floors: 5,
+            rooms: [
+                ['example - 101'],
+                ['example - 201'],
+                ['example - 301'],
+                ['example - 401'],
+                ['example - 501'],
+            ],
+            nearbyBuildings: [],
+            id: 4,
+        },
+    };
+
     const handleButtonClick = async () => {
         const subjectMap = Object.entries(subjectsStore).reduce(
             (acc, [, value], index) => {
@@ -104,6 +175,110 @@ function Timetable() {
                 return acc;
             },
             {}
+        );
+
+        const buildingMapReverse = Object.entries(mockBuildings).reduce(
+            (acc, [, value], index) => {
+                acc[value.id] = index;
+                return acc;
+            },
+            {}
+        );
+
+        console.log(
+            '🚀 ~ handleButtonClick ~ mockBuildings:',
+            typeof mockBuildings,
+            mockBuildings
+        );
+
+        console.log(
+            '🚀 ~ handleButtonClick ~ buildingsStore:',
+            typeof buildingsStore,
+            buildingsStore
+        );
+
+        console.log(
+            '🚀 ~ handleButtonClick ~ buildingMapReverse:',
+            buildingMapReverse
+        );
+
+        const buildingMap = Object.entries(mockBuildings).reduce(
+            (acc, [, building], index) => {
+                console.log('🚀 ~ handleButtonClick ~ building:', building);
+
+                acc[buildingMapReverse[building.id]] = {
+                    id: buildingMapReverse[building.id],
+
+                    // adjacency: Array.isArray(building.nearbyBuildings)
+                    //     ? building.nearbyBuildings
+                    //           .map(
+                    //               (buildingID) =>
+                    //                   buildingMapReverse[buildingID.id] || null
+                    //           )
+                    //           .filter((building) => building !== null)
+                    //     : [],
+
+                    adjacency: Array.isArray(building.nearbyBuildings)
+                        ? building.nearbyBuildings
+                              .map(
+                                  (buildingID) =>
+                                      buildingMapReverse[buildingID] || null
+                              )
+                              .filter((building) => building !== null)
+                        : [],
+
+                    floorRooms: building.rooms.reduce(
+                        (acc, roomGroup) => [...acc, roomGroup.length],
+                        []
+                    ),
+                };
+                return acc;
+            },
+            {}
+        );
+
+        console.log('🚀 ~ handleButtonClick ~ buildingMap:', buildingMap);
+
+        const buildingInfoArray = [];
+        const buildingAdjacencyArray = [];
+
+        Object.entries(buildingMap).forEach(([buildingID, building]) => {
+            // console.log('🚀 ~ Object.entries ~ building:', building);
+            // console.log('🚀 ~ Object.entries ~ buildingID:', buildingID);
+            building.adjacency.forEach((adjacentBuildingID) => {
+                // console.log(
+                //     '🚀 ~ building.adjacency.forEach ~ parseInt(buildingID):',
+                //     parseInt(buildingID)
+                // );
+                // console.log(
+                //     '🚀 ~ building.adjacency.forEach ~ parseInt(adjacentBuildingID):',
+                //     parseInt(adjacentBuildingID)
+                // );
+
+                buildingAdjacencyArray.push(
+                    packInt16ToInt32(
+                        parseInt(buildingID),
+                        parseInt(adjacentBuildingID)
+                    )
+                );
+            });
+
+            building.floorRooms.forEach((floorRoomCount) => {
+                buildingInfoArray.push(
+                    packInt16ToInt32(parseInt(buildingID), floorRoomCount)
+                );
+            });
+        });
+
+        buildingInfoArray.push(-1);
+        buildingAdjacencyArray.push(-1);
+
+        const buildingInfo = new Int32Array([...buildingInfoArray]);
+        const buildingAdjacency = new Int32Array([...buildingAdjacencyArray]);
+
+        console.log(
+            '🚀 ~ handleButtonClick ~ buildingAdjacencyArray:',
+            buildingAdjacencyArray
         );
 
         const subjectMapReverse = Object.entries(subjectsStore).reduce(
@@ -572,7 +747,6 @@ function Timetable() {
                 );
 
                 acc[index] = {
-        
                     subjectConfigurationIDs: sectionSubjectConfigurationIDs,
                     subjects: section.subjects,
                     startTime: section.startTime,
@@ -601,6 +775,7 @@ function Timetable() {
         const sectionStartArray = [];
         const sectionConfigurationArray = [];
         const sectionSubjectConfigurationArray = [];
+        const sectionLocationArray = [];
 
         // console.log('🚀 ~ handleButtonClick ~ subjectsStore:', subjectsStore);
 
@@ -667,18 +842,27 @@ function Timetable() {
                 }
             );
 
-            // console.log('🚀 ~ handleButtonClick ~ rowCount:', rowCount);
-            // rowCount = Math.trunc(rowCount / numOfSchoolDays);
-            // let numOfBreak = rowCount < 10 ? 1 : 2;
-            // cellCount += numOfBreak;
-            // ffff
-            // ffff
+            const exampleLocation = {
+                buildingID: 0,
+                floor: 0,
+                room: 0,
+            };
+
+            sectionLocationArray.push(
+                packThreeSignedIntsToInt32(
+                    exampleLocation.buildingID,
+                    exampleLocation.floor,
+                    exampleLocation.room
+                )
+            );
         }
 
         console.log(
             '🚀 ~ handleButtonClick ~ sectionStartArray:',
             sectionStartArray
         );
+
+        const sectionLocation = new Int32Array([...sectionLocationArray]);
 
         const subjectConfigurationSubjectUnits = new Int32Array([
             ...subjectConfigurationSubjectUnitsArray,
@@ -753,6 +937,7 @@ function Timetable() {
             totalSection: totalSections,
             numberOfSubjectConfiguration: totalNumOfSubjectConfigurations,
             sectionConfiguration: sectionConfiguration,
+sectionLocation: sectionLocation,
             sectionSubjectConfiguration: sectionSubjectConfiguration,
             subjectConfigurationSubjectUnits: subjectConfigurationSubjectUnits,
             subjectConfigurationSubjectDuration:
@@ -766,6 +951,8 @@ function Timetable() {
             sectionStart: sectionStarts,
             teacherSubjects: teacherSubjects,
             teacherWeekLoadConfig: teacherWeekLoadConfig,
+buildingInfo: buildingInfo,
+            buildingAdjacency: buildingAdjacency,
             teacherSubjectsLength: teacherSubjects.length,
             beesPopulation: beesPopulations,
             beesEmployed: beesEmployed,
@@ -1552,6 +1739,12 @@ function Timetable() {
             dispatch(fetchSubjects());
         }
     }, [subjectStatus, dispatch]);
+
+    useEffect(() => {
+        if (buildingStatus === 'idle') {
+            dispatch(fetchBuildings());
+        }
+    }, [buildingStatus, dispatch]);
 
     return (
         <div className="App container mx-auto px-4 py-6">

@@ -26,6 +26,7 @@ function allocateAndSetBuffer(wasm, dataArray) {
  * @param {number} params.totalSection - The total number of sections.
  * @param {number} params.numberOfSubjectConfiguration - The total number of subject configurations.
  * @param {Int32Array} params.sectionConfiguration - Array specifying section configurations.
+* @param {Int32Array} params.sectionLocation - section location
  * @param {Int32Array} params.sectionSubjectConfiguration - Array specifying section subject configurations.
  * @param {Int32Array} params.subjectConfigurationSubjectUnits - Array specifying subject unit counts.
  * @param {Int32Array} params.subjectConfigurationSubjectDuration - Array specifying subject durations.
@@ -36,6 +37,8 @@ function allocateAndSetBuffer(wasm, dataArray) {
  * @param {Int32Array} params.sectionStart - Array specifying section start times.
  * @param {Int32Array} params.teacherSubjects - Array mapping teachers to subjects.
  * @param {Int32Array} params.teacherWeekLoadConfig - Array specifying weekly load configurations for teachers.
+* @param {Int32Array} params.buildingInfo - Array specifying building information.
+ * @param {Int32Array} params.buildingAdjacency - Array specifying building adjacency information.
  * @param {number} params.teacherSubjectsLength - The length of the teacher subjects array.
  * @param {number} params.beesPopulation - The total number of bees in the algorithm's population.
  * @param {number} params.beesEmployed - The number of employed bees in the algorithm.
@@ -64,6 +67,10 @@ const getTimetable = async (params) =>
             const sectionConfigurationBuff = allocateAndSetBuffer(
                 wasm,
                 params.sectionConfiguration
+            );
+const sectionLocationBuff = allocateAndSetBuffer(
+                wasm,
+                params.sectionLocation
             );
             const sectionSubjectConfigurationBuff = allocateAndSetBuffer(
                 wasm,
@@ -108,6 +115,14 @@ const getTimetable = async (params) =>
                 wasm,
                 params.teacherWeekLoadConfig
             );
+const buildingInfoBuff = allocateAndSetBuffer(
+                wasm,
+                params.buildingInfo
+            );
+            const buildingAdjacencyBuff = allocateAndSetBuffer(
+                wasm,
+                params.buildingAdjacency
+            );
 
             const resultTimetableBuff = wasm._malloc(
                 params.resultTimetableLength * 8
@@ -127,7 +142,6 @@ const getTimetable = async (params) =>
                 '🚀 ~ newPromise ~ params.offsetDuration:',
                 params.offsetDuration
             );
-
             console.log(
                 '🚀 ~ newPromise ~ params.offsetDuration:',
                 params.offsetDuration
@@ -203,6 +217,7 @@ const getTimetable = async (params) =>
                 params.numberOfSubjectConfiguration,
 
                 sectionConfigurationBuff,
+sectionLocationBuff,
                 sectionSubjectConfigurationBuff,
                 subjectConfigurationSubjectUnitsBuff,
                 subjectConfigurationSubjectDurationBuff,
@@ -213,6 +228,8 @@ const getTimetable = async (params) =>
                 sectionStartBuff,
                 teacherSubjectsBuff,
                 teacherWeekLoadConfigBuff,
+buildingInfoBuff,
+                buildingAdjacencyBuff,
 
                 params.teacherSubjectsLength,
                 params.beesPopulation,
@@ -277,7 +294,7 @@ const getTimetable = async (params) =>
                 console.log('🚀 ~ newPromise ~ resultArray:', resultArray);
             }
 
-            console.log("timetable result", timetable);
+            console.log('timetable result', timetable);
 
             wasm._free(sectionConfigurationBuff);
             wasm._free(sectionSubjectConfigurationBuff);
