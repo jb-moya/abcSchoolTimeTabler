@@ -24,6 +24,8 @@
     "comlink": "^4.4.1",
     "dayjs": "^1.11.7",
     "debounce": "^2.1.0",
+    "exceljs": "^4.4.0",
+    "file-saver": "^2.0.5",
     "idb": "^8.0.0",
     "immer": "^10.1.1",
     "lottie-react": "^2.4.0",
