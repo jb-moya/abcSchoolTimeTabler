@@ -761,7 +761,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
 						dispatch(
 							addDepartment({
 								name: department.department,
-								head: headIndex + 1,
+								head: headIndex === '' ? '' : headIndex + 1,
 							})
 						);
 						addedDepartments.push(department);
