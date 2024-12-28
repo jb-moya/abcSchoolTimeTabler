@@ -1856,7 +1856,7 @@ const SectionListContainer = ({
                                                                             {subjects[
                                                                                 subjectID
                                                                             ]
-                                                                                .subject ||
+                                                                                ?.subject ||
                                                                                 'Unknown Subject, ID: ' +
                                                                                     subjectID}
                                                                         </td>

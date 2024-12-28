@@ -10,7 +10,7 @@ import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 
 import { addSubject, fetchSubjects } from "@features/subjectSlice";
-import { addSection } from "@features/sectionSlice";
+import { addSection, fetchSections } from "@features/sectionSlice";
 import { addTeacher, fetchTeachers } from "@features/teacherSlice";
 import { addProgram, fetchPrograms } from "@features/programSlice";
 import { addDepartment, fetchDepartments } from "../../features/departmentSlice";
@@ -31,7 +31,10 @@ import { toast } from "sonner";
 import { BiUpload } from "react-icons/bi";
 
 const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
+
 	const dispatch = useDispatch();
+
+// =======================================================================
 
 	const { programs, status: programStatus } = useSelector(
 		(state) => state.program
@@ -51,11 +54,23 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
 
 	const { departments, status: departmentStatus} = useSelector(
 		(state) => state.department
-	)
+	);
 
 	const { buildings, status: buildingStatus } = useSelector(
 		(state) => state.building
+	);
+
+	const { sections, status: sectionStatus } = useSelector(
+		(state) => state.section
 	)
+
+// =======================================================================
+
+	useEffect(() => {
+		if (sectionStatus === 'idle') {
+			dispatch(fetchSections());
+		}
+	}, [dispatch, sectionStatus]);
 
 	useEffect(() => {
 		if (programStatus === 'idle') {
@@ -92,6 +107,8 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
 			dispatch(fetchBuildings());
 		}
 	}, [buildingStatus, dispatch]);
+
+// =======================================================================
 
 	const exportDB = (format) => {
 		exportIndexedDB(DB_NAME)
@@ -145,7 +162,6 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
 			document.getElementById("import-confirmation-modal").close();
 		}
 	};
-	
 
 	const exportToJSON = (data, filename) => {
 		const blob = new Blob([data], { type: "text/plain;charset=utf-8" });
@@ -457,7 +473,10 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
 		const addedTeachers = [];
 		const addedRanks = [];
 		const addedPrograms = [];
+
 		const addedSections = [];
+		const addedSections_2 = [];
+
 		const addedDepartments = [];
 		const addedBuildings = [];
 
@@ -467,7 +486,6 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
 		const unaddedPrograms = [];
 		const unaddedSections = [];
 		const unaddedDepartments = [];
-		const unaddedBuildings = [];
 
 		const normalizeKeys = (obj) => {
 			const normalizedObj = {};
@@ -489,8 +507,6 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
 			normalizedData[sheetName] = data[sheetName].map((entry) => normalizeKeys(entry));
 		});
 
-		// console.log('normalizedData', normalizedData);
-
 		/*
 			VIOLATIONS
 			-1 - Mismatch in attribute type
@@ -499,465 +515,455 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
 			2 - Reference to non-existent attribute from another sheet
 		*/
 
-		// ADD ALL SUBJECTS
-		if (normalizedData['Subjects']) {
-			normalizedData['Subjects'].forEach((subject) => {
-				if (subject.subject === '' || subject.subject === null || subject.subject === undefined
-					|| subject.classduration === '' || subject.classduration === null || subject.classduration === undefined
-					|| subject.weeklyminutes === '' || subject.weeklyminutes === null || subject.weeklyminutes === undefined
-				) {
-					unaddedSubjects.push([0, subject]);
-					return;
-				}
+		// ======================== FILTER ALL ENTRIES ======================== //
+ 
+			// FILTER SUBJECTS
+			if (normalizedData['Subjects']) {
+				normalizedData['Subjects'].forEach((subject) => {
+					if (subject.subject === '' || subject.subject === null || subject.subject === undefined
+						|| subject.classduration === '' || subject.classduration === null || subject.classduration === undefined
+						|| subject.weeklyminutes === '' || subject.weeklyminutes === null || subject.weeklyminutes === undefined
+					) {
+						unaddedSubjects.push([0, subject]);
+						return;
+					}
 
-				const classDurationAsNumber = Number(subject.classduration);
-				const weeklyMinutesAsNumber = Number(subject.weeklyminutes);
+					const classDurationAsNumber = Number(subject.classduration);
+					const weeklyMinutesAsNumber = Number(subject.weeklyminutes);
 
-				if (!Number.isInteger(classDurationAsNumber) || !Number.isInteger(weeklyMinutesAsNumber)) {
-					unaddedSubjects.push([-1, subject]);
-					return;
-				}
+					if (!Number.isInteger(classDurationAsNumber) || !Number.isInteger(weeklyMinutesAsNumber)) {
+						unaddedSubjects.push([-1, subject]);
+						return;
+					}
 
-				const isDuplicateSub = addedSubjects.find((sub) => sub.subject.trim().toLowerCase() === subject.subject.trim().toLowerCase());
+					const isDuplicateSub = addedSubjects.find((sub) => sub.subject.trim().toLowerCase() === subject.subject.trim().toLowerCase());
 
-				if (isDuplicateSub) {
-					unaddedSubjects.push([1, subject]);
-					return;
-				} else {
-					dispatch(
-						addSubject({
-							subject: subject.subject,
-							classDuration: classDurationAsNumber,
-							weeklyMinutes: weeklyMinutesAsNumber,
-						})
-					);
-					addedSubjects.push(subject);
-				}
-			});
-		}
-
-		// ADD ALL RANKS
-		if (normalizedData['Ranks']) {
-			normalizedData['Ranks'].forEach((rank) => {
-				if (rank.rank === '' || rank.rank === null || rank.rank === undefined) {
-					unaddedRanks.push([0, rank]);
-					return;
-				}
-
-				const isDuplicateRank = addedRanks.find((r) => r.rank.trim().toLowerCase() === rank.rank.trim().toLowerCase());
-
-				if (isDuplicateRank) {          
-					unaddedRanks.push([1, rank]);
-					return;
-				} else {
-					dispatch(
-						addRank({
-							rank: rank.rank,
-							additionalRankScheds: [],
-						})
-					);
-					addedRanks.push(rank);
-				}
-			});
-		}
-
-		// ADD ALL BUILDINGS
-		if (normalizedData['Buildings']) {
-			const grouped = normalizedData['Buildings'].reduce((acc, item) => {
-				const buildingName = item.buildingname || acc.currentBuilding;
-				const floor = item.floor || acc.currentFloor;
-				const roomName = item.room;
-
-				if (
-					floor === '' || floor === null || floor === undefined ||
-					roomName === '' || roomName === null || roomName === undefined
-				) {
-					return acc;
-				}
-
-				// Initialize processedBuildings set if not already initialized
-				if (!acc.processedBuildings) {
-					acc.processedBuildings = new Set();
-				}
-			
-				// Mark building as processed
-				acc.processedBuildings.add(buildingName);
-			
-				if (!acc[buildingName]) {
-					acc[buildingName] = {};
-				}
-			
-				const floorIndex = parseInt(floor?.replace('Floor ', ''), 10) - 1;
-			
-				if (!acc[buildingName][floorIndex]) {
-					acc[buildingName][floorIndex] = [];
-				}
-				
-				acc[buildingName][floorIndex].push({ roomName, isAvailable: true });
-			
-				// Update the current building and floor
-				acc.currentBuilding = buildingName;
-				acc.currentFloor = floor;
-			
-				return acc;
-			}, { currentBuilding: '', currentFloor: '', processedBuildings: new Set() });
-
-			delete grouped.processedBuildings;
-			delete grouped.currentBuilding;
-			delete grouped.currentFloor;
-			
-			console.log('grouped', grouped);
-
-			if (Object.values(grouped).length > 0) {
-				Object.keys(grouped).forEach((buildingName) => {
-					dispatch(
-						addBuilding({
-							name: buildingName,
-							floors: Object.values(grouped[buildingName]).length,
-							rooms: Object.values(grouped[buildingName]),
-							image: null,
-							nearbyBuildings: [],
-						})
-					)
-
-					addedBuildings.push({
-						name: buildingName,
-						data: grouped[buildingName], // Store the full data for the building
-					});
-				})
+					if (isDuplicateSub) {
+						unaddedSubjects.push([1, subject]);
+						return;
+					} else {
+						addedSubjects.push(subject);
+					}
+				});
 			}
-		}
 
-		// ADD ALL TEACHERS
-		if (normalizedData['Teachers']) {
-			normalizedData['Teachers'].forEach((teacher) => {
+			// FILTER RANKS
+			if (normalizedData['Ranks']) {
+				normalizedData['Ranks'].forEach((rank) => {
+					if (rank.rank === '' || rank.rank === null || rank.rank === undefined) {
+						unaddedRanks.push([0, rank]);
+						return;
+					}
 
-				if (teacher.teacher === '' || teacher.teacher === null || teacher.teacher === undefined
-					|| teacher.rank === '' || teacher.rank === null || teacher.rank === undefined
-					|| teacher.department === '' || teacher.department === null || teacher.department === undefined
-					|| teacher.subjects === '' || teacher.subjects === null || teacher.subjects === undefined
-					|| teacher.assignedyearlevels === '' || teacher.assignedyearlevels === null || teacher.assignedyearlevels === undefined
-				) {
-					unaddedTeachers.push([0, teacher]); // MISSING DATA
-					return;
+					const isDuplicateRank = addedRanks.find((r) => r.rank.trim().toLowerCase() === rank.rank.trim().toLowerCase());
+
+					if (isDuplicateRank) {          
+						unaddedRanks.push([1, rank]);
+						return;
+					} else {
+						// dispatch(
+						// 	addRank({
+						// 		rank: rank.rank,
+						// 		additionalRankScheds: [],
+						// 	})
+						// );
+						addedRanks.push(rank);
+					}
+				});
+			}
+
+			// FILTER BUILDINGS
+			if (normalizedData['Buildings']) {
+				const grouped = normalizedData['Buildings'].reduce((acc, item) => {
+					const buildingName = item.buildingname || acc.currentBuilding;
+					const floor = item.floor || acc.currentFloor;
+					const roomName = item.room;
+
+					if (
+						floor === '' || floor === null || floor === undefined ||
+						roomName === '' || roomName === null || roomName === undefined
+					) {
+						return acc;
+					}
+
+					// Initialize processedBuildings set if not already initialized
+					if (!acc.processedBuildings) {
+						acc.processedBuildings = new Set();
+					}
+				
+					// Mark building as processed
+					acc.processedBuildings.add(buildingName);
+				
+					if (!acc[buildingName]) {
+						acc[buildingName] = {};
+					}
+				
+					const floorIndex = parseInt(floor?.replace('Floor ', ''), 10) - 1;
+				
+					if (!acc[buildingName][floorIndex]) {
+						acc[buildingName][floorIndex] = [];
+					}
+					
+					acc[buildingName][floorIndex].push({ roomName, isAvailable: true });
+				
+					// Update the current building and floor
+					acc.currentBuilding = buildingName;
+					acc.currentFloor = floor;
+				
+					return acc;
+				}, { currentBuilding: '', currentFloor: '', processedBuildings: new Set() });
+
+				delete grouped.processedBuildings;
+				delete grouped.currentBuilding;
+				delete grouped.currentFloor;
+				
+				console.log('grouped', grouped);
+
+				if (Object.values(grouped).length > 0) {
+					Object.keys(grouped).forEach((buildingName) => {
+						// dispatch(
+						// 	addBuilding({
+						// 		name: buildingName,
+						// 		floors: Object.values(grouped[buildingName]).length,
+						// 		rooms: Object.values(grouped[buildingName]),
+						// 		image: null,
+						// 		nearbyBuildings: [],
+						// 	})
+						// )
+
+						addedBuildings.push({
+							name: buildingName,
+							data: grouped[buildingName], // Store the full data for the building
+						});
+					})
 				}
+			}
 
-				let yearLevelString = teacher.assignedyearlevels.toString();
+			// FILTER TEACHERS
+			if (normalizedData['Teachers']) {
+				normalizedData['Teachers'].forEach((teacher) => {
 
-				const isDuplicateTeacher = addedTeachers.find((t) => t.teacher.trim().toLowerCase() === teacher.teacher.trim().toLowerCase());
-
-				if (isDuplicateTeacher) {
-					unaddedTeachers.push([1, teacher]); // DUPLICATE TEACHER
-					return;
-				} else {
-
-					const rankIndex = addedRanks.findIndex((r) => r.rank.trim().toLowerCase() === teacher.rank.trim().toLowerCase());
-					if (rankIndex === -1) {
-						unaddedTeachers.push([2, teacher]); // RANK NOT FOUND
+					if (teacher.teacher === '' || teacher.teacher === null || teacher.teacher === undefined
+						|| teacher.rank === '' || teacher.rank === null || teacher.rank === undefined
+						|| teacher.department === '' || teacher.department === null || teacher.department === undefined
+						|| teacher.subjects === '' || teacher.subjects === null || teacher.subjects === undefined
+						|| teacher.assignedyearlevels === '' || teacher.assignedyearlevels === null || teacher.assignedyearlevels === undefined
+					) {
+						unaddedTeachers.push([0, teacher]); // MISSING DATA
 						return;
 					}
 
-					const departmentIndex = normalizedData['Departments'].findIndex((d) => d.department.trim().toLowerCase() === teacher.department.trim().toLowerCase());
-					if (departmentIndex === -1) {
-						unaddedTeachers.push([2, teacher]); // DEPARTMENT NOT FOUND
-						return;
-					}
-					const subjIds = [];
-					const subjArray = teacher.subjects.split(',').map(subject => subject.trim());
-					subjArray.forEach((subjectName) => {
-						let found = false;
+					let yearLevelString = teacher.assignedyearlevels.toString();
 
-						for (let index = 0; index < addedSubjects.length; index++) {
-							if (addedSubjects[index]['subject'].trim().toLowerCase() === subjectName.trim().toLowerCase()) {
-								subjIds.push(index + 1);
-								found = true;
-								break;
-							}
-						}
+					const isDuplicateTeacher = addedTeachers.find((t) => t.teacher.trim().toLowerCase() === teacher.teacher.trim().toLowerCase());
 
-						if (!found) {
-						subjIds.push(-1);
-						}
-					});
-
-					// Get year level IDs
-					const yearLevelIds = [];
-					const yearLevelArray = yearLevelString.split(',').map(yearLevel => yearLevel.trim());
-					yearLevelArray.forEach((yearLevel) => {
-						if (yearLevel === '7') {
-							yearLevelIds.push(0);
-						} else if (yearLevel === '8') {
-							yearLevelIds.push(1);
-						} else if (yearLevel === '9') {
-							yearLevelIds.push(2);
-						} else if (yearLevel === '10') {
-							yearLevelIds.push(3);
-						} else {
-							yearLevelIds.push(-1);
-						}
-					});
-
-					if (yearLevelIds.includes(-1)) {
-						unaddedTeachers.push([2, teacher]); // YEAR LEVEL NOT FOUND
-						return;
-					}
-
-					if (subjIds.includes(-1)) {
-						unaddedTeachers.push([2, teacher]); // SUBJECT NOT FOUND
+					if (isDuplicateTeacher) {
+						unaddedTeachers.push([1, teacher]); // DUPLICATE TEACHER
 						return;
 					} else {
 
-						dispatch(
-							addTeacher({
+						const rankIndex = addedRanks.findIndex((r) => r.rank.trim().toLowerCase() === teacher.rank.trim().toLowerCase());
+						if (rankIndex === -1) {
+							unaddedTeachers.push([2, teacher]); // RANK NOT FOUND
+							return;
+						}
+
+						const departmentIndex = normalizedData['Departments'].findIndex((d) => d.department.trim().toLowerCase() === teacher.department.trim().toLowerCase());
+						if (departmentIndex === -1) {
+							unaddedTeachers.push([2, teacher]); // DEPARTMENT NOT FOUND
+							return;
+						}
+
+						const subjIds = [];
+						const subjArray = teacher.subjects.split(',').map(subject => subject.trim());
+						subjArray.forEach((subjectName) => {
+							let found = false;
+
+							for (let index = 0; index < addedSubjects.length; index++) {
+								if (addedSubjects[index]['subject'].trim().toLowerCase() === subjectName.trim().toLowerCase()) {
+									subjIds.push(index + 1);
+									found = true;
+									break;
+								}
+							}
+
+							if (!found) {
+							subjIds.push(-1);
+							}
+						});
+
+						// Get year level IDs
+						const yearLevelIds = [];
+						const yearLevelArray = yearLevelString.split(',').map(yearLevel => yearLevel.trim());
+						yearLevelArray.forEach((yearLevel) => {
+							if (yearLevel === '7') {
+								yearLevelIds.push(0);
+							} else if (yearLevel === '8') {
+								yearLevelIds.push(1);
+							} else if (yearLevel === '9') {
+								yearLevelIds.push(2);
+							} else if (yearLevel === '10') {
+								yearLevelIds.push(3);
+							} else {
+								yearLevelIds.push(-1);
+							}
+						});
+
+						if (yearLevelIds.includes(-1)) {
+							unaddedTeachers.push([2, teacher]); // YEAR LEVEL NOT FOUND
+							return;
+						}
+
+						if (subjIds.includes(-1)) {
+							unaddedTeachers.push([2, teacher]); // SUBJECT NOT FOUND
+							return;
+						} else {
+							addedTeachers.push({
 								teacher: teacher.teacher,
 								rank: rankIndex + 1,
-								department: departmentIndex + 1,
+								department: teacher.department,
 								subjects: subjIds,
 								yearLevels: yearLevelIds,
 								additionalTeacherScheds: [],
-							})
-						);
-
-						addedTeachers.push(teacher);
+							});
+						}
 					}
-				}
-			});
-		}
+				});
+			}
 
-		// ADD ALL DEPARTMENTS
-		if (normalizedData['Departments']) {
-			normalizedData['Departments'].forEach((department) => {
-				if (department.department === '' || department.department === null || department.department === undefined)
-				{
-					unaddedDepartments.push([0, department]);
-					return;
-				}
+			// FILTER DEPARTMENTS
+			if (normalizedData['Departments']) {
+				normalizedData['Departments'].forEach((department) => {
+					if (department.department === '' || department.department === null || department.department === undefined)
+					{
+						unaddedDepartments.push([0, department]);
+						return;
+					}
 
-				const isDuplicateName = addedDepartments.find((d) => d.department.trim().toLowerCase() === department.department.trim().toLowerCase());
+					const isDuplicateName = addedDepartments.find((d) => d.department.trim().toLowerCase() === department.department.trim().toLowerCase());
 
-				if (isDuplicateName){
-					unaddedDepartments.push([1, department]); // Duplicate DEPARTMENT NAME
-					return;
-				} else {
-
-					const isDuplicateHead = department.departmenthead && department.departmenthead.trim() !== ''
-												? addedDepartments.find((d) => d.departmenthead && d.departmenthead.trim().toLowerCase() === department.departmenthead.trim().toLowerCase())
-												: false;
-
-					if (isDuplicateHead){
-						unaddedDepartments.push([1, department]); // Duplicate DEPARTMENT HEAD
+					if (isDuplicateName){
+						unaddedDepartments.push([1, department]); // Duplicate DEPARTMENT NAME
 						return;
 					} else {
+
+						const isDuplicateHead = department.departmenthead && department.departmenthead.trim() !== ''
+													? addedDepartments.find((d) => d.departmenthead && d.departmenthead.trim().toLowerCase() === department.departmenthead.trim().toLowerCase())
+													: false;
+
+						if (isDuplicateHead){
+							unaddedDepartments.push([1, department]); // Duplicate DEPARTMENT HEAD
+							return;
+						} else {
+							
+							const headIndex = department.departmenthead && department.departmenthead.trim() !== ''
+												? addedTeachers.findIndex((t) => t.teacher.trim().toLowerCase() === department.departmenthead.trim().toLowerCase()
+																			&& t.department.trim().toLowerCase() === department.department.trim().toLowerCase())
+												: '';					
+							if (headIndex === -1) {
+								unaddedDepartments.push([2, department]); // DEPARTMENT HEAD NOT FOUND
+								return;	
+							}
+
+							// dispatch(
+							// 	addDepartment({
+							// 		name: department.department,
+							// 		head: headIndex === '' ? '' : headIndex + 1,
+							// 	})
+							// );
+							addedDepartments.push(department);
+						}
+					}
+				})
+			}
+
+			// FILTER PROGRAMS
+			if (normalizedData['Programs']) {
+				normalizedData['Programs'].slice(1).forEach((program) => {
+					if (program.program === '' || program.program === null || program.program === undefined
+						|| program[7] === '' || program[7] === null || program[7] === undefined
+						|| program[8] === '' || program[8] === null || program[8] === undefined
+						|| program[9] === '' || program[9] === null || program[9] === undefined
+						|| program[10] === '' || program[10] === null || program[10] === undefined
+						|| program['__empty'] === '' || program['__empty'] === null || program['__empty'] === undefined
+						|| program['__empty_1'] === '' || program['__empty_1'] === null || program['__empty_1'] === undefined
+						|| program['__empty_2'] === '' || program['__empty_2'] === null || program['__empty_2'] === undefined
+						|| program['__empty_3'] === '' || program['__empty_3'] === null || program['__empty_3'] === undefined
+						|| program['__empty_4'] === '' || program['__empty_4'] === null || program['__empty_4'] === undefined
+						|| program['__empty_5'] === '' || program['__empty_5'] === null || program['__empty_5'] === undefined
+						|| program['__empty_6'] === '' || program['__empty_6'] === null || program['__empty_6'] === undefined
+						|| program['__empty_7'] === '' || program['__empty_7'] === null || program['__empty_7'] === undefined
+					) {
+						unaddedPrograms.push([0, program]);
+						return;
+					}
+
+					const isDuplicateProgram = addedPrograms.find((p) => p.program.trim().toLowerCase() === program.program.trim().toLowerCase());
+
+					if (isDuplicateProgram) { 
+						unaddedPrograms.push([1, program]);
+						return;
+					} else {
+						const subjIds7 = [];
+						const fixedDays7 = {};//add new objects for fixed days
+						const fixedPositions7 = {};//add new objects for fixed days
+
+						const subjIds8 = [];
+						const fixedDays8 = {};
+						const fixedPositions8 = {};
+
+						const subjIds9 = [];
+						const fixedDays9 = {};
+						const fixedPositions9 = {};
+
+						const subjIds10 = [];
+						const fixedDays10 = {};
+						const fixedPositions10 = {};
+
+						const subjArray7 = program[7].split(',').map(subject => subject.trim());
+						subjArray7.forEach((subjectName) => {
+							let found = false; // Flag to track if the subject was found
+
+							for (let index = 0; index < addedSubjects.length; index++) {
+								if (addedSubjects[index]['subject'].trim().toLowerCase() === subjectName.trim().toLowerCase()) {
+									subjIds7.push(index + 1);
+									const numOfClasses = Math.min(Math.ceil(Number(addedSubjects[index]['weeklyminutes'])/Number(addedSubjects[index]['classduration'])), numOfSchoolDays)
+									fixedDays7[index + 1] = new Array(numOfClasses).fill(0);
+									fixedPositions7[index + 1] = new Array(numOfClasses).fill(0);
+									found = true;
+									break;
+								}
+							}
 						
-						const headIndex = department.departmenthead && department.departmenthead.trim() !== ''
-											? addedTeachers.findIndex((t) => t.teacher.trim().toLowerCase() === department.departmenthead.trim().toLowerCase()
-																		&& t.department.trim().toLowerCase() === department.department.trim().toLowerCase())
-											: '';					
-						if (headIndex === -1) {
-							unaddedDepartments.push([2, department]); // DEPARTMENT HEAD NOT FOUND
-							return;	
-						}
-
-						dispatch(
-							addDepartment({
-								name: department.department,
-								head: headIndex === '' ? '' : headIndex + 1,
-							})
-						);
-						addedDepartments.push(department);
-					}
-				}
-			})
-		}
-
-		// ADD ALL PROGRAMS
-		if (normalizedData['Programs']) {
-			normalizedData['Programs'].slice(1).forEach((program) => {
-				if (program.program === '' || program.program === null || program.program === undefined
-					|| program[7] === '' || program[7] === null || program[7] === undefined
-					|| program[8] === '' || program[8] === null || program[8] === undefined
-					|| program[9] === '' || program[9] === null || program[9] === undefined
-					|| program[10] === '' || program[10] === null || program[10] === undefined
-					|| program['__empty'] === '' || program['__empty'] === null || program['__empty'] === undefined
-					|| program['__empty_1'] === '' || program['__empty_1'] === null || program['__empty_1'] === undefined
-					|| program['__empty_2'] === '' || program['__empty_2'] === null || program['__empty_2'] === undefined
-					|| program['__empty_3'] === '' || program['__empty_3'] === null || program['__empty_3'] === undefined
-					|| program['__empty_4'] === '' || program['__empty_4'] === null || program['__empty_4'] === undefined
-					|| program['__empty_5'] === '' || program['__empty_5'] === null || program['__empty_5'] === undefined
-					|| program['__empty_6'] === '' || program['__empty_6'] === null || program['__empty_6'] === undefined
-					|| program['__empty_7'] === '' || program['__empty_7'] === null || program['__empty_7'] === undefined
-				) {
-					unaddedPrograms.push([0, program]);
-					return;
-				}
-
-				const isDuplicateProgram = addedPrograms.find((p) => p.program.trim().toLowerCase() === program.program.trim().toLowerCase());
-
-				if (isDuplicateProgram) { 
-					unaddedPrograms.push([1, program]);
-					return;
-				} else {
-					const subjIds7 = [];
-					const fixedDays7 = {};//add new objects for fixed days
-					const fixedPositions7 = {};//add new objects for fixed days
-
-					const subjIds8 = [];
-					const fixedDays8 = {};
-					const fixedPositions8 = {};
-
-					const subjIds9 = [];
-					const fixedDays9 = {};
-					const fixedPositions9 = {};
-
-					const subjIds10 = [];
-					const fixedDays10 = {};
-					const fixedPositions10 = {};
-
-					const subjArray7 = program[7].split(',').map(subject => subject.trim());
-					subjArray7.forEach((subjectName) => {
-						let found = false; // Flag to track if the subject was found
-
-						for (let index = 0; index < addedSubjects.length; index++) {
-							if (addedSubjects[index]['subject'].trim().toLowerCase() === subjectName.trim().toLowerCase()) {
-								subjIds7.push(index + 1);
-								const numOfClasses = Math.min(Math.ceil(Number(addedSubjects[index]['weeklyminutes'])/Number(addedSubjects[index]['classduration'])), numOfSchoolDays)
-								fixedDays7[index + 1] = new Array(numOfClasses).fill(0);
-								fixedPositions7[index + 1] = new Array(numOfClasses).fill(0);
-								found = true;
-								break;
+							if (!found) {
+								subjIds7.push(-1);
 							}
-						}
-					
-						if (!found) {
-							subjIds7.push(-1);
-						}
-					});
+						});
 
-					const subjArray8 = program[8].split(',').map(subject => subject.trim());
-					subjArray8.forEach((subjectName) => {
-						let found = false;
+						const subjArray8 = program[8].split(',').map(subject => subject.trim());
+						subjArray8.forEach((subjectName) => {
+							let found = false;
 
-						for (let index = 0; index < addedSubjects.length; index++) {
-							if (addedSubjects[index]['subject'].trim().toLowerCase() === subjectName.trim().toLowerCase()) {
-								subjIds8.push(index + 1);
-								const numOfClasses = Math.min(Math.ceil(Number(addedSubjects[index]['weeklyminutes'])/Number(addedSubjects[index]['classduration'])), numOfSchoolDays)
-								fixedDays8[index + 1] = new Array(numOfClasses).fill(0);
-								fixedPositions8[index + 1] = new Array(numOfClasses).fill(0);
-								found = true;
-								break;
+							for (let index = 0; index < addedSubjects.length; index++) {
+								if (addedSubjects[index]['subject'].trim().toLowerCase() === subjectName.trim().toLowerCase()) {
+									subjIds8.push(index + 1);
+									const numOfClasses = Math.min(Math.ceil(Number(addedSubjects[index]['weeklyminutes'])/Number(addedSubjects[index]['classduration'])), numOfSchoolDays)
+									fixedDays8[index + 1] = new Array(numOfClasses).fill(0);
+									fixedPositions8[index + 1] = new Array(numOfClasses).fill(0);
+									found = true;
+									break;
+								}
 							}
-						}
-					
-						if (!found) {
-							subjIds8.push(-1);
-						}
-					});
-
-					const subjArray9 = program[9].split(',').map(subject => subject.trim());
-					subjArray9.forEach((subjectName) => {
-						let found = false; // Flag to track if the subject was found
-
-						for (let index = 0; index < addedSubjects.length; index++) {
-							if (addedSubjects[index]['subject'].trim().toLowerCase() === subjectName.trim().toLowerCase()) {
-								subjIds9.push(index + 1);
-								const numOfClasses = Math.min(Math.ceil(Number(addedSubjects[index]['weeklyminutes'])/Number(addedSubjects[index]['classduration'])), numOfSchoolDays)
-								fixedDays9[index + 1] = new Array(numOfClasses).fill(0);
-								fixedPositions9[index + 1] = new Array(numOfClasses).fill(0);
-								found = true;
-								break;
+						
+							if (!found) {
+								subjIds8.push(-1);
 							}
-						}
-					
-						if (!found) {
-							subjIds9.push(-1);
-						}
-					});
+						});
 
-					const subjArray10 = program[10].split(',').map(subject => subject.trim());
-					subjArray10.forEach((subjectName) => {
-						let found = false; // Flag to track if the subject was found
+						const subjArray9 = program[9].split(',').map(subject => subject.trim());
+						subjArray9.forEach((subjectName) => {
+							let found = false; // Flag to track if the subject was found
 
-						for (let index = 0; index < addedSubjects.length; index++) {
-							if (addedSubjects[index]['subject'].trim().toLowerCase() === subjectName.trim().toLowerCase()) {
-								subjIds10.push(index + 1);
-								const numOfClasses = Math.min(Math.ceil(Number(addedSubjects[index]['weeklyminutes'])/Number(addedSubjects[index]['classduration'])), numOfSchoolDays)
-								fixedDays10[index + 1] = new Array(numOfClasses).fill(0);
-								fixedPositions10[index + 1] = new Array(numOfClasses).fill(0);
-								found = true;
-								break;
+							for (let index = 0; index < addedSubjects.length; index++) {
+								if (addedSubjects[index]['subject'].trim().toLowerCase() === subjectName.trim().toLowerCase()) {
+									subjIds9.push(index + 1);
+									const numOfClasses = Math.min(Math.ceil(Number(addedSubjects[index]['weeklyminutes'])/Number(addedSubjects[index]['classduration'])), numOfSchoolDays)
+									fixedDays9[index + 1] = new Array(numOfClasses).fill(0);
+									fixedPositions9[index + 1] = new Array(numOfClasses).fill(0);
+									found = true;
+									break;
+								}
 							}
-						}
-					
-						if (!found) {
-							subjIds10.push(-1);
-						}
-					});
+						
+							if (!found) {
+								subjIds9.push(-1);
+							}
+						});
 
-					if (subjIds7.includes(-1) || subjIds8.includes(-1) || subjIds9.includes(-1) || subjIds10.includes(-1)) {
-						unaddedPrograms.push([2, program]);
-						return;
-					} else {
+						const subjArray10 = program[10].split(',').map(subject => subject.trim());
+						subjArray10.forEach((subjectName) => {
+							let found = false; // Flag to track if the subject was found
 
-						// CHECK IF YEAR SHIFTS ARE VALID
-						const shiftYear7 = program['__empty'].trim().toUpperCase();
-						const shiftYear8 = program['__empty_2'].trim().toUpperCase();
-						const shiftYear9 = program['__empty_4'].trim().toUpperCase();
-						const shiftYear10 = program['__empty_6'].trim().toUpperCase();
+							for (let index = 0; index < addedSubjects.length; index++) {
+								if (addedSubjects[index]['subject'].trim().toLowerCase() === subjectName.trim().toLowerCase()) {
+									subjIds10.push(index + 1);
+									const numOfClasses = Math.min(Math.ceil(Number(addedSubjects[index]['weeklyminutes'])/Number(addedSubjects[index]['classduration'])), numOfSchoolDays)
+									fixedDays10[index + 1] = new Array(numOfClasses).fill(0);
+									fixedPositions10[index + 1] = new Array(numOfClasses).fill(0);
+									found = true;
+									break;
+								}
+							}
+						
+							if (!found) {
+								subjIds10.push(-1);
+							}
+						});
 
-						if (
-							(shiftYear7 !== 'AM' && shiftYear7 !== 'PM') ||
-							(shiftYear8 !== 'AM' && shiftYear8 !== 'PM') ||
-							(shiftYear9 !== 'AM' && shiftYear9 !== 'PM') ||
-							(shiftYear10 !== 'AM' && shiftYear10 !== 'PM')
-							)
-						{
-							unaddedPrograms.push([2, program]); // Shift is invalid
+						if (subjIds7.includes(-1) || subjIds8.includes(-1) || subjIds9.includes(-1) || subjIds10.includes(-1)) {
+							unaddedPrograms.push([2, program]);
 							return;
-						}
-
-						// CHECK IF START TIMES ARE VALID
-						let startTime7 = '';
-						let startTime8 = '';
-						let startTime9 = '';
-						let startTime10 = '';
-
-						if (typeof program['__empty_1'] !== 'string') {
-							startTime7 = convertExcelTimeToTimeString(program['__empty_1']);
 						} else {
-							startTime7 = formatTimeWithLeadingZero(program['__empty_1'].trim().toUpperCase());
-						}
 
-						if (typeof program['__empty_3'] !== 'string') {
-							startTime8 = convertExcelTimeToTimeString(program['__empty_3']);
-						} else {
-							startTime8 = formatTimeWithLeadingZero(program['__empty_3'].trim().toUpperCase());
-						}
+							// CHECK IF YEAR SHIFTS ARE VALID
+							const shiftYear7 = program['__empty'].trim().toUpperCase();
+							const shiftYear8 = program['__empty_2'].trim().toUpperCase();
+							const shiftYear9 = program['__empty_4'].trim().toUpperCase();
+							const shiftYear10 = program['__empty_6'].trim().toUpperCase();
 
-						if (typeof program['__empty_5'] !== 'string') {
-							startTime9 = convertExcelTimeToTimeString(program['__empty_5']);
-						} else {
-							startTime9 = formatTimeWithLeadingZero(program['__empty_5'].trim().toUpperCase());
-						}
+							if (
+								(shiftYear7 !== 'AM' && shiftYear7 !== 'PM') ||
+								(shiftYear8 !== 'AM' && shiftYear8 !== 'PM') ||
+								(shiftYear9 !== 'AM' && shiftYear9 !== 'PM') ||
+								(shiftYear10 !== 'AM' && shiftYear10 !== 'PM')
+								)
+							{
+								unaddedPrograms.push([2, program]); // Shift is invalid
+								return;
+							}
 
-						if (typeof program['__empty_7'] !== 'string') {
-							startTime10 = convertExcelTimeToTimeString(program['__empty_7']);
-						} else {
-							startTime10 = formatTimeWithLeadingZero(program['__empty_7'].trim().toUpperCase());
-						}
+							// CHECK IF START TIMES ARE VALID
+							let startTime7 = '';
+							let startTime8 = '';
+							let startTime9 = '';
+							let startTime10 = '';
 
-						const startTime7Idx = getTimeSlotIndex(startTime7);
-						const startTime8Idx = getTimeSlotIndex(startTime8);
-						const startTime9Idx = getTimeSlotIndex(startTime9);
-						const startTime10Idx = getTimeSlotIndex(startTime10);
+							if (typeof program['__empty_1'] !== 'string') {
+								startTime7 = convertExcelTimeToTimeString(program['__empty_1']);
+							} else {
+								startTime7 = formatTimeWithLeadingZero(program['__empty_1'].trim().toUpperCase());
+							}
 
-						if (startTime7Idx === -1 || startTime8Idx === -1 || startTime9Idx === -1 || startTime10Idx === -1) 
-						{
-							unaddedPrograms.push([2, program]); // Start time is invalid
-							return;
-						}
+							if (typeof program['__empty_3'] !== 'string') {
+								startTime8 = convertExcelTimeToTimeString(program['__empty_3']);
+							} else {
+								startTime8 = formatTimeWithLeadingZero(program['__empty_3'].trim().toUpperCase());
+							}
 
-						dispatch(
-							addProgram({
+							if (typeof program['__empty_5'] !== 'string') {
+								startTime9 = convertExcelTimeToTimeString(program['__empty_5']);
+							} else {
+								startTime9 = formatTimeWithLeadingZero(program['__empty_5'].trim().toUpperCase());
+							}
+
+							if (typeof program['__empty_7'] !== 'string') {
+								startTime10 = convertExcelTimeToTimeString(program['__empty_7']);
+							} else {
+								startTime10 = formatTimeWithLeadingZero(program['__empty_7'].trim().toUpperCase());
+							}
+
+							const startTime7Idx = getTimeSlotIndex(startTime7);
+							const startTime8Idx = getTimeSlotIndex(startTime8);
+							const startTime9Idx = getTimeSlotIndex(startTime9);
+							const startTime10Idx = getTimeSlotIndex(startTime10);
+
+							if (startTime7Idx === -1 || startTime8Idx === -1 || startTime9Idx === -1 || startTime10Idx === -1) 
+							{
+								unaddedPrograms.push([2, program]); // Start time is invalid
+								return;
+							}
+
+							addedPrograms.push({
 								program: program.program,
 								7: {
 									subjects: subjIds7,
@@ -991,191 +997,187 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
 									fixedPosition: fixedPositions10,
 									additionalScheds: [],
 								},
-							})
-						);
-
-						addedPrograms.push(program);
+							});
+						}
 					}
-				}
-			});
-		}
+				});
+			}
 
-		// ADD ALL SECTIONS
-		if (normalizedData['Sections']) {
-			const assignedAdviser = [];
-			const assignedRoom = [];
+			// FILTER SECTIONS
+			if (normalizedData['Sections']) {
+				const assignedAdviser = [];
+				const assignedRoom = [];
 
-			normalizedData['Sections'].forEach((section) => {
+				normalizedData['Sections'].forEach((section) => {
 
-				let roomDetailsIssue = false;
+					let roomDetailsIssue = false;
 
-				if(section.sectionname === '' || section.sectionname === null || section.sectionname === undefined
-					|| section.program === '' || section.program === null || section.program === undefined
-					|| section.adviser === '' || section.adviser === null || section.adviser === undefined
-					|| section.year === '' || section.year === null || section.year === undefined
-					|| section.subjects === '' || section.subjects === null || section.subjects === undefined 
-					|| section.shift === '' || section.shift === null || section.shift === undefined
-					|| section.starttime === '' || section.starttime === null || section.starttime === undefined
-					|| section.roomdetails === '' || section.roomdetails === null || section.roomdetails === undefined
-				) {
-					unaddedSections.push([0, section]);
-					return;
-				}
+					if(section.sectionname === '' || section.sectionname === null || section.sectionname === undefined
+						|| section.program === '' || section.program === null || section.program === undefined
+						|| section.adviser === '' || section.adviser === null || section.adviser === undefined
+						|| section.year === '' || section.year === null || section.year === undefined
+						|| section.subjects === '' || section.subjects === null || section.subjects === undefined 
+						|| section.shift === '' || section.shift === null || section.shift === undefined
+						|| section.starttime === '' || section.starttime === null || section.starttime === undefined
+						|| section.roomdetails === '' || section.roomdetails === null || section.roomdetails === undefined
+					) {
+						unaddedSections.push([0, section]);
+						return;
+					}
 
-				const isDuplicateSection = addedSections.find((s) => s['sectionname'].trim().toLowerCase() === section.sectionname.trim().toLowerCase());
-				if (isDuplicateSection) {
-					unaddedSections.push([1, section]);
-					return;
-				} else {
-					const sectionSubjects = [];
-					const sectionFixedDays = {};
-					const sectionFixedPositions = {};
-					const isUnknownSubject = [];
+					const isDuplicateSection = addedSections.find((s) => s['sectionname'].trim().toLowerCase() === section.sectionname.trim().toLowerCase());
+					if (isDuplicateSection) {
+						unaddedSections.push([1, section]);
+						return;
+					} else {
+						const sectionSubjects = [];
+						const sectionFixedDays = {};
+						const sectionFixedPositions = {};
+						const isUnknownSubject = [];
 
-					// Check if subjects are valid
-					const subjArray = section.subjects.split(',').map(subject => subject.trim());
-					for (let sub of subjArray){
-						let found = false;
+						// Check if subjects are valid
+						const subjArray = section.subjects.split(',').map(subject => subject.trim());
+						for (let sub of subjArray){
+							let found = false;
 
-						for (let index = 0; index < addedSubjects.length; index++) {
-							if (addedSubjects[index]['subject'].trim().toLowerCase() === sub.trim().toLowerCase()) {
-								sectionSubjects.push(index + 1);
-								const numOfClasses = Math.min(Math.ceil(Number(addedSubjects[index]['weeklyminutes']) / 
-																		Number(addedSubjects[index]['classduration'])), 
-																numOfSchoolDays)
-								sectionFixedDays[index + 1] = new Array(numOfClasses).fill(0);
-								sectionFixedPositions[index + 1] = new Array(numOfClasses).fill(0);
-								found = true;
-								break;
+							for (let index = 0; index < addedSubjects.length; index++) {
+								if (addedSubjects[index]['subject'].trim().toLowerCase() === sub.trim().toLowerCase()) {
+									sectionSubjects.push(index + 1);
+									const numOfClasses = Math.min(Math.ceil(Number(addedSubjects[index]['weeklyminutes']) / 
+																			Number(addedSubjects[index]['classduration'])), 
+																	numOfSchoolDays)
+									sectionFixedDays[index + 1] = new Array(numOfClasses).fill(0);
+									sectionFixedPositions[index + 1] = new Array(numOfClasses).fill(0);
+									found = true;
+									break;
+								}
+							}
+
+							if (!found) {
+								isUnknownSubject.push(sub);
 							}
 						}
 
-						if (!found) {
-							isUnknownSubject.push(sub);
+						// Check if program is valid
+						const progID = addedPrograms.findIndex(program => program['program'].trim().toLowerCase() === section.program.trim().toLowerCase());
+
+						// Check if adviser is valid
+						const advID = addedTeachers.findIndex(t => t.teacher.trim().toLowerCase() === section.adviser.trim().toLowerCase());
+
+						// Check if year is valid
+						const year = Number(section.year);
+
+						// Check if shift is valid
+						const shift = section.shift.trim().toUpperCase();
+
+						// Check if start time is valid
+						let sectionStartTime = '';
+						if (typeof section.starttime !== 'string') {
+							sectionStartTime = convertExcelTimeToTimeString(section.starttime);
+						} else {
+							sectionStartTime = section.starttime;
 						}
-					}
+						const startTimeIdx = getTimeSlotIndex(formatTimeWithLeadingZero(sectionStartTime.trim().toUpperCase()));
 
-					// Check if program is valid
-					const progID = addedPrograms.findIndex(program => program['program'].trim().toLowerCase() === section.program.trim().toLowerCase());
+						// Check if building is valid
+						const roomDetailsMatch = section.roomdetails.match(/\[(.*?), FLOOR (\d+)\] (.*)/);
+						const roomDetails = {
+							buildingId: -1,
+							floorIdx: -1,
+							roomIdx: -1,
+						}	
+						if (roomDetailsMatch) {
+							const [, bldgName, floorNumber, rmName] = roomDetailsMatch;		  
+							const floorNumberDecremented = parseInt(floorNumber, 10) - 1;
 
-					// Check if adviser is valid
-					const advID = addedTeachers.findIndex(t => t.teacher.trim().toLowerCase() === section.adviser.trim().toLowerCase());
+							const normalizedBldgName = bldgName.trim().toLowerCase();
+							const normalizedRmName = rmName.trim().toLowerCase();
 
-					// Check if year is valid
-					const year = Number(section.year);
+							let bldgFound = false;
 
-					// Check if shift is valid
-					const shift = section.shift.trim().toUpperCase();
+							addedBuildings.some((building, buildingIdx) => {
+								if (building.name.trim().toLowerCase() === normalizedBldgName) {
 
-					// Check if start time is valid
-					let sectionStartTime = '';
-					if (typeof section.starttime !== 'string') {
-						sectionStartTime = convertExcelTimeToTimeString(section.starttime);
-					} else {
-						sectionStartTime = section.starttime;
-					}
-					const startTimeIdx = getTimeSlotIndex(formatTimeWithLeadingZero(sectionStartTime.trim().toUpperCase()));
+									bldgFound = true;
 
-					// Check if building is valid
-					const roomDetailsMatch = section.roomdetails.match(/\[(.*?), FLOOR (\d+)\] (.*)/);
-					const roomDetails = {
-						buildingId: -1,
-						floorIdx: -1,
-						roomIdx: -1,
-					}	
-					if (roomDetailsMatch) {
-						const [, bldgName, floorNumber, rmName] = roomDetailsMatch;		  
-						const floorNumberDecremented = parseInt(floorNumber, 10) - 1;
+									const floorData = building.data[floorNumberDecremented];
 
-						const normalizedBldgName = bldgName.trim().toLowerCase();
-						const normalizedRmName = rmName.trim().toLowerCase();
+									if (floorData) {
+										const room = floorData.find((room, idx) => 
+											room.roomName.trim().toLowerCase() === normalizedRmName
+										);
+										
+										if (room) {
+											const isValid = assignedRoom.filter(room =>
+												room.buildingId === buildingIdx + 1 &&
+												room.floorIdx === floorNumberDecremented &&
+												room.roomIdx === floorData.indexOf(room)
+											)
 
-						let bldgFound = false;
+											if (isValid.length > 0) {
+												unaddedSections.push([1, section]); // Duplicate room
+												roomDetailsIssue = true;
+												return;
+											}
 
-						addedBuildings.some((building, buildingIdx) => {
-							if (building.name.trim().toLowerCase() === normalizedBldgName) {
+											roomDetails.buildingId = buildingIdx + 1;
+											roomDetails.floorIdx = floorNumberDecremented;
+											roomDetails.roomIdx = floorData.indexOf(room);
 
-								bldgFound = true;
+											if (section.sectionname === 'Malandi') console.log('roomDetails', roomDetails);
 
-								const floorData = building.data[floorNumberDecremented];
+											assignedRoom.push(roomDetails);
 
-								if (floorData) {
-									const room = floorData.find((room, idx) => 
-										room.roomName.trim().toLowerCase() === normalizedRmName
-									);
-									
-									if (room) {
-										const isValid = assignedRoom.filter(room =>
-											room.buildingId === buildingIdx + 1 &&
-											room.floorIdx === floorNumberDecremented &&
-											room.roomIdx === floorData.indexOf(room)
-										)
-
-										if (isValid.length > 0) {
-											unaddedSections.push([1, section]); // Duplicate room
+											return true; 
+										} else {
+											unaddedSections.push([2, section]); // Unknown room
 											roomDetailsIssue = true;
 											return;
 										}
-
-										roomDetails.buildingId = buildingIdx + 1;
-										roomDetails.floorIdx = floorNumberDecremented;
-										roomDetails.roomIdx = floorData.indexOf(room);
-
-										if (section.sectionname === 'Malandi') console.log('roomDetails', roomDetails);
-
-										assignedRoom.push(roomDetails);
-
-										return true; 
 									} else {
-										unaddedSections.push([2, section]); // Unknown room
+										unaddedSections.push([2, section]); // Unknown floor
 										roomDetailsIssue = true;
 										return;
 									}
-								} else {
-									unaddedSections.push([2, section]); // Unknown floor
-									roomDetailsIssue = true;
-									return;
 								}
+								return false;
+							});
+
+							if (roomDetailsIssue) {
+								return;
 							}
-							return false;
-						});
 
-						if (roomDetailsIssue) {
+							if (!bldgFound) {
+								unaddedSections.push([2, section]); // Unknown building
+								return;
+							}
+
+						} else {
+							unaddedSections.push([-1, section]); // Building format mismatch
 							return;
 						}
 
-						if (!bldgFound) {
-							unaddedSections.push([2, section]); // Unknown building
+						if (isUnknownSubject.length > 0) {
+							unaddedSections.push([2, section]); // Unknown subject
 							return;
-						}
-
-					} else {
-						unaddedSections.push([-1, section]); // Building format mismatch
-						return;
-					}
-
-					if (isUnknownSubject.length > 0) {
-						unaddedSections.push([2, section]); // Unknown subject
-						return;
-					} else if (progID === -1 || advID === -1) {
-						unaddedSections.push([2, section]); // Unknown program or adviser
-						return;
-					} else if (assignedAdviser.includes(advID)) {
-						unaddedSections.push([1, section]); // Duplicate adviser
-						return;
-					} else if (![7, 8, 9, 10].includes(year) || !Number.isInteger(year)) {
-						unaddedSections.push([2, section]); // Unknown year
-						return;
-					} else if (shift !== 'AM' && shift !== 'PM') {
-						unaddedSections.push([2, section]); // Unknown shift
-						return;
-					} else if (startTimeIdx === -1) {
-						unaddedSections.push([2, section]); // Unknown start time
-						return;
-					} else {
-
-						dispatch(
-							addSection({
+						} else if (progID === -1 || advID === -1) {
+							unaddedSections.push([2, section]); // Unknown program or adviser
+							return;
+						} else if (assignedAdviser.includes(advID)) {
+							unaddedSections.push([1, section]); // Duplicate adviser
+							return;
+						} else if (![7, 8, 9, 10].includes(year) || !Number.isInteger(year)) {
+							unaddedSections.push([2, section]); // Unknown year
+							return;
+						} else if (shift !== 'AM' && shift !== 'PM') {
+							unaddedSections.push([2, section]); // Unknown shift
+							return;
+						} else if (startTimeIdx === -1) {
+							unaddedSections.push([2, section]); // Unknown start time
+							return;
+						} else {
+							addedSections.push(section);
+							addedSections_2.push({
 								section: section.sectionname,
 								teacher: advID + 1,
 								program: progID + 1,
@@ -1187,34 +1189,169 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
 								startTime: startTimeIdx,
 								roomDetails: roomDetails,
 								additionalScheds: [],
-							})
-						);
+							});
+							assignedAdviser.push(advID);
+						}
+					}
+				});
+			}
 
-						addedSections.push(section);
-						assignedAdviser.push(advID);
+		// ======================== ADD ALL ENTRIES TO DATABASE ======================== //
+
+			console.log('teachers', addedTeachers);
+			console.log('sections', addedSections_2);
+
+			// Add all subjects
+			for (let i = 0; i < addedSubjects.length; i++) {
+				const subject = addedSubjects[i];
+
+				dispatch(
+					addSubject({
+						subject: subject.subject,
+						classDuration: Number(subject.classduration),
+						weeklyMinutes: Number(subject.weeklyminutes),
+					})
+				);
+			}
+
+			// Add all ranks
+			for (let i = 0; i < addedRanks.length; i++) {
+				const rank = addedRanks[i];
+
+				dispatch (
+					addRank({
+						rank: rank.rank,
+						additionalRankScheds: [],
+					})
+				);
+			}
+
+			// Add all buildings
+			for (let i = 0; i < addedBuildings.length; i++) {
+				const building = addedBuildings[i];
+
+				for (let j = 0; j < addedSections.length; j++) {
+					const section = addedSections[j];
+					const roomDetailsMatch = section.roomdetails.match(/\[(.*?), FLOOR (\d+)\] (.*)/);
+
+					if (roomDetailsMatch) {
+						const buildingName = roomDetailsMatch[1];
+						const floorNumber = Number(roomDetailsMatch[2]) - 1;
+						const roomName = roomDetailsMatch[3];	
+
+						const roomIdx = building.data[floorNumber].findIndex((room) => room.roomName === roomName);
+
+						if (buildingName === building.name && building.data[floorNumber] && roomIdx !== -1) 
+						{
+							building.data[floorNumber][roomIdx].isAvailable = false;
+						}
 
 					}
 				}
-			});
-		}
 
-		console.log('Added sections:', addedSections);
-		console.log('Added subjects:', addedSubjects);
-		console.log('Added teachers:', addedTeachers);
-		console.log('Added programs:', addedPrograms);
-		console.log('Added ranks:', addedRanks);
-		console.log('Added buildings:', addedBuildings);
-		console.log('Added departments:', addedDepartments);
+				dispatch(
+					addBuilding({
+						name: building.name,
+						floors: Object.values(building.data).length,
+						rooms: Object.values(building.data),
+						image: null,
+						nearbyBuildings: [],
+					})
+				)
 
-		console.log('Unadded subjects: ', unaddedSubjects);
-		console.log('Unadded teachers: ', unaddedTeachers);
-		console.log('Unadded programs: ', unaddedPrograms);
-		console.log('Unadded sections: ', unaddedSections);
-		console.log('Unadded ranks: ', unaddedRanks);
-		console.log('Unadded buildings: ', unaddedBuildings);
-		console.log('Unadded departments: ', unaddedDepartments);
+			}
+
+			// Add all teachers
+			for (let i = 0; i < addedTeachers.length; i++) {
+				const teacher = JSON.parse(JSON.stringify(addedTeachers[i]));
+			  
+				// Get department ID
+				const departmentIndex = addedDepartments.findIndex((d) => d.department.trim().toLowerCase() === teacher.department.trim().toLowerCase());
+			  
+				console.log('teacher', teacher);
+				console.log('dept idx', departmentIndex);
+			  
+				if (departmentIndex === -1) {
+				  unaddedTeachers.push([2, teacher]);
+				  addedTeachers.splice(i, 1);
+				  i--;
+				  continue;
+				}
+			  
+				teacher.department = departmentIndex + 1;
+			  
+				// Check if teacher is an adviser of a section
+				const isAdviser = addedSections.some((section) => section.adviser.trim().toLowerCase() === teacher.teacher.trim().toLowerCase());
+			  
+				if (isAdviser) { // If teacher is an adviser of a section then add an additional schedule
+				  teacher.additionalTeacherScheds.push({
+					name: 'Advisory Load',
+					subject: 0,
+					duration: 60,
+					frequency: numOfSchoolDays,
+					shown: true,
+				  });
+				}
+			  
+				dispatch(addTeacher(teacher));
+			}
+
+			// Add all departments
+			for (let i = 0; i < addedDepartments.length; i++) {
+				const department = addedDepartments[i];
+
+				const headIndex = department.departmenthead && department.departmenthead.trim() !== ''
+									? addedTeachers.findIndex((t) => t.teacher.trim().toLowerCase() === department.departmenthead.trim().toLowerCase()
+																&& t.department.trim().toLowerCase() === department.department.trim().toLowerCase())
+									: '';					
+
+				dispatch(
+					addDepartment({
+						name: department.department,
+						head: headIndex === '' ? '' : headIndex + 1,
+					})
+				);
+			}
+
+			// Add all programs
+			for (let i = 0; i < addedPrograms.length; i++) {
+				const program = addedPrograms[i];
+
+				dispatch (addProgram(program));
+			};
+
+			// Add all sections
+			for (let i = 0; i < addedSections_2.length; i++) {
+				const section = addedSections_2[i]; // normalized
+				const section_2 = addedSections[i]; // original
+
+				const advID = addedTeachers.findIndex(t => t.teacher.trim().toLowerCase() === section_2.adviser.trim().toLowerCase());
+
+				section.teacher = advID + 1;
+
+				dispatch (addSection(section));
+			};
+
+
+		// console.log('Added sections:', addedSections);
+		// console.log('Added subjects:', addedSubjects);
+		// console.log('Added teachers:', addedTeachers);
+		// console.log('Added programs:', addedPrograms);
+		// console.log('Added ranks:', addedRanks);
+		// console.log('Added buildings:', addedBuildings);
+		// console.log('Added departments:', addedDepartments);
+
+		// console.log('Unadded subjects: ', unaddedSubjects);
+		// console.log('Unadded teachers: ', unaddedTeachers);
+		// console.log('Unadded programs: ', unaddedPrograms);
+		// console.log('Unadded sections: ', unaddedSections);
+		// console.log('Unadded ranks: ', unaddedRanks);
+		// console.log('Unadded buildings: ', unaddedBuildings);
+		// console.log('Unadded departments: ', unaddedDepartments);
 
 	}
+
+// =======================================================================
 
 	return (
 		<div className="flex gap-2">     
@@ -1299,6 +1436,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
 					</div>
 				</div>
 			</dialog>
+
 			<dialog id="import-format-modal" className="modal">
 				<div className="modal-box">
 					<h3 className="font-bold text-lg">Choose Import Format</h3>
