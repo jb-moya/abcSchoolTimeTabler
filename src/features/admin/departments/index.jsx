@@ -1,5 +1,5 @@
 import Breadcrumbs from '@components/Admin/Breadcrumbs';
-import DepartmentListContainer from '@components/Admin/DepartmentListContainer';
+import DepartmentListContainer from '../../../components/Admin/DepartmentComponents/DepartmentListContainer';
 
 
 function Departments() {

@@ -67,17 +67,21 @@ module.exports = {
     themes: [
       {
         light: {
-          ...require("daisyui/src/theming/themes")["light"], // Spreading the default light theme
+          ...require("daisyui/src/theming/themes")["light"], // Base light theme
           primary: "#074683", // Custom primary color
-          secondary: "#4CAF50", // Custom secondary color from your extension
+          secondary: "#4CAF50", // Custom secondary color
+          error: "#dc2626", // Adjust error color
+          "error-content": "#ffffff", // Custom text color for error buttons
+          "primary-content": "#ffffff", // Custom text color for primary buttons
         },
-
         dark: {
-          ...require("daisyui/src/theming/themes")["dark"], // Spreading the default light theme
+          ...require("daisyui/src/theming/themes")["dark"], // Base dark theme
           "base-content": "#ffffff",
+          "error-content": "#000000", // Custom text color for dark mode error buttons
         },
       },
-      "dark", // The default dark theme
+      "dark", // Retain default dark theme
     ],
   },
+  
 };
