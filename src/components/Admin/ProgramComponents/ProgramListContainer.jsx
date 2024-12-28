@@ -12,8 +12,8 @@ import { fetchSubjects } from '@features/subjectSlice';
 
 import debounce from 'debounce';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
-import SearchableDropdownToggler from './searchableDropdown';
-import { getTimeSlotIndex, getTimeSlotString } from './timeSlotMapper';
+import SearchableDropdownToggler from '../searchableDropdown';
+import { getTimeSlotIndex, getTimeSlotString } from '../timeSlotMapper';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
@@ -21,7 +21,7 @@ import { toast } from 'sonner';
 import { clsx } from 'clsx';
 // import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 
-import FixedScheduleMaker from './FixedSchedules/fixedScheduleMaker';
+import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
 
 const AdditionalScheduleForProgram = ({
     viewingMode = 0,
@@ -1882,6 +1882,7 @@ const ProgramListContainer = ({
     return (
         <React.Fragment>
             <div className="">
+            
                 <div className="flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5">
                     {currentItems.length > 0 && (
                         <div className="join flex justify-center mb-4 md:mb-0">

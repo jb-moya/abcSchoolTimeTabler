@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { useDispatch } from 'react-redux';
-
 import {
     fetchSubjects,
     addSubject,
@@ -12,7 +11,7 @@ import {
 import { fetchPrograms, editProgram } from '@features/programSlice';
 import { fetchSections, editSection } from '@features/sectionSlice';
 
-import { getTimeSlotIndex } from './timeSlotMapper';
+import { getTimeSlotIndex } from '../Admin/timeSlotMapper';
 
 import { IoAdd, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
@@ -20,189 +19,12 @@ import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 
 import { toast } from 'sonner';
-import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
+
 import calculateTotalTimeslot from '../../utils/calculateTotalTimeslot';
 
-const AddSubjectContainer = ({
-    close,
-    reduxFunction,
-    errorMessage,
-    setErrorMessage,
-    errorField,
-    setErrorField,
-    defaultSubjectClassDuration,
-}) => {
-    const inputNameRef = useRef();
-    const dispatch = useDispatch();
-    const subjects = useSelector((state) => state.subject.subjects);
-
-    const dayNames = [
-        'Monday',
-        'Tuesday',
-        'Wednesday',
-        'Thursday',
-        'Friday',
-        'Saturday',
-        'Sunday',
-    ];
-
-    const [subjectName, setSubjectName] = useState('');
-    const [classSubjectDuration, setClassSubjectDuration] = useState(
-        defaultSubjectClassDuration || 10
-    );
-
-    const [subjectWeeklyMinutes, setSubjectWeeklyMinutes] = useState(200);
-
-    const handleAddSubject = () => {
-        if (!subjectName.trim()) {
-            setErrorMessage('Subject name cannot be empty');
-            setErrorField('name'); // Highlight Subject Name input
-            return;
-        } else if (!classSubjectDuration) {
-            setErrorMessage('Class duration cannot be empty');
-            setErrorField('duration'); // Highlight Class Duration input
-            return;
-        } else if (!subjectWeeklyMinutes) {
-            alert('Subject weekly minutes cannot be empty');
-            return;
-        }
-
-        const classDuration = parseInt(classSubjectDuration, 10);
-        const weeklyMinutes = parseInt(subjectWeeklyMinutes, 10);
-
-        const duplicateSubject = Object.values(subjects).find(
-            (subject) =>
-                subject.subject.trim().toLowerCase() ===
-                subjectName.trim().toLowerCase()
-        );
-
-        if (duplicateSubject) {
-            setErrorMessage('A subject with this name already exists');
-            setErrorField('name');
-        } else {
-            dispatch(
-                reduxFunction({
-                    subject: subjectName,
-                    classDuration: classDuration,
-                    weeklyMinutes: weeklyMinutes,
-                })
-            );
-
-            toast.success('Subject added successfully', {
-                style: {
-                    backgroundColor: 'green',
-                    color: 'white',
-                    bordercolor: 'green',
-                },
-            });
-
-            handleReset();
-            close();
-        }
-    };
-
-    const handleReset = () => {
-        setSubjectName('');
-        setClassSubjectDuration(defaultSubjectClassDuration || 10);
-        setSubjectWeeklyMinutes(200);
-
-        setErrorMessage('');
-        setErrorField('');
-        if (inputNameRef.current) {
-            inputNameRef.current.focus();
-        }
-    };
-
-    // Tracks which input field has an error
-    useEffect(() => {
-        if (!close) {
-            setErrorMessage('');
-            setErrorField('');
-        }
-    }, [close, setErrorMessage, setErrorField]);
-
-    useEffect(() => {
-        if (inputNameRef.current) {
-            inputNameRef.current.focus();
-        }
-    }, []);
-
-    return (
-        <div>
-            <h3 className="text-lg font-bold mb-4">Add New Subject</h3>
-
-            <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">
-                    Subject Name:
-                </label>
-                <input
-                    type="text"
-                    className={`input input-bordered w-full ${
-                        errorField === 'name' ? 'border-red-500' : ''
-                    }`}
-                    value={subjectName}
-                    onChange={(e) => setSubjectName(e.target.value)}
-                    placeholder="Enter subject name"
-                    ref={inputNameRef}
-                />
-            </div>
-
-            <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">
-                    Class Duration (minutes):
-                </label>
-                <input
-                    type="number"
-                    className={`input input-bordered w-full ${
-                        errorField === 'duration' ? 'border-red-500' : ''
-                    }`}
-                    value={classSubjectDuration}
-                    onChange={(e) =>
-                        setClassSubjectDuration(Number(e.target.value))
-                    }
-                    placeholder="Enter class duration"
-                    step={5}
-                    min={10}
-                />
-            </div>
-
-            <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">
-                    Subject's Weekly Time Requirement (minutes):
-                </label>
-                <input
-                    type="number"
-                    className="input input-bordered w-full"
-                    value={subjectWeeklyMinutes}
-                    onChange={(e) => {
-                        const value = Number(e.target.value);
-                        setSubjectWeeklyMinutes(value);
-                    }}
-                    placeholder="Enter subject's weekly minutes"
-                    step={5}
-                />
-            </div>
-
-            {errorMessage && (
-                <p className="text-red-500 text-sm my-4 font-medium select-none ">
-                    {errorMessage}
-                </p>
-            )}
-
-            <div className="flex justify-center gap-2">
-                <button
-                    className="btn btn-secondary border-0"
-                    onClick={handleReset}
-                >
-                    Reset
-                </button>
-                <button className="btn btn-primary" onClick={handleAddSubject}>
-                    Add Subject
-                </button>
-            </div>
-        </div>
-    );
-};
+import AddSubjectContainer from './AddSubjectContainer';
+import SubjectEdit from './SubjectEdit';
+import DeleteData from '../Admin/DeleteData';
 
 const SubjectListContainer = ({
     numOfSchoolDays: externalNumOfSchoolDays,
@@ -241,11 +63,20 @@ const SubjectListContainer = ({
 
     const [searchSubjectValue, setSearchSubjectValue] = useState('');
 
-    const handleEditSubjectClick = (subject) => {
+    // const handleEditSubjectClick = (subject) => {
+    //     setEditSubjectId(subject.id);
+    //     setEditSubjectValue(subject.subject);
+    //     setEditClassDuration(subject.classDuration);
+    //     setEditSubjectWeeklyMinutes(subject.weeklyMinutes);
+    // };
+
+    const handleEdit = (subject) => {
         setEditSubjectId(subject.id);
         setEditSubjectValue(subject.subject);
         setEditClassDuration(subject.classDuration);
         setEditSubjectWeeklyMinutes(subject.weeklyMinutes);
+
+        document.getElementById('edit_subject_modal').showModal();
     };
 
     const handleSaveSubjectEditClick = (subjectId) => {
@@ -365,13 +196,6 @@ const SubjectListContainer = ({
         }
     };
 
-    const handleCancelSubjectEditClick = () => {
-        setEditSubjectId(null);
-        setEditSubjectValue('');
-        setEditClassDuration(0);
-        setEditSubjectWeeklyMinutes(0);
-    };
-
     const updateSubjectDependencies = () => {
         if (Object.keys(programs).length === 0) return;
 
@@ -425,16 +249,16 @@ const SubjectListContainer = ({
 
                 for (let subjectID of newProgram[grade].subjects) {
                     const { fixedDays, fixedPositions } = newProgram[grade];
-                    
+
                     fixedDays[subjectID].forEach((day, i) => {
                         const position = fixedPositions[subjectID][i];
-                
+
                         if (day || position) { // Only process non-zero day or position
                             dayTimeSlots[day] ??= newTotalTimeslot; // Use nullish coalescing assignment
                             positionTimeSlots[position] ??= numOfSchoolDays;
                         }
                     });
-                }                
+                }
 
                 console.log('dayTimeSlots', dayTimeSlots);
 
@@ -455,7 +279,7 @@ const SubjectListContainer = ({
                         numOfClasses = Math.min(
                             Math.ceil(
                                 subjects[subjectID].weeklyMinutes /
-                                    subjects[subjectID].classDuration
+                                subjects[subjectID].classDuration
                             ),
                             numOfSchoolDays
                         );
@@ -481,9 +305,9 @@ const SubjectListContainer = ({
                         if (
                             (
                                 (day !== 0 && pos === 0) ||
-                                    (day === 0 && pos !== 0) ||
-                                    (day !== 0 && pos !== 0)) &&
-                                !dayPositionMap.has(`${day}-${pos}`
+                                (day === 0 && pos !== 0) ||
+                                (day !== 0 && pos !== 0)) &&
+                            !dayPositionMap.has(`${day}-${pos}`
                             )
                         ) {
                             dayPositionMap.set(`${day}-${pos}`, [day, pos]);
@@ -607,16 +431,16 @@ const SubjectListContainer = ({
 
             for (let subjectID of newSection.subjects) {
                 const { fixedDays, fixedPositions } = newSection;
-                
+
                 fixedDays[subjectID].forEach((day, i) => {
                     const position = fixedPositions[subjectID][i];
-            
+
                     if (day || position) { // Only process non-zero day or position
                         dayTimeSlots[day] ??= newTotalTimeslot; // Use nullish coalescing assignment
                         positionTimeSlots[position] ??= numOfSchoolDays;
                     }
                 });
-            }    
+            }
 
             // Use hash maps to quickly look up subjects and day-position pairs
             const dayPositionMap = new Map();
@@ -689,19 +513,6 @@ const SubjectListContainer = ({
         } else {
             console.error("Modal with ID 'add_subject_modal' not found.");
         }
-    };
-
-    const deleteModal = (id) => {
-        const deleteModalElement = document.getElementById('delete_modal');
-        deleteModalElement.showModal();
-
-        const deleteButton = document.getElementById('delete_button');
-        deleteButton.onclick = () => handleDelete(id);
-    };
-
-    const handleDelete = (id) => {
-        dispatch(removeSubject(id));
-        document.getElementById('delete_modal').close();
     };
 
     const debouncedSearch = useCallback(
@@ -777,9 +588,8 @@ const SubjectListContainer = ({
                 {currentItems.length > 0 && (
                     <div className="join flex justify-center  mb-4 md:mb-0">
                         <button
-                            className={`join-item btn ${
-                                currentPage === 1 ? 'btn-disabled' : ''
-                            }`}
+                            className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''
+                                }`}
                             onClick={() => {
                                 if (currentPage > 1) {
                                     setCurrentPage(currentPage - 1);
@@ -794,9 +604,8 @@ const SubjectListContainer = ({
                             Page {currentPage} of {totalPages}
                         </button>
                         <button
-                            className={`join-item btn ${
-                                currentPage === totalPages ? 'btn-disabled' : ''
-                            }`}
+                            className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''
+                                }`}
                             onClick={() => {
                                 if (currentPage < totalPages) {
                                     setCurrentPage(currentPage + 1);
@@ -886,7 +695,6 @@ const SubjectListContainer = ({
                 <table className="table table-sm table-zebra md:table-md w-full">
                     <thead>
                         <tr>
-                            {/* <th className="w-8">#</th> */}
                             <th>ID</th>
                             <th>Subject</th>
                             <th>Duration (min)</th>
@@ -905,42 +713,27 @@ const SubjectListContainer = ({
                         ) : (
                             currentItems.map(([, subject], index) => (
                                 <tr key={subject.id} className="group hover">
-                                    {/* <td>{index + indexOfFirstItem + 1}</td> */}
-
-                                    {/* Subject ID */}
                                     <th>{subject.id}</th>
-
-                                    {/* Subject Name */}
                                     <td>
                                         {editSubjectId === subject.id ? (
                                             <input
                                                 type="text"
                                                 value={editSubjectValue}
-                                                onChange={(e) =>
-                                                    setEditSubjectValue(
-                                                        e.target.value
-                                                    )
-                                                }
+                                                onChange={(e) => setEditSubjectValue(e.target.value)}
                                                 className="input input-bordered input-sm w-full"
                                             />
                                         ) : (
                                             subject.subject
                                         )}
                                     </td>
-
-                                    {/* Duration */}
                                     <td>
                                         {editSubjectId === subject.id ? (
                                             <input
                                                 type="number"
                                                 value={editClassDuration}
                                                 onChange={(e) => {
-                                                    const newDuration = Number(
-                                                        e.target.value
-                                                    );
-                                                    setEditClassDuration(
-                                                        newDuration
-                                                    );
+                                                    const newDuration = Number(e.target.value);
+                                                    setEditClassDuration(newDuration);
                                                 }}
                                                 className="input input-bordered input-sm w-full"
                                                 placeholder="Enter class duration"
@@ -951,20 +744,14 @@ const SubjectListContainer = ({
                                             `${subject.classDuration}`
                                         )}
                                     </td>
-
-                                    {/* Weekly Minutes */}
                                     <td>
                                         {editSubjectId === subject.id ? (
                                             <input
                                                 type="number"
                                                 value={editSubjectWeeklyMinutes}
                                                 onChange={(e) => {
-                                                    const newDuration = Number(
-                                                        e.target.value
-                                                    );
-                                                    setEditSubjectWeeklyMinutes(
-                                                        newDuration
-                                                    );
+                                                    const newDuration = Number(e.target.value);
+                                                    setEditSubjectWeeklyMinutes(newDuration);
                                                 }}
                                                 className="input input-bordered input-sm w-full"
                                                 placeholder="Enter subject weekly minutes"
@@ -976,122 +763,29 @@ const SubjectListContainer = ({
                                     </td>
                                     <td>
                                         {Math.min(
-                                            Math.ceil(
-                                                subject.weeklyMinutes /
-                                                    subject.classDuration
-                                            ),
+                                            Math.ceil(subject.weeklyMinutes / subject.classDuration),
                                             numOfSchoolDays
                                         )}
                                     </td>
                                     {editable && (
-                                        <td className="w-28 text-right">
-                                            {editSubjectId === subject.id ? (
-                                                <>
-                                                    <button
-                                                        className="btn btn-xs btn-ghost text-green-500"
-                                                        onClick={() =>
-                                                            handleSaveSubjectEditClick(
-                                                                subject.id
-                                                            )
-                                                        }
-                                                    >
-                                                        Save
-                                                    </button>
-                                                    <button
-                                                        className="btn btn-xs btn-ghost text-red-500"
-                                                        onClick={() =>
-                                                            handleCancelSubjectEditClick()
-                                                        }
-                                                    >
-                                                        Cancel
-                                                    </button>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <button
-                                                        className="btn btn-xs btn-ghost text-blue-500"
-                                                        onClick={() =>
-                                                            handleEditSubjectClick(
-                                                                subject
-                                                            )
-                                                        }
-                                                    >
-                                                        <RiEdit2Fill
-                                                            size={20}
-                                                        />
-                                                    </button>
-
-                                                    <button
-                                                        className="btn btn-xs btn-ghost text-red-500"
-                                                        onClick={() =>
-                                                            deleteModal(
-                                                                subject.id
-                                                            )
-                                                        }
-                                                    >
-                                                        <RiDeleteBin7Line
-                                                            size={20}
-                                                        />
-                                                    </button>
-
-                                                    {/* Modal for deleting an item */}
-                                                    <dialog
-                                                        id="delete_modal"
-                                                        className="modal modal-bottom sm:modal-middle"
-                                                    >
-                                                        <form
-                                                            method="dialog"
-                                                            className="modal-box"
-                                                        >
-                                                            {/* Icon and message */}
-                                                            <div className="flex flex-col items-center justify-center">
-                                                                <TrashIcon
-                                                                    className="text-red-500 mb-4"
-                                                                    width={40}
-                                                                    height={40}
-                                                                />
-                                                                <h3 className="font-bold text-lg text-center">
-                                                                    Are you sure
-                                                                    you want to
-                                                                    delete this
-                                                                    item?
-                                                                </h3>
-                                                                <p className="text-sm text-gray-500 text-center">
-                                                                    This action
-                                                                    cannot be
-                                                                    undone.
-                                                                </p>
-                                                            </div>
-
-                                                            {/* Modal actions */}
-                                                            <div className="modal-action flex justify-center">
-                                                                {/* Close Button */}
-                                                                <button
-                                                                    className="btn btn-sm btn-ghost"
-                                                                    onClick={() =>
-                                                                        document
-                                                                            .getElementById(
-                                                                                'delete_modal'
-                                                                            )
-                                                                            .close()
-                                                                    }
-                                                                    aria-label="Cancel deletion"
-                                                                >
-                                                                    Cancel
-                                                                </button>
-
-                                                                {/* Confirm Delete Button */}
-                                                                <button
-                                                                    className="btn btn-sm btn-error text-white"
-                                                                    id="delete_button"
-                                                                >
-                                                                    Delete
-                                                                </button>
-                                                            </div>
-                                                        </form>
-                                                    </dialog>
-                                                </>
-                                            )}
+                                        <td className="w-28">
+                                            <div className="flex">
+                                                <SubjectEdit
+                                                    className="btn btn-xs btn-ghost text-blue-500"
+                                                    close
+                                                    subject={subject}  // Pass the entire subject object
+                                                    errorMessage={errorMessage}
+                                                    setErrorMessage={setErrorMessage}
+                                                    errorField={errorField}
+                                                    setErrorField={setErrorField}
+                                                    reduxFunction={editSubject}
+                                                />
+                                                <DeleteData
+                                                    className="btn btn-xs btn-ghost text-red-500"
+                                                    id={subject.id}
+                                                    reduxFunction={removeSubject}
+                                                />
+                                            </div>
                                         </td>
                                     )}
                                 </tr>

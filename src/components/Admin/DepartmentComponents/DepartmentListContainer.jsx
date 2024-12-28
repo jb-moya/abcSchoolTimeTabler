@@ -16,150 +16,9 @@ import { fetchTeachers } from '@features/teacherSlice';
 import { toast } from "sonner";
 import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 
-const AddDepartmentContainer = ({
-  close,
-  errorMessage,
-  setErrorMessage,
-  errorField,
-  setErrorField,
-  reduxFunction,
-}) => {
-  const inputNameRef = useRef();
-  const dispatch = useDispatch();
-
-  const { teachers, status: teacherStatus } = useSelector(
-    (state) => state.teacher
-  );
-  const departments = useSelector((state) => state.department.departments);
-
-  const [departmentName, setDepartmentName] = useState('');
-  const [selectedHead, setSelectedHead] = useState('');
-
-
-  const handleAddDepartment = () => {
-    // || !selectedHead.trim()
-    if (!departmentName.trim()) {
-      setErrorMessage('Both department name required.');
-      if (!departmentName.trim()) {
-        setErrorField('name');
-      }
-      // if (!selectedHead.trim()) {
-      //     setErrorField('depHead');
-      // }
-      return;
-    }
-
-    const duplicateDepartment = Object.values(departments).find(
-      (department) =>
-        department.name.trim().toLowerCase() === departmentName.trim().toLowerCase()
-    );
-
-    if (duplicateDepartment) {
-      setErrorMessage('A department with this name already exists.');
-      setErrorField('name');
-      return;
-    }
-
-    dispatch(
-      reduxFunction({
-        name: departmentName.trim(),
-        head: selectedHead.trim(),
-      })
-    ).then((action) => {
-      if (action.meta.requestStatus === 'fulfilled') {
-        toast.success('Department added successfully', {
-          style: { backgroundColor: 'green', color: 'white', borderColor: 'green' },
-        });
-        handleReset();
-        close();
-        if (inputNameRef.current) {
-          inputNameRef.current.focus();
-        }
-      } else {
-        toast.error('Failed to add department.');
-      }
-    });
-  };
-
-
-  const handleReset = () => {
-    setErrorField('');
-    setErrorMessage('');
-    setDepartmentName('');
-    setSelectedHead('');
-  };
-
-  useEffect(() => {
-    if (inputNameRef.current) {
-      inputNameRef.current.focus();
-    }
-  }, []);
-
-  useEffect(() => {
-    if (teacherStatus === 'idle') {
-      dispatch(fetchTeachers());
-    }
-  }, [teacherStatus, dispatch]);
-
-  return (
-    <div>
-      <div>
-        <h3 className="text-lg font-bold mb-4">Add New Department</h3>
-      </div>
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">Department Name:</label>
-        <input
-          type="text"
-          className={`input input-bordered w-full ${errorField === 'name' ? 'border-red-500' : ''
-            }`}
-          value={departmentName}
-          onChange={(e) => setDepartmentName(e.target.value)}
-          placeholder="Enter department name"
-          ref={inputNameRef}
-        />
-      </div>
-      {/* <div className="mb-4"> */}
-      {/* <label className="block text-sm font-medium mb-2">Department Head:</label> */}
-      {/* <div className="mt-3">
-          <label className="label">
-            <span className="label-text">Assign Department Head</span>
-          </label>
-          <select
-            className={`select select-bordered w-full ${errorField.includes('adviser') ? 'border-red-500' : ''
-              }`}
-            value={selectedHead}
-            onChange={(e) => setSelectedHead(parseInt(e.target.value, 10))}
-          >
-            <option value="" disabled>
-              Assign an adviser
-            </option>
-            {Object.keys(teachers).map((key) => (
-              <option key={teachers[key].id} value={teachers[key].id}>
-                {teachers[key].teacher}
-              </option>
-            ))}
-          </select>
-        </div> */}
-
-      {/* </div> */}
-
-      {errorMessage && (
-        <p className="text-red-500 text-sm my-4 font-medium select-none ">{errorMessage}</p>
-      )}
-
-      <div className="flex justify-center gap-2">
-        <button className="btn btn-secondary border-0" onClick={handleReset}>
-          Reset
-        </button>
-        <div className="flex justify-end space-x-2">
-          <button className="btn btn-primary" onClick={handleAddDepartment}>
-            Add Department
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+import AddDepartmentContainer from './DepartmentAdd';
+import DeleteData from '../DeleteData';
+import DepartmentEdit from './DepartmentEdit';
 
 const DepartmentListContainer = ({ editable = false }) => {
   const dispatch = useDispatch();
@@ -179,7 +38,6 @@ const DepartmentListContainer = ({ editable = false }) => {
   const [editDepartmentHead, setEditDepartmentHead] = useState('');
   const [searchDepartmentValue, setSearchDepartmentValue] = useState('');
   const [searchDepartmentResult, setSearchDepartmentResult] = useState(departments);
-
   const [searchTerm, setSearchTerm] = useState('');
 
 
@@ -301,19 +159,6 @@ const DepartmentListContainer = ({ editable = false }) => {
     indexOfFirstItem,
     indexOfLastItem
   );
-
-  const deleteModal = (id) => {
-    const deleteModalElement = document.getElementById("delete_modal");
-    deleteModalElement.showModal();
-
-    const deleteButton = document.getElementById("delete_button");
-    deleteButton.onclick = () => handleDelete(id);
-  };
-
-  const handleDelete = (id) => {
-    dispatch(removeDepartment(id));
-    document.getElementById("delete_modal").close();
-  };
 
   return (
     <div className="w-full">
@@ -443,17 +288,16 @@ const DepartmentListContainer = ({ editable = false }) => {
                       department.name
                     )}
                   </td>
-                  <td>
+                  <td className="flex gap-1 flex-wrap">
                     {editDepartmentId === department.id ? (
-                      <div className="mt-3 relative">
+                      <div className="mt-3 relative w-full max-w-md md:max-w-lg lg:max-w-xl">
                         {/* Custom Dropdown with Search */}
                         <div className="relative">
-                          <div className="dropdown">
+                          <div className="dropdown w-full">
                             <button
                               tabIndex={0}
-                              className={`btn w-full text-left ${
-                                errorField.includes('head') ? 'border-red-500' : ''
-                              }`}
+                              className={`btn w-full text-left ${errorField.includes('head') ? 'border-red-500' : ''
+                                }`}
                             >
                               {editDepartmentHead
                                 ? teachers[editDepartmentHead]?.teacher
@@ -461,13 +305,7 @@ const DepartmentListContainer = ({ editable = false }) => {
                             </button>
                             <div
                               tabIndex={0}
-                              className="dropdown-content menu bg-base-100 p-2 shadow rounded-box"
-                              style={{
-                                width: 'auto', // Adjust dropdown width dynamically
-                                minWidth: '200px', // Optional: set a minimum width
-                                zIndex: 1000, // Ensure dropdown is above other elements
-                                position: 'absolute', // Keep dropdown outside table cell flow
-                              }}
+                              className="dropdown-content menu bg-base-100 p-2 shadow rounded-box z-[1] w-full max-h-48 overflow-y-auto"
                             >
                               {/* Search Input */}
                               <input
@@ -478,7 +316,7 @@ const DepartmentListContainer = ({ editable = false }) => {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                               />
                               {/* Options */}
-                              <ul className="menu">
+                              <ul className="menu overflow-y-scroll max-h-40 scrollbar-hide">
                                 {Object.keys(teachers)
                                   .filter(
                                     (key) =>
@@ -497,6 +335,15 @@ const DepartmentListContainer = ({ editable = false }) => {
                                       </button>
                                     </li>
                                   ))}
+                                {Object.keys(teachers).filter(
+                                  (key) =>
+                                    teachers[key].department === department.id &&
+                                    teachers[key].teacher
+                                      .toLowerCase()
+                                      .includes(searchTerm.toLowerCase())
+                                ).length === 0 && (
+                                    <div className="px-4 py-2 opacity-50">Not found</div>
+                                  )}
                               </ul>
                             </div>
                           </div>
@@ -513,71 +360,26 @@ const DepartmentListContainer = ({ editable = false }) => {
                     )}
                   </td>
 
-
-
                   {editable && (
-                    <td className="w-28 text-right">
-                      {editDepartmentId === department.id ? (
-                        <>
-                          <button
-                            className="btn btn-xs btn-ghost text-green-500"
-                            onClick={() => handleSaveDepartmentEditClick(department.id)}
-                          >
-                            Save
-                          </button>
-                          <button
-                            className="btn btn-xs btn-ghost text-red-500"
-                            onClick={handleCancelDepartmentEditClick}
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            className="btn btn-xs btn-ghost text-blue-500"
-                            onClick={() => handleEditDepartmentClick(department)}
-                          >
-                            <RiEdit2Fill size={20} />
-                          </button>
-
-                          <button
-                            className="btn btn-xs btn-ghost text-red-500"
-                            onClick={() => deleteModal(department.id)}
-                          >
-                            <RiDeleteBin7Line size={20} />
-                          </button>
-
-                          {/* Modal for deleting department */}
-                          <dialog id="delete_modal" className="modal modal-bottom sm:modal-middle">
-                            <form method="dialog" className="modal-box">
-                              <div className="flex flex-col items-center justify-center">
-                                <TrashIcon className="text-red-500 mb-4" width={40} height={40} />
-                                <h3 className="font-bold text-lg text-center">
-                                  Are you sure you want to delete this department?
-                                </h3>
-                                <p className="text-sm text-gray-500 text-center">
-                                  This action cannot be undone.
-                                </p>
-                              </div>
-                              <div className="modal-action flex justify-center">
-                                <button
-                                  className="btn btn-sm btn-ghost"
-                                  onClick={() => document.getElementById('delete_modal').close()}
-                                >
-                                  Cancel
-                                </button>
-                                <button
-                                  id="delete_button"
-                                  className="btn btn-sm btn-error text-white"
-                                >
-                                  Delete
-                                </button>
-                              </div>
-                            </form>
-                          </dialog>
-                        </>
-                      )}
+                    <td className="w-28">
+                          <div className="flex">
+                             <DepartmentEdit
+                              className="btn btn-xs btn-ghost text-blue-500"
+                              department={department}  // Pass the entire subject object
+                              errorMessage={errorMessage}
+                              setErrorMessage={setErrorMessage}
+                              errorField={errorField}
+                              setErrorField={setErrorField}
+                              reduxFunction={editDepartment}
+                            /> 
+                            
+                            <DeleteData
+                              className="btn btn-xs btn-ghost text-red-500"
+                              id={department.id}
+                              reduxFunction={removeDepartment}
+                            />
+                          </div>
+                     
                     </td>
                   )}
                 </tr>
