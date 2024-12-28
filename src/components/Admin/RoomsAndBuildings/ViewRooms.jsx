@@ -116,7 +116,11 @@ const ViewRooms = ({
         setFloorIdx(roomDetails.floorIdx);
         setRoomIdx(roomDetails.roomIdx);
 
-        setFloors(buildings[buildingId].rooms);
+        if (buildingId === - 1) {
+            setFloors([]);
+        } else {
+            setFloors(buildings[buildingId].rooms);
+        }
     };
 
     // For setting the buildingId, floorIdx, and roomIdx (and the temporary states)
@@ -326,6 +330,7 @@ const ViewRooms = ({
                             <button
                                 className="btn btn-sm rounded-lg bg-green-600 text-white hover:bg-green-500"
                                 onClick={handleConfirm}
+                                disabled={buildingId === -1 || floorIdx === -1 || roomIdx === -1}
                             >
                                 Confirm
                             </button>
