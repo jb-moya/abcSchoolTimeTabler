@@ -41,6 +41,39 @@ import deepEqual from '../../../utils/deepEqual';
 import gcdOfArray from '../../../utils/getGCD';
 import { packThreeSignedIntsToInt32 } from '../../../utils/packThreeSignedIntsToInt32';
 
+function addObjectToMap(
+    map,
+    key,
+    newObject,
+    subjectConfigurationIDIncrementer
+) {
+    if (!map.has(key)) {
+        map.set(key, []);
+    }
+
+    const currentArray = map.get(key);
+
+    const isDuplicate = currentArray.some((item) => {
+        let { subjectConfigurationID, ...rest } = item;
+        let { subjectConfigurationID: newSubjectConfigurationID, ...rest2 } =
+            newObject;
+
+        return deepEqual(rest, rest2);
+    });
+
+    if (!isDuplicate) {
+        currentArray.push({
+            subjectConfigurationID: subjectConfigurationIDIncrementer,
+            ...newObject,
+        });
+        map.set(key, currentArray);
+
+        return subjectConfigurationIDIncrementer + 1;
+    }
+
+    return subjectConfigurationIDIncrementer;
+}
+
 function Timetable() {
     const dispatch = useDispatch();
 
@@ -184,7 +217,7 @@ function Timetable() {
             {}
         );
 
-        const buildingMapReverse = Object.entries(mockBuildings).reduce(
+        const buildingMapReverse = Object.entries(buildingsStore).reduce(
             (acc, [, value], index) => {
                 acc[value.id] = index;
                 return acc;
@@ -209,27 +242,18 @@ function Timetable() {
             buildingMapReverse
         );
 
-        const buildingMap = Object.entries(mockBuildings).reduce(
+        const buildingMap = Object.entries(buildingsStore).reduce(
             (acc, [, building], index) => {
                 console.log('🚀 ~ handleButtonClick ~ building:', building);
 
                 acc[buildingMapReverse[building.id]] = {
                     id: buildingMapReverse[building.id],
 
-                    // adjacency: Array.isArray(building.nearbyBuildings)
-                    //     ? building.nearbyBuildings
-                    //           .map(
-                    //               (buildingID) =>
-                    //                   buildingMapReverse[buildingID.id] || null
-                    //           )
-                    //           .filter((building) => building !== null)
-                    //     : [],
-
                     adjacency: Array.isArray(building.nearbyBuildings)
                         ? building.nearbyBuildings
                               .map(
                                   (buildingID) =>
-                                      buildingMapReverse[buildingID] || null
+                                      buildingMapReverse[buildingID.id] ?? null
                               )
                               .filter((building) => building !== null)
                         : [],
@@ -280,6 +304,19 @@ function Timetable() {
         buildingInfoArray.push(-1);
         buildingAdjacencyArray.push(-1);
 
+        const teacherReservationConfigArray = [];
+        const teacherReservationConfigIDArray = [];
+
+        teacherReservationConfigArray.push(-1);
+        teacherReservationConfigIDArray.push(-1);
+
+        const teacherReservationConfig = new Int32Array([
+            ...teacherReservationConfigArray,
+        ]);
+        const teacherReservationConfigID = new Int32Array([
+            ...teacherReservationConfigIDArray,
+        ]);
+
         const buildingInfo = new Int32Array([...buildingInfoArray]);
         const buildingAdjacency = new Int32Array([...buildingAdjacencyArray]);
 
@@ -318,40 +355,13 @@ function Timetable() {
             {}
         );
 
-        function addObjectToMap(
-            map,
-            key,
-            newObject,
-            subjectConfigurationIDIncrementer
-        ) {
-            if (!map.has(key)) {
-                map.set(key, []);
-            }
+        const teacherReservedScheduleConfigurationMap = new Map();
+        let teacherReservedScheduleIDIncrementer = 0;
 
-            const currentArray = map.get(key);
-
-            const isDuplicate = currentArray.some((item) => {
-                let { subjectConfigurationID, ...rest } = item;
-                let {
-                    subjectConfigurationID: newSubjectConfigurationID,
-                    ...rest2
-                } = newObject;
-
-                return deepEqual(rest, rest2);
-            });
-
-            if (!isDuplicate) {
-                currentArray.push({
-                    subjectConfigurationID: subjectConfigurationIDIncrementer,
-                    ...newObject,
-                });
-                map.set(key, currentArray);
-
-                return subjectConfigurationIDIncrementer + 1;
-            }
-
-            return subjectConfigurationIDIncrementer;
-        }
+        Object.entries(teachersStore).forEach(([key, section]) => {
+            console.log('🚀 ~ Object.entries ~ teachersStore:', teachersStore);
+            // ...
+        });
 
         const subjectConfigurationMap = new Map();
         let subjectConfigurationIDIncrementer = 0;
@@ -470,6 +480,7 @@ function Timetable() {
         const subjectConfigurationSubjectDurationArray = [];
         const subjectConfigurationSubjectFixedTimeslotArray = [];
         const subjectConfigurationSubjectFixedDayArray = [];
+        const subjectConfigurationSubjectIsOverlappableArray = [];
         let totalNumOfSubjectConfigurations = 0;
 
         subjectConfigurationMap.forEach((subjectConfigurationArray) => {
@@ -499,6 +510,7 @@ function Timetable() {
                     subjectID,
                     subjectConfiguration.fixedDay
                 );
+                subjectConfigurationSubjectIsOverlappableArray[id] = 0;
 
                 totalNumOfSubjectConfigurations++;
             });
@@ -825,13 +837,14 @@ function Timetable() {
             // const notAllowedBreakslotGap = totalTimeslot >= 7 ? 2 : 1;
 
             let notAllowedBreakslotGap = 0;
-            if (totalTimeslot >= 5) {
+            if (totalTimeslot >= 5 && totalTimeslot < 7) {
+                notAllowedBreakslotGap = 1;
+            } else if (totalTimeslot >= 7) {
+                notAllowedBreakslotGap = 3;
+            } else if (totalTimeslot >= 10) {
                 notAllowedBreakslotGap = 3;
             }
-            // else if (totalTimeslot >= 7) {
-            //     notAllowedBreakslotGap = 3;
-            // }
-
+            
             const isDynamicSubjectConsistentDuration = 0;
 
             sectionConfigurationArray[sectionKey] = packInt8ToInt32(
@@ -882,6 +895,9 @@ function Timetable() {
         ]);
         const subjectConfigurationSubjectFixedDay = new Int32Array([
             ...subjectConfigurationSubjectFixedDayArray,
+        ]);
+        const subjectConfigurationSubjectIsOverlappable = new Int32Array([
+            ...subjectConfigurationSubjectIsOverlappableArray,
         ]);
         const sectionConfiguration = new Int32Array([
             ...sectionConfigurationArray,
@@ -943,9 +959,11 @@ function Timetable() {
             totalSectionSubjects: totalSectionSubjects,
             totalSection: totalSections,
             numberOfSubjectConfiguration: totalNumOfSubjectConfigurations,
+
             sectionConfiguration: sectionConfiguration,
             sectionLocation: sectionLocation,
             sectionSubjectConfiguration: sectionSubjectConfiguration,
+
             subjectConfigurationSubjectUnits: subjectConfigurationSubjectUnits,
             subjectConfigurationSubjectDuration:
                 subjectConfigurationSubjectDuration,
@@ -953,6 +971,9 @@ function Timetable() {
                 subjectConfigurationSubjectFixedTimeslot,
             subjectConfigurationSubjectFixedDay:
                 subjectConfigurationSubjectFixedDay,
+subjectConfigurationSubjectIsOverlappable:
+                subjectConfigurationSubjectIsOverlappable,
+
             subjectFixedTeacherSection: subjectFixedTeacherSection,
             subjectFixedTeacher: subjectFixedTeacher,
             sectionStart: sectionStarts,
@@ -960,6 +981,10 @@ function Timetable() {
             teacherWeekLoadConfig: teacherWeekLoadConfig,
             buildingInfo: buildingInfo,
             buildingAdjacency: buildingAdjacency,
+
+            teacherReservationConfig: teacherReservationConfig,
+            teacherReservationConfigID: teacherReservationConfigID,
+
             teacherSubjectsLength: teacherSubjects.length,
             beesPopulation: beesPopulations,
             beesEmployed: beesEmployed,
@@ -967,6 +992,7 @@ function Timetable() {
             beesScout: beesScout,
             limit: limits,
             workWeek: numOfSchoolDays,
+
             breakTimeDuration: breakTimeDuration,
             teacherBreakThreshold: teacherBreakThreshold,
             teacherMiddleTimePointGrowAllowanceForBreakTimeslot:
@@ -977,6 +1003,7 @@ function Timetable() {
             offsetDuration: offset,
             resultTimetableLength: resultTimetableLength,
             resultViolationLength: resultViolationLength,
+
             enableLogging: false,
         };
 

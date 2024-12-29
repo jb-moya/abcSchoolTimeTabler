@@ -26,19 +26,22 @@ function allocateAndSetBuffer(wasm, dataArray) {
  * @param {number} params.totalSection - The total number of sections.
  * @param {number} params.numberOfSubjectConfiguration - The total number of subject configurations.
  * @param {Int32Array} params.sectionConfiguration - Array specifying section configurations.
-* @param {Int32Array} params.sectionLocation - section location
+ * @param {Int32Array} params.sectionLocation - section location
  * @param {Int32Array} params.sectionSubjectConfiguration - Array specifying section subject configurations.
  * @param {Int32Array} params.subjectConfigurationSubjectUnits - Array specifying subject unit counts.
  * @param {Int32Array} params.subjectConfigurationSubjectDuration - Array specifying subject durations.
  * @param {Int32Array} params.subjectConfigurationSubjectFixedTimeslot - Array specifying fixed timeslots for subjects.
  * @param {Int32Array} params.subjectConfigurationSubjectFixedDay - Array specifying fixed days for subjects.
+ * @param {Int32Array} params.subjectConfigurationSubjectIsOverlappable - Array specifying fixed days for subjects.
  * @param {Int32Array} params.subjectFixedTeacherSection - Array linking fixed teachers to specific sections.
  * @param {Int32Array} params.subjectFixedTeacher - Array linking fixed teachers to subjects.
  * @param {Int32Array} params.sectionStart - Array specifying section start times.
  * @param {Int32Array} params.teacherSubjects - Array mapping teachers to subjects.
  * @param {Int32Array} params.teacherWeekLoadConfig - Array specifying weekly load configurations for teachers.
-* @param {Int32Array} params.buildingInfo - Array specifying building information.
+ * @param {Int32Array} params.buildingInfo - Array specifying building information.
  * @param {Int32Array} params.buildingAdjacency - Array specifying building adjacency information.
+ * @param {Int32Array} params.teacherReservationConfig - Array specifying building adjacency information.
+ * @param {Int32Array} params.teacherReservationConfigID - Array specifying building adjacency information.
  * @param {number} params.teacherSubjectsLength - The length of the teacher subjects array.
  * @param {number} params.beesPopulation - The total number of bees in the algorithm's population.
  * @param {number} params.beesEmployed - The number of employed bees in the algorithm.
@@ -68,7 +71,7 @@ const getTimetable = async (params) =>
                 wasm,
                 params.sectionConfiguration
             );
-const sectionLocationBuff = allocateAndSetBuffer(
+            const sectionLocationBuff = allocateAndSetBuffer(
                 wasm,
                 params.sectionLocation
             );
@@ -95,6 +98,11 @@ const sectionLocationBuff = allocateAndSetBuffer(
                     wasm,
                     params.subjectConfigurationSubjectFixedDay
                 );
+            const subjectConfigurationSubjectIsOverlappableBuff =
+                allocateAndSetBuffer(
+                    wasm,
+                    params.subjectConfigurationSubjectIsOverlappable
+                );
             const subjectFixedTeacherSectionBuff = allocateAndSetBuffer(
                 wasm,
                 params.subjectFixedTeacherSection
@@ -115,13 +123,21 @@ const sectionLocationBuff = allocateAndSetBuffer(
                 wasm,
                 params.teacherWeekLoadConfig
             );
-const buildingInfoBuff = allocateAndSetBuffer(
+            const buildingInfoBuff = allocateAndSetBuffer(
                 wasm,
                 params.buildingInfo
             );
             const buildingAdjacencyBuff = allocateAndSetBuffer(
                 wasm,
                 params.buildingAdjacency
+            );
+            const teacherReservationConfigBuff = allocateAndSetBuffer(
+                wasm,
+                params.teacherReservationConfig
+            );
+            const teacherReservationConfigIDBuff = allocateAndSetBuffer(
+                wasm,
+                params.teacherReservationConfigID
             );
 
             const resultTimetableBuff = wasm._malloc(
@@ -217,19 +233,25 @@ const buildingInfoBuff = allocateAndSetBuffer(
                 params.numberOfSubjectConfiguration,
 
                 sectionConfigurationBuff,
-sectionLocationBuff,
+                sectionLocationBuff,
                 sectionSubjectConfigurationBuff,
+
                 subjectConfigurationSubjectUnitsBuff,
                 subjectConfigurationSubjectDurationBuff,
                 subjectConfigurationSubjectFixedTimeslotBuff,
                 subjectConfigurationSubjectFixedDayBuff,
+                subjectConfigurationSubjectIsOverlappableBuff,
+                
                 subjectFixedTeacherSectionBuff,
                 subjectFixedTeacherBuff,
                 sectionStartBuff,
                 teacherSubjectsBuff,
                 teacherWeekLoadConfigBuff,
-buildingInfoBuff,
+                buildingInfoBuff,
                 buildingAdjacencyBuff,
+
+                teacherReservationConfigBuff,
+                teacherReservationConfigIDBuff,
 
                 params.teacherSubjectsLength,
                 params.beesPopulation,
@@ -302,11 +324,16 @@ buildingInfoBuff,
             wasm._free(subjectConfigurationSubjectDurationBuff);
             wasm._free(subjectConfigurationSubjectFixedTimeslotBuff);
             wasm._free(subjectConfigurationSubjectFixedDayBuff);
+            wasm._free(subjectConfigurationSubjectIsOverlappableBuff);
             wasm._free(subjectFixedTeacherSectionBuff);
             wasm._free(subjectFixedTeacherBuff);
             wasm._free(sectionStartBuff);
             wasm._free(teacherSubjectsBuff);
             wasm._free(teacherWeekLoadConfigBuff);
+            wasm._free(buildingInfoBuff);
+            wasm._free(teacherReservationConfigBuff);
+            wasm._free(teacherReservationConfigIDBuff);
+            wasm._free(buildingAdjacencyBuff);
             wasm._free(resultTimetableBuff);
             wasm._free(resultTimetable_2);
             wasm._free(resultViolationBuff);
