@@ -1,0 +1,398 @@
+import React, { useEffect, useState, useRef } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import SearchableDropdownToggler from './searchableDropdownForAll';
+
+import { motion, useMotionValue, useMotionValueEvent } from 'framer-motion';
+import { convertToTime } from '../../utils/convertToTime';
+import { convertToNumber } from '../../utils/convertToNumber';
+
+import { fetchSubjects } from '@features/subjectSlice';
+import { fetchTeachers } from '@features/teacherSlice';
+
+const ItemCells = ({
+    containerRef,
+    lineRowPositions,
+    lineColPositions,
+    cell,
+    setHighlightedLine,
+    setIsDragging,
+    isDragging,
+    initialPosition,
+    mode,
+    setItemWidth,
+    handleCellUpdate,
+    scrollToTable,
+    editMode,
+    handleSwitchTeacher,
+    setLoading,
+    setModalOpen,
+    modalOpen,
+    setEditingCell,
+    editingCell,
+}) => {
+    // if (cell.teacherID === 1) {
+    //     console.log('cell: ', cell);
+    // }
+
+    const itemRef = useRef(null);
+    const [targetPosition, setTargetPosition] = useState(initialPosition);
+    const [timeRange, setTimeRange] = useState(0);
+    const [options, setOptions] = useState([]); // Example state for options
+    const { subjects, status: subjectStatus } = useSelector(
+        (state) => state.subject
+    );
+    const dispatch = useDispatch(); // Initialize dispatch
+
+    const { teachers, status: teacherStatus } = useSelector(
+        (state) => state.teacher
+    );
+
+    const [isResizing, setIsResizing] = useState(false);
+    const [resizeDirection, setResizeDirection] = useState(null);
+    const [startY, setStartY] = useState(null);
+    const [direction, setDirection] = useState('');
+    const [errors, setErrors] = useState({});
+
+    useEffect(() => {
+        if (subjectStatus === 'idle') {
+            dispatch(fetchSubjects());
+        }
+    }, [subjectStatus, dispatch]);
+
+    useEffect(() => {
+        if (teacherStatus === 'idle') {
+            dispatch(fetchTeachers());
+        }
+    }, [teacherStatus, dispatch]);
+
+    const x = useMotionValue(initialPosition.x);
+    const y = useMotionValue(initialPosition.y);
+
+    // Update motion values when `initialPosition` changes
+
+    useEffect(() => {
+        if (itemRef.current) {
+            const { width } = itemRef.current.getBoundingClientRect();
+            setItemWidth(width);
+        }
+        setTimeRange(String(cell.end - cell.start + 0.5));
+    }, [cell, setItemWidth]);
+
+    const getUpdatedStart = (mode, start) => {
+        switch (mode) {
+            case '5m':
+                return start * 0.5;
+            case '10m':
+                return start * 1;
+            case '20m':
+                return start * 2;
+            case '30m':
+                return start * 3;
+            case '60m':
+                return start * 6;
+            default:
+                return null;
+        }
+    };
+
+    const handleDragStart = (e) => {
+        setIsDragging(true);
+    };
+
+    const handleClick = () => {
+        // console.log('clicked: on', cell);
+        // console.log('isDragging', isDragging);
+        // console.log('modalOpen', modalOpen);
+
+        if (isDragging || modalOpen) return;
+        // console.log('clicked: on', cell);
+        if (editMode && !modalOpen) {
+            setEditingCell(cell);
+            setModalOpen(true);
+            setTimeout(() => {
+                document.getElementById('my_modal_2').showModal();
+            }, 0);
+        } else {
+            scrollToTable(cell);
+        }
+    };
+
+    const handleDragEnd = () => {
+        if (itemRef.current && !editMode) {
+            const { width } = itemRef.current.getBoundingClientRect();
+
+            // Find the closest line and column
+            const closestLine = lineRowPositions.reduce((prev, curr) => {
+                const prevDiff = Math.abs(prev - y.get());
+                const currDiff = Math.abs(curr - y.get());
+                return currDiff < prevDiff ? curr : prev;
+            });
+
+            const closestColumn = lineColPositions.reduce((prev, curr) => {
+                const prevDiff = Math.abs(prev - x.get());
+                const currDiff = Math.abs(curr - x.get());
+                return currDiff < prevDiff ? curr : prev;
+            });
+
+            const offset = 2;
+
+            // Set intermediate and final target positions
+            const intermediatePosition = {
+                x: closestColumn + offset,
+                y: closestLine + offset,
+            };
+            setTargetPosition(intermediatePosition);
+            setIsDragging(false);
+
+            const initialStart = lineRowPositions.indexOf(closestLine);
+            const start = getUpdatedStart(mode, initialStart);
+            const day = lineColPositions.indexOf(closestColumn) + 1;
+            const end = start + Number(timeRange) - 0.5;
+
+            setTimeout(() => {
+                setTargetPosition({ x: closestColumn + 1, y: closestLine });
+            }, 10);
+
+            handleCellUpdate({ start, end, day });
+        }
+    };
+
+    useMotionValueEvent(y, 'change', (currentY) => {
+        const closestLine = lineRowPositions.reduce((prev, curr) =>
+            Math.abs(curr - currentY) < Math.abs(prev - currentY) ? curr : prev
+        );
+        setHighlightedLine(closestLine);
+    });
+
+    const startTime = convertToTime(cell.start);
+    const endTime = convertToTime(cell.end);
+    const cellValue = cell.teacher ? cell.teacher : cell.section;
+    const cellVal = cellValue ? cellValue : 'Break';
+    useEffect(() => {
+        if (isDragging) return; // Prevent the effect from running while dragging
+
+        setTargetPosition(initialPosition);
+    }, [initialPosition, isDragging]); // Include isDragging in the dependency array
+
+    useEffect(() => {
+        setOptions(getTeacherIdsBySubject(cell.subjectID));
+    }, [editMode]); // Include isDragging in the dependency array
+
+    function getTeacherIdsBySubject(subjectID) {
+        return Object.values(teachers) // Convert the object to an array of teacher values
+            .filter((teacher) => teacher.subjects.includes(subjectID)) // Filter by subjectID
+            .map((teacher) => teacher.id); // Map to IDs
+    }
+
+    const handleTeacherSelection = (teacherID, teacher) => {
+        setLoading(true);
+        // console.log('SET THE LOADING');
+
+        setTimeout(() => {
+            handleSwitchTeacher({ teacherID, teacher });
+        }, 0);
+    };
+
+    //     <SearchableDropdownToggler
+    //     teacherID={getTeacherIdsBySubject(cell.subjectID)}
+    //     setSelectedList={handleTeacherSelection}
+    //     currID={cell.teacherID}
+    //     cell={cell}
+    // />
+    const [hovering, setHovering] = React.useState(false);
+
+    useEffect(() => {
+        // console.log('editingCell: ', editingCell);
+        // console.log('start: ', `0${convertToTime(editingCell?.start)}`);
+    }, [editingCell]);
+
+    const generateTimeOptions = (startHour, endHour, isMorning) => {
+        const times = [];
+        for (let hour = startHour; hour <= endHour; hour++) {
+            for (let minute = 0; minute < 60; minute += 10) {
+                // Remove the padding for single-digit hours
+                const formattedHour = hour < 10 ? `${hour}` : `${hour}`;
+                const formattedTime = `${formattedHour}:${String(
+                    minute
+                ).padStart(2, '0')}`;
+                const period = isMorning ? 'AM' : 'PM';
+                times.push(`${formattedTime} ${period}`);
+            }
+        }
+        return times;
+    };
+
+    const handleStartChange = (event) => {
+        const newErrors = {};
+        const time = event.target.value;
+        const start = convertToNumber(time);
+
+        if (start >= editingCell.end) {
+            newErrors.time = 'Invalid Time Set';
+            setErrors(newErrors);
+        } else {
+            handleCellUpdate({ start }, editingCell);
+        }
+        setErrors(newErrors);
+    };
+
+    const handleEndChange = (event) => {
+        const newErrors = {};
+
+        const time = event.target.value;
+        const end = convertToNumber(time);
+
+        if (end >= editingCell.start) {
+            newErrors.time = 'Invalid Time Set';
+        } else {
+            handleCellUpdate({ end }, editingCell);
+        }
+        setErrors(newErrors);
+    };
+
+    return (
+        <motion.div
+            drag={!editMode} // Draggable only if editMode is false
+            dragConstraints={containerRef}
+            style={{
+                height: `${timeRange}%`,
+                width: '19%',
+                x,
+                y,
+            }}
+            className={`absolute border border-primary-content ${
+                cell.overlap ? 'bg-red-500' : 'bg-secondary-content'
+            } rounded-lg`}
+            ref={itemRef}
+            onDragEnd={handleDragEnd}
+            onDragStart={handleDragStart}
+            onClick={handleClick}
+            dragMomentum={false}
+            dragElastic={0}
+            animate={targetPosition}
+            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            title={
+                !editMode
+                    ? `${cell.teacher || ''} \n${cell.subject || ''}`
+                    : undefined
+            }
+        >
+            {/* Hover Wrapper */}
+            <div className="relative w-full h-full">
+                {/* Original Content */}
+                {!editMode || !hovering ? (
+                    <motion.div
+                        className="absolute inset-0 flex flex-col justify-center items-center p-1"
+                        initial={{ opacity: 1 }}
+                        animate={{ opacity: editMode && hovering ? 0 : 1 }}
+                    >
+                        <div className="font-medium text-ellipsis whitespace-nowrap overflow-hidden text-center text-[10px] sm:text-[10px] md:text-xs lg:text-sm">
+                            {cellVal}
+                        </div>
+                        <div className="text-[10px] sm:text-[10px] md:text-xs lg:text-xs text-slate-400 text-center overflow-hidden">
+                            {cell.subject}
+                        </div>
+                        <div className="text-[10px] sm:text-[11px] md:text-[10px] lg:text-[9px] text-center overflow-hidden pt-0.5">
+                            {startTime} - {endTime}
+                        </div>
+                    </motion.div>
+                ) : null}
+
+                {/* Edit Label */}
+                {editMode && (
+                    <motion.div
+                        className="absolute inset-0 flex items-center justify-center text-primary font-medium"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: hovering ? 1 : 0 }}
+                    >
+                        Edit
+                    </motion.div>
+                )}
+            </div>
+            {/* Hover State Management */}
+            <div
+                className="absolute inset-0"
+                onMouseEnter={() => setHovering(true)}
+                onMouseLeave={() => setHovering(false)}
+            />
+            <dialog
+                id="my_modal_2"
+                className="modal"
+                ref={(el) => {
+                    if (el) {
+                        el.addEventListener('keydown', (e) => {
+                            if (e.key === 'Escape') {
+                                setModalOpen(false);
+                            }
+                        });
+                    }
+                }}
+            >
+                {' '}
+                <div className="modal-box h-52 overflow-hidden">
+                    <form method="dialog">
+                        {/* if there is a button in form, it will close the modal */}
+                        <button
+                            className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                            onClick={() => setModalOpen(false)}
+                        >
+                            ✕
+                        </button>
+                    </form>
+                    {/* <h3 className="font-bold text-lg">Hello!</h3> */}
+                    <SearchableDropdownToggler
+                        teacherID={getTeacherIdsBySubject(
+                            editingCell.subjectID
+                        )}
+                        setSelectedList={handleTeacherSelection}
+                        currID={editingCell.teacherID}
+                    />
+                    <div className="text-[10px] sm:text-[10px] md:text-xs lg:text-xs text-slate-400 text-center overflow-hidden">
+                        {editingCell?.subject}
+                    </div>
+                    <div className="text-[10px] sm:text-[11px] md:text-[10px] lg:text-[9px] text-center overflow-hidden pt-0.5">
+                        {convertToTime(editingCell?.start)} -{' '}
+                        {convertToTime(editingCell?.end)}
+                    </div>
+                    <div className="flex flex-row">
+                        <div className="form-control w-1/2">
+                            <select
+                                className="select select-bordered w-full overflow-y-auto max-h-40"
+                                value={`${convertToTime(editingCell?.start)}`}
+                                onChange={(e) => handleStartChange(e)}
+                            >
+                                {generateTimeOptions(6, 12, true).map(
+                                    (time) => (
+                                        <option key={time} value={time}>
+                                            {time}
+                                        </option>
+                                    )
+                                )}
+                            </select>
+                        </div>
+                        <div className="form-control w-1/2 ">
+                            <select
+                                className="select select-bordered w-full"
+                                value={`${convertToTime(editingCell?.end)}`}
+                                onChange={(e) => handleEndChange(e)}
+                            >
+                                {generateTimeOptions(6, 12, true).map(
+                                    (time) => (
+                                        <option key={time} value={time}>
+                                            {time}
+                                        </option>
+                                    )
+                                )}
+                            </select>
+                        </div>
+                    </div>
+                    {errors.time && (
+                        <span className="text-red-500">{errors.time}</span>
+                    )}
+                </div>
+            </dialog>
+        </motion.div>
+    );
+};
+
+export default ItemCells;
