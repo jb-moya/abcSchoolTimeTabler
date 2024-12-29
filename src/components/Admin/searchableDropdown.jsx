@@ -124,7 +124,6 @@
 
 // export default SearchableDropdownToggler;
 
-
 // import { useRef } from "react";
 // import { IoChevronDown, IoRemove, IoAdd } from "react-icons/io5";
 // import { useSelector } from "react-redux";
@@ -175,9 +174,9 @@
 //     <div>
 //     {/* Button to open the modal */}
 //     <button className="btn m-1" onClick={openModal}>
-//       {isEditMode 
-//         ? `Edit Subject(s) (${selectedList.length})` 
-//         : `Selected Subjects: ${selectedList.length}`} 
+//       {isEditMode
+//         ? `Edit Subject(s) (${selectedList.length})`
+//         : `Selected Subjects: ${selectedList.length}`}
 //     </button>
 
 //     {/* Nested Modal */}
@@ -235,95 +234,104 @@
 
 // export default SearchableDropdownToggler;
 
+
 import { useState, useRef, useEffect } from "react";
-import { IoChevronDown } from "react-icons/io5";
+import { IoChevronDown, IoRemove, IoAdd } from "react-icons/io5";
 import { useSelector } from "react-redux";
 import { filterObject } from "@utils/filterObject";
 import escapeRegExp from "@utils/escapeRegExp";
-import { IoRemove, IoAdd } from "react-icons/io5";
 import clsx from "clsx";
 
 const SearchableDropdownToggler = ({
-  selectedList,
-  setSelectedList,
-  isEditMode = false,
+    selectedList,
+    setSelectedList,
+    isEditMode = false,
 }) => {
-  const subjects = useSelector((state) => state.subject.subjects);
-  const [searchSubjectValue, setSearchSubjectValue] = useState("");
-  const searchInputRef = useRef(null);
+    const subjects = useSelector((state) => state.subject.subjects);
+    const [searchSubjectValue, setSearchSubjectValue] = useState('');
+    const searchInputRef = useRef(null);
 
-  const searchResults = filterObject(subjects, ([, subject]) => {
-    const escapedSearchValue = escapeRegExp(searchSubjectValue)
-      .split("\\*")
-      .join(".*");
+    const searchResults = filterObject(subjects, ([, subject]) => {
+        const escapedSearchValue = escapeRegExp(searchSubjectValue)
+            .split('\\*')
+            .join('.*');
 
-    const pattern = new RegExp(escapedSearchValue, "i");
-    return pattern.test(subject.subject);
-  });
+        const pattern = new RegExp(escapedSearchValue, 'i');
+        return pattern.test(subject.subject);
+    });
 
-  useEffect(() => {
-    console.log(searchResults);
-  }, [searchResults]);
+    // useEffect(() => {
+    //   console.log(searchResults);
+    // }, [searchResults]);
 
-  const handleInputChange = (e) => {
-    setSearchSubjectValue(e.target.value);
-  };
+    const handleInputChange = (e) => {
+        setSearchSubjectValue(e.target.value);
+    };
 
-  const toggleSubject = (subjectID) => {
-    const updatedList = selectedList.includes(subjectID)
-      ? selectedList.filter((id) => id !== subjectID)
-      : [...selectedList, subjectID];
+    const toggleSubject = (subjectID) => {
+        const updatedList = selectedList.includes(subjectID)
+            ? selectedList.filter((id) => id !== subjectID)
+            : [...selectedList, subjectID];
 
-    setSelectedList(updatedList);
-    console.log(`Updated selected list:`, updatedList); // Log updated selected list
-  };
+        setSelectedList(updatedList);
+        // console.log(`Updated selected list:`, updatedList); // Log updated selected list
+    };
 
   return (
-    <div className="dropdown">
-      <div tabIndex={0} role="button" className="btn m-1">
+    <div className="dropdown w-full max-w-md md:max-w-lg lg:max-w-xl">
+      <div
+        tabIndex={0}
+        role="button"
+        className="btn m-1 w-full flex justify-between items-center"
+      >
         {isEditMode ? (
-          <div>
+          <div className="text-left">
             Edit Subject<span>(s)</span>
           </div>
         ) : (
-          <div>Add subject</div>
+          <div className="text-left">Add subject</div>
         )}
         <IoChevronDown size={16} />
       </div>
       <ul
         tabIndex={0}
-        className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow max-h-48 overflow-y-auto" // Updated here
+        className="dropdown-content menu bg-base-100 rounded-box z-[1] w-42 h-auto shadow max-h-48 overflow-y-auto" // Updated here
       >
         <li>
           <input
             type="text"
             placeholder="Search subject"
             ref={searchInputRef}
-            className="input input-bordered input-sm w-full max-w-xs"
+            className="input input-bordered input-sm w-full"
             value={searchSubjectValue}
             onChange={handleInputChange}
           />
         </li>
-        {Object.keys(searchResults).length === 0 ? (
-          <div className="px-4 py-2 opacity-50">Not found</div>
-        ) : (
-          Object.entries(searchResults).map(([, subject]) => (
-            <li
-              role="button"
-              key={subject.id}
-              onClick={() => toggleSubject(subject.id)}
-            >
-              <div className="flex justify-between whitespace-nowrap"> 
-                <a className={clsx("w-full")}>{subject.subject}</a>
-                {selectedList.includes(subject.id) ? (
-                  <IoRemove size={20} className="text-red-500" />
-                ) : (
-                  <IoAdd size={20} className="text-green-400" />
-                )}
-              </div>
-            </li>
-          ))
-        )}
+        <div
+          className="overflow-y-scroll h-full max-h-40 scrollbar-hide"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
+          {Object.keys(searchResults).length === 0 ? (
+            <div className="px-4 py-2 opacity-50">Not found</div>
+          ) : (
+            Object.entries(searchResults).map(([, subject]) => (
+              <li
+                role="button"
+                key={subject.id}
+                onClick={() => toggleSubject(subject.id)}
+              >
+                <div className="flex justify-between whitespace-nowrap items-center">
+                  <a className={clsx("w-full")}>{subject.subject}</a>
+                  {selectedList.includes(subject.id) ? (
+                    <IoRemove size={20} className="text-red-500" />
+                  ) : (
+                    <IoAdd size={20} className="text-green-400" />
+                  )}
+                </div>
+              </li>
+            ))
+          )}
+        </div>
       </ul>
     </div>
   );

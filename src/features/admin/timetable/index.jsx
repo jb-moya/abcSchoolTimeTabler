@@ -1,5 +1,8 @@
+import { useDispatch } from 'react-redux';
 import { useState, useEffect } from 'react';
-import packInt16ToInt32 from '@utils/packInt16ToInt32';
+import packInt16ToInt32 from '../../../utils/packInt16ToInt32';
+import { unpackInt32ToInt16 } from '../../../utils/packInt16ToInt32';
+import packInt8ToInt32 from '../../../utils/packInt8ToInt32';
 import { useSelector } from 'react-redux';
 import { wrap } from 'comlink';
 import WasmWorker from '@src/wasm.worker?worker';
@@ -12,11 +15,13 @@ import ForTest from '@components/Admin/ForTest';
 import validateTimetableVariables from '@validation/validateTimetableVariables';
 import { toast } from 'sonner';
 import ViolationList from '@components/Admin/ViolationList';
-import SubjectListContainer from '@components/Admin/SubjectListContainer';
-import ProgramListContainer from '@components/Admin/ProgramListContainer';
+import SubjectListContainer from '../../../components/SubjectComponents/SubjectListContainer';
+import ProgramListContainer from '../../../components/Admin/ProgramComponents/ProgramListContainer';
 import TeacherListContainer from '@components/Admin/Teacher/TeacherListContainer';
 import SectionListContainer from '@components/Admin/SectionListContainer';
 import ExportImportDBButtons from '@components/Admin/ExportImportDBButtons';
+
+import { getTimeSlotIndex } from '@components/Admin/timeSlotMapper';
 
 import { getTimeSlotString } from '../../../components/Admin/timeSlotMapper';
 import Breadcrumbs from '@components/Admin/Breadcrumbs';
@@ -26,18 +31,46 @@ import { enableMapSet } from 'immer';
 enableMapSet();
 const getTimetable = wrap(new WasmWorker());
 
+import { fetchSections, editSection } from '@features/sectionSlice';
+import { fetchPrograms, editProgram } from '@features/programSlice';
+import { fetchSubjects } from '@features/subjectSlice';
+import { fetchBuildings } from '@features/buildingSlice';
+import { original } from 'immer';
+import calculateTotalTimeslot from '../../../utils/calculateTotalTimeslot';
+import deepEqual from '../../../utils/deepEqual';
+import gcdOfArray from '../../../utils/getGCD';
+import { packThreeSignedIntsToInt32 } from '../../../utils/packThreeSignedIntsToInt32';
+
 function Timetable() {
+    const dispatch = useDispatch();
+
     const links = [
         { name: 'Home', href: '/' },
         // { name: 'Modify Subjects', href: '/modify-subjects' },
     ];
 
-    const { subjects: subjectsStore } = useSelector((state) => state.subject);
+    const { subjects: subjectsStore, status: subjectStatus } = useSelector(
+        (state) => state.subject
+    );
+    const { buildings: buildingsStore, status: buildingStatus } = useSelector(
+        (state) => {
+            console.log('statee e e e ee  ee e e ', state);
+            return state.building;
+        }
+    );
     const { teachers: teachersStore } = useSelector((state) => state.teacher);
-    const { sections: sectionsStore } = useSelector((state) => state.section);
-    const { programs: programsStore } = useSelector((state) => state.program);
+    const { sections: sectionsStore, status: sectionStatus } = useSelector(
+        (state) => state.section
+    );
+    const { programs: programsStore, status: programStatus } = useSelector(
+        (state) => state.program
+    );
 
-    const numOfSchoolDays = Number(localStorage.getItem('numOfSchoolDays'));
+    const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
+        return localStorage.getItem('numOfSchoolDays') || 5;
+    });
+    const [prevNumOfSchoolDays, setPrevNumOfSchoolDays] =
+        useState(numOfSchoolDays);
 
     const [sectionTimetables, setSectionTimetables] = useState({});
     const [teacherTimetables, setTeacherTimetables] = useState({});
@@ -52,10 +85,8 @@ function Timetable() {
     // Scope and Limitations
     // Room-Section Relationship: Each room is uniquely assigned to a specific subject, establishing a 1:1 relationship.
     // Due to this strict pairing, room allocation is not a factor in timetable generation.
-
     // Curriculum-Driven Course Selection: Students are required to follow a predefined curriculum.
     // They do not have the option to select subjects independently.
-
     // Standardized Class Start and Break Times: The start time for the first class and the timing of breaks are
     // standardized across all sections and teachers, ensuring uniformity in the daily schedule.
 
@@ -81,6 +112,69 @@ function Timetable() {
         return true;
     };
 
+    const mockBuildings = {
+        1: {
+            name: '1111',
+            floors: 2,
+            rooms: [['1111 - 101'], ['1111 - 201']],
+            nearbyBuildings: [2, 3, 4],
+            id: 1,
+        },
+        2: {
+            name: 'test',
+            floors: 4,
+            rooms: [
+                ['test - 101', 'test - 102', 'test - 103'],
+                [
+                    'test - 201',
+                    'test - 202',
+                    'test - 203',
+                    'test - 204',
+                    'test - 205',
+                    'test - 206',
+                ],
+                [
+                    'test - 301',
+                    'test - 302',
+                    'test - 303',
+                    'test - 304',
+                    'test - 305',
+                    'test - 306',
+                ],
+                [
+                    'test - 401',
+                    'test - 402',
+                    'test - 403',
+                    'test - 404',
+                    'test - 405',
+                    'test - 406',
+                ],
+            ],
+            nearbyBuildings: [],
+            id: 2,
+        },
+        3: {
+            name: 'mock',
+            floors: 3,
+            rooms: [['mock - 101'], ['mock - 201'], ['mock - 301']],
+            nearbyBuildings: [],
+            id: 3,
+        },
+        4: {
+            name: 'example',
+            floors: 5,
+            rooms: [
+                ['example - 101'],
+                ['example - 201'],
+                ['example - 301'],
+                ['example - 401'],
+                ['example - 501'],
+            ],
+            nearbyBuildings: [],
+            id: 4,
+        },
+    };
+
     const handleButtonClick = async () => {
         const subjectMap = Object.entries(subjectsStore).reduce(
             (acc, [, value], index) => {
@@ -90,7 +184,7 @@ function Timetable() {
             {}
         );
 
-        const subjectMapReverse = Object.entries(subjectsStore).reduce(
+        const buildingMapReverse = Object.entries(mockBuildings).reduce(
             (acc, [, value], index) => {
                 acc[value.id] = index;
                 return acc;
@@ -98,41 +192,572 @@ function Timetable() {
             {}
         );
 
-        const teacherMap = Object.entries(teachersStore).reduce(
-            (acc, [, value], index) => {
-                acc[index] = {
-                    subjects: value.subjects.map(
-                        (subjectID) => subjectMapReverse[subjectID]
+        console.log(
+            '🚀 ~ handleButtonClick ~ mockBuildings:',
+            typeof mockBuildings,
+            mockBuildings
+        );
+
+        console.log(
+            '🚀 ~ handleButtonClick ~ buildingsStore:',
+            typeof buildingsStore,
+            buildingsStore
+        );
+
+        console.log(
+            '🚀 ~ handleButtonClick ~ buildingMapReverse:',
+            buildingMapReverse
+        );
+
+        const buildingMap = Object.entries(mockBuildings).reduce(
+            (acc, [, building], index) => {
+                console.log('🚀 ~ handleButtonClick ~ building:', building);
+
+                acc[buildingMapReverse[building.id]] = {
+                    id: buildingMapReverse[building.id],
+
+                    // adjacency: Array.isArray(building.nearbyBuildings)
+                    //     ? building.nearbyBuildings
+                    //           .map(
+                    //               (buildingID) =>
+                    //                   buildingMapReverse[buildingID.id] || null
+                    //           )
+                    //           .filter((building) => building !== null)
+                    //     : [],
+
+                    adjacency: Array.isArray(building.nearbyBuildings)
+                        ? building.nearbyBuildings
+                              .map(
+                                  (buildingID) =>
+                                      buildingMapReverse[buildingID] || null
+                              )
+                              .filter((building) => building !== null)
+                        : [],
+
+                    floorRooms: building.rooms.reduce(
+                        (acc, roomGroup) => [...acc, roomGroup.length],
+                        []
                     ),
-                    id: value.id,
                 };
                 return acc;
             },
             {}
         );
 
+        console.log('🚀 ~ handleButtonClick ~ buildingMap:', buildingMap);
+
+        const buildingInfoArray = [];
+        const buildingAdjacencyArray = [];
+
+        Object.entries(buildingMap).forEach(([buildingID, building]) => {
+            // console.log('🚀 ~ Object.entries ~ building:', building);
+            // console.log('🚀 ~ Object.entries ~ buildingID:', buildingID);
+            building.adjacency.forEach((adjacentBuildingID) => {
+                // console.log(
+                //     '🚀 ~ building.adjacency.forEach ~ parseInt(buildingID):',
+                //     parseInt(buildingID)
+                // );
+                // console.log(
+                //     '🚀 ~ building.adjacency.forEach ~ parseInt(adjacentBuildingID):',
+                //     parseInt(adjacentBuildingID)
+                // );
+
+                buildingAdjacencyArray.push(
+                    packInt16ToInt32(
+                        parseInt(buildingID),
+                        parseInt(adjacentBuildingID)
+                    )
+                );
+            });
+
+            building.floorRooms.forEach((floorRoomCount) => {
+                buildingInfoArray.push(
+                    packInt16ToInt32(parseInt(buildingID), floorRoomCount)
+                );
+            });
+        });
+
+        buildingInfoArray.push(-1);
+        buildingAdjacencyArray.push(-1);
+
+        const buildingInfo = new Int32Array([...buildingInfoArray]);
+        const buildingAdjacency = new Int32Array([...buildingAdjacencyArray]);
+
+        console.log(
+            '🚀 ~ handleButtonClick ~ buildingAdjacencyArray:',
+            buildingAdjacencyArray
+        );
+
+        const subjectMapReverse = Object.entries(subjectsStore).reduce(
+            (acc, [, subject], index) => {
+                acc[subject.id] = {
+                    id: index,
+                    numOfClasses: Math.min(
+                        Math.ceil(
+                            subject.weeklyMinutes / subject.classDuration
+                        ),
+                        numOfSchoolDays
+                    ),
+                    classDuration: subject.classDuration,
+                };
+                return acc;
+            },
+            {}
+        );
+
+        const teacherMap = Object.entries(teachersStore).reduce(
+            (acc, [, teacher], index) => {
+                acc[index] = {
+                    subjects: teacher.subjects.map(
+                        (subjectID) => subjectMapReverse[subjectID].id
+                    ),
+                    id: teacher.id,
+                };
+                return acc;
+            },
+            {}
+        );
+
+        function addObjectToMap(
+            map,
+            key,
+            newObject,
+            subjectConfigurationIDIncrementer
+        ) {
+            if (!map.has(key)) {
+                map.set(key, []);
+            }
+
+            const currentArray = map.get(key);
+
+            const isDuplicate = currentArray.some((item) => {
+                let { subjectConfigurationID, ...rest } = item;
+                let {
+                    subjectConfigurationID: newSubjectConfigurationID,
+                    ...rest2
+                } = newObject;
+
+                return deepEqual(rest, rest2);
+            });
+
+            if (!isDuplicate) {
+                currentArray.push({
+                    subjectConfigurationID: subjectConfigurationIDIncrementer,
+                    ...newObject,
+                });
+                map.set(key, currentArray);
+
+                return subjectConfigurationIDIncrementer + 1;
+            }
+
+            return subjectConfigurationIDIncrementer;
+        }
+
+        const subjectConfigurationMap = new Map();
+        let subjectConfigurationIDIncrementer = 0;
+
+        Object.entries(sectionsStore).forEach(([key, section]) => {
+            console.log('GUGU', key, section);
+
+            const fixedDays = section.fixedDays;
+            const fixedPositions = section.fixedPositions;
+
+            let totalTimeslot = calculateTotalTimeslot(
+                subjectsStore,
+                section.subjects,
+                numOfSchoolDays
+            );
+
+            totalTimeslot += totalTimeslot >= 10 ? 2 : 1;
+
+            const emptyEveryDayTimeslot = new Set(
+                Array.from({ length: totalTimeslot }, (_, i) => i + 1)
+            );
+
+            Object.keys(fixedPositions).forEach((subjectID) => {
+                if (
+                    fixedPositions[subjectID].every(
+                        (element) => element === fixedPositions[subjectID][0]
+                    )
+                ) {
+                    return;
+                }
+
+                fixedPositions[subjectID].forEach((timeslot) => {
+                    emptyEveryDayTimeslot.delete(timeslot);
+                });
+            });
+
+            console.log(
+                '::🚀::::: ~ Object.entries ~ emptyEveryDayTimeslot:',
+                emptyEveryDayTimeslot
+            );
+
+            let subjectsEveryDay = [];
+
+            Object.keys(fixedPositions).forEach((subjectID) => {
+                const allElementsAreZero = fixedPositions[subjectID].every(
+                    (element) => element === fixedPositions[subjectID][0]
+                );
+
+                const hasCorrectLength =
+                    fixedPositions[subjectID].length == numOfSchoolDays;
+
+                if (allElementsAreZero && hasCorrectLength) {
+                    subjectsEveryDay.push(subjectID);
+                }
+            });
+
+            console.log(
+                '🚀🚀🚀🚀 ~ Object.entries ~ subjectsEveryDay:',
+                subjectsEveryDay
+            );
+
+            // TODO:
+
+            subjectsEveryDay.forEach((subjectID) => {
+                const subjectConfiguration = {
+                    subject: subjectMapReverse[subjectID].id,
+                    is_consistent_everyday:
+                        emptyEveryDayTimeslot.size >= subjectsEveryDay.length,
+                    classDuration: subjectMapReverse[subjectID].classDuration,
+                    fixed_timeslot:
+                        fixedPositions[subjectID][0] == 0
+                            ? 0
+                            : fixedPositions[subjectID][0] - 1,
+                    fixedDay: 0,
+                };
+
+                subjectConfigurationIDIncrementer = addObjectToMap(
+                    subjectConfigurationMap,
+                    subjectMapReverse[subjectID].id,
+                    subjectConfiguration,
+                    subjectConfigurationIDIncrementer
+                );
+            });
+
+            Object.entries(fixedPositions)
+                .filter(([subjectID]) => !subjectsEveryDay.includes(subjectID))
+                .forEach(([subjectID, classBlock]) => {
+                    console.log(`${subjectID}: ${classBlock}`);
+
+                    classBlock.forEach((timeslot, index) => {
+                        const subjectConfiguration = {
+                            subject: subjectMapReverse[subjectID].id,
+                            is_consistent_everyday: false,
+                            classDuration:
+                                subjectMapReverse[subjectID].classDuration,
+                            fixed_timeslot: timeslot == 0 ? 0 : timeslot - 1,
+                            fixedDay: fixedDays[subjectID][index],
+                        };
+
+                        subjectConfigurationIDIncrementer = addObjectToMap(
+                            subjectConfigurationMap,
+                            subjectMapReverse[subjectID].id,
+                            subjectConfiguration,
+                            subjectConfigurationIDIncrementer
+                        );
+                    });
+                });
+        });
+
+        console.log(
+            '🚀 ~ section.subjects.forEach ~ subjectConfigurationArray:',
+            subjectConfigurationMap
+        );
+
+        const subjectConfigurationSubjectUnitsArray = [];
+        const subjectConfigurationSubjectDurationArray = [];
+        const subjectConfigurationSubjectFixedTimeslotArray = [];
+        const subjectConfigurationSubjectFixedDayArray = [];
+        let totalNumOfSubjectConfigurations = 0;
+
+        subjectConfigurationMap.forEach((subjectConfigurationArray) => {
+            console.log(
+                '🚀 ~ subjectConfigurationArray:',
+                subjectConfigurationArray
+            );
+
+            subjectConfigurationArray.forEach((subjectConfiguration) => {
+                let id = subjectConfiguration.subjectConfigurationID;
+                let subjectID = subjectConfiguration.subject;
+
+                subjectConfigurationSubjectUnitsArray[id] = packInt16ToInt32(
+                    subjectID,
+                    subjectConfiguration.is_consistent_everyday ? 0 : 1
+                );
+                subjectConfigurationSubjectDurationArray[id] = packInt16ToInt32(
+                    subjectID,
+                    subjectConfiguration.classDuration
+                );
+                subjectConfigurationSubjectFixedTimeslotArray[id] =
+                    packInt16ToInt32(
+                        subjectID,
+                        subjectConfiguration.fixed_timeslot
+                    );
+                subjectConfigurationSubjectFixedDayArray[id] = packInt16ToInt32(
+                    subjectID,
+                    subjectConfiguration.fixedDay
+                );
+
+                totalNumOfSubjectConfigurations++;
+            });
+        });
+
+        let breakTimeDuration = 30;
+
+        let timeDivision = gcdOfArray([
+            ...subjectConfigurationSubjectDurationArray.map((duration) => {
+                let { second: subjectDuration } = unpackInt32ToInt16(duration);
+                return subjectDuration;
+            }),
+            breakTimeDuration,
+        ]);
+
+        // console.log(
+        //     '🚀 ~ timeDivisiontimeDivisiontimeDivisiontimeDivision ~ timeDivision:',
+        //     timeDivision
+        // );
+
+        subjectConfigurationSubjectDurationArray.forEach((duration, index) => {
+            let { first: subjectID, second: subjectDuration } =
+                unpackInt32ToInt16(duration);
+            subjectConfigurationSubjectDurationArray[index] = packInt16ToInt32(
+                subjectID,
+                subjectDuration / timeDivision
+            );
+        });
+
+        breakTimeDuration /= timeDivision;
+
+        let lowestSubjectDuration = Math.min(
+            ...subjectConfigurationSubjectDurationArray.map((duration) => {
+                let { second: subjectDuration } = unpackInt32ToInt16(duration);
+                // console.log(
+                //     '🚀 ~ ...subjectConfigurationSubjectDurationArray.map ~ subjectDuration:',
+                //     subjectDuration
+                // );
+                return subjectDuration;
+            }),
+            breakTimeDuration
+        );
+        // console.log(
+        //     '🚀 ~ handleButtonClick ~ lowestSubjectDuration:',
+        //     lowestSubjectDuration
+        // );
+
+        let offset = lowestSubjectDuration - 1;
+        // console.log('🚀 ~ handleButtonClick ~ offset:', offset);
+
+        subjectConfigurationSubjectDurationArray.forEach((duration, index) => {
+            let { first: subjectID, second: subjectDuration } =
+                unpackInt32ToInt16(duration);
+            subjectConfigurationSubjectDurationArray[index] = packInt16ToInt32(
+                subjectID,
+                subjectDuration - offset
+            );
+        });
+
+        // subjectConfigurationSubjectDurationArray.forEach((duration, index) => {
+        //     let { first: subjectID, second: subjectDuration } =
+        //         unpackInt32ToInt16(duration);
+        //     console.log(
+        //         '🚀 ~ subjectConfigurationSubjectDurationArray.forEach ~ subjectDuration:',
+        //         subjectDuration
+        //     );
+        // });
+
+        subjectConfigurationMap.forEach((subjectConfigurationArray) => {
+            // console.log(
+            //     '🚀 ~ subjectConfigurationArray:',
+            //     subjectConfigurationArray
+            // );
+
+            subjectConfigurationArray.forEach((subjectConfiguration, index) => {
+                subjectConfiguration.classDuration =
+                    subjectConfiguration.classDuration / timeDivision - offset;
+            });
+        });
+
+        // console.log(
+        //     '🚀  A F T E R ~ subjectConfigurationArray:',
+        //     subjectConfigurationMap
+        // );
+
+        let totalSectionSubjects = 0;
+
         const sectionMap = Object.entries(sectionsStore).reduce(
-            (acc, [, value], index) => {
-                // Assuming value.subjects is an object with subject IDs as keys
-                const subjectIDs = Object.keys(value.subjects);
+            (acc, [, section], index) => {
+                // console.log('🚀 ~ sectionMap ~ section:', section);
+
+                // Assuming section.subjects is an object with subject IDs as keys
+                const subjectIDs = Object.keys(section.subjects);
+
+                const fixedDays = section.fixedDays;
+                const fixedPositions = section.fixedPositions;
+
+                // console.log(
+                //     '🚀 ~ handleButtonClick ~ fixedPositions:',
+                //     fixedPositions
+                // );
+
+                let totalTimeslot = calculateTotalTimeslot(
+                    subjectsStore,
+                    section.subjects,
+                    numOfSchoolDays
+                );
+
+                totalTimeslot += totalTimeslot >= 10 ? 2 : 1;
+
+                const emptyEveryDayTimeslot = new Set(
+                    Array.from({ length: totalTimeslot }, (_, i) => i + 1)
+                );
+
+                Object.keys(fixedPositions).forEach((subjectID) => {
+                    if (
+                        fixedPositions[subjectID].every(
+                            (element) =>
+                                element === fixedPositions[subjectID][0]
+                        )
+                    ) {
+                        return;
+                    }
+
+                    fixedPositions[subjectID].forEach((timeslot) => {
+                        emptyEveryDayTimeslot.delete(timeslot);
+                    });
+                });
+
+                let subjectsEveryDay = [];
+
+                Object.keys(fixedPositions).forEach((subjectID) => {
+                    const allElementsAreZero = fixedPositions[subjectID].every(
+                        (element) => element === fixedPositions[subjectID][0]
+                    );
+
+                    const hasCorrectLength =
+                        fixedPositions[subjectID].length == numOfSchoolDays;
+
+                    if (allElementsAreZero && hasCorrectLength) {
+                        subjectsEveryDay.push(subjectID);
+                    }
+                });
+
+                let subjectConfigurationArray = [];
+
+                Object.entries(fixedPositions).forEach(
+                    ([subjectID, positionArray]) => {
+                        console.log(
+                            `Key: ${subjectID}, Value: ${positionArray}`
+                        );
+
+                        if (
+                            positionArray.length == numOfSchoolDays &&
+                            emptyEveryDayTimeslot.size >=
+                                subjectsEveryDay.length &&
+                            positionArray.every(
+                                (element) => element === positionArray[0]
+                            )
+                        ) {
+                            const subjectConfiguration = {
+                                subject: subjectMapReverse[subjectID].id,
+                                is_consistent_everyday: true,
+                                classDuration:
+                                    subjectMapReverse[subjectID].classDuration /
+                                        timeDivision -
+                                    offset,
+                                fixed_timeslot:
+                                    positionArray[0] == 0
+                                        ? 0
+                                        : positionArray[0] - 1,
+                                fixedDay: 0,
+                            };
+
+                            subjectConfigurationArray.push(
+                                subjectConfiguration
+                            );
+
+                            return;
+                        }
+
+                        positionArray.forEach((timeslot, index) => {
+                            const subjectConfiguration = {
+                                subject: subjectMapReverse[subjectID].id,
+                                is_consistent_everyday: false,
+                                classDuration:
+                                    subjectMapReverse[subjectID].classDuration /
+                                        timeDivision -
+                                    offset,
+                                fixed_timeslot:
+                                    timeslot == 0 ? 0 : timeslot - 1,
+                                fixedDay: fixedDays[subjectID][index],
+                            };
+
+                            subjectConfigurationArray.push(
+                                subjectConfiguration
+                            );
+                        });
+                    }
+                );
+
+                // console.log(
+                //     '🚀 ~ handleButtonClick ~ subjectConfiguration:',
+                //     subjectConfigurationArray
+                // );
+
+                let sectionSubjectConfigurationIDs = [];
+
+                subjectConfigurationArray.forEach((subjectConfiguration) => {
+                    let subjectID = subjectConfiguration.subject;
+                    // console.log(
+                    //     '🚀 ~ gaga ~ gag:',
+                    //     subjectConfiguration.subject
+                    // );
+
+                    subjectConfigurationMap
+                        .get(subjectID)
+                        .forEach((sectionSubjectConfiguration) => {
+                            // console.log(
+                            //     '🚀 ~ eee ~ eee:',
+                            //     sectionSubjectConfiguration
+                            // );
+
+                            const {
+                                subjectConfigurationID:
+                                    sectionSubjectConfigurationID,
+                                ...sectionSubjectConfigurationMinusID
+                            } = sectionSubjectConfiguration;
+
+                            // console.log('comparing');
+                            // console.log(subjectConfiguration);
+                            // console.log(sectionSubjectConfigurationMinusID);
+
+                            if (
+                                deepEqual(
+                                    sectionSubjectConfigurationMinusID,
+                                    subjectConfiguration
+                                )
+                            ) {
+                                sectionSubjectConfigurationIDs.push(
+                                    sectionSubjectConfigurationID
+                                );
+                            }
+                        });
+                });
+
+                totalSectionSubjects += sectionSubjectConfigurationIDs.length;
+
+                console.log(
+                    '🚀 ~ fdff section subjectConfiguration IDs:',
+                    section.id,
+                    sectionSubjectConfigurationIDs
+                );
 
                 acc[index] = {
-                    // Map over the subject IDs to transform them using subjectMapReverse
-                    subjects: subjectIDs.map(
-                        (subjectID) => subjectMapReverse[subjectID]
-                    ),
-                    // Process the units associated with each subject
-                    subjectUnits: Object.keys(value.subjects).reduce(
-                        (unitAcc, subjectID) => {
-                            let mappedKey = subjectMapReverse[subjectID];
-                            unitAcc[mappedKey] = value.subjects[subjectID]; // Use value.subjects[subjectID] to get the number of units
-                            return unitAcc;
-                        },
-                        {}
-                    ),
-
-                    startTime: value.startTime,
-                    id: value.id,
+                    subjectConfigurationIDs: sectionSubjectConfigurationIDs,
+                    subjects: section.subjects,
+                    startTime: section.startTime,
+                    id: section.id,
                 };
 
                 return acc;
@@ -145,16 +770,19 @@ function Timetable() {
         console.log('teacherMap', teacherMap);
         console.log('sectionMap', sectionMap);
 
-        let defaultClassDuration = 4;
-        let breakTimeDuration = 3;
+        let defaultClassDuration = 40;
 
-        const sectionSubjectArray = [];
-        const sectionSubjectUnitArray = [];
-        const sectionSubjectDurationArray = [];
-        const sectionSubjectOrderArray = [];
+        let maxTeacherWorkLoad = 300;
+        let minTeacherWorkLoad = 10;
+
+        defaultClassDuration /= timeDivision;
+        maxTeacherWorkLoad /= timeDivision;
+        minTeacherWorkLoad /= timeDivision;
+
         const sectionStartArray = [];
-
-        let lowestSubjectDuration = breakTimeDuration;
+        const sectionConfigurationArray = [];
+        const sectionSubjectConfigurationArray = [];
+        const sectionLocationArray = [];
 
         // console.log('🚀 ~ handleButtonClick ~ subjectsStore:', subjectsStore);
 
@@ -168,9 +796,9 @@ function Timetable() {
 
         const commonSubjectCount = 9;
 
-        const defaultOrder = 0;
+        // const defaultOrder = 0;
 
-        let offset = lowestSubjectDuration - 1;
+        console.log('🚀 ~ handleButtonClick ~ offset:', offset);
 
         let minTotalClassDurationForTwoBreaks =
             commonSubjectCount * defaultClassDuration;
@@ -179,165 +807,257 @@ function Timetable() {
         breakTimeDuration -= offset;
         minTotalClassDurationForTwoBreaks /= offset;
 
-        // console.log(
-        //     '🚀 ~ handleButtonClick ~ lowestSubjectDuration:',
-        //     lowestSubjectDuration
-        // );
+        for (const [sectionKey, section] of Object.entries(sectionMap)) {
+            console.log('🚀 ~ handleButtonClick ~ section:', section);
 
-        let cellCount = 0;
-        for (const [
-            sectionKey,
-            { subjects, startTime, subjectUnits },
-        ] of Object.entries(sectionMap)) {
-            // console.log('🚀 ~ handleButtonClick ~ startTime:', startTime);
-            let rowCount = 0;
+            sectionStartArray[sectionKey] = section.startTime;
 
-            for (const subject of subjects) {
-                sectionSubjectArray.push(packInt16ToInt32(sectionKey, subject));
+            let totalTimeslot = calculateTotalTimeslot(
+                subjectsStore,
+                section.subjects,
+                numOfSchoolDays
+            );
+
+            const numberOfBreak = totalTimeslot >= 10 ? 2 : 1;
+
+            totalTimeslot += numberOfBreak;
+
+            // const notAllowedBreakslotGap = totalTimeslot >= 7 ? 2 : 1;
+
+            let notAllowedBreakslotGap = 0;
+            if (totalTimeslot >= 5) {
+                notAllowedBreakslotGap = 3;
             }
+            // else if (totalTimeslot >= 7) {
+            //     notAllowedBreakslotGap = 3;
+            // }
 
-            for (const subject of Object.keys(subjectUnits)) {
-                // console.log('🚀 ~ handleButtonClick ~ subject:', subject);
-                const unitCount = subjectUnits[subject][0];
+            const isDynamicSubjectConsistentDuration = 0;
 
-                if (unitCount === 0) {
-                    cellCount++;
-                    rowCount += numOfSchoolDays;
-                    // console.log("🚀 ~ handleButtonClick ~ numOfSchoolDays:", typeof numOfSchoolDays)
-                } else {
-                    cellCount += unitCount;
-                    rowCount += unitCount;
-                    // console.log("🚀 ~ handleButtonClick ~ unitCount:", unitCount)
+            sectionConfigurationArray[sectionKey] = packInt8ToInt32(
+                numberOfBreak,
+                totalTimeslot,
+                notAllowedBreakslotGap,
+                isDynamicSubjectConsistentDuration
+            );
+
+            section.subjectConfigurationIDs.forEach(
+                (subjectConfigurationID) => {
+                    sectionSubjectConfigurationArray.push(
+                        packInt16ToInt32(sectionKey, subjectConfigurationID)
+                    );
                 }
+            );
 
-                sectionSubjectUnitArray.push(
-                    packInt16ToInt32(subject, subjectUnits[subject][0])
-                );
+            const exampleLocation = {
+                buildingID: 0,
+                floor: 0,
+                room: 0,
+            };
 
-                sectionStartArray[sectionKey] = startTime;
-
-                // TODO: might there be code smell on how it stores
-
-                sectionSubjectDurationArray.push(
-                    packInt16ToInt32(
-                        subject,
-                        subjectsStore[subjectMap[subject]].classDuration / 10 -
-                            offset
-                    )
-                );
-
-                sectionSubjectOrderArray.push(
-                    packInt16ToInt32(subject, subjectUnits[subject][1])
-                );
-            }
-
-            // console.log('🚀 ~ handleButtonClick ~ rowCount:', rowCount);
-            rowCount = Math.trunc(rowCount / numOfSchoolDays);
-            let numOfBreak = rowCount < 10 ? 1 : 2;
-            cellCount += numOfBreak;
+            sectionLocationArray.push(
+                packThreeSignedIntsToInt32(
+                    exampleLocation.buildingID,
+                    exampleLocation.floor,
+                    exampleLocation.room
+                )
+            );
         }
 
-        const sectionSubjects = new Int32Array([...sectionSubjectArray]);
-        const sectionSubjectUnits = new Int32Array([
-            ...sectionSubjectUnitArray,
+        console.log(
+            '🚀 ~ handleButtonClick ~ sectionStartArray:',
+            sectionStartArray
+        );
+
+        const sectionLocation = new Int32Array([...sectionLocationArray]);
+
+        const subjectConfigurationSubjectUnits = new Int32Array([
+            ...subjectConfigurationSubjectUnitsArray,
         ]);
-        const sectionSubjectDurations = new Int32Array([
-            ...sectionSubjectDurationArray,
+        const subjectConfigurationSubjectDuration = new Int32Array([
+            ...subjectConfigurationSubjectDurationArray,
         ]);
-        const sectionSubjectOrders = new Int32Array([
-            ...sectionSubjectOrderArray,
+        const subjectConfigurationSubjectFixedTimeslot = new Int32Array([
+            ...subjectConfigurationSubjectFixedTimeslotArray,
+        ]);
+        const subjectConfigurationSubjectFixedDay = new Int32Array([
+            ...subjectConfigurationSubjectFixedDayArray,
+        ]);
+        const sectionConfiguration = new Int32Array([
+            ...sectionConfigurationArray,
+        ]);
+        const sectionSubjectConfiguration = new Int32Array([
+            ...sectionSubjectConfigurationArray,
         ]);
 
-        const max_iterations = 15000;
+        const maxIterations = 500;
         const beesPopulations = 4;
         const beesEmployed = 2;
         const beesOnlooker = 2;
         const beesScout = 1;
-        const numTeachers = Object.keys(teacherMap).length;
-        const totalSchoolClass = sectionSubjectArray.length;
-        const totalSection = Object.keys(sectionMap).length;
+        const totalTeachers = Object.keys(teacherMap).length;
+        const totalSections = Object.keys(sectionMap).length;
 
-        const limits = numTeachers * totalSection;
-
-        // for (let i = 0; i < totalSection; i++) {
-        //     sectionStartArray[i] = 0;
-        // }
+        const limits = totalTeachers * totalSections;
 
         const sectionStarts = new Int32Array([...sectionStartArray]);
 
         const teacherSubjectArray = [];
+        const teacherWeekLoadConfigArray = [];
 
         for (const [teacherKey, { subjects }] of Object.entries(teacherMap)) {
             for (const subject of subjects) {
                 teacherSubjectArray.push(packInt16ToInt32(teacherKey, subject));
+                teacherWeekLoadConfigArray.push(
+                    packInt16ToInt32(maxTeacherWorkLoad, minTeacherWorkLoad)
+                );
             }
         }
 
         const teacherSubjects = new Int32Array([...teacherSubjectArray]);
+        const teacherWeekLoadConfig = new Int32Array([
+            ...teacherWeekLoadConfigArray,
+        ]);
 
-        const breakTimeslotAllowance = 6;
+        const subjectFixedTeacherSection = new Int32Array([-1]);
+        const subjectFixedTeacher = new Int32Array([-1]);
+
         const teacherBreakThreshold = 4;
 
-        const params = {
-            maxIterations: max_iterations,
-            numTeachers: numTeachers,
-            totalSchoolClass: totalSchoolClass,
-            totalSection: totalSection,
+        const numOfViolationType = 7;
 
-            sectionSubjects: sectionSubjects,
-            sectionSubjectDurations: sectionSubjectDurations,
-            sectionSubjectOrders: sectionSubjectOrders,
-            sectionStarts: sectionStarts,
+        const resultTimetableLength =
+            totalSections *
+            Object.entries(subjectsStore).length *
+            numOfSchoolDays;
+
+        const resultViolationLength =
+            numOfViolationType * totalSections +
+            numOfViolationType * totalTeachers;
+
+        const teacherMiddleTimePointGrowAllowanceForBreakTimeslot = 4;
+
+        const params2 = {
+            maxIterations: maxIterations,
+            numTeachers: totalTeachers,
+            totalSectionSubjects: totalSectionSubjects,
+            totalSection: totalSections,
+            numberOfSubjectConfiguration: totalNumOfSubjectConfigurations,
+            sectionConfiguration: sectionConfiguration,
+            sectionLocation: sectionLocation,
+            sectionSubjectConfiguration: sectionSubjectConfiguration,
+            subjectConfigurationSubjectUnits: subjectConfigurationSubjectUnits,
+            subjectConfigurationSubjectDuration:
+                subjectConfigurationSubjectDuration,
+            subjectConfigurationSubjectFixedTimeslot:
+                subjectConfigurationSubjectFixedTimeslot,
+            subjectConfigurationSubjectFixedDay:
+                subjectConfigurationSubjectFixedDay,
+            subjectFixedTeacherSection: subjectFixedTeacherSection,
+            subjectFixedTeacher: subjectFixedTeacher,
+            sectionStart: sectionStarts,
             teacherSubjects: teacherSubjects,
-            sectionSubjectUnits: sectionSubjectUnits,
+            teacherWeekLoadConfig: teacherWeekLoadConfig,
+            buildingInfo: buildingInfo,
+            buildingAdjacency: buildingAdjacency,
             teacherSubjectsLength: teacherSubjects.length,
-
             beesPopulation: beesPopulations,
             beesEmployed: beesEmployed,
             beesOnlooker: beesOnlooker,
             beesScout: beesScout,
-            limits: limits,
+            limit: limits,
             workWeek: numOfSchoolDays,
-
-            maxTeacherWorkLoad: 9,
             breakTimeDuration: breakTimeDuration,
-            breakTimeslotAllowance: breakTimeslotAllowance,
             teacherBreakThreshold: teacherBreakThreshold,
+            teacherMiddleTimePointGrowAllowanceForBreakTimeslot:
+                teacherMiddleTimePointGrowAllowanceForBreakTimeslot,
             minTotalClassDurationForTwoBreaks:
                 minTotalClassDurationForTwoBreaks,
             defaultClassDuration: defaultClassDuration,
-            // resultLength: cellCount,
-            resultLength:
-                totalSection *
-                Object.entries(subjectsStore).length *
-                numOfSchoolDays,
-
-            offset: offset,
+            offsetDuration: offset,
+            resultTimetableLength: resultTimetableLength,
+            resultViolationLength: resultViolationLength,
+            enableLogging: false,
         };
 
+        // setTimetableGenerationStatus('running');
+        // const { timetable: generatedTimetable, status } = await getTimetable(
+        //     params2
+        // );
+        // console.log('🚀 ~ handleButtonClick ~ status:', status);
+
+        // setTimetableGenerationStatus(status);
+
+        let generatedTimetable = [];
+
         setTimetableGenerationStatus('running');
-        const { timetable: generatedTimetable, status } = await getTimetable(
-            params
-        );
-        setTimetableGenerationStatus(status);
+        try {
+            const { timetable, status } = await getTimetable(params2);
 
-        // const timetableMap = [];
-        const sectionTimetable = {};
-        const teacherTimetable = {};
+            console.log('🚀 ~ handleButtonClick ~ status:', status);
+            setTimetableGenerationStatus(status);
 
-        function ensureNestedObject(obj, keys) {
-            let current = obj;
-            for (let key of keys) {
-                if (!current[key]) {
-                    current[key] = {}; // Initialize the nested object if it doesn't exist
-                }
-                current = current[key];
+            if (status === 'error') {
+                console.error(
+                    'Error occurred during timetable generation:',
+                    timetable.error
+                );
+            } else {
+                console.log('Generated timetable:', timetable);
+                generatedTimetable = timetable;
             }
-            return current;
+        } catch (err) {
+            console.error('Unexpected error:', err);
+            setTimetableGenerationStatus('error');
         }
+
+        const sectionTimetable = new Map();
+        const teacherTimetable = new Map();
+        const teacherTakenTime = new Map();
+
+        function addToMap(map, key, value) {
+            map.push([key, value]);
+            map.sort((a, b) => a[0] - b[0]);
+        }
+
+        const addTimeslotToTimetable = (
+            timetableMap,
+            section_id,
+            subject_id,
+            teacher_id,
+            start,
+            end,
+            day,
+            fieldName1,
+            fieldName2,
+            containerName
+        ) => {
+            const timeslotData = {
+                section: section_id,
+                subject: subject_id,
+                teacher: teacher_id,
+                fieldName1: fieldName1,
+                fieldName2: fieldName2,
+                day: day,
+                end: end,
+            };
+
+            if (timetableMap.has(section_id)) {
+                const timetable = timetableMap.get(section_id);
+                addToMap(timetable.get('timetable'), start, timeslotData);
+            } else {
+                const timetable = new Map();
+                timetable.set('containerName', containerName);
+                timetable.set('timetable', []);
+                addToMap(timetable.get('timetable'), start, timeslotData);
+                timetableMap.set(section_id, timetable);
+            }
+        };
 
         for (const entry of generatedTimetable) {
             // console.log('🚀 ~ handleButtonClick ~ entry of timetable:', entry);
+
+            // console.log('x', teacher_id, start, end);
 
             const section_id = sectionMap[entry[0]].id;
             const subject_id = subjectMap[entry[1]] || null;
@@ -345,62 +1065,105 @@ function Timetable() {
             const timeslot = entry[3];
             const day = entry[4];
 
-            const start = entry[5];
-            const end = entry[6];
+            const start = Number(entry[5]);
+            const end = Number(entry[6]);
 
-            // Ensure sectionTimetable nested structure exists
-            let sectionEntry = ensureNestedObject(sectionTimetable, [
+            addTimeslotToTimetable(
+                sectionTimetable,
                 section_id,
-                timeslot,
+                subject_id,
+                teacher_id,
+                start,
+                end,
                 day,
-            ]);
-
-            sectionTimetable[section_id].containerName =
-                sectionsStore[section_id]?.section;
-
-            // Now you can safely assign values to the final nested object
-            sectionEntry.subject = subjectsStore[subject_id]?.subject || null;
-            sectionEntry.sectionID = section_id || null;
-
-            sectionEntry.teacher = teachersStore[teacher_id]?.teacher || null;
-            sectionEntry.teacherID = teacher_id || null;
-            sectionEntry.subjectID = subject_id || null;
-
-            sectionEntry.start = start;
-            sectionEntry.end = end;
+                subjectsStore[subject_id]?.subject || null,
+                teachersStore[teacher_id]?.teacher || null,
+                sectionsStore[section_id]?.section
+            );
 
             if (teacher_id == null) {
                 continue;
             }
 
-            // Ensure teacherTimetable nested structure exists
-            let teacherEntry = ensureNestedObject(teacherTimetable, [
+            if (teacherTakenTime.has(teacher_id)) {
+                for (let time = start; time < end; time++) {
+                    teacherTakenTime.get(teacher_id).add(time);
+                }
+            } else {
+                let takenTime = [];
+
+                for (let time = start; time < end; time++) {
+                    takenTime.push(time);
+                }
+
+                teacherTakenTime.set(teacher_id, new Set(takenTime));
+            }
+
+            addTimeslotToTimetable(
+                teacherTimetable,
                 teacher_id,
-                timeslot,
+                subject_id,
+                section_id,
+                start,
+                end,
                 day,
-            ]);
-
-            teacherTimetable[teacher_id].containerName =
-                teachersStore[teacher_id]?.teacher;
-
-            // Now you can safely assign values to the final nested object
-            teacherEntry.subject = subjectsStore[subject_id]?.subject || null;
-            teacherEntry.subjectID = subject_id || null;
-            teacherEntry.teacherID = teacher_id || null;
-
-            teacherEntry.section = sectionsStore[section_id]?.section || null;
-            teacherEntry.sectionID = section_id;
-
-            teacherEntry.start = start;
-            teacherEntry.end = end;
+                sectionsStore[section_id]?.section,
+                subjectsStore[subject_id]?.subject,
+                teachersStore[teacher_id]?.teacher
+            );
         }
 
-        // setTimetable(timetable);
+        teacherTakenTime.forEach((timeSet, teacher_id) => {
+            let timeArray = Array.from(timeSet);
+            timeArray.sort((a, b) => a - b);
+
+            console.log('b teacher_id: ', teacher_id, timeArray);
+
+            teacherTakenTime.set(teacher_id, timeArray); // Update the map correctly using set()
+        });
+
+        console.log('teacherTakenTime: ', teacherTakenTime);
+        teacherTakenTime.forEach((set, key) => {
+            console.log('c key: ', key, set);
+
+            let teacherStartTime = 0;
+            let currentTime = teacherStartTime;
+
+            set.forEach((value) => {
+                if (value - currentTime > 1) {
+                    const result = [];
+
+                    for (let i = currentTime; i <= value; i++) {
+                        result.push(i + 1);
+                    }
+
+                    const teacher = teacherTimetable.get(key).get('timetable');
+                    teacher.push([
+                        currentTime == 0 ? currentTime : currentTime + 1,
+                        {
+                            section: null,
+                            subject: null,
+                            teacher: null,
+                            fieldName1: null,
+                            fieldName2: null,
+                            day: null,
+                            end: value,
+                        },
+                    ]);
+
+                    // console.log('🚀 ~ s', teacher);
+                    // console.log('🚀 ~ set.forEach ~ teacher:', teacher);
+                }
+
+                currentTime = value;
+            });
+        });
+
         // console.log("timetable", timetableMap);
         console.log('section timetable', sectionTimetable);
         console.log('teacher timetable', teacherTimetable);
 
-        // setTimetable(timetableMap);
+        // // // setTimetable(timetableMap);
         setSectionTimetables(sectionTimetable);
         setTeacherTimetables(teacherTimetable);
         const combined = combineObjects(sectionTimetable, teacherTimetable);
@@ -727,7 +1490,234 @@ function Timetable() {
         clearAllEntriesAndResetIDs();
     };
 
+    const handleNumOfSchoolDaysChange = () => {
+        localStorage.setItem('numOfSchoolDays', numOfSchoolDays);
+
+        if (numOfSchoolDays === prevNumOfSchoolDays) return;
+        setPrevNumOfSchoolDays(numOfSchoolDays);
+
+        if (Object.keys(programsStore).length === 0) return;
+
+        // Precompute values
+        const classCountLookup = {};
+        Object.entries(subjectsStore).forEach(([subjectID, subject]) => {
+            (classCountLookup[subjectID] = Math.ceil(
+                subject.weeklyMinutes / subject.classDuration
+            )),
+                numOfSchoolDays;
+        });
+
+        // Update program fixed days and fixed positions
+        Object.entries(programsStore).forEach(([progId, prog]) => {
+            const originalProgram = JSON.parse(JSON.stringify(prog));
+            const newProgram = JSON.parse(JSON.stringify(prog));
+
+            [7, 8, 9, 10].forEach((grade) => {
+                if (newProgram[grade].subjects.length === 0) return;
+
+                newProgram[grade].subjects.map((subId) => {
+                    if (classCountLookup[subId] <= numOfSchoolDays) return;
+
+                    const fixedDays = newProgram[grade].fixedDays[subId];
+                    const fixedPositions =
+                        newProgram[grade].fixedPositions[subId];
+
+                    for (let i = 0; i < fixedDays.length; i++) {
+                        if (fixedDays[i] > numOfSchoolDays) {
+                            fixedDays[i] = 0;
+                            fixedPositions[i] = 0;
+                        }
+                    }
+
+                    const numOfClasses = Math.min(
+                        classCountLookup[subId],
+                        numOfSchoolDays
+                    );
+
+                    const dayPositionMap = new Map();
+
+                    fixedDays.forEach((day, index) => {
+                        const pos = fixedPositions[index];
+                        if (
+                            (day !== 0 && pos !== 0) ||
+                            (day !== 0 && pos === 0) ||
+                            (day === 0 &&
+                                pos !== 0 &&
+                                !dayPositionMap.has(`${day}-${pos}`))
+                        ) {
+                            dayPositionMap.set(`${day}-${pos}`, [day, pos]);
+                        }
+                    });
+
+                    // console.log('dayPositionMap', dayPositionMap);
+
+                    let result = [];
+                    dayPositionMap.forEach(([day, pos]) => {
+                        if (result.length < numOfClasses) {
+                            result.push([day, pos]);
+                        }
+                    });
+
+                    // console.log('result1', result);
+
+                    // Pad with [0, 0] if necessary
+                    while (result.length < numOfClasses) {
+                        result.push([0, 0]);
+                    }
+
+                    // console.log('result2', result);
+
+                    newProgram[grade].fixedDays[subId] = result.map(
+                        ([day]) => day
+                    );
+                    newProgram[grade].fixedPositions[subId] = result.map(
+                        ([_, pos]) => pos
+                    );
+                });
+            });
+
+            console.log('originalProgram:', originalProgram);
+            console.log('newProgram:', newProgram);
+
+            if (originalProgram !== newProgram) {
+                dispatch(
+                    editProgram({
+                        programId: newProgram.id,
+                        updatedProgram: {
+                            program: newProgram.program,
+                            7: {
+                                subjects: newProgram[7].subjects,
+                                fixedDays: newProgram[7].fixedDays,
+                                fixedPositions: newProgram[7].fixedPositions,
+                                shift: newProgram[7].shift,
+                                startTime: getTimeSlotIndex(
+                                    newProgram[7].startTime || '06:00 AM'
+                                ),
+                            },
+                            8: {
+                                subjects: newProgram[8].subjects,
+                                fixedDays: newProgram[8].fixedDays,
+                                fixedPositions: newProgram[8].fixedPositions,
+                                shift: newProgram[8].shift,
+                                startTime: getTimeSlotIndex(
+                                    newProgram[8].startTime || '06:00 AM'
+                                ),
+                            },
+                            9: {
+                                subjects: newProgram[9].subjects,
+                                fixedDays: newProgram[9].fixedDays,
+                                fixedPositions: newProgram[9].fixedPositions,
+                                shift: newProgram[9].shift,
+                                startTime: getTimeSlotIndex(
+                                    newProgram[9].startTime || '06:00 AM'
+                                ),
+                            },
+                            10: {
+                                subjects: newProgram[10].subjects,
+                                fixedDays: newProgram[10].fixedDays,
+                                fixedPositions: newProgram[10].fixedPositions,
+                                shift: newProgram[10].shift,
+                                startTime: getTimeSlotIndex(
+                                    newProgram[10].startTime || '06:00 AM'
+                                ),
+                            },
+                        },
+                    })
+                );
+            }
+        });
+
+        if (Object.keys(sectionsStore).length === 0) return;
+
+        // Update section fixed days and fixed positions
+        Object.entries(sectionsStore).forEach(([secId, sec]) => {
+            const originalSection = JSON.parse(JSON.stringify(sec));
+            const newSection = JSON.parse(JSON.stringify(sec));
+
+            newSection.subjects.map((subId) => {
+                if (classCountLookup[subId] <= numOfSchoolDays) return;
+
+                const fixedDays = newSection.fixedDays[subId];
+                const fixedPositions = newSection.fixedPositions[subId];
+
+                for (let i = 0; i < fixedDays.length; i++) {
+                    if (fixedDays[i] > numOfSchoolDays) {
+                        fixedDays[i] = 0;
+                        fixedPositions[i] = 0;
+                    }
+                }
+
+                const numOfClasses = Math.min(
+                    classCountLookup[subId],
+                    numOfSchoolDays
+                );
+
+                const dayPositionMap = new Map();
+
+                fixedDays.forEach((day, index) => {
+                    const pos = fixedPositions[index];
+                    if (
+                        (day !== 0 && pos !== 0) ||
+                        (day !== 0 && pos === 0) ||
+                        (day === 0 &&
+                            pos !== 0 &&
+                            !dayPositionMap.has(`${day}-${pos}`))
+                    ) {
+                        dayPositionMap.set(`${day}-${pos}`, [day, pos]);
+                    }
+                });
+
+                // console.log('dayPositionMap', dayPositionMap);
+
+                let result = [];
+                dayPositionMap.forEach(([day, pos]) => {
+                    if (result.length < numOfClasses) {
+                        result.push([day, pos]);
+                    }
+                });
+
+                // console.log('result1', result);
+
+                // Pad with [0, 0] if necessary
+                while (result.length < numOfClasses) {
+                    result.push([0, 0]);
+                }
+
+                // console.log('result2', result);
+
+                newSection.fixedDays[subId] = result.map(([day]) => day);
+                newSection.fixedPositions[subId] = result.map(
+                    ([_, pos]) => pos
+                );
+            });
+
+            if (originalSection !== newSection) {
+                dispatch(
+                    editSection({
+                        sectionId: newSection.id,
+                        updatedSection: {
+                            id: newSection.id,
+                            teacher: newSection.teacher,
+                            program: newSection.program,
+                            section: newSection.section,
+                            subjects: newSection.subjects,
+                            fixedDays: newSection.fixedDays,
+                            fixedPositions: newSection.fixedPositions,
+                            year: newSection.year,
+                            shift: newSection.shift,
+                            startTime: getTimeSlotIndex(
+                                newSection.startTime || '06:00 AM'
+                            ),
+                        },
+                    })
+                );
+            }
+        });
+    };
+
     useEffect(() => {
+        console.log('timetableGenerationStatus', timetableGenerationStatus);
+
         // Function to handle the beforeunload event
         const handleBeforeUnload = (event) => {
             if (timetableGenerationStatus === 'running') {
@@ -4315,13 +5305,43 @@ function Timetable() {
 
         setMapVal(convertToHashMap(combined));
     }, []);
+    useEffect(() => {
+        handleNumOfSchoolDaysChange();
+    }, [numOfSchoolDays]);
+
+    useEffect(() => {
+        if (sectionStatus === 'idle') {
+            dispatch(fetchSections());
+        }
+    }, [sectionStatus, dispatch]);
+
+    useEffect(() => {
+        if (programStatus === 'idle') {
+            dispatch(fetchPrograms());
+        }
+    }, [programStatus, dispatch]);
+
+    useEffect(() => {
+        if (subjectStatus === 'idle') {
+            dispatch(fetchSubjects());
+        }
+    }, [subjectStatus, dispatch]);
+
+    useEffect(() => {
+        if (buildingStatus === 'idle') {
+            dispatch(fetchBuildings());
+        }
+    }, [buildingStatus, dispatch]);
 
     return (
         <div className="App container mx-auto px-4 py-6">
             <div className="mb-6 flex justify-between items-center">
                 <Breadcrumbs title="Timetable" links={links} />
                 <div className="flex items-center gap-2">
-                    <ExportImportDBButtons onClear={handleClearAndRefresh} />
+                    <ExportImportDBButtons
+                        onClear={handleClearAndRefresh}
+                        numOfSchoolDays={numOfSchoolDays}
+                    />
                     <button
                         className={clsx('btn btn-primary', {
                             'cursor-not-allowed':
@@ -4329,9 +5349,9 @@ function Timetable() {
                             'btn-error': timetableGenerationStatus === 'error',
                         })}
                         onClick={() => {
-                            if (validate()) {
-                                handleButtonClick();
-                            }
+                            // if (validate()) {
+                            handleButtonClick();
+                            // }
                         }}
                         disabled={timetableGenerationStatus === 'running'}
                     >
@@ -4348,7 +5368,10 @@ function Timetable() {
             </div>
 
             <div className="mb-6">
-                <Configuration />
+                <Configuration
+                    numOfSchoolDays={numOfSchoolDays}
+                    setNumOfSchoolDays={setNumOfSchoolDays}
+                />
             </div>
 
             {/* Responsive card layout for Subject and Teacher Lists */}
@@ -4365,7 +5388,7 @@ function Timetable() {
             <div>
                 <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
                     <h2 className="text-lg font-semibold mb-4">Subjects</h2>
-                    <SubjectListContainer />
+                    <SubjectListContainer numOfSchoolDays={numOfSchoolDays} />
                 </div>
 
                 <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
@@ -4376,14 +5399,16 @@ function Timetable() {
                 {/* Program Lists */}
                 <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
                     <h2 className="text-lg font-semibold mb-4">Programs</h2>
-                    <ProgramListContainer />
+                    <ProgramListContainer numOfSchoolDays={numOfSchoolDays} />
                 </div>
 
                 {/* Section List with the Generate Timetable Button */}
                 <div className="mt-6">
                     <div className="bg-base-100 p-6 rounded-lg shadow-lg">
                         <h2 className="text-lg font-semibold mb-4">Sections</h2>
-                        <SectionListContainer />
+                        <SectionListContainer
+                            numOfSchoolDays={numOfSchoolDays}
+                        />
                         <div className="mt-4">
                             <ViolationList violations={violations} />
                         </div>
@@ -4434,8 +5459,3 @@ function Timetable() {
 }
 
 export default Timetable;
-
-// /* eslint-disable no-undef */
-// /* eslint-disable  no-restricted-globals */
-// /* eslint-disable  no-unused-expressions */
-// /* eslint-disable import/no-amd */

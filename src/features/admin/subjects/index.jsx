@@ -1,5 +1,5 @@
-import SubjectListContainer from '@components/Admin/SubjectListContainer';
-import ProgramListContainer from '@components/Admin/ProgramListContainer';
+import SubjectListContainer from '../../../components/SubjectComponents/SubjectListContainer';
+import ProgramListContainer from '../../../components/Admin/ProgramComponents/ProgramListContainer';
 import Configuration from '@components/Admin/Configuration';
 import Breadcrumbs from '@components/Admin/Breadcrumbs';
 

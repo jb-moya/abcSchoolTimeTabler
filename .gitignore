@@ -51,3 +51,8 @@ dist-ssr
 # log files on C++
 *timetable*.txt
 *app*.exe
+
+# C++ object & exe file
+*.o
+*.d
+*.exe

@@ -53,7 +53,17 @@ const routes = [
       {
         path: '/app/admin/modify-sections',
         icon: <DocumentIcon className={submenuIconClasses} />,
-        name: 'Modify Section',
+        name: 'Modify Sections',
+      },
+      {
+        path: '/app/admin/modify-departments',
+        icon: <DocumentIcon className={submenuIconClasses} />,
+        name: 'Modify Departments',
+      },
+      {
+        path: '/app/admin/room-mapping',
+        icon: <DocumentIcon className={submenuIconClasses} />,
+        name: 'Room Utilization',
       },
     ],
   },

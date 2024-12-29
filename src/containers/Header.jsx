@@ -251,10 +251,7 @@ function Header() {
                             className="btn btn-ghost btn-circle avatar"
                         >
                             <div className="w-10 rounded-full">
-                                <img
-                                    src="https://placeimg.com/80/80/people"
-                                    alt="profile"
-                                />
+                                <img src="/profile.png" alt="profile" />
                             </div>
                         </label>
                         <ul
@@ -264,12 +261,6 @@ function Header() {
                             <li className="justify-between">
                                 <Link to={'/app/settings-profile'}>
                                     Profile Settings
-                                    <span className="badge">New</span>
-                                </Link>
-                            </li>
-                            <li>
-                                <Link to={'/app/settings-billing'}>
-                                    Bill History
                                 </Link>
                             </li>
                             <div className="divider mt-0 mb-0"></div>

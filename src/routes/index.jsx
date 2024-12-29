@@ -29,6 +29,12 @@ const ModifySubjects = lazy(() =>
 const ModifySections = lazy(() =>
   import('../pages/protected/admin/ModifySections')
 );
+const ModifyDepartments = lazy(() =>
+  import('../pages/protected/admin/ModifyDepartments')
+);
+const RoomMapping = lazy(() =>
+  import('../pages/protected/admin/RoomMapping')
+);
 const DisplaySectionSchedule = lazy(() =>
   import('../pages/protected/reports/SectionSchedules')
 );
@@ -58,6 +64,14 @@ const routes = [
   {
     path: '/admin/modify-sections', // the url
     component: ModifySections, // view rendered
+  },
+  {
+    path: '/admin/modify-departments', // the url
+    component: ModifyDepartments, // view rendered
+  },
+  {
+    path: '/admin/room-mapping', // the url
+    component: RoomMapping, // view rendered
   },
   {
     path: '/reports/display-teachers-schedule', // the url

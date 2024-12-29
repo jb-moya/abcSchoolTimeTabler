@@ -1,3 +1,15 @@
+/**
+ * Converts a given number of steps into a time, starting from 6:00 AM.
+ * Each step corresponds to a 10-minute increment.
+ *
+ * @param {number} num - The number of steps to add to the starting time (6:00 AM).
+ * @returns {string} - The resulting time in the format "h:mm AM/PM".
+ *
+ * @example
+ * convertToTime(0); // Returns "6:00 AM"
+ * convertToTime(36); // Returns "12:00 PM"
+ * convertToTime(90); // Returns "9:00 PM"
+ */
 function convertToTime(num) {
     // Starting time is 6:00 AM
     let startHour = 6;
