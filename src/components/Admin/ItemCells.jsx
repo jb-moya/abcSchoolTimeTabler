@@ -81,15 +81,15 @@ const ItemCells = ({
     const getUpdatedStart = (mode, start) => {
         switch (mode) {
             case '5m':
-                return start * 0.5;
-            case '10m':
                 return start * 1;
-            case '20m':
+            case '10m':
                 return start * 2;
+            case '20m':
+                return start * 4;
             case '30m':
-                return start * 3;
-            case '60m':
                 return start * 6;
+            case '60m':
+                return start * 12;
             default:
                 return null;
         }

@@ -5300,11 +5300,11 @@ function Timetable() {
 
     // console.log(hashMap.get('Section 2').get('2-2-0'));  // Should log the second schedule item
 
-    useEffect(() => {
-        const combined = combineObjects(sectionObj, teacherObj);
+    // useEffect(() => {
+    //     const combined = combineObjects(sectionObj, teacherObj);
 
-        setMapVal(convertToHashMap(combined));
-    }, []);
+    //     setMapVal(convertToHashMap(combined));
+    // }, []);
     useEffect(() => {
         handleNumOfSchoolDaysChange();
     }, [numOfSchoolDays]);

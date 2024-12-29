@@ -1,4 +1,3 @@
-import Guest from '../features/guest/search';
 import { themeChange } from 'theme-change';
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
