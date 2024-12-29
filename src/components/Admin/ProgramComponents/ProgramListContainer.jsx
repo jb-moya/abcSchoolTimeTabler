@@ -13,7 +13,10 @@ import { fetchSubjects } from '@features/subjectSlice';
 import debounce from 'debounce';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import SearchableDropdownToggler from '../searchableDropdown';
-import { getTimeSlotIndex, getTimeSlotString } from '../timeSlotMapper';
+
+import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';
+import TimeSelector from '@utils/timeSelector';
+
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
@@ -39,18 +42,29 @@ const AdditionalScheduleForProgram = ({
 }) => {
     const subjects = useSelector((state) => state.subject.subjects);
 
-    const [schedName, setSchedName] = useState(additionalSchedsOfProgYear.name);
+    const lastSchedTimeRef = useRef();
+
+    const [schedName, setSchedName] = useState(
+        additionalSchedsOfProgYear.name || ''
+    );
     const [schedSubject, setSchedSubject] = useState(
-        additionalSchedsOfProgYear.subject
+        additionalSchedsOfProgYear.subject || 0
     );
     const [schedDuration, setSchedDuration] = useState(
-        additionalSchedsOfProgYear.duration
+        additionalSchedsOfProgYear.duration || 0
     );
     const [schedFrequency, setSchedFrequency] = useState(
-        additionalSchedsOfProgYear.frequency
+        additionalSchedsOfProgYear.frequency || 0
     );
-    const [schedShown, setSchedShown] = useState(false);
+    const [schedShown, setSchedShown] = useState(
+        additionalSchedsOfProgYear.shown || false
+    );
+    const [schedTime, setSchedtime] = useState(
+        additionalSchedsOfProgYear.time || 0
+    );
 
+    const [time, setTime] = useState();
+ 
     const handleSave = () => {
         const newSched = {
             name: schedName,
@@ -58,6 +72,7 @@ const AdditionalScheduleForProgram = ({
             duration: schedDuration,
             frequency: schedFrequency,
             shown: schedShown,
+            time: getTimeSlotIndex(time),
         };
 
         setAdditionalScheds((prev) => {
@@ -103,9 +118,30 @@ const AdditionalScheduleForProgram = ({
         setSchedName(additionalSchedsOfProgYear.name || '');
         setSchedSubject(additionalSchedsOfProgYear.subject || 0);
         setSchedDuration(additionalSchedsOfProgYear.duration || 0);
-        setSchedFrequency(additionalSchedsOfProgYear.frequency || '');
+        setSchedFrequency(additionalSchedsOfProgYear.frequency || 0);
         setSchedShown(additionalSchedsOfProgYear.shown || false);
+        setSchedtime(additionalSchedsOfProgYear.time || 0);
     }, [additionalSchedsOfProgYear]);
+
+    useEffect(() => {
+        if (schedTime !== lastSchedTimeRef.current) {
+            lastSchedTimeRef.current = schedTime;
+
+            const timeString = getTimeSlotString(schedTime);
+            // console.log('schedTime', schedTime);
+
+            // console.log('timeString', timeString);
+
+            if (timeString) {
+                setTime(timeString);
+            }
+
+        }
+    }, [schedTime]);
+
+    // useEffect(() => {
+    //     console.log('time', time);
+    // }, [time]);
 
     // useEffect(() => {
     //     console.log('schedName', schedName);
@@ -114,7 +150,8 @@ const AdditionalScheduleForProgram = ({
     //     console.log('schedDuration', schedDuration);
     //     console.log('schedFrequency', schedFrequency);
     //     console.log('schedShown', schedShown);
-    // }, [schedName, schedSubject, schedDuration, schedFrequency, schedShown]);
+    //     console.log('schedTime', schedTime);
+    // }, [schedName, schedSubject, schedDuration, schedFrequency, schedShown, schedTime]);
 
     return (
         <dialog
@@ -131,6 +168,7 @@ const AdditionalScheduleForProgram = ({
                         )}
                     </div>
 
+                    {/* Schedule Name */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium mb-1">
                             Schedule Name:
@@ -146,6 +184,8 @@ const AdditionalScheduleForProgram = ({
                             readOnly={viewingMode !== 0}
                         />
                     </div>
+
+                    {/* Subject */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium mb-1">
                             Subject:
@@ -177,6 +217,8 @@ const AdditionalScheduleForProgram = ({
                             />
                         )}
                     </div>
+
+                    {/* Duration */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium mb-1">
                             Duration (in minutes):
@@ -193,6 +235,8 @@ const AdditionalScheduleForProgram = ({
                             readOnly={viewingMode !== 0}
                         />
                     </div>
+
+                    {/* Frequency */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium mb-1">
                             Frequency:
@@ -211,6 +255,8 @@ const AdditionalScheduleForProgram = ({
                             readOnly={viewingMode !== 0}
                         />
                     </div>
+
+                    {/* Must Appear on Schedule */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium mb-1">
                             Must Appear on Schedule:
@@ -230,6 +276,30 @@ const AdditionalScheduleForProgram = ({
                             <option value="Yes">Yes</option>
                             <option value="No">No</option>
                         </select>
+                    </div>
+
+                    {/* Time */}
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1">
+                            Time:
+                        </label>
+                        {viewingMode === 0 ? (
+                            <TimeSelector 
+                                className='z-10'
+
+                                key={`newProgramTimePicker-program{${programID}}-grade${grade}-arrayIndex${arrayIndex}`}
+                                interval={5}
+                                time={time}
+                                setTime={setTime}
+                            />
+                        ) : (
+                            <div className="flex items-center justify-start input border rounded h-12 bg-white border border-gray-300 text-base">
+                                {time
+                                    ? time
+                                    : '--:--- --'}
+                            </div>
+                        )}
+                        
                     </div>
 
                     <div className="mt-4 text-center text-lg font-bold">
@@ -461,6 +531,7 @@ const AddProgramContainer = ({
                     duration: 60,
                     frequency: 1,
                     shown: true,
+                    time: selectedShifts[grade] === 0 ? 192 : 96,
                 },
             ],
         }));
@@ -1640,6 +1711,7 @@ const ProgramListContainer = ({
                     duration: 60,
                     frequency: 1,
                     shown: true,
+                    time: selectedShifts[grade] === 0 ? 192 : 96,
                 },
             ],
         }));

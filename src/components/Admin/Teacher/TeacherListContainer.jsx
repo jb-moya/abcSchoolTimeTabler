@@ -6,6 +6,10 @@ import {
   editTeacher,
   removeTeacher,
 } from '@features/teacherSlice';
+
+import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';
+import TimeSelector from '@utils/timeSelector';
+
 import { fetchSubjects } from '@features/subjectSlice';
 import { fetchRanks } from '@features/rankSlice';
 import { fetchDepartments } from '@features/departmentSlice';
@@ -35,17 +39,28 @@ const AdditionalScheduleForTeacher = ({
 }) => {
 	const subjects = useSelector((state) => state.subject.subjects);
 
-	const [schedName, setSchedName] = useState(additionalSchedsOfTeacher.name);
+	const lastSchedTimeRef = useRef();
+
+	const [schedName, setSchedName] = useState(
+		additionalSchedsOfTeacher.name || ''
+	);
 	const [schedSubject, setSchedSubject] = useState(
-		additionalSchedsOfTeacher.subject
+		additionalSchedsOfTeacher.subject || 0
 	);
 	const [schedDuration, setSchedDuration] = useState(
-		additionalSchedsOfTeacher.duration
+		additionalSchedsOfTeacher.duration || 0
 	);
 	const [schedFrequency, setSchedFrequency] = useState(
-		additionalSchedsOfTeacher.frequency
+		additionalSchedsOfTeacher.frequency || 0
 	);
-	const [schedShown, setSchedShown] = useState(false);
+	const [schedShown, setSchedShown] = useState(
+		additionalSchedsOfTeacher.shown || false
+	);
+	const [schedTime, setSchedtime] = useState(
+		additionalSchedsOfTeacher.time || 0
+	);
+
+	const [time, setTime] = useState();
 
 	const handleSave = () => {
 		const newSched = {
@@ -54,15 +69,13 @@ const AdditionalScheduleForTeacher = ({
 			duration: schedDuration,
 			frequency: schedFrequency,
 			shown: schedShown,
+			time: getTimeSlotIndex(time),
 		};
 
-		// console.log('Old Sched: ', additionalSchedsOfTeacher);
 
 		setAdditionalScheds((prev) => {
 			const updatedScheds = [...prev];
 			updatedScheds[arrayIndex] = newSched;
-
-			// console.log('Updated Scheds:', updatedScheds);
 
 			return updatedScheds;
 		});
@@ -102,7 +115,24 @@ const AdditionalScheduleForTeacher = ({
 		setSchedDuration(additionalSchedsOfTeacher.duration || 0);
 		setSchedFrequency(additionalSchedsOfTeacher.frequency || '');
 		setSchedShown(additionalSchedsOfTeacher.shown || false);
+		setSchedtime(additionalSchedsOfTeacher.time || 0);
 	}, [additionalSchedsOfTeacher]);
+
+	useEffect(() => {
+		if (schedTime !== lastSchedTimeRef.current) {
+			lastSchedTimeRef.current = schedTime;
+
+			const timeString = getTimeSlotString(schedTime);
+			// console.log('schedTime', schedTime);
+
+			// console.log('timeString', timeString);
+
+			if (timeString) {
+				setTime(timeString);
+			}
+
+		}
+	}, [schedTime]);
 
 	// useEffect(() => {
 	//     console.log('schedName', schedName);
@@ -128,6 +158,7 @@ const AdditionalScheduleForTeacher = ({
 						)}
 					</div>
 
+					{/* SCHEDULE NAME */}
 					<div className="mb-4">
 						<label className="block text-sm font-medium mb-1">
 							Schedule Name:
@@ -143,6 +174,8 @@ const AdditionalScheduleForTeacher = ({
 							readOnly={viewingMode !== 0}
 						/>
 					</div>
+
+					{/* SCHEDULE SUBJECT */}
 					<div className="mb-4">
                         <label className="block text-sm font-medium mb-1">
                             Subject:
@@ -174,6 +207,8 @@ const AdditionalScheduleForTeacher = ({
                             />
                         )}
                     </div>
+
+					{/* SCHEDULE DURATION */}
 					<div className="mb-4">
 						<label className="block text-sm font-medium mb-1">
 							Duration (in minutes):
@@ -190,6 +225,8 @@ const AdditionalScheduleForTeacher = ({
 							readOnly={viewingMode !== 0}
 						/>
 					</div>
+
+					{/* SCHEDULE FREQUENCY */}
 					<div className="mb-4">
 						<label className="block text-sm font-medium mb-1">
 							Frequency:
@@ -208,6 +245,8 @@ const AdditionalScheduleForTeacher = ({
 							readOnly={viewingMode !== 0}
 						/>
 					</div>
+
+					{/* SCHEDULE MUST APPEAR */}
 					<div className="mb-4">
 						<label className="block text-sm font-medium mb-1">
 							Must Appear on Schedule:
@@ -227,6 +266,29 @@ const AdditionalScheduleForTeacher = ({
 							<option value="Yes">Yes</option>
 							<option value="No">No</option>
 						</select>
+					</div>
+					
+					{/* SCHEDULE TIME */}
+					<div className="mb-4">
+						<label className="block text-sm font-medium mb-1">
+							Time:
+						</label>
+						{viewingMode === 0 ? (
+							<TimeSelector
+								className="z-10"
+								key={`newTeacherTimePicker-teacher{${teacherID}}-arrayIndex${arrayIndex}`}
+								interval={5}
+								time={time}
+								setTime={setTime}
+								readOnly={false}
+							/>
+						) : (
+							<div className="flex items-center justify-start input border rounded h-12 bg-white border border-gray-300 text-base">
+								{time
+									? time
+									: '--:--- --'}
+							</div>
+						)}
 					</div>
 
 					<div className="mt-4 text-center text-lg font-bold">
@@ -381,6 +443,7 @@ const AddTeacherContainer = ({
 				duration: 60,
 				frequency: 1,
 				shown: true,
+				time: 72,
 			},
 		]);
 	};
@@ -904,6 +967,7 @@ const TeacherListContainer = ({ editable = false }) => {
 				duration: 60,
 				frequency: 1,
 				shown: true,
+				time: 72,
 			},
 		]);
 	};

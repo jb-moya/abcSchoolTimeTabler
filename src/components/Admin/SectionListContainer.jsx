@@ -11,10 +11,12 @@ import {
 } from '@features/sectionSlice';
 import { fetchPrograms } from '@features/programSlice';
 import { fetchSubjects } from '@features/subjectSlice';
-import { fetchTeachers } from '@features/teacherSlice';
-import { fetchBuildings } from '@features/buildingSlice';
+import { fetchTeachers, editTeacher } from '@features/teacherSlice';
+import { fetchBuildings, editBuilding } from '@features/buildingSlice';
 
-import { getTimeSlotString, getTimeSlotIndex } from './timeSlotMapper';
+import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
+import TimeSelector from '@utils/timeSelector';
+
 import { IoAdd, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
@@ -44,17 +46,28 @@ const AdditionalScheduleForSection = ({
 }) => {
     const subjects = useSelector((state) => state.subject.subjects);
 
-    const [schedName, setSchedName] = useState(additionalSchedsOfSection.name);
+    const lastSchedTimeRef = useRef();
+
+    const [schedName, setSchedName] = useState(
+        additionalSchedsOfSection.name || ''
+    );
     const [schedSubject, setSchedSubject] = useState(
-        additionalSchedsOfSection.subject
+        additionalSchedsOfSection.subject || 0
     );
     const [schedDuration, setSchedDuration] = useState(
-        additionalSchedsOfSection.duration
+        additionalSchedsOfSection.duration || 0
     );
     const [schedFrequency, setSchedFrequency] = useState(
-        additionalSchedsOfSection.frequency
+        additionalSchedsOfSection.frequency || 0
     );
-    const [schedShown, setSchedShown] = useState(false);
+    const [schedShown, setSchedShown] = useState(
+        additionalSchedsOfSection.shown || false
+    );
+    const [schedTime, setSchedtime] = useState(
+        additionalSchedsOfSection.time || 0
+    );
+
+    const [time, setTime] = useState();
 
     const handleSave = () => {
         const newSched = {
@@ -63,6 +76,7 @@ const AdditionalScheduleForSection = ({
             duration: schedDuration,
             frequency: schedFrequency,
             shown: schedShown,
+            time: getTimeSlotIndex(time),
         };
 
         // console.log('Old Sched: ', additionalSchedsOfSection);
@@ -111,7 +125,24 @@ const AdditionalScheduleForSection = ({
         setSchedDuration(additionalSchedsOfSection.duration || 0);
         setSchedFrequency(additionalSchedsOfSection.frequency || '');
         setSchedShown(additionalSchedsOfSection.shown || false);
+        setSchedtime(additionalSchedsOfSection.time || 0);
     }, [additionalSchedsOfSection]);
+
+    useEffect(() => {
+        if (schedTime !== lastSchedTimeRef.current) {
+            lastSchedTimeRef.current = schedTime;
+
+            const timeString = getTimeSlotString(schedTime);
+            // console.log('schedTime', schedTime);
+
+            // console.log('timeString', timeString);
+
+            if (timeString) {
+                setTime(timeString);
+            }
+
+        }
+    }, [schedTime]);
 
     // useEffect(() => {
     //     console.log('schedName', schedName);
@@ -137,6 +168,7 @@ const AdditionalScheduleForSection = ({
                         )}
                     </div>
 
+                    {/* Schedule Name */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium mb-1">
                             Schedule Name:
@@ -152,6 +184,8 @@ const AdditionalScheduleForSection = ({
                             readOnly={viewingMode !== 0}
                         />
                     </div>
+
+                    {/* Subject */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium mb-1">
                             Subject:
@@ -183,6 +217,8 @@ const AdditionalScheduleForSection = ({
                             />
                         )}
                     </div>
+
+                    {/* Duration */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium mb-1">
                             Duration (in minutes):
@@ -199,6 +235,8 @@ const AdditionalScheduleForSection = ({
                             readOnly={viewingMode !== 0}
                         />
                     </div>
+
+                    {/* Frequency */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium mb-1">
                             Frequency:
@@ -217,6 +255,8 @@ const AdditionalScheduleForSection = ({
                             readOnly={viewingMode !== 0}
                         />
                     </div>
+
+                    {/* Must Appear on Schedule */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium mb-1">
                             Must Appear on Schedule:
@@ -236,6 +276,27 @@ const AdditionalScheduleForSection = ({
                             <option value="Yes">Yes</option>
                             <option value="No">No</option>
                         </select>
+                    </div>
+
+                    {/* Time */}
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1">
+                            Time:
+                        </label>
+                        {viewingMode === 0 ? (
+                            <TimeSelector 
+                                className='z-10'
+                                key={`newSectionTimePicker-section{${sectionID}}-grade${grade}-arrayIndex${arrayIndex}`}
+                                interval={5}
+                                time={time}
+                                setTime={setTime}
+                            />
+                        ) : (
+                            <div className="flex items-center justify-start input border rounded h-12 bg-white border border-gray-300 text-base">
+                                {time ? time : '--:--- --'}
+                            </div>
+                        )}
+                        
                     </div>
 
                     <div className="mt-4 text-center text-lg font-bold">
@@ -425,6 +486,29 @@ const AddSectionContainer = ({
             // alert(`Teacher is already assigned as adviser of section '${duplicateAdviser.section}'`);
             return;
         } else {
+
+            // Add advisory load to teacher
+            const advisoryLoad = {
+                name: 'Advisory Load',
+                subject: 0,
+                duration: 60,
+                frequency: numOfSchoolDays,
+                shown: false,
+                time: 96,
+            };
+
+            const teacher = structuredClone(teachers[selectedAdviser]);
+            teacher.additionalTeacherScheds = teacher.additionalTeacherScheds || [];
+            teacher.additionalTeacherScheds.push(advisoryLoad);
+
+            dispatch(
+                editTeacher({
+                    teacherId: selectedAdviser,
+                    updatedTeacher: teacher,
+                })
+            )
+
+            // Add section
             dispatch(
                 reduxFunction({
                     [reduxField[0]]: inputValue,
@@ -458,6 +542,26 @@ const AddSectionContainer = ({
             inputNameRef.current.focus();
             inputNameRef.current.select();
         }
+    };
+
+    const handleAddAdditionalSchedule = () => {
+        setAdditionalScheds((prevScheds) => [
+            ...prevScheds,
+            {
+                name: '',
+                subject: 0,
+                duration: 60,
+                frequency: 1,
+                shown: true,
+                time: selectedShift === 0 ? 192 : 96,
+            },
+        ]);
+    };
+
+    const handleDeleteAdditionalSchedule = (index) => {
+        setAdditionalScheds((prevScheds) =>
+            prevScheds.filter((_, i) => i !== index)
+        );
     };
 
     const handleReset = () => {
@@ -782,12 +886,32 @@ const AddSectionContainer = ({
 
             {/* Additional Schedules */}
             {additionalScheds.length > 0 && (
-                <div className="flex flex-col justify-center items-center">
-                    <div className="mt-2 w-1/4 border border-gray-300 rounded-t-lg font-bold">
-                        Additional Schedules
+                <div className="mt-4 flex flex-col justify-center items-center">
+                    <div
+                        className="w-1/2 flex flex-wrap"
+                        style={{
+                            position:
+                                'sticky',
+                            top: 0,
+                            zIndex: 1,
+                            backgroundColor:
+                                'white',
+                        }}
+                    >
+                        <div className="w-9/12 font-bold p-2 border-b border-gray-300 rounded-tl-lg">
+                            Additional Schedules
+                        </div>
+                        <div className="w-3/12 flex justify-center items-center border-b border-gray-300 rounded-tr-lg">
+                            <button
+                                className="w-3/4 bg-green-700 m-2 font-bold text-white rounded-lg hover:bg-green-500"
+                                onClick={handleAddAdditionalSchedule}
+                            >
+                                +
+                            </button>
+                        </div>
                     </div>
                     <div
-                        className="w-1/4 overflow-y-auto max-h-36 border border-gray-300 rounded-b-lg"
+                        className="w-1/2 overflow-y-auto max-h-36 border border-gray-300 rounded-b-lg"
                         style={{
                             scrollbarWidth: 'thin',
                             scrollbarColor: '#a0aec0 #edf2f7',
@@ -796,8 +920,8 @@ const AddSectionContainer = ({
                         {additionalScheds.map((sched, index) => (
                             <div key={index} className="flex flex-wrap">
                                 <button
-                                    className="w-1/12 border rounded-l-lg hover:bg-gray-200 flex items-center justify-center"
-                                    // onClick={() => handleDeleteAdditionalSchedule(grade, index)}
+                                    className="w-1/12 border rounded-bl-lg hover:bg-gray-200 flex items-center justify-center"
+                                    onClick={() => handleDeleteAdditionalSchedule(index)}
                                 >
                                     <RiDeleteBin7Line size={15} />
                                 </button>
@@ -838,7 +962,7 @@ const AddSectionContainer = ({
                                         additionalSchedsOfSection={sched}
                                     />
                                 </div>
-                                <div className="w-1/12  flex items-center justify-center border rounded-r-lg hover:bg-gray-200">
+                                <div className="w-1/12  flex items-center justify-center border rounded-br-lg hover:bg-gray-200">
                                     <button
                                         onClick={() =>
                                             document
@@ -944,6 +1068,9 @@ const SectionListContainer = ({
         roomIdx: -1,
     });
 
+    // To keep track of adviser changes
+    const [prevAdviser, setPrevAdviser] = useState('');
+
     // useEffect(() => {
     //     if (sectionStatus !== 'succeeded' || subjectStatus !== 'succeeded') {
     //         console.log(
@@ -999,7 +1126,10 @@ const SectionListContainer = ({
     const handleEditSectionClick = (section) => {
         setEditSectionId(section.id);
         setEditSectionValue(section.section);
+
         setEditSectionAdviser(section.teacher);
+        setPrevAdviser(section.teacher);
+
         setEditSectionProg(section.program);
         setEditSectionYear(section.year);
         setEditSectionShift(section.shift);
@@ -1061,7 +1191,7 @@ const SectionListContainer = ({
                 })
             );
 
-            toast.success('Section added successfully', {
+            toast.success('Section updated successfully', {
                 style: {
                     backgroundColor: 'green',
                     color: 'white',
@@ -1073,8 +1203,8 @@ const SectionListContainer = ({
         } else {
             const duplicateSection = Object.values(sections).find(
                 (section) =>
-                    section.section.trim().toLowerCase() ===
-                    editSectionValue.trim().toLowerCase()
+                    section.section.trim().toLowerCase() === editSectionValue.trim().toLowerCase()
+                    && section.section.trim().toLowerCase() !== currentSection.trim().toLowerCase()
             );
 
             const duplicateAdviser = Object.values(sections).find(
@@ -1096,6 +1226,44 @@ const SectionListContainer = ({
                     }
                 );
             } else {
+                
+                const advisoryLoad = {
+                    name: 'Advisory Load',
+                    subject: 0,
+                    duration: 60,
+                    frequency: numOfSchoolDays,
+                    shown: false,
+                    time: 96,
+                };
+
+                if (prevAdviser !== editSectionAdviser) {   
+                    const prevSectionAdviser = structuredClone(teachers[prevAdviser]);
+
+                    if (prevSectionAdviser.additionalTeacherScheds) {
+                        prevSectionAdviser.additionalTeacherScheds = prevSectionAdviser.additionalTeacherScheds.filter(
+                            (sched) => sched.name !== 'Advisory Load'
+                        );
+                    }
+                
+                    dispatch(
+                        editTeacher({
+                            id: prevAdviser,
+                            updatedTeacher: prevSectionAdviser,
+                        })
+                    );
+                }
+
+                const teacher = structuredClone(teachers[editSectionAdviser]);
+                teacher.additionalTeacherScheds = teacher.additionalTeacherScheds || [];
+                teacher.additionalTeacherScheds.push(advisoryLoad);
+
+                dispatch(
+                    editTeacher({
+                        teacherId: editSectionAdviser,
+                        updatedTeacher: teacher,
+                    })
+                )
+
                 dispatch(
                     editSection({
                         sectionId,
@@ -1150,6 +1318,7 @@ const SectionListContainer = ({
                 duration: 60,
                 frequency: 1,
                 shown: true,
+                time: editSectionShift === 0 ? 192 : 96,
             },
         ]);
     };
@@ -1199,6 +1368,43 @@ const SectionListContainer = ({
     };
 
     const handleDelete = (id) => {
+
+        // Remove ADVISORY LOAD of teacher assigned as the section's adviser
+        const teacherId = sections[id].teacher;
+
+        const prevSectionAdviser = structuredClone(teachers[teacherId]);
+
+        if (prevSectionAdviser.additionalTeacherScheds) {
+            prevSectionAdviser.additionalTeacherScheds = prevSectionAdviser.additionalTeacherScheds.filter(
+                (sched) => sched.name !== 'Advisory Load'
+            );
+        }
+    
+        dispatch(
+            editTeacher({
+                id: teacherId,
+                updatedTeacher: prevSectionAdviser,
+            })
+        );
+
+        // Reset the room assigned to the section as AVAILABLE
+        const buildingId = sections[id].roomDetails.buildingId;
+        const floorIdx = sections[id].roomDetails.floorIdx;
+        const roomIdx = sections[id].roomDetails.roomIdx;
+
+        if (buildingId !== -1 && floorIdx !== -1 && roomIdx !== -1) {
+            const building = structuredClone(buildings[buildingId]);
+
+            building.rooms[floorIdx][roomIdx].isAvailable = true;
+
+            dispatch(
+                editBuilding({
+                    buildingId,
+                    updatedBuilding: building,
+                })
+            )
+        }
+
         dispatch(removeSection(id)); // Perform the delete action
         document.getElementById('delete_modal').close(); // Close the modal after deleting
     };
@@ -1866,7 +2072,7 @@ const SectionListContainer = ({
                                                                             {subjects[
                                                                                 subjectID
                                                                             ]
-                                                                                .classDuration ||
+                                                                                ?.classDuration ||
                                                                                 ''}
                                                                         </td>
 
@@ -1875,7 +2081,7 @@ const SectionListContainer = ({
                                                                             {subjects[
                                                                                 subjectID
                                                                             ]
-                                                                                .weeklyMinutes ||
+                                                                                ?.weeklyMinutes ||
                                                                                 ''}
                                                                         </td>
                                                                     </tr>

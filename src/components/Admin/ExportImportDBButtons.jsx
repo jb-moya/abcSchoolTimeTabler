@@ -18,17 +18,17 @@ import {
     addDepartment,
     fetchDepartments,
 } from '../../features/departmentSlice';
-import { addBuilding, fetchBuildings } from '../../features/buildingSlice';
+import { addBuilding, fetchBuildings } from '@features/buildingSlice';
 
 import { addRank, fetchRanks } from '@features/rankSlice';
 
-import { getTimeSlotString, getTimeSlotIndex } from './timeSlotMapper';
+import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
 import { setSubjectStatusIdle } from '@features/subjectSlice';
 import { setSectionStatusIdle } from '@features/sectionSlice';
 import { setTeacherStatusIdle } from '@features/teacherSlice';
 import { setProgramStatusIdle } from '@features/programSlice';
-import { setBuildingStatusIdle } from '../../features/buildingSlice';
-import { setDepartmentStatusIdle } from '../../features/departmentSlice';
+import { setBuildingStatusIdle } from '@features/buildingSlice';
+import { setDepartmentStatusIdle } from '@features/departmentSlice';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { toast } from 'sonner';
@@ -1763,6 +1763,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                     duration: 60,
                     frequency: numOfSchoolDays,
                     shown: true,
+                    time: 96,
                 });
             }
 
