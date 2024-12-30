@@ -475,10 +475,6 @@ const AddTeacherContainer = ({
 	}, [teacherRank]);
 
 	useEffect(() => {
-		console.log('Additional Teacher Scheds:', additionalTeacherScheds);
-	}, [additionalTeacherScheds]);
-
-	useEffect(() => {
 		if (inputNameRef.current) {
 			inputNameRef.current.focus();
 		}
@@ -501,10 +497,6 @@ const AddTeacherContainer = ({
 			dispatch(fetchDepartments());
 		}
 	}, [dispatch, departmentStatus]);
-
-	useEffect(() => {
-		console.log(ranks);
-	}, [ranks]);
 
 	return (
 		<div className= "justify-left">

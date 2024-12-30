@@ -21,7 +21,6 @@ import { IoAdd, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
-import { BiChevronDown, BiChevronUp } from 'react-icons/bi';
 
 import { toast } from 'sonner';
 import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
@@ -44,9 +43,12 @@ const AdditionalScheduleForSection = ({
     additionalSchedsOfSection = [],
     setAdditionalScheds = () => {},
 }) => {
-    const subjects = useSelector((state) => state.subject.subjects);
 
     const lastSchedTimeRef = useRef();
+
+    const subjects = useSelector((state) => state.subject.subjects);
+
+// ===================================================================================================
 
     const [schedName, setSchedName] = useState(
         additionalSchedsOfSection.name || ''
@@ -67,7 +69,11 @@ const AdditionalScheduleForSection = ({
         additionalSchedsOfSection.time || 0
     );
 
+// ===================================================================================================
+
     const [time, setTime] = useState();
+
+// ===================================================================================================
 
     const handleSave = () => {
         const newSched = {
@@ -99,6 +105,8 @@ const AdditionalScheduleForSection = ({
             .close();
     };
 
+// ===================================================================================================
+
     const handleClose = () => {
         const modal = document.getElementById(
             `add_additional_sched_modal_${viewingMode}_grade-${grade}_sec-${sectionID}_idx-${arrayIndex}`
@@ -118,6 +126,8 @@ const AdditionalScheduleForSection = ({
         setSchedFrequency(additionalSchedsOfSection.frequency);
         setSchedShown(additionalSchedsOfSection.frequency);
     };
+
+// ===================================================================================================
 
     useEffect(() => {
         setSchedName(additionalSchedsOfSection.name || '');
@@ -144,14 +154,7 @@ const AdditionalScheduleForSection = ({
         }
     }, [schedTime]);
 
-    // useEffect(() => {
-    //     console.log('schedName', schedName);
-    //     console.log('schedSubject', schedSubject);
-    //     console.log('typeof schedSubject', typeof schedSubject);
-    //     console.log('schedDuration', schedDuration);
-    //     console.log('schedFrequency', schedFrequency);
-    //     console.log('schedShown', schedShown);
-    // }, [schedName, schedSubject, schedDuration, schedFrequency, schedShown]);
+// ===================================================================================================
 
     return (
         <dialog
@@ -342,8 +345,11 @@ const AddSectionContainer = ({
     setErrorField,
     numOfSchoolDays,
 }) => {
+
     const inputNameRef = useRef();
     const dispatch = useDispatch();
+
+// ===================================================================================================
 
     const { buildings, status: buildingStatus } = useSelector(
         (state) => state.building
@@ -365,6 +371,8 @@ const AddSectionContainer = ({
         (state) => state.section
     );
 
+// ===================================================================================================
+
     const [inputValue, setInputValue] = useState('');
     const [selectedAdviser, setSelectedAdviser] = useState('');
     const [selectedProgram, setSelectedProgram] = useState('');
@@ -380,6 +388,8 @@ const AddSectionContainer = ({
         floorIdx: -1,
         roomIdx: -1,
     });
+
+// ===================================================================================================
 
     const [totalTimeslot, setTotalTimeslot] = useState(null);
 
@@ -435,6 +445,8 @@ const AddSectionContainer = ({
         selectedProgram,
         selectedYearLevel,
     ]);
+
+// ===================================================================================================
 
     const handleInputChange = (e) => {
         setInputValue(e.target.value);
@@ -544,6 +556,8 @@ const AddSectionContainer = ({
         }
     };
 
+// ===================================================================================================
+
     const handleAddAdditionalSchedule = () => {
         setAdditionalScheds((prevScheds) => [
             ...prevScheds,
@@ -564,6 +578,8 @@ const AddSectionContainer = ({
         );
     };
 
+// ===================================================================================================
+
     const handleReset = () => {
         setErrorMessage('');
         setErrorField([]);
@@ -580,10 +596,33 @@ const AddSectionContainer = ({
         setRoomDetails({ buildingId: -1, floorIdx: -1, roomIdx: -1 });
     };
 
-    useEffect(() => {
-        console.log('roomDetails:', roomDetails);
-    }, [roomDetails]);
+// ===================================================================================================
 
+    useEffect(() => {
+        if (buildingStatus === 'idle') {
+            dispatch(fetchBuildings());
+        }
+    }, [buildingStatus, dispatch]);
+
+    useEffect(() => {
+        if (programStatus === 'idle') {
+            dispatch(fetchPrograms());
+        }
+    }, [programStatus, dispatch]);
+
+    useEffect(() => {
+        if (subjectStatus === 'idle') {
+            dispatch(fetchSubjects());
+        }
+    }, [subjectStatus, dispatch]);
+
+    useEffect(() => {
+        if (teacherStatus === 'idle') {
+            dispatch(fetchTeachers());
+        }
+    }, [teacherStatus, dispatch]);
+
+// ===================================================================================================
 
     useEffect(() => {
         if (inputNameRef.current) {
@@ -616,29 +655,7 @@ const AddSectionContainer = ({
         }
     }, [selectedProgram, selectedYearLevel, programs]);
 
-    useEffect(() => {
-        if (buildingStatus === 'idle') {
-            dispatch(fetchBuildings());
-        }
-    }, [buildingStatus, dispatch]);
-
-    useEffect(() => {
-        if (programStatus === 'idle') {
-            dispatch(fetchPrograms());
-        }
-    }, [programStatus, dispatch]);
-
-    useEffect(() => {
-        if (subjectStatus === 'idle') {
-            dispatch(fetchSubjects());
-        }
-    }, [subjectStatus, dispatch]);
-
-    useEffect(() => {
-        if (teacherStatus === 'idle') {
-            dispatch(fetchTeachers());
-        }
-    }, [teacherStatus, dispatch]);
+// ===================================================================================================
 
     return (
         <div>
@@ -1015,7 +1032,10 @@ const SectionListContainer = ({
     numOfSchoolDays: externalNumOfSchoolDays,
     editable = false,
 }) => {
+
     const dispatch = useDispatch();
+
+//  =======================================================================================
 
     const { buildings, status: buildingStatus } = useSelector(
         (state) => state.building
@@ -1037,6 +1057,7 @@ const SectionListContainer = ({
         (state) => state.teacher
     );
 
+//  =======================================================================================
 
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
         return (
@@ -1048,6 +1069,8 @@ const SectionListContainer = ({
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState([]);
 
+//  =======================================================================================
+
     const [editSectionAdviser, setEditSectionAdviser] = useState('');
     const [editSectionProg, setEditSectionProg] = useState('');
     const [editSectionYear, setEditSectionYear] = useState('');
@@ -1056,7 +1079,6 @@ const SectionListContainer = ({
     const [editSectionSubjects, setEditSectionSubjects] = useState([]);
     const [editSectionShift, setEditSectionShift] = useState(0);
     const [editSectionStartTime, setEditSectionStartTime] = useState('');
-
     const [editSectionFixedDays, setEditSectionFixedDays] = useState({});
     const [editSectionFixedPositions, setEditSectionFixedPositions] = useState(
         {}
@@ -1068,60 +1090,19 @@ const SectionListContainer = ({
         roomIdx: -1,
     });
 
-    // To keep track of adviser changes
+//  =======================================================================================
+
     const [prevAdviser, setPrevAdviser] = useState('');
-
-    // useEffect(() => {
-    //     if (sectionStatus !== 'succeeded' || subjectStatus !== 'succeeded') {
-    //         console.log(
-    //             'Programs or Subjects not loaded yet. Skipping gradeTotalTimeslot calculation.'
-    //         );
-    //         return;
-    //     }
-
-    //     const newSectionTotalTimeslot = {};
-
-    //     console.log('sectionsssssssssss', sections);
-
-    //     if (Object.keys(sections).length === 0) {
-    //         console.log('No data to process');
-    //         return;
-    //     }
-
-    //     Object.entries(sections).forEach(([sectionID, section]) => {
-    //         console.log('>', sectionID, 'section', sections);
-
-    //         let sectionSubjects = section.subjects;
-
-    //         let totalNumOfClasses = 0;
-
-    //         console.log('gradeInfo.subjects', sectionSubjects);
-
-    //         sectionSubjects.forEach((subject) => {
-    //             totalNumOfClasses += Math.min(Math.ceil(
-    //                 subjects[subject].weeklyMinutes /
-    //                     subjects[subject].classDuration
-    //             ), numOfSchoolDays);
-    //         });
-
-    //         console.log("heheheh eh ehe");
-
-    //         let totalTimeslot = Math.ceil(totalNumOfClasses / numOfSchoolDays);
-
-    //         console.log('totalTimeslot', totalTimeslot);
-    //         newSectionTotalTimeslot[sectionID] = totalTimeslot;
-    //     });
-
-    //     console.log('newGradeTotalTimeslot', newSectionTotalTimeslot);
-
-    //     setSectionTotalTimeslot(newSectionTotalTimeslot);
-    // }, [subjects, numOfSchoolDays, sections, sectionStatus, subjectStatus]);
-
-    const [searchSectionResult, setSearchSectionResult] = useState(sections);
-    const [searchSectionValue, setSearchSectionValue] = useState('');
 
     const [currEditProgram, setCurrEditProgram] = useState('');
     const [currEditYear, setCurrEditYear] = useState('');
+
+//  =======================================================================================
+    
+    const [searchSectionResult, setSearchSectionResult] = useState(sections);
+    const [searchSectionValue, setSearchSectionValue] = useState('');
+
+//  =======================================================================================
 
     const handleEditSectionClick = (section) => {
         setEditSectionId(section.id);
@@ -1309,6 +1290,9 @@ const SectionListContainer = ({
         setCurrEditYear('');
     };
 
+//  =======================================================================================
+
+    // HANDLING ADDITION AND DELETION OF ADDITIONAL SCHEDULES
     const handleAddAdditionalSchedule = () => {
         setEditAdditionalScheds((prevScheds) => [
             ...prevScheds,
@@ -1329,6 +1313,7 @@ const SectionListContainer = ({
         );
     };
 
+    // RENDERING TIME OPTIONS
     const renderTimeOptions = () => {
         const times =
             editSectionShift === 0
@@ -1348,6 +1333,9 @@ const SectionListContainer = ({
         ));
     };
 
+//  =======================================================================================
+//  Handling ADD SECTION MODAL
+
     const handleClose = () => {
         const modal = document.getElementById('add_section_modal');
         if (modal) {
@@ -1358,6 +1346,9 @@ const SectionListContainer = ({
             console.error("Modal with ID 'add_section_modal' not found.");
         }
     };
+
+//  =======================================================================================
+//  Handling DELETE SECTION MODAL
 
     const deleteModal = (id) => {
         const deleteModalElement = document.getElementById('delete_modal');
@@ -1409,6 +1400,8 @@ const SectionListContainer = ({
         document.getElementById('delete_modal').close(); // Close the modal after deleting
     };
 
+//  =======================================================================================
+
     const resetStates = () => {
         // Reset the editing state
         setEditSectionId('');
@@ -1454,48 +1447,7 @@ const SectionListContainer = ({
         []
     );
 
-
-    useEffect(() => {
-        if (externalNumOfSchoolDays !== undefined) {
-            setNumOfSchoolDays(externalNumOfSchoolDays);
-        }
-    }, [externalNumOfSchoolDays]);
-
-    useEffect(() => {
-        console.log('numOfSchoolDays:', numOfSchoolDays);
-    }, [numOfSchoolDays]);
-
-    useEffect(() => {
-        debouncedSearch(searchSectionValue, sections, subjects);
-    }, [searchSectionValue, sections, debouncedSearch, subjects]);
-
-    useEffect(() => {
-        if (
-            editSectionYear !== undefined &&
-            editSectionProg !== undefined &&
-            (currEditYear !== editSectionYear ||
-                currEditProgram !== editSectionProg)
-        ) {
-            setCurrEditProgram(editSectionProg);
-            setCurrEditYear(editSectionYear);
-
-            const program = Object.values(programs).find(
-                (p) => p.id === editSectionProg
-            );
-
-            if (program) {
-                setEditSectionSubjects(
-                    program[editSectionYear]?.subjects || []
-                );
-                setEditSectionFixedDays(
-                    program[editSectionYear]?.fixedDays || {}
-                );
-                setEditSectionFixedPositions(
-                    program[editSectionYear]?.fixedPositions || {}
-                );
-            }
-        }
-    }, [editSectionYear, editSectionProg, programs]); // Add `programs` as a dependency
+//  =======================================================================================
 
     useEffect(() => {
         if (buildingStatus === 'idle') {
@@ -1527,9 +1479,51 @@ const SectionListContainer = ({
         }
     }, [teacherStatus, dispatch]);
 
+//  =======================================================================================
+
     useEffect(() => {
-        console.log('editSectionAdviser: ', editSectionAdviser);
-    }, [editSectionAdviser]);
+        if (externalNumOfSchoolDays !== undefined) {
+            setNumOfSchoolDays(externalNumOfSchoolDays);
+        }
+    }, [externalNumOfSchoolDays]);
+
+    // Update fixed days, fixed positions, and additional schedules of sections upon program and/or year level change
+    useEffect(() => {
+        if (
+            editSectionYear !== undefined &&
+            editSectionProg !== undefined &&
+            (currEditYear !== editSectionYear ||
+                currEditProgram !== editSectionProg)
+        ) {
+            setCurrEditProgram(editSectionProg);
+            setCurrEditYear(editSectionYear);
+
+            const program = Object.values(programs).find(
+                (p) => p.id === editSectionProg
+            );
+
+            if (program) {
+                setEditSectionSubjects(
+                    program[editSectionYear]?.subjects || []
+                );
+                setEditSectionFixedDays(
+                    program[editSectionYear]?.fixedDays || {}
+                );
+                setEditSectionFixedPositions(
+                    program[editSectionYear]?.fixedPositions || {}
+                );
+                setEditAdditionalScheds(
+                    program[editSectionYear]?.additionalTeacherScheds || []
+                );
+            }
+        }
+    }, [editSectionYear, editSectionProg, programs]);
+
+//  =======================================================================================
+
+    useEffect(() => {
+        debouncedSearch(searchSectionValue, sections, subjects);
+    }, [searchSectionValue, sections, debouncedSearch, subjects]);
 
     const itemsPerPage = 10; // Adjust this to change items per page
     const [currentPage, setCurrentPage] = useState(1);
@@ -1546,6 +1540,8 @@ const SectionListContainer = ({
         indexOfFirstItem,
         indexOfLastItem
     );
+
+//  =======================================================================================
 
     return (
         <React.Fragment>
@@ -2200,7 +2196,8 @@ const SectionListContainer = ({
                                                 )}
                                             </div>
                                         </td>
-
+                                        
+                                        {/* Additional Schedule */}
                                         <td>
                                             {editSectionId === section.id ? (
                                                 <>

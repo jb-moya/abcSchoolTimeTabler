@@ -564,8 +564,13 @@ const AddTeacherRankContainer = ({
 	);
 };
 
-const TeacherRankListContainer = ({ editable = false }) => {
+const TeacherRankListContainer = ({ 
+	editable = false 
+}) => {
+
 	const dispatch = useDispatch();
+
+// ===================================================================================================
 
 	const { ranks, status: rankStatus } = useSelector(
 		(state) => state.rank
@@ -575,18 +580,25 @@ const TeacherRankListContainer = ({ editable = false }) => {
 		(state) => state.teacher
 	);
 
+// ===================================================================================================
+
 	const numOfSchoolDays = (Number(localStorage.getItem('numOfSchoolDays')) || 0);
 
 	const [errorMessage, setErrorMessage] = useState('');
 	const [errorField, setErrorField] = useState('');
 
+// ===================================================================================================
+
 	const [editRankId, setEditRankId] = useState(null);
 	const [editRankValue, setEditRankValue] = useState('');
 	const [editAdditionalRankScheds, setEditAdditionalRankScheds] = useState([]);
 
+// ===================================================================================================
+
 	const [searchRankResult, setSearchRankResult] = useState(ranks);
 	const [searchRankValue, setSearchRankValue] = useState('');
 
+// ===================================================================================================
 
 	// HANDLING CLICK OF RANK EDIT
 	const handleEditRankClick = (rank) => {
@@ -601,6 +613,7 @@ const TeacherRankListContainer = ({ editable = false }) => {
 		setEditAdditionalRankScheds([]);
 	};
 
+// ===================================================================================================
 
 	//  HANDLING ADDITION AND DELETION OF ADDITIONAL RANK SCHEDULES
 	const handleAddAdditionalSchedule = () => {
@@ -623,6 +636,7 @@ const TeacherRankListContainer = ({ editable = false }) => {
 		);
 	};
 
+// ===================================================================================================
 
 	// HANDLING UPDATE OF RANKS (and TEACHERS optional)
 	const updateAllTeacherAdditionalSchedules = () => {
@@ -632,7 +646,40 @@ const TeacherRankListContainer = ({ editable = false }) => {
 
 			if (newTeacher.rank !== editRankId) return;
 
-			newTeacher.additionalTeacherScheds = editAdditionalRankScheds;
+			const updatedSchedNames = new Set(editAdditionalRankScheds.map((sched) => sched.name));
+
+			const advisoryLoadSched = newTeacher.additionalTeacherScheds.find(
+				(sched) => sched.name === 'Advisory Load'
+			);
+
+			let updatedAdditionalScheds = structuredClone(editAdditionalRankScheds);
+
+			if (advisoryLoadSched && !updatedSchedNames.has('Advisory Load')) {
+				updatedAdditionalScheds.push(advisoryLoadSched);
+				updatedSchedNames.add('Advisory Load'); 
+			}
+
+			const existingSchedsMap = new Map(
+				newTeacher.additionalTeacherScheds.map((sched) => [sched.name, sched])
+			);
+
+			newTeacher.additionalTeacherScheds = updatedAdditionalScheds.map((updatedSched) => {
+				const existingSched = existingSchedsMap.get(updatedSched.name);
+
+				if (existingSched) {
+					return {
+						...existingSched,
+						duration: updatedSched.duration || existingSched.duration,
+						frequency: updatedSched.frequency || existingSched.frequency,
+						shown: updatedSched.shown ?? existingSched.shown,
+						time: updatedSched.time || existingSched.time,
+					};
+				}
+
+				// If the schedule doesn't exist, add it as is
+				return updatedSched;
+			});
+
 
 			dispatch(
 				editTeacher({
@@ -649,7 +696,6 @@ const TeacherRankListContainer = ({ editable = false }) => {
 			);
 			
 		})
-
 	};
 
 	const handleSaveRankEditClick = (value) => {
@@ -724,8 +770,8 @@ const TeacherRankListContainer = ({ editable = false }) => {
         document.getElementById(`confirm_rank_edit_modal`).close();
     };
 
+// ===================================================================================================
 
-	// HANDLING RANK ENTRY DELETION
 	const handleClose = () => {
 		const modal = document.getElementById('add_rank_modal');
 		if (modal) {
@@ -736,6 +782,8 @@ const TeacherRankListContainer = ({ editable = false }) => {
 			console.error("Modal with ID 'add_teacher_modal' not found.");
 		}
 	};
+
+// ===================================================================================================
 
 	const deleteModal = (id) => {
 		const deleteModalElement = document.getElementById("delete_modal");
@@ -750,6 +798,7 @@ const TeacherRankListContainer = ({ editable = false }) => {
 		document.getElementById("delete_modal").close(); 
 	};
 
+// ===================================================================================================
 
 	//  FOR FETCHING ALL RANKS AND TEACHERS
 	useEffect(() => {
@@ -764,6 +813,7 @@ const TeacherRankListContainer = ({ editable = false }) => {
 		}
 	}, [teacherStatus, dispatch]);
 
+// ===================================================================================================
 
 	// SEARCH FUNCTIONALITY
 	const debouncedSearch = useCallback(
@@ -791,7 +841,6 @@ const TeacherRankListContainer = ({ editable = false }) => {
 		debouncedSearch(searchRankValue, ranks);
 	}, [searchRankValue, ranks, debouncedSearch]);
 
-
 	// PAGINATION
 	const itemsPerPage = 10; // Change this to adjust the number of items per page
 	const [currentPage, setCurrentPage] = useState(1);
@@ -803,6 +852,8 @@ const TeacherRankListContainer = ({ editable = false }) => {
 	const indexOfLastItem = currentPage * itemsPerPage;
 	const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 	const currentItems = Object.entries(searchRankResult).slice(indexOfFirstItem, indexOfLastItem);
+
+// ===================================================================================================
 
 	return (
 		<React.Fragment>

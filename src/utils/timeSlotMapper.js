@@ -29,9 +29,6 @@ export const generateTimeSlots = (interval = 5) => {
 // Generate the timeSlots and the map for fast lookups
 const { timeSlots, timeMap } = generateTimeSlots(5);
 
-console.log('timeMap', timeMap);
-console.log('timeSlots', timeSlots);
-
 export const getTimeSlotIndex = (timeString) => {
     return timeMap.get(timeString) ?? -1; // Return -1 if timeString is not found
 };
