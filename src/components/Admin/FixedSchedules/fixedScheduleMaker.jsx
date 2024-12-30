@@ -431,7 +431,7 @@ const FixedScheduleMaker = ({
                     )}
                 </div>
 
-                <div className=" max-h-[60vh] max-w-full text-sm  overflow-scroll">
+                <div className=" max-h-[60vh] max-w-full text-sm  overflow-auto">
                     <DndContext onDragEnd={handleDragEnd}>
                         <div className="flex gap-10 justify-center">
                             <div className="flex flex-col w-6/12">
