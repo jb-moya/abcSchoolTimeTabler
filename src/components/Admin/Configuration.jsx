@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import TimeSelector from '@utils/timeSelector';
 
 function Configuration({
     numOfSchoolDays,
@@ -47,17 +48,17 @@ function Configuration({
         <div className="mb-10">
             <h1 className="divider text-xl font-bold">Configuration</h1>
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="flex flex-wrap">
 
                 {/* Number of Days in Week */}
-                <div className="form-control w-full">
+                <div className="p-2 form-control w-1/4">
                     <label className="label">
                         <span className="label-text">Number of Days in Week</span>
                     </label>
                     <input
                         type="number"
                         placeholder="e.g., 5 (Mon-Fri)"
-                        className="input input-bordered w-full"
+                        className="input input-bordered w-3/4"
                         value={numOfSchoolDays}
                         onChange={handleNumOfSchoolDaysChange}
                         max={7}
@@ -65,12 +66,12 @@ function Configuration({
                 </div>
 
                 {/* Default Class Duration */}
-                <div className="form-control w-full">
+                <div className="p-2 form-control w-1/4">
                     <label className="label">
                         <span className="label-text">Default Class Duration</span>
                     </label>
                     <select
-                        className="select select-bordered w-full"
+                        className="select select-bordered w-3/4"
                         value={defaultSubjectClassDuration}
                         onChange={(e) => setDefaultSubjectClassDuration(parseInt(e.target.value, 10))}
                     >
@@ -83,40 +84,39 @@ function Configuration({
                 </div>
 
                 {/* Morning Start Time */}
-                <div className="form-control w-full">
+                <div className="p-2 form-control w-1/4">
                     <label className="label">
                         <span className="label-text">Morning Start Time</span>
                     </label>
-                    <select
-                        className="select select-bordered w-full"
-                        value={morningStartTime}
-                        onChange={(e) => setMorningStartTime(e.target.value)}
+                    <div
+                        className='w-3/4 h-full'
                     >
-                        {generateTimeOptions(6, 11, true).map(time => (
-                            <option key={time} value={time}>
-                                {time}
-                            </option>
-                        ))}
-                    </select>
+                        <TimeSelector 
+                            key={`morningStartTime`}
+                            interval={5}
+                            time={morningStartTime}
+                            setTime={setMorningStartTime}
+                        />
+                    </div>
                 </div>
 
                 {/* Afternoon Start Time */}
-                <div className="form-control w-full">
+                <div className="p-2 form-control w-1/4">
                     <label className="label">
                         <span className="label-text">Afternoon Start Time</span>
                     </label>
-                    <select
-                        className="select select-bordered w-full"
-                        value={afternoonStartTime}
-                        onChange={(e) => setAfternoonStartTime(e.target.value)}
-                    >
-                        {generateTimeOptions(1, 8, false).map(time => (
-                            <option key={time} value={time}>
-                                {time}
-                            </option>
-                        ))}
-                    </select>
+                    <div
+                        className='w-3/4 h-full'
+                    >   
+                        <TimeSelector 
+                            key={`afternoonStartTime`}
+                            interval={5}
+                            time={afternoonStartTime}
+                            setTime={setAfternoonStartTime}
+                        />
+                    </div>
                 </div>
+
             </div>
 
             <h1 className="divider"></h1>

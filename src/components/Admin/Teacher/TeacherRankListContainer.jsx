@@ -10,6 +10,9 @@ import {
 import { fetchSubjects } from '@features/subjectSlice';
 import { fetchTeachers, editTeacher } from '@features/teacherSlice';
 
+import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';
+import TimeSelector from '@utils/timeSelector';
+
 import debounce from 'debounce';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { filterObject } from '@utils/filterObject';
@@ -31,19 +34,27 @@ const AdditionalScheduleForTeacherRank = ({
 	additionalSchedsOfRank = [],
 	setAdditionalScheds = () => {},
 }) => {
-	const subjects = useSelector((state) => state.subject.subjects);
+	
+	const lastSchedTimeRef = useRef();
 
 	const [schedName, setSchedName] = useState(additionalSchedsOfRank.name);
 	const [schedSubject, setSchedSubject] = useState(
-		additionalSchedsOfRank.subject
+		additionalSchedsOfRank.subject || ''
 	);
 	const [schedDuration, setSchedDuration] = useState(
-		additionalSchedsOfRank.duration
+		additionalSchedsOfRank.duration || 0
 	);
 	const [schedFrequency, setSchedFrequency] = useState(
-		additionalSchedsOfRank.frequency
+		additionalSchedsOfRank.frequency || 0
 	);
-	const [schedShown, setSchedShown] = useState(false);
+	const [schedShown, setSchedShown] = useState(
+		additionalSchedsOfRank.shown || false
+	);
+	const [schedTime, setSchedTime] = useState(
+		additionalSchedsOfRank.time || 0
+	);
+
+	const [time, setTime] = useState();
 
 	const handleSave = () => {
 		const newSched = {
@@ -52,6 +63,7 @@ const AdditionalScheduleForTeacherRank = ({
 			duration: schedDuration,
 			frequency: schedFrequency,
 			shown: schedShown,
+			time: getTimeSlotIndex(time),
 		};
 
 		// console.log('Old Sched: ', additionalSchedsOfRank);
@@ -95,11 +107,28 @@ const AdditionalScheduleForTeacherRank = ({
 	};
 
 	useEffect(() => {
+		if (schedTime !== lastSchedTimeRef.current) {
+			lastSchedTimeRef.current = schedTime;
+
+			const timeString = getTimeSlotString(schedTime);
+			// console.log('schedTime', schedTime);
+
+			// console.log('timeString', timeString);
+
+			if (timeString) {
+				setTime(timeString);
+			}
+
+		}
+	}, [schedTime]);
+
+	useEffect(() => {
 		setSchedName(additionalSchedsOfRank.name || '');
 		setSchedSubject(additionalSchedsOfRank.subject || 0);
 		setSchedDuration(additionalSchedsOfRank.duration || 0);
 		setSchedFrequency(additionalSchedsOfRank.frequency || '');
 		setSchedShown(additionalSchedsOfRank.shown || false);
+		setSchedTime(additionalSchedsOfRank.time || 0);
 	}, [additionalSchedsOfRank]);
 
 	// useEffect(() => {
@@ -126,6 +155,7 @@ const AdditionalScheduleForTeacherRank = ({
 						)}
 					</div>
 
+					{/* Schedule Name */}
 					<div className="mb-4">
 						<label className="block text-sm font-medium mb-1">
 							Schedule Name:
@@ -141,6 +171,8 @@ const AdditionalScheduleForTeacherRank = ({
 							readOnly={viewingMode !== 0}
 						/>
 					</div>
+
+					{/* Schedule Subject */}
 					<div className="mb-4">
 						<label className="block text-sm font-medium mb-1">
 							Subject:
@@ -153,6 +185,8 @@ const AdditionalScheduleForTeacherRank = ({
 							readOnly
 						/>
 					</div>
+
+					{/* Schedule Duration */}
 					<div className="mb-4">
 						<label className="block text-sm font-medium mb-1">
 							Duration (in minutes):
@@ -169,6 +203,8 @@ const AdditionalScheduleForTeacherRank = ({
 							readOnly={viewingMode !== 0}
 						/>
 					</div>
+
+					{/* Schedule Frequency */}
 					<div className="mb-4">
 						<label className="block text-sm font-medium mb-1">
 							Frequency:
@@ -187,6 +223,8 @@ const AdditionalScheduleForTeacherRank = ({
 							readOnly={viewingMode !== 0}
 						/>
 					</div>
+
+					{/* Must Appear on Schedule */}
 					<div className="mb-4">
 						<label className="block text-sm font-medium mb-1">
 							Must Appear on Schedule:
@@ -207,6 +245,29 @@ const AdditionalScheduleForTeacherRank = ({
 							<option value="No">No</option>
 						</select>
 					</div>
+
+					{/* Time */}
+					<div className="mb-4">
+						<label className="block text-sm font-medium mb-1">
+							Time:
+						</label>
+						{viewingMode === 0 ? (
+							<TimeSelector 
+								className='z-10'
+
+								key={`newRankTimePicker-rank{${rankID}}-arrayIndex${arrayIndex}`}
+								interval={5}
+								time={time}
+								setTime={setTime}
+							/>
+						) : (
+							<div className="flex items-center justify-start input border rounded h-12 bg-white border border-gray-300 text-base">
+								{time
+									? time
+									: '--:--- --'}
+							</div>
+						)}
+					</div>		
 
 					<div className="mt-4 text-center text-lg font-bold">
 						{viewingMode !== 1 && (
@@ -316,6 +377,7 @@ const AddTeacherRankContainer = ({
 				duration: 60,
 				frequency: 1,
 				shown: true,
+				time: 72,
 			},
 		]);
 	};
@@ -502,8 +564,13 @@ const AddTeacherRankContainer = ({
 	);
 };
 
-const TeacherRankListContainer = ({ editable = false }) => {
+const TeacherRankListContainer = ({ 
+	editable = false 
+}) => {
+
 	const dispatch = useDispatch();
+
+// ===================================================================================================
 
 	const { ranks, status: rankStatus } = useSelector(
 		(state) => state.rank
@@ -513,18 +580,25 @@ const TeacherRankListContainer = ({ editable = false }) => {
 		(state) => state.teacher
 	);
 
+// ===================================================================================================
+
 	const numOfSchoolDays = (Number(localStorage.getItem('numOfSchoolDays')) || 0);
 
 	const [errorMessage, setErrorMessage] = useState('');
 	const [errorField, setErrorField] = useState('');
 
+// ===================================================================================================
+
 	const [editRankId, setEditRankId] = useState(null);
 	const [editRankValue, setEditRankValue] = useState('');
 	const [editAdditionalRankScheds, setEditAdditionalRankScheds] = useState([]);
 
+// ===================================================================================================
+
 	const [searchRankResult, setSearchRankResult] = useState(ranks);
 	const [searchRankValue, setSearchRankValue] = useState('');
 
+// ===================================================================================================
 
 	// HANDLING CLICK OF RANK EDIT
 	const handleEditRankClick = (rank) => {
@@ -539,6 +613,7 @@ const TeacherRankListContainer = ({ editable = false }) => {
 		setEditAdditionalRankScheds([]);
 	};
 
+// ===================================================================================================
 
 	//  HANDLING ADDITION AND DELETION OF ADDITIONAL RANK SCHEDULES
 	const handleAddAdditionalSchedule = () => {
@@ -550,6 +625,7 @@ const TeacherRankListContainer = ({ editable = false }) => {
 				duration: 60,
 				frequency: 1,
 				shown: true,
+				time: 72,
 			},
 		]);
 	};
@@ -560,6 +636,7 @@ const TeacherRankListContainer = ({ editable = false }) => {
 		);
 	};
 
+// ===================================================================================================
 
 	// HANDLING UPDATE OF RANKS (and TEACHERS optional)
 	const updateAllTeacherAdditionalSchedules = () => {
@@ -569,7 +646,40 @@ const TeacherRankListContainer = ({ editable = false }) => {
 
 			if (newTeacher.rank !== editRankId) return;
 
-			newTeacher.additionalTeacherScheds = editAdditionalRankScheds;
+			const updatedSchedNames = new Set(editAdditionalRankScheds.map((sched) => sched.name));
+
+			const advisoryLoadSched = newTeacher.additionalTeacherScheds.find(
+				(sched) => sched.name === 'Advisory Load'
+			);
+
+			let updatedAdditionalScheds = structuredClone(editAdditionalRankScheds);
+
+			if (advisoryLoadSched && !updatedSchedNames.has('Advisory Load')) {
+				updatedAdditionalScheds.push(advisoryLoadSched);
+				updatedSchedNames.add('Advisory Load'); 
+			}
+
+			const existingSchedsMap = new Map(
+				newTeacher.additionalTeacherScheds.map((sched) => [sched.name, sched])
+			);
+
+			newTeacher.additionalTeacherScheds = updatedAdditionalScheds.map((updatedSched) => {
+				const existingSched = existingSchedsMap.get(updatedSched.name);
+
+				if (existingSched) {
+					return {
+						...existingSched,
+						duration: updatedSched.duration || existingSched.duration,
+						frequency: updatedSched.frequency || existingSched.frequency,
+						shown: updatedSched.shown ?? existingSched.shown,
+						time: updatedSched.time || existingSched.time,
+					};
+				}
+
+				// If the schedule doesn't exist, add it as is
+				return updatedSched;
+			});
+
 
 			dispatch(
 				editTeacher({
@@ -586,7 +696,6 @@ const TeacherRankListContainer = ({ editable = false }) => {
 			);
 			
 		})
-
 	};
 
 	const handleSaveRankEditClick = (value) => {
@@ -661,8 +770,8 @@ const TeacherRankListContainer = ({ editable = false }) => {
         document.getElementById(`confirm_rank_edit_modal`).close();
     };
 
+// ===================================================================================================
 
-	// HANDLING RANK ENTRY DELETION
 	const handleClose = () => {
 		const modal = document.getElementById('add_rank_modal');
 		if (modal) {
@@ -673,6 +782,8 @@ const TeacherRankListContainer = ({ editable = false }) => {
 			console.error("Modal with ID 'add_teacher_modal' not found.");
 		}
 	};
+
+// ===================================================================================================
 
 	const deleteModal = (id) => {
 		const deleteModalElement = document.getElementById("delete_modal");
@@ -687,6 +798,7 @@ const TeacherRankListContainer = ({ editable = false }) => {
 		document.getElementById("delete_modal").close(); 
 	};
 
+// ===================================================================================================
 
 	//  FOR FETCHING ALL RANKS AND TEACHERS
 	useEffect(() => {
@@ -701,6 +813,7 @@ const TeacherRankListContainer = ({ editable = false }) => {
 		}
 	}, [teacherStatus, dispatch]);
 
+// ===================================================================================================
 
 	// SEARCH FUNCTIONALITY
 	const debouncedSearch = useCallback(
@@ -728,7 +841,6 @@ const TeacherRankListContainer = ({ editable = false }) => {
 		debouncedSearch(searchRankValue, ranks);
 	}, [searchRankValue, ranks, debouncedSearch]);
 
-
 	// PAGINATION
 	const itemsPerPage = 10; // Change this to adjust the number of items per page
 	const [currentPage, setCurrentPage] = useState(1);
@@ -740,6 +852,8 @@ const TeacherRankListContainer = ({ editable = false }) => {
 	const indexOfLastItem = currentPage * itemsPerPage;
 	const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 	const currentItems = Object.entries(searchRankResult).slice(indexOfFirstItem, indexOfLastItem);
+
+// ===================================================================================================
 
 	return (
 		<React.Fragment>

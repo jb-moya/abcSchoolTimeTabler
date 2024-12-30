@@ -11,7 +11,7 @@ import {
 import { fetchPrograms, editProgram } from '@features/programSlice';
 import { fetchSections, editSection } from '@features/sectionSlice';
 
-import { getTimeSlotIndex } from '../Admin/timeSlotMapper';
+import { getTimeSlotIndex } from '@utils/timeSlotMapper';
 
 import { IoAdd, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
