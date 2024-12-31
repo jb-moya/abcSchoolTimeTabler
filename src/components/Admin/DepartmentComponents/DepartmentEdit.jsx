@@ -31,18 +31,20 @@ const DepartmentEdit = ({
 // ==========================================================================
 
 	const [editDepartmentValue, setEditDepartmentValue] = useState(department.name || "");
-	const [selectedTeacher, setSelectedTeacher] = useState(null);
+	const [selectedTeacher, setSelectedTeacher] = useState(department.head || null);
 	const [searchTerm, setSearchTerm] = useState("");
 
 // ==========================================================================
 	
 	const handleSaveDepartmentEditClick = () => {
 
+		setEditDepartmentValue(department.name); // Reset input fields
+		setSelectedTeacher(department.headl); // Reset selected teacher
+
 		if (!editDepartmentValue.trim() || !selectedTeacher) {
 
-			toast.error("Both department name and a teacher are required.", {
-				style: { backgroundColor: "red", color: "white" },
-			});
+			setErrorMessage("Please fill out all fields.");
+			setErrorField(["name", "head"]);
 
 			return;
 
@@ -80,9 +82,8 @@ const DepartmentEdit = ({
 					style: { backgroundColor: "#28a745", color: "#fff" },
 				});
 
-				setEditDepartmentValue("");
-				setSelectedTeacher(null); // Reset selected teacher
-				setSearchTerm("");
+				handleResetDepartmentEditClick(); // Reset input fields
+				closeModal(); // Close modal	
 
 			} else {
 
@@ -94,7 +95,7 @@ const DepartmentEdit = ({
 
 	const handleResetDepartmentEditClick = () => {
 		setEditDepartmentValue(department.name || "");
-		setSelectedTeacher(null); // Reset selected teacher
+		setSelectedTeacher(department.head || null); // Reset selected teacher
 		setSearchTerm("");
 	};
 
@@ -114,6 +115,14 @@ const DepartmentEdit = ({
 	}, [teacherStatus, departmentStatus, dispatch]);
 
 // ==========================================================================
+
+	const closeModal = () => {
+		const modalCheckbox = document.getElementById(`edit_modal_${department.id}`);
+		if (modalCheckbox) {
+			modalCheckbox.checked = false; // Uncheck the modal toggle
+		}
+		handleResetDepartmentEditClick();
+	};
 
 	return (
 		<div className="flex items-center justify-center">
@@ -228,11 +237,9 @@ const DepartmentEdit = ({
 						</div>
 					</div>
 
-					{errorField.includes("head") && (
-						<span className="text-red-500 text-sm mt-1">
-							Please select a teacher.
-						</span>
-					)}
+					{errorMessage && (
+                        <p className="flex justify-center text-red-500 text-sm my-4 font-medium">{errorMessage}</p>
+                    )}
 
 					<div className="flex justify-center gap-2 mt-4">
 						<button 

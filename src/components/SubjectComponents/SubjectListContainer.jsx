@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { useDispatch } from 'react-redux';
 import {
     fetchSubjects,
@@ -8,19 +7,19 @@ import {
     editSubject,
     removeSubject,
 } from '@features/subjectSlice';
-import { fetchPrograms, editProgram } from '@features/programSlice';
-import { fetchSections, editSection } from '@features/sectionSlice';
+// import { fetchPrograms} from '@features/programSlice';
+// import { fetchSections } from '@features/sectionSlice';
 
-import { getTimeSlotIndex } from '@utils/timeSlotMapper';
+// import { getTimeSlotIndex } from '@utils/timeSlotMapper';
 
 import { IoAdd, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 
-import { toast } from 'sonner';
+// import { toast } from 'sonner';
 
-import calculateTotalTimeslot from '../../utils/calculateTotalTimeslot';
+// import calculateTotalTimeslot from '../../utils/calculateTotalTimeslot';
 
 import AddSubjectContainer from './AddSubjectContainer';
 import SubjectEdit from './SubjectEdit';
@@ -35,12 +34,12 @@ const SubjectListContainer = ({
     const { subjects, status: subjectStatus } = useSelector(
         (state) => state.subject
     );
-    const { programs, status: programStatus } = useSelector(
-        (state) => state.program
-    );
-    const { sections, status: sectionStatus } = useSelector(
-        (state) => state.section
-    );
+    // const { programs, status: programStatus } = useSelector(
+    //     (state) => state.program
+    // );
+    // const { sections, status: sectionStatus } = useSelector(
+    //     (state) => state.section
+    // );
 
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
         return (
@@ -70,439 +69,439 @@ const SubjectListContainer = ({
     //     setEditSubjectWeeklyMinutes(subject.weeklyMinutes);
     // };
 
-    const handleEdit = (subject) => {
-        setEditSubjectId(subject.id);
-        setEditSubjectValue(subject.subject);
-        setEditClassDuration(subject.classDuration);
-        setEditSubjectWeeklyMinutes(subject.weeklyMinutes);
+    // const handleEdit = (subject) => {
+    //     setEditSubjectId(subject.id);
+    //     setEditSubjectValue(subject.subject);
+    //     setEditClassDuration(subject.classDuration);
+    //     setEditSubjectWeeklyMinutes(subject.weeklyMinutes);
 
-        document.getElementById('edit_subject_modal').showModal();
-    };
+    //     document.getElementById('edit_subject_modal').showModal();
+    // };
 
-    const handleSaveSubjectEditClick = (subjectId) => {
-        if (!editSubjectValue.trim()) {
-            alert('Subject name cannot be empty');
-            return;
-        } else if (!editClassDuration) {
-            alert('Class duration cannot be empty');
-            return;
-        } else if (!editSubjectWeeklyMinutes) {
-            alert('Subject weekly minutes cannot be empty');
-            return;
-        }
+    // const handleSaveSubjectEditClick = (subjectId) => {
+    //     if (!editSubjectValue.trim()) {
+    //         alert('Subject name cannot be empty');
+    //         return;
+    //     } else if (!editClassDuration) {
+    //         alert('Class duration cannot be empty');
+    //         return;
+    //     } else if (!editSubjectWeeklyMinutes) {
+    //         alert('Subject weekly minutes cannot be empty');
+    //         return;
+    //     }
 
-        const currentSubject = subjects[subjectId]?.subject || '';
+    //     const currentSubject = subjects[subjectId]?.subject || '';
 
-        if (
-            editSubjectValue.trim().toLowerCase() ===
-            currentSubject.toLowerCase()
-        ) {
-            dispatch(
-                editSubject({
-                    subjectId,
-                    updatedSubject: {
-                        subject: editSubjectValue,
-                        classDuration: editClassDuration,
-                        weeklyMinutes: editSubjectWeeklyMinutes,
-                    },
-                })
-            );
+    //     if (
+    //         editSubjectValue.trim().toLowerCase() ===
+    //         currentSubject.toLowerCase()
+    //     ) {
+    //         dispatch(
+    //             editSubject({
+    //                 subjectId,
+    //                 updatedSubject: {
+    //                     subject: editSubjectValue,
+    //                     classDuration: editClassDuration,
+    //                     weeklyMinutes: editSubjectWeeklyMinutes,
+    //                 },
+    //             })
+    //         );
 
-            updateSubjectDependencies();
+    //         updateSubjectDependencies();
 
-            toast.success('Data and dependencies updated successfully', {
-                style: {
-                    backgroundColor: 'green',
-                    color: 'white',
-                    bordercolor: 'green',
-                },
-            });
+    //         toast.success('Data and dependencies updated successfully', {
+    //             style: {
+    //                 backgroundColor: 'green',
+    //                 color: 'white',
+    //                 bordercolor: 'green',
+    //             },
+    //         });
 
-            setEditSubjectId(null);
-            setEditSubjectValue('');
-            setEditClassDuration(0);
-            setEditSubjectWeeklyMinutes(0);
-        } else {
-            const duplicateSubject = Object.values(subjects).find(
-                (subject) =>
-                    subject.subject.trim().toLowerCase() ===
-                    editSubjectValue.trim().toLowerCase()
-            );
+    //         setEditSubjectId(null);
+    //         setEditSubjectValue('');
+    //         setEditClassDuration(0);
+    //         setEditSubjectWeeklyMinutes(0);
+    //     } else {
+    //         const duplicateSubject = Object.values(subjects).find(
+    //             (subject) =>
+    //                 subject.subject.trim().toLowerCase() ===
+    //                 editSubjectValue.trim().toLowerCase()
+    //         );
 
-            if (duplicateSubject) {
-                alert('A subject with this name already exists.');
-            } else if (editSubjectValue.trim()) {
-                dispatch(
-                    editSubject({
-                        subjectId,
-                        updatedSubject: {
-                            subject: editSubjectValue,
-                            classDuration: editClassDuration,
-                            weeklyMinutes: editSubjectWeeklyMinutes,
-                        },
-                    })
-                );
-                updateSubjectDependencies();
-                // console.log('after :D subjects', subjects);
-                toast.success('Data and dependencies updated successfully!', {
-                    style: {
-                        backgroundColor: '#28a745',
-                        color: '#fff',
-                        borderColor: '#28a745',
-                    },
-                });
+    //         if (duplicateSubject) {
+    //             alert('A subject with this name already exists.');
+    //         } else if (editSubjectValue.trim()) {
+    //             dispatch(
+    //                 editSubject({
+    //                     subjectId,
+    //                     updatedSubject: {
+    //                         subject: editSubjectValue,
+    //                         classDuration: editClassDuration,
+    //                         weeklyMinutes: editSubjectWeeklyMinutes,
+    //                     },
+    //                 })
+    //             );
+    //             updateSubjectDependencies();
+    //             // console.log('after :D subjects', subjects);
+    //             toast.success('Data and dependencies updated successfully!', {
+    //                 style: {
+    //                     backgroundColor: '#28a745',
+    //                     color: '#fff',
+    //                     borderColor: '#28a745',
+    //                 },
+    //             });
 
-                // resetInputs();
-            } else {
-                const duplicateSubject = Object.values(subjects).find(
-                    (subject) =>
-                        subject.subject.trim().toLowerCase() ===
-                        editSubjectValue.trim().toLowerCase()
-                );
+    //             // resetInputs();
+    //         } else {
+    //             const duplicateSubject = Object.values(subjects).find(
+    //                 (subject) =>
+    //                     subject.subject.trim().toLowerCase() ===
+    //                     editSubjectValue.trim().toLowerCase()
+    //             );
 
-                if (duplicateSubject) {
-                    alert('A subject with this name already exists.');
-                } else if (editSubjectValue.trim()) {
-                    dispatch(
-                        editSubject({
-                            subjectId,
-                            updatedSubject: {
-                                subject: editSubjectValue,
-                                classDuration: editClassDuration,
-                                weeklyMinutes: editSubjectWeeklyMinutes,
-                            },
-                        })
-                    );
+    //             if (duplicateSubject) {
+    //                 alert('A subject with this name already exists.');
+    //             } else if (editSubjectValue.trim()) {
+    //                 dispatch(
+    //                     editSubject({
+    //                         subjectId,
+    //                         updatedSubject: {
+    //                             subject: editSubjectValue,
+    //                             classDuration: editClassDuration,
+    //                             weeklyMinutes: editSubjectWeeklyMinutes,
+    //                         },
+    //                     })
+    //                 );
 
-                    updateSubjectDependencies();
+    //                 updateSubjectDependencies();
 
-                    toast.success(
-                        'Data and dependencies updated successfully',
-                        {
-                            style: {
-                                backgroundColor: 'green',
-                                color: 'white',
-                                bordercolor: 'green',
-                            },
-                        }
-                    );
+    //                 toast.success(
+    //                     'Data and dependencies updated successfully',
+    //                     {
+    //                         style: {
+    //                             backgroundColor: 'green',
+    //                             color: 'white',
+    //                             bordercolor: 'green',
+    //                         },
+    //                     }
+    //                 );
 
-                    setEditSubjectId(null);
-                    setEditSubjectValue('');
-                    setEditClassDuration(0);
-                    setEditSubjectWeeklyMinutes(0);
-                }
-            }
-        }
-    };
+    //                 setEditSubjectId(null);
+    //                 setEditSubjectValue('');
+    //                 setEditClassDuration(0);
+    //                 setEditSubjectWeeklyMinutes(0);
+    //             }
+    //         }
+    //     }
+    // };
 
-    const updateSubjectDependencies = () => {
-        if (Object.keys(programs).length === 0) return;
+    // const updateSubjectDependencies = () => {
+    //     if (Object.keys(programs).length === 0) return;
 
-        // Update subject dependencies in PROGRAMS
-        Object.entries(programs).forEach(([id, program]) => {
-            const originalProgram = JSON.parse(JSON.stringify(program));
-            const newProgram = JSON.parse(JSON.stringify(program));
+    //     // Update subject dependencies in PROGRAMS
+    //     Object.entries(programs).forEach(([id, program]) => {
+    //         const originalProgram = JSON.parse(JSON.stringify(program));
+    //         const newProgram = JSON.parse(JSON.stringify(program));
 
-            console.log('originalProgradsm', originalProgram);
-            console.log('newProgarm', newProgram);
+    //         console.log('originalProgradsm', originalProgram);
+    //         console.log('newProgarm', newProgram);
 
-            [7, 8, 9, 10].forEach((grade) => {
-                if (!newProgram[grade].subjects.length === 0) {
-                    return;
-                }
+    //         [7, 8, 9, 10].forEach((grade) => {
+    //             if (!newProgram[grade].subjects.length === 0) {
+    //                 return;
+    //             }
 
-                const newTotalTimeslot = calculateTotalTimeslot(
-                    {
-                        ...subjects,
-                        [editSubjectId]: {
-                            ...subjects[editSubjectId],
-                            subject: editSubjectValue,
-                            classDuration: editClassDuration,
-                            weeklyMinutes: editSubjectWeeklyMinutes,
-                        },
-                    },
-                    newProgram[grade].subjects,
-                    numOfSchoolDays
-                );
+    //             const newTotalTimeslot = calculateTotalTimeslot(
+    //                 {
+    //                     ...subjects,
+    //                     [editSubjectId]: {
+    //                         ...subjects[editSubjectId],
+    //                         subject: editSubjectValue,
+    //                         classDuration: editClassDuration,
+    //                         weeklyMinutes: editSubjectWeeklyMinutes,
+    //                     },
+    //                 },
+    //                 newProgram[grade].subjects,
+    //                 numOfSchoolDays
+    //             );
 
-                Object.entries(newProgram[grade].fixedPositions).forEach(
-                    ([subjectId, fixedPosition]) => {
-                        fixedPosition.forEach((item, i) => {
-                            if (item > newTotalTimeslot) {
-                                fixedPosition[i] = 0;
-                                newProgram[grade].fixedDays[subjectId][i] = 0;
-                            }
-                        });
-                    }
-                );
+    //             Object.entries(newProgram[grade].fixedPositions).forEach(
+    //                 ([subjectId, fixedPosition]) => {
+    //                     fixedPosition.forEach((item, i) => {
+    //                         if (item > newTotalTimeslot) {
+    //                             fixedPosition[i] = 0;
+    //                             newProgram[grade].fixedDays[subjectId][i] = 0;
+    //                         }
+    //                     });
+    //                 }
+    //             );
 
-                console.log(
-                    'newTotalTimeslot', newTotalTimeslot);
+    //             console.log(
+    //                 'newTotalTimeslot', newTotalTimeslot);
 
-                console.log(`newProgram[${grade}].subjects`,
-                    newProgram[grade].subjects
-                );
+    //             console.log(`newProgram[${grade}].subjects`,
+    //                 newProgram[grade].subjects
+    //             );
 
-                let dayTimeSlots = {};
-                let positionTimeSlots = {};
+    //             let dayTimeSlots = {};
+    //             let positionTimeSlots = {};
 
-                for (let subjectID of newProgram[grade].subjects) {
-                    const { fixedDays, fixedPositions } = newProgram[grade];
+    //             for (let subjectID of newProgram[grade].subjects) {
+    //                 const { fixedDays, fixedPositions } = newProgram[grade];
 
-                    fixedDays[subjectID].forEach((day, i) => {
-                        const position = fixedPositions[subjectID][i];
+    //                 fixedDays[subjectID].forEach((day, i) => {
+    //                     const position = fixedPositions[subjectID][i];
 
-                        if (day || position) { // Only process non-zero day or position
-                            dayTimeSlots[day] ??= newTotalTimeslot; // Use nullish coalescing assignment
-                            positionTimeSlots[position] ??= numOfSchoolDays;
-                        }
-                    });
-                }
+    //                     if (day || position) { // Only process non-zero day or position
+    //                         dayTimeSlots[day] ??= newTotalTimeslot; // Use nullish coalescing assignment
+    //                         positionTimeSlots[position] ??= numOfSchoolDays;
+    //                     }
+    //                 });
+    //             }
 
-                console.log('dayTimeSlots', dayTimeSlots);
+    //             console.log('dayTimeSlots', dayTimeSlots);
 
-                console.log('positionTimeSlots', positionTimeSlots);
+    //             console.log('positionTimeSlots', positionTimeSlots);
 
-                // Loop through all subjects of the year level
-                for (let subjectID of newProgram[grade].subjects) {
-                    // Retrieve the number of classes allowed for the subject
-                    let numOfClasses = 0;
-                    if (subjectID === editSubjectId) {
-                        numOfClasses = Math.min(
-                            Math.ceil(
-                                editSubjectWeeklyMinutes / editClassDuration
-                            ),
-                            numOfSchoolDays
-                        );
-                    } else {
-                        numOfClasses = Math.min(
-                            Math.ceil(
-                                subjects[subjectID].weeklyMinutes /
-                                subjects[subjectID].classDuration
-                            ),
-                            numOfSchoolDays
-                        );
-                    }
-                    console.log('grade', grade);
-                    console.log('subjectID', subjectID);
-                    console.log('numOfClasses', numOfClasses);
+    //             // Loop through all subjects of the year level
+    //             for (let subjectID of newProgram[grade].subjects) {
+    //                 // Retrieve the number of classes allowed for the subject
+    //                 let numOfClasses = 0;
+    //                 if (subjectID === editSubjectId) {
+    //                     numOfClasses = Math.min(
+    //                         Math.ceil(
+    //                             editSubjectWeeklyMinutes / editClassDuration
+    //                         ),
+    //                         numOfSchoolDays
+    //                     );
+    //                 } else {
+    //                     numOfClasses = Math.min(
+    //                         Math.ceil(
+    //                             subjects[subjectID].weeklyMinutes /
+    //                             subjects[subjectID].classDuration
+    //                         ),
+    //                         numOfSchoolDays
+    //                     );
+    //                 }
+    //                 console.log('grade', grade);
+    //                 console.log('subjectID', subjectID);
+    //                 console.log('numOfClasses', numOfClasses);
 
-                    const fixedDays = newProgram[grade].fixedDays[subjectID];
-                    const fixedPositions =
-                        newProgram[grade].fixedPositions[subjectID];
+    //                 const fixedDays = newProgram[grade].fixedDays[subjectID];
+    //                 const fixedPositions =
+    //                     newProgram[grade].fixedPositions[subjectID];
 
-                    console.log('fixedDays', fixedDays);
-                    console.log('fixedPositions', fixedPositions);
+    //                 console.log('fixedDays', fixedDays);
+    //                 console.log('fixedPositions', fixedPositions);
 
-                    // Use hash maps to quickly look up subjects and day-position pairs
-                    const dayPositionMap = new Map();
+    //                 // Use hash maps to quickly look up subjects and day-position pairs
+    //                 const dayPositionMap = new Map();
 
-                    fixedDays.forEach((day, index) => {
-                        const pos = fixedPositions[index];
-                        console.log('day', day);
-                        console.log('pos', pos);
-                        if (
-                            (
-                                (day !== 0 && pos === 0) ||
-                                (day === 0 && pos !== 0) ||
-                                (day !== 0 && pos !== 0)) &&
-                            !dayPositionMap.has(`${day}-${pos}`
-                            )
-                        ) {
-                            dayPositionMap.set(`${day}-${pos}`, [day, pos]);
-                        }
-                    });
+    //                 fixedDays.forEach((day, index) => {
+    //                     const pos = fixedPositions[index];
+    //                     console.log('day', day);
+    //                     console.log('pos', pos);
+    //                     if (
+    //                         (
+    //                             (day !== 0 && pos === 0) ||
+    //                             (day === 0 && pos !== 0) ||
+    //                             (day !== 0 && pos !== 0)) &&
+    //                         !dayPositionMap.has(`${day}-${pos}`
+    //                         )
+    //                     ) {
+    //                         dayPositionMap.set(`${day}-${pos}`, [day, pos]);
+    //                     }
+    //                 });
 
-                    console.log('dayPositionMap', dayPositionMap);
+    //                 console.log('dayPositionMap', dayPositionMap);
 
-                    // Now we process the day-position pairs efficiently
-                    let result = [];
-                    dayPositionMap.forEach(([day, pos]) => {
-                        if (result.length < numOfClasses && dayTimeSlots[day] > 0 && positionTimeSlots[pos] > 0) {
-                            result.push([day, pos]);
-                            dayTimeSlots[day]--;
-                            positionTimeSlots[pos]--;
-                        }
-                    });
+    //                 // Now we process the day-position pairs efficiently
+    //                 let result = [];
+    //                 dayPositionMap.forEach(([day, pos]) => {
+    //                     if (result.length < numOfClasses && dayTimeSlots[day] > 0 && positionTimeSlots[pos] > 0) {
+    //                         result.push([day, pos]);
+    //                         dayTimeSlots[day]--;
+    //                         positionTimeSlots[pos]--;
+    //                     }
+    //                 });
 
-                    console.log('result', result);
+    //                 console.log('result', result);
 
-                    // Pad with [0, 0] if necessary
-                    while (result.length < numOfClasses) {
-                        result.push([0, 0]);
-                    }
+    //                 // Pad with [0, 0] if necessary
+    //                 while (result.length < numOfClasses) {
+    //                     result.push([0, 0]);
+    //                 }
 
-                    // Split the combined array back into fixedDays and fixedPositions
-                    newProgram[grade].fixedDays[subjectID] = result.map(
-                        ([day]) => day
-                    );
-                    newProgram[grade].fixedPositions[subjectID] = result.map(
-                        ([_, pos]) => pos
-                    );
-                }
-            });
+    //                 // Split the combined array back into fixedDays and fixedPositions
+    //                 newProgram[grade].fixedDays[subjectID] = result.map(
+    //                     ([day]) => day
+    //                 );
+    //                 newProgram[grade].fixedPositions[subjectID] = result.map(
+    //                     ([_, pos]) => pos
+    //                 );
+    //             }
+    //         });
 
-            const updateProgramDetails = (newProgram, grade) => ({
-                subjects: newProgram[grade].subjects,
-                fixedDays: newProgram[grade].fixedDays,
-                fixedPositions: newProgram[grade].fixedPositions,
-                shift: newProgram[grade].shift,
-                startTime: getTimeSlotIndex(
-                    newProgram[grade].startTime || '06:00 AM' // TODO: David: paano kung panghapon ung section?
-                ),
-            });
+    //         const updateProgramDetails = (newProgram, grade) => ({
+    //             subjects: newProgram[grade].subjects,
+    //             fixedDays: newProgram[grade].fixedDays,
+    //             fixedPositions: newProgram[grade].fixedPositions,
+    //             shift: newProgram[grade].shift,
+    //             startTime: getTimeSlotIndex(
+    //                 newProgram[grade].startTime || '06:00 AM' // TODO: David: paano kung panghapon ung section?
+    //             ),
+    //         });
 
-            console.log('updated newProgram', newProgram);
+    //         console.log('updated newProgram', newProgram);
 
-            if (originalProgram !== newProgram) {
-                dispatch(
-                    editProgram({
-                        programId: newProgram.id,
-                        updatedProgram: {
-                            program: newProgram.program,
-                            ...[7, 8, 9, 10].reduce((grades, grade) => {
-                                grades[grade] = updateProgramDetails(
-                                    newProgram,
-                                    grade
-                                );
-                                return grades;
-                            }, {}),
-                        },
-                    })
-                );
-            } else {
-                console.log('no changes');
-            }
-        });
+    //         if (originalProgram !== newProgram) {
+    //             dispatch(
+    //                 editProgram({
+    //                     programId: newProgram.id,
+    //                     updatedProgram: {
+    //                         program: newProgram.program,
+    //                         ...[7, 8, 9, 10].reduce((grades, grade) => {
+    //                             grades[grade] = updateProgramDetails(
+    //                                 newProgram,
+    //                                 grade
+    //                             );
+    //                             return grades;
+    //                         }, {}),
+    //                     },
+    //                 })
+    //             );
+    //         } else {
+    //             console.log('no changes');
+    //         }
+    //     });
 
-        if (Object.keys(sections).length === 0) return;
+    //     if (Object.keys(sections).length === 0) return;
 
-        // Update subject dependencies in SECTIONS
-        Object.entries(sections).forEach(([id, section]) => {
-            const originalSection = JSON.parse(JSON.stringify(section));
-            const newSection = JSON.parse(JSON.stringify(section));
+    //     // Update subject dependencies in SECTIONS
+    //     Object.entries(sections).forEach(([id, section]) => {
+    //         const originalSection = JSON.parse(JSON.stringify(section));
+    //         const newSection = JSON.parse(JSON.stringify(section));
 
-            if (!newSection.subjects.includes(editSubjectId)) return;
+    //         if (!newSection.subjects.includes(editSubjectId)) return;
 
-            const originalTotalTimeslot = calculateTotalTimeslot(
-                subjects,
-                newSection.subjects,
-                numOfSchoolDays
-            );
+    //         const originalTotalTimeslot = calculateTotalTimeslot(
+    //             subjects,
+    //             newSection.subjects,
+    //             numOfSchoolDays
+    //         );
 
-            const newTotalTimeslot = calculateTotalTimeslot(
-                {
-                    ...subjects,
-                    [editSubjectId]: {
-                        ...subjects[editSubjectId],
-                        subject: editSubjectValue,
-                        classDuration: editClassDuration,
-                        weeklyMinutes: editSubjectWeeklyMinutes,
-                    },
-                },
-                newSection.subjects,
-                numOfSchoolDays
-            );
+    //         const newTotalTimeslot = calculateTotalTimeslot(
+    //             {
+    //                 ...subjects,
+    //                 [editSubjectId]: {
+    //                     ...subjects[editSubjectId],
+    //                     subject: editSubjectValue,
+    //                     classDuration: editClassDuration,
+    //                     weeklyMinutes: editSubjectWeeklyMinutes,
+    //                 },
+    //             },
+    //             newSection.subjects,
+    //             numOfSchoolDays
+    //         );
 
-            if (newTotalTimeslot < originalTotalTimeslot) {
-                Object.entries(newSection.fixedPositions).forEach(
-                    ([subjectId, fixedPosition]) => {
-                        fixedPosition.forEach((item, i) => {
-                            if (item > newTotalTimeslot) {
-                                fixedPosition[i] = 0;
-                                newSection.fixedDays[subjectId][i] = 0;
-                            } // reset all positions to zero if timeslot is removed
-                        });
-                    }
-                );
-            }
+    //         if (newTotalTimeslot < originalTotalTimeslot) {
+    //             Object.entries(newSection.fixedPositions).forEach(
+    //                 ([subjectId, fixedPosition]) => {
+    //                     fixedPosition.forEach((item, i) => {
+    //                         if (item > newTotalTimeslot) {
+    //                             fixedPosition[i] = 0;
+    //                             newSection.fixedDays[subjectId][i] = 0;
+    //                         } // reset all positions to zero if timeslot is removed
+    //                     });
+    //                 }
+    //             );
+    //         }
 
-            const numOfClasses = Math.min(
-                Math.ceil(editSubjectWeeklyMinutes / editClassDuration),
-                numOfSchoolDays
-            );
+    //         const numOfClasses = Math.min(
+    //             Math.ceil(editSubjectWeeklyMinutes / editClassDuration),
+    //             numOfSchoolDays
+    //         );
 
-            const fixedDays = newSection.fixedDays[editSubjectId];
-            const fixedPositions = newSection.fixedPositions[editSubjectId];
+    //         const fixedDays = newSection.fixedDays[editSubjectId];
+    //         const fixedPositions = newSection.fixedPositions[editSubjectId];
 
-            let dayTimeSlots = {};
-            let positionTimeSlots = {};
+    //         let dayTimeSlots = {};
+    //         let positionTimeSlots = {};
 
-            for (let subjectID of newSection.subjects) {
-                const { fixedDays, fixedPositions } = newSection;
+    //         for (let subjectID of newSection.subjects) {
+    //             const { fixedDays, fixedPositions } = newSection;
 
-                fixedDays[subjectID].forEach((day, i) => {
-                    const position = fixedPositions[subjectID][i];
+    //             fixedDays[subjectID].forEach((day, i) => {
+    //                 const position = fixedPositions[subjectID][i];
 
-                    if (day || position) { // Only process non-zero day or position
-                        dayTimeSlots[day] ??= newTotalTimeslot; // Use nullish coalescing assignment
-                        positionTimeSlots[position] ??= numOfSchoolDays;
-                    }
-                });
-            }
+    //                 if (day || position) { // Only process non-zero day or position
+    //                     dayTimeSlots[day] ??= newTotalTimeslot; // Use nullish coalescing assignment
+    //                     positionTimeSlots[position] ??= numOfSchoolDays;
+    //                 }
+    //             });
+    //         }
 
-            // Use hash maps to quickly look up subjects and day-position pairs
-            const dayPositionMap = new Map();
+    //         // Use hash maps to quickly look up subjects and day-position pairs
+    //         const dayPositionMap = new Map();
 
-            fixedDays.forEach((day, index) => {
-                const pos = fixedPositions[index];
-                if (
-                    ((day !== 0 && pos === 0) ||
-                        (day === 0 && pos !== 0) ||
-                        (day !== 0 && pos !== 0)) &&
-                    !dayPositionMap.has(`${day}-${pos}`)
-                ) {
-                    dayPositionMap.set(`${day}-${pos}`, [day, pos]);
-                }
-            });
+    //         fixedDays.forEach((day, index) => {
+    //             const pos = fixedPositions[index];
+    //             if (
+    //                 ((day !== 0 && pos === 0) ||
+    //                     (day === 0 && pos !== 0) ||
+    //                     (day !== 0 && pos !== 0)) &&
+    //                 !dayPositionMap.has(`${day}-${pos}`)
+    //             ) {
+    //                 dayPositionMap.set(`${day}-${pos}`, [day, pos]);
+    //             }
+    //         });
 
-            // Now we process the day-position pairs efficiently
-            let result = [];
-            dayPositionMap.forEach(([day, pos]) => {
-                if (result.length < numOfClasses && dayTimeSlots[day] > 0 && positionTimeSlots[pos] > 0) {
-                    result.push([day, pos]);
-                    dayTimeSlots[day] -= 1;
-                    positionTimeSlots[pos] -= 1;
-                }
-            });
+    //         // Now we process the day-position pairs efficiently
+    //         let result = [];
+    //         dayPositionMap.forEach(([day, pos]) => {
+    //             if (result.length < numOfClasses && dayTimeSlots[day] > 0 && positionTimeSlots[pos] > 0) {
+    //                 result.push([day, pos]);
+    //                 dayTimeSlots[day] -= 1;
+    //                 positionTimeSlots[pos] -= 1;
+    //             }
+    //         });
 
-            console.log('fafaf dayPositionMap', dayPositionMap);
+    //         console.log('fafaf dayPositionMap', dayPositionMap);
 
-            // Pad with [0, 0] if necessary
-            while (result.length < numOfClasses) {
-                result.push([0, 0]);
-            }
+    //         // Pad with [0, 0] if necessary
+    //         while (result.length < numOfClasses) {
+    //             result.push([0, 0]);
+    //         }
 
-            // Split the combined array back into fixedDays and fixedPositions
-            newSection.fixedDays[editSubjectId] = result.map(([day]) => day);
-            newSection.fixedPositions[editSubjectId] = result.map(
-                ([_, pos]) => pos
-            );
+    //         // Split the combined array back into fixedDays and fixedPositions
+    //         newSection.fixedDays[editSubjectId] = result.map(([day]) => day);
+    //         newSection.fixedPositions[editSubjectId] = result.map(
+    //             ([_, pos]) => pos
+    //         );
 
-            if (originalSection !== newSection) {
-                dispatch(
-                    editSection({
-                        sectionId: newSection.id,
-                        updatedSection: {
-                            id: newSection.id,
-                            teacher: newSection.teacher,
-                            program: newSection.program,
-                            section: newSection.section,
-                            subjects: newSection.subjects,
-                            fixedDays: newSection.fixedDays,
-                            fixedPositions: newSection.fixedPositions,
-                            year: newSection.year,
-                            shift: newSection.shift,
-                            startTime: getTimeSlotIndex(
-                                newSection.startTime || '06:00 AM'
-                            ),
-                        },
-                    })
-                );
-            }
-        });
-    };
+    //         if (originalSection !== newSection) {
+    //             dispatch(
+    //                 editSection({
+    //                     sectionId: newSection.id,
+    //                     updatedSection: {
+    //                         id: newSection.id,
+    //                         teacher: newSection.teacher,
+    //                         program: newSection.program,
+    //                         section: newSection.section,
+    //                         subjects: newSection.subjects,
+    //                         fixedDays: newSection.fixedDays,
+    //                         fixedPositions: newSection.fixedPositions,
+    //                         year: newSection.year,
+    //                         shift: newSection.shift,
+    //                         startTime: getTimeSlotIndex(
+    //                             newSection.startTime || '06:00 AM'
+    //                         ),
+    //                     },
+    //                 })
+    //             );
+    //         }
+    //     });
+    // };
 
     const handleClose = () => {
         const modal = document.getElementById('add_subject_modal');
@@ -549,17 +548,17 @@ const SubjectListContainer = ({
         }
     }, [subjectStatus, dispatch]);
 
-    useEffect(() => {
-        if (programStatus === 'idle') {
-            dispatch(fetchPrograms());
-        }
-    }, [programStatus, dispatch]);
+    // useEffect(() => {
+    //     if (programStatus === 'idle') {
+    //         dispatch(fetchPrograms());
+    //     }
+    // }, [programStatus, dispatch]);
 
-    useEffect(() => {
-        if (sectionStatus === 'idle') {
-            dispatch(fetchSections());
-        }
-    }, [sectionStatus, dispatch]);
+    // useEffect(() => {
+    //     if (sectionStatus === 'idle') {
+    //         dispatch(fetchSections());
+    //     }
+    // }, [sectionStatus, dispatch]);
 
     useEffect(() => {
         debouncedSearch(searchSubjectValue, subjects);
@@ -779,6 +778,7 @@ const SubjectListContainer = ({
                                                     errorField={errorField}
                                                     setErrorField={setErrorField}
                                                     reduxFunction={editSubject}
+                                                    numOfSchoolDays = {numOfSchoolDays}
                                                 />
                                                 <DeleteData
                                                     className="btn btn-xs btn-ghost text-red-500"
