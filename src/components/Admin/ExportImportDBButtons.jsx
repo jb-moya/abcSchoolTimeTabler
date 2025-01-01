@@ -300,7 +300,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
         deptHeaderRow.alignment = { horizontal: 'center', vertical: 'middle' };
 
         exportData.departments.forEach((dept) => {
-            deptWorksheet.addRow([dept.name, teachers[dept.head].teacher]);
+            deptWorksheet.addRow([dept.name, teachers[dept.head]?.teacher || '']);
         });
 
         deptWorksheet.columns = [
