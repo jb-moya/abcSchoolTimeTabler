@@ -21,9 +21,7 @@ import TeacherListContainer from '@components/Admin/Teacher/TeacherListContainer
 import SectionListContainer from '@components/Admin/SectionListContainer';
 import ExportImportDBButtons from '@components/Admin/ExportImportDBButtons';
 
-import { getTimeSlotIndex } from '@components/Admin/timeSlotMapper';
-
-import { getTimeSlotString } from '../../../components/Admin/timeSlotMapper';
+import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';
 import Breadcrumbs from '@components/Admin/Breadcrumbs';
 import { clearAllEntriesAndResetIDs } from '@src/indexedDB';
 import { enableMapSet } from 'immer';

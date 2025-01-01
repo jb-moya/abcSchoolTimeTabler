@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import { toast } from 'sonner';
+
 
 const AddSubjectContainer = ({
     close,
@@ -16,15 +17,15 @@ const AddSubjectContainer = ({
     const dispatch = useDispatch();
     const subjects = useSelector((state) => state.subject.subjects);
 
-    const dayNames = [
-        'Monday',
-        'Tuesday',
-        'Wednesday',
-        'Thursday',
-        'Friday',
-        'Saturday',
-        'Sunday',
-    ];
+    // const dayNames = [
+    //     'Monday',
+    //     'Tuesday',
+    //     'Wednesday',
+    //     'Thursday',
+    //     'Friday',
+    //     'Saturday',
+    //     'Sunday',
+    // ];
 
     const [subjectName, setSubjectName] = useState('');
     const [classSubjectDuration, setClassSubjectDuration] = useState(
@@ -150,7 +151,7 @@ const AddSubjectContainer = ({
 
             <div className="mb-4">
                 <label className="block text-sm font-medium mb-2">
-                    Subject's Weekly Time Requirement (minutes):
+                    Subject Weekly Time Requirement (minutes):
                 </label>
                 <input
                     type="number"
