@@ -41,11 +41,11 @@ const DepartmentListContainer = ({ editable = false }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
 
-  const handleEditDepartmentClick = (department) => {
-    setEditDepartmentId(department.id);
-    setEditDepartmentValue(department.name);
-    setEditDepartmentHead(department.head);
-  };
+  // const handleEditDepartmentClick = (department) => {
+  //   setEditDepartmentId(department.id);
+  //   setEditDepartmentValue(department.name);
+  //   setEditDepartmentHead(department.head);
+  // };
 
   const handleClose = () => {
     const modal = document.getElementById('add_department_modal');
@@ -110,11 +110,11 @@ const DepartmentListContainer = ({ editable = false }) => {
     }
   };
 
-  const handleCancelDepartmentEditClick = () => {
-    setEditDepartmentId(null);
-    setEditDepartmentValue('');
-    setEditDepartmentHead('');
-  };
+  // const handleCancelDepartmentEditClick = () => {
+  //   setEditDepartmentId(null);
+  //   setEditDepartmentValue('');
+  //   setEditDepartmentHead('');
+  // };
 
   useEffect(() => {
     if (departmentStatus === 'idle') {

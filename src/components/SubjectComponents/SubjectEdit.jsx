@@ -4,6 +4,13 @@ import { RiEdit2Fill } from 'react-icons/ri';
 import { toast } from 'sonner';
 import { useSelector } from 'react-redux';
 
+import { fetchPrograms, editProgram } from '@features/programSlice';
+import { fetchSections, editSection } from '@features/sectionSlice';
+import { fetchSubjects } from '@features/subjectSlice';
+
+import calculateTotalTimeslot from '../../utils/calculateTotalTimeslot';
+import { getTimeSlotIndex } from '@utils/timeSlotMapper';
+
 const SubjectEdit = ({
     subject,
     setErrorMessage,
@@ -11,10 +18,27 @@ const SubjectEdit = ({
     errorField,
     setErrorField,
     reduxFunction,
+    numOfSchoolDays,
 }) => {
     const [subjectName, setSubjectName] = useState(subject.subject || '');
     const [classSubjectDuration, setClassSubjectDuration] = useState(subject.classDuration || 0);
     const [subjectWeeklyMinutes, setSubjectWeeklyMinutes] = useState(subject.weeklyMinutes || 0);
+
+    const [editSubjectId, setEditSubjectId] = useState(null);
+    const [editSubjectValue, setEditSubjectValue] = useState('');
+    const [editClassDuration, setEditClassDuration] = useState(0);
+    const [editSubjectWeeklyMinutes, setEditSubjectWeeklyMinutes] = useState(0);
+
+    // const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
+    //     return (
+    //         externalNumOfSchoolDays ??
+    //         (Number(localStorage.getItem('numOfSchoolDays')) || 0)
+    //     );
+    // });
+
+    // const defaultSubjectClassDuration = localStorage.getItem(
+    //     'defaultSubjectClassDuration'
+    // );
 
     const inputNameRef = useRef(null);
     const dispatch = useDispatch();
@@ -48,7 +72,20 @@ const SubjectEdit = ({
             }
         }, [sectionStatus, dispatch]);
 
+    //  useEffect(() => {
+    //         if (externalNumOfSchoolDays !== undefined) {
+    //             setNumOfSchoolDays(externalNumOfSchoolDays);
+    //         }
+    //     }, [externalNumOfSchoolDays]);
+    
+
     const handleEditSubject = () => {
+
+        setEditSubjectId(subject.id);
+        setEditSubjectValue(subject.subject);
+        setEditClassDuration(subject.classDuration);
+        setEditSubjectWeeklyMinutes(subject.weeklyMinutes);
+
         if (!subjectName.trim()) {
             setErrorMessage('Subject name cannot be empty');
             setErrorField('name');

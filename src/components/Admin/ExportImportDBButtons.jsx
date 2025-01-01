@@ -1343,7 +1343,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                                 shift: shiftYear7 === 'AM' ? 0 : 1,
                                 startTime: startTime7Idx,
                                 fixedDays: fixedDays7,
-                                fixedPosition: fixedPositions7,
+                                fixedPositions: fixedPositions7,
                                 additionalScheds: [],
                             },
                             8: {
@@ -1351,7 +1351,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                                 shift: shiftYear8 === 'AM' ? 0 : 1,
                                 startTime: startTime8Idx,
                                 fixedDays: fixedDays8,
-                                fixedPosition: fixedPositions8,
+                                fixedPositions: fixedPositions8,
                                 additionalScheds: [],
                             },
                             9: {
@@ -1359,7 +1359,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                                 shift: shiftYear9 === 'AM' ? 0 : 1,
                                 startTime: startTime9Idx,
                                 fixedDays: fixedDays9,
-                                fixedPosition: fixedPositions9,
+                                fixedPositions: fixedPositions9,
                                 additionalScheds: [],
                             },
                             10: {
@@ -1367,7 +1367,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                                 shift: shiftYear10 === 'AM' ? 0 : 1,
                                 startTime: startTime10Idx,
                                 fixedDays: fixedDays10,
-                                fixedPosition: fixedPositions10,
+                                fixedPositions: fixedPositions10,
                                 additionalScheds: [],
                             },
                         });
@@ -1657,8 +1657,8 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
 
         // ======================== ADD ALL ENTRIES TO DATABASE ======================== //
 
-        console.log('teachers', addedTeachers);
-        console.log('sections', addedSections_2);
+        // console.log('teachers', addedTeachers);
+        // console.log('sections', addedSections_2);
 
         // Add all subjects
         for (let i = 0; i < addedSubjects.length; i++) {
