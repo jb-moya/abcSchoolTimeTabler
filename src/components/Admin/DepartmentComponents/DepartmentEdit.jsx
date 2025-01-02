@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import  { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { toast } from 'sonner';
 import { RiEdit2Fill } from "react-icons/ri";
@@ -27,6 +27,7 @@ const DepartmentEdit = ({
 	const { teachers, status: teacherStatus } = useSelector(
 		(state) => state.teacher
 	);
+	
 
 // ==========================================================================
 
@@ -37,9 +38,6 @@ const DepartmentEdit = ({
 // ==========================================================================
 	
 	const handleSaveDepartmentEditClick = () => {
-
-		setEditDepartmentValue(department.name); // Reset input fields
-		setSelectedTeacher(department.headl); // Reset selected teacher
 
 		if (!editDepartmentValue.trim() || !selectedTeacher) {
 
@@ -113,6 +111,12 @@ const DepartmentEdit = ({
 			dispatch(fetchDepartments());
 		}
 	}, [teacherStatus, departmentStatus, dispatch]);
+
+	useEffect(() => {
+		setEditDepartmentValue(department.name || "");
+		setSelectedTeacher(department.head || null);
+	}, [department]);
+	
 
 // ==========================================================================
 
