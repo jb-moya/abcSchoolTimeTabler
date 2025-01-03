@@ -7,7 +7,7 @@ import ContainerSpawn from './containerSpawn';
 import DroppableSchedCell from './droppableSchedCell';
 import { ReserveDay, ReservePosition } from './reservation';
 import { spawnColors } from './bgColors';
-import calculateTotalTimeslot from '../../../utils/calculateTotalTimeslot';
+import calculateTotalClass from '../../../utils/calculateTotalClass';
 
 const hexToRgba = (hex, alpha) => {
     const [r, g, b] = hex
@@ -39,15 +39,7 @@ const FixedScheduleMaker = ({
     const subjectsStore = useSelector((state) => state.subject.subjects);
     // console.log('🚀 ~ subjectsStore:', subjectsStore);
 
-    const dayNames = [
-        'Monday',
-        'Tuesday',
-        'Wednesday',
-        'Thursday',
-        'Friday',
-        'Saturday',
-        'Sunday',
-    ];
+    const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
     const [editMode, setEditMode] = useState(false);
 
@@ -75,27 +67,15 @@ const FixedScheduleMaker = ({
 
         let totalTimeslots = subjs.reduce(
             (sum, subj) =>
-                sum +
-                Math.min(
-                    Math.ceil(
-                        subjectsStore[subj].weeklyMinutes /
-                            subjectsStore[subj].classDuration
-                    ),
-                    numOfSchoolDays
-                ),
+                sum + Math.min(Math.ceil(subjectsStore[subj].weeklyMinutes / subjectsStore[subj].classDuration), numOfSchoolDays),
             0
         );
 
-        let subjectPositionArrayLength = Math.ceil(
-            totalTimeslots / numOfSchoolDays
-        );
+        let subjectPositionArrayLength = Math.ceil(totalTimeslots / numOfSchoolDays);
 
         subjectPositionArrayLength += subjectPositionArrayLength >= 10 ? 2 : 1;
 
-        const subjectPositionArray = Array.from(
-            { length: subjectPositionArrayLength },
-            () => Array(numOfSchoolDays).fill(0)
-        );
+        const subjectPositionArray = Array.from({ length: subjectPositionArrayLength }, () => Array(numOfSchoolDays).fill(0));
 
         // console.log('subjectPositionArray', subjectPositionArray);
 
@@ -120,7 +100,7 @@ const FixedScheduleMaker = ({
 
     // Initialize days and positions when fixedDays or fixedPositions change
     useEffect(() => {
-        // console.log('subs', subs);
+        console.log('subs', subs);
         // console.log('days', days);
         // console.log('positions', positions);
 
@@ -130,11 +110,21 @@ const FixedScheduleMaker = ({
         const ranges = findConsecutiveRanges(subjects);
         setMergeData(ranges);
 
-        let totalTimeRow = calculateTotalTimeslot(
-            subjectsStore,
-            subs,
-            numOfSchoolDays
+        let totalNumOfClasses = calculateTotalClass(subjectsStore, subs, numOfSchoolDays);
+
+        console.log('T I T E T I T E ~ additionalSchedules T I T E T I T E :', additionalSchedules);
+
+        let additionalScheduleTotalNumOfClasses = additionalSchedules.reduce((acc, schedule) => {
+            console.log('schedule', schedule);
+            return 1 + acc;
+        }, 0);
+
+        console.log(
+            '🚀 ~ additionalScheduleTotalNumOfClasses ~ additionalScheduleTotalNumOfClasses:',
+            additionalScheduleTotalNumOfClasses
         );
+
+        let totalTimeRow = Math.ceil(totalNumOfClasses / numOfSchoolDays);
 
         totalTimeRow += totalTimeRow >= 10 ? 2 : 1;
 
@@ -273,16 +263,11 @@ const FixedScheduleMaker = ({
         const targetContainerID = over.data.current.subjectID;
 
         // Dragged and target container details
-        const {
-            grade: draggedGrade,
-            dayIdx: draggedDay,
-            posIdx: draggedPos,
-        } = active.data.current;
+        const { grade: draggedGrade, dayIdx: draggedDay, posIdx: draggedPos } = active.data.current;
         const { day: targetDay, position: targetPos } = over.data.current;
 
         // Skip if dragged item is being dropped on itself or an invalid container
-        if (draggedSubjectID !== targetContainerID && targetContainerID !== -1)
-            return;
+        if (draggedSubjectID !== targetContainerID && targetContainerID !== -1) return;
 
         // console.log('subjectsPerPosition', subjectsPerPosition);
 
@@ -292,30 +277,13 @@ const FixedScheduleMaker = ({
                 const items = key === 'days' ? days[subID] : positions[subID];
                 return (
                     count +
-                    items.filter(
-                        (item, idx) =>
-                            item === targetValue &&
-                            targetValue !== excludedValue &&
-                            targetValue !== 0
-                    ).length
+                    items.filter((item, idx) => item === targetValue && targetValue !== excludedValue && targetValue !== 0).length
                 );
             }, 0);
 
         // Calculate slots with your conditions
-        const daySlots = countSlots(
-            subs,
-            'days',
-            'positions',
-            targetDay,
-            days[draggedSubjectID]?.[draggedDay]
-        );
-        const positionSlots = countSlots(
-            subs,
-            'positions',
-            'days',
-            targetPos,
-            positions[draggedSubjectID]?.[draggedDay]
-        );
+        const daySlots = countSlots(subs, 'days', 'positions', targetDay, days[draggedSubjectID]?.[draggedDay]);
+        const positionSlots = countSlots(subs, 'positions', 'days', targetPos, positions[draggedSubjectID]?.[draggedDay]);
 
         // console.log(
         //     '%c Oh my heavens! ',
@@ -326,11 +294,7 @@ const FixedScheduleMaker = ({
 
         // Validate slots
         if (daySlots === totalTimeslot && positionSlots >= numOfSchoolDays) {
-            alert(
-                `No spots left in ${
-                    dayNames[targetDay - 1]
-                } and position ${targetPos}.`
-            );
+            alert(`No spots left in ${dayNames[targetDay - 1]} and position ${targetPos}.`);
             return;
         }
         if (daySlots === totalTimeslot) {
@@ -345,11 +309,7 @@ const FixedScheduleMaker = ({
         // Check if the target spot is occupied
         const isOccupied = subs.some((subID) =>
             days[subID]?.some(
-                (day, idx) =>
-                    day === targetDay &&
-                    positions[subID]?.[idx] === targetPos &&
-                    targetDay !== 0 &&
-                    targetPos !== 0
+                (day, idx) => day === targetDay && positions[subID]?.[idx] === targetPos && targetDay !== 0 && targetPos !== 0
             )
         );
 
@@ -374,9 +334,7 @@ const FixedScheduleMaker = ({
         setPositions((prev) => {
             const updatedPositions = { ...prev };
 
-            updatedPositions[draggedSubjectID] = [
-                ...(prev[draggedSubjectID] || []),
-            ];
+            updatedPositions[draggedSubjectID] = [...(prev[draggedSubjectID] || [])];
 
             updatedPositions[draggedSubjectID][draggedDay] = targetPos;
             return updatedPositions;
@@ -390,25 +348,25 @@ const FixedScheduleMaker = ({
                     ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})`
                     : `assign_fixed_sched_modal_section(${section})-grade(${grade})`
             }
-            className="modal sm:modal-middle "
+            className='modal sm:modal-middle '
             onClose={handleCancel}
         >
             <div
-                className="modal-box relative overflow-hidden"
+                className='modal-box relative overflow-hidden'
                 style={{
                     width: '80%',
                     maxWidth: 'none',
                 }}
             >
-                <div className="px-3 flex items-center mb-10">
-                    <div className="text-2xl font-bold">Fixed Schedules</div>
+                <div className='px-3 flex items-center mb-10'>
+                    <div className='text-2xl font-bold'>Fixed Schedules</div>
 
                     {viewingMode === 0 && (
-                        <div className="pl-4 flex items-center justify-center space-x-2 m-3 text-base">
+                        <div className='pl-4 flex items-center justify-center space-x-2 m-3 text-base'>
                             <div>View</div>
                             <input
-                                type="checkbox"
-                                className="toggle toggle-success toggle-lg"
+                                type='checkbox'
+                                className='toggle toggle-success toggle-lg'
                                 checked={editMode}
                                 onChange={toggleViewMode}
                             />
@@ -417,29 +375,26 @@ const FixedScheduleMaker = ({
                     )}
 
                     {editMode && (
-                        <div className="ml-auto pr-10 flex gap-3 justify-center">
-                            <button
-                                className="btn btn-primary"
-                                onClick={handleSave}
-                            >
+                        <div className='ml-auto pr-10 flex gap-3 justify-center'>
+                            <button className='btn btn-primary' onClick={handleSave}>
                                 Save
                             </button>
-                            <button className="btn" onClick={handleCancel}>
+                            <button className='btn' onClick={handleCancel}>
                                 Cancel
                             </button>
                         </div>
                     )}
                 </div>
 
-                <div className=" max-h-[60vh] max-w-full text-sm  overflow-auto">
+                <div className=' max-h-[60vh] max-w-full text-sm  overflow-auto'>
                     <DndContext onDragEnd={handleDragEnd}>
-                        <div className="flex gap-10 justify-center">
-                            <div className="flex flex-col w-6/12">
+                        <div className='flex gap-10 justify-center'>
+                            <div className='flex flex-col w-6/12'>
                                 {/* Spawn point(s) for subject blocks */}
-                                <div className="font-bold">Subjects</div>
+                                <div className='font-bold'>Subjects</div>
                                 {subs?.map((subject, index) => (
                                     <div
-                                        className="my-2 rounded-lg "
+                                        className='my-2 rounded-lg '
                                         key={`g${grade}-s${subject}`}
                                         style={{
                                             // backgroundColor:
@@ -447,37 +402,22 @@ const FixedScheduleMaker = ({
                                             //         index %
                                             //             spawnColors.length
                                             //     ],
-                                            backgroundColor: hexToRgba(
-                                                spawnColors[
-                                                    index % spawnColors.length
-                                                ],
-                                                0.1
-                                            ),
+                                            backgroundColor: hexToRgba(spawnColors[index % spawnColors.length], 0.1),
                                             borderWidth: '2px', // Width of the left border
                                             borderLeftStyle: 'solid', // Style of the border (solid, dashed, dotted, etc.)
-                                            borderColor:
-                                                spawnColors[
-                                                    index % spawnColors.length
-                                                ],
+                                            borderColor: spawnColors[index % spawnColors.length],
                                         }}
                                     >
-                                        <div className="w-12/12">
+                                        <div className='w-12/12'>
                                             <div
                                                 key={`spawn_label-g${grade}-s${subject}`}
-                                                className="px-2 flex max-w-fit text-lg rounded-br-lg rounded-tl-sm mb-2"
+                                                className='px-2 flex max-w-fit text-lg rounded-br-lg rounded-tl-sm mb-2'
                                                 style={{
-                                                    backgroundColor:
-                                                        spawnColors[
-                                                            index %
-                                                                spawnColors.length
-                                                        ], // Background color
+                                                    backgroundColor: spawnColors[index % spawnColors.length], // Background color
                                                     color: 'black',
                                                 }}
                                             >
-                                                {
-                                                    subjectsStore[subject]
-                                                        ?.subject
-                                                }
+                                                {subjectsStore[subject]?.subject}
                                                 {/* {
                                                     subjectsStore[subject]
                                                         ?.id
@@ -503,27 +443,18 @@ const FixedScheduleMaker = ({
                                 <div>
                                     {/* Header */}
                                     {subs?.length > 0 && (
-                                        <div className="grid grid-cols-6 gap-0">
-                                            <div className="w-20 h-7 font-bold"></div>
+                                        <div className='grid grid-cols-6 gap-0'>
+                                            <div className='w-20 h-7 font-bold'></div>
                                             {Array.from({
                                                 length: numOfSchoolDays,
                                             }).map((_, i) => {
-                                                const daysOfWeek = [
-                                                    'Mon',
-                                                    'Tue',
-                                                    'Wed',
-                                                    'Thu',
-                                                    'Fri',
-                                                    'Sat',
-                                                    'Sun',
-                                                ];
-                                                const dayName =
-                                                    daysOfWeek[i % 7]; // Handle wrap-around for more than 7 days
+                                                const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                                                const dayName = daysOfWeek[i % 7]; // Handle wrap-around for more than 7 days
 
                                                 return (
                                                     <div
                                                         key={i}
-                                                        className="w-20 bg-blue-900 border border-gray-400 border-opacity-50 flex items-center justify-center text-white font-bold"
+                                                        className='w-20 bg-blue-900 border border-gray-400 border-opacity-50 flex items-center justify-center text-white font-bold'
                                                     >
                                                         {dayName}
                                                     </div>
@@ -536,11 +467,8 @@ const FixedScheduleMaker = ({
                                     {Array.from({
                                         length: totalTimeslot,
                                     }).map((_, subIndex) => (
-                                        <div
-                                            key={subIndex}
-                                            className="grid grid-cols-6 gap-0"
-                                        >
-                                            <div className="w-20 h-14 bg-blue-700 text-white font-bold border border-gray-400 border-opacity-50 flex items-center justify-center">
+                                        <div key={subIndex} className='grid grid-cols-6 gap-0'>
+                                            <div className='w-20 h-14 bg-blue-700 text-white font-bold border border-gray-400 border-opacity-50 flex items-center justify-center'>
                                                 {subIndex + 1}
                                             </div>
 
@@ -555,12 +483,8 @@ const FixedScheduleMaker = ({
                                                     day={index + 1}
                                                     position={subIndex + 1}
                                                     grade={grade}
-                                                    mergeData={
-                                                        mergeData[subIndex]
-                                                    }
-                                                    totalTimeslot={
-                                                        totalTimeslot
-                                                    }
+                                                    mergeData={mergeData[subIndex]}
+                                                    totalTimeslot={totalTimeslot}
                                                     selectedSubjects={subs}
                                                     fixedDays={days}
                                                     fixedPositions={positions}
@@ -574,11 +498,8 @@ const FixedScheduleMaker = ({
                     </DndContext>
                 </div>
 
-                <div className="modal-action w-full">
-                    <button
-                        className="btn btn-lg btn-circle btn-ghost absolute right-2 top-2"
-                        onClick={handleClose}
-                    >
+                <div className='modal-action w-full'>
+                    <button className='btn btn-lg btn-circle btn-ghost absolute right-2 top-2' onClick={handleClose}>
                         ✕
                     </button>
                 </div>
