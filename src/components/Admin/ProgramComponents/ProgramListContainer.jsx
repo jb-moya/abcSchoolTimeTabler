@@ -150,10 +150,13 @@ const AdditionalScheduleForProgram = ({
                         <input
                             type="text"
                             // ref={inputNameRef}
-                            className="input input-bordered w-full"
+                            className={clsx('input w-full', {
+                                'input-bordered': viewingMode === 0,
+                                'pointer-events-none': viewingMode === 1,
+                            })}
                             value={schedName}
                             onChange={(e) => setSchedName(e.target.value)}
-                            placeholder="Enter schedule name"
+                            placeholder={viewingMode === 0 ? schedName || 'Enter schedule name' : 'N/A'}
                             // disabled={viewingMode !== 0}
                             readOnly={viewingMode !== 0}
                         />
@@ -164,7 +167,10 @@ const AdditionalScheduleForProgram = ({
                         <label className="block text-sm font-medium mb-1">Subject:</label>
                         {viewingMode === 0 ? (
                             <select
-                                className="input input-bordered w-full"
+                                className={clsx('input w-full', {
+                                    'input-bordered': viewingMode === 0,
+                                    'pointer-events-none': viewingMode === 1,
+                                })}
                                 value={schedSubject === 0 ? 0 : schedSubject}
                                 onChange={(e) => setSchedSubject(Number(e.target.value))}
                             >
@@ -179,8 +185,11 @@ const AdditionalScheduleForProgram = ({
                             </select>
                         ) : (
                             <input
-                                type="text"
-                                className="input input-bordered w-full"
+                                type='text'
+                                className={clsx('input w-full', {
+                                    'input-bordered': viewingMode === 0,
+                                    'pointer-events-none': viewingMode === 1,
+                                })}
                                 value={subjects[schedSubject]?.subject || 'N/A'}
                                 // disabled
                                 readOnly
@@ -192,8 +201,11 @@ const AdditionalScheduleForProgram = ({
                     <div className="mb-4">
                         <label className="block text-sm font-medium mb-1">Duration (in minutes):</label>
                         <input
-                            type="number"
-                            className="input input-bordered w-full"
+                            type='number'
+                            className={clsx('input w-full', {
+                                'input-bordered': viewingMode === 0,
+                                'pointer-events-none': viewingMode === 1,
+                            })}
                             value={schedDuration}
                             onChange={(e) => setSchedDuration(Number(e.target.value))}
                             placeholder="Enter duration"
@@ -206,8 +218,11 @@ const AdditionalScheduleForProgram = ({
                     <div className="mb-4">
                         <label className="block text-sm font-medium mb-1">Frequency:</label>
                         <input
-                            type="number"
-                            className="input input-bordered w-full"
+                            type='number'
+                            className={clsx('input w-full', {
+                                'input-bordered': viewingMode === 0,
+                                'pointer-events-none': viewingMode === 1,
+                            })}
                             value={schedFrequency}
                             onChange={(e) => setSchedFrequency(Number(e.target.value))}
                             placeholder="Enter frequency"
@@ -222,8 +237,9 @@ const AdditionalScheduleForProgram = ({
                     <div className="mb-4">
                         <label className="block text-sm font-medium mb-1">Must Appear on Schedule:</label>
                         <select
-                            className={clsx('input input-bordered w-full', {
-                                'pointer-events-none': viewingMode !== 0,
+                            className={clsx('input w-full', {
+                                'input-bordered ': viewingMode === 0,
+                                'pointer-events-none': viewingMode === 1,
                                 select: viewingMode === 0,
                             })}
                             value={schedShown ? 'Yes' : 'No'}
@@ -248,7 +264,7 @@ const AdditionalScheduleForProgram = ({
                                 setTime={setTime}
                             />
                         ) : (
-                            <div className="flex items-center justify-start input border rounded h-12 bg-white border border-gray-300 text-base">
+                            <div className='flex items-center justify-start input rounded h-12 text-base'>
                                 {time ? time : '--:--- --'}
                             </div>
                         )}
