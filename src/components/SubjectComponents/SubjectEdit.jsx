@@ -11,15 +11,7 @@ import { fetchSubjects } from '@features/subjectSlice';
 import calculateTotalTimeslot from '../../utils/calculateTotalTimeslot';
 import { getTimeSlotIndex } from '@utils/timeSlotMapper';
 
-const SubjectEdit = ({
-    subject,
-    setErrorMessage,
-    errorMessage,
-    errorField,
-    setErrorField,
-    reduxFunction,
-    numOfSchoolDays,
-}) => {
+const SubjectEdit = ({ subject, setErrorMessage, errorMessage, errorField, setErrorField, reduxFunction, numOfSchoolDays }) => {
     const [subjectName, setSubjectName] = useState(subject.subject || '');
     const [classSubjectDuration, setClassSubjectDuration] = useState(subject.classDuration || 0);
     const [subjectWeeklyMinutes, setSubjectWeeklyMinutes] = useState(subject.weeklyMinutes || 0);
@@ -43,16 +35,10 @@ const SubjectEdit = ({
     const inputNameRef = useRef(null);
     const dispatch = useDispatch();
 
-    const { subjects, status: subjectStatus } = useSelector(
-        (state) => state.subject
-    );
+    const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
 
-    const { programs, status: programStatus } = useSelector(
-        (state) => state.program
-    );
-    const { sections, status: sectionStatus } = useSelector(
-        (state) => state.section
-    );
+    const { programs, status: programStatus } = useSelector((state) => state.program);
+    const { sections, status: sectionStatus } = useSelector((state) => state.section);
 
     useEffect(() => {
         if (subjectStatus === 'idle') {
@@ -60,27 +46,25 @@ const SubjectEdit = ({
         }
     }, [subjectStatus, dispatch]);
 
-     useEffect(() => {
-            if (programStatus === 'idle') {
-                dispatch(fetchPrograms());
-            }
-        }, [programStatus, dispatch]);
-    
-        useEffect(() => {
-            if (sectionStatus === 'idle') {
-                dispatch(fetchSections());
-            }
-        }, [sectionStatus, dispatch]);
+    useEffect(() => {
+        if (programStatus === 'idle') {
+            dispatch(fetchPrograms());
+        }
+    }, [programStatus, dispatch]);
+
+    useEffect(() => {
+        if (sectionStatus === 'idle') {
+            dispatch(fetchSections());
+        }
+    }, [sectionStatus, dispatch]);
 
     //  useEffect(() => {
     //         if (externalNumOfSchoolDays !== undefined) {
     //             setNumOfSchoolDays(externalNumOfSchoolDays);
     //         }
     //     }, [externalNumOfSchoolDays]);
-    
 
     const handleEditSubject = () => {
-
         setEditSubjectId(subject.id);
         setEditSubjectValue(subject.subject);
         setEditClassDuration(subject.classDuration);
@@ -104,8 +88,7 @@ const SubjectEdit = ({
 
         if (subjectName.trim().toLowerCase() !== subject.subject.trim().toLowerCase()) {
             const isDuplicate = Object.values(subjects).some(
-                (existingSubject) =>
-                    existingSubject.subject.trim().toLowerCase() === subjectName.trim().toLowerCase()
+                (existingSubject) => existingSubject.subject.trim().toLowerCase() === subjectName.trim().toLowerCase()
             );
             if (isDuplicate) {
                 setErrorMessage('A subject with this name already exists.');
@@ -136,7 +119,7 @@ const SubjectEdit = ({
         });
 
         handleReset();
-        closeModal(); 
+        closeModal();
     };
 
     const updateSubjectDependencies = () => {
@@ -196,7 +179,8 @@ const SubjectEdit = ({
                     fixedDays[subjectID].forEach((day, i) => {
                         const position = fixedPositions[subjectID][i];
 
-                        if (day || position) { // Only process non-zero day or position
+                        if (day || position) {
+                            // Only process non-zero day or position
                             dayTimeSlots[day] ??= newTotalTimeslot; // Use nullish coalescing assignment
                             positionTimeSlots[position] ??= numOfSchoolDays;
                         }
@@ -212,18 +196,10 @@ const SubjectEdit = ({
                     // Retrieve the number of classes allowed for the subject
                     let numOfClasses = 0;
                     if (subjectID === editSubjectId) {
-                        numOfClasses = Math.min(
-                            Math.ceil(
-                                editSubjectWeeklyMinutes / editClassDuration
-                            ),
-                            numOfSchoolDays
-                        );
+                        numOfClasses = Math.min(Math.ceil(editSubjectWeeklyMinutes / editClassDuration), numOfSchoolDays);
                     } else {
                         numOfClasses = Math.min(
-                            Math.ceil(
-                                subjects[subjectID].weeklyMinutes /
-                                subjects[subjectID].classDuration
-                            ),
+                            Math.ceil(subjects[subjectID].weeklyMinutes / subjects[subjectID].classDuration),
                             numOfSchoolDays
                         );
                     }
@@ -232,8 +208,7 @@ const SubjectEdit = ({
                     console.log('numOfClasses', numOfClasses);
 
                     const fixedDays = newProgram[grade].fixedDays[subjectID];
-                    const fixedPositions =
-                        newProgram[grade].fixedPositions[subjectID];
+                    const fixedPositions = newProgram[grade].fixedPositions[subjectID];
 
                     console.log('fixedDays', fixedDays);
                     console.log('fixedPositions', fixedPositions);
@@ -246,12 +221,8 @@ const SubjectEdit = ({
                         console.log('day', day);
                         console.log('pos', pos);
                         if (
-                            (
-                                (day !== 0 && pos === 0) ||
-                                (day === 0 && pos !== 0) ||
-                                (day !== 0 && pos !== 0)) &&
-                            !dayPositionMap.has(`${day}-${pos}`
-                            )
+                            ((day !== 0 && pos === 0) || (day === 0 && pos !== 0) || (day !== 0 && pos !== 0)) &&
+                            !dayPositionMap.has(`${day}-${pos}`)
                         ) {
                             dayPositionMap.set(`${day}-${pos}`, [day, pos]);
                         }
@@ -277,12 +248,8 @@ const SubjectEdit = ({
                     }
 
                     // Split the combined array back into fixedDays and fixedPositions
-                    newProgram[grade].fixedDays[subjectID] = result.map(
-                        ([day]) => day
-                    );
-                    newProgram[grade].fixedPositions[subjectID] = result.map(
-                        ([_, pos]) => pos
-                    );
+                    newProgram[grade].fixedDays[subjectID] = result.map(([day]) => day);
+                    newProgram[grade].fixedPositions[subjectID] = result.map(([_, pos]) => pos);
                 }
             });
 
@@ -305,10 +272,7 @@ const SubjectEdit = ({
                         updatedProgram: {
                             program: newProgram.program,
                             ...[7, 8, 9, 10].reduce((grades, grade) => {
-                                grades[grade] = updateProgramDetails(
-                                    newProgram,
-                                    grade
-                                );
+                                grades[grade] = updateProgramDetails(newProgram, grade);
                                 return grades;
                             }, {}),
                         },
@@ -361,10 +325,7 @@ const SubjectEdit = ({
                 );
             }
 
-            const numOfClasses = Math.min(
-                Math.ceil(editSubjectWeeklyMinutes / editClassDuration),
-                numOfSchoolDays
-            );
+            const numOfClasses = Math.min(Math.ceil(editSubjectWeeklyMinutes / editClassDuration), numOfSchoolDays);
 
             const fixedDays = newSection.fixedDays[editSubjectId];
             const fixedPositions = newSection.fixedPositions[editSubjectId];
@@ -378,7 +339,8 @@ const SubjectEdit = ({
                 fixedDays[subjectID].forEach((day, i) => {
                     const position = fixedPositions[subjectID][i];
 
-                    if (day || position) { // Only process non-zero day or position
+                    if (day || position) {
+                        // Only process non-zero day or position
                         dayTimeSlots[day] ??= newTotalTimeslot; // Use nullish coalescing assignment
                         positionTimeSlots[position] ??= numOfSchoolDays;
                     }
@@ -391,9 +353,7 @@ const SubjectEdit = ({
             fixedDays.forEach((day, index) => {
                 const pos = fixedPositions[index];
                 if (
-                    ((day !== 0 && pos === 0) ||
-                        (day === 0 && pos !== 0) ||
-                        (day !== 0 && pos !== 0)) &&
+                    ((day !== 0 && pos === 0) || (day === 0 && pos !== 0) || (day !== 0 && pos !== 0)) &&
                     !dayPositionMap.has(`${day}-${pos}`)
                 ) {
                     dayPositionMap.set(`${day}-${pos}`, [day, pos]);
@@ -419,9 +379,7 @@ const SubjectEdit = ({
 
             // Split the combined array back into fixedDays and fixedPositions
             newSection.fixedDays[editSubjectId] = result.map(([day]) => day);
-            newSection.fixedPositions[editSubjectId] = result.map(
-                ([_, pos]) => pos
-            );
+            newSection.fixedPositions[editSubjectId] = result.map(([_, pos]) => pos);
 
             if (originalSection !== newSection) {
                 dispatch(
@@ -437,16 +395,13 @@ const SubjectEdit = ({
                             fixedPositions: newSection.fixedPositions,
                             year: newSection.year,
                             shift: newSection.shift,
-                            startTime: getTimeSlotIndex(
-                                newSection.startTime || '06:00 AM'
-                            ),
+                            startTime: getTimeSlotIndex(newSection.startTime || '06:00 AM'),
                         },
                     })
                 );
             }
         });
     };
-
 
     const handleReset = () => {
         setSubjectName(subject.subject || '');
@@ -465,81 +420,66 @@ const SubjectEdit = ({
     };
 
     return (
-        <div className="flex items-center justify-center">
+        <div className='flex items-center justify-center'>
             {/* Trigger Button */}
-            <label
-                htmlFor={`edit_modal_${subject.id}`}
-                className="btn btn-xs btn-ghost text-blue-500"
-            >
+            <label htmlFor={`edit_modal_${subject.id}`} className='btn btn-xs btn-ghost text-blue-500'>
                 <RiEdit2Fill size={20} />
             </label>
 
             {/* Modal */}
-            <input type="checkbox" id={`edit_modal_${subject.id}`} className="modal-toggle" />
-            <div className="modal">
-                <div className="modal-box relative">
-                    <label
-                        onClick={closeModal}
-                        className="btn btn-sm btn-circle absolute right-2 top-2"
-                    >
+            <input type='checkbox' id={`edit_modal_${subject.id}`} className='modal-toggle' />
+            <div className='modal'>
+                <div className='modal-box relative'>
+                    <label onClick={closeModal} className='btn btn-sm btn-circle absolute right-2 top-2'>
                         ✕
                     </label>
-                    <h3 className="flex justify-center text-lg font-bold mb-4">Edit Subject</h3>
+                    <h3 className='flex justify-center text-lg font-bold mb-4'>Edit Subject</h3>
                     <hr className='mb-4'></hr>
 
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-2">Subject Name:</label>
+                    <div className='mb-4'>
+                        <label className='block text-sm font-medium mb-2'>Subject Name:</label>
                         <input
-                            type="text"
-                            className={`input input-bordered w-full ${errorField === 'name' ? 'border-red-500' : ''
-                                }`}
+                            type='text'
+                            className={`input input-bordered w-full ${errorField === 'name' ? 'border-red-500' : ''}`}
                             value={subjectName}
                             onChange={(e) => setSubjectName(e.target.value)}
-                            placeholder="Enter subject name"
+                            placeholder='Enter subject name'
                             ref={inputNameRef}
                         />
                     </div>
 
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-2">
-                            Class Duration (minutes):
-                        </label>
+                    <div className='mb-4'>
+                        <label className='block text-sm font-medium mb-2'>Class Duration (minutes):</label>
                         <input
-                            type="number"
-                            className={`input input-bordered w-full ${errorField === 'duration' ? 'border-red-500' : ''
-                                }`}
+                            type='number'
+                            className={`input input-bordered w-full ${errorField === 'duration' ? 'border-red-500' : ''}`}
                             value={classSubjectDuration}
                             onChange={(e) => setClassSubjectDuration(Number(e.target.value))}
-                            placeholder="Enter class duration"
+                            placeholder='Enter class duration'
                             step={5}
                             min={10}
                         />
                     </div>
 
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-2">
-                            Weekly Time Requirement (minutes):
-                        </label>
+                    <div className='mb-4'>
+                        <label className='block text-sm font-medium mb-2'>Weekly Time Requirement (minutes):</label>
                         <input
-                            type="number"
-                            className={`input input-bordered w-full ${errorField === 'weeklyMinutes' ? 'border-red-500' : ''
-                                }`}
+                            type='number'
+                            className={`input input-bordered w-full ${errorField === 'weeklyMinutes' ? 'border-red-500' : ''}`}
                             value={subjectWeeklyMinutes}
                             onChange={(e) => setSubjectWeeklyMinutes(Number(e.target.value))}
-                            placeholder="Enter weekly minutes"
+                            placeholder='Enter weekly minutes'
                             step={5}
                         />
                     </div>
 
-                    {errorMessage && (
-                        <p className="flex justify-center text-red-500 text-sm my-4 font-medium">{errorMessage}</p>
-                    )}
+                    {errorMessage && <p className='flex justify-center text-red-500 text-sm my-4 font-medium'>{errorMessage}</p>}
 
-                    <div className="flex justify-center gap-2">
-                        <button className="btn btn-primary" onClick={handleEditSubject}>
+                    <div className='flex justify-center gap-2'>
+                        <button className='btn btn-primary' onClick={handleEditSubject}>
                             Update Subject
                         </button>
-                        <button className="btn btn-error" onClick={handleReset}>
+                        <button className='btn btn-error' onClick={handleReset}>
                             Reset
                         </button>
                     </div>
