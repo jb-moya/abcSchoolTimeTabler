@@ -767,19 +767,6 @@ const ProgramListContainer = ({
 
     // Functions for deletion functionality
 
-    const deleteModal = (id) => {
-        const deleteModalElement = document.getElementById('delete_modal');
-        deleteModalElement.showModal();
-
-        const deleteButton = document.getElementById('delete_button');
-        deleteButton.onclick = () => handleDelete(id);
-    };
-
-    const handleDelete = (id) => {
-        dispatch(removeProgram(id));
-        document.getElementById('delete_modal').close();
-    };
-
     // To handle closing of add program modal
     const handleClose = () => {
         const modal = document.getElementById('add_program_modal');
@@ -1592,6 +1579,28 @@ const ProgramListContainer = ({
                                         </td>
                                         {editable && (
                                             <td>
+                                            <div className='flex'>
+
+                                            <ProgramEdit 
+                                                        className="btn btn-xs btn-ghost text-blue-500"
+                                                        program = {program}
+                                                        reduxField={['program', 'subjects']}
+                                                        reduxFunction={editProgram}
+                                                        morningStartTime={morningStartTime}
+                                                        afternoonStartTime={afternoonStartTime}
+                                                        errorMessage={errorMessage}
+                                                        setErrorMessage={setErrorMessage}
+                                                        errorField={errorField}
+                                                        setErrorField={setErrorField}
+                                                        numOfSchoolDays={numOfSchoolDays}
+                                                        />
+                                                        <DeleteData
+                                                            className="btn btn-xs btn-ghost text-red-500"
+                                                            id={program.id}
+                                                            reduxFunction={removeProgram}
+                                                            />
+
+                                            </div>
                                                 {/* {editProgramId ===
                                                 program.id ? (
                                                     <>
@@ -1636,24 +1645,7 @@ const ProgramListContainer = ({
                                                             />
                                                         </button> */}
 
-                                                        <ProgramEdit 
-                                                        className="btn btn-xs btn-ghost text-blue-500"
-                                                        program = {program}
-                                                        reduxField={['program', 'subjects']}
-                                                        reduxFunction={editProgram}
-                                                        morningStartTime={morningStartTime}
-                                                        afternoonStartTime={afternoonStartTime}
-                                                        errorMessage={errorMessage}
-                                                        setErrorMessage={setErrorMessage}
-                                                        errorField={errorField}
-                                                        setErrorField={setErrorField}
-                                                        numOfSchoolDays={numOfSchoolDays}
-                                                        />
-                                                        <DeleteData
-                                                            className="btn btn-xs btn-ghost text-red-500"
-                                                            id={program.id}
-                                                            reduxFunction={removeProgram}
-                                                            />
+                                                      
                                                     {/* </> */}
                                                 {/* )} */}
                                             </td>
