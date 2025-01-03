@@ -211,7 +211,7 @@ void ABC::getViolation(int64_t* result_violation) {
 
 			while (it != time_points_class_count.end()) {
 				TimePoint time_point = it->first;
-auto& utilized_time_in_section = it->second;
+				auto& utilized_time_in_section = it->second;
 				int time_point_class_count = std::get<1>(utilized_time_in_section);
 
 				if (nextIt != time_points_class_count.end()) {
@@ -331,6 +331,8 @@ void ABC::getResult(int64_t* result, int64_t* result_2, TimePoint offset_duratio
 	int iter = 0;
 
 	const auto& section_set = Timetable::getSectionsSet();
+
+	// TODO: account for reserved schedule for teachers that is not included on sections
 
 	for (const auto& section_id : section_set) {
 		Section section = best_solution.timetable.getSectionById(section_id);

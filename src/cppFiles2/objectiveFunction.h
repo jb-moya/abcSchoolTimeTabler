@@ -80,7 +80,10 @@ struct ObjectiveFunction {
 					TimePoint time_point = it->first;
 					auto& utilized_time_in_section = it->second;
 					SectionID section_id = std::get<0>(utilized_time_in_section);
-					int time_point_class_count = std::get<1>(utilized_time_in_section);
+					int overlappable = std::get<2>(utilized_time_in_section);
+					int time_point_class_count = std::get<1>(utilized_time_in_section) + (overlappable >= 1 ? 1 : 0);
+
+					// i will not calculate the workload of the teacher in reserved schedule because it is already added.
 
 					if (previous_section_class == -1) {
 						previous_section_class = section_id;
@@ -145,14 +148,14 @@ struct ObjectiveFunction {
 				print("a", bee.teacher_violations[teacher_id].no_break);
 				print("a", bee.teacher_violations[teacher_id].exceed_workload);
 				print("a", bee.teacher_violations[teacher_id].below_min_workload);
-print("a", bee.teacher_violations[teacher_id].class_proximity);
+				print("a", bee.teacher_violations[teacher_id].class_proximity);
 			}
 
 			bee.total_cost += bee.teacher_violations[teacher_id].class_timeslot_overlap;
 			bee.total_cost += bee.teacher_violations[teacher_id].no_break;
 			bee.total_cost += bee.teacher_violations[teacher_id].exceed_workload;
 			bee.total_cost += bee.teacher_violations[teacher_id].below_min_workload;
-bee.total_cost += bee.teacher_violations[teacher_id].class_proximity;
+			bee.total_cost += bee.teacher_violations[teacher_id].class_proximity;
 
 			if (bee.teacher_violations[teacher_id].class_timeslot_overlap == 0 &&
 			    bee.teacher_violations[teacher_id].no_break == 0 &&

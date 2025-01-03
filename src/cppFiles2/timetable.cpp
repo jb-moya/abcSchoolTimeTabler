@@ -137,21 +137,53 @@ void Timetable::initializeTeachersSet(int total_teacher) {
 	Timetable::setTeachersSet(teacher_set);
 }
 
+void Timetable::initializeTeacherReservedSchedule(int32_t* teacher_reservation_config, int32_t* teacher_reservation_config_id) {
+	std::unordered_map<int, ClassStartEnd> teacher_reserved_schedule;
+
+	for (int i = 0; teacher_reservation_config[i] != -1; i++) {
+		int start_time = static_cast<int>(teacher_reservation_config_id[i] >> 16);
+		int end_time = static_cast<int>(teacher_reservation_config[i] & 0xFFFF);
+
+		teacher_reserved_schedule[i] = ClassStartEnd{start_time, end_time};
+	}
+
+	int day_iter = Timetable::getWorkWeek();
+
+	for (int i = 0; teacher_reservation_config_id[i] != -1; i++) {
+		int teacher_id = static_cast<int>(teacher_reservation_config_id[i] >> 16);
+		int reservation_config_id = static_cast<int>(teacher_reservation_config[i] & 0xFFFF);
+
+		TimePoint start_time = teacher_reserved_schedule[reservation_config_id].start;
+		TimePoint end_time = teacher_reserved_schedule[reservation_config_id].end;
+
+		for (TimePoint time = start_time; time < end_time; time += 1) {  // FIXME: 1 ?? code smell
+			getTeacherById(teacher_id).incrementUtilizedTime(day_iter, time, 3, -1);
+		}
+
+		day_iter -= 1;
+		if (day_iter < 0) {
+			day_iter = Timetable::getWorkWeek();
+		}
+	}
+}
+
 void Timetable::initializeSubjectConfigurations(int number_of_subject_configuration,
                                                 int32_t* subject_configuration_subject_units,
                                                 int32_t* subject_configuration_subject_duration,
                                                 int32_t* subject_configuration_subject_fixed_timeslot,
-                                                int32_t* subject_configuration_subject_fixed_day) {
+                                                int32_t* subject_configuration_subject_fixed_day,
+                                                int32_t* subject_configuration_subject_is_overlappable) {
 	for (SubjectConfigurationID subject_configuration_id = 0; subject_configuration_id < number_of_subject_configuration; subject_configuration_id++) {
 		SubjectID subject_id = static_cast<int>(subject_configuration_subject_units[subject_configuration_id] >> 16);
 		int subject_units = static_cast<int>(subject_configuration_subject_units[subject_configuration_id] & 0xFFFF);
 		TimeDuration subject_duration = static_cast<int>(subject_configuration_subject_duration[subject_configuration_id] & 0xFFFF);
 		Timeslot subject_fixed_timeslot = static_cast<int>(subject_configuration_subject_fixed_timeslot[subject_configuration_id] & 0xFFFF);
 		ScheduledDay subject_fixed_days = static_cast<ScheduledDay>(subject_configuration_subject_fixed_day[subject_configuration_id] & 0xFFFF);
+		bool is_overlappable = static_cast<bool>(subject_configuration_subject_is_overlappable[subject_configuration_id] & 0xFFFF);
 
 		print("subject_configuration_id", subject_configuration_id, subject_id, subject_duration, subject_units, subject_fixed_timeslot, static_cast<int>(subject_fixed_days));
 
-		addSubjectConfiguration(subject_configuration_id, subject_id, subject_duration, subject_units, subject_fixed_timeslot, subject_fixed_days);
+		addSubjectConfiguration(subject_configuration_id, subject_id, subject_duration, subject_units, subject_fixed_timeslot, subject_fixed_days, is_overlappable);
 	}
 }
 
@@ -300,8 +332,8 @@ void Timetable::moveTeacherClassCountToNewDay(TeacherID teacher_id, ScheduledDay
 	getTeacherById(teacher_id).incrementClassCount(static_cast<ScheduledDay>(to_day));
 }
 
-void Timetable::addSubjectConfiguration(SubjectConfigurationID id, SubjectID subject_id, TimeDuration duration, int units, Timeslot fixed_timeslot, ScheduledDay fixed_days) {
-	auto subject_configuration = std::make_shared<SubjectConfiguration>(id, subject_id, duration, units, fixed_timeslot, fixed_days);
+void Timetable::addSubjectConfiguration(SubjectConfigurationID id, SubjectID subject_id, TimeDuration duration, int units, Timeslot fixed_timeslot, ScheduledDay fixed_days, bool is_overlappable) {
+	auto subject_configuration = std::make_shared<SubjectConfiguration>(id, subject_id, duration, units, fixed_timeslot, fixed_days, is_overlappable);
 	subject_configurations.push_back(subject_configuration);
 }
 
@@ -359,6 +391,9 @@ void Timetable::updateTeachersAndSections(
 			SubjectID subject = day_zero->second.subject_id;
 			TimeDuration duration = day_zero->second.duration;
 			Timeslot timeslot = day_zero->second.fixed_timeslot;
+			bool is_overlappable = day_zero->second.is_overlappable;
+
+			int class_type = is_overlappable ? 2 : 1;
 
 			// print("duration", subject, day_zero->second.teacher_id, timeslot, duration);
 
@@ -380,7 +415,7 @@ void Timetable::updateTeachersAndSections(
 				for (int i = 1; i <= Timetable::getWorkWeek(); ++i) {
 					for (TimePoint time_point = 0; time_point < duration; ++time_point) {
 						if (is_reset) {
-							if (teacher.decrementUtilizedTime(i, start + time_point) <= 0) {
+							if (teacher.decrementUtilizedTime(i, start + time_point, class_type) <= 0) {
 								teacher.removeUtilizedTimePoint(i, start + time_point);
 
 								if (teacher.isUtilizedTimesDayEmpty(i)) {
@@ -388,7 +423,7 @@ void Timetable::updateTeachersAndSections(
 								}
 							};
 						} else {
-							teacher.incrementUtilizedTime(i, start + time_point, selected_section.getId());
+							teacher.incrementUtilizedTime(i, start + time_point, class_type, selected_section.getId());
 						}
 					}
 				}
@@ -399,10 +434,13 @@ void Timetable::updateTeachersAndSections(
 			for (const auto& day : it->second) {
 				SubjectID subject = day.second.subject_id;
 				TimeDuration duration = day.second.duration;
+				bool is_overlappable = day.second.is_overlappable;
 
 				max_duration = std::max(max_duration, duration);
 				TeacherID teacher_id = day.second.teacher_id;
 				Teacher& teacher = getTeacherById(teacher_id);
+
+				int class_type = is_overlappable ? 2 : 1;
 
 				if (is_returning_teachers) {
 					update_teachers.insert(teacher_id);
@@ -410,7 +448,7 @@ void Timetable::updateTeachersAndSections(
 
 				for (TimePoint time_point = 0; time_point < duration; ++time_point) {
 					if (is_reset) {
-						if (teacher.decrementUtilizedTime(static_cast<int>(day.first), start + time_point) <= 0) {
+						if (teacher.decrementUtilizedTime(static_cast<int>(day.first), start + time_point, class_type) <= 0) {
 							teacher.removeUtilizedTimePoint(static_cast<int>(day.first), start + time_point);
 
 							if (teacher.isUtilizedTimesDayEmpty(static_cast<int>(day.first))) {
@@ -418,7 +456,7 @@ void Timetable::updateTeachersAndSections(
 							}
 						}
 					} else {
-						teacher.incrementUtilizedTime(static_cast<int>(day.first), start + time_point, selected_section.getId());
+						teacher.incrementUtilizedTime(static_cast<int>(day.first), start + time_point, class_type, selected_section.getId());
 					}
 				}
 			}
@@ -570,10 +608,11 @@ void Timetable::initializeClassBlock(Section& section,
 		bool is_consistent_everyday = subject_configuration->isConsistentEveryday();
 		Timeslot fixed_timeslot = subject_configuration->getFixedTimeslot();
 		ScheduledDay fixed_days = subject_configuration->getFixedDay();
+		bool is_overlappable = subject_configuration->isOverlappable();
 
 		TeacherID teacher_id = getRandomInitialTeacher(section, subject_id, duration);
 
-		SchoolClass school_class = SchoolClass{subject_id, teacher_id, duration, is_consistent_everyday, fixed_timeslot, fixed_days};
+		SchoolClass school_class = SchoolClass{subject_id, teacher_id, duration, is_consistent_everyday, fixed_timeslot, fixed_days, is_overlappable};
 
 		if (is_consistent_everyday == 0) {
 			if (fixed_timeslot == 0) {
