@@ -178,8 +178,8 @@ void ABC::getViolation(int64_t* result_violation) {
 		const auto& daily_class_schedule = teacher.getUtilizedTime();
 		const auto& total_day_work_load = teacher.getDayTotalWorkLoad();
 
-		const TimeDuration max_teacher_work_load = teacher.getMaxWorkLoad();
-		const TimeDuration min_teacher_work_load = teacher.getMinWorkLoad();
+		const TimeDuration max_teacher_work_load = teacher.getMaxDayWorkLoad();
+		const TimeDuration min_teacher_work_load = teacher.getMinDayWorkLoad();
 		const TimeDuration break_time_duration = best_solution.timetable.getBreakTimeDuration();
 
 		for (const auto& [day, time_points_class_count] : daily_class_schedule) {
