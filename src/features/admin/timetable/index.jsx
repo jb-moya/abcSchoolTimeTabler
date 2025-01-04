@@ -329,7 +329,7 @@ function Timetable() {
                     id: index,
                     numOfClasses: Math.min(
                         Math.ceil(
-                            subject.weeklyMinutes / subject.classDuration
+                            subject?.weeklyMinutes / subject.classDuration
                         ),
                         numOfSchoolDays
                     ),
@@ -842,7 +842,7 @@ function Timetable() {
             } else if (totalTimeslot >= 10) {
                 notAllowedBreakslotGap = 3;
             }
-            
+
             const isDynamicSubjectConsistentDuration = 0;
 
             sectionConfigurationArray[sectionKey] = packInt8ToInt32(
@@ -969,7 +969,7 @@ function Timetable() {
                 subjectConfigurationSubjectFixedTimeslot,
             subjectConfigurationSubjectFixedDay:
                 subjectConfigurationSubjectFixedDay,
-subjectConfigurationSubjectIsOverlappable:
+            subjectConfigurationSubjectIsOverlappable:
                 subjectConfigurationSubjectIsOverlappable,
 
             subjectFixedTeacherSection: subjectFixedTeacherSection,
@@ -1065,6 +1065,7 @@ subjectConfigurationSubjectIsOverlappable:
                 fieldName2: fieldName2,
                 day: day,
                 end: end,
+                start: start,
             };
 
             if (timetableMap.has(section_id)) {
@@ -1188,12 +1189,35 @@ subjectConfigurationSubjectIsOverlappable:
         console.log('section timetable', sectionTimetable);
         console.log('teacher timetable', teacherTimetable);
 
-        // // // setTimetable(timetableMap);
+        function mapToObject(map) {
+            if (!(map instanceof Map)) return map; // If it's not a Map, return as is
+            const obj = {};
+            for (const [key, value] of map.entries()) {
+                obj[key] = mapToObject(value); // Recursively handle nested Maps
+            }
+            return obj;
+        }
+
+        const sectionString = JSON.stringify(
+            mapToObject(sectionTimetable),
+            null,
+            2
+        );
+        const teacherString = JSON.stringify(
+            mapToObject(teacherTimetable),
+            null,
+            2
+        );
+        console.log('teacherString: ', teacherString);
+        console.log('sectionString: ', sectionString);
+
+        // setTimetable(timetableMap);
         setSectionTimetables(sectionTimetable);
         setTeacherTimetables(teacherTimetable);
-        const combined = combineObjects(sectionTimetable, teacherTimetable);
-        console.log('combined: ', combined);
-        setMapVal(convertToHashMap(combined));
+
+        // const combined = combineObjects(sectionTimetable, teacherTimetable);
+        // console.log('combined: ', combined);
+        // setMapVal(convertToHashMap(combined));
     };
 
     const handleSchedExport = () => {
@@ -1527,7 +1551,7 @@ subjectConfigurationSubjectIsOverlappable:
         const classCountLookup = {};
         Object.entries(subjectsStore).forEach(([subjectID, subject]) => {
             (classCountLookup[subjectID] = Math.ceil(
-                subject.weeklyMinutes / subject.classDuration
+                subject?.weeklyMinutes / subject.classDuration
             )),
                 numOfSchoolDays;
         });
@@ -1751,6 +1775,17 @@ subjectConfigurationSubjectIsOverlappable:
             }
         };
 
+        if (timetableGenerationStatus === 'success') {
+            const combinedMap = combineObjects(
+                sectionStringObj,
+                teacherStringObj
+            );
+            const map = convertToHashMap(combinedMap);
+            console.log('combined: ', combinedMap);
+            console.log('map: ', map);
+
+            setMapVal(map);
+        }
         // Add the event listener
         window.addEventListener('beforeunload', handleBeforeUnload);
 
@@ -1943,6 +1978,655 @@ subjectConfigurationSubjectIsOverlappable:
                 },
             },
             containerName: 'Section 2',
+        },
+    };
+
+    const teacherMapStatic = {
+        1: {
+            containerName: 'T7',
+            timetable: [
+                [
+                    144,
+                    {
+                        section: 1,
+                        subject: 2,
+                        teacher: 1,
+                        fieldName1: 'Magalang',
+                        fieldName2: 'sub 2',
+                        day: 0,
+                        end: 148,
+                    },
+                ],
+                [
+                    155,
+                    {
+                        section: 1,
+                        subject: 1,
+                        teacher: 3,
+                        fieldName1: 'Masarap',
+                        fieldName2: 'sub 1',
+                        day: 0,
+                        end: 159,
+                    },
+                ],
+                [
+                    159,
+                    {
+                        section: 1,
+                        subject: 2,
+                        teacher: 2,
+                        fieldName1: 'Maangas',
+                        fieldName2: 'sub 2',
+                        day: 0,
+                        end: 163,
+                    },
+                ],
+                [
+                    0,
+                    {
+                        section: null,
+                        subject: null,
+                        teacher: null,
+                        fieldName1: null,
+                        fieldName2: null,
+                        day: null,
+                        end: 144,
+                    },
+                ],
+                [
+                    148,
+                    {
+                        section: null,
+                        subject: null,
+                        teacher: null,
+                        fieldName1: null,
+                        fieldName2: null,
+                        day: null,
+                        end: 155,
+                    },
+                ],
+            ],
+        },
+        2: {
+            containerName: 'T8',
+            timetable: [
+                [
+                    155,
+                    {
+                        section: 2,
+                        subject: 1,
+                        teacher: 2,
+                        fieldName1: 'Maangas',
+                        fieldName2: 'sub 1',
+                        day: 0,
+                        end: 159,
+                    },
+                ],
+                [
+                    159,
+                    {
+                        section: 2,
+                        subject: 2,
+                        teacher: 3,
+                        fieldName1: 'Masarap',
+                        fieldName2: 'sub 2',
+                        day: 0,
+                        end: 163,
+                    },
+                ],
+                [
+                    323,
+                    {
+                        section: 2,
+                        subject: 2,
+                        teacher: 4,
+                        fieldName1: 'Matikas',
+                        fieldName2: 'sub 2',
+                        day: 0,
+                        end: 327,
+                    },
+                ],
+                [
+                    0,
+                    {
+                        section: null,
+                        subject: null,
+                        teacher: null,
+                        fieldName1: null,
+                        fieldName2: null,
+                        day: null,
+                        end: 155,
+                    },
+                ],
+                [
+                    163,
+                    {
+                        section: null,
+                        subject: null,
+                        teacher: null,
+                        fieldName1: null,
+                        fieldName2: null,
+                        day: null,
+                        end: 323,
+                    },
+                ],
+            ],
+        },
+        3: {
+            containerName: 'T9',
+            timetable: [
+                [
+                    144,
+                    {
+                        section: 3,
+                        subject: 3,
+                        teacher: 2,
+                        fieldName1: 'Maangas',
+                        fieldName2: 'sub 3',
+                        day: 0,
+                        end: 148,
+                    },
+                ],
+                [
+                    148,
+                    {
+                        section: 3,
+                        subject: 3,
+                        teacher: 1,
+                        fieldName1: 'Magalang',
+                        fieldName2: 'sub 3',
+                        day: 0,
+                        end: 152,
+                    },
+                ],
+                [
+                    159,
+                    {
+                        section: 3,
+                        subject: 1,
+                        teacher: 1,
+                        fieldName1: 'Magalang',
+                        fieldName2: 'sub 1',
+                        day: 0,
+                        end: 163,
+                    },
+                ],
+                [
+                    0,
+                    {
+                        section: null,
+                        subject: null,
+                        teacher: null,
+                        fieldName1: null,
+                        fieldName2: null,
+                        day: null,
+                        end: 144,
+                    },
+                ],
+                [
+                    152,
+                    {
+                        section: null,
+                        subject: null,
+                        teacher: null,
+                        fieldName1: null,
+                        fieldName2: null,
+                        day: null,
+                        end: 159,
+                    },
+                ],
+            ],
+        },
+        4: {
+            containerName: 'T10',
+            timetable: [
+                [
+                    144,
+                    {
+                        section: 4,
+                        subject: 3,
+                        teacher: 3,
+                        fieldName1: 'Masarap',
+                        fieldName2: 'sub 3',
+                        day: 0,
+                        end: 148,
+                    },
+                ],
+                [
+                    319,
+                    {
+                        section: 4,
+                        subject: 1,
+                        teacher: 4,
+                        fieldName1: 'Matikas',
+                        fieldName2: 'sub 1',
+                        day: 0,
+                        end: 323,
+                    },
+                ],
+                [
+                    327,
+                    {
+                        section: 4,
+                        subject: 3,
+                        teacher: 4,
+                        fieldName1: 'Matikas',
+                        fieldName2: 'sub 3',
+                        day: 0,
+                        end: 331,
+                    },
+                ],
+                [
+                    0,
+                    {
+                        section: null,
+                        subject: null,
+                        teacher: null,
+                        fieldName1: null,
+                        fieldName2: null,
+                        day: null,
+                        end: 144,
+                    },
+                ],
+                [
+                    148,
+                    {
+                        section: null,
+                        subject: null,
+                        teacher: null,
+                        fieldName1: null,
+                        fieldName2: null,
+                        day: null,
+                        end: 319,
+                    },
+                ],
+                [
+                    323,
+                    {
+                        section: null,
+                        subject: null,
+                        teacher: null,
+                        fieldName1: null,
+                        fieldName2: null,
+                        day: null,
+                        end: 327,
+                    },
+                ],
+            ],
+        },
+        6: {
+            containerName: 'T100',
+            timetable: [
+                [
+                    151,
+                    {
+                        section: 6,
+                        subject: 4,
+                        teacher: 2,
+                        fieldName1: 'Maangas',
+                        fieldName2: 'sub 4',
+                        day: 0,
+                        end: 155,
+                    },
+                ],
+                [
+                    0,
+                    {
+                        section: null,
+                        subject: null,
+                        teacher: null,
+                        fieldName1: null,
+                        fieldName2: null,
+                        day: null,
+                        end: 151,
+                    },
+                ],
+            ],
+        },
+        7: {
+            containerName: 'T101',
+            timetable: [
+                [
+                    148,
+                    {
+                        section: 7,
+                        subject: 4,
+                        teacher: 3,
+                        fieldName1: 'Masarap',
+                        fieldName2: 'sub 4',
+                        day: 0,
+                        end: 152,
+                    },
+                ],
+                [
+                    0,
+                    {
+                        section: null,
+                        subject: null,
+                        teacher: null,
+                        fieldName1: null,
+                        fieldName2: null,
+                        day: null,
+                        end: 148,
+                    },
+                ],
+            ],
+        },
+        9: {
+            containerName: 'T103',
+            timetable: [
+                [
+                    155,
+                    {
+                        section: 9,
+                        subject: 4,
+                        teacher: 1,
+                        fieldName1: 'Magalang',
+                        fieldName2: 'sub 4',
+                        day: 0,
+                        end: 159,
+                    },
+                ],
+                [
+                    312,
+                    {
+                        section: 9,
+                        subject: 4,
+                        teacher: 4,
+                        fieldName1: 'Matikas',
+                        fieldName2: 'sub 4',
+                        day: 0,
+                        end: 316,
+                    },
+                ],
+                [
+                    0,
+                    {
+                        section: null,
+                        subject: null,
+                        teacher: null,
+                        fieldName1: null,
+                        fieldName2: null,
+                        day: null,
+                        end: 155,
+                    },
+                ],
+                [
+                    159,
+                    {
+                        section: null,
+                        subject: null,
+                        teacher: null,
+                        fieldName1: null,
+                        fieldName2: null,
+                        day: null,
+                        end: 312,
+                    },
+                ],
+            ],
+        },
+    };
+
+    const sectionMapStatic = {
+        1: {
+            containerName: 'Magalang',
+            timetable: [
+                [
+                    144,
+                    {
+                        section: 1,
+                        subject: 2,
+                        teacher: 1,
+                        fieldName1: 'sub 2',
+                        fieldName2: 'T7',
+                        day: 0,
+                        end: 148,
+                    },
+                ],
+                [
+                    148,
+                    {
+                        section: 1,
+                        subject: 3,
+                        teacher: 3,
+                        fieldName1: 'sub 3',
+                        fieldName2: 'T9',
+                        day: 0,
+                        end: 152,
+                    },
+                ],
+                [
+                    152,
+                    {
+                        section: 1,
+                        subject: null,
+                        teacher: null,
+                        fieldName1: null,
+                        fieldName2: null,
+                        day: 0,
+                        end: 155,
+                    },
+                ],
+                [
+                    155,
+                    {
+                        section: 1,
+                        subject: 4,
+                        teacher: 9,
+                        fieldName1: 'sub 4',
+                        fieldName2: 'T103',
+                        day: 0,
+                        end: 159,
+                    },
+                ],
+                [
+                    159,
+                    {
+                        section: 1,
+                        subject: 1,
+                        teacher: 3,
+                        fieldName1: 'sub 1',
+                        fieldName2: 'T9',
+                        day: 0,
+                        end: 163,
+                    },
+                ],
+            ],
+        },
+        2: {
+            containerName: 'Maangas',
+            timetable: [
+                [
+                    144,
+                    {
+                        section: 2,
+                        subject: 3,
+                        teacher: 3,
+                        fieldName1: 'sub 3',
+                        fieldName2: 'T9',
+                        day: 0,
+                        end: 148,
+                    },
+                ],
+                [
+                    148,
+                    {
+                        section: 2,
+                        subject: null,
+                        teacher: null,
+                        fieldName1: null,
+                        fieldName2: null,
+                        day: 0,
+                        end: 151,
+                    },
+                ],
+                [
+                    151,
+                    {
+                        section: 2,
+                        subject: 4,
+                        teacher: 6,
+                        fieldName1: 'sub 4',
+                        fieldName2: 'T100',
+                        day: 0,
+                        end: 155,
+                    },
+                ],
+                [
+                    155,
+                    {
+                        section: 2,
+                        subject: 1,
+                        teacher: 2,
+                        fieldName1: 'sub 1',
+                        fieldName2: 'T8',
+                        day: 0,
+                        end: 159,
+                    },
+                ],
+                [
+                    159,
+                    {
+                        section: 2,
+                        subject: 2,
+                        teacher: 1,
+                        fieldName1: 'sub 2',
+                        fieldName2: 'T7',
+                        day: 0,
+                        end: 163,
+                    },
+                ],
+            ],
+        },
+        3: {
+            containerName: 'Masarap',
+            timetable: [
+                [
+                    144,
+                    {
+                        section: 3,
+                        subject: 3,
+                        teacher: 4,
+                        fieldName1: 'sub 3',
+                        fieldName2: 'T10',
+                        day: 0,
+                        end: 148,
+                    },
+                ],
+                [
+                    148,
+                    {
+                        section: 3,
+                        subject: 4,
+                        teacher: 7,
+                        fieldName1: 'sub 4',
+                        fieldName2: 'T101',
+                        day: 0,
+                        end: 152,
+                    },
+                ],
+                [
+                    152,
+                    {
+                        section: 3,
+                        subject: null,
+                        teacher: null,
+                        fieldName1: null,
+                        fieldName2: null,
+                        day: 0,
+                        end: 155,
+                    },
+                ],
+                [
+                    155,
+                    {
+                        section: 3,
+                        subject: 1,
+                        teacher: 1,
+                        fieldName1: 'sub 1',
+                        fieldName2: 'T7',
+                        day: 0,
+                        end: 159,
+                    },
+                ],
+                [
+                    159,
+                    {
+                        section: 3,
+                        subject: 2,
+                        teacher: 2,
+                        fieldName1: 'sub 2',
+                        fieldName2: 'T8',
+                        day: 0,
+                        end: 163,
+                    },
+                ],
+            ],
+        },
+        4: {
+            containerName: 'Matikas',
+            timetable: [
+                [
+                    312,
+                    {
+                        section: 4,
+                        subject: 4,
+                        teacher: 9,
+                        fieldName1: 'sub 4',
+                        fieldName2: 'T103',
+                        day: 0,
+                        end: 316,
+                    },
+                ],
+                [
+                    316,
+                    {
+                        section: 4,
+                        subject: null,
+                        teacher: null,
+                        fieldName1: null,
+                        fieldName2: null,
+                        day: 0,
+                        end: 319,
+                    },
+                ],
+                [
+                    319,
+                    {
+                        section: 4,
+                        subject: 1,
+                        teacher: 4,
+                        fieldName1: 'sub 1',
+                        fieldName2: 'T10',
+                        day: 0,
+                        end: 323,
+                    },
+                ],
+                [
+                    323,
+                    {
+                        section: 4,
+                        subject: 2,
+                        teacher: 2,
+                        fieldName1: 'sub 2',
+                        fieldName2: 'T8',
+                        day: 0,
+                        end: 327,
+                    },
+                ],
+                [
+                    327,
+                    {
+                        section: 4,
+                        subject: 3,
+                        teacher: 4,
+                        fieldName1: 'sub 3',
+                        fieldName2: 'T10',
+                        day: 0,
+                        end: 331,
+                    },
+                ],
+            ],
         },
     };
 
@@ -5201,31 +5885,6 @@ subjectConfigurationSubjectIsOverlappable:
         },
     };
 
-    function removeQuotesFromKeys(obj) {
-        if (typeof obj !== 'object' || obj === null) {
-            return obj;
-        }
-
-        const result = {};
-
-        for (const key in obj) {
-            if (obj.hasOwnProperty(key)) {
-                // Convert key to a number if it's a valid number
-                const newKey = isNaN(key) ? key : Number(key);
-                const value = obj[key];
-
-                // If the value is an object, recursively clean it
-                result[newKey] = removeQuotesFromKeys(value);
-            }
-        }
-
-        return result;
-    }
-
-    // console.log('correct: ', removeQuotesFromKeys(stringObj));
-    const sectionObj = removeQuotesFromKeys(sectionStringObj);
-    const teacherObj = removeQuotesFromKeys(teacherStringObj);
-
     const teacher = {
         1: {
             0: {
@@ -5318,18 +5977,29 @@ subjectConfigurationSubjectIsOverlappable:
 
         return combined;
     }
+    function combineMaps(map1, map2) {
+        const combinedMap = new Map(map1); // Start with entries from map1
+        const maxKey = Math.max(...Array.from(map1.keys()).map(Number), -1); // Find the largest key in map1
 
-    // Convert the input object to a Map
+        for (const [key, value] of map2?.entries()) {
+            const newKey = typeof key === 'number' ? key + maxKey + 1 : key; // Adjust the key for map2
+            combinedMap.set(newKey, value);
+        }
 
-    // console.log(hashMap.get('Section 1'));
+        return combinedMap;
+    }
 
-    // console.log(hashMap.get('Section 2').get('2-2-0'));  // Should log the second schedule item
+    function objectToMap(obj) {
+        if (typeof obj !== 'object' || obj === null) return obj; // If not an object, return as is
+        if (Array.isArray(obj)) return obj.map(objectToMap); // Handle arrays recursively
 
-    // useEffect(() => {
-    //     const combined = combineObjects(sectionObj, teacherObj);
+        const map = new Map();
+        for (const [key, value] of Object.entries(obj)) {
+            map.set(isNaN(key) ? key : +key, objectToMap(value)); // Convert keys to numbers if possible
+        }
+        return map;
+    }
 
-    //     setMapVal(convertToHashMap(combined));
-    // }, []);
     useEffect(() => {
         handleNumOfSchoolDaysChange();
     }, [numOfSchoolDays]);
@@ -5358,6 +6028,30 @@ subjectConfigurationSubjectIsOverlappable:
         }
     }, [buildingStatus, dispatch]);
 
+    // useEffect(() => {
+    //     const teacherMap = objectToMap(teacherMapStatic);
+    //     const sectionMap = objectToMap(sectionMapStatic);
+    //     const sectionObj = convertToHashMap(sectionStringObj);
+    //     // const teacherObj = convertToHashMap(teacherStringObj);
+
+    //     console.log('sectionObj: ', sectionObj);
+
+    //     console.log('teacherMap: ', teacherMap);
+    //     console.log('sectionMap:', sectionMap);
+
+    //     // const combinedMap = combineMaps(teacherMap, sectionMap);
+    //     const combinedMap = combineObjects(sectionStringObj, teacherStringObj);
+    //     const map = convertToHashMap(combinedMap);
+    //     console.log('combined: ', combinedMap);
+    //     console.log('map: ', map);
+
+    //     setMapVal(map);
+    // }, []);
+
+    useEffect(() => {
+        console.log('changed: ', mapVal);
+        console.log('Condition:', mapVal && mapVal.size > 0);
+    }, [mapVal]);
     return (
         <div className="App container mx-auto px-4 py-6">
             <div className="mb-6 flex justify-between items-center">
@@ -5449,7 +6143,12 @@ subjectConfigurationSubjectIsOverlappable:
                         EXPORT SCHEDULES
                     </button>
                 )}
-            <ForTest hashMap={mapVal} />
+            {mapVal && mapVal.size > 0 && (
+                <>
+                    {console.log('Rendering ForTest with mapVal:', mapVal)}
+                    <ForTest hashMap={mapVal} />
+                </>
+            )}
 
             {/* pag section need Container section + sectionid + teacherid for error */}
             {/* <GeneratedTimetable

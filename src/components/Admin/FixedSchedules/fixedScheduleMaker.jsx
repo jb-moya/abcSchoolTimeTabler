@@ -78,8 +78,8 @@ const FixedScheduleMaker = ({
                 sum +
                 Math.min(
                     Math.ceil(
-                        subjectsStore[subj].weeklyMinutes /
-                            subjectsStore[subj].classDuration
+                        subjectsStore[subj]?.weeklyMinutes /
+                            subjectsStore[subj]?.classDuration
                     ),
                     numOfSchoolDays
                 ),

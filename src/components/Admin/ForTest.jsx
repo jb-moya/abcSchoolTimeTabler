@@ -4,7 +4,7 @@ import { generateTimeSlots } from './utils';
 import { produce } from 'immer';
 
 const ForTest = ({ hashMap }) => {
-    const [selectedModeValue, setSelectedModeValue] = useState('5m');
+    const [selectedModeValue, setSelectedModeValue] = useState('10m');
     const [valueMap, setValueMap] = useState(hashMap);
     const handleSelectChange = (event) => {
         setSelectedModeValue(event.target.value);
@@ -19,6 +19,7 @@ const ForTest = ({ hashMap }) => {
     const [searchField, setSearchField] = useState('');
     const [errorCount, setErrorCount] = useState(0);
     const [loading, setLoading] = useState(false);
+    const [addClicked, setAddClicked] = useState(false);
 
     // useEffect(() => {
     //   renderCount.current += 1;
@@ -87,10 +88,9 @@ const ForTest = ({ hashMap }) => {
 
     useEffect(() => {
         const startTime =
-            localStorage.getItem('morningStartTime') || '08:00 PM'; // Fallback to 8 PM if not found
-        const endTime = '08:00 PM'; // Fixed end time
+            localStorage.getItem('morningStartTime') || '08:00 PM';
+        const endTime = '08:00 PM';
 
-        // Generate time slots dynamically when the component mounts
         const slots = generateTimeSlots(startTime, endTime, 60); // You can change the interval here
         const tableHeight = Math.round(110.625 * slots.length);
         // console.log(slots)
@@ -116,6 +116,10 @@ const ForTest = ({ hashMap }) => {
 
     const save = () => {
         console.log('saved');
+    };
+
+    const add = () => {
+        setAddClicked(true);
     };
 
     useEffect(() => {
@@ -421,9 +425,6 @@ const ForTest = ({ hashMap }) => {
         setValueMap(hashMap);
     }, [hashMap]);
 
-    useEffect(() => {
-        console.log('historyIndex: ', historyIndex);
-    }, []);
     return (
         Array.from(paginatedValueMap.entries()).length > 0 && (
             <div className="overflow-hidden select-none">
@@ -513,6 +514,9 @@ const ForTest = ({ hashMap }) => {
                     </div>
 
                     <div className="flex flex-row items-center space-x-2 ml-auto">
+                        <button onClick={add} className="btn btn-secondary">
+                            Add
+                        </button>
                         <div className="form-control">
                             <label className="label cursor-pointer">
                                 <span className="label-text px-5">Edit</span>
@@ -532,7 +536,6 @@ const ForTest = ({ hashMap }) => {
                             onChange={handleSelectChange}
                             className="min-w-20 p-2 border border-primary-content rounded-lg bg-primary-content text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                            <option value="5m">5m</option>
                             <option value="10m">10m</option>
                             <option value="20m">20m</option>
                             <option value="30m">30m</option>
@@ -585,7 +588,7 @@ const ForTest = ({ hashMap }) => {
                                             </h2>
                                             <Column />
                                             <div
-                                                className="flex flex-row"
+                                                className="flex flex-row border border-gray-600"
                                                 style={{
                                                     maxHeight: `${tableHeight}px`,
                                                     minHeight: `${tableHeight}px`,
@@ -629,6 +632,10 @@ const ForTest = ({ hashMap }) => {
                                                     editMode={editMode}
                                                     setLoading={setLoading}
                                                     loading={loading}
+                                                    addClicked={addClicked}
+                                                    setAddClicked={
+                                                        setAddClicked
+                                                    }
                                                 />
                                             </div>
                                         </div>

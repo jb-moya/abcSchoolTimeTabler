@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import SearchableDropdownToggler from './searchableDropdownForAll';
 
 import { motion, useMotionValue, useMotionValueEvent } from 'framer-motion';
 import { convertToTime } from '../../utils/convertToTime';
@@ -8,6 +7,7 @@ import { convertToNumber } from '../../utils/convertToNumber';
 
 import { fetchSubjects } from '@features/subjectSlice';
 import { fetchTeachers } from '@features/teacherSlice';
+import ScheduleDialog from './ScheduleDialog';
 
 const ItemCells = ({
     containerRef,
@@ -29,12 +29,15 @@ const ItemCells = ({
     modalOpen,
     setEditingCell,
     editingCell,
+    addClicked,
+    setAddClicked,
 }) => {
     // if (cell.teacherID === 1) {
     //     console.log('cell: ', cell);
     // }
 
     const itemRef = useRef(null);
+
     const [targetPosition, setTargetPosition] = useState(initialPosition);
     const [timeRange, setTimeRange] = useState(0);
     const [options, setOptions] = useState([]); // Example state for options
@@ -78,18 +81,28 @@ const ItemCells = ({
         setTimeRange(String(cell.end - cell.start + 0.5));
     }, [cell, setItemWidth]);
 
+    useEffect(() => {
+        // console.log('clicked');
+        // console.log('add: ', addClicked);
+        if (addClicked) {
+            setEditingCell(null);
+            setModalOpen(true);
+            setTimeout(() => {
+                document.getElementById('my_modal_2').showModal();
+            }, 0);
+        }
+        // setAddClicked(false);
+    }, [addClicked]);
     const getUpdatedStart = (mode, start) => {
         switch (mode) {
-            case '5m':
-                return start * 1;
             case '10m':
-                return start * 2;
+                return start * 1;
             case '20m':
-                return start * 4;
+                return start * 2;
             case '30m':
-                return start * 6;
+                return start * 3;
             case '60m':
-                return start * 12;
+                return start * 6;
             default:
                 return null;
         }
@@ -241,13 +254,20 @@ const ItemCells = ({
 
         const time = event.target.value;
         const end = convertToNumber(time);
+        // console.log('editingCell: ', editingCell);
+        // console.log('end: ', end);
 
-        if (end >= editingCell.start) {
+        if (end <= editingCell.start) {
             newErrors.time = 'Invalid Time Set';
         } else {
             handleCellUpdate({ end }, editingCell);
         }
         setErrors(newErrors);
+    };
+
+    const addSchedule = () => {
+        // console.log('added');
+        setModalOpen(false);
     };
 
     return (
@@ -272,7 +292,7 @@ const ItemCells = ({
             animate={targetPosition}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             title={
-                !editMode
+                !modalOpen
                     ? `${cell.teacher || ''} \n${cell.subject || ''}`
                     : undefined
             }
@@ -315,82 +335,19 @@ const ItemCells = ({
                 onMouseEnter={() => setHovering(true)}
                 onMouseLeave={() => setHovering(false)}
             />
-            <dialog
-                id="my_modal_2"
-                className="modal"
-                ref={(el) => {
-                    if (el) {
-                        el.addEventListener('keydown', (e) => {
-                            if (e.key === 'Escape') {
-                                setModalOpen(false);
-                            }
-                        });
-                    }
-                }}
-            >
-                {' '}
-                <div className="modal-box h-52 overflow-hidden">
-                    <form method="dialog">
-                        {/* if there is a button in form, it will close the modal */}
-                        <button
-                            className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                            onClick={() => setModalOpen(false)}
-                        >
-                            ✕
-                        </button>
-                    </form>
-                    {/* <h3 className="font-bold text-lg">Hello!</h3> */}
-                    <SearchableDropdownToggler
-                        teacherID={getTeacherIdsBySubject(
-                            editingCell.subjectID
-                        )}
-                        setSelectedList={handleTeacherSelection}
-                        currID={editingCell.teacherID}
-                    />
-                    <div className="text-[10px] sm:text-[10px] md:text-xs lg:text-xs text-slate-400 text-center overflow-hidden">
-                        {editingCell?.subject}
-                    </div>
-                    <div className="text-[10px] sm:text-[11px] md:text-[10px] lg:text-[9px] text-center overflow-hidden pt-0.5">
-                        {convertToTime(editingCell?.start)} -{' '}
-                        {convertToTime(editingCell?.end)}
-                    </div>
-                    <div className="flex flex-row">
-                        <div className="form-control w-1/2">
-                            <select
-                                className="select select-bordered w-full overflow-y-auto max-h-40"
-                                value={`${convertToTime(editingCell?.start)}`}
-                                onChange={(e) => handleStartChange(e)}
-                            >
-                                {generateTimeOptions(6, 12, true).map(
-                                    (time) => (
-                                        <option key={time} value={time}>
-                                            {time}
-                                        </option>
-                                    )
-                                )}
-                            </select>
-                        </div>
-                        <div className="form-control w-1/2 ">
-                            <select
-                                className="select select-bordered w-full"
-                                value={`${convertToTime(editingCell?.end)}`}
-                                onChange={(e) => handleEndChange(e)}
-                            >
-                                {generateTimeOptions(6, 12, true).map(
-                                    (time) => (
-                                        <option key={time} value={time}>
-                                            {time}
-                                        </option>
-                                    )
-                                )}
-                            </select>
-                        </div>
-                    </div>
-                    {errors.time && (
-                        <span className="text-red-500">{errors.time}</span>
-                    )}
-                </div>
-            </dialog>
+            <ScheduleDialog
+                editingCell={editingCell}
+                handleTeacherSelection={handleTeacherSelection}
+                handleStartChange={handleStartChange}
+                handleEndChange={handleEndChange}
+                generateTimeOptions={generateTimeOptions}
+                convertToTime={convertToTime}
+                setModalOpen={setModalOpen}
+                getTeacherIdsBySubject={getTeacherIdsBySubject}
+                errors={errors}
+                addSchedule={addSchedule}
+                setAddClicked={setAddClicked}
+            />
         </motion.div>
     );
 };

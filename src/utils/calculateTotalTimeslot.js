@@ -2,8 +2,8 @@ const calculateTotalTimeslot = (subjects, subjectList, numOfSchoolDays) => {
     const totalNumOfClasses = subjectList.reduce((total, subject) => {
         const classesPerWeek = Math.min(
             Math.ceil(
-                subjects[subject].weeklyMinutes /
-                    subjects[subject].classDuration
+                subjects[subject]?.weeklyMinutes /
+                    subjects[subject]?.classDuration
             ),
             numOfSchoolDays
         );
