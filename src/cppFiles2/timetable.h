@@ -86,11 +86,12 @@ struct Timetable {
 	                             TimeDuration duration,
 	                             int unit_count,
 	                             Timeslot fixed_timeslot,
-	                             ScheduledDay fixed_days);
+	                             ScheduledDay fixed_days,
+	                             bool is_overlappable);
 
 	Section& getSectionById(SectionID section_id);
 	Teacher& getTeacherById(TeacherID teacher_id);
-Building& getBuildingById(BuildingID building_id);
+	Building& getBuildingById(BuildingID building_id);
 
 	void connectBuildings(BuildingID building_id_1, BuildingID building_id_2);
 
@@ -138,7 +139,10 @@ Building& getBuildingById(BuildingID building_id);
 	                                     int32_t* subject_configuration_subject_units,
 	                                     int32_t* subject_configuration_subject_duration,
 	                                     int32_t* subject_configuration_subject_fixed_timeslot,
-	                                     int32_t* subject_configuration_subject_fixed_day);
+	                                     int32_t* subject_configuration_subject_fixed_day,
+	                                     int32_t* subject_configuration_subject_is_overlappable);
+
+	void initializeTeacherReservedSchedule(int32_t* teacher_reservation_config, int32_t* teacher_reservation_config_id);
 
 	void initializeSections(int number_of_section,
 	                        int32_t* section_configuration,

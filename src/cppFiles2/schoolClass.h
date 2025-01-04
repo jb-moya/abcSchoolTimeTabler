@@ -10,4 +10,5 @@ struct SchoolClass {
 	bool is_consistent_everyday;
 	Timeslot fixed_timeslot;
 	ScheduledDay fixed_days;
+	bool is_overlappable;
 };

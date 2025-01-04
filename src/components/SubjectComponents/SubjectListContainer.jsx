@@ -1,12 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
-import {
-    fetchSubjects,
-    addSubject,
-    editSubject,
-    removeSubject,
-} from '@features/subjectSlice';
+import { fetchSubjects, addSubject, editSubject, removeSubject } from '@features/subjectSlice';
 // import { fetchPrograms} from '@features/programSlice';
 // import { fetchSections } from '@features/sectionSlice';
 
@@ -19,21 +14,16 @@ import escapeRegExp from '@utils/escapeRegExp';
 
 // import { toast } from 'sonner';
 
-// import calculateTotalTimeslot from '../../utils/calculateTotalTimeslot';
+import calculateTotalClass from '../../utils/calculateTotalClass';
 
 import AddSubjectContainer from './AddSubjectContainer';
 import SubjectEdit from './SubjectEdit';
 import DeleteData from '../Admin/DeleteData';
 
-const SubjectListContainer = ({
-    numOfSchoolDays: externalNumOfSchoolDays,
-    editable = false,
-}) => {
+const SubjectListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editable = false }) => {
     const dispatch = useDispatch();
 
-    const { subjects, status: subjectStatus } = useSelector(
-        (state) => state.subject
-    );
+    const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
     // const { programs, status: programStatus } = useSelector(
     //     (state) => state.program
     // );
@@ -42,14 +32,9 @@ const SubjectListContainer = ({
     // );
 
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
-        return (
-            externalNumOfSchoolDays ??
-            (Number(localStorage.getItem('numOfSchoolDays')) || 0)
-        );
+        return externalNumOfSchoolDays ?? (Number(localStorage.getItem('numOfSchoolDays')) || 0);
     });
-    const defaultSubjectClassDuration = localStorage.getItem(
-        'defaultSubjectClassDuration'
-    );
+    const defaultSubjectClassDuration = localStorage.getItem('defaultSubjectClassDuration');
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
@@ -211,33 +196,35 @@ const SubjectListContainer = ({
     //                 return;
     //             }
 
-    //             const newTotalTimeslot = calculateTotalTimeslot(
-    //                 {
-    //                     ...subjects,
-    //                     [editSubjectId]: {
-    //                         ...subjects[editSubjectId],
-    //                         subject: editSubjectValue,
-    //                         classDuration: editClassDuration,
-    //                         weeklyMinutes: editSubjectWeeklyMinutes,
-    //                     },
-    //                 },
-    //                 newProgram[grade].subjects,
-    //                 numOfSchoolDays
-    //             );
+    // const totalNumOfClasses = calculateTotalClass(
+    //     {
+    //         ...subjects,
+    //         [editSubjectId]: {
+    //             ...subjects[editSubjectId],
+    //             subject: editSubjectValue,
+    //             classDuration: editClassDuration,
+    //             weeklyMinutes: editSubjectWeeklyMinutes,
+    //         },
+    //     },
+    //     newProgram[grade].subjects,
+    //     numOfSchoolDays
+    // );
 
-    //             Object.entries(newProgram[grade].fixedPositions).forEach(
-    //                 ([subjectId, fixedPosition]) => {
-    //                     fixedPosition.forEach((item, i) => {
-    //                         if (item > newTotalTimeslot) {
-    //                             fixedPosition[i] = 0;
-    //                             newProgram[grade].fixedDays[subjectId][i] = 0;
-    //                         }
-    //                     });
-    //                 }
-    //             );
+    // let totalTimeRow = Math.ceil(totalNumOfClasses / numOfSchoolDays);
 
-    //             console.log(
-    //                 'newTotalTimeslot', newTotalTimeslot);
+    // Object.entries(newProgram[grade].fixedPositions).forEach(
+    //     ([subjectId, fixedPosition]) => {
+    //         fixedPosition.forEach((item, i) => {
+    //             if (item > totalTimeRow) {
+    //                 fixedPosition[i] = 0;
+    //                 newProgram[grade].fixedDays[subjectId][i] = 0;
+    //             }
+    //         });
+    //     }
+    // );
+
+    // console.log(
+    //     'newTotalTimeslot', totalTimeRow);
 
     //             console.log(`newProgram[${grade}].subjects`,
     //                 newProgram[grade].subjects
@@ -252,12 +239,12 @@ const SubjectListContainer = ({
     //                 fixedDays[subjectID].forEach((day, i) => {
     //                     const position = fixedPositions[subjectID][i];
 
-    //                     if (day || position) { // Only process non-zero day or position
-    //                         dayTimeSlots[day] ??= newTotalTimeslot; // Use nullish coalescing assignment
-    //                         positionTimeSlots[position] ??= numOfSchoolDays;
-    //                     }
-    //                 });
-    //             }
+    //         if (day || position) { // Only process non-zero day or position
+    //             dayTimeSlots[day] ??= totalTimeRow; // Use nullish coalescing assignment
+    //             positionTimeSlots[position] ??= numOfSchoolDays;
+    //         }
+    //     });
+    // }
 
     //             console.log('dayTimeSlots', dayTimeSlots);
 
@@ -384,38 +371,46 @@ const SubjectListContainer = ({
 
     //         if (!newSection.subjects.includes(editSubjectId)) return;
 
-    //         const originalTotalTimeslot = calculateTotalTimeslot(
-    //             subjects,
-    //             newSection.subjects,
-    //             numOfSchoolDays
-    //         );
+    // const originalTotalNumOfClasses = calculateTotalClass(
+    //     subjects,
+    //     newSection.subjects,
+    //     numOfSchoolDays
+    // );
 
-    //         const newTotalTimeslot = calculateTotalTimeslot(
-    //             {
-    //                 ...subjects,
-    //                 [editSubjectId]: {
-    //                     ...subjects[editSubjectId],
-    //                     subject: editSubjectValue,
-    //                     classDuration: editClassDuration,
-    //                     weeklyMinutes: editSubjectWeeklyMinutes,
-    //                 },
-    //             },
-    //             newSection.subjects,
-    //             numOfSchoolDays
-    //         );
+    // let originalTotalTimeRow = Math.ceil(
+    //     originalTotalNumOfClasses / numOfSchoolDays
+    // );
 
-    //         if (newTotalTimeslot < originalTotalTimeslot) {
-    //             Object.entries(newSection.fixedPositions).forEach(
-    //                 ([subjectId, fixedPosition]) => {
-    //                     fixedPosition.forEach((item, i) => {
-    //                         if (item > newTotalTimeslot) {
-    //                             fixedPosition[i] = 0;
-    //                             newSection.fixedDays[subjectId][i] = 0;
-    //                         } // reset all positions to zero if timeslot is removed
-    //                     });
-    //                 }
-    //             );
+    // const newTotalNumOfClasses = calculateTotalClass(
+    //     {
+    //         ...subjects,
+    //         [editSubjectId]: {
+    //             ...subjects[editSubjectId],
+    //             subject: editSubjectValue,
+    //             classDuration: editClassDuration,
+    //             weeklyMinutes: editSubjectWeeklyMinutes,
+    //         },
+    //     },
+    //     newSection.subjects,
+    //     numOfSchoolDays
+    // );
+
+    // let newTotalTimeRow = Math.ceil(
+    //     newTotalNumOfClasses / numOfSchoolDays
+    // );
+
+    // if (newTotalTimeRow < originalTotalTimeRow) {
+    //     Object.entries(newSection.fixedPositions).forEach(
+    //         ([subjectId, fixedPosition]) => {
+    //             fixedPosition.forEach((item, i) => {
+    //                 if (item > newTotalTimeRow) {
+    //                     fixedPosition[i] = 0;
+    //                     newSection.fixedDays[subjectId][i] = 0;
+    //                 } // reset all positions to zero if timeslot is removed
+    //             });
     //         }
+    //     );
+    // }
 
     //         const numOfClasses = Math.min(
     //             Math.ceil(editSubjectWeeklyMinutes / editClassDuration),
@@ -434,12 +429,12 @@ const SubjectListContainer = ({
     //             fixedDays[subjectID].forEach((day, i) => {
     //                 const position = fixedPositions[subjectID][i];
 
-    //                 if (day || position) { // Only process non-zero day or position
-    //                     dayTimeSlots[day] ??= newTotalTimeslot; // Use nullish coalescing assignment
-    //                     positionTimeSlots[position] ??= numOfSchoolDays;
-    //                 }
-    //             });
+    //         if (day || position) { // Only process non-zero day or position
+    //             dayTimeSlots[day] ??= newTotalTimeRow; // Use nullish coalescing assignment
+    //             positionTimeSlots[position] ??= numOfSchoolDays;
     //         }
+    //     };
+    // }
 
     //         // Use hash maps to quickly look up subjects and day-position pairs
     //         const dayPositionMap = new Map();
@@ -518,9 +513,7 @@ const SubjectListContainer = ({
         debounce((searchValue, subjects) => {
             setSearchSubjectResult(
                 filterObject(subjects, ([, subject]) => {
-                    const escapedSearchValue = escapeRegExp(searchValue)
-                        .split('\\*')
-                        .join('.*');
+                    const escapedSearchValue = escapeRegExp(searchValue).split('\\*').join('.*');
 
                     const pattern = new RegExp(escapedSearchValue, 'i');
 
@@ -568,27 +561,21 @@ const SubjectListContainer = ({
     const [currentPage, setCurrentPage] = useState(1);
 
     // Calculate total pages
-    const totalPages = Math.ceil(
-        Object.values(searchSubjectResult).length / itemsPerPage
-    );
+    const totalPages = Math.ceil(Object.values(searchSubjectResult).length / itemsPerPage);
 
     // Get current items
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = Object.entries(searchSubjectResult).slice(
-        indexOfFirstItem,
-        indexOfLastItem
-    );
+    const currentItems = Object.entries(searchSubjectResult).slice(indexOfFirstItem, indexOfLastItem);
 
     return (
-        <div className="w-full">
-            <div className="flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5">
+        <div className='w-full'>
+            <div className='flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5'>
                 {/* Pagination */}
                 {currentItems.length > 0 && (
-                    <div className="join flex justify-center  mb-4 md:mb-0">
+                    <div className='join flex justify-center  mb-4 md:mb-0'>
                         <button
-                            className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''
-                                }`}
+                            className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
                             onClick={() => {
                                 if (currentPage > 1) {
                                     setCurrentPage(currentPage - 1);
@@ -599,12 +586,11 @@ const SubjectListContainer = ({
                         >
                             «
                         </button>
-                        <button className="join-item btn">
+                        <button className='join-item btn'>
                             Page {currentPage} of {totalPages}
                         </button>
                         <button
-                            className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''
-                                }`}
+                            className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
                             onClick={() => {
                                 if (currentPage < totalPages) {
                                     setCurrentPage(currentPage + 1);
@@ -618,66 +604,47 @@ const SubjectListContainer = ({
                     </div>
                 )}
 
-                {currentItems.length === 0 && currentPage > 1 && (
-                    <div className="hidden">
-                        {setCurrentPage(currentPage - 1)}
-                    </div>
-                )}
+                {currentItems.length === 0 && currentPage > 1 && <div className='hidden'>{setCurrentPage(currentPage - 1)}</div>}
 
                 {/* Search Subject */}
-                <div className="flex-grow w-full md:w-1/3 lg:w-1/4">
-                    <label className="input input-bordered flex items-center gap-2 w-full">
+                <div className='flex-grow w-full md:w-1/3 lg:w-1/4'>
+                    <label className='input input-bordered flex items-center gap-2 w-full'>
                         <input
-                            type="text"
-                            className="grow p-3 text-sm w-full"
-                            placeholder="Search Subject"
+                            type='text'
+                            className='grow p-3 text-sm w-full'
+                            placeholder='Search Subject'
                             value={searchSubjectValue}
-                            onChange={(e) =>
-                                setSearchSubjectValue(e.target.value)
-                            }
+                            onChange={(e) => setSearchSubjectValue(e.target.value)}
                         />
-                        <IoSearch className="text-xl" />
+                        <IoSearch className='text-xl' />
                     </label>
                 </div>
 
                 {/* Add Subject Button (only when editable) */}
                 {editable && (
-                    <div className="w-full mt-4 md:mt-0 md:w-auto">
+                    <div className='w-full mt-4 md:mt-0 md:w-auto'>
                         <button
-                            className="btn btn-primary h-12 flex items-center justify-center w-full md:w-52"
-                            onClick={() =>
-                                document
-                                    .getElementById('add_subject_modal')
-                                    .showModal()
-                            }
+                            className='btn btn-primary h-12 flex items-center justify-center w-full md:w-52'
+                            onClick={() => document.getElementById('add_subject_modal').showModal()}
                         >
-                            Add Subject <IoAdd size={20} className="ml-2" />
+                            Add Subject <IoAdd size={20} className='ml-2' />
                         </button>
 
                         {/* Modal for adding subject */}
-                        <dialog
-                            id="add_subject_modal"
-                            className="modal modal-bottom sm:modal-middle"
-                        >
-                            <div className="modal-box">
+                        <dialog id='add_subject_modal' className='modal modal-bottom sm:modal-middle'>
+                            <div className='modal-box'>
                                 <AddSubjectContainer
-                                    close={() =>
-                                        document
-                                            .getElementById('add_subject_modal')
-                                            .close()
-                                    }
+                                    close={() => document.getElementById('add_subject_modal').close()}
                                     reduxFunction={addSubject}
                                     errorMessage={errorMessage}
                                     setErrorMessage={setErrorMessage}
                                     errorField={errorField}
                                     setErrorField={setErrorField}
-                                    defaultSubjectClassDuration={
-                                        defaultSubjectClassDuration
-                                    }
+                                    defaultSubjectClassDuration={defaultSubjectClassDuration}
                                 />
-                                <div className="modal-action">
+                                <div className='modal-action'>
                                     <button
-                                        className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                                        className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2'
                                         onClick={handleClose}
                                     >
                                         ✕
@@ -690,8 +657,8 @@ const SubjectListContainer = ({
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto">
-                <table className="table table-sm table-zebra md:table-md w-full">
+            <div className='overflow-x-auto'>
+                <table className='table table-sm table-zebra md:table-md w-full'>
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -699,27 +666,27 @@ const SubjectListContainer = ({
                             <th>Duration (min)</th>
                             <th>Weekly Requirement (min)</th>
                             <th># of Classes (Max: {numOfSchoolDays})</th>
-                            {editable && <th className="text-left">Actions</th>}
+                            {editable && <th className='text-left'>Actions</th>}
                         </tr>
                     </thead>
                     <tbody>
                         {currentItems.length === 0 ? (
                             <tr>
-                                <td colSpan="5" className="text-center">
+                                <td colSpan='5' className='text-center'>
                                     No subjects found
                                 </td>
                             </tr>
                         ) : (
                             currentItems.map(([, subject], index) => (
-                                <tr key={subject.id} className="group hover">
+                                <tr key={subject.id} className='group hover'>
                                     <th>{subject.id}</th>
                                     <td>
                                         {editSubjectId === subject.id ? (
                                             <input
-                                                type="text"
+                                                type='text'
                                                 value={editSubjectValue}
                                                 onChange={(e) => setEditSubjectValue(e.target.value)}
-                                                className="input input-bordered input-sm w-full"
+                                                className='input input-bordered input-sm w-full'
                                             />
                                         ) : (
                                             subject.subject
@@ -728,14 +695,14 @@ const SubjectListContainer = ({
                                     <td>
                                         {editSubjectId === subject.id ? (
                                             <input
-                                                type="number"
+                                                type='number'
                                                 value={editClassDuration}
                                                 onChange={(e) => {
                                                     const newDuration = Number(e.target.value);
                                                     setEditClassDuration(newDuration);
                                                 }}
-                                                className="input input-bordered input-sm w-full"
-                                                placeholder="Enter class duration"
+                                                className='input input-bordered input-sm w-full'
+                                                placeholder='Enter class duration'
                                                 step={5}
                                                 min={10}
                                             />
@@ -746,42 +713,37 @@ const SubjectListContainer = ({
                                     <td>
                                         {editSubjectId === subject.id ? (
                                             <input
-                                                type="number"
+                                                type='number'
                                                 value={editSubjectWeeklyMinutes}
                                                 onChange={(e) => {
                                                     const newDuration = Number(e.target.value);
                                                     setEditSubjectWeeklyMinutes(newDuration);
                                                 }}
-                                                className="input input-bordered input-sm w-full"
-                                                placeholder="Enter subject weekly minutes"
+                                                className='input input-bordered input-sm w-full'
+                                                placeholder='Enter subject weekly minutes'
                                                 step={5}
                                             />
                                         ) : (
                                             `${subject.weeklyMinutes}`
                                         )}
                                     </td>
-                                    <td>
-                                        {Math.min(
-                                            Math.ceil(subject.weeklyMinutes / subject.classDuration),
-                                            numOfSchoolDays
-                                        )}
-                                    </td>
+                                    <td>{Math.min(Math.ceil(subject.weeklyMinutes / subject.classDuration), numOfSchoolDays)}</td>
                                     {editable && (
-                                        <td className="w-28">
-                                            <div className="flex">
+                                        <td className='w-28'>
+                                            <div className='flex'>
                                                 <SubjectEdit
-                                                    className="btn btn-xs btn-ghost text-blue-500"
+                                                    className='btn btn-xs btn-ghost text-blue-500'
                                                     close
-                                                    subject={subject}  // Pass the entire subject object
+                                                    subject={subject} // Pass the entire subject object
                                                     errorMessage={errorMessage}
                                                     setErrorMessage={setErrorMessage}
                                                     errorField={errorField}
                                                     setErrorField={setErrorField}
                                                     reduxFunction={editSubject}
-                                                    numOfSchoolDays = {numOfSchoolDays}
+                                                    numOfSchoolDays={numOfSchoolDays}
                                                 />
                                                 <DeleteData
-                                                    className="btn btn-xs btn-ghost text-red-500"
+                                                    className='btn btn-xs btn-ghost text-red-500'
                                                     id={subject.id}
                                                     reduxFunction={removeSubject}
                                                 />

@@ -300,7 +300,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
         deptHeaderRow.alignment = { horizontal: 'center', vertical: 'middle' };
 
         exportData.departments.forEach((dept) => {
-            deptWorksheet.addRow([dept.name, teachers[dept.head].teacher]);
+            deptWorksheet.addRow([dept.name, teachers[dept.head]?.teacher || '']);
         });
 
         deptWorksheet.columns = [
@@ -731,7 +731,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
 
                     acc[buildingName][floorIndex].push({
                         roomName,
-                        isAvailable: true,
+                        // isAvailable: true,
                     });
 
                     // Update the current building and floor
@@ -1704,13 +1704,13 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                         (room) => room.roomName === roomName
                     );
 
-                    if (
-                        buildingName === building.name &&
-                        building.data[floorNumber] &&
-                        roomIdx !== -1
-                    ) {
-                        building.data[floorNumber][roomIdx].isAvailable = false;
-                    }
+                    // if (
+                    //     buildingName === building.name &&
+                    //     building.data[floorNumber] &&
+                    //     roomIdx !== -1
+                    // ) {
+                    //     building.data[floorNumber][roomIdx].isAvailable = false;
+                    // }
                 }
             }
 
@@ -1819,21 +1819,21 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
             dispatch(addSection(section));
         }
 
-        // console.log('Added sections:', addedSections);
-        // console.log('Added subjects:', addedSubjects);
-        // console.log('Added teachers:', addedTeachers);
-        // console.log('Added programs:', addedPrograms);
-        // console.log('Added ranks:', addedRanks);
-        // console.log('Added buildings:', addedBuildings);
-        // console.log('Added departments:', addedDepartments);
+        console.log('Added sections:', addedSections);
+        console.log('Added subjects:', addedSubjects);
+        console.log('Added teachers:', addedTeachers);
+        console.log('Added programs:', addedPrograms);
+        console.log('Added ranks:', addedRanks);
+        console.log('Added buildings:', addedBuildings);
+        console.log('Added departments:', addedDepartments);
 
-        // console.log('Unadded subjects: ', unaddedSubjects);
-        // console.log('Unadded teachers: ', unaddedTeachers);
-        // console.log('Unadded programs: ', unaddedPrograms);
-        // console.log('Unadded sections: ', unaddedSections);
-        // console.log('Unadded ranks: ', unaddedRanks);
+        console.log('Unadded subjects: ', unaddedSubjects);
+        console.log('Unadded teachers: ', unaddedTeachers);
+        console.log('Unadded programs: ', unaddedPrograms);
+        console.log('Unadded sections: ', unaddedSections);
+        console.log('Unadded ranks: ', unaddedRanks);
         // console.log('Unadded buildings: ', unaddedBuildings);
-        // console.log('Unadded departments: ', unaddedDepartments);
+        console.log('Unadded departments: ', unaddedDepartments);
     };
 
     // =======================================================================
@@ -1870,7 +1870,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                     </p>
                     <div className="modal-action">
                         {/* Option to Export as JSON */}
-                        <button
+                        {/* <button
                             className="btn btn-primary"
                             onClick={() => {
                                 exportDB('json');
@@ -1881,7 +1881,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                             }}
                         >
                             Export as JSON
-                        </button>
+                        </button> */}
 
                         {/* Option to Export as Excel */}
                         <button
@@ -1945,7 +1945,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                     </p>
                     <div className="modal-action">
                         {/* Option to Import a JSON */}
-                        <button
+                        {/* <button
                             className="btn btn-primary"
                             onClick={() => {
                                 importDB('json');
@@ -1955,7 +1955,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                             }}
                         >
                             Import JSON
-                        </button>
+                        </button> */}
 
                         {/* Option to Import an Excel */}
                         <button

@@ -10811,8 +10811,9 @@ const AddBuildingContainer = ({
                     `${buildingName || 'room'} - ${
                         (floorIndex + 1) * 100 + i + 1
                     }`,
-                isAvailable:
-                    updatedRoomNames[floorIndex]?.[i]?.isAvailable || true,
+                occupyingSections: [],
+                // isAvailable:
+                //     updatedRoomNames[floorIndex]?.[i]?.isAvailable || true,
             })
         );
         setRoomNames(updatedRoomNames);
@@ -10830,17 +10831,17 @@ const AddBuildingContainer = ({
         setRoomNames(updatedRoomNames);
     };
 
-    const handleRoomAvailabilityChange = (floorIndex, roomIndex) => {
-        const updatedRoomNames = [...roomNames];
-        if (!updatedRoomNames[floorIndex]) updatedRoomNames[floorIndex] = [];
+    // const handleRoomAvailabilityChange = (floorIndex, roomIndex) => {
+    //     const updatedRoomNames = [...roomNames];
+    //     if (!updatedRoomNames[floorIndex]) updatedRoomNames[floorIndex] = [];
 
-        updatedRoomNames[floorIndex][roomIndex] = {
-            ...updatedRoomNames[floorIndex][roomIndex],
-            isAvailable: !updatedRoomNames[floorIndex][roomIndex].isAvailable,
-        };
+    //     updatedRoomNames[floorIndex][roomIndex] = {
+    //         ...updatedRoomNames[floorIndex][roomIndex],
+    //         // isAvailable: !updatedRoomNames[floorIndex][roomIndex].isAvailable,
+    //     };
 
-        setRoomNames(updatedRoomNames);
-    };
+    //     setRoomNames(updatedRoomNames);
+    // };
 
     const handleImageUpload = (e) => {
         const file = e.target.files[0];
@@ -11179,7 +11180,7 @@ const AddBuildingContainer = ({
                                                 )
                                             }
                                         />
-                                        <input
+                                        {/* <input
                                             type="checkbox"
                                             className="w-3/12 toggle toggle-sm toggle-primary"
                                             checked={
@@ -11193,7 +11194,7 @@ const AddBuildingContainer = ({
                                                     roomIndex
                                                 )
                                             }
-                                        />
+                                        /> */}
                                     </div>
                                 )
                             )}
@@ -11324,17 +11325,17 @@ const RoomListContainer = ({ editable = false }) => {
         setEditRoomNames(updatedRoomNames);
     };
 
-    const handleRoomAvailabilityChange = (floorIndex, roomIndex) => {
-        const updatedRoomNames = [...editRoomNames];
-        if (!updatedRoomNames[floorIndex]) updatedRoomNames[floorIndex] = [];
+    // const handleRoomAvailabilityChange = (floorIndex, roomIndex) => {
+    //     const updatedRoomNames = [...editRoomNames];
+    //     if (!updatedRoomNames[floorIndex]) updatedRoomNames[floorIndex] = [];
 
-        updatedRoomNames[floorIndex][roomIndex] = {
-            ...updatedRoomNames[floorIndex][roomIndex],
-            isAvailable: !updatedRoomNames[floorIndex][roomIndex].isAvailable,
-        };
+    //     updatedRoomNames[floorIndex][roomIndex] = {
+    //         ...updatedRoomNames[floorIndex][roomIndex],
+    //         // isAvailable: !updatedRoomNames[floorIndex][roomIndex].isAvailable,
+    //     };
 
-        setEditRoomNames(updatedRoomNames);
-    };
+    //     setEditRoomNames(updatedRoomNames);
+    // };
 
     const handleNumberOfRoomsChange = (floorIndex, value) => {
         const count = Math.max(0, Number(value));
@@ -11352,8 +11353,9 @@ const RoomListContainer = ({ editable = false }) => {
                     `${editBuildingName || 'room'} - ${
                         (floorIndex + 1) * 100 + i + 1
                     }`,
-                isAvailable:
-                    updatedRoomNames[floorIndex]?.[i]?.isAvailable || true,
+                occupyingSections: [],
+                // isAvailable:
+                //     updatedRoomNames[floorIndex]?.[i]?.isAvailable || true,
             })
         );
 
@@ -11938,7 +11940,7 @@ const RoomListContainer = ({ editable = false }) => {
                                                         }
                                                     />
 
-                                                    <input
+                                                    {/* <input
                                                         type="checkbox"
                                                         className="w-3/12 toggle toggle-sm toggle-primary"
                                                         checked={
@@ -11954,7 +11956,7 @@ const RoomListContainer = ({ editable = false }) => {
                                                                 roomIndex
                                                             )
                                                         }
-                                                    />
+                                                    /> */}
                                                 </div>
                                             )
                                         )}

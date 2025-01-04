@@ -1,0 +1,793 @@
+import { useState, useEffect, useRef} from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+
+import { getTimeSlotIndex} from '@utils/timeSlotMapper';
+import { toast } from 'sonner';
+import SearchableDropdownToggler from '../searchableDropdown';
+
+import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
+import AdditionalScheduleForProgram from './AdditionalScheduleForProgram';
+import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
+
+const AddProgramContainer = ({
+    close,
+    reduxField,
+    reduxFunction,
+    morningStartTime,
+    afternoonStartTime,
+    errorMessage,
+    setErrorMessage,
+    errorField,
+    setErrorField,
+    numOfSchoolDays,
+}) => {
+    const inputNameRef = useRef();
+    const subjects = useSelector((state) => state.subject.subjects);
+    const programs = useSelector((state) => state.program.programs);
+    const dispatch = useDispatch();
+
+    const [inputValue, setInputValue] = useState('');
+    const [selectedSubjects, setSelectedSubjects] = useState({
+        7: [],
+        8: [],
+        9: [],
+        10: [],
+    });
+    // const [gradeTotalTimeslot, setGradeTotalTimeslot] = useState({
+    //     7: null,
+    //     8: null,
+    //     9: null,
+    //     10: null,
+    // });
+    const [fixedDays, setFixedDays] = useState({
+        7: {},
+        8: {},
+        9: {},
+        10: {},
+    });
+    const [fixedPositions, setFixedPositions] = useState({
+        7: {},
+        8: {},
+        9: {},
+        10: {},
+    });
+    const [selectedShifts, setSelectedShifts] = useState({
+        7: 0, // 0 for AM, 1 for PM
+        8: 0,
+        9: 0,
+        10: 0,
+    });
+    const [startTimes, setStartTimes] = useState({
+        7: morningStartTime,
+        8: morningStartTime,
+        9: morningStartTime,
+        10: morningStartTime,
+    });
+    const [additionalScheds, setAdditionalScheds] = useState({
+        7: [],
+        8: [],
+        9: [],
+        10: [],
+    });
+
+    const handleStartTimeChange = (grade, time) => {
+        setStartTimes((prevTimes) => ({
+            ...prevTimes,
+            [grade]: time,
+        }));
+    };
+
+    const renderTimeOptions = (shift) => {
+        const times =
+            shift === 0
+                ? Array.from({ length: 36 }, (_, i) => {
+                      const hours = 6 + Math.floor(i / 6);
+                      const minutes = (i % 6) * 10;
+                      return `${String(hours).padStart(2, '0')}:${String(
+                          minutes
+                      ).padStart(2, '0')} AM`;
+                  })
+                : ['01:00 PM'];
+
+        return times.map((time) => (
+            <option key={time} value={time}>
+                {time}
+            </option>
+        ));
+    };
+
+    const handleInputChange = (e) => {
+        setInputValue(e.target.value);
+    };
+
+    const handleSubjectSelection = (grade, selectedList) => {
+        const validCombinations = [];
+
+        setSelectedSubjects((prevState) => ({
+            ...prevState,
+            [grade]: selectedList,
+        }));
+
+        const updatedFixedDays = structuredClone(fixedDays[grade]);
+        const updatedFixedPositions = structuredClone(fixedPositions[grade]);
+
+        Object.keys(updatedFixedDays).forEach((subID) => {
+            if (!selectedList.includes(Number(subID))) {
+                delete updatedFixedDays[subID];
+                delete updatedFixedPositions[subID];
+            }
+        });
+
+        selectedList.forEach((subjectID) => {
+            if (!updatedFixedDays[subjectID]) {
+                const subject = subjects[subjectID];
+                if (subject) {
+                    const numClasses = Math.min(
+                        Math.ceil(
+                            subject.weeklyMinutes / subject.classDuration
+                        ),
+                        numOfSchoolDays
+                    );
+                    updatedFixedDays[subjectID] = Array(numClasses).fill(0);
+                    updatedFixedPositions[subjectID] =
+                        Array(numClasses).fill(0);
+                }
+            }
+        });
+
+        selectedList.forEach((subID) => {
+            const subjDays = updatedFixedDays[subID] || [];
+            const subjPositions = updatedFixedPositions[subID] || [];
+
+            subjDays.forEach((day, index) => {
+                const position = subjPositions[index];
+                if (day !== 0 && position !== 0) {
+                    validCombinations.push([day, position]);
+                }
+            });
+        });
+
+        selectedList.forEach((subID) => {
+            const subjDays = updatedFixedDays[subID];
+            const subjPositions = updatedFixedPositions[subID];
+
+            for (let i = 0; i < subjDays.length; i++) {
+                if (
+                    subjPositions[i] > selectedList.length ||
+                    subjDays[i] > numOfSchoolDays
+                ) {
+                    subjDays[i] = 0;
+                    subjPositions[i] = 0;
+                }
+            }
+
+            updatedFixedDays[subID] = subjDays;
+            updatedFixedPositions[subID] = subjPositions;
+        });
+
+        setFixedDays((prevState) => ({
+            ...prevState,
+            [grade]: updatedFixedDays, // Update only the specified grade
+        }));
+
+        setFixedPositions((prevState) => ({
+            ...prevState,
+            [grade]: updatedFixedPositions, // Update only the specified grade
+        }));
+    };
+
+    const handleShiftSelection = (grade, shift) => {
+        setSelectedShifts((prevState) => ({
+            ...prevState,
+            [grade]: shift,
+        }));
+
+        const defaultTime = shift === 0 ? morningStartTime : afternoonStartTime;
+        setStartTimes((prevTimes) => ({
+            ...prevTimes,
+            [grade]: defaultTime,
+        }));
+    };
+
+    const handleDeleteAdditionalSchedule = (grade, index) => {
+        setAdditionalScheds((prevScheds) => ({
+            ...prevScheds,
+            [grade]: prevScheds[grade].filter((_, i) => i !== index),
+        }));
+    };
+
+    const handleAddAdditionalSchedule = (grade) => {
+        setAdditionalScheds((prevScheds) => ({
+            ...prevScheds,
+            [grade]: [
+                ...prevScheds[grade],
+                {
+                    name: '',
+                    subject: 0,
+                    duration: 60,
+                    frequency: 1,
+                    shown: true,
+                    time: selectedShifts[grade] === 0 ? 192 : 96,
+                },
+            ],
+        }));
+    };
+
+    const handleAddEntry = () => {
+        if (!inputValue.trim()) {
+            setErrorMessage('Program name cannot be empty');
+            setErrorField('program');
+            return;
+        } else if (selectedSubjects[7].length === 0) {
+            setErrorMessage('Select at least one subject for grade 7');
+            setErrorField('sub7');
+            return;
+        } else if (selectedShifts[7] === undefined || !startTimes[7]) {
+            setErrorMessage('Select shift and start time for grade 7');
+            setErrorField('subTime7');
+            return;
+        } else if (selectedSubjects[8].length === 0) {
+            setErrorMessage('Select at least one subject for grade 8');
+            setErrorField('sub8');
+            return;
+        } else if (selectedShifts[8] === undefined || !startTimes[8]) {
+            setErrorMessage('Select shift and start time for grade 8');
+            setErrorField('subTime8');
+            return;
+        } else if (selectedSubjects[9].length === 0) {
+            setErrorMessage('Select at least one subject for grade 9');
+            setErrorField('sub9');
+            return;
+        } else if (selectedShifts[9] === undefined || !startTimes[9]) {
+            setErrorMessage('Select shift and start time for grade 9');
+            setErrorField('subTime9');
+            return;
+        } else if (selectedSubjects[10].length === 0) {
+            setErrorMessage('Select at least one subject for grade 10');
+            setErrorField('sub10');
+            return;
+        } else if (selectedShifts[10] === undefined || !startTimes[10]) {
+            setErrorMessage('Select shift and start time for grade 10');
+            setErrorField('subTime10');
+            return;
+        }
+
+        const duplicateProgram = Object.values(programs).find(
+            (program) =>
+                program.program.trim().toLowerCase() ===
+                inputValue.trim().toLowerCase()
+        );
+
+        if (duplicateProgram) {
+            setErrorMessage('A program with this name already exists.');
+            setErrorField('program');
+        } else {
+            dispatch(
+                reduxFunction({
+                    [reduxField[0]]: inputValue,
+                    7: {
+                        subjects: selectedSubjects[7],
+                        fixedDays: fixedDays[7],
+                        fixedPositions: fixedPositions[7],
+                        shift: selectedShifts[7],
+                        startTime: getTimeSlotIndex(startTimes[7]),
+                        additionalScheds: additionalScheds[7],
+                    },
+                    8: {
+                        subjects: selectedSubjects[8],
+                        fixedDays: fixedDays[8],
+                        fixedPositions: fixedPositions[8],
+                        shift: selectedShifts[8],
+                        startTime: getTimeSlotIndex(startTimes[8]),
+                        additionalScheds: additionalScheds[8],
+                    },
+                    9: {
+                        subjects: selectedSubjects[9],
+                        fixedDays: fixedDays[9],
+                        fixedPositions: fixedPositions[9],
+                        shift: selectedShifts[9],
+                        startTime: getTimeSlotIndex(startTimes[9]),
+                        additionalScheds: additionalScheds[9],
+                    },
+                    10: {
+                        subjects: selectedSubjects[10],
+                        fixedDays: fixedDays[10],
+                        fixedPositions: fixedPositions[10],
+                        shift: selectedShifts[10],
+                        startTime: getTimeSlotIndex(startTimes[10]),
+                        additionalScheds: additionalScheds[10],
+                    },
+                })
+            );
+
+            toast.success('Program added successfully!', {
+                style: {
+                    backgroundColor: 'green',
+                    color: 'white',
+                    bordercolor: 'green',
+                },
+            });
+            handleReset();
+            close();
+        }
+    };
+
+    const handleReset = () => {
+        setErrorField('');
+        setErrorMessage('');
+        setInputValue('');
+        setSelectedSubjects({
+            7: [],
+            8: [],
+            9: [],
+            10: [],
+        });
+        setFixedDays({
+            7: {},
+            8: {},
+            9: {},
+            10: {},
+        });
+        setFixedPositions({
+            7: {},
+            8: {},
+            9: {},
+            10: {},
+        });
+        setSelectedShifts({
+            7: 0,
+            8: 0,
+            9: 0,
+            10: 0,
+        });
+        setStartTimes({
+            7: morningStartTime,
+            8: morningStartTime,
+            9: morningStartTime,
+            10: morningStartTime,
+        });
+    };
+
+    const handleClose = () => {
+        setInputValue('');
+        setSelectedSubjects({
+            7: [],
+            8: [],
+            9: [],
+            10: [],
+        });
+        setFixedDays({
+            7: {},
+            8: {},
+            9: {},
+            10: {},
+        });
+        setFixedPositions({
+            7: {},
+            8: {},
+            9: {},
+            10: {},
+        });
+        setSelectedShifts({
+            7: 0,
+            8: 0,
+            9: 0,
+            10: 0,
+        });
+        setStartTimes({
+            7: morningStartTime,
+            8: morningStartTime,
+            9: morningStartTime,
+            10: morningStartTime,
+        });
+
+        document.getElementById('add_program_modal').close();
+    };
+
+    // useEffect(() => {
+    //     [7, 8, 9, 10].forEach((grade) => {
+    //         let totalNumOfClasses = 0;
+
+    //         selectedSubjects[grade].forEach((subject) => {
+    //             // console.log('updating timeslot checekr');
+    //             totalNumOfClasses += Math.min(Math.ceil(
+    //                 subjects[subject].weeklyMinutes /
+    //                     subjects[subject].classDuration
+    //             ), numOfSchoolDays);
+    //         });
+
+    //         let totalTimeslot = Math.ceil(totalNumOfClasses / numOfSchoolDays);
+
+    //         setGradeTotalTimeslot((prevState) => ({
+    //             ...prevState,
+    //             [grade]: totalTimeslot,
+    //         }));
+    //     });
+    // }, [selectedSubjects, subjects, numOfSchoolDays]);
+
+    // useEffect(() => {
+    //     // console.log(gradeTotalTimeslot);
+    // }, [gradeTotalTimeslot]);
+
+    useEffect(() => {
+        if (inputNameRef.current) {
+            inputNameRef.current.focus();
+        }
+    }, []);
+
+    return (
+        <dialog
+            id="add_program_modal"
+            className="modal modal-bottom sm:modal-middle"
+        >
+            <div
+                className="modal-box"
+                style={{ width: '50%', maxWidth: 'none' }}
+            >
+                <div className="p-6">
+                    {/* Header section with centered "Add {reduxField}" */}
+                    <div className="flex justify-between mb-4">
+                        <h3 className="text-lg font-bold text-center w-full">
+                            Add New{' '}
+                            {reduxField[0].charAt(0).toUpperCase() +
+                                reduxField[0].slice(1).toLowerCase()}
+                        </h3>
+                    </div>
+
+                    {/* Input field for program name */}
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium mb-2">
+                            Program Name:
+                        </label>
+                        <input
+                            type="text"
+                            ref={inputNameRef}
+                            className="input input-bordered w-full"
+                            value={inputValue}
+                            onChange={handleInputChange}
+                            placeholder="Enter Program name"
+                        />
+                    </div>
+
+                    {/* Subject, shift, and fixed schedules management */}
+                    <div className="text-sm flex flex-col space-y-4">
+                        {[7, 8, 9, 10].map((grade) => (
+                            <div key={grade}>
+                                <div>
+                                    <h3 className="font-bold mb-2">{`Grade ${grade}`}</h3>
+                                </div>
+                                <div className="flex flex-wrap">
+                                    <div
+                                        key={grade}
+                                        className="w-7/12 bg-white shadow-md rounded-lg p-4"
+                                    >
+                                        {/* Shift selection */}
+                                        <div className="mt-2 mb-2">
+                                            <label className="mr-2">
+                                                Shift:
+                                            </label>
+                                            <label className="mr-2">
+                                                <input
+                                                    type="radio"
+                                                    value={
+                                                        selectedShifts[grade]
+                                                    }
+                                                    checked={
+                                                        selectedShifts[
+                                                            grade
+                                                        ] === 0
+                                                    }
+                                                    onChange={() =>
+                                                        handleShiftSelection(
+                                                            grade,
+                                                            0
+                                                        )
+                                                    }
+                                                />
+                                                AM
+                                            </label>
+                                            <label>
+                                                <input
+                                                    type="radio"
+                                                    value={
+                                                        selectedShifts[grade]
+                                                    }
+                                                    checked={
+                                                        selectedShifts[
+                                                            grade
+                                                        ] === 1
+                                                    }
+                                                    onChange={() =>
+                                                        handleShiftSelection(
+                                                            grade,
+                                                            1
+                                                        )
+                                                    }
+                                                />
+                                                PM
+                                            </label>
+                                        </div>
+
+                                        {/* Start time selection */}
+                                        <div className="mt-2">
+                                            <label className="mr-2">
+                                                Start Time:
+                                            </label>
+                                            <select
+                                                className="input input-bordered"
+                                                value={startTimes[grade]}
+                                                onChange={(e) =>
+                                                    handleStartTimeChange(
+                                                        grade,
+                                                        e.target.value
+                                                    )
+                                                }
+                                            >
+                                                {renderTimeOptions(
+                                                    selectedShifts[grade]
+                                                )}
+                                            </select>
+                                        </div>
+
+                                        {/* Subject selection */}
+                                        <div className="flex items-center mb-2 py-4 flex-wrap">
+                                            <div className="m-1">
+                                                <SearchableDropdownToggler
+                                                    selectedList={
+                                                        selectedSubjects[grade]
+                                                    }
+                                                    setSelectedList={(list) =>
+                                                        handleSubjectSelection(
+                                                            grade,
+                                                            list
+                                                        )
+                                                    }
+                                                />
+                                            </div>
+                                            {selectedSubjects[grade]?.map(
+                                                (id, index) => (
+                                                    <div
+                                                        key={id}
+                                                        className="p-2"
+                                                    >
+                                                        <div className="h-10 w-20 bg-green-400 rounded-md flex items-center justify-center truncate">
+                                                            {
+                                                                subjects[id]
+                                                                    ?.subject
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                )
+                                            )}
+                                        </div>
+
+                                        {/* Setting of fixed schedule (optional) */}
+                                        {selectedSubjects[grade]?.length >
+                                            0 && (
+                                            <div>
+                                                <button
+                                                    className="btn btn-primary"
+                                                    onClick={() =>
+                                                        document
+                                                            .getElementById(
+                                                                `assign_fixed_sched_modal_prog(0)-grade(${grade})`
+                                                            )
+                                                            .showModal()
+                                                    }
+                                                >
+                                                    Open Fixed Schedule Maker
+                                                </button>
+
+                                                <FixedScheduleMaker
+                                                    key={grade}
+                                                    viewingMode={0}
+                                                    pvs={0}
+                                                    program={0}
+                                                    grade={grade}
+                                                    // totalTimeslot={
+                                                    //     gradeTotalTimeslot[grade]
+                                                    // }
+                                                    selectedSubjects={
+                                                        selectedSubjects[grade]
+                                                    }
+                                                    fixedDays={fixedDays[grade]}
+                                                    setFixedDays={setFixedDays}
+                                                    fixedPositions={
+                                                        fixedPositions[grade]
+                                                    }
+                                                    setFixedPositions={
+                                                        setFixedPositions
+                                                    }
+                                                    numOfSchoolDays={
+                                                        numOfSchoolDays
+                                                    }
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="w-5/12 p-1 rounded-lg">
+                                        <div className="font-bold bg-blue-200 rounded-lg">
+                                            Additional Schedules
+                                        </div>
+
+                                        {/* Button to add schedules */}
+                                        <button
+                                            onClick={() =>
+                                                handleAddAdditionalSchedule(
+                                                    grade
+                                                )
+                                            }
+                                            className="flex flex-wrap items-right text-xs mt-2 bg-blue-500 text-white px-2 py-1 rounded-lg hover:bg-blue-600"
+                                        >
+                                            Add Schedule
+                                        </button>
+
+                                        {/* Render the ScheduleComponent as many times as specified */}
+                                        <div
+                                            className="mt-2 overflow-y-auto max-h-36 border border-gray-300 rounded-lg"
+                                            style={{
+                                                scrollbarWidth: 'thin',
+                                                scrollbarColor:
+                                                    '#a0aec0 #edf2f7',
+                                            }} // Optional for styled scrollbars
+                                        >
+                                            {additionalScheds[grade].map(
+                                                (sched, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="flex flex-wrap"
+                                                    >
+                                                        <button
+                                                            className="w-1/12 border rounded-l-lg hover:bg-gray-200 flex items-center justify-center"
+                                                            onClick={() =>
+                                                                handleDeleteAdditionalSchedule(
+                                                                    grade,
+                                                                    index
+                                                                )
+                                                            }
+                                                        >
+                                                            <RiDeleteBin7Line
+                                                                size={15}
+                                                            />
+                                                        </button>
+                                                        <div className="w-10/12">
+                                                            <button
+                                                                className="w-full bg-gray-100 p-2 border shadow-sm hover:bg-gray-200"
+                                                                onClick={() =>
+                                                                    document
+                                                                        .getElementById(
+                                                                            `add_additional_sched_modal_1_grade-${grade}_prog-0_idx-${index}`
+                                                                        )
+                                                                        .showModal()
+                                                                }
+                                                            >
+                                                                {sched.name ||
+                                                                sched.subject ? (
+                                                                    // Content to show when both are not empty
+                                                                    <>
+                                                                        <p>
+                                                                            Name:{' '}
+                                                                            {
+                                                                                sched.name
+                                                                            }
+                                                                        </p>
+                                                                        <p>
+                                                                            Subject:{' '}
+                                                                            {sched.subject ===
+                                                                            0
+                                                                                ? 'N/A'
+                                                                                : subjects[
+                                                                                      sched
+                                                                                          .subject
+                                                                                  ]
+                                                                                      .subject}
+                                                                        </p>
+                                                                    </>
+                                                                ) : (
+                                                                    // Content to show when either is empty
+                                                                    <p>
+                                                                        Untitled
+                                                                        Schedule{' '}
+                                                                        {index +
+                                                                            1}
+                                                                    </p>
+                                                                )}
+                                                            </button>
+                                                            <AdditionalScheduleForProgram
+                                                                viewingMode={1}
+                                                                programID={0}
+                                                                grade={grade}
+                                                                arrayIndex={
+                                                                    index
+                                                                }
+                                                                additionalSchedsOfProgYear={
+                                                                    sched
+                                                                }
+                                                            />
+                                                        </div>
+                                                        <div className="w-1/12  flex items-center justify-center border rounded-r-lg hover:bg-gray-200">
+                                                            <button
+                                                                onClick={() =>
+                                                                    document
+                                                                        .getElementById(
+                                                                            `add_additional_sched_modal_0_grade-${grade}_prog-0_idx-${index}`
+                                                                        )
+                                                                        .showModal()
+                                                                }
+                                                            >
+                                                                <RiEdit2Fill
+                                                                    size={15}
+                                                                />
+                                                            </button>
+                                                            <AdditionalScheduleForProgram
+                                                                viewingMode={0}
+                                                                programID={0}
+                                                                grade={grade}
+                                                                arrayIndex={
+                                                                    index
+                                                                }
+                                                                numOfSchoolDays={
+                                                                    numOfSchoolDays
+                                                                }
+                                                                progYearSubjects={
+                                                                    selectedSubjects[
+                                                                        grade
+                                                                    ]
+                                                                }
+                                                                additionalSchedsOfProgYear={
+                                                                    sched
+                                                                }
+                                                                setAdditionalScheds={
+                                                                    setAdditionalScheds
+                                                                }
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {errorMessage && (
+                        <p className="text-red-500 text-sm my-4 font-medium select-none ">{errorMessage}</p>
+                        )}
+
+                    {/* Add button centered at the bottom */}
+                    <div className="flex mt-6 justify-center gap-2">
+
+                        <div className="flex justify-end space-x-2">
+                            <button
+                                className="btn btn-primary flex items-center"
+                                onClick={handleAddEntry}
+                            >
+                                <div>Add {reduxField[0]}</div>
+                               
+                            </button>
+                        </div>
+                        <button
+                            className="btn btn-error border-0"
+                            onClick={handleReset}
+                        >
+                            Reset
+                        </button>
+                    </div>
+                </div>
+                <div className="modal-action w-full">
+                    <button
+                        className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                        onClick={handleClose}
+                    >
+                        ✕
+                    </button>
+                </div>
+            </div>
+        </dialog>
+    );
+};
+
+export default AddProgramContainer;
