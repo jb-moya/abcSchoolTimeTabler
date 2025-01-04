@@ -8,7 +8,7 @@ import { fetchPrograms, editProgram } from '@features/programSlice';
 import { fetchSections, editSection } from '@features/sectionSlice';
 import { fetchSubjects } from '@features/subjectSlice';
 
-import calculateTotalTimeslot from '../../utils/calculateTotalTimeslot';
+import calculateTotalClass from '../../utils/calculateTotalClass';
 import { getTimeSlotIndex } from '@utils/timeSlotMapper';
 
 const SubjectEdit = ({ subject, setErrorMessage, errorMessage, errorField, setErrorField, reduxFunction, numOfSchoolDays }) => {
@@ -138,7 +138,7 @@ const SubjectEdit = ({ subject, setErrorMessage, errorMessage, errorField, setEr
                     return;
                 }
 
-                const newTotalTimeslot = calculateTotalTimeslot(
+                const totalNumOfClasses = calculateTotalClass(
                     {
                         ...subjects,
                         [editSubjectId]: {
@@ -152,23 +152,20 @@ const SubjectEdit = ({ subject, setErrorMessage, errorMessage, errorField, setEr
                     numOfSchoolDays
                 );
 
-                Object.entries(newProgram[grade].fixedPositions).forEach(
-                    ([subjectId, fixedPosition]) => {
-                        fixedPosition.forEach((item, i) => {
-                            if (item > newTotalTimeslot) {
-                                fixedPosition[i] = 0;
-                                newProgram[grade].fixedDays[subjectId][i] = 0;
-                            }
-                        });
-                    }
-                );
+                const newTotalTimeslot = Math.ceil(totalNumOfClasses / numOfSchoolDays);
 
-                console.log(
-                    'newTotalTimeslot', newTotalTimeslot);
+                Object.entries(newProgram[grade].fixedPositions).forEach(([subjectId, fixedPosition]) => {
+                    fixedPosition.forEach((item, i) => {
+                        if (item > newTotalTimeslot) {
+                            fixedPosition[i] = 0;
+                            newProgram[grade].fixedDays[subjectId][i] = 0;
+                        }
+                    });
+                });
 
-                console.log(`newProgram[${grade}].subjects`,
-                    newProgram[grade].subjects
-                );
+                console.log('newTotalTimeslot', newTotalTimeslot);
+
+                console.log(`newProgram[${grade}].subjects`, newProgram[grade].subjects);
 
                 let dayTimeSlots = {};
                 let positionTimeSlots = {};
@@ -292,13 +289,11 @@ const SubjectEdit = ({ subject, setErrorMessage, errorMessage, errorField, setEr
 
             if (!newSection.subjects.includes(editSubjectId)) return;
 
-            const originalTotalTimeslot = calculateTotalTimeslot(
-                subjects,
-                newSection.subjects,
-                numOfSchoolDays
-            );
+            const originalTotalClass = calculateTotalClass(subjects, newSection.subjects, numOfSchoolDays);
 
-            const newTotalTimeslot = calculateTotalTimeslot(
+            const originalTotalTimeslot = Math.ceil(originalTotalClass / numOfSchoolDays);
+
+            const newTotalClass = calculateTotalClass(
                 {
                     ...subjects,
                     [editSubjectId]: {
@@ -312,17 +307,17 @@ const SubjectEdit = ({ subject, setErrorMessage, errorMessage, errorField, setEr
                 numOfSchoolDays
             );
 
+            const newTotalTimeslot = Math.ceil(newTotalClass / numOfSchoolDays);
+
             if (newTotalTimeslot < originalTotalTimeslot) {
-                Object.entries(newSection.fixedPositions).forEach(
-                    ([subjectId, fixedPosition]) => {
-                        fixedPosition.forEach((item, i) => {
-                            if (item > newTotalTimeslot) {
-                                fixedPosition[i] = 0;
-                                newSection.fixedDays[subjectId][i] = 0;
-                            } // reset all positions to zero if timeslot is removed
-                        });
-                    }
-                );
+                Object.entries(newSection.fixedPositions).forEach(([subjectId, fixedPosition]) => {
+                    fixedPosition.forEach((item, i) => {
+                        if (item > newTotalTimeslot) {
+                            fixedPosition[i] = 0;
+                            newSection.fixedDays[subjectId][i] = 0;
+                        } // reset all positions to zero if timeslot is removed
+                    });
+                });
             }
 
             const numOfClasses = Math.min(Math.ceil(editSubjectWeeklyMinutes / editClassDuration), numOfSchoolDays);

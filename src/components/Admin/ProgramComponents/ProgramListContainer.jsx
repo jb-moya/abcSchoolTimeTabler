@@ -799,6 +799,7 @@ const AddProgramContainer = ({
                                                     // totalTimeslot={
                                                     //     gradeTotalTimeslot[grade]
                                                     // }
+                                                    additionalSchedules={additionalScheds[grade]}
                                                     selectedSubjects={selectedSubjects[grade]}
                                                     fixedDays={fixedDays[grade]}
                                                     setFixedDays={setFixedDays}
@@ -1879,6 +1880,9 @@ const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                                     program={editProgramId}
                                                                     grade={grade}
                                                                     selectedSubjects={editProgramCurr[grade] || []}
+                                                                    additionalSchedules={
+                                                                        editProgramCurr[grade]?.additionalSchedules || []
+                                                                    }
                                                                     fixedDays={editFixedDays[grade] || {}}
                                                                     setFixedDays={setEditFixedDays}
                                                                     fixedPositions={editFixedPositions[grade] || {}}
@@ -1935,6 +1939,9 @@ const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                                         pvs={0}
                                                                         program={program.id}
                                                                         grade={grade}
+                                                                        additionalSchedules={
+                                                                            program[grade]?.additionalScheds || []   
+                                                                        }
                                                                         selectedSubjects={program[grade]?.subjects || []}
                                                                         fixedDays={program[grade]?.fixedDays || {}}
                                                                         fixedPositions={program[grade]?.fixedPositions || {}}

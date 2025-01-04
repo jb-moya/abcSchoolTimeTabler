@@ -17,6 +17,43 @@ const hexToRgba = (hex, alpha) => {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
+const getSubjectsPerPosition = (subs, subjectsStore, numOfSchoolDays, additionalSchedules, days, positions) => {
+    const subjs = subs || [];
+
+    let totalNumOfClasses = calculateTotalClass(subjectsStore, subs, numOfSchoolDays);
+
+    let additionalScheduleTotalNumOfClasses = additionalSchedules.reduce((acc, schedule) => {
+        let frequency = schedule?.frequency || 0;
+        return acc + frequency;
+    }, 0);
+
+    let subjectPositionArrayLength = Math.ceil((totalNumOfClasses + additionalScheduleTotalNumOfClasses) / numOfSchoolDays);
+
+    subjectPositionArrayLength += subjectPositionArrayLength >= 10 ? 2 : 1;
+
+    const subjectPositionArray = Array.from({ length: subjectPositionArrayLength }, () => {
+        return Array(numOfSchoolDays).fill(0);
+    });
+
+    for (let i = 0; i < subjs.length; i++) {
+        const subject = subjs[i];
+
+        const fixedDay = days[subject] || [];
+        const fixedPos = positions[subject] || [];
+
+        for (let j = 0; j < fixedDay.length; j++) {
+            const day = fixedDay[j];
+            const pos = fixedPos[j];
+
+            if (day !== 0 && pos !== 0) {
+                subjectPositionArray[pos - 1][day - 1] = subject;
+            }
+        }
+    }
+
+    return subjectPositionArray;
+};
+
 const FixedScheduleMaker = ({
     viewingMode = 0,
 
@@ -26,9 +63,9 @@ const FixedScheduleMaker = ({
     grade = 0,
     section = 0,
 
-    // totalTimeslot,
     isForSection = false,
     selectedSubjects = [],
+    additionalSchedules = [],
     fixedDays = [],
     setFixedDays = () => {},
     fixedPositions = {},
@@ -62,80 +99,39 @@ const FixedScheduleMaker = ({
         setPositions(produce(fixedPositions, (draft) => draft));
     }, [selectedSubjects, fixedDays, fixedPositions]);
 
-    const getSubjectsPerPosition = () => {
-        const subjs = subs || [];
-
-        let totalTimeslots = subjs.reduce(
-            (sum, subj) =>
-                sum + Math.min(Math.ceil(subjectsStore[subj].weeklyMinutes / subjectsStore[subj].classDuration), numOfSchoolDays),
-            0
-        );
-
-        let subjectPositionArrayLength = Math.ceil(totalTimeslots / numOfSchoolDays);
-
-        subjectPositionArrayLength += subjectPositionArrayLength >= 10 ? 2 : 1;
-
-        const subjectPositionArray = Array.from({ length: subjectPositionArrayLength }, () => Array(numOfSchoolDays).fill(0));
-
-        // console.log('subjectPositionArray', subjectPositionArray);
-
-        for (let i = 0; i < subjs.length; i++) {
-            const subject = subjs[i];
-
-            const fixedDay = days[subject] || [];
-            const fixedPos = positions[subject] || [];
-
-            for (let j = 0; j < fixedDay.length; j++) {
-                const day = fixedDay[j];
-                const pos = fixedPos[j];
-
-                if (day !== 0 && pos !== 0) {
-                    subjectPositionArray[pos - 1][day - 1] = subject;
-                }
-            }
-        }
-
-        return subjectPositionArray;
-    };
-
-    // Initialize days and positions when fixedDays or fixedPositions change
     useEffect(() => {
-        console.log('subs', subs);
-        // console.log('days', days);
-        // console.log('positions', positions);
-
-        const subjects = getSubjectsPerPosition();
+        const subjects = getSubjectsPerPosition(subs, subjectsStore, numOfSchoolDays, additionalSchedules, days, positions);
         setSubjectsPerPosition(subjects);
 
         const ranges = findConsecutiveRanges(subjects);
         setMergeData(ranges);
+    }, [subs, days, positions, subjectsStore, numOfSchoolDays, additionalSchedules]);
 
+    // Initialize days and positions when fixedDays or fixedPositions change
+    useEffect(() => {
         let totalNumOfClasses = calculateTotalClass(subjectsStore, subs, numOfSchoolDays);
 
-        console.log('T I T E T I T E ~ additionalSchedules T I T E T I T E :', additionalSchedules);
+        // console.log('T I T E T I T E ~ additionalSchedules T I T E T I T E :', additionalSchedules);
 
         let additionalScheduleTotalNumOfClasses = additionalSchedules.reduce((acc, schedule) => {
-            console.log('schedule', schedule);
-            return 1 + acc;
+            // console.log('schedule', schedule);
+            let frequency = schedule?.frequency || 0;
+            return acc + frequency;
         }, 0);
 
-        console.log(
-            '🚀 ~ additionalScheduleTotalNumOfClasses ~ additionalScheduleTotalNumOfClasses:',
-            additionalScheduleTotalNumOfClasses
-        );
+        // console.log(
+        //     '🚀 ~ additionalScheduleTotalNumOfClasses ~ additionalScheduleTotalNumOfClasses:',
+        //     additionalScheduleTotalNumOfClasses
+        // );
 
-        let totalTimeRow = Math.ceil(totalNumOfClasses / numOfSchoolDays);
+        // additionalScheduleTotalNumOfClasses = 0;
+
+        let totalTimeRow = Math.ceil((totalNumOfClasses + additionalScheduleTotalNumOfClasses) / numOfSchoolDays);
 
         totalTimeRow += totalTimeRow >= 10 ? 2 : 1;
 
         setTotalTimeslot(totalTimeRow);
-    }, [subs, days, positions, numOfSchoolDays]);
-
-    useEffect(() => {
-        // console.log('subjectsPerPosition', subjectsPerPosition);
-        // console.log('mergeData', mergeData);
-        // console.log('totalTimeslot', totalTimeslot);
-    }, [totalTimeslot]);
+    }, [subs, numOfSchoolDays, subjectsStore, additionalSchedules]);
 
     const findConsecutiveRanges = (schedule) => {
         const mergeData = schedule.map((days, idx) => {

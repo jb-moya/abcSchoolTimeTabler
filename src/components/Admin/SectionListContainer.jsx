@@ -766,7 +766,7 @@ const AddSectionContainer = ({
                         pvs={1}
                         section={0}
                         grade={selectedYearLevel}
-                        // totalTimeslot={totalTimeslot}
+                        additionalSchedules={programs?.[selectedProgram]?.[selectedYearLevel]?.additionalScheds || []}
                         selectedSubjects={selectedSubjects}
                         fixedDays={fixedDays}
                         setFixedDays={setFixedDays}
@@ -1773,16 +1773,7 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                             grade={editSectionYear}
                                                             selectedSubjects={editSectionSubjects}
                                                             fixedDays={editSectionFixedDays}
-                                                            additionalSchedules={
-                                                                // section.additionalScheds ||
-                                                                // []
-                                                                ['tite puke']
-                                                            }
-                                                            // totalTimeslot={
-                                                            //     sectionTotalTimeslot[
-                                                            //         section.id
-                                                            //     ]
-                                                            // }
+                                                            additionalSchedules={section.additionalScheds || []}
                                                             setFixedDays={setEditSectionFixedDays}
                                                             fixedPositions={editSectionFixedPositions}
                                                             setFixedPositions={setEditSectionFixedPositions}
@@ -1813,16 +1804,7 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                             grade={section.year}
                                                             selectedSubjects={section.subjects || []}
                                                             fixedDays={section.fixedDays || {}}
-                                                            additionalSchedules={
-                                                                // section.additionalScheds ||
-                                                                // []
-                                                                ['bobo', 'tite puke']
-                                                            }
-                                                            // totalTimeslot={
-                                                            //     sectionTotalTimeslot[
-                                                            //         section.id
-                                                            //     ]
-                                                            // }
+                                                            additionalSchedules={section.additionalScheds || []}
                                                             fixedPositions={section.fixedPositions || {}}
                                                             numOfSchoolDays={numOfSchoolDays}
                                                         />

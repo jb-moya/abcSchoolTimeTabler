@@ -14,7 +14,7 @@ import escapeRegExp from '@utils/escapeRegExp';
 
 // import { toast } from 'sonner';
 
-// import calculateTotalTimeslot from '../../utils/calculateTotalTimeslot';
+import calculateTotalClass from '../../utils/calculateTotalClass';
 
 import AddSubjectContainer from './AddSubjectContainer';
 import SubjectEdit from './SubjectEdit';
