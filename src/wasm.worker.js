@@ -67,163 +67,63 @@ const getTimetable = async (params) =>
 
             console.log('wasm', params.sectionSubjects);
 
-            const sectionConfigurationBuff = allocateAndSetBuffer(
+            const sectionConfigurationBuff = allocateAndSetBuffer(wasm, params.sectionConfiguration);
+            const sectionLocationBuff = allocateAndSetBuffer(wasm, params.sectionLocation);
+            const sectionSubjectConfigurationBuff = allocateAndSetBuffer(wasm, params.sectionSubjectConfiguration);
+            const subjectConfigurationSubjectUnitsBuff = allocateAndSetBuffer(wasm, params.subjectConfigurationSubjectUnits);
+            const subjectConfigurationSubjectDurationBuff = allocateAndSetBuffer(
                 wasm,
-                params.sectionConfiguration
+                params.subjectConfigurationSubjectDuration
             );
-            const sectionLocationBuff = allocateAndSetBuffer(
+            const subjectConfigurationSubjectFixedTimeslotBuff = allocateAndSetBuffer(
                 wasm,
-                params.sectionLocation
+                params.subjectConfigurationSubjectFixedTimeslot
             );
-            const sectionSubjectConfigurationBuff = allocateAndSetBuffer(
+            const subjectConfigurationSubjectFixedDayBuff = allocateAndSetBuffer(
                 wasm,
-                params.sectionSubjectConfiguration
+                params.subjectConfigurationSubjectFixedDay
             );
-            const subjectConfigurationSubjectUnitsBuff = allocateAndSetBuffer(
+            const subjectConfigurationSubjectIsOverlappableBuff = allocateAndSetBuffer(
                 wasm,
-                params.subjectConfigurationSubjectUnits
+                params.subjectConfigurationSubjectIsOverlappable
             );
-            const subjectConfigurationSubjectDurationBuff =
-                allocateAndSetBuffer(
-                    wasm,
-                    params.subjectConfigurationSubjectDuration
-                );
-            const subjectConfigurationSubjectFixedTimeslotBuff =
-                allocateAndSetBuffer(
-                    wasm,
-                    params.subjectConfigurationSubjectFixedTimeslot
-                );
-            const subjectConfigurationSubjectFixedDayBuff =
-                allocateAndSetBuffer(
-                    wasm,
-                    params.subjectConfigurationSubjectFixedDay
-                );
-            const subjectConfigurationSubjectIsOverlappableBuff =
-                allocateAndSetBuffer(
-                    wasm,
-                    params.subjectConfigurationSubjectIsOverlappable
-                );
-            const subjectFixedTeacherSectionBuff = allocateAndSetBuffer(
-                wasm,
-                params.subjectFixedTeacherSection
-            );
-            const subjectFixedTeacherBuff = allocateAndSetBuffer(
-                wasm,
-                params.subjectFixedTeacher
-            );
-            const sectionStartBuff = allocateAndSetBuffer(
-                wasm,
-                params.sectionStart
-            );
-            const teacherSubjectsBuff = allocateAndSetBuffer(
-                wasm,
-                params.teacherSubjects
-            );
-            const teacherWeekLoadConfigBuff = allocateAndSetBuffer(
-                wasm,
-                params.teacherWeekLoadConfig
-            );
-            const buildingInfoBuff = allocateAndSetBuffer(
-                wasm,
-                params.buildingInfo
-            );
-            const buildingAdjacencyBuff = allocateAndSetBuffer(
-                wasm,
-                params.buildingAdjacency
-            );
-            const teacherReservationConfigBuff = allocateAndSetBuffer(
-                wasm,
-                params.teacherReservationConfig
-            );
-            const teacherReservationConfigIDBuff = allocateAndSetBuffer(
-                wasm,
-                params.teacherReservationConfigID
-            );
+            const subjectFixedTeacherSectionBuff = allocateAndSetBuffer(wasm, params.subjectFixedTeacherSection);
+            const subjectFixedTeacherBuff = allocateAndSetBuffer(wasm, params.subjectFixedTeacher);
+            const sectionStartBuff = allocateAndSetBuffer(wasm, params.sectionStart);
+            const teacherSubjectsBuff = allocateAndSetBuffer(wasm, params.teacherSubjects);
+            const teacherWeekLoadConfigBuff = allocateAndSetBuffer(wasm, params.teacherWeekLoadConfig);
+            const buildingInfoBuff = allocateAndSetBuffer(wasm, params.buildingInfo);
+            const buildingAdjacencyBuff = allocateAndSetBuffer(wasm, params.buildingAdjacency);
+            const teacherReservationConfigBuff = allocateAndSetBuffer(wasm, params.teacherReservationConfig);
+            const teacherReservationConfigIDBuff = allocateAndSetBuffer(wasm, params.teacherReservationConfigID);
 
-            const resultTimetableBuff = wasm._malloc(
-                params.resultTimetableLength * 8
-            );
-            const resultTimetable_2 = wasm._malloc(
-                params.resultTimetableLength * 8
-            );
-            const resultViolationBuff = wasm._malloc(
-                params.resultViolationLength * 8
-            );
+            const resultTimetableBuff = wasm._malloc(params.resultTimetableLength * 8);
+            const resultTimetable_2 = wasm._malloc(params.resultTimetableLength * 8);
+            const resultViolationBuff = wasm._malloc(params.resultViolationLength * 8);
 
-            console.log(
-                '🚀 ~ newPromise ~ params.offsetDuration:',
-                params.offsetDuration
-            );
-            console.log(
-                '🚀 ~ newPromise ~ params.offsetDuration:',
-                params.offsetDuration
-            );
-            console.log(
-                '🚀 ~ newPromise ~ params.offsetDuration:',
-                params.offsetDuration
-            );
-            console.log(
-                '🚀 ~ newPromise ~ params.defaultClassDuration:',
-                params.defaultClassDuration
-            );
-            console.log(
-                '🚀 ~ newPromise ~ params.minTotalClassDurationForTwoBreaks:',
-                params.minTotalClassDurationForTwoBreaks
-            );
+            console.log('🚀 ~ newPromise ~ params.offsetDuration:', params.offsetDuration);
+            console.log('🚀 ~ newPromise ~ params.offsetDuration:', params.offsetDuration);
+            console.log('🚀 ~ newPromise ~ params.offsetDuration:', params.offsetDuration);
+            console.log('🚀 ~ newPromise ~ params.defaultClassDuration:', params.defaultClassDuration);
+            console.log('🚀 ~ newPromise ~ params.minTotalClassDurationForTwoBreaks:', params.minTotalClassDurationForTwoBreaks);
             console.log(
                 '🚀 ~ newPromise ~ params.teacherMiddleTimePointGrowAllowanceForBreakTimeslot:',
                 params.teacherMiddleTimePointGrowAllowanceForBreakTimeslot
             );
-            console.log(
-                '🚀 ~ newPromise ~ params.teacherBreakThreshold:',
-                params.teacherBreakThreshold
-            );
-            console.log(
-                '🚀 ~ newPromise ~ params.breakTimeDuration:',
-                params.breakTimeDuration
-            );
+            console.log('🚀 ~ newPromise ~ params.teacherBreakThreshold:', params.teacherBreakThreshold);
+            console.log('🚀 ~ newPromise ~ params.breakTimeDuration:', params.breakTimeDuration);
             console.log('🚀 ~ newPromise ~ params.workWeek:', params.workWeek);
             console.log('🚀 ~ newPromise ~ params.limit:', params.limit);
-            console.log(
-                '🚀 ~ newPromise ~ params.beesOnlooker:',
-                params.beesOnlooker
-            );
-            console.log(
-                '🚀 ~ newPromise ~ params.beesScout:',
-                params.beesScout
-            );
-            console.log(
-                '🚀 ~ newPromise ~ params.beesEmployed:',
-                params.beesEmployed
-            );
-            console.log(
-                '🚀 ~ newPromise ~ params.beesPopulation:',
-                params.beesPopulation
-            );
-            console.log(
-                '🚀 ~ newPromise ~ params.teacherSubjectsLength:',
-                params.teacherSubjectsLength
-            );
-            console.log(
-                '🚀 ~ newPromise ~ params.numberOfSubjectConfiguration:',
-                params.numberOfSubjectConfiguration
-            );
-            console.log(
-                '🚀 ~ newPromise ~ params.totalSection:',
-                params.totalSection
-            );
-            console.log(
-                '🚀 ~ newPromise ~ params.totalSectionSubjects:',
-                params.totalSectionSubjects
-            );
-            console.log(
-                '🚀 ~ newPromise ~ params.numTeachers:',
-                params.numTeachers
-            );
-            console.log(
-                '🚀 ~ newPromise ~ params.maxIterations:',
-                params.maxIterations
-            );
+            console.log('🚀 ~ newPromise ~ params.beesOnlooker:', params.beesOnlooker);
+            console.log('🚀 ~ newPromise ~ params.beesScout:', params.beesScout);
+            console.log('🚀 ~ newPromise ~ params.beesEmployed:', params.beesEmployed);
+            console.log('🚀 ~ newPromise ~ params.beesPopulation:', params.beesPopulation);
+            console.log('🚀 ~ newPromise ~ params.teacherSubjectsLength:', params.teacherSubjectsLength);
+            console.log('🚀 ~ newPromise ~ params.numberOfSubjectConfiguration:', params.numberOfSubjectConfiguration);
+            console.log('🚀 ~ newPromise ~ params.totalSection:', params.totalSection);
+            console.log('🚀 ~ newPromise ~ params.totalSectionSubjects:', params.totalSectionSubjects);
+            console.log('🚀 ~ newPromise ~ params.numTeachers:', params.numTeachers);
+            console.log('🚀 ~ newPromise ~ params.maxIterations:', params.maxIterations);
 
             wasm._runExperiment(
                 params.maxIterations,
@@ -241,7 +141,7 @@ const getTimetable = async (params) =>
                 subjectConfigurationSubjectFixedTimeslotBuff,
                 subjectConfigurationSubjectFixedDayBuff,
                 subjectConfigurationSubjectIsOverlappableBuff,
-                
+
                 subjectFixedTeacherSectionBuff,
                 subjectFixedTeacherBuff,
                 sectionStartBuff,
@@ -284,11 +184,7 @@ const getTimetable = async (params) =>
                 let resultArray_2 = unpackIntegers(result_2);
 
                 // -1 is the sentinel value for the end of the result array
-                if (
-                    resultArray_2[2] == -1 &&
-                    resultArray_2[3] == -1 &&
-                    resultArray_2[4] == -1
-                ) {
+                if (resultArray_2[2] == -1 && resultArray_2[3] == -1 && resultArray_2[4] == -1) {
                     break;
                 }
 
