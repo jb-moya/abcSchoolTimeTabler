@@ -1,12 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import {
-    fetchPrograms,
-    addProgram,
-    editProgram,
-    removeProgram,
-} from '@features/programSlice';
+import { fetchPrograms, addProgram, editProgram, removeProgram } from '@features/programSlice';
 import { fetchSections, editSection } from '@features/sectionSlice';
 import { fetchSubjects } from '@features/subjectSlice';
 
@@ -27,38 +22,24 @@ import AddProgramContainer from './ProgramAdd';
 import AdditionalScheduleForProgram from './AdditionalScheduleForProgram';
 import ProgramEdit from './ProgramEdit';
 
-const ProgramListContainer = ({
-    numOfSchoolDays: externalNumOfSchoolDays,
-    editable = false,
-}) => {
+const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editable = false }) => {
     const dispatch = useDispatch();
 
-    const { programs, status: programStatus } = useSelector(
-        (state) => state.program
-    );
+    const { programs, status: programStatus } = useSelector((state) => state.program);
 
-    const { subjects, status: subjectStatus } = useSelector(
-        (state) => state.subject
-    );
+    const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
 
-    const { sections, status: sectionStatus } = useSelector(
-        (state) => state.section
-    );
+    const { sections, status: sectionStatus } = useSelector((state) => state.section);
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
 
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
-        return (
-            externalNumOfSchoolDays ??
-            (Number(localStorage.getItem('numOfSchoolDays')) || 0)
-        );
+        return externalNumOfSchoolDays ?? (Number(localStorage.getItem('numOfSchoolDays')) || 0);
     });
 
-    const morningStartTime =
-        localStorage.getItem('morningStartTime') || '06:00 AM';
-    const afternoonStartTime =
-        localStorage.getItem('afternoonStartTime') || '01:00 PM';
+    const morningStartTime = localStorage.getItem('morningStartTime') || '06:00 AM';
+    const afternoonStartTime = localStorage.getItem('afternoonStartTime') || '01:00 PM';
 
     const [searchProgramResult, setSearchProgramResult] = useState(programs);
     const [searchProgramValue, setSearchProgramValue] = useState('');
@@ -700,27 +681,15 @@ const ProgramListContainer = ({
                     if (!searchValue) return true;
 
                     const programsSubjectsName = Object.values(program)
-                        .filter((gradeData) =>
-                            Array.isArray(gradeData.subjects)
-                        ) // Ensure we're working with subjects array for each grade
-                        .flatMap((gradeData) =>
-                            gradeData.subjects.map(
-                                (subjectID) =>
-                                    subjects[subjectID]?.subject || ''
-                            )
-                        )
+                        .filter((gradeData) => Array.isArray(gradeData.subjects)) // Ensure we're working with subjects array for each grade
+                        .flatMap((gradeData) => gradeData.subjects.map((subjectID) => subjects[subjectID]?.subject || ''))
                         .join(' ');
 
-                    const escapedSearchValue = escapeRegExp(searchValue)
-                        .split('\\*')
-                        .join('.*');
+                    const escapedSearchValue = escapeRegExp(searchValue).split('\\*').join('.*');
 
                     const pattern = new RegExp(escapedSearchValue, 'i');
 
-                    return (
-                        pattern.test(program.program) ||
-                        pattern.test(programsSubjectsName)
-                    );
+                    return pattern.test(program.program) || pattern.test(programsSubjectsName);
                 })
             );
         }, 200),
@@ -753,9 +722,7 @@ const ProgramListContainer = ({
     const [currentPage, setCurrentPage] = useState(1);
 
     // Calculate total pages
-    const totalPages = Math.ceil(
-        Object.values(searchProgramResult).length / itemsPerPage
-    );
+    const totalPages = Math.ceil(Object.values(searchProgramResult).length / itemsPerPage);
 
     // Get current items
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -791,15 +758,12 @@ const ProgramListContainer = ({
 
     return (
         <React.Fragment>
-            <div className="">
-            
-                <div className="flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5">
+            <div className=''>
+                <div className='flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5'>
                     {currentItems.length > 0 && (
-                        <div className="join flex justify-center mb-4 md:mb-0">
+                        <div className='join flex justify-center mb-4 md:mb-0'>
                             <button
-                                className={`join-item btn ${
-                                    currentPage === 1 ? 'btn-disabled' : ''
-                                }`}
+                                className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
                                 onClick={() => {
                                     if (currentPage > 1) {
                                         setCurrentPage(currentPage - 1);
@@ -810,15 +774,11 @@ const ProgramListContainer = ({
                             >
                                 «
                             </button>
-                            <button className="join-item btn">
+                            <button className='join-item btn'>
                                 Page {currentPage} of {totalPages}
                             </button>
                             <button
-                                className={`join-item btn ${
-                                    currentPage === totalPages
-                                        ? 'btn-disabled'
-                                        : ''
-                                }`}
+                                className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
                                 onClick={() => {
                                     if (currentPage < totalPages) {
                                         setCurrentPage(currentPage + 1);
@@ -833,37 +793,29 @@ const ProgramListContainer = ({
                     )}
 
                     {currentItems.length === 0 && currentPage > 1 && (
-                        <div className="hidden">
-                            {setCurrentPage(currentPage - 1)}
-                        </div>
+                        <div className='hidden'>{setCurrentPage(currentPage - 1)}</div>
                     )}
 
-                    <div className="flex-grow w-full md:w-1/3 lg:w-1/4">
-                        <label className="input input-bordered flex items-center gap-2 w-full">
+                    <div className='flex-grow w-full md:w-1/3 lg:w-1/4'>
+                        <label className='input input-bordered flex items-center gap-2 w-full'>
                             <input
-                                type="text"
-                                className="grow p-3 text-sm w-full"
-                                placeholder="Search Program"
+                                type='text'
+                                className='grow p-3 text-sm w-full'
+                                placeholder='Search Program'
                                 value={searchProgramValue}
-                                onChange={(e) =>
-                                    setSearchProgramValue(e.target.value)
-                                }
+                                onChange={(e) => setSearchProgramValue(e.target.value)}
                             />
-                            <IoSearch className="text-xl" />
+                            <IoSearch className='text-xl' />
                         </label>
                     </div>
 
                     {editable && (
-                        <div className="w-full mt-4 md:mt-0 md:w-auto">
+                        <div className='w-full mt-4 md:mt-0 md:w-auto'>
                             <button
-                                className="btn btn-primary h-12 flex items-center justify-center w-full md:w-52"
-                                onClick={() =>
-                                    document
-                                        .getElementById('add_program_modal')
-                                        .showModal()
-                                }
+                                className='btn btn-primary h-12 flex items-center justify-center w-full md:w-52'
+                                onClick={() => document.getElementById('add_program_modal').showModal()}
                             >
-                                Add Program <IoAdd size={20} className="ml-2" />
+                                Add Program <IoAdd size={20} className='ml-2' />
                             </button>
                             <AddProgramContainer
                                 close={handleClose}
@@ -881,394 +833,201 @@ const ProgramListContainer = ({
                     )}
                 </div>
 
-                <div className="overflow-x-auto">
-                    <table className="table table-sm table-zebra w-full">
+                <div className='overflow-x-auto'>
+                    <table className='table table-sm table-zebra w-full'>
                         <thead>
                             <tr>
-                                <th className="w-1/12">#</th>
-                                <th className="w-1/12">Program ID</th>
-                                <th className="w-1/12">Program</th>
-                                <th className="w-5/12">
-                                    Shift, Start Time, and Subjects (per year
-                                    level)
-                                </th>
-                                <th className="w-auto">Additional Schedules</th>
-                                {editable && (
-                                    <th className="w-auto">Actions</th>
-                                )}
+                                <th className='w-1/12'>#</th>
+                                <th className='w-1/12'>Program ID</th>
+                                <th className='w-1/12'>Program</th>
+                                <th className='w-5/12'>Shift, Start Time, and Subjects (per year level)</th>
+                                <th className='w-auto'>Additional Schedules</th>
+                                {editable && <th className='w-auto'>Actions</th>}
                             </tr>
                         </thead>
                         <tbody>
                             {Object.values(searchProgramResult).length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="text-center">
+                                    <td colSpan='5' className='text-center'>
                                         No Programs Found
                                     </td>
                                 </tr>
                             ) : (
                                 currentItems.map(([, program], index) => (
-                                    <tr
-                                        key={program.id}
-                                        className="group hover"
-                                    >
+                                    <tr key={program.id} className='group hover'>
                                         <td>{index + 1 + indexOfFirstItem}</td>
                                         <td>{program.id}</td>
-                                        <td className="max-w-28">
+                                        <td className='max-w-28'>
                                             {editProgramId === program.id ? (
                                                 <input
-                                                    type="text"
-                                                    className="input input-bordered input-sm w-full"
+                                                    type='text'
+                                                    className='input input-bordered input-sm w-full'
                                                     value={editProgramValue}
-                                                    onChange={(e) =>
-                                                        setEditProgramValue(
-                                                            e.target.value
-                                                        )
-                                                    }
+                                                    onChange={(e) => setEditProgramValue(e.target.value)}
                                                 />
                                             ) : (
                                                 program.program
                                             )}
                                         </td>
-                                        <td className="">
+                                        <td className=''>
                                             {editProgramId === program.id ? (
                                                 <div>
-                                                    {[7, 8, 9, 10].map(
-                                                        (grade) => (
-                                                            <div
-                                                                key={grade}
-                                                                className="my-2"
-                                                            >
-                                                                <div className="flex flex-wrap">
-                                                                    <div className="w-1/2">
-                                                                        <h3 className="font-bold">{`Grade ${grade}`}</h3>
-                                                                        <div className="mt-2">
-                                                                            <label className="mr-2">
-                                                                                Shift:
-                                                                            </label>
-                                                                            <label className="mr-2">
-                                                                                <input
-                                                                                    type="radio"
-                                                                                    value={
-                                                                                        selectedShifts[
-                                                                                            grade
-                                                                                        ]
-                                                                                    }
-                                                                                    checked={
-                                                                                        selectedShifts[
-                                                                                            grade
-                                                                                        ] ===
-                                                                                        0
-                                                                                    }
-                                                                                    onChange={() =>
-                                                                                        handleShiftSelection(
-                                                                                            grade,
-                                                                                            0
-                                                                                        )
-                                                                                    }
-                                                                                />
-                                                                                AM
-                                                                            </label>
-                                                                            <label>
-                                                                                <input
-                                                                                    type="radio"
-                                                                                    value={
-                                                                                        selectedShifts[
-                                                                                            grade
-                                                                                        ]
-                                                                                    }
-                                                                                    checked={
-                                                                                        selectedShifts[
-                                                                                            grade
-                                                                                        ] ===
-                                                                                        1
-                                                                                    }
-                                                                                    onChange={() =>
-                                                                                        handleShiftSelection(
-                                                                                            grade,
-                                                                                            1
-                                                                                        )
-                                                                                    }
-                                                                                />
-                                                                                PM
-                                                                            </label>
-                                                                        </div>
-                                                                        <div>
-                                                                            <label>
-                                                                                Start
-                                                                                Time:
-                                                                            </label>
-                                                                            <select
-                                                                                value={
-                                                                                    startTimes[
-                                                                                        grade
-                                                                                    ]
-                                                                                }
-                                                                                onChange={(
-                                                                                    e
-                                                                                ) => {
-                                                                                    const newValue =
-                                                                                        e
-                                                                                            .target
-                                                                                            .value;
-                                                                                    setStartTimes(
-                                                                                        (
-                                                                                            prevState
-                                                                                        ) => ({
-                                                                                            ...prevState,
-                                                                                            [grade]:
-                                                                                                newValue,
-                                                                                        })
-                                                                                    );
-                                                                                }}
-                                                                            >
-                                                                                {renderTimeOptions(
-                                                                                    selectedShifts[
-                                                                                        grade
-                                                                                    ]
-                                                                                )}
-                                                                            </select>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="flex flex-wrap w-1/2">
-                                                                        <div className="w-full">
-                                                                            <SearchableDropdownToggler
-                                                                                selectedList={
-                                                                                    editProgramCurr[
-                                                                                        grade
-                                                                                    ]
-                                                                                }
-                                                                                setSelectedList={(
-                                                                                    list
-                                                                                ) =>
-                                                                                    handleSubjectSelection(
-                                                                                        grade,
-                                                                                        list
-                                                                                    )
-                                                                                }
+                                                    {[7, 8, 9, 10].map((grade) => (
+                                                        <div key={grade} className='my-2'>
+                                                            <div className='flex flex-wrap'>
+                                                                <div className='w-1/2'>
+                                                                    <h3 className='font-bold'>{`Grade ${grade}`}</h3>
+                                                                    <div className='mt-2'>
+                                                                        <label className='mr-2'>Shift:</label>
+                                                                        <label className='mr-2'>
+                                                                            <input
+                                                                                type='radio'
+                                                                                value={selectedShifts[grade]}
+                                                                                checked={selectedShifts[grade] === 0}
+                                                                                onChange={() => handleShiftSelection(grade, 0)}
                                                                             />
+                                                                            AM
+                                                                        </label>
+                                                                        <label>
+                                                                            <input
+                                                                                type='radio'
+                                                                                value={selectedShifts[grade]}
+                                                                                checked={selectedShifts[grade] === 1}
+                                                                                onChange={() => handleShiftSelection(grade, 1)}
+                                                                            />
+                                                                            PM
+                                                                        </label>
+                                                                    </div>
+                                                                    <div>
+                                                                        <label>Start Time:</label>
+                                                                        <select
+                                                                            value={startTimes[grade]}
+                                                                            onChange={(e) => {
+                                                                                const newValue = e.target.value;
+                                                                                setStartTimes((prevState) => ({
+                                                                                    ...prevState,
+                                                                                    [grade]: newValue,
+                                                                                }));
+                                                                            }}
+                                                                        >
+                                                                            {renderTimeOptions(selectedShifts[grade])}
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                                <div className='flex flex-wrap w-1/2'>
+                                                                    <div className='w-full'>
+                                                                        <SearchableDropdownToggler
+                                                                            selectedList={editProgramCurr[grade]}
+                                                                            setSelectedList={(list) =>
+                                                                                handleSubjectSelection(grade, list)
+                                                                            }
+                                                                        />
 
-                                                                            <div className="flex flex-wrap gap-2 p-2 w-full">
-                                                                                {editProgramCurr[
-                                                                                    grade
-                                                                                ]?.map(
-                                                                                    (
-                                                                                        id,
-                                                                                        index
-                                                                                    ) => (
-                                                                                        <div
-                                                                                            key={
-                                                                                                id
-                                                                                            }
-                                                                                            className="h-8 w-10 bg-green-400 rounded-md text-xs flex items-center justify-center truncate"
-                                                                                        >
-                                                                                            {
-                                                                                                subjects[
-                                                                                                    id
-                                                                                                ]
-                                                                                                    ?.subject
-                                                                                            }
-                                                                                        </div>
-                                                                                    )
-                                                                                )}
-                                                                            </div>
+                                                                        <div className='flex flex-wrap gap-2 p-2 w-full'>
+                                                                            {editProgramCurr[grade]?.map((id, index) => (
+                                                                                <div
+                                                                                    key={id}
+                                                                                    className='h-8 w-10 bg-green-400 rounded-md text-xs flex items-center justify-center truncate'
+                                                                                >
+                                                                                    {subjects[id]?.subject}
+                                                                                </div>
+                                                                            ))}
                                                                         </div>
                                                                     </div>
                                                                 </div>
+                                                            </div>
 
-                                                                <div className="flex justify-center items-center">
+                                                            <div className='flex justify-center items-center'>
+                                                                <button
+                                                                    className='btn text-xs'
+                                                                    onClick={() =>
+                                                                        document
+                                                                            .getElementById(
+                                                                                `assign_fixed_sched_modal_prog(${editProgramId})-grade(${grade})`
+                                                                            )
+                                                                            .showModal()
+                                                                    }
+                                                                >
+                                                                    Open Fixed Schedule Maker for Grade {grade}
+                                                                </button>
+                                                                <FixedScheduleMaker
+                                                                    key={grade}
+                                                                    viewingMode={0}
+                                                                    pvs={0}
+                                                                    program={editProgramId}
+                                                                    grade={grade}
+                                                                    selectedSubjects={editProgramCurr[grade] || []}
+                                                                    additionalSchedules={
+                                                                        editProgramCurr[grade]?.additionalSchedules || []
+                                                                    }
+                                                                    fixedDays={editFixedDays[grade] || {}}
+                                                                    setFixedDays={setEditFixedDays}
+                                                                    fixedPositions={editFixedPositions[grade] || {}}
+                                                                    setFixedPositions={setEditFixedPositions}
+                                                                    numOfSchoolDays={numOfSchoolDays}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className=''>
+                                                    {[7, 8, 9, 10].map((grade) => (
+                                                        <div key={grade} className='my-4 flex flex-wrap'>
+                                                            <div className='w-1/3'>
+                                                                <h3 className='font-bold'>{`Grade ${grade}`}</h3>
+                                                                <div className='flex items-center mt-2'>
+                                                                    <span className='inline-block bg-blue-500 text-white text-xs font-semibold py-1 px-3 rounded-lg'>
+                                                                        {program[`${grade}`]?.shift === 0 ? 'AM' : 'PM'}
+                                                                    </span>
+                                                                    <span className='ml-2 text-sm font-medium'>
+                                                                        {getTimeSlotString(program[`${grade}`]?.startTime || 0)}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div className='w-2/3 flex flex-wrap'>
+                                                                <div className='w-full'>Assigned Subjects for Grade {grade}:</div>
+                                                                <div className='w-full flex flex-wrap gap-1 p-1'>
+                                                                    {program[`${grade}`]?.subjects?.map((id) => (
+                                                                        <div
+                                                                            key={id}
+                                                                            className='h-8 w-10 bg-green-400 rounded-md text-xs flex items-center justify-center truncate'
+                                                                        >
+                                                                            {subjects[id]?.subject}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                                <div className='flex justify-center items-center'>
                                                                     <button
-                                                                        className="btn text-xs"
+                                                                        className='btn text-xs'
                                                                         onClick={() =>
                                                                             document
                                                                                 .getElementById(
-                                                                                    `assign_fixed_sched_modal_prog(${editProgramId})-grade(${grade})`
+                                                                                    `assign_fixed_sched_modal_prog(${program.id})-grade(${grade})`
                                                                                 )
                                                                                 .showModal()
                                                                         }
                                                                     >
-                                                                        Open
-                                                                        Fixed
-                                                                        Schedule
-                                                                        Maker
-                                                                        for
-                                                                        Grade{' '}
-                                                                        {grade}
+                                                                        View Fixed Schedules for Grade {grade}
                                                                     </button>
                                                                     <FixedScheduleMaker
-                                                                        key={
-                                                                            grade
-                                                                        }
-                                                                        viewingMode={
-                                                                            0
-                                                                        }
+                                                                        key={grade}
+                                                                        viewingMode={1}
                                                                         pvs={0}
-                                                                        program={
-                                                                            editProgramId
+                                                                        program={program.id}
+                                                                        grade={grade}
+                                                                        additionalSchedules={
+                                                                            program[grade]?.additionalScheds || []   
                                                                         }
-                                                                        grade={
-                                                                            grade
-                                                                        }
-                                                                        selectedSubjects={
-                                                                            editProgramCurr[
-                                                                                grade
-                                                                            ] ||
-                                                                            []
-                                                                        }
-                                                                        fixedDays={
-                                                                            editFixedDays[
-                                                                                grade
-                                                                            ] ||
-                                                                            {}
-                                                                        }
-                                                                        setFixedDays={
-                                                                            setEditFixedDays
-                                                                        }
-                                                                        fixedPositions={
-                                                                            editFixedPositions[
-                                                                                grade
-                                                                            ] ||
-                                                                            {}
-                                                                        }
-                                                                        setFixedPositions={
-                                                                            setEditFixedPositions
-                                                                        }
-                                                                        numOfSchoolDays={
-                                                                            numOfSchoolDays
-                                                                        }
+                                                                        selectedSubjects={program[grade]?.subjects || []}
+                                                                        fixedDays={program[grade]?.fixedDays || {}}
+                                                                        fixedPositions={program[grade]?.fixedPositions || {}}
+                                                                        numOfSchoolDays={numOfSchoolDays}
                                                                     />
                                                                 </div>
                                                             </div>
-                                                        )
-                                                    )}
-                                                </div>
-                                            ) : (
-                                                <div className="">
-                                                    {[7, 8, 9, 10].map(
-                                                        (grade) => (
-                                                            <div
-                                                                key={grade}
-                                                                className="my-4 flex flex-wrap"
-                                                            >
-                                                                <div className="w-1/3">
-                                                                    <h3 className="font-bold">{`Grade ${grade}`}</h3>
-                                                                    <div className="flex items-center mt-2">
-                                                                        <span className="inline-block bg-blue-500 text-white text-xs font-semibold py-1 px-3 rounded-lg">
-                                                                            {program[
-                                                                                `${grade}`
-                                                                            ]
-                                                                                ?.shift ===
-                                                                            0
-                                                                                ? 'AM'
-                                                                                : 'PM'}
-                                                                        </span>
-                                                                        <span className="ml-2 text-sm font-medium">
-                                                                            {getTimeSlotString(
-                                                                                program[
-                                                                                    `${grade}`
-                                                                                ]
-                                                                                    ?.startTime ||
-                                                                                    0
-                                                                            )}
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="w-2/3 flex flex-wrap">
-                                                                    <div className="w-full">
-                                                                        Assigned
-                                                                        Subjects
-                                                                        for
-                                                                        Grade{' '}
-                                                                        {grade}:
-                                                                    </div>
-                                                                    <div className="w-full flex flex-wrap gap-1 p-1">
-                                                                        {program[
-                                                                            `${grade}`
-                                                                        ]?.subjects?.map(
-                                                                            (
-                                                                                id
-                                                                            ) => (
-                                                                                <div
-                                                                                    key={
-                                                                                        id
-                                                                                    }
-                                                                                    className="h-8 w-10 bg-green-400 rounded-md text-xs flex items-center justify-center truncate"
-                                                                                >
-                                                                                    {
-                                                                                        subjects[
-                                                                                            id
-                                                                                        ]
-                                                                                            ?.subject
-                                                                                    }
-                                                                                </div>
-                                                                            )
-                                                                        )}
-                                                                    </div>
-                                                                    <div className="flex justify-center items-center">
-                                                                        <button
-                                                                            className="btn text-xs"
-                                                                            onClick={() =>
-                                                                                document
-                                                                                    .getElementById(
-                                                                                        `assign_fixed_sched_modal_prog(${program.id})-grade(${grade})`
-                                                                                    )
-                                                                                    .showModal()
-                                                                            }
-                                                                        >
-                                                                            View
-                                                                            Fixed
-                                                                            Schedules
-                                                                            for
-                                                                            Grade{' '}
-                                                                            {
-                                                                                grade
-                                                                            }
-                                                                        </button>
-                                                                        <FixedScheduleMaker
-                                                                            key={
-                                                                                grade
-                                                                            }
-                                                                            viewingMode={
-                                                                                1
-                                                                            }
-                                                                            pvs={
-                                                                                0
-                                                                            }
-                                                                            program={
-                                                                                program.id
-                                                                            }
-                                                                            grade={
-                                                                                grade
-                                                                            }
-                                                                            selectedSubjects={
-                                                                                program[
-                                                                                    grade
-                                                                                ]
-                                                                                    ?.subjects ||
-                                                                                []
-                                                                            }
-                                                                            fixedDays={
-                                                                                program[
-                                                                                    grade
-                                                                                ]
-                                                                                    ?.fixedDays ||
-                                                                                {}
-                                                                            }
-                                                                            fixedPositions={
-                                                                                program[
-                                                                                    grade
-                                                                                ]
-                                                                                    ?.fixedPositions ||
-                                                                                {}
-                                                                            }
-                                                                            numOfSchoolDays={
-                                                                                numOfSchoolDays
-                                                                            }
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        )
-                                                    )}
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             )}
                                         </td>
@@ -1276,303 +1035,177 @@ const ProgramListContainer = ({
                                             {editProgramId === program.id ? (
                                                 <>
                                                     <div>
-                                                        {[7, 8, 9, 10].map(
-                                                            (grade) => (
+                                                        {[7, 8, 9, 10].map((grade) => (
+                                                            <div
+                                                                key={`edit-add-sched-edit-prog(${program.id})-grade(${grade})`}
+                                                                className='mt-2 overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg'
+                                                                style={{
+                                                                    scrollbarWidth: 'thin',
+                                                                    scrollbarColor: '#a0aec0 #edf2f7',
+                                                                }} // Optional for styled scrollbars
+                                                            >
                                                                 <div
-                                                                    key={`edit-add-sched-edit-prog(${program.id})-grade(${grade})`}
-                                                                    className="mt-2 overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg"
+                                                                    className='flex flex-wrap'
                                                                     style={{
-                                                                        scrollbarWidth:
-                                                                            'thin',
-                                                                        scrollbarColor:
-                                                                            '#a0aec0 #edf2f7',
-                                                                    }} // Optional for styled scrollbars
+                                                                        position: 'sticky',
+                                                                        top: 0,
+                                                                        zIndex: 1,
+                                                                        backgroundColor: 'white',
+                                                                    }}
                                                                 >
-                                                                    <div
-                                                                        className="flex flex-wrap"
-                                                                        style={{
-                                                                            position:
-                                                                                'sticky',
-                                                                            top: 0,
-                                                                            zIndex: 1,
-                                                                            backgroundColor:
-                                                                                'white',
-                                                                        }}
-                                                                    >
-                                                                        <div className="w-9/12 font-bold p-2 border-b border-gray-300">
-                                                                            Grade{' '}
-                                                                            {
-                                                                                grade
+                                                                    <div className='w-9/12 font-bold p-2 border-b border-gray-300'>
+                                                                        Grade {grade}
+                                                                    </div>
+                                                                    <div className='w-3/12 flex justify-center items-center border-b border-gray-300'>
+                                                                        <button
+                                                                            className='w-3/4 bg-green-700 m-2 font-bold text-white rounded-lg hover:bg-green-500'
+                                                                            onClick={() => handleAddAdditionalSchedule(grade)}
+                                                                        >
+                                                                            +
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                                {editAdditionalScheds[grade].map((sched, index) => (
+                                                                    <div key={index} className='flex flex-wrap'>
+                                                                        <button
+                                                                            className='w-1/12 border rounded-l-lg bg-blue-200 hover:bg-blue-100 flex items-center justify-center'
+                                                                            onClick={() =>
+                                                                                handleDeleteAdditionalSchedule(grade, index)
                                                                             }
-                                                                        </div>
-                                                                        <div className="w-3/12 flex justify-center items-center border-b border-gray-300">
+                                                                        >
+                                                                            <RiDeleteBin7Line size={15} />
+                                                                        </button>
+                                                                        <div className='w-10/12'>
                                                                             <button
-                                                                                className="w-3/4 bg-green-700 m-2 font-bold text-white rounded-lg hover:bg-green-500"
+                                                                                className='w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-gray-200'
                                                                                 onClick={() =>
-                                                                                    handleAddAdditionalSchedule(
-                                                                                        grade
-                                                                                    )
+                                                                                    document
+                                                                                        .getElementById(
+                                                                                            `add_additional_sched_modal_1_grade-${grade}_prog-${program.id}_idx-${index}`
+                                                                                        )
+                                                                                        .showModal()
                                                                                 }
                                                                             >
-                                                                                +
+                                                                                {sched.name || sched.subject ? (
+                                                                                    // Content to show when both are not empty
+                                                                                    <>
+                                                                                        <p>Name: {sched.name}</p>
+                                                                                        <p>
+                                                                                            Subject:{' '}
+                                                                                            {sched.subject === 0
+                                                                                                ? 'N/A'
+                                                                                                : subjects[sched.subject].subject}
+                                                                                        </p>
+                                                                                    </>
+                                                                                ) : (
+                                                                                    // Content to show when either is empty
+                                                                                    <p>Untitled Schedule {index + 1}</p>
+                                                                                )}
                                                                             </button>
+                                                                            <AdditionalScheduleForProgram
+                                                                                viewingMode={1}
+                                                                                programID={program.id}
+                                                                                grade={grade}
+                                                                                arrayIndex={index}
+                                                                                additionalSchedsOfProgYear={sched}
+                                                                            />
+                                                                        </div>
+                                                                        <div className='w-1/12 text-xs font-bold rounded-r-lg bg-blue-200 hover:bg-blue-100 flex text-center justify-center items-center p-2 cursor-pointer'>
+                                                                            <button
+                                                                                onClick={() =>
+                                                                                    document
+                                                                                        .getElementById(
+                                                                                            `add_additional_sched_modal_0_grade-${grade}_prog-${program.id}_idx-${index}`
+                                                                                        )
+                                                                                        .showModal()
+                                                                                }
+                                                                            >
+                                                                                <RiEdit2Fill size={15} />
+                                                                            </button>
+                                                                            <AdditionalScheduleForProgram
+                                                                                viewingMode={0}
+                                                                                programID={program.id}
+                                                                                grade={grade}
+                                                                                arrayIndex={index}
+                                                                                numOfSchoolDays={numOfSchoolDays}
+                                                                                progYearSubjects={editProgramCurr[grade]}
+                                                                                additionalSchedsOfProgYear={sched}
+                                                                                setAdditionalScheds={setEditAdditionalScheds}
+                                                                            />
                                                                         </div>
                                                                     </div>
-                                                                    {editAdditionalScheds[
-                                                                        grade
-                                                                    ].map(
-                                                                        (
-                                                                            sched,
-                                                                            index
-                                                                        ) => (
-                                                                            <div
-                                                                                key={
-                                                                                    index
-                                                                                }
-                                                                                className="flex flex-wrap"
-                                                                            >
-                                                                                <button
-                                                                                    className="w-1/12 border rounded-l-lg bg-blue-200 hover:bg-blue-100 flex items-center justify-center"
-                                                                                    onClick={() =>
-                                                                                        handleDeleteAdditionalSchedule(
-                                                                                            grade,
-                                                                                            index
-                                                                                        )
-                                                                                    }
-                                                                                >
-                                                                                    <RiDeleteBin7Line
-                                                                                        size={
-                                                                                            15
-                                                                                        }
-                                                                                    />
-                                                                                </button>
-                                                                                <div className="w-10/12">
-                                                                                    <button
-                                                                                        className="w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-gray-200"
-                                                                                        onClick={() =>
-                                                                                            document
-                                                                                                .getElementById(
-                                                                                                    `add_additional_sched_modal_1_grade-${grade}_prog-${program.id}_idx-${index}`
-                                                                                                )
-                                                                                                .showModal()
-                                                                                        }
-                                                                                    >
-                                                                                        {sched.name ||
-                                                                                        sched.subject ? (
-                                                                                            // Content to show when both are not empty
-                                                                                            <>
-                                                                                                <p>
-                                                                                                    Name:{' '}
-                                                                                                    {
-                                                                                                        sched.name
-                                                                                                    }
-                                                                                                </p>
-                                                                                                <p>
-                                                                                                    Subject:{' '}
-                                                                                                    {sched.subject ===
-                                                                                                    0
-                                                                                                        ? 'N/A'
-                                                                                                        : subjects[
-                                                                                                              sched
-                                                                                                                  .subject
-                                                                                                          ]
-                                                                                                              .subject}
-                                                                                                </p>
-                                                                                            </>
-                                                                                        ) : (
-                                                                                            // Content to show when either is empty
-                                                                                            <p>
-                                                                                                Untitled
-                                                                                                Schedule{' '}
-                                                                                                {index +
-                                                                                                    1}
-                                                                                            </p>
-                                                                                        )}
-                                                                                    </button>
-                                                                                    <AdditionalScheduleForProgram
-                                                                                        viewingMode={
-                                                                                            1
-                                                                                        }
-                                                                                        programID={
-                                                                                            program.id
-                                                                                        }
-                                                                                        grade={
-                                                                                            grade
-                                                                                        }
-                                                                                        arrayIndex={
-                                                                                            index
-                                                                                        }
-                                                                                        additionalSchedsOfProgYear={
-                                                                                            sched
-                                                                                        }
-                                                                                    />
-                                                                                </div>
-                                                                                <div className="w-1/12 text-xs font-bold rounded-r-lg bg-blue-200 hover:bg-blue-100 flex text-center justify-center items-center p-2 cursor-pointer">
-                                                                                    <button
-                                                                                        onClick={() =>
-                                                                                            document
-                                                                                                .getElementById(
-                                                                                                    `add_additional_sched_modal_0_grade-${grade}_prog-${program.id}_idx-${index}`
-                                                                                                )
-                                                                                                .showModal()
-                                                                                        }
-                                                                                    >
-                                                                                        <RiEdit2Fill
-                                                                                            size={
-                                                                                                15
-                                                                                            }
-                                                                                        />
-                                                                                    </button>
-                                                                                    <AdditionalScheduleForProgram
-                                                                                        viewingMode={
-                                                                                            0
-                                                                                        }
-                                                                                        programID={
-                                                                                            program.id
-                                                                                        }
-                                                                                        grade={
-                                                                                            grade
-                                                                                        }
-                                                                                        arrayIndex={
-                                                                                            index
-                                                                                        }
-                                                                                        numOfSchoolDays={
-                                                                                            numOfSchoolDays
-                                                                                        }
-                                                                                        progYearSubjects={
-                                                                                            editProgramCurr[
-                                                                                                grade
-                                                                                            ]
-                                                                                        }
-                                                                                        additionalSchedsOfProgYear={
-                                                                                            sched
-                                                                                        }
-                                                                                        setAdditionalScheds={
-                                                                                            setEditAdditionalScheds
-                                                                                        }
-                                                                                    />
-                                                                                </div>
-                                                                            </div>
-                                                                        )
-                                                                    )}
-                                                                </div>
-                                                            )
-                                                        )}
+                                                                ))}
+                                                            </div>
+                                                        ))}
                                                     </div>
                                                 </>
                                             ) : (
                                                 <>
                                                     <div>
-                                                        {[7, 8, 9, 10].map(
-                                                            (grade) => (
+                                                        {[7, 8, 9, 10].map((grade) => (
+                                                            <div
+                                                                key={`edit-add-sched-view-prog(${program.id})-grade(${grade})`}
+                                                                className='mt-2 overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg'
+                                                                style={{
+                                                                    scrollbarWidth: 'thin',
+                                                                    scrollbarColor: '#a0aec0 #edf2f7',
+                                                                }} // Optional for styled scrollbars
+                                                            >
                                                                 <div
-                                                                    key={`edit-add-sched-view-prog(${program.id})-grade(${grade})`}
-                                                                    className="mt-2 overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg"
+                                                                    className='font-bold p-2 border-b border-gray-300'
                                                                     style={{
-                                                                        scrollbarWidth:
-                                                                            'thin',
-                                                                        scrollbarColor:
-                                                                            '#a0aec0 #edf2f7',
-                                                                    }} // Optional for styled scrollbars
+                                                                        position: 'sticky',
+                                                                        top: 0,
+                                                                        zIndex: 1,
+                                                                        backgroundColor: 'white',
+                                                                    }}
                                                                 >
-                                                                    <div
-                                                                        className="font-bold p-2 border-b border-gray-300"
-                                                                        style={{
-                                                                            position:
-                                                                                'sticky',
-                                                                            top: 0,
-                                                                            zIndex: 1,
-                                                                            backgroundColor:
-                                                                                'white',
-                                                                        }}
-                                                                    >
-                                                                        Grade{' '}
-                                                                        {grade}
-                                                                    </div>
-                                                                    {program[
-                                                                        grade
-                                                                    ]?.additionalScheds.map(
-                                                                        (
-                                                                            sched,
-                                                                            index
-                                                                        ) => (
-                                                                            <div
-                                                                                key={
-                                                                                    index
-                                                                                }
-                                                                                className="flex flex-wrap"
-                                                                            >
-                                                                                <div className="w-1/12 text-xs font-bold bg-blue-100 flex text-center justify-center items-center p-2">
-                                                                                    {index +
-                                                                                        1}
-                                                                                </div>
-                                                                                <div className="w-11/12">
-                                                                                    <button
-                                                                                        className="w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-gray-200"
-                                                                                        onClick={() =>
-                                                                                            document
-                                                                                                .getElementById(
-                                                                                                    `add_additional_sched_modal_1_grade-${grade}_prog-${program.id}_idx-${index}`
-                                                                                                )
-                                                                                                .showModal()
-                                                                                        }
-                                                                                    >
-                                                                                        {sched.name ||
-                                                                                        sched.subject ? (
-                                                                                            // Content to show when both are not empty
-                                                                                            <>
-                                                                                                <p>
-                                                                                                    Name:{' '}
-                                                                                                    {
-                                                                                                        sched.name
-                                                                                                    }
-                                                                                                </p>
-                                                                                                <p>
-                                                                                                    Subject:{' '}
-                                                                                                    {sched.subject ===
-                                                                                                    0
-                                                                                                        ? 'N/A'
-                                                                                                        : subjects[
-                                                                                                              sched
-                                                                                                                  .subject
-                                                                                                          ]
-                                                                                                              .subject}
-                                                                                                </p>
-                                                                                            </>
-                                                                                        ) : (
-                                                                                            // Content to show when either is empty
-                                                                                            <p>
-                                                                                                Untitled
-                                                                                                Schedule{' '}
-                                                                                                {index +
-                                                                                                    1}
-                                                                                            </p>
-                                                                                        )}
-                                                                                    </button>
-                                                                                    <AdditionalScheduleForProgram
-                                                                                        viewingMode={
-                                                                                            1
-                                                                                        }
-                                                                                        programID={
-                                                                                            program.id
-                                                                                        }
-                                                                                        grade={
-                                                                                            grade
-                                                                                        }
-                                                                                        arrayIndex={
-                                                                                            index
-                                                                                        }
-                                                                                        additionalSchedsOfProgYear={
-                                                                                            sched
-                                                                                        }
-                                                                                    />
-                                                                                </div>
-                                                                            </div>
-                                                                        )
-                                                                    )}
+                                                                    Grade {grade}
                                                                 </div>
-                                                            )
-                                                        )}
+                                                                {program[grade]?.additionalScheds.map((sched, index) => (
+                                                                    <div key={index} className='flex flex-wrap'>
+                                                                        <div className='w-1/12 text-xs font-bold bg-blue-100 flex text-center justify-center items-center p-2'>
+                                                                            {index + 1}
+                                                                        </div>
+                                                                        <div className='w-11/12'>
+                                                                            <button
+                                                                                className='w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-gray-200'
+                                                                                onClick={() =>
+                                                                                    document
+                                                                                        .getElementById(
+                                                                                            `add_additional_sched_modal_1_grade-${grade}_prog-${program.id}_idx-${index}`
+                                                                                        )
+                                                                                        .showModal()
+                                                                                }
+                                                                            >
+                                                                                {sched.name || sched.subject ? (
+                                                                                    // Content to show when both are not empty
+                                                                                    <>
+                                                                                        <p>Name: {sched.name}</p>
+                                                                                        <p>
+                                                                                            Subject:{' '}
+                                                                                            {sched.subject === 0
+                                                                                                ? 'N/A'
+                                                                                                : subjects[sched.subject].subject}
+                                                                                        </p>
+                                                                                    </>
+                                                                                ) : (
+                                                                                    // Content to show when either is empty
+                                                                                    <p>Untitled Schedule {index + 1}</p>
+                                                                                )}
+                                                                            </button>
+                                                                            <AdditionalScheduleForProgram
+                                                                                viewingMode={1}
+                                                                                programID={program.id}
+                                                                                grade={grade}
+                                                                                arrayIndex={index}
+                                                                                additionalSchedsOfProgYear={sched}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        ))}
                                                     </div>
                                                 </>
                                             )}
@@ -1605,28 +1238,19 @@ const ProgramListContainer = ({
                                                 program.id ? (
                                                     <>
                                                         <button
-                                                            className="btn btn-sm btn-outline"
+                                                            className='btn btn-sm btn-outline'
                                                             // onClick={() =>
                                                             //     handleSaveProgramEditClick(
                                                             //         program.id
                                                             //     )
                                                             // }
                                                             onClick={() =>
-                                                                document
-                                                                    .getElementById(
-                                                                        `confirm_program_edit_modal`
-                                                                    )
-                                                                    .showModal()
+                                                                document.getElementById(`confirm_program_edit_modal`).showModal()
                                                             }
                                                         >
                                                             Save
                                                         </button>
-                                                        <button
-                                                            className="btn btn-sm btn-outline"
-                                                            onClick={
-                                                                resetStates
-                                                            }
-                                                        >
+                                                        <button className='btn btn-sm btn-outline' onClick={resetStates}>
                                                             Cancel
                                                         </button>
                                                     </>
@@ -1667,57 +1291,44 @@ const ProgramListContainer = ({
                         style={{ width: '30%', maxWidth: 'none' }}
                     >
                         <div>
-                            <div className="mb-3 text-center text-lg font-bold">
-                                Confirmation for Modifications on Program
-                            </div>
+                            <div className='mb-3 text-center text-lg font-bold'>Confirmation for Modifications on Program</div>
                         </div>
 
                         <div>
-                            <div className="m-2 p-2">
-                                Your modifications in this program will be saved
-                                as well in all associated sections. Please
-                                select which section details you would like to
-                                update.
+                            <div className='m-2 p-2'>
+                                Your modifications in this program will be saved as well in all associated sections. Please select
+                                which section details you would like to update.
                             </div>
-                            <div className="flex justify-center items-center">
-                                <div className="text-left">
+                            <div className='flex justify-center items-center'>
+                                <div className='text-left'>
                                     <label>
                                         <input
-                                            type="checkbox"
-                                            name="shift"
-                                            className="mr-2"
-                                            checked={
-                                                sectionDetailsToUpdate.shiftAndStartTime
-                                            }
+                                            type='checkbox'
+                                            name='shift'
+                                            className='mr-2'
+                                            checked={sectionDetailsToUpdate.shiftAndStartTime}
                                             onChange={(e) =>
-                                                setSectionDetailsToUpdate(
-                                                    (prev) => ({
-                                                        ...prev,
-                                                        shiftAndStartTime: e.target.checked,
-                                                    })
-                                                )
+                                                setSectionDetailsToUpdate((prev) => ({
+                                                    ...prev,
+                                                    shiftAndStartTime: e.target.checked,
+                                                }))
                                             }
                                         />
                                         Update Shift and Start Time
                                     </label>
                                     <br />
-                                    
+
                                     <label>
                                         <input
-                                            type="checkbox"
-                                            name="fixedScheds"
-                                            className="mr-2"
-                                            checked={
-                                                sectionDetailsToUpdate.fixedScheds
-                                            }
+                                            type='checkbox'
+                                            name='fixedScheds'
+                                            className='mr-2'
+                                            checked={sectionDetailsToUpdate.fixedScheds}
                                             onChange={(e) =>
-                                                setSectionDetailsToUpdate(
-                                                    (prev) => ({
-                                                        ...prev,
-                                                        fixedScheds:
-                                                            e.target.checked,
-                                                    })
-                                                )
+                                                setSectionDetailsToUpdate((prev) => ({
+                                                    ...prev,
+                                                    fixedScheds: e.target.checked,
+                                                }))
                                             }
                                         />
                                         Update Fixed Schedules
@@ -1725,45 +1336,37 @@ const ProgramListContainer = ({
                                     <br />
                                     <label>
                                         <input
-                                            type="checkbox"
-                                            name="additionalScheds"
-                                            className="mr-2"
-                                            checked={
-                                                sectionDetailsToUpdate.additionalScheds
-                                            }
+                                            type='checkbox'
+                                            name='additionalScheds'
+                                            className='mr-2'
+                                            checked={sectionDetailsToUpdate.additionalScheds}
                                             onChange={(e) =>
-                                                setSectionDetailsToUpdate(
-                                                    (prev) => ({
-                                                        ...prev,
-                                                        additionalScheds:
-                                                            e.target.checked,
-                                                    })
-                                                )
+                                                setSectionDetailsToUpdate((prev) => ({
+                                                    ...prev,
+                                                    additionalScheds: e.target.checked,
+                                                }))
                                             }
                                         />
                                         Update Additional Schedules
                                     </label>
                                 </div>
                             </div>
-                            <div className="mt-4 flex justify-center items-center gap-3">
+                            <div className='mt-4 flex justify-center items-center gap-3'>
                                 <button
-                                    className="btn btn-sm bg-green-400 hover:bg-green-200"
+                                    className='btn btn-sm bg-green-400 hover:bg-green-200'
                                     onClick={handleSaveProgramEditClick}
                                 >
                                     Confirm
                                 </button>
-                                <button
-                                    className="btn btn-sm"
-                                    onClick={handleConfirmationModalClose}
-                                >
+                                <button className='btn btn-sm' onClick={handleConfirmationModalClose}>
                                     Cancel
                                 </button>
                             </div>
                         </div>
 
-                        <div className="modal-action w-full mt-0">
+                        <div className='modal-action w-full mt-0'>
                             <button
-                                className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                                className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2'
                                 onClick={handleConfirmationModalClose}
                             >
                                 ✕

@@ -56,7 +56,7 @@ class Section {
 	      is_dynamic_subject_consistent_duration(is_dynamic_subject_consistent_duration_),
 	      has_violation(false),
 		  location(location_) {}
-	// Static Functions
+		  	// Static Functions
 	static Section& getRandomSection();
 
 	// Core Functional Methods

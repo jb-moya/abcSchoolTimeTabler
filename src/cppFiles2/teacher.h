@@ -14,7 +14,16 @@ struct Teacher {
 	TimeDuration max_work_load;
 	TimeDuration min_work_load;
 
-	std::unordered_map<ScheduledDay, std::map<TimePoint, std::tuple<SectionID, int>>> utilized_time;
+	std::unordered_map<ScheduledDay,
+	                   std::map<TimePoint,
+	                            std::tuple<SectionID,
+	                                       /* class type */
+	                                       int, /* overlappable */
+	                                       int, /* non-overlappable */
+	                                       int /* reserved */
+	                                       >>>
+	    utilized_time;
+
 	std::unordered_map<ScheduledDay, TimeDuration> day_total_work_load;
 
 	bool has_violation;
@@ -31,11 +40,13 @@ struct Teacher {
 
 	bool hasViolation() const;
 
-	const std::unordered_map<ScheduledDay, std::map<TimePoint, std::tuple<SectionID, int>>> getUtilizedTime() const;
+	const std::unordered_map<ScheduledDay, std::map<TimePoint, std::tuple<SectionID, int, int, int>>> getUtilizedTime() const;
 	const std::unordered_map<ScheduledDay, TimeDuration> getDayTotalWorkLoad() const;
 
-	int incrementUtilizedTime(int day, TimePoint timePoint, SectionID section_id);
-	int decrementUtilizedTime(int day, TimePoint timePoint);
+	bool isEmptyUtilizedTimePoint(int day, TimePoint timePoint) const;
+
+	int incrementUtilizedTime(int day, TimePoint timePoint, int class_type, SectionID section_id);
+	int decrementUtilizedTime(int day, TimePoint timePoint, int class_type);
 
 	void incrementClassCount(ScheduledDay day);
 	void decrementClassCount(ScheduledDay day);

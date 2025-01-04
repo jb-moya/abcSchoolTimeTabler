@@ -33,7 +33,7 @@ bool Teacher::hasViolation() const {
 	return has_violation;
 }
 
-const std::unordered_map<ScheduledDay, std::map<TimePoint, std::tuple<SectionID, int>>> Teacher::getUtilizedTime() const {
+const std::unordered_map<ScheduledDay, std::map<TimePoint, std::tuple<SectionID, int, int, int>>> Teacher::getUtilizedTime() const {
 	return utilized_time;
 }
 
@@ -61,32 +61,50 @@ void Teacher::decrementClassCount(ScheduledDay day) {
 	}
 }
 
-int Teacher::incrementUtilizedTime(int day, TimePoint timePoint, SectionID section_id) {
+int Teacher::incrementUtilizedTime(int day, TimePoint timePoint, int class_type, SectionID section_id) {
 	ScheduledDay scheduled_day = static_cast<ScheduledDay>(day);
-	
+
 	auto& tuple_value = utilized_time[scheduled_day][timePoint];
-std::get<0>(tuple_value) = section_id;
-	return ++std::get<1>(tuple_value);
+	std::get<0>(tuple_value) = section_id;
+
+	if (class_type == 1) {
+		++std::get<1>(tuple_value);
+	} else if (class_type == 2) {
+		++std::get<2>(tuple_value);
+	} else if (class_type == 3) {
+		++std::get<3>(tuple_value);
+	}
+
+	return std::get<1>(tuple_value) + std::get<2>(tuple_value) + std::get<3>(tuple_value);
 }
 
-int Teacher::decrementUtilizedTime(int day, TimePoint timePoint) {
+int Teacher::decrementUtilizedTime(int day, TimePoint timePoint, int class_type) {
 	ScheduledDay scheduled_day = static_cast<ScheduledDay>(day);
-	
+
 	auto& tuple_value = utilized_time[scheduled_day][timePoint];
-return --std::get<1>(tuple_value);
+
+	if (class_type == 1) {
+		--std::get<1>(tuple_value);
+	} else if (class_type == 2) {
+		--std::get<2>(tuple_value);
+	} else if (class_type == 3) {
+		--std::get<3>(tuple_value);
+	}
+
+	return std::get<1>(tuple_value) + std::get<2>(tuple_value);
 }
 
 int Teacher::removeUtilizedTimePoint(int day, TimePoint timePoint) {
 	ScheduledDay scheduled_day = static_cast<ScheduledDay>(day);
-		return utilized_time[scheduled_day].erase(timePoint);
+	return utilized_time[scheduled_day].erase(timePoint);
 }
 
 bool Teacher::isUtilizedTimesDayEmpty(int day) {
 	ScheduledDay scheduled_day = static_cast<ScheduledDay>(day);
-		return utilized_time[scheduled_day].empty();
+	return utilized_time[scheduled_day].empty();
 }
 
 void Teacher::removeUtilizedTimeDay(int day) {
 	ScheduledDay scheduled_day = static_cast<ScheduledDay>(day);
-		utilized_time.erase(scheduled_day);
+	utilized_time.erase(scheduled_day);
 }

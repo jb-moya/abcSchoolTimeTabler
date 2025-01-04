@@ -23,3 +23,7 @@ Timeslot SubjectConfiguration::getFixedTimeslot() const {
 ScheduledDay SubjectConfiguration::getFixedDay() const {
 	return fixed_day;
 }
+
+bool SubjectConfiguration::isOverlappable() const {
+	return is_overlappable;
+}

@@ -1,4 +1,4 @@
-const calculateTotalTimeslot = (subjects, subjectList, numOfSchoolDays) => {
+const calculateTotalClass = (subjects, subjectList, numOfSchoolDays) => {
     const totalNumOfClasses = subjectList.reduce((total, subject) => {
         const classesPerWeek = Math.min(
             Math.ceil(
@@ -10,7 +10,7 @@ const calculateTotalTimeslot = (subjects, subjectList, numOfSchoolDays) => {
         return total + classesPerWeek;
     }, 0);
 
-    return Math.ceil(totalNumOfClasses / numOfSchoolDays);
+    return totalNumOfClasses;
 };
 
-export default calculateTotalTimeslot;
+export default calculateTotalClass;

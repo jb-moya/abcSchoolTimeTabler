@@ -16,20 +16,23 @@ void runExperiment(
     int number_of_subject_configuration,
 
     int32_t* section_configuration,
-int32_t* section_location,
+    int32_t* section_location,
     int32_t* section_subject_configuration,
     int32_t* subject_configuration_subject_units,
     int32_t* subject_configuration_subject_duration,
     int32_t* subject_configuration_subject_fixed_timeslot,
     int32_t* subject_configuration_subject_fixed_day,
-int32_t* subject_configuration_subject_is_overlappable,
+    int32_t* subject_configuration_subject_is_overlappable,
     int32_t* subject_fixed_teacher_section,
     int32_t* subject_fixed_teacher,
     int32_t* section_start,
     int32_t* teacher_subjects,
     int32_t* teacher_week_load_config,
-int32_t* building_info,
+    int32_t* building_info,
     int32_t* building_adjacency,
+
+    int32_t* teacher_reservation_config,  // include start and end
+    int32_t* teacher_reservation_config_id,
 
     int teacher_subjects_length,
     int bees_population,
@@ -85,11 +88,13 @@ int32_t* building_info,
 	                                          subject_configuration_subject_units,
 	                                          subject_configuration_subject_duration,
 	                                          subject_configuration_subject_fixed_timeslot,
-	                                          subject_configuration_subject_fixed_day);
+	                                          subject_configuration_subject_fixed_day,
+	                                          subject_configuration_subject_is_overlappable);
 	timetable.initializeSections(total_section, section_configuration, section_start, section_location);
 	timetable.initializeSectionFixedSubjectTeacher(subject_fixed_teacher_section, subject_fixed_teacher);
 	timetable.initializeTeachers(num_teachers, teacher_week_load_config);
 	timetable.initializeTeacherSubjects(teacher_subjects_length, teacher_subjects);
+	timetable.initializeTeacherReservedSchedule(teacher_reservation_config, teacher_reservation_config_id);
 	timetable.initializeSectionSubjects(total_section_subjects, section_subject_configuration);
 
 	timetable.initializeBuildingAdjacency(building_adjacency);

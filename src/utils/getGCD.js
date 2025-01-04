@@ -1,10 +1,23 @@
+// function gcd(a, b) {
+//     // Base case: if b is 0, return a
+//     if (b === 0) {
+//         return a;
+//     }
+//     // Recursive case
+//     return gcd(b, a % b);
+// }
+
 function gcd(a, b) {
-    // Base case: if b is 0, return a
-    if (b === 0) {
-        return a;
+    a = Math.abs(a);
+    b = Math.abs(b);
+
+    while (b !== 0) {
+        const temp = b;
+        b = a % b;
+        a = temp;
     }
-    // Recursive case
-    return gcd(b, a % b);
+
+    return a;
 }
 
 function gcdOfArray(numbers) {

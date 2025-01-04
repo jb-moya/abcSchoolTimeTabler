@@ -1870,7 +1870,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                     </p>
                     <div className="modal-action">
                         {/* Option to Export as JSON */}
-                        <button
+                        {/* <button
                             className="btn btn-primary"
                             onClick={() => {
                                 exportDB('json');
@@ -1881,7 +1881,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                             }}
                         >
                             Export as JSON
-                        </button>
+                        </button> */}
 
                         {/* Option to Export as Excel */}
                         <button
@@ -1945,7 +1945,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                     </p>
                     <div className="modal-action">
                         {/* Option to Import a JSON */}
-                        <button
+                        {/* <button
                             className="btn btn-primary"
                             onClick={() => {
                                 importDB('json');
@@ -1955,7 +1955,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                             }}
                         >
                             Import JSON
-                        </button>
+                        </button> */}
 
                         {/* Option to Import an Excel */}
                         <button

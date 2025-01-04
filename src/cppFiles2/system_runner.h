@@ -16,11 +16,15 @@ void runExperiment(
     int32_t* section_configuration,
     int32_t* section_location,
     int32_t* section_subject_configuration,
-    int32_t* subject_configuration_subject_units,
+
+    // MIGHT TODO: combine configurations into one array: duration, fixed_timeslot, and fixed_day might fit into one array
+
+    int32_t* subject_configuration_subject_units, // also include the subject id
     int32_t* subject_configuration_subject_duration,
     int32_t* subject_configuration_subject_fixed_timeslot,
     int32_t* subject_configuration_subject_fixed_day,
     int32_t* subject_configuration_subject_is_overlappable,
+    
     int32_t* subject_fixed_teacher_section,
     int32_t* subject_fixed_teacher,
     int32_t* section_start,
@@ -28,6 +32,9 @@ void runExperiment(
     int32_t* teacher_week_load_config,
     int32_t* building_info,
     int32_t* building_adjacency,
+
+    int32_t* teacher_reservation_config, // include start and end
+    int32_t* teacher_reservation_config_id,
 
     int teacher_subjects_length,
     int bees_population,

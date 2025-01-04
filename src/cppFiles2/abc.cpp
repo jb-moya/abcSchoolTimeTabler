@@ -178,8 +178,8 @@ void ABC::getViolation(int64_t* result_violation) {
 		const auto& daily_class_schedule = teacher.getUtilizedTime();
 		const auto& total_day_work_load = teacher.getDayTotalWorkLoad();
 
-		const TimeDuration max_teacher_work_load = teacher.getMaxWorkLoad();
-		const TimeDuration min_teacher_work_load = teacher.getMinWorkLoad();
+		const TimeDuration max_teacher_work_load = teacher.getMaxDayWorkLoad();
+		const TimeDuration min_teacher_work_load = teacher.getMinDayWorkLoad();
 		const TimeDuration break_time_duration = best_solution.timetable.getBreakTimeDuration();
 
 		for (const auto& [day, time_points_class_count] : daily_class_schedule) {
@@ -211,7 +211,7 @@ void ABC::getViolation(int64_t* result_violation) {
 
 			while (it != time_points_class_count.end()) {
 				TimePoint time_point = it->first;
-auto& utilized_time_in_section = it->second;
+				auto& utilized_time_in_section = it->second;
 				int time_point_class_count = std::get<1>(utilized_time_in_section);
 
 				if (nextIt != time_points_class_count.end()) {
@@ -331,6 +331,8 @@ void ABC::getResult(int64_t* result, int64_t* result_2, TimePoint offset_duratio
 	int iter = 0;
 
 	const auto& section_set = Timetable::getSectionsSet();
+
+	// TODO: account for reserved schedule for teachers that is not included on sections
 
 	for (const auto& section_id : section_set) {
 		Section section = best_solution.timetable.getSectionById(section_id);
