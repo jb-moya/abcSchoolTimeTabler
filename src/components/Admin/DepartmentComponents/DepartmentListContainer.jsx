@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { IoAdd, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
 import {
@@ -14,7 +13,6 @@ import escapeRegExp from '@utils/escapeRegExp';
 import { fetchTeachers } from '@features/teacherSlice';
 
 import { toast } from "sonner";
-import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 
 import AddDepartmentContainer from './DepartmentAdd';
 import DeleteData from '../DeleteData';

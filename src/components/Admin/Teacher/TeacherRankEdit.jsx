@@ -1,0 +1,514 @@
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchRanks } from '@features/rankSlice';
+
+import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
+import AdditionalScheduleForTeacherRank from './AdditionalScheduleForTeacherRank';
+import { fetchSubjects } from '@features/subjectSlice';
+import { fetchTeachers, editTeacher } from '@features/teacherSlice';
+
+import { toast } from "sonner";
+
+const TeacherRankEdit = ({
+    rank,
+    reduxFunction,
+    errorMessage,
+    setErrorMessage,
+    errorField,
+    setErrorField,
+    numOfSchoolDays,
+}) => {
+
+
+    const dispatch = useDispatch();
+
+    const { ranks, status: rankStatus } = useSelector(
+		(state) => state.rank
+	);
+
+	const { teachers, status: teacherStatus } = useSelector(
+		(state) => state.teacher
+	);
+
+    const [editRankId, setEditRankId] = useState(rank.id || null);
+    const [editRankValue, setEditRankValue] = useState(rank.rank || "");
+    const [editAdditionalRankScheds, setEditAdditionalRankScheds] = useState((rank.additionalRankScheds) || []);
+
+
+    // ====================================================================
+
+    //  FOR FETCHING ALL RANKS AND TEACHERS
+        useEffect(() => {
+            if (rankStatus === 'idle') {
+                dispatch(fetchRanks());
+            }
+        }, [rankStatus, dispatch]);
+    
+        useEffect(() => {
+            if (teacherStatus === 'idle') {
+                dispatch(fetchTeachers());
+            }
+        }, [teacherStatus, dispatch]);
+
+    // ====================================================================
+
+    const resetStates = () => {
+		setEditRankId(rank.id || null);
+		setEditRankValue(rank.rank || "");
+		setEditAdditionalRankScheds((rank.additionalRankScheds) || []);
+	};
+
+    const handleConfirmationModalClose = () => {
+        document.getElementById(`confirm_rank_edit_modal`).close();
+    };
+
+    const updateAllTeacherAdditionalSchedules = () => {
+    
+            Object.entries(teachers).forEach(([teacherID, teacher]) => {
+                const newTeacher = JSON.parse(JSON.stringify(teacher));
+    
+                if (newTeacher.rank !== editRankId) return;
+    
+                const updatedSchedNames = new Set(editAdditionalRankScheds.map((sched) => sched.name));
+    
+                const advisoryLoadSched = newTeacher.additionalTeacherScheds.find(
+                    (sched) => sched.name === 'Advisory Load'
+                );
+    
+                let updatedAdditionalScheds = structuredClone(editAdditionalRankScheds);
+    
+                if (advisoryLoadSched && !updatedSchedNames.has('Advisory Load')) {
+                    updatedAdditionalScheds.push(advisoryLoadSched);
+                    updatedSchedNames.add('Advisory Load'); 
+                }
+    
+                const existingSchedsMap = new Map(
+                    newTeacher.additionalTeacherScheds.map((sched) => [sched.name, sched])
+                );
+    
+                newTeacher.additionalTeacherScheds = updatedAdditionalScheds.map((updatedSched) => {
+                    const existingSched = existingSchedsMap.get(updatedSched.name);
+    
+                    if (existingSched) {
+                        return {
+                            ...existingSched,
+                            duration: updatedSched.duration || existingSched.duration,
+                            frequency: updatedSched.frequency || existingSched.frequency,
+                            shown: updatedSched.shown ?? existingSched.shown,
+                            time: updatedSched.time || existingSched.time,
+                        };
+                    }
+    
+                    // If the schedule doesn't exist, add it as is
+                    return updatedSched;
+                });
+    
+    
+                dispatch(
+                    editTeacher({
+                        teacherId: newTeacher.id,
+                        updatedTeacher: {
+                            teacher: newTeacher.teacher,
+                            department: newTeacher.department,
+                            rank: newTeacher.rank,
+                            subjects: newTeacher.subjects,
+                            yearLevels: newTeacher.yearLevels,
+                            additionalTeacherScheds: newTeacher.additionalTeacherScheds,
+                        },
+                    })
+                );
+                
+            })
+        };
+    
+        
+    const handleSaveRankEditClick = (value) => {
+		if (!editRankValue.trim()) {
+			toast.error('All fields are required.', {
+				style: { backgroundColor: 'red', color: 'white' },
+			});
+			return;
+		}
+
+		const currentRank = ranks[editRankId]?.rank || '';
+
+		if (editRankValue.trim().toLowerCase() === currentRank.trim().toLowerCase()) {
+			dispatch(
+				reduxFunction({
+					rankId: editRankId,
+					updatedRank: {
+						rank: editRankValue,
+						additionalRankScheds: editAdditionalRankScheds,
+					},
+				})
+			);
+
+			if (value) {
+				updateAllTeacherAdditionalSchedules();
+			}
+
+			toast.success('Data and dependencies updated successfully', {
+				style: { backgroundColor: 'green', color: 'white', bordercolor: 'green', },
+			});
+
+			resetStates();
+		} else {
+			const duplicateRank = Object.values(ranks).find((rank) => rank.rank.trim().toLowerCase() === editRankValue.trim().toLowerCase());
+
+			if (duplicateRank) {
+				toast.error('Rank already exists.', {
+					style: { backgroundColor: 'red', color: 'white' },
+				});
+				return;
+			} else {
+				dispatch(
+					reduxFunction({
+						rankId: editRankId,
+						updatedRank: {
+							rank: editRankValue,
+							additionalRankScheds: editAdditionalRankScheds,
+						},
+					})
+				);
+
+				if (value) {
+					updateAllTeacherAdditionalSchedules();
+				}
+
+				toast.success('Data and dependencies updated successfully', {
+					style: { backgroundColor: 'green', color: 'white', bordercolor: 'green', },
+				});
+
+				resetStates();
+			}
+		}
+
+		handleConfirmationModalClose();
+	};
+
+
+    const handleDeleteAdditionalSchedule = (index) => {
+		setEditAdditionalRankScheds((prevScheds) =>
+			prevScheds.filter((_, i) => i !== index)
+		);
+	};
+
+    const handleAddAdditionalSchedule = () => {
+		setEditAdditionalRankScheds((prevScheds) => [
+			...prevScheds,
+			{
+				name: '',
+				subject: 0,
+				duration: 60,
+				frequency: 1,
+				shown: true,
+				time: 72,
+			},
+		]);
+	};
+
+    const closeModal = () => {
+		const modalCheckbox = document.getElementById(`rankEdit_modal_${rank.id}`);
+		if (modalCheckbox) {
+			modalCheckbox.checked = false; // Uncheck the modal toggle
+		}
+		// handleResetDepartmentEditClick();
+	};
+
+
+
+  return (
+
+    <div className="flex items-center justify-center">
+                {/* Trigger Button */}
+                <label
+                    htmlFor={`rankEdit_modal_${rank.id}`}
+                    className="btn btn-xs btn-ghost text-blue-500"
+                >
+                    <RiEdit2Fill size={20} />
+                </label>
+    
+                {/* Modal */}
+                <input type="checkbox" id={`rankEdit_modal_${rank.id}`} className="modal-toggle" />
+    
+                <div className="modal">
+                    <div className="modal-box relative">
+                        <label
+                            htmlFor={`rankEdit_modal_${rank.id}`}
+                            className="btn btn-sm btn-circle absolute right-2 top-2"
+                        >
+                            ✕
+                        </label>
+                        <h3 className="flex justify-center text-lg font-bold mb-4">Edit Rank</h3>
+    
+                        <hr className="mb-4" />
+    
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium mb-2">
+                                Rank Name:
+                            </label>
+                            <input
+                                type="text"
+                                className="input input-bordered w-full"
+                                value={editRankValue}
+                                onChange={(e) => setEditRankValue(e.target.value)}
+                                placeholder="Enter rank name"
+                            />
+                        </div>
+
+                        {editRankId === rank.id ? (
+										<>
+											<div
+												key={`edit-add-sched-edit-tr(${editRankId})`}
+												className="mt-2 overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg"
+												style={{
+													scrollbarWidth:
+														'thin',
+													scrollbarColor:
+														'#a0aec0 #edf2f7',
+												}} // Optional for styled scrollbars
+											>
+												<div
+													className="flex flex-wrap"
+													style={{
+														position: 'sticky',
+														top: 0,
+														zIndex: 1,
+														backgroundColor:'white',
+													}}
+												>
+													<div className="w-3/12 flex justify-center items-center border-b border-gray-300">
+														<button
+															className="w-3/4 bg-green-700 m-2 font-bold text-white rounded-lg hover:bg-green-500"
+															onClick={handleAddAdditionalSchedule}
+														>
+															+
+														</button>
+													</div>
+												</div>
+												{editAdditionalRankScheds.map((sched, index) => 
+													(
+														<div
+															key={index}
+															className="flex flex-wrap"
+														>
+															<button
+																className="w-1/12 border rounded-l-lg bg-blue-200 hover:bg-blue-100 flex items-center justify-center"
+																onClick={() => handleDeleteAdditionalSchedule(index)}
+															>
+																<RiDeleteBin7Line
+																	size={15}
+																/>
+															</button>
+															<div className="w-10/12">
+																<button
+																	className="w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-gray-200"
+																	onClick={() =>
+																		document.getElementById(`add_additional_sched_modal_1_tr-${editRankId}_idx-${index}`).showModal()
+																	}
+																>
+																	{sched.name ||
+																		sched.subject ? (
+																			// Content to show when both are not empty
+																			<>
+																				<p>
+																					Name:{' '}{sched.name}
+																				</p>
+																				<p>
+																					Subject:{' '}
+																					{sched.subject === 0
+																						? 'N/A'
+																						: subjects[sched.subject].subject}
+																				</p>
+																			</>
+																		) : (
+																			// Content to show when either is empty
+																			<p>
+																				Untitled Schedule{' '}{index + 1}
+																			</p>
+																	)}
+																</button>
+																<AdditionalScheduleForTeacherRank
+																	viewingMode={1}
+																	rankID={editRankId}
+																	arrayIndex={index}
+																	additionalSchedsOfRank={sched}
+																/>
+															</div>
+															<div className="w-1/12 text-xs font-bold rounded-r-lg bg-blue-200 hover:bg-blue-100 flex text-center justify-center items-center p-2 cursor-pointer">
+																<button
+																	onClick={() =>
+																		document.getElementById(`add_additional_sched_modal_0_tr-${editRankId}_idx-${index}`).showModal()
+																	}
+																>
+																	<RiEdit2Fill
+																		size={15}
+																	/>
+																</button>
+																<AdditionalScheduleForTeacherRank
+																	viewingMode={0}
+																	rankID={editRankId}
+																	arrayIndex={index}
+																	numOfSchoolDays={numOfSchoolDays}
+																	additionalSchedsOfRank={sched}
+																	setAdditionalScheds={setEditAdditionalRankScheds}
+																/>
+															</div>
+														</div>
+													)
+												)}
+											</div>
+										</>
+									) : (
+										<>
+											<div
+												key={`edit-add-sched-view-tr(${rank.id})`}
+												className="w-2/3 overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg"
+												style={{
+													scrollbarWidth: 'thin',
+													scrollbarColor: '#a0aec0 #edf2f7',
+												}} // Optional for styled scrollbars
+											>
+												<div
+													className="font-bold p-2 border-b border-gray-300 bg-gray-300"
+													style={{
+														position: 'sticky',
+														top: 0,
+														zIndex: 1,
+													}}
+												></div>
+												{rank.additionalRankScheds.map((sched, index) =>
+													(
+														<div
+															key={index}
+															className="flex flex-wrap"
+														>
+															<div className="w-1/12 text-xs font-bold bg-blue-100 flex text-center justify-center items-center p-2">
+																{index + 1}
+															</div>
+															<div className="w-11/12">
+																<button
+																	className="w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-white"
+																	onClick={() =>
+																		document.getElementById(`add_additional_sched_modal_1_tr-${rank.id}_idx-${index}`).showModal()
+																	}
+																>
+																	{sched.name || sched.subject ? (
+																		// Content to show when both are not empty
+																		<>
+																			<p>
+																				Name:{' '}{sched.name}
+																			</p>
+																			<p>
+																				Subject:{' '}
+																				{sched.subject === 0
+																					? 'N/A'
+																					: subjects[sched.subject].subject
+																				}
+																			</p>
+																		</>
+																	) : (
+																		// Content to show when either is empty
+																		<p>
+																			Untitled Schedule{' '}
+																			{index + 1}
+																		</p>
+																	)}
+																</button>
+																<AdditionalScheduleForTeacherRank
+																	viewingMode={1}
+																	rankID={rank.id}
+																	arrayIndex={index}
+																	additionalSchedsOfRank={sched}
+																/>
+															</div>
+														</div>
+													)
+												)}
+											</div>
+										</>
+									)}
+
+
+    
+                     
+    
+                        {errorMessage && (
+                            <p className="flex justify-center text-red-500 text-sm my-4 font-medium">{errorMessage}</p>
+                        )}
+    
+                        <div className="flex justify-center gap-2 mt-4">
+                            <button 
+                                className="btn btn-primary " 
+                                onClick={() => document.getElementById(`confirm_rank_edit_modal`).showModal()}
+                            >
+                                Update Rank
+                            </button>
+                            <button 
+                                className="btn btn-error " 
+                                onClick={() => resetStates()}
+                            >
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Modal for confirming program modifications */}
+			<dialog
+				id="confirm_rank_edit_modal"
+				className="modal modal-bottom sm:modal-middle"
+			>
+				<div
+					className="modal-box"
+					style={{ width: '30%', maxWidth: 'none' }}
+				>
+					<div>
+						<div className="mb-3 text-center text-lg font-bold">
+							Confirmation for Modifications on Rank
+						</div>
+					</div>
+
+					<div>
+						<div className="m-2 p-2">
+							Your modifications in this rank will be now saved. Would
+							you also like to for the ADDITIONAL SCHEDULE changes to 
+							reflect on all associated teachers?
+						</div>
+						<div className="mt-4 flex justify-center items-center gap-3">
+							<button
+								className="btn btn-sm bg-green-400 hover:bg-green-200"
+								onClick={() => {
+									handleSaveRankEditClick(true); 
+								}}
+							>
+								Yes
+							</button>
+							<button
+								className="btn btn-sm"
+								onClick={() => {
+									handleSaveRankEditClick(false); 
+								}} 
+							>
+								No
+							</button>
+						</div>
+					</div>
+
+					<div className="modal-action w-full mt-0">
+						<button
+							className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+							onClick={handleConfirmationModalClose}
+						>
+							✕
+						</button>
+					</div>
+				</div>
+			</dialog>
+
+            </div>
+    
+  )
+}
+
+export default TeacherRankEdit
