@@ -196,33 +196,35 @@ const SubjectListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
     //                 return;
     //             }
 
-    //             const newTotalTimeslot = calculateTotalTimeslot(
-    //                 {
-    //                     ...subjects,
-    //                     [editSubjectId]: {
-    //                         ...subjects[editSubjectId],
-    //                         subject: editSubjectValue,
-    //                         classDuration: editClassDuration,
-    //                         weeklyMinutes: editSubjectWeeklyMinutes,
-    //                     },
-    //                 },
-    //                 newProgram[grade].subjects,
-    //                 numOfSchoolDays
-    //             );
+    // const totalNumOfClasses = calculateTotalClass(
+    //     {
+    //         ...subjects,
+    //         [editSubjectId]: {
+    //             ...subjects[editSubjectId],
+    //             subject: editSubjectValue,
+    //             classDuration: editClassDuration,
+    //             weeklyMinutes: editSubjectWeeklyMinutes,
+    //         },
+    //     },
+    //     newProgram[grade].subjects,
+    //     numOfSchoolDays
+    // );
 
-    //             Object.entries(newProgram[grade].fixedPositions).forEach(
-    //                 ([subjectId, fixedPosition]) => {
-    //                     fixedPosition.forEach((item, i) => {
-    //                         if (item > newTotalTimeslot) {
-    //                             fixedPosition[i] = 0;
-    //                             newProgram[grade].fixedDays[subjectId][i] = 0;
-    //                         }
-    //                     });
-    //                 }
-    //             );
+    // let totalTimeRow = Math.ceil(totalNumOfClasses / numOfSchoolDays);
 
-    //             console.log(
-    //                 'newTotalTimeslot', newTotalTimeslot);
+    // Object.entries(newProgram[grade].fixedPositions).forEach(
+    //     ([subjectId, fixedPosition]) => {
+    //         fixedPosition.forEach((item, i) => {
+    //             if (item > totalTimeRow) {
+    //                 fixedPosition[i] = 0;
+    //                 newProgram[grade].fixedDays[subjectId][i] = 0;
+    //             }
+    //         });
+    //     }
+    // );
+
+    // console.log(
+    //     'newTotalTimeslot', totalTimeRow);
 
     //             console.log(`newProgram[${grade}].subjects`,
     //                 newProgram[grade].subjects
@@ -237,12 +239,12 @@ const SubjectListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
     //                 fixedDays[subjectID].forEach((day, i) => {
     //                     const position = fixedPositions[subjectID][i];
 
-    //                     if (day || position) { // Only process non-zero day or position
-    //                         dayTimeSlots[day] ??= newTotalTimeslot; // Use nullish coalescing assignment
-    //                         positionTimeSlots[position] ??= numOfSchoolDays;
-    //                     }
-    //                 });
-    //             }
+    //         if (day || position) { // Only process non-zero day or position
+    //             dayTimeSlots[day] ??= totalTimeRow; // Use nullish coalescing assignment
+    //             positionTimeSlots[position] ??= numOfSchoolDays;
+    //         }
+    //     });
+    // }
 
     //             console.log('dayTimeSlots', dayTimeSlots);
 
@@ -369,38 +371,46 @@ const SubjectListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
 
     //         if (!newSection.subjects.includes(editSubjectId)) return;
 
-    //         const originalTotalTimeslot = calculateTotalTimeslot(
-    //             subjects,
-    //             newSection.subjects,
-    //             numOfSchoolDays
-    //         );
+    // const originalTotalNumOfClasses = calculateTotalClass(
+    //     subjects,
+    //     newSection.subjects,
+    //     numOfSchoolDays
+    // );
 
-    //         const newTotalTimeslot = calculateTotalTimeslot(
-    //             {
-    //                 ...subjects,
-    //                 [editSubjectId]: {
-    //                     ...subjects[editSubjectId],
-    //                     subject: editSubjectValue,
-    //                     classDuration: editClassDuration,
-    //                     weeklyMinutes: editSubjectWeeklyMinutes,
-    //                 },
-    //             },
-    //             newSection.subjects,
-    //             numOfSchoolDays
-    //         );
+    // let originalTotalTimeRow = Math.ceil(
+    //     originalTotalNumOfClasses / numOfSchoolDays
+    // );
 
-    //         if (newTotalTimeslot < originalTotalTimeslot) {
-    //             Object.entries(newSection.fixedPositions).forEach(
-    //                 ([subjectId, fixedPosition]) => {
-    //                     fixedPosition.forEach((item, i) => {
-    //                         if (item > newTotalTimeslot) {
-    //                             fixedPosition[i] = 0;
-    //                             newSection.fixedDays[subjectId][i] = 0;
-    //                         } // reset all positions to zero if timeslot is removed
-    //                     });
-    //                 }
-    //             );
+    // const newTotalNumOfClasses = calculateTotalClass(
+    //     {
+    //         ...subjects,
+    //         [editSubjectId]: {
+    //             ...subjects[editSubjectId],
+    //             subject: editSubjectValue,
+    //             classDuration: editClassDuration,
+    //             weeklyMinutes: editSubjectWeeklyMinutes,
+    //         },
+    //     },
+    //     newSection.subjects,
+    //     numOfSchoolDays
+    // );
+
+    // let newTotalTimeRow = Math.ceil(
+    //     newTotalNumOfClasses / numOfSchoolDays
+    // );
+
+    // if (newTotalTimeRow < originalTotalTimeRow) {
+    //     Object.entries(newSection.fixedPositions).forEach(
+    //         ([subjectId, fixedPosition]) => {
+    //             fixedPosition.forEach((item, i) => {
+    //                 if (item > newTotalTimeRow) {
+    //                     fixedPosition[i] = 0;
+    //                     newSection.fixedDays[subjectId][i] = 0;
+    //                 } // reset all positions to zero if timeslot is removed
+    //             });
     //         }
+    //     );
+    // }
 
     //         const numOfClasses = Math.min(
     //             Math.ceil(editSubjectWeeklyMinutes / editClassDuration),
@@ -419,12 +429,12 @@ const SubjectListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
     //             fixedDays[subjectID].forEach((day, i) => {
     //                 const position = fixedPositions[subjectID][i];
 
-    //                 if (day || position) { // Only process non-zero day or position
-    //                     dayTimeSlots[day] ??= newTotalTimeslot; // Use nullish coalescing assignment
-    //                     positionTimeSlots[position] ??= numOfSchoolDays;
-    //                 }
-    //             });
+    //         if (day || position) { // Only process non-zero day or position
+    //             dayTimeSlots[day] ??= newTotalTimeRow; // Use nullish coalescing assignment
+    //             positionTimeSlots[position] ??= numOfSchoolDays;
     //         }
+    //     };
+    // }
 
     //         // Use hash maps to quickly look up subjects and day-position pairs
     //         const dayPositionMap = new Map();

@@ -136,19 +136,19 @@ const AdditionalScheduleForProgram = ({
     return (
         <dialog
             id={`add_additional_sched_modal_${viewingMode}_grade-${grade}_prog-${programID}_idx-${arrayIndex}`}
-            className="modal modal-bottom sm:modal-middle"
+            className='modal modal-bottom sm:modal-middle'
         >
-            <div className="modal-box">
+            <div className='modal-box'>
                 <div>
-                    <div className="mb-3 text-center text-lg font-bold">
+                    <div className='mb-3 text-center text-lg font-bold'>
                         {viewingMode === 1 ? <div>View Mode</div> : <div>Edit Mode</div>}
                     </div>
 
                     {/* Schedule Name */}
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-1">Schedule Name:</label>
+                    <div className='mb-4'>
+                        <label className='block text-sm font-medium mb-1'>Schedule Name:</label>
                         <input
-                            type="text"
+                            type='text'
                             // ref={inputNameRef}
                             className={clsx('input w-full', {
                                 'input-bordered': viewingMode === 0,
@@ -163,8 +163,8 @@ const AdditionalScheduleForProgram = ({
                     </div>
 
                     {/* Subject */}
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-1">Subject:</label>
+                    <div className='mb-4'>
+                        <label className='block text-sm font-medium mb-1'>Subject:</label>
                         {viewingMode === 0 ? (
                             <select
                                 className={clsx('input w-full', {
@@ -174,7 +174,7 @@ const AdditionalScheduleForProgram = ({
                                 value={schedSubject === 0 ? 0 : schedSubject}
                                 onChange={(e) => setSchedSubject(Number(e.target.value))}
                             >
-                                <option value={0} className="text-gray-400">
+                                <option value={0} className='text-gray-400'>
                                     N/A
                                 </option>
                                 {progYearSubjects.map((id) => (
@@ -198,8 +198,8 @@ const AdditionalScheduleForProgram = ({
                     </div>
 
                     {/* Duration */}
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-1">Duration (in minutes):</label>
+                    <div className='mb-4'>
+                        <label className='block text-sm font-medium mb-1'>Duration (in minutes):</label>
                         <input
                             type='number'
                             className={clsx('input w-full', {
@@ -208,15 +208,15 @@ const AdditionalScheduleForProgram = ({
                             })}
                             value={schedDuration}
                             onChange={(e) => setSchedDuration(Number(e.target.value))}
-                            placeholder="Enter duration"
+                            placeholder='Enter duration'
                             // disabled={viewingMode !== 0}
                             readOnly={viewingMode !== 0}
                         />
                     </div>
 
                     {/* Frequency */}
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-1">Frequency:</label>
+                    <div className='mb-4'>
+                        <label className='block text-sm font-medium mb-1'>Frequency:</label>
                         <input
                             type='number'
                             className={clsx('input w-full', {
@@ -225,7 +225,7 @@ const AdditionalScheduleForProgram = ({
                             })}
                             value={schedFrequency}
                             onChange={(e) => setSchedFrequency(Number(e.target.value))}
-                            placeholder="Enter frequency"
+                            placeholder='Enter frequency'
                             min={1}
                             max={numOfSchoolDays}
                             // disabled={viewingMode !== 0}
@@ -234,8 +234,8 @@ const AdditionalScheduleForProgram = ({
                     </div>
 
                     {/* Must Appear on Schedule */}
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-1">Must Appear on Schedule:</label>
+                    <div className='mb-4'>
+                        <label className='block text-sm font-medium mb-1'>Must Appear on Schedule:</label>
                         <select
                             className={clsx('input w-full', {
                                 'input-bordered ': viewingMode === 0,
@@ -247,17 +247,17 @@ const AdditionalScheduleForProgram = ({
                             // disabled={viewingMode !== 0}
                             readOnly={viewingMode !== 0}
                         >
-                            <option value="Yes">Yes</option>
-                            <option value="No">No</option>
+                            <option value='Yes'>Yes</option>
+                            <option value='No'>No</option>
                         </select>
                     </div>
 
                     {/* Time */}
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-1">Time:</label>
+                    <div className='mb-4'>
+                        <label className='block text-sm font-medium mb-1'>Time:</label>
                         {viewingMode === 0 ? (
                             <TimeSelector
-                                className="z-10"
+                                className='z-10'
                                 key={`newProgramTimePicker-program{${programID}}-grade${grade}-arrayIndex${arrayIndex}`}
                                 interval={5}
                                 time={time}
@@ -270,17 +270,17 @@ const AdditionalScheduleForProgram = ({
                         )}
                     </div>
 
-                    <div className="mt-4 text-center text-lg font-bold">
+                    <div className='mt-4 text-center text-lg font-bold'>
                         {viewingMode !== 1 && (
-                            <div className="flex flex-wrap gap-2 justify-center">
+                            <div className='flex flex-wrap gap-2 justify-center'>
                                 <button
-                                    className="btn btn-sm rounded-lg bg-green-600 text-white hover:bg-green-500"
+                                    className='btn btn-sm rounded-lg bg-green-600 text-white hover:bg-green-500'
                                     onClick={handleSave}
                                 >
                                     Save
                                 </button>
                                 <button
-                                    className="btn btn-sm rounded-lg bg-red-600 text-white hover:bg-red-500"
+                                    className='btn btn-sm rounded-lg bg-red-600 text-white hover:bg-red-500'
                                     onClick={handleClose}
                                 >
                                     Cancel
@@ -290,8 +290,8 @@ const AdditionalScheduleForProgram = ({
                     </div>
                 </div>
 
-                <div className="modal-action w-full mt-0">
-                    <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={handleClose}>
+                <div className='modal-action w-full mt-0'>
+                    <button className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2' onClick={handleClose}>
                         ✕
                     </button>
                 </div>
@@ -692,44 +692,44 @@ const AddProgramContainer = ({
     }, []);
 
     return (
-        <dialog id="add_program_modal" className="modal modal-bottom sm:modal-middle">
-            <div className="modal-box" style={{ width: '50%', maxWidth: 'none' }}>
-                <div className="p-6">
+        <dialog id='add_program_modal' className='modal modal-bottom sm:modal-middle'>
+            <div className='modal-box' style={{ width: '50%', maxWidth: 'none' }}>
+                <div className='p-6'>
                     {/* Header section with centered "Add {reduxField}" */}
-                    <div className="flex justify-between mb-4">
-                        <h3 className="text-lg font-bold text-center w-full">
+                    <div className='flex justify-between mb-4'>
+                        <h3 className='text-lg font-bold text-center w-full'>
                             Add New {reduxField[0].charAt(0).toUpperCase() + reduxField[0].slice(1).toLowerCase()}
                         </h3>
                     </div>
 
                     {/* Input field for program name */}
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-2">Program Name:</label>
+                    <div className='mb-4'>
+                        <label className='block text-sm font-medium mb-2'>Program Name:</label>
                         <input
-                            type="text"
+                            type='text'
                             ref={inputNameRef}
-                            className="input input-bordered w-full"
+                            className='input input-bordered w-full'
                             value={inputValue}
                             onChange={handleInputChange}
-                            placeholder="Enter Program name"
+                            placeholder='Enter Program name'
                         />
                     </div>
 
                     {/* Subject, shift, and fixed schedules management */}
-                    <div className="text-sm flex flex-col space-y-4">
+                    <div className='text-sm flex flex-col space-y-4'>
                         {[7, 8, 9, 10].map((grade) => (
                             <div key={grade}>
                                 <div>
-                                    <h3 className="font-bold mb-2">{`Grade ${grade}`}</h3>
+                                    <h3 className='font-bold mb-2'>{`Grade ${grade}`}</h3>
                                 </div>
-                                <div className="flex flex-wrap">
-                                    <div key={grade} className="w-7/12 bg-white shadow-md rounded-lg p-4">
+                                <div className='flex flex-wrap'>
+                                    <div key={grade} className='w-7/12 bg-white shadow-md rounded-lg p-4'>
                                         {/* Shift selection */}
-                                        <div className="mt-2 mb-2">
-                                            <label className="mr-2">Shift:</label>
-                                            <label className="mr-2">
+                                        <div className='mt-2 mb-2'>
+                                            <label className='mr-2'>Shift:</label>
+                                            <label className='mr-2'>
                                                 <input
-                                                    type="radio"
+                                                    type='radio'
                                                     value={selectedShifts[grade]}
                                                     checked={selectedShifts[grade] === 0}
                                                     onChange={() => handleShiftSelection(grade, 0)}
@@ -738,7 +738,7 @@ const AddProgramContainer = ({
                                             </label>
                                             <label>
                                                 <input
-                                                    type="radio"
+                                                    type='radio'
                                                     value={selectedShifts[grade]}
                                                     checked={selectedShifts[grade] === 1}
                                                     onChange={() => handleShiftSelection(grade, 1)}
@@ -748,10 +748,10 @@ const AddProgramContainer = ({
                                         </div>
 
                                         {/* Start time selection */}
-                                        <div className="mt-2">
-                                            <label className="mr-2">Start Time:</label>
+                                        <div className='mt-2'>
+                                            <label className='mr-2'>Start Time:</label>
                                             <select
-                                                className="input input-bordered"
+                                                className='input input-bordered'
                                                 value={startTimes[grade]}
                                                 onChange={(e) => handleStartTimeChange(grade, e.target.value)}
                                             >
@@ -760,16 +760,16 @@ const AddProgramContainer = ({
                                         </div>
 
                                         {/* Subject selection */}
-                                        <div className="flex items-center mb-2 py-4 flex-wrap">
-                                            <div className="m-1">
+                                        <div className='flex items-center mb-2 py-4 flex-wrap'>
+                                            <div className='m-1'>
                                                 <SearchableDropdownToggler
                                                     selectedList={selectedSubjects[grade]}
                                                     setSelectedList={(list) => handleSubjectSelection(grade, list)}
                                                 />
                                             </div>
                                             {selectedSubjects[grade]?.map((id, index) => (
-                                                <div key={id} className="p-2">
-                                                    <div className="h-10 w-20 bg-green-400 rounded-md flex items-center justify-center truncate">
+                                                <div key={id} className='p-2'>
+                                                    <div className='h-10 w-20 bg-green-400 rounded-md flex items-center justify-center truncate'>
                                                         {subjects[id]?.subject}
                                                     </div>
                                                 </div>
@@ -780,7 +780,7 @@ const AddProgramContainer = ({
                                         {selectedSubjects[grade]?.length > 0 && (
                                             <div>
                                                 <button
-                                                    className="btn btn-primary"
+                                                    className='btn btn-primary'
                                                     onClick={() =>
                                                         document
                                                             .getElementById(`assign_fixed_sched_modal_prog(0)-grade(${grade})`)
@@ -811,36 +811,36 @@ const AddProgramContainer = ({
                                         )}
                                     </div>
 
-                                    <div className="w-5/12 p-1 rounded-lg">
-                                        <div className="font-bold bg-blue-200 rounded-lg">Additional Schedules</div>
+                                    <div className='w-5/12 p-1 rounded-lg'>
+                                        <div className='font-bold bg-blue-200 rounded-lg'>Additional Schedules</div>
 
                                         {/* Button to add schedules */}
                                         <button
                                             onClick={() => handleAddAdditionalSchedule(grade)}
-                                            className="flex flex-wrap items-right text-xs mt-2 bg-blue-500 text-white px-2 py-1 rounded-lg hover:bg-blue-600"
+                                            className='flex flex-wrap items-right text-xs mt-2 bg-blue-500 text-white px-2 py-1 rounded-lg hover:bg-blue-600'
                                         >
                                             Add Schedule
                                         </button>
 
                                         {/* Render the ScheduleComponent as many times as specified */}
                                         <div
-                                            className="mt-2 overflow-y-auto max-h-36 border border-gray-300 rounded-lg"
+                                            className='mt-2 overflow-y-auto max-h-36 border border-gray-300 rounded-lg'
                                             style={{
                                                 scrollbarWidth: 'thin',
                                                 scrollbarColor: '#a0aec0 #edf2f7',
                                             }} // Optional for styled scrollbars
                                         >
                                             {additionalScheds[grade].map((sched, index) => (
-                                                <div key={index} className="flex flex-wrap">
+                                                <div key={index} className='flex flex-wrap'>
                                                     <button
-                                                        className="w-1/12 border rounded-l-lg hover:bg-gray-200 flex items-center justify-center"
+                                                        className='w-1/12 border rounded-l-lg hover:bg-gray-200 flex items-center justify-center'
                                                         onClick={() => handleDeleteAdditionalSchedule(grade, index)}
                                                     >
                                                         <RiDeleteBin7Line size={15} />
                                                     </button>
-                                                    <div className="w-10/12">
+                                                    <div className='w-10/12'>
                                                         <button
-                                                            className="w-full bg-gray-100 p-2 border shadow-sm hover:bg-gray-200"
+                                                            className='w-full bg-gray-100 p-2 border shadow-sm hover:bg-gray-200'
                                                             onClick={() =>
                                                                 document
                                                                     .getElementById(
@@ -873,7 +873,7 @@ const AddProgramContainer = ({
                                                             additionalSchedsOfProgYear={sched}
                                                         />
                                                     </div>
-                                                    <div className="w-1/12  flex items-center justify-center border rounded-r-lg hover:bg-gray-200">
+                                                    <div className='w-1/12  flex items-center justify-center border rounded-r-lg hover:bg-gray-200'>
                                                         <button
                                                             onClick={() =>
                                                                 document
@@ -906,20 +906,20 @@ const AddProgramContainer = ({
                     </div>
 
                     {/* Add button centered at the bottom */}
-                    <div className="flex mt-6 justify-center gap-2">
-                        <button className="btn btn-secondary" onClick={handleReset}>
+                    <div className='flex mt-6 justify-center gap-2'>
+                        <button className='btn btn-secondary' onClick={handleReset}>
                             Reset
                         </button>
-                        <div className="flex justify-end space-x-2">
-                            <button className="btn btn-primary flex items-center" onClick={handleAddEntry}>
+                        <div className='flex justify-end space-x-2'>
+                            <button className='btn btn-primary flex items-center' onClick={handleAddEntry}>
                                 <div>Add {reduxField[0]}</div>
-                                <IoAdd size={20} className="ml-2" />
+                                <IoAdd size={20} className='ml-2' />
                             </button>
                         </div>
                     </div>
                 </div>
-                <div className="modal-action w-full">
-                    <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={handleClose}>
+                <div className='modal-action w-full'>
+                    <button className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2' onClick={handleClose}>
                         ✕
                     </button>
                 </div>
@@ -1681,10 +1681,10 @@ const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
 
     return (
         <React.Fragment>
-            <div className="">
-                <div className="flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5">
+            <div className=''>
+                <div className='flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5'>
                     {currentItems.length > 0 && (
-                        <div className="join flex justify-center mb-4 md:mb-0">
+                        <div className='join flex justify-center mb-4 md:mb-0'>
                             <button
                                 className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
                                 onClick={() => {
@@ -1697,7 +1697,7 @@ const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                             >
                                 «
                             </button>
-                            <button className="join-item btn">
+                            <button className='join-item btn'>
                                 Page {currentPage} of {totalPages}
                             </button>
                             <button
@@ -1716,29 +1716,29 @@ const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                     )}
 
                     {currentItems.length === 0 && currentPage > 1 && (
-                        <div className="hidden">{setCurrentPage(currentPage - 1)}</div>
+                        <div className='hidden'>{setCurrentPage(currentPage - 1)}</div>
                     )}
 
-                    <div className="flex-grow w-full md:w-1/3 lg:w-1/4">
-                        <label className="input input-bordered flex items-center gap-2 w-full">
+                    <div className='flex-grow w-full md:w-1/3 lg:w-1/4'>
+                        <label className='input input-bordered flex items-center gap-2 w-full'>
                             <input
-                                type="text"
-                                className="grow p-3 text-sm w-full"
-                                placeholder="Search Program"
+                                type='text'
+                                className='grow p-3 text-sm w-full'
+                                placeholder='Search Program'
                                 value={searchProgramValue}
                                 onChange={(e) => setSearchProgramValue(e.target.value)}
                             />
-                            <IoSearch className="text-xl" />
+                            <IoSearch className='text-xl' />
                         </label>
                     </div>
 
                     {editable && (
-                        <div className="w-full mt-4 md:mt-0 md:w-auto">
+                        <div className='w-full mt-4 md:mt-0 md:w-auto'>
                             <button
-                                className="btn btn-primary h-12 flex items-center justify-center w-full md:w-52"
+                                className='btn btn-primary h-12 flex items-center justify-center w-full md:w-52'
                                 onClick={() => document.getElementById('add_program_modal').showModal()}
                             >
-                                Add Program <IoAdd size={20} className="ml-2" />
+                                Add Program <IoAdd size={20} className='ml-2' />
                             </button>
                             <AddProgramContainer
                                 close={handleClose}
@@ -1756,35 +1756,35 @@ const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                     )}
                 </div>
 
-                <div className="overflow-x-auto">
-                    <table className="table table-sm table-zebra w-full">
+                <div className='overflow-x-auto'>
+                    <table className='table table-sm table-zebra w-full'>
                         <thead>
                             <tr>
-                                <th className="w-1/12">#</th>
-                                <th className="w-1/12">Program ID</th>
-                                <th className="w-1/12">Program</th>
-                                <th className="w-5/12">Shift, Start Time, and Subjects (per year level)</th>
-                                <th className="w-auto">Additional Schedules</th>
-                                {editable && <th className="w-auto">Actions</th>}
+                                <th className='w-1/12'>#</th>
+                                <th className='w-1/12'>Program ID</th>
+                                <th className='w-1/12'>Program</th>
+                                <th className='w-5/12'>Shift, Start Time, and Subjects (per year level)</th>
+                                <th className='w-auto'>Additional Schedules</th>
+                                {editable && <th className='w-auto'>Actions</th>}
                             </tr>
                         </thead>
                         <tbody>
                             {Object.values(searchProgramResult).length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="text-center">
+                                    <td colSpan='5' className='text-center'>
                                         No Programs Found
                                     </td>
                                 </tr>
                             ) : (
                                 currentItems.map(([, program], index) => (
-                                    <tr key={program.id} className="group hover">
+                                    <tr key={program.id} className='group hover'>
                                         <td>{index + 1 + indexOfFirstItem}</td>
                                         <td>{program.id}</td>
-                                        <td className="max-w-28">
+                                        <td className='max-w-28'>
                                             {editProgramId === program.id ? (
                                                 <input
-                                                    type="text"
-                                                    className="input input-bordered input-sm w-full"
+                                                    type='text'
+                                                    className='input input-bordered input-sm w-full'
                                                     value={editProgramValue}
                                                     onChange={(e) => setEditProgramValue(e.target.value)}
                                                 />
@@ -1792,19 +1792,19 @@ const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                 program.program
                                             )}
                                         </td>
-                                        <td className="">
+                                        <td className=''>
                                             {editProgramId === program.id ? (
                                                 <div>
                                                     {[7, 8, 9, 10].map((grade) => (
-                                                        <div key={grade} className="my-2">
-                                                            <div className="flex flex-wrap">
-                                                                <div className="w-1/2">
-                                                                    <h3 className="font-bold">{`Grade ${grade}`}</h3>
-                                                                    <div className="mt-2">
-                                                                        <label className="mr-2">Shift:</label>
-                                                                        <label className="mr-2">
+                                                        <div key={grade} className='my-2'>
+                                                            <div className='flex flex-wrap'>
+                                                                <div className='w-1/2'>
+                                                                    <h3 className='font-bold'>{`Grade ${grade}`}</h3>
+                                                                    <div className='mt-2'>
+                                                                        <label className='mr-2'>Shift:</label>
+                                                                        <label className='mr-2'>
                                                                             <input
-                                                                                type="radio"
+                                                                                type='radio'
                                                                                 value={selectedShifts[grade]}
                                                                                 checked={selectedShifts[grade] === 0}
                                                                                 onChange={() => handleShiftSelection(grade, 0)}
@@ -1813,7 +1813,7 @@ const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                                         </label>
                                                                         <label>
                                                                             <input
-                                                                                type="radio"
+                                                                                type='radio'
                                                                                 value={selectedShifts[grade]}
                                                                                 checked={selectedShifts[grade] === 1}
                                                                                 onChange={() => handleShiftSelection(grade, 1)}
@@ -1837,8 +1837,8 @@ const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                                         </select>
                                                                     </div>
                                                                 </div>
-                                                                <div className="flex flex-wrap w-1/2">
-                                                                    <div className="w-full">
+                                                                <div className='flex flex-wrap w-1/2'>
+                                                                    <div className='w-full'>
                                                                         <SearchableDropdownToggler
                                                                             selectedList={editProgramCurr[grade]}
                                                                             setSelectedList={(list) =>
@@ -1846,11 +1846,11 @@ const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                                             }
                                                                         />
 
-                                                                        <div className="flex flex-wrap gap-2 p-2 w-full">
+                                                                        <div className='flex flex-wrap gap-2 p-2 w-full'>
                                                                             {editProgramCurr[grade]?.map((id, index) => (
                                                                                 <div
                                                                                     key={id}
-                                                                                    className="h-8 w-10 bg-green-400 rounded-md text-xs flex items-center justify-center truncate"
+                                                                                    className='h-8 w-10 bg-green-400 rounded-md text-xs flex items-center justify-center truncate'
                                                                                 >
                                                                                     {subjects[id]?.subject}
                                                                                 </div>
@@ -1860,9 +1860,9 @@ const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                                 </div>
                                                             </div>
 
-                                                            <div className="flex justify-center items-center">
+                                                            <div className='flex justify-center items-center'>
                                                                 <button
-                                                                    className="btn text-xs"
+                                                                    className='btn text-xs'
                                                                     onClick={() =>
                                                                         document
                                                                             .getElementById(
@@ -1894,35 +1894,35 @@ const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                     ))}
                                                 </div>
                                             ) : (
-                                                <div className="">
+                                                <div className=''>
                                                     {[7, 8, 9, 10].map((grade) => (
-                                                        <div key={grade} className="my-4 flex flex-wrap">
-                                                            <div className="w-1/3">
-                                                                <h3 className="font-bold">{`Grade ${grade}`}</h3>
-                                                                <div className="flex items-center mt-2">
-                                                                    <span className="inline-block bg-blue-500 text-white text-xs font-semibold py-1 px-3 rounded-lg">
+                                                        <div key={grade} className='my-4 flex flex-wrap'>
+                                                            <div className='w-1/3'>
+                                                                <h3 className='font-bold'>{`Grade ${grade}`}</h3>
+                                                                <div className='flex items-center mt-2'>
+                                                                    <span className='inline-block bg-blue-500 text-white text-xs font-semibold py-1 px-3 rounded-lg'>
                                                                         {program[`${grade}`]?.shift === 0 ? 'AM' : 'PM'}
                                                                     </span>
-                                                                    <span className="ml-2 text-sm font-medium">
+                                                                    <span className='ml-2 text-sm font-medium'>
                                                                         {getTimeSlotString(program[`${grade}`]?.startTime || 0)}
                                                                     </span>
                                                                 </div>
                                                             </div>
-                                                            <div className="w-2/3 flex flex-wrap">
-                                                                <div className="w-full">Assigned Subjects for Grade {grade}:</div>
-                                                                <div className="w-full flex flex-wrap gap-1 p-1">
+                                                            <div className='w-2/3 flex flex-wrap'>
+                                                                <div className='w-full'>Assigned Subjects for Grade {grade}:</div>
+                                                                <div className='w-full flex flex-wrap gap-1 p-1'>
                                                                     {program[`${grade}`]?.subjects?.map((id) => (
                                                                         <div
                                                                             key={id}
-                                                                            className="h-8 w-10 bg-green-400 rounded-md text-xs flex items-center justify-center truncate"
+                                                                            className='h-8 w-10 bg-green-400 rounded-md text-xs flex items-center justify-center truncate'
                                                                         >
                                                                             {subjects[id]?.subject}
                                                                         </div>
                                                                     ))}
                                                                 </div>
-                                                                <div className="flex justify-center items-center">
+                                                                <div className='flex justify-center items-center'>
                                                                     <button
-                                                                        className="btn text-xs"
+                                                                        className='btn text-xs'
                                                                         onClick={() =>
                                                                             document
                                                                                 .getElementById(
@@ -1961,14 +1961,14 @@ const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                         {[7, 8, 9, 10].map((grade) => (
                                                             <div
                                                                 key={`edit-add-sched-edit-prog(${program.id})-grade(${grade})`}
-                                                                className="mt-2 overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg"
+                                                                className='mt-2 overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg'
                                                                 style={{
                                                                     scrollbarWidth: 'thin',
                                                                     scrollbarColor: '#a0aec0 #edf2f7',
                                                                 }} // Optional for styled scrollbars
                                                             >
                                                                 <div
-                                                                    className="flex flex-wrap"
+                                                                    className='flex flex-wrap'
                                                                     style={{
                                                                         position: 'sticky',
                                                                         top: 0,
@@ -1976,12 +1976,12 @@ const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                                         backgroundColor: 'white',
                                                                     }}
                                                                 >
-                                                                    <div className="w-9/12 font-bold p-2 border-b border-gray-300">
+                                                                    <div className='w-9/12 font-bold p-2 border-b border-gray-300'>
                                                                         Grade {grade}
                                                                     </div>
-                                                                    <div className="w-3/12 flex justify-center items-center border-b border-gray-300">
+                                                                    <div className='w-3/12 flex justify-center items-center border-b border-gray-300'>
                                                                         <button
-                                                                            className="w-3/4 bg-green-700 m-2 font-bold text-white rounded-lg hover:bg-green-500"
+                                                                            className='w-3/4 bg-green-700 m-2 font-bold text-white rounded-lg hover:bg-green-500'
                                                                             onClick={() => handleAddAdditionalSchedule(grade)}
                                                                         >
                                                                             +
@@ -1989,18 +1989,18 @@ const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                                     </div>
                                                                 </div>
                                                                 {editAdditionalScheds[grade].map((sched, index) => (
-                                                                    <div key={index} className="flex flex-wrap">
+                                                                    <div key={index} className='flex flex-wrap'>
                                                                         <button
-                                                                            className="w-1/12 border rounded-l-lg bg-blue-200 hover:bg-blue-100 flex items-center justify-center"
+                                                                            className='w-1/12 border rounded-l-lg bg-blue-200 hover:bg-blue-100 flex items-center justify-center'
                                                                             onClick={() =>
                                                                                 handleDeleteAdditionalSchedule(grade, index)
                                                                             }
                                                                         >
                                                                             <RiDeleteBin7Line size={15} />
                                                                         </button>
-                                                                        <div className="w-10/12">
+                                                                        <div className='w-10/12'>
                                                                             <button
-                                                                                className="w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-gray-200"
+                                                                                className='w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-gray-200'
                                                                                 onClick={() =>
                                                                                     document
                                                                                         .getElementById(
@@ -2033,7 +2033,7 @@ const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                                                 additionalSchedsOfProgYear={sched}
                                                                             />
                                                                         </div>
-                                                                        <div className="w-1/12 text-xs font-bold rounded-r-lg bg-blue-200 hover:bg-blue-100 flex text-center justify-center items-center p-2 cursor-pointer">
+                                                                        <div className='w-1/12 text-xs font-bold rounded-r-lg bg-blue-200 hover:bg-blue-100 flex text-center justify-center items-center p-2 cursor-pointer'>
                                                                             <button
                                                                                 onClick={() =>
                                                                                     document
@@ -2068,14 +2068,14 @@ const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                         {[7, 8, 9, 10].map((grade) => (
                                                             <div
                                                                 key={`edit-add-sched-view-prog(${program.id})-grade(${grade})`}
-                                                                className="mt-2 overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg"
+                                                                className='mt-2 overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg'
                                                                 style={{
                                                                     scrollbarWidth: 'thin',
                                                                     scrollbarColor: '#a0aec0 #edf2f7',
                                                                 }} // Optional for styled scrollbars
                                                             >
                                                                 <div
-                                                                    className="font-bold p-2 border-b border-gray-300"
+                                                                    className='font-bold p-2 border-b border-gray-300'
                                                                     style={{
                                                                         position: 'sticky',
                                                                         top: 0,
@@ -2086,13 +2086,13 @@ const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                                     Grade {grade}
                                                                 </div>
                                                                 {program[grade]?.additionalScheds.map((sched, index) => (
-                                                                    <div key={index} className="flex flex-wrap">
-                                                                        <div className="w-1/12 text-xs font-bold bg-blue-100 flex text-center justify-center items-center p-2">
+                                                                    <div key={index} className='flex flex-wrap'>
+                                                                        <div className='w-1/12 text-xs font-bold bg-blue-100 flex text-center justify-center items-center p-2'>
                                                                             {index + 1}
                                                                         </div>
-                                                                        <div className="w-11/12">
+                                                                        <div className='w-11/12'>
                                                                             <button
-                                                                                className="w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-gray-200"
+                                                                                className='w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-gray-200'
                                                                                 onClick={() =>
                                                                                     document
                                                                                         .getElementById(
@@ -2138,7 +2138,7 @@ const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                 {editProgramId === program.id ? (
                                                     <>
                                                         <button
-                                                            className="btn btn-sm btn-outline"
+                                                            className='btn btn-sm btn-outline'
                                                             // onClick={() =>
                                                             //     handleSaveProgramEditClick(
                                                             //         program.id
@@ -2150,20 +2150,20 @@ const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                         >
                                                             Save
                                                         </button>
-                                                        <button className="btn btn-sm btn-outline" onClick={resetStates}>
+                                                        <button className='btn btn-sm btn-outline' onClick={resetStates}>
                                                             Cancel
                                                         </button>
                                                     </>
                                                 ) : (
                                                     <>
                                                         <button
-                                                            className="btn btn-xs btn-ghost text-blue-500"
+                                                            className='btn btn-xs btn-ghost text-blue-500'
                                                             onClick={() => handleEditProgramClick(program)}
                                                         >
                                                             <RiEdit2Fill size={20} />
                                                         </button>
                                                         <button
-                                                            className="btn btn-xs btn-ghost text-red-500"
+                                                            className='btn btn-xs btn-ghost text-red-500'
                                                             onClick={() => dispatch(removeProgram(program.id))}
                                                         >
                                                             <RiDeleteBin7Line size={20} />
@@ -2180,24 +2180,24 @@ const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                 </div>
 
                 {/* Modal for confirming program modifications */}
-                <dialog id="confirm_program_edit_modal" className="modal modal-bottom sm:modal-middle">
-                    <div className="modal-box" style={{ width: '30%', maxWidth: 'none' }}>
+                <dialog id='confirm_program_edit_modal' className='modal modal-bottom sm:modal-middle'>
+                    <div className='modal-box' style={{ width: '30%', maxWidth: 'none' }}>
                         <div>
-                            <div className="mb-3 text-center text-lg font-bold">Confirmation for Modifications on Program</div>
+                            <div className='mb-3 text-center text-lg font-bold'>Confirmation for Modifications on Program</div>
                         </div>
 
                         <div>
-                            <div className="m-2 p-2">
+                            <div className='m-2 p-2'>
                                 Your modifications in this program will be saved as well in all associated sections. Please select
                                 which section details you would like to update.
                             </div>
-                            <div className="flex justify-center items-center">
-                                <div className="text-left">
+                            <div className='flex justify-center items-center'>
+                                <div className='text-left'>
                                     <label>
                                         <input
-                                            type="checkbox"
-                                            name="shift"
-                                            className="mr-2"
+                                            type='checkbox'
+                                            name='shift'
+                                            className='mr-2'
                                             checked={sectionDetailsToUpdate.shiftAndStartTime}
                                             onChange={(e) =>
                                                 setSectionDetailsToUpdate((prev) => ({
@@ -2212,9 +2212,9 @@ const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
 
                                     <label>
                                         <input
-                                            type="checkbox"
-                                            name="fixedScheds"
-                                            className="mr-2"
+                                            type='checkbox'
+                                            name='fixedScheds'
+                                            className='mr-2'
                                             checked={sectionDetailsToUpdate.fixedScheds}
                                             onChange={(e) =>
                                                 setSectionDetailsToUpdate((prev) => ({
@@ -2228,9 +2228,9 @@ const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                     <br />
                                     <label>
                                         <input
-                                            type="checkbox"
-                                            name="additionalScheds"
-                                            className="mr-2"
+                                            type='checkbox'
+                                            name='additionalScheds'
+                                            className='mr-2'
                                             checked={sectionDetailsToUpdate.additionalScheds}
                                             onChange={(e) =>
                                                 setSectionDetailsToUpdate((prev) => ({
@@ -2243,22 +2243,22 @@ const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                     </label>
                                 </div>
                             </div>
-                            <div className="mt-4 flex justify-center items-center gap-3">
+                            <div className='mt-4 flex justify-center items-center gap-3'>
                                 <button
-                                    className="btn btn-sm bg-green-400 hover:bg-green-200"
+                                    className='btn btn-sm bg-green-400 hover:bg-green-200'
                                     onClick={handleSaveProgramEditClick}
                                 >
                                     Confirm
                                 </button>
-                                <button className="btn btn-sm" onClick={handleConfirmationModalClose}>
+                                <button className='btn btn-sm' onClick={handleConfirmationModalClose}>
                                     Cancel
                                 </button>
                             </div>
                         </div>
 
-                        <div className="modal-action w-full mt-0">
+                        <div className='modal-action w-full mt-0'>
                             <button
-                                className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                                className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2'
                                 onClick={handleConfirmationModalClose}
                             >
                                 ✕
