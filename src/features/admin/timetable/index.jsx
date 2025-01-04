@@ -16,7 +16,7 @@ import ViolationList from '@components/Admin/ViolationList';
 import SubjectListContainer from '../../../components/SubjectComponents/SubjectListContainer';
 import ProgramListContainer from '../../../components/Admin/ProgramComponents/ProgramListContainer';
 import TeacherListContainer from '@components/Admin/Teacher/TeacherListContainer';
-import SectionListContainer from '@components/Admin/SectionListContainer';
+import SectionListContainer from '../../../components/Admin/SectionComponents/SectionListContainer';
 import ExportImportDBButtons from '@components/Admin/ExportImportDBButtons';
 
 import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';

@@ -633,38 +633,46 @@ const ProgramEdit = ({
 
     // Reset states
     const resetStates = () => {
-        setEditProgramId(null);
-        setEditProgramValue('');
-        setEditProgramCurr([]);
+ 
+        setEditProgramId(program.id || null);
+        setEditProgramValue( program.program || '');
+        setEditProgramCurr({7: program?.[7]?.subjects || [],
+            8: program?.[8]?.subjects || [],
+            9: program?.[9]?.subjects || [],
+            10: program?.[10]?.subjects || [],});
+
         setStartTimes({
-            7: '06:00 AM',
-            8: '06:00 AM',
-            9: '06:00 AM',
-            10: '06:00 AM',
+            7: getTimeSlotString(program[7]?.startTime || 0),
+            8: getTimeSlotString(program[8]?.startTime || 0),
+            9: getTimeSlotString(program[9]?.startTime || 0),
+            10: getTimeSlotString(program[10]?.startTime || 0),
         });
         setSelectedShifts({
-            7: 0,
-            8: 0,
-            9: 0,
-            10: 0,
+            7: program[7]?.shift || 0,
+            8: program[8]?.shift || 0,
+            9: program[9]?.shift || 0,
+            10: program[10]?.shift || 0,
         });
+
         setEditFixedDays({
-            7: {},
-            8: {},
-            9: {},
-            10: {},
+           
+        7: program[7]?.fixedDays || {},
+         8: program[8]?.fixedDays || {},
+         9: program[9]?.fixedDays || {},
+         10: program[10]?.fixedDays || {},
+    
         });
         setEditFixedPositions({
-            7: {},
-            8: {},
-            9: {},
-            10: {},
+            7: program[7]?.fixedPositions || {},
+            8: program[8]?.fixedPositions || {},
+            9: program[9]?.fixedPositions || {},
+            10: program[10]?.fixedPositions || {},
         });
         setEditAdditionalScheds({
-            7: [],
-            8: [],
-            9: [],
-            10: [],
+            7: program[7]?.additionalScheds || [],
+            8: program[8]?.additionalScheds || [],
+            9: program[9]?.additionalScheds || [],
+            10: program[10]?.additionalScheds || [],
         });
     };
 
@@ -1514,13 +1522,13 @@ const ProgramEdit = ({
                         <div className="mt-4 flex justify-center items-center gap-3">
                             <button
                                 className="btn btn-sm bg-green-400 hover:bg-green-200"
-                                onClick={handleSaveProgramEditClick}
+                                onClick={() => handleSaveProgramEditClick()}
                             >
                                 Confirm
                             </button>
                             <button
                                 className="btn btn-sm"
-                                onClick={handleConfirmationModalClose}
+                                onClick={() => handleConfirmationModalClose()}
                             >
                                 Cancel
                             </button>
