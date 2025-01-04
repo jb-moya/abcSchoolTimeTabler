@@ -94,8 +94,7 @@ function Timetable() {
     const [teacherTimetables, setTeacherTimetables] = useState({});
     const [mapVal, setMapVal] = useState(new Map());
 
-    const [timetableGenerationStatus, setTimetableGenerationStatus] =
-        useState('idle');
+    const [timetableGenerationStatus, setTimetableGenerationStatus] = useState('idle');
     const [violations, setViolations] = useState([]);
 
     // Scope and Limitations
@@ -194,22 +193,14 @@ function Timetable() {
 
         console.log('🚀 ~ handleButtonClick ~ buildingAdjacencyArray:', buildingAdjacencyArray);
 
-        const subjectMapReverse = Object.entries(subjectsStore).reduce(
-            (acc, [, subject], index) => {
-                acc[subject.id] = {
-                    id: index,
-                    numOfClasses: Math.min(
-                        Math.ceil(
-                            subject?.weeklyMinutes / subject.classDuration
-                        ),
-                        numOfSchoolDays
-                    ),
-                    classDuration: subject.classDuration,
-                };
-                return acc;
-            },
-            {}
-        );
+        const subjectMapReverse = Object.entries(subjectsStore).reduce((acc, [, subject], index) => {
+            acc[subject.id] = {
+                id: index,
+                numOfClasses: Math.min(Math.ceil(subject?.weeklyMinutes / subject.classDuration), numOfSchoolDays),
+                classDuration: subject.classDuration,
+            };
+            return acc;
+        }, {});
 
         const teacherMap = Object.entries(teachersStore).reduce((acc, [, teacher], index) => {
             acc[index] = {
@@ -1068,16 +1059,8 @@ function Timetable() {
             return obj;
         }
 
-        const sectionString = JSON.stringify(
-            mapToObject(sectionTimetable),
-            null,
-            2
-        );
-        const teacherString = JSON.stringify(
-            mapToObject(teacherTimetable),
-            null,
-            2
-        );
+        const sectionString = JSON.stringify(mapToObject(sectionTimetable), null, 2);
+        const teacherString = JSON.stringify(mapToObject(teacherTimetable), null, 2);
         console.log('teacherString: ', teacherString);
         console.log('sectionString: ', sectionString);
 
@@ -1176,16 +1159,14 @@ function Timetable() {
                             subjects.push(schedule.subject);
                             teachers.push(schedule.teacher);
                         }
+                        const gap = slotKey - prevSlotKey - 1;
 
-                            const gap = slotKey - prevSlotKey - 1;
-
-                            for (let i = 0; i < gap; i++) {
-                                subjects.push('');
-                                sections.push('');
-                            }
-
-                            prevSlotKey = slotKey;
+                        for (let i = 0; i < gap; i++) {
+                            subjects.push('');
+                            sections.push('');
                         }
+
+                        prevSlotKey = slotKey;
                     });
 
                     if (setSched.indexOf(schedData) === -1) {
@@ -1498,10 +1479,7 @@ function Timetable() {
         };
 
         if (timetableGenerationStatus === 'success') {
-            const combinedMap = combineObjects(
-                sectionStringObj,
-                teacherStringObj
-            );
+            const combinedMap = combineObjects(sectionStringObj, teacherStringObj);
             const map = convertToHashMap(combinedMap);
             console.log('combined: ', combinedMap);
             console.log('map: ', map);
@@ -1548,17 +1526,13 @@ function Timetable() {
                 for (let innerKey in sectionData[key]) {
                     let schedule = sectionData[key][innerKey];
                     const type = schedule.teacher ? 'section' : 'teacher';
-                    const partnerType =
-                        type === 'teacher' ? 'section' : 'teacher';
+                    const partnerType = type === 'teacher' ? 'section' : 'teacher';
 
                     if (innerKey === '0') {
                         for (let i = 1; i <= 5; i++) {
                             const scheduleKey = `section-${schedule.sectionID}-teacher-${schedule.teacherID}-subject-${schedule.subjectID}-day-${i}-type-${type}`;
                             // Add the schedule to the nested Map
-                            const keyToFind = scheduleKey.replace(
-                                /(type-)([^-]+)/,
-                                `$1${partnerType}`
-                            );
+                            const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
 
                             scheduleMap.set(scheduleKey, {
                                 start: schedule.start,
@@ -1585,10 +1559,7 @@ function Timetable() {
                     } else {
                         // Use sectionID, subjectID, and start time to create a unique key for the schedule
                         const scheduleKey = `section-${schedule.sectionID}-teacher-${schedule.teacherID}-subject-${schedule.subjectID}-day-${innerKey}-type-${type}`;
-                        const keyToFind = scheduleKey.replace(
-                            /(type-)([^-]+)/,
-                            `$1${partnerType}`
-                        );
+                        const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
                         // Add the schedule to the nested Map
                         scheduleMap.set(scheduleKey, {
                             start: schedule.start,
@@ -5847,15 +5818,11 @@ function Timetable() {
                     </div>
                 </div>
             </div>
-            {Object.keys(sectionTimetables).length > 0 &&
-                Object.keys(teacherTimetables).length > 0 && (
-                    <button
-                        className="btn btn-secondary bg-red-500 w-32 mt-6"
-                        onClick={handleSchedExport}
-                    >
-                        EXPORT SCHEDULES
-                    </button>
-                )}
+            {Object.keys(sectionTimetables).length > 0 && Object.keys(teacherTimetables).length > 0 && (
+                <button className='btn btn-secondary bg-red-500 w-32 mt-6' onClick={handleSchedExport}>
+                    EXPORT SCHEDULES
+                </button>
+            )}
             {mapVal && mapVal.size > 0 && (
                 <>
                     {console.log('Rendering ForTest with mapVal:', mapVal)}
