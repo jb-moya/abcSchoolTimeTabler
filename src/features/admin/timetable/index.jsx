@@ -38,6 +38,7 @@ import calculateTotalClass from '../../../utils/calculateTotalClass';
 import deepEqual from '../../../utils/deepEqual';
 import gcdOfArray from '../../../utils/getGCD';
 import { packThreeSignedIntsToInt32 } from '../../../utils/packThreeSignedIntsToInt32';
+import NotificationHandler from '../../../components/Admin/NotificationHandler';
 
 function addObjectToMap(map, key, newObject, IDIncrementer, propertyIDName) {
     if (!map.has(key)) {
@@ -892,8 +893,12 @@ function Timetable() {
             setTimetableGenerationStatus(status);
 
             if (status === 'error') {
+                toast.error('Timetable generation failed.');
+
                 console.error('Error occurred during timetable generation:', timetable.error);
             } else {
+                toast.success('Timetable generated successfully.');
+
                 console.log('Generated timetable:', timetable);
                 generatedTimetable = timetable;
             }
@@ -5908,6 +5913,7 @@ function Timetable() {
     // }, [mapVal]);
     return (
         <div className='App container mx-auto px-4 py-6'>
+            <NotificationHandler timetableCondition={timetableGenerationStatus} />
             <div className='mb-6 flex justify-between items-center'>
                 <Breadcrumbs title='Timetable' links={links} />
                 <div className='flex items-center gap-2'>
