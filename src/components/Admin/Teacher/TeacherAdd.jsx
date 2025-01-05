@@ -129,10 +129,11 @@ const AddTeacherContainer = ({
             ...prevScheds,
             {
                 name: '',
-                subject: 0,
+                subject: -1,
                 duration: 60,
                 frequency: 1,
                 shown: true,
+                time: 72,
             },
         ]);
     };
@@ -426,8 +427,7 @@ const AddTeacherContainer = ({
                                         <>
                                             <p>Name: {sched.name}</p>
                                             <p>
-                                                Subject:{' '}
-                                                {sched.subject === 0 ? 'N/A' : subjects[sched.subject].subject}
+                                                Subject:{' '}{sched.subject === -1 ? 'N/A' : subjects[sched.subject].subject}
                                             </p>
                                         </>
                                     ) : (

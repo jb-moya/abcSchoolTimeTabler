@@ -15,13 +15,20 @@ const AdditionalScheduleForTeacher = ({
 	additionalSchedsOfTeacher = [],
 	setAdditionalScheds = () => {},
 }) => {
+
+	const lastSchedTimeRef = useRef();
+
+// =============================================================================
+
 	const subjects = useSelector((state) => state.subject.subjects);
+
+// ============================================================================
 
 	const [schedName, setSchedName] = useState(
 		additionalSchedsOfTeacher.name || ''
 	);
 	const [schedSubject, setSchedSubject] = useState(
-		additionalSchedsOfTeacher.subject || 0
+		additionalSchedsOfTeacher.subject || -1
 	);
 	const [schedDuration, setSchedDuration] = useState(
 		additionalSchedsOfTeacher.duration || 0
@@ -32,6 +39,15 @@ const AdditionalScheduleForTeacher = ({
 	const [schedShown, setSchedShown] = useState(
 		additionalSchedsOfTeacher.shown || false
 	);
+	const [schedTime, setSchedtime] = useState(
+        additionalSchedsOfTeacher.time || 0
+    );
+
+// =============================================================================
+
+	const [time, setTime] = useState();
+
+// =============================================================================
 
 	const handleSave = () => {
 		const newSched = {
@@ -40,6 +56,7 @@ const AdditionalScheduleForTeacher = ({
 			duration: schedDuration,
 			frequency: schedFrequency,
 			shown: schedShown,
+			time: getTimeSlotIndex(time),
 		};
 
 
@@ -77,15 +94,37 @@ const AdditionalScheduleForTeacher = ({
 		setSchedDuration(additionalSchedsOfTeacher.duration);
 		setSchedFrequency(additionalSchedsOfTeacher.frequency);
 		setSchedShown(additionalSchedsOfTeacher.frequency);
+		setSchedtime(additionalSchedsOfTeacher.time);
 	};
+
+// ============================================================================
 
 	useEffect(() => {
 		setSchedName(additionalSchedsOfTeacher.name || '');
-		setSchedSubject(additionalSchedsOfTeacher.subject || 0);
+		setSchedSubject(additionalSchedsOfTeacher.subject || -1);
 		setSchedDuration(additionalSchedsOfTeacher.duration || 0);
 		setSchedFrequency(additionalSchedsOfTeacher.frequency || '');
 		setSchedShown(additionalSchedsOfTeacher.shown || false);
+		setSchedtime(additionalSchedsOfTeacher.time || 0);
 	}, [additionalSchedsOfTeacher]);
+
+	useEffect(() => {
+        if (schedTime !== lastSchedTimeRef.current) {
+            lastSchedTimeRef.current = schedTime;
+
+            const timeString = getTimeSlotString(schedTime);
+            // console.log('schedTime', schedTime);
+
+            // console.log('timeString', timeString);
+
+            if (timeString) {
+                setTime(timeString);
+            }
+
+        }
+    }, [schedTime]);
+
+// =============================================================================
 
 	// useEffect(() => {
 	//     console.log('schedName', schedName);
@@ -136,7 +175,7 @@ const AdditionalScheduleForTeacher = ({
                         {viewingMode === 0 ? (
                             <select
                                 className="input input-bordered w-full"
-                                value={schedSubject === 0 ? 0 : schedSubject}
+                                value={schedSubject === -1 ? -1 : schedSubject}
                                 onChange={(e) =>
                                     setSchedSubject(Number(e.target.value))
                                 }
@@ -220,6 +259,26 @@ const AdditionalScheduleForTeacher = ({
 							<option value="No">No</option>
 						</select>
 					</div>
+
+					{/* SCHEDULE TIME */}
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium mb-1">
+                            Time:
+                        </label>
+                        {viewingMode === 0 ? (
+                            <TimeSelector 
+                                className='z-10'
+                                key={`newTeacherTimePicker-teacher{${teacherID}}-arrayIndex${arrayIndex}`}
+                                interval={5}
+                                time={time}
+                                setTime={setTime}
+                            />
+                        ) : (
+                            <div className="flex items-center justify-start input border rounded h-12 bg-white border border-gray-300 text-base">
+                                {time ? time : '--:--- --'}
+                            </div>
+                        )}
+                    </div>
 
 					<div className="mt-4 text-center text-lg font-bold">
 						{viewingMode !== 1 && (

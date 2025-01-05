@@ -1517,6 +1517,37 @@ function Timetable() {
             }
 
         });
+
+        if (Object.keys(sectionsStore).length === 0) return;
+
+        Object.entries(sectionsStore).forEach(([secId, sec]) => {
+            const originalSection = JSON.parse(JSON.stringify(sec));
+            const newSection = JSON.parse(JSON.stringify(sec));
+
+            if (newSection.subjects.length === 0) return;
+
+            const startTimeIdx = newSection.startTime;
+            const breakTimeCount = newSection.subjects.length > 10 ? 2 : 1;
+    
+            let totalDuration = breakTimeCount * breakTimeDuration;
+
+            newSection.subjects.forEach((subId) => {
+                totalDuration += subjectsStore[subId].classDuration;
+            });
+
+            const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
+
+            newSection.endTime = endTimeIdx || 216; // 216 = 6:00 PM
+
+            if (originalSection !== newSection) {
+                dispatch(
+                    editSection({
+                        sectionId: newSection.id,
+                        updatedSection: newSection,
+                    })
+                );
+            }
+        })
     };
 
     useEffect(() => {

@@ -7,6 +7,8 @@ import { toast } from 'sonner';
 import SearchableDropdownToggler from '../searchableDropdown';
 
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
+import { IoWarningSharp } from "react-icons/io5";
+
 import AdditionalScheduleForProgram from './AdditionalScheduleForProgram';
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
 import { fetchSections, editSection } from '@features/sectionSlice';
@@ -98,6 +100,15 @@ const ProgramEdit = ({
         9: [],
         10: [],
     });
+
+    const [validEndTimes, setValidEndTimes] = useState({
+        7: true,
+        8: true,
+        9: true,    
+        10: true,
+    });
+
+    const isAddButtonDisabled = Object.values(validEndTimes).some((value) => !value);
 
     useEffect(() => {
         console.log('editAdditionalScheds', editAdditionalScheds);
@@ -256,6 +267,19 @@ const ProgramEdit = ({
 
                 const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
 
+                if (!getTimeSlotString(endTimeIdx)) {
+                    setValidEndTimes((prevValidEndTimes) => ({
+                        ...prevValidEndTimes,
+                        [grade]: false,
+                    }));
+                    return;
+                }
+
+                setValidEndTimes((prevValidEndTimes) => ({
+                    ...prevValidEndTimes,
+                    [grade]: true,
+                }));
+
                 setEditEndTimes((prevEndTimes) => ({
                     ...prevEndTimes,
                     [grade]: endTimeIdx || 216, // 216 = 6:00 PM
@@ -315,9 +339,6 @@ const ProgramEdit = ({
             const originalSection = JSON.parse(JSON.stringify(section));
             const newSection = JSON.parse(JSON.stringify(section));
 
-            console.log('xasdsadsa: ', newSection.startTime);
-            console.log('starting time: ', editStartTimes[newSection.year]);
-
             // Early return if section is not part of the edited program
             if (newSection.program !== editProgramId) return;
 
@@ -325,6 +346,7 @@ const ProgramEdit = ({
             if (sectionDetailsToUpdate.shiftAndStartTime === true) {
                 newSection.shift = editSelectedShifts[newSection.year];
                 newSection.startTime = editStartTimes[newSection.year];
+                newSection.endTime = editEndTimes[newSection.year];
             }
 
             // Update additional schedules (if true)
@@ -444,8 +466,6 @@ const ProgramEdit = ({
                 }
             }
 
-            console.log('check', newSection);
-
             if (originalSection !== newSection) {
                 dispatch(
                     editSection({
@@ -463,6 +483,7 @@ const ProgramEdit = ({
                             startTime: getTimeSlotIndex(
                                 newSection.startTime || '06:00 AM'
                             ),
+                            endTime:newSection.endTime,
                             additionalScheds: newSection.additionalScheds,
                         },
                     })
@@ -823,7 +844,7 @@ const ProgramEdit = ({
             <div className="modal">
                 <div
                     className="modal-box relative"
-                    style={{ width: '50%', maxWidth: 'none' }}
+                    style={{ width: '60%', maxWidth: 'none' }}
                 >
                     <label
                         onClick={closeModal}
@@ -865,7 +886,7 @@ const ProgramEdit = ({
                                             className="my-2"
                                         >
                                             <div className="flex flex-wrap">
-                                                <div className="w-1/2">
+                                                <div className="w-7/12">
 
                                                     {/* Grade */}
                                                     <h3 className="font-bold">{`Grade ${grade}`}</h3>
@@ -905,7 +926,7 @@ const ProgramEdit = ({
                                                             START TIME  
                                                         </label>
                                                         <div
-                                                            className='w-2/3 pl-2'
+                                                            className='w-7/12 pl-2'
                                                         >
                                                             <TimeSelector 
                                                                 time={editStartTimes[grade]}
@@ -919,11 +940,24 @@ const ProgramEdit = ({
                                                                 pm={editSelectedShifts[grade] === 1 ? 1 : 0} 
                                                             />
                                                         </div>
-                                                    </div>
 
+                                                        {/* Warning icon */}
+                                                        {
+                                                            !validEndTimes[grade] && (
+                                                                <div 
+                                                                    className='w-auto flex ml-2 items-center tooltip text-red-500'
+                                                                    data-tip='Total class time exceeds the day, consider adjusting the start time.'
+                                                                >
+                                                                    <IoWarningSharp 
+                                                                        size={35}
+                                                                    />
+                                                                </div>
+                                                            )
+                                                        }
+                                                    </div>
                                                 </div>
                                             
-                                                <div className="flex flex-wrap w-1/2">
+                                                <div className="flex flex-wrap w-5/12">
                                                     <div className="w-full">
                                                         <SearchableDropdownToggler
                                                             selectedList={editProgramCurr[grade]}
@@ -1085,6 +1119,7 @@ const ProgramEdit = ({
                                 <button
                                     className="btn btn-primary"
                                     onClick={() => document.getElementById(`confirm_program_edit_modal_${program.id}`).showModal()}
+                                    disabled={isAddButtonDisabled}
                                 >
                                     Update Program
                                 </button>

@@ -453,15 +453,14 @@ const TeacherRankListContainer = ({
 																document.getElementById(`add_additional_sched_modal_1_tr-${rank.id}_idx-${index}`).showModal()
 															}
 														>
-															{sched.name || sched.subject ? (
+															{sched.name ? (
 																// Content to show when both are not empty
 																<>
 																	<p>
 																		Name:{' '}{sched.name}
 																	</p>
 																	<p>
-																		Subject:{' '}
-																		{sched.subject === 0 ? 'N/A' : subjects[sched.subject].subject}
+																		Subject:{' '}{sched.subject === -1 ? 'N/A' : subjects[sched.subject].subject}
 																	</p>
 																</>
 															) : (

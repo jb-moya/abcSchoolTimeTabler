@@ -327,6 +327,29 @@ const SubjectEdit = ({
 
             if (!newSection.subjects.includes(editSubjectId)) return;
 
+            // =============== Update section start and end time ===============
+
+                const startTimeIdx = newSection.startTime;
+                const breakTimeCount = newSection.subjects.length > 10 ? 2 : 1;
+
+                let totalDuration = breakTimeCount * breakTimeDuration;
+
+                newSection.subjects.forEach((subId) => {
+                    if (subId === editSubjectId) {
+                        totalDuration += editClassDuration;
+                    } else {
+                        totalDuration += subjects[subId].classDuration;
+                    }  
+                });
+
+                console.log('totalDuration', totalDuration);
+
+                const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
+
+                newSection.endTime = endTimeIdx || 216; // 216 = 6:00 PM
+
+            // =============== Update section fixed days and positions ===============
+
             const originalTotalClass = calculateTotalClass(subjects, newSection.subjects, numOfSchoolDays);
 
             const originalTotalTimeslot = Math.ceil(originalTotalClass / numOfSchoolDays);

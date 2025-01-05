@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { getTimeSlotIndex } from '@utils/timeSlotMapper';
+import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';
 import { toast } from 'sonner';
 import SearchableDropdownToggler from '../searchableDropdown';
 
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
+import { IoWarningSharp } from "react-icons/io5";
+
 import AdditionalScheduleForProgram from './AdditionalScheduleForProgram';
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
 import TimeSelector from '@utils/timeSelector';
@@ -43,13 +45,6 @@ const AddProgramContainer = ({
         9: [],
         10: [],
     });
-
-    // const [gradeTotalTimeslot, setGradeTotalTimeslot] = useState({
-    //     7: null,
-    //     8: null,
-    //     9: null,
-    //     10: null,
-    // });
     
     const [fixedDays, setFixedDays] = useState({
         7: {},
@@ -93,6 +88,16 @@ const AddProgramContainer = ({
         10: [],
     });
 
+    // For invalid end times
+    const [validEndTimes, setValidEndTimes] = useState({
+        7: true,
+        8: true,
+        9: true,    
+        10: true,
+    });
+
+    const isAddButtonDisabled = Object.values(validEndTimes).some((value) => !value);
+
 // ==============================================================================
 
     // Input
@@ -117,9 +122,20 @@ const AddProgramContainer = ({
                     totalDuration += subjects[subId].classDuration;
                 });
 
-                console.log('totalDuration', totalDuration);
-
                 const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
+
+                if (!getTimeSlotString(endTimeIdx)) {
+                    setValidEndTimes((prevValidEndTimes) => ({
+                        ...prevValidEndTimes,
+                        [grade]: false,
+                    }));
+                    return;
+                }
+
+                setValidEndTimes((prevValidEndTimes) => ({
+                    ...prevValidEndTimes,
+                    [grade]: true,
+                }));
 
                 setEndTimes((prevEndTimes) => ({
                     ...prevEndTimes,
@@ -450,7 +466,7 @@ const AddProgramContainer = ({
         >
             <div
                 className="modal-box"
-                style={{ width: '50%', maxWidth: 'none' }}
+                style={{ width: '60%', maxWidth: 'none' }}
             >
                 <div className="p-6">
                     {/* Header section with centered "Add {reduxField}" */}
@@ -522,11 +538,15 @@ const AddProgramContainer = ({
 
                                         {/* Start time selection */}
                                         <div className="mt-2 flex flex-wrap">
+
+                                            {/* Label */}
                                             <label className="w-1/4 mr-2 p-2 text-base flex items-center justify-end font-bold">
                                                 START TIME  
                                             </label>
+
+                                            {/* Time selector */}
                                             <div
-                                                className='w-2/3 pl-2'
+                                                className='w-7/12 pl-2'
                                             >
                                                 <TimeSelector 
                                                     time={startTimes[grade]}
@@ -540,6 +560,21 @@ const AddProgramContainer = ({
                                                     pm={selectedShifts[grade] === 1 ? 1 : 0} 
                                                 />
                                             </div>
+
+                                            {/* Warning icon */}
+                                            {
+                                                !validEndTimes[grade] && (
+                                                    <div 
+                                                        className='w-auto flex ml-2 items-center tooltip text-red-500'
+                                                        data-tip='Total class time exceeds the day, consider adjusting the start time.'
+                                                    >
+                                                        <IoWarningSharp 
+                                                            size={35}
+                                                        />
+                                                    </div>
+                                                )
+                                            }
+                                            
                                         </div>
 
                                         {/* Subject selection */}
@@ -702,6 +737,7 @@ const AddProgramContainer = ({
                             <button
                                 className="btn btn-primary flex items-center"
                                 onClick={handleAddEntry}
+                                disabled={isAddButtonDisabled}
                             >
                                 <div>Add {reduxField[0]}</div>
                                
