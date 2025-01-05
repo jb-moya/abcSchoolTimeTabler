@@ -32,9 +32,8 @@ const ItemCells = ({
     addClicked,
     setAddClicked,
 }) => {
-    // if (cell.teacherID === 1) {
-    console.log('cell: ', cell);
-    // }
+    // console.log('cell: ', cell);
+    // console.log('initialPosition: ', initialPosition);
 
     const itemRef = useRef(null);
 
@@ -70,7 +69,7 @@ const ItemCells = ({
             const { width } = itemRef.current.getBoundingClientRect();
             setItemWidth(width);
         }
-        setTimeRange(String(cell.end - cell.start + 0.5));
+        setTimeRange(String(Math.round(((cell.end - cell.start + 0.5) / 2) * 2) / 2));
     }, [cell, setItemWidth]);
 
     useEffect(() => {
@@ -87,14 +86,16 @@ const ItemCells = ({
     }, [addClicked]);
     const getUpdatedStart = (mode, start) => {
         switch (mode) {
-            case '10m':
+            case '5m':
                 return start * 1;
-            case '20m':
+            case '10m':
                 return start * 2;
-            case '30m':
+            case '20m':
                 return start * 3;
-            case '60m':
+            case '30m':
                 return start * 6;
+            case '60m':
+                return start * 12;
             default:
                 return null;
         }

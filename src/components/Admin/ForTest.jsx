@@ -4,7 +4,7 @@ import { generateTimeSlots } from './utils';
 import { produce } from 'immer';
 
 const ForTest = ({ hashMap }) => {
-    const [selectedModeValue, setSelectedModeValue] = useState('10m');
+    const [selectedModeValue, setSelectedModeValue] = useState('5m');
     const [valueMap, setValueMap] = useState(hashMap);
     const handleSelectChange = (event) => {
         setSelectedModeValue(event.target.value);
@@ -87,8 +87,7 @@ const ForTest = ({ hashMap }) => {
     };
 
     useEffect(() => {
-        const startTime =
-            localStorage.getItem('morningStartTime') || '08:00 PM';
+        const startTime = localStorage.getItem('morningStartTime') || '08:00 PM';
         const endTime = '08:00 PM';
 
         const slots = generateTimeSlots(startTime, endTime, 60); // You can change the interval here
@@ -183,41 +182,32 @@ const ForTest = ({ hashMap }) => {
                     const nextCell = cells[i + 1];
 
                     if (currentCell.end > nextCell.start) {
+                        console.log('overlap1 : ', currentCell);
+                        console.log('overlap2 : ', nextCell);
+
                         currentCell.overlap = true;
                         nextCell.overlap = true;
 
                         const currentKey = [tableKey, currentCell.cellKey];
                         const nextKey = [tableKey, nextCell.cellKey];
 
-                        if (
-                            !overlappingCells.some(
-                                ([t, c]) =>
-                                    t === tableKey && c === currentCell.cellKey
-                            )
-                        ) {
+                        if (!overlappingCells.some(([t, c]) => t === tableKey && c === currentCell.cellKey)) {
                             overlappingCells.push(currentKey);
                         }
-                        if (
-                            !overlappingCells.some(
-                                ([t, c]) =>
-                                    t === tableKey && c === nextCell.cellKey
-                            )
-                        ) {
+                        if (!overlappingCells.some(([t, c]) => t === tableKey && c === nextCell.cellKey)) {
                             overlappingCells.push(nextKey);
                         }
                     }
                 }
             }
         }
+        // console.log('overlappingCells: ', overlappingCells);
         const additionalOverlaps = [];
 
         // Iterate over overlappingCells to find duplicates and push the matching ones
         if (overlappingCells.length > 0) {
             for (const [tableKey, table] of valueMap.entries()) {
-                for (const [
-                    overlapTableKey,
-                    overlapCellKey,
-                ] of overlappingCells) {
+                for (const [overlapTableKey, overlapCellKey] of overlappingCells) {
                     // const partnerType =
                     //     valueMap.get(overlapTableKey).get(overlapCellKey)
                     //         .type === 'teacher'
@@ -227,19 +217,12 @@ const ForTest = ({ hashMap }) => {
                     //     /(type-)([^-]+)/,
                     //     `$1${partnerType}`
                     // );
-                    const keyToFind = valueMap
-                        .get(overlapTableKey)
-                        .get(overlapCellKey).partnerKey;
+                    const keyToFind = valueMap.get(overlapTableKey).get(overlapCellKey).partnerKey;
 
                     const cell = table.get(keyToFind); // Use cellId directly to access the cell in each table
                     if (cell) {
                         const currentKey = [tableKey, cell.dynamicID];
-                        if (
-                            !overlappingCells.some(
-                                ([t, c]) =>
-                                    t === tableKey && c === cell.dynamicID
-                            )
-                        ) {
+                        if (!overlappingCells.some(([t, c]) => t === tableKey && c === cell.dynamicID)) {
                             additionalOverlaps.push(currentKey);
                         }
                     }
@@ -249,6 +232,7 @@ const ForTest = ({ hashMap }) => {
         // Push the additional overlaps to the main array
         overlappingCells.push(...additionalOverlaps);
         setErrorCount(overlappingCells.length);
+        console.log('overlappingCells: ', overlappingCells);
         return overlappingCells;
     }
 
@@ -256,21 +240,14 @@ const ForTest = ({ hashMap }) => {
         // Create a new copy and return it
         return produce(valueMap, (draft) => {
             // Create a Set for the keys of the overlap keys for quick lookup
-            const overlapKeySet = new Set(
-                overlapKeys.map(
-                    ([tableKey, cellKey]) => `${tableKey}:${cellKey}`
-                )
-            );
+            const overlapKeySet = new Set(overlapKeys.map(([tableKey, cellKey]) => `${tableKey}:${cellKey}`));
 
             // Iterate through each table in the draft
             for (let [tableKey, table] of draft.entries()) {
                 // Iterate through each cell in the table
                 for (let [cellKey, cell] of table.entries()) {
                     // If the cell has overlap set to true, and it's not in the overlapKeys, set it to false
-                    if (
-                        cell.overlap &&
-                        !overlapKeySet.has(`${tableKey}:${cellKey}`)
-                    ) {
+                    if (cell.overlap && !overlapKeySet.has(`${tableKey}:${cellKey}`)) {
                         const updatedCell = { ...cell, overlap: false };
                         table.set(cellKey, updatedCell);
                     }
@@ -288,9 +265,7 @@ const ForTest = ({ hashMap }) => {
 
                 const cell = table.get(cellKey);
                 if (!cell) {
-                    console.error(
-                        `Cell with ID "${cellKey}" not found in table "${tableKey}".`
-                    );
+                    console.error(`Cell with ID "${cellKey}" not found in table "${tableKey}".`);
                     continue;
                 }
 
@@ -339,16 +314,11 @@ const ForTest = ({ hashMap }) => {
     const Column = () => {
         const days = ['Mon', 'Tue', 'Wed', 'Thur', 'Fri'];
         return (
-            <div className="flex">
-                <div className="min-w-[105px] max-w-[105px] border border-primary-content text-center font-bold">
-                    Time
-                </div>
-                <div className="w-full flex border border-primary-content">
+            <div className='flex'>
+                <div className='min-w-[105px] max-w-[105px] border border-primary-content text-center font-bold'>Time</div>
+                <div className='w-full flex border border-primary-content'>
                     {days.map((day, index) => (
-                        <div
-                            key={`header-${index}`}
-                            className="flex-1 border-r border-primary-content text-center font-bold"
-                        >
+                        <div key={`header-${index}`} className='flex-1 border-r border-primary-content text-center font-bold'>
                             {day}
                         </div>
                     ))}
@@ -375,9 +345,7 @@ const ForTest = ({ hashMap }) => {
 
             // Filter the valueMap based on the searchField
             const filteredValueMap = new Map(
-                Array.from(valueMap.entries()).filter(([key, value]) =>
-                    key.toLowerCase().includes(searchField.toLowerCase())
-                )
+                Array.from(valueMap.entries()).filter(([key, value]) => key.toLowerCase().includes(searchField.toLowerCase()))
             );
             // console.log('valueMap: ', valueMap);
             // console.log('filteredValueMap: ', filteredValueMap);
@@ -394,9 +362,7 @@ const ForTest = ({ hashMap }) => {
             const end = curpage * itemsPerPage;
 
             // Slice the filtered map to get the correct range
-            const newPaginatedValueMap = new Map(
-                Array.from(filteredValueMap.entries()).slice(start, end)
-            );
+            const newPaginatedValueMap = new Map(Array.from(filteredValueMap.entries()).slice(start, end));
             // console.log('start: ', start);
             // console.log('end: ', end);
 
@@ -427,11 +393,11 @@ const ForTest = ({ hashMap }) => {
 
     return (
         Array.from(paginatedValueMap.entries()).length > 0 && (
-            <div className="overflow-hidden select-none">
-                <div className="flex flex-row space-x-5 justify-end pt-10 pr-5">
-                    <div className="pagination-buttons join justify-between items-center">
+            <div className='overflow-hidden select-none'>
+                <div className='flex flex-row space-x-5 justify-end pt-10 pr-5'>
+                    <div className='pagination-buttons join justify-between items-center'>
                         <button
-                            className="join-item btn"
+                            className='join-item btn'
                             onClick={() => handlePageChange(currentPage - 1)}
                             disabled={currentPage === 1}
                         >
@@ -440,30 +406,25 @@ const ForTest = ({ hashMap }) => {
                         {pageNumbers.map((page, index) => (
                             <button
                                 key={index}
-                                className={`join-item btn ${
-                                    currentPage === page ? 'btn-active' : ''
-                                } ${page === null ? 'btn-disabled' : ''}`}
+                                className={`join-item btn ${currentPage === page ? 'btn-active' : ''} ${
+                                    page === null ? 'btn-disabled' : ''
+                                }`}
                                 onClick={() => handlePageChange(page)}
                             >
                                 {page || '...'}
                             </button>
                         ))}
                         <button
-                            className="join-item btn"
+                            className='join-item btn'
                             onClick={() => handlePageChange(currentPage + 1)}
-                            disabled={
-                                currentPage ===
-                                pageNumbers[pageNumbers.length - 1]
-                            }
+                            disabled={currentPage === pageNumbers[pageNumbers.length - 1]}
                         >
                             »
                         </button>
                         <select
                             value={itemsPerPage}
-                            onChange={(e) =>
-                                setItemsPerPage(Number(e.target.value))
-                            }
-                            className="min-w-20 p-2 border border-primary-content rounded-lg bg-primary-content text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                            className='min-w-20 p-2 border border-primary-content rounded-lg bg-primary-content text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500'
                         >
                             {[1, 5, 10, 20, 50].map((count) => (
                                 <option key={count} value={count}>
@@ -472,94 +433,81 @@ const ForTest = ({ hashMap }) => {
                             ))}
                         </select>
                     </div>
-                    <label className="input input-bordered flex-grow flex items-center gap-2">
+                    <label className='input input-bordered flex-grow flex items-center gap-2'>
                         <input
-                            type="text"
-                            className="grow w-full"
-                            placeholder="Search"
+                            type='text'
+                            className='grow w-full'
+                            placeholder='Search'
                             value={search}
                             onChange={handleInputChange}
                         />
                         <svg
                             onClick={handleSearch}
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 16 16"
-                            fill="currentColor"
-                            className="h-4 w-4 opacity-70 cursor-pointer"
+                            xmlns='http://www.w3.org/2000/svg'
+                            viewBox='0 0 16 16'
+                            fill='currentColor'
+                            className='h-4 w-4 opacity-70 cursor-pointer'
                         >
                             <path
-                                fillRule="evenodd"
-                                d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z"
-                                clipRule="evenodd"
+                                fillRule='evenodd'
+                                d='M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z'
+                                clipRule='evenodd'
                             />
                         </svg>
                     </label>
                 </div>
 
-                <div className="flex flex-row items-center justify-between pt-10 pr-5">
-                    <div className="flex-row justify-end">
-                        <span className="label-text px-5">Status:</span>
+                <div className='flex flex-row items-center justify-between pt-10 pr-5'>
+                    <div className='flex-row justify-end'>
+                        <span className='label-text px-5'>Status:</span>
 
-                        <div
-                            className={`badge ${
-                                errorCount === 0
-                                    ? 'badge-success'
-                                    : 'badge-error'
-                            } gap-2`}
-                        >
-                            {errorCount === 0
-                                ? 'Verified'
-                                : `Error ${errorCount}`}
+                        <div className={`badge ${errorCount === 0 ? 'badge-success' : 'badge-error'} gap-2`}>
+                            {errorCount === 0 ? 'Verified' : `Error ${errorCount}`}
                         </div>
                     </div>
 
-                    <div className="flex flex-row items-center space-x-2 ml-auto">
-                        <button onClick={add} className="btn btn-secondary">
+                    <div className='flex flex-row items-center space-x-2 ml-auto'>
+                        <button onClick={add} className='btn btn-secondary'>
                             Add
                         </button>
-                        <div className="form-control">
-                            <label className="label cursor-pointer">
-                                <span className="label-text px-5">Edit</span>
+                        <div className='form-control'>
+                            <label className='label cursor-pointer'>
+                                <span className='label-text px-5'>Edit</span>
                                 <input
-                                    type="checkbox"
-                                    className="toggle toggle-success"
+                                    type='checkbox'
+                                    className='toggle toggle-success'
                                     checked={editMode}
                                     onChange={() => setEditMode(!editMode)} // Toggle editMode on click
                                 />
                             </label>
                         </div>
-                        <h2 className="text-lg font-semibold self-center">
-                            Mode:
-                        </h2>
+                        <h2 className='text-lg font-semibold self-center'>Mode:</h2>
                         <select
                             value={selectedModeValue}
                             onChange={handleSelectChange}
-                            className="min-w-20 p-2 border border-primary-content rounded-lg bg-primary-content text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className='min-w-20 p-2 border border-primary-content rounded-lg bg-primary-content text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500'
                         >
-                            <option value="10m">10m</option>
-                            <option value="20m">20m</option>
-                            <option value="30m">30m</option>
-                            <option value="60m">60m</option>
+                            <option value='5m'>5m</option>
+                            <option value='10m'>10m</option>
+                            <option value='20m'>20m</option>
+                            <option value='30m'>30m</option>
+                            <option value='60m'>60m</option>
                         </select>
                         <button
                             onClick={undo}
                             disabled={historyIndex <= 1} // Disable if at the start of history
-                            className="btn btn-secondary"
+                            className='btn btn-secondary'
                         >
                             Undo
                         </button>
                         <button
                             onClick={redo}
-                            className="btn btn-secondary"
+                            className='btn btn-secondary'
                             disabled={historyIndex === history.length - 1} // Disable if at the start of history
                         >
                             Redo
                         </button>
-                        <button
-                            onClick={save}
-                            className="btn btn-secondary"
-                            disabled={errorCount > 0}
-                        >
+                        <button onClick={save} className='btn btn-secondary' disabled={errorCount > 0}>
                             Save
                         </button>
                     </div>
@@ -567,83 +515,71 @@ const ForTest = ({ hashMap }) => {
 
                 {/* Conditional rendering for empty paginatedValue */}
                 {Array.from(paginatedValueMap.entries()).length === 0 ? (
-                    <div className="text-center text-lg font-semibold pt-10">
-                        No Value
-                    </div>
+                    <div className='text-center text-lg font-semibold pt-10'>No Value</div>
                 ) : (
-                    Array.from(paginatedValueMap.entries()).map(
-                        ([key, value], index) => {
-                            return (
-                                <div
-                                    key={index}
-                                    className="flex flex-col space-y-5 p-5"
-                                    ref={(el) => (tableRefs.current[key] = el)} // Assign ref dynamically
-                                >
-                                    {/* Card for each section */}
-                                    <div className="card bg-base-100 w-full shadow-xl pt-5">
-                                        <div className="card-body">
-                                            {/* Dynamically render section name */}
-                                            <h2 className="card-title">
-                                                Section: {key}
-                                            </h2>
-                                            <Column />
+                    Array.from(paginatedValueMap.entries()).map(([key, value], index) => {
+                        return (
+                            <div
+                                key={index}
+                                className='flex flex-col space-y-5 p-5'
+                                ref={(el) => (tableRefs.current[key] = el)} // Assign ref dynamically
+                            >
+                                {/* Card for each section */}
+                                <div className='card bg-base-100 w-full shadow-xl pt-5'>
+                                    <div className='card-body'>
+                                        {/* Dynamically render section name */}
+                                        <h2 className='card-title'>Section: {key}</h2>
+                                        <Column />
+                                        <div
+                                            className='flex flex-row border border-gray-600'
+                                            style={{
+                                                maxHeight: `${tableHeight}px`,
+                                                minHeight: `${tableHeight}px`,
+                                            }}
+                                        >
+                                            {/* Time slots */}
                                             <div
-                                                className="flex flex-row border border-gray-600"
+                                                className='flex flex-col items-center min-w-20 max-w-[105px] '
                                                 style={{
                                                     maxHeight: `${tableHeight}px`,
                                                     minHeight: `${tableHeight}px`,
                                                 }}
                                             >
-                                                {/* Time slots */}
-                                                <div
-                                                    className="flex flex-col items-center min-w-20 max-w-[105px] "
-                                                    style={{
-                                                        maxHeight: `${tableHeight}px`,
-                                                        minHeight: `${tableHeight}px`,
-                                                    }}
-                                                >
-                                                    {timeSlots.map(
-                                                        (time, timeIndex) => (
-                                                            <div
-                                                                style={{
-                                                                    height: `calc(${tableHeight}px / ${timeSlots.length})`,
-                                                                }}
-                                                                key={timeIndex}
-                                                                className="flex items-center justify-center text-lg w-full text-center border border-primary-content font-semibold shadow py-10 mx-5"
-                                                            >
-                                                                {time}
-                                                            </div>
-                                                        )
-                                                    )}
-                                                </div>
-
-                                                {/* DragDrop Component */}
-
-                                                <DragDrop
-                                                    mode={selectedModeValue}
-                                                    tableKey={key}
-                                                    value={value}
-                                                    tableHeight={tableHeight}
-                                                    timeSlots={timeSlots}
-                                                    setValueMap={setValueMap}
-                                                    scrollToTable={
-                                                        scrollToTable
-                                                    }
-                                                    editMode={editMode}
-                                                    setLoading={setLoading}
-                                                    loading={loading}
-                                                    addClicked={addClicked}
-                                                    setAddClicked={
-                                                        setAddClicked
-                                                    }
-                                                />
+                                                {timeSlots.map((time, timeIndex) => (
+                                                    <div
+                                                        style={{
+                                                            height: `calc(${tableHeight}px / ${timeSlots.length})`,
+                                                        }}
+                                                        key={timeIndex}
+                                                        className='flex items-center justify-center text-lg w-full text-center border border-primary-content font-semibold shadow py-10 mx-5'
+                                                    >
+                                                        {time}
+                                                    </div>
+                                                ))}
                                             </div>
+
+                                            {/* DragDrop Component */}
+
+                                            <DragDrop
+                                                mode={selectedModeValue}
+                                                tableKey={key}
+                                                value={value}
+                                                tableHeight={tableHeight}
+                                                timeSlots={timeSlots}
+                                                setValueMap={setValueMap}
+                                                scrollToTable={scrollToTable}
+                                                editMode={editMode}
+                                                setLoading={setLoading}
+                                                loading={loading}
+                                                addClicked={addClicked}
+                                                setAddClicked={setAddClicked}
+                                            />
                                         </div>
                                     </div>
                                 </div>
-                            );
-                        }
-                    )
+                            </div>
+                        );
+                    })
                 )}
             </div>
         )

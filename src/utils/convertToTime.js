@@ -15,8 +15,8 @@ function convertToTime(num) {
     let startHour = 6;
     let startMinute = 0;
 
-    // Each step increases the time by 10 minutes
-    let totalMinutes = num * 10;
+    // Each step increases the time by 5 minutes
+    let totalMinutes = num * 5;
 
     // Calculate the new hours and minutes
     let hours = startHour + Math.floor(totalMinutes / 60);

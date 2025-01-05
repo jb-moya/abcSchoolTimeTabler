@@ -921,7 +921,8 @@ function Timetable() {
             day,
             fieldName1,
             fieldName2,
-            containerName
+            containerName,
+            type
         ) => {
             const timeslotData = {
                 section: section_id,
@@ -932,6 +933,7 @@ function Timetable() {
                 day: day,
                 end: end,
                 start: start,
+                type: type,
             };
 
             if (timetableMap.has(IDAttribute)) {
@@ -959,7 +961,7 @@ function Timetable() {
 
             const start = Number(entry[5]);
             const end = Number(entry[6]);
-
+            const sectionType = 'section';
             addTimeslotToTimetable(
                 section_id,
                 sectionTimetable,
@@ -971,7 +973,8 @@ function Timetable() {
                 day,
                 subjectsStore[subject_id]?.subject || null,
                 teachersStore[teacher_id]?.teacher || null,
-                sectionsStore[section_id]?.section
+                sectionsStore[section_id]?.section,
+                sectionType
             );
 
             if (teacher_id == null) {
@@ -991,6 +994,7 @@ function Timetable() {
 
                 teacherTakenTime.set(teacher_id, new Set(takenTime));
             }
+            const teacherType = 'teacher';
 
             addTimeslotToTimetable(
                 teacher_id,
@@ -1003,7 +1007,8 @@ function Timetable() {
                 day,
                 sectionsStore[section_id]?.section,
                 subjectsStore[subject_id]?.subject,
-                teachersStore[teacher_id]?.teacher
+                teachersStore[teacher_id]?.teacher,
+                teacherType
             );
         }
 
@@ -1067,7 +1072,6 @@ function Timetable() {
             console.log('🚀 ~ teacherTimetable.forEach ~  teacherMap[key]:', teachersStore[key]);
             const additionalTeacherScheds = teachersStore[key]?.additionalTeacherScheds || [];
             console.log('🚀 ~ teacherTimetable.forEach ~ additionalTeacherScheds:', additionalTeacherScheds);
-
             for (let i = 0; i < additionalTeacherScheds.length; i++) {
                 const sched = additionalTeacherScheds[i];
 
@@ -1083,13 +1087,15 @@ function Timetable() {
                     timetable.push([
                         sched.time,
                         {
+                            start: sched.time,
                             day: day,
                             end: end,
                             fieldName1: null,
-                            fieldName2: null,
+                            fieldName2: sched.name,
                             section: null,
                             subject: sched.subject || null,
-                            teacher: sched.name,
+                            teacher: teachersStore[key].id,
+                            type: 'teacher',
                         },
                     ]);
                 }
@@ -1107,18 +1113,25 @@ function Timetable() {
             return obj;
         }
 
-        const sectionString = JSON.stringify(mapToObject(sectionTimetable), null, 2);
-        const teacherString = JSON.stringify(mapToObject(teacherTimetable), null, 2);
-        console.log('teacherString: ', teacherString);
-        console.log('sectionString: ', sectionString);
+        // const sectionString = JSON.stringify(mapToObject(sectionTimetable), null, 2);
+        // const teacherString = JSON.stringify(mapToObject(teacherTimetable), null, 2);
+        // console.log('teacherString: ', teacherString);
+        // console.log('sectionString: ', sectionString);
 
         // setTimetable(timetableMap);
         setSectionTimetables(sectionTimetable);
         setTeacherTimetables(teacherTimetable);
 
-        // const combined = combineObjects(sectionTimetable, teacherTimetable);
+        // const combined = combineMaps(sectionTimetable, teacherTimetable);
         // console.log('combined: ', combined);
-        // setMapVal(convertToHashMap(combined));
+        const sectionEdited = convertToHashMap(sectionTimetable);
+        const teacherEdited = convertToHashMap(teacherTimetable);
+        // console.log('sectionEdited: ', sectionEdited);
+        // console.log('teacherEdited: ', teacherEdited);
+        const combined = combineMaps(sectionEdited, teacherEdited);
+        console.log('DATA SA DRAGDROP: ', combined);
+
+        setMapVal(combined);
     };
 
     const handleSchedExport = () => {
@@ -1526,14 +1539,14 @@ function Timetable() {
             }
         };
 
-        if (timetableGenerationStatus === 'success') {
-            const combinedMap = combineObjects(sectionStringObj, teacherStringObj);
-            const map = convertToHashMap(combinedMap);
-            console.log('combined: ', combinedMap);
-            console.log('map: ', map);
+        // if (timetableGenerationStatus === 'success') {
+        //     const combinedMap = combineObjects(sectionStringObj, teacherStringObj);
+        //     const map = convertToHashMap(combinedMap);
+        //     console.log('combined: ', combinedMap);
+        //     console.log('map: ', map);
 
-            setMapVal(map);
-        }
+        //     setMapVal(map);
+        // }
         // Add the event listener
         window.addEventListener('beforeunload', handleBeforeUnload);
 
@@ -1551,88 +1564,187 @@ function Timetable() {
     // makeOtherTable(sectionTimetables)
     // makeOtherTable(teacherTimetables)
 
-    const convertToHashMap = (inputObj) => {
+    // const convertToHashMap = (inputObj) => {
+    //     const resultMap = new Map(); // Initialize the outer Map
+
+    //     // Iterate through each section in the input object
+    //     for (let tableKey in inputObj) {
+    //         let sectionData = inputObj[tableKey];
+    //         // Each section has a container name
+    //         let setTableKey = `${sectionData.containerName} - ${tableKey}`;
+
+    //         // Check if the tableKey already exists under the tableKey
+    //         if (!resultMap.has(setTableKey)) {
+    //             resultMap.set(setTableKey, new Map());
+    //         }
+    //         const scheduleMap = resultMap.get(setTableKey);
+
+    //         // Iterate through the nested objects (0, 1, 2,...)
+    //         for (let key in sectionData) {
+    //             // Skip the tableKey field to prevent redundant processing
+    //             if (key === 'containerName') continue;
+    //             // Iterate through inner objects (0, 1, 2,...)
+    //             for (let innerKey in sectionData[key]) {
+    //                 let schedule = sectionData[key][innerKey];
+    //                 const type = schedule.teacher ? 'section' : 'teacher';
+    //                 const partnerType = type === 'teacher' ? 'section' : 'teacher';
+
+    //                 if (innerKey === '0') {
+    //                     for (let i = 1; i <= 5; i++) {
+    //                         const scheduleKey = `section-${schedule.sectionID}-teacher-${schedule.teacherID}-subject-${schedule.subjectID}-day-${i}-type-${type}`;
+    //                         // Add the schedule to the nested Map
+    //                         const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
+
+    //                         scheduleMap.set(scheduleKey, {
+    //                             start: schedule.start,
+    //                             end: schedule.end,
+    //                             sectionID: schedule.sectionID,
+    //                             subject: schedule.subject,
+    //                             subjectID: schedule.subjectID,
+    //                             teacherID: schedule.teacherID,
+    //                             tableKey: setTableKey,
+    //                             partnerKey: keyToFind,
+    //                             id: scheduleKey,
+    //                             dynamicID: scheduleKey,
+    //                             day: i,
+    //                             overlap: false,
+    //                             type: type,
+    //                             ...(schedule.section && {
+    //                                 section: schedule.section,
+    //                             }), // Add section if it exists
+    //                             ...(schedule.teacher && {
+    //                                 teacher: schedule.teacher,
+    //                             }), // Add section if it exists
+    //                         });
+    //                     }
+    //                 } else {
+    //                     // Use sectionID, subjectID, and start time to create a unique key for the schedule
+    //                     const scheduleKey = `section-${schedule.sectionID}-teacher-${schedule.teacherID}-subject-${schedule.subjectID}-day-${innerKey}-type-${type}`;
+    //                     const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
+    //                     // Add the schedule to the nested Map
+    //                     scheduleMap.set(scheduleKey, {
+    //                         start: schedule.start,
+    //                         end: schedule.end,
+    //                         sectionID: schedule.sectionID,
+    //                         subject: schedule.subject,
+    //                         subjectID: schedule.subjectID,
+    //                         teacherID: schedule.teacherID,
+    //                         tableKey: setTableKey,
+    //                         partnerKey: keyToFind,
+    //                         type: type,
+    //                         id: scheduleKey,
+    //                         dynamicID: scheduleKey,
+    //                         day: Number(innerKey),
+    //                         ...(schedule.section && {
+    //                             section: schedule.section,
+    //                         }), // Add section if it exists
+    //                         ...(schedule.teacher && {
+    //                             teacher: schedule.teacher,
+    //                         }), // Add section if it exists
+    //                     });
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     return resultMap;
+    // };
+
+    const convertToHashMap = (inputMap) => {
         const resultMap = new Map(); // Initialize the outer Map
 
-        // Iterate through each section in the input object
-        for (let tableKey in inputObj) {
-            let sectionData = inputObj[tableKey];
+        // Iterate through each entry in the input HashMap
+        for (let [tableKey, sectionData] of inputMap.entries()) {
             // Each section has a container name
-            let setTableKey = `${sectionData.containerName} - ${tableKey}`;
+            let containerName = null;
+            let timetable = null;
+
+            for (let [key, value] of sectionData) {
+                if (key === 'containerName') {
+                    containerName = value;
+                } else if (key === 'timetable') {
+                    timetable = value;
+                }
+            }
+
+            if (!containerName || !timetable) {
+                console.warn(`Missing containerName or timetable for tableKey: ${tableKey}`);
+                continue;
+            }
+            let setTableKey = `${containerName} - ${tableKey}`;
+            // console.log('sectionData: ', sectionData);
+            // console.log('setTableKey: ', setTableKey);
 
             // Check if the tableKey already exists under the tableKey
             if (!resultMap.has(setTableKey)) {
                 resultMap.set(setTableKey, new Map());
             }
+            // console.log('resultMap: ', resultMap);
             const scheduleMap = resultMap.get(setTableKey);
+            // console.log('scheduleMap: ', scheduleMap);
 
             // Iterate through the nested objects (0, 1, 2,...)
-            for (let key in sectionData) {
-                // Skip the tableKey field to prevent redundant processing
-                if (key === 'containerName') continue;
-                // Iterate through inner objects (0, 1, 2,...)
-                for (let innerKey in sectionData[key]) {
-                    let schedule = sectionData[key][innerKey];
-                    const type = schedule.teacher ? 'section' : 'teacher';
-                    const partnerType = type === 'teacher' ? 'section' : 'teacher';
+            // console.log('timetable: ', timetable);
+            for (let item of timetable) {
+                let [key, schedule] = item;
+                // console.log('item in timetable: ', item);
+                // console.log('key in timetable: ', key);
+                // console.log('value in timetable: ', schedule);
 
-                    if (innerKey === '0') {
-                        for (let i = 1; i <= 5; i++) {
-                            const scheduleKey = `section-${schedule.sectionID}-teacher-${schedule.teacherID}-subject-${schedule.subjectID}-day-${i}-type-${type}`;
-                            // Add the schedule to the nested Map
-                            const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
+                // console.log('day in timetable: ', schedule.day);
+                const type = schedule.type;
+                const partnerType = type === 'teacher' ? 'section' : 'teacher';
 
-                            scheduleMap.set(scheduleKey, {
-                                start: schedule.start,
-                                end: schedule.end,
-                                sectionID: schedule.sectionID,
-                                subject: schedule.subject,
-                                subjectID: schedule.subjectID,
-                                teacherID: schedule.teacherID,
-                                tableKey: setTableKey,
-                                partnerKey: keyToFind,
-                                id: scheduleKey,
-                                dynamicID: scheduleKey,
-                                day: i,
-                                overlap: false,
-                                type: type,
-                                ...(schedule.section && {
-                                    section: schedule.section,
-                                }), // Add section if it exists
-                                ...(schedule.teacher && {
-                                    teacher: schedule.teacher,
-                                }), // Add section if it exists
-                            });
-                        }
-                    } else {
-                        // Use sectionID, subjectID, and start time to create a unique key for the schedule
-                        const scheduleKey = `section-${schedule.sectionID}-teacher-${schedule.teacherID}-subject-${schedule.subjectID}-day-${innerKey}-type-${type}`;
-                        const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
+                if (schedule.day === 0) {
+                    for (let i = 1; i <= 5; i++) {
+                        const scheduleKey = `section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${i}-type-${type}`;
                         // Add the schedule to the nested Map
+                        const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
+
                         scheduleMap.set(scheduleKey, {
                             start: schedule.start,
                             end: schedule.end,
-                            sectionID: schedule.sectionID,
-                            subject: schedule.subject,
-                            subjectID: schedule.subjectID,
-                            teacherID: schedule.teacherID,
+                            sectionID: schedule.section,
+                            subject: type === 'section' ? schedule.fieldName1 : schedule.fieldName2,
+                            subjectID: schedule.subject,
+                            teacherID: schedule.teacher,
                             tableKey: setTableKey,
                             partnerKey: keyToFind,
-                            type: type,
                             id: scheduleKey,
                             dynamicID: scheduleKey,
-                            day: Number(innerKey),
-                            ...(schedule.section && {
-                                section: schedule.section,
-                            }), // Add section if it exists
-                            ...(schedule.teacher && {
-                                teacher: schedule.teacher,
-                            }), // Add section if it exists
+                            day: i,
+                            overlap: false,
+                            type: type,
+                            ...(type === 'teacher' && { section: schedule.fieldName1 }),
+                            ...(type === 'section' && { teacher: schedule.fieldName2 }),
                         });
                     }
+                } else {
+                    // Use sectionID, subjectID, and start time to create a unique key for the schedule
+                    const scheduleKey = `section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${schedule.day}-type-${type}`;
+                    const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
+                    // Add the schedule to the nested Map
+                    scheduleMap.set(scheduleKey, {
+                        start: schedule.start,
+                        end: schedule.end,
+                        sectionID: schedule.section,
+                        subject: type === 'section' ? schedule.fieldName1 : schedule.fieldName2,
+                        subjectID: schedule.subject,
+                        teacherID: schedule.teacher,
+                        tableKey: setTableKey,
+                        partnerKey: keyToFind,
+                        type: type,
+                        id: scheduleKey,
+                        dynamicID: scheduleKey,
+                        overlap: false,
+                        day: schedule.day,
+                        ...(type === 'teacher' && { section: schedule.fieldName1 }),
+                        ...(type === 'section' && { teacher: schedule.fieldName2 }),
+                    });
                 }
             }
         }
+        // console.log('resultMap: ', resultMap);
 
         return resultMap;
     };
@@ -5789,10 +5901,10 @@ function Timetable() {
     //     setMapVal(map);
     // }, []);
 
-    useEffect(() => {
-        console.log('changed: ', mapVal);
-        console.log('Condition:', mapVal && mapVal.size > 0);
-    }, [mapVal]);
+    // useEffect(() => {
+    //     console.log('changed: ', mapVal);
+    //     console.log('Condition:', mapVal && mapVal.size > 0);
+    // }, [mapVal]);
     return (
         <div className='App container mx-auto px-4 py-6'>
             <div className='mb-6 flex justify-between items-center'>
@@ -5873,7 +5985,7 @@ function Timetable() {
             )}
             {mapVal && mapVal.size > 0 && (
                 <>
-                    {console.log('Rendering ForTest with mapVal:', mapVal)}
+                    {/* {console.log('Rendering ForTest with mapVal:', mapVal)} */}
                     <ForTest hashMap={mapVal} />
                 </>
             )}

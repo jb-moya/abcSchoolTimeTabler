@@ -16,7 +16,7 @@ const DragDrop = ({
     addClicked,
     setAddClicked,
 }) => {
-    console.log('value: ', value);
+    // console.log('value: ', value);
     const containerRef = React.useRef(null);
     const [lineRowPositions, setRowPositions] = useState([]);
     const [lineColPositions, setColPositions] = useState([]);
@@ -209,6 +209,8 @@ const DragDrop = ({
 
     const getLinesPerSegment = (mode) => {
         switch (mode) {
+            case '5m':
+                return 11;
             case '10m':
                 return 5;
             case '20m':
@@ -252,7 +254,7 @@ const DragDrop = ({
                 }
             });
 
-            if (originalRowPositions.length === 0 && mode === '10m') {
+            if (originalRowPositions.length === 0 && mode === '5m') {
                 setOriginalRowPositions(newLinePositions);
             }
             // console.log('row newLinePositions: ', newLinePositions);
@@ -348,6 +350,8 @@ const DragDrop = ({
                         {lineRowPositions.length > 0 &&
                             lineColPositions.length > 0 &&
                             Array.from(value.entries()).map(([key, cell], index) => {
+                                // console.log(originalRowPositions[cell.start]);
+
                                 const pos = {
                                     x: lineColPositions[cell.day - 1],
                                     y: originalRowPositions[cell.start],
