@@ -1,5 +1,6 @@
-import SectionListContainer from '@components/Admin/SectionListContainer';
+
 import Breadcrumbs from '@components/Admin/Breadcrumbs';
+import SectionListContainer from '../../../components/Admin/SectionComponents/SectionListContainer';
 
 
 function Sections() {

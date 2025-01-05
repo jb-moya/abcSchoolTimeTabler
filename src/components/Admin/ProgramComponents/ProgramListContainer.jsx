@@ -1231,7 +1231,7 @@ const ProgramListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                             className="btn btn-xs btn-ghost text-red-500"
                                                             id={program.id}
                                                             reduxFunction={removeProgram}
-                                                            />
+                                                        />
 
                                             </div>
                                                 {/* {editProgramId ===

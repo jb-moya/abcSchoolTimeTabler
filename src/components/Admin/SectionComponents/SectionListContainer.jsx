@@ -20,10 +20,16 @@ import escapeRegExp from '@utils/escapeRegExp';
 import { toast } from 'sonner';
 import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 
-import ViewRooms from './RoomsAndBuildings/ViewRooms';
-import FixedScheduleMaker from './FixedSchedules/fixedScheduleMaker';
+import ViewRooms from '../RoomsAndBuildings/ViewRooms';
+import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
 import clsx from 'clsx';
+import AdditionalScheduleForSection from './AdditionalScheduleForSection';
+import AddSectionContainer from './SectionAdd';
+import DeleteData from '../DeleteData';
+import SectionEdit from './SectionEdit';
 
+<<<<<<< HEAD:src/components/Admin/SectionComponents/SectionListContainer.jsx
+=======
 const AdditionalScheduleForSection = ({
     viewingMode = 0,
     sectionID = 0,
@@ -886,6 +892,7 @@ const AddSectionContainer = ({
         </div>
     );
 };
+>>>>>>> 6a9761fa32458ad6e1a2e1cdb604db2168a35c5c:src/components/Admin/SectionListContainer.jsx
 
 const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editable = false }) => {
     const dispatch = useDispatch();
@@ -1126,20 +1133,40 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
     //  =======================================================================================
 
     // HANDLING ADDITION AND DELETION OF ADDITIONAL SCHEDULES
-    const handleAddAdditionalSchedule = () => {
-        setEditAdditionalScheds((prevScheds) => [
-            ...prevScheds,
-            {
-                name: '',
-                subject: 0,
-                duration: 60,
-                frequency: 1,
-                shown: true,
-                time: editSectionShift === 0 ? 192 : 96,
-            },
-        ]);
-    };
+    // const handleAddAdditionalSchedule = () => {
+    //     setEditAdditionalScheds((prevScheds) => [
+    //         ...prevScheds,
+    //         {
+    //             name: '',
+    //             subject: 0,
+    //             duration: 60,
+    //             frequency: 1,
+    //             shown: true,
+    //             time: editSectionShift === 0 ? 192 : 96,
+    //         },
+    //     ]);
+    // };
 
+<<<<<<< HEAD:src/components/Admin/SectionComponents/SectionListContainer.jsx
+    // const handleDeleteAdditionalSchedule = (index) => {
+    //     setEditAdditionalScheds((prevScheds) =>
+    //         prevScheds.filter((_, i) => i !== index)
+    //     );
+    // };
+
+    // RENDERING TIME OPTIONS
+    // const renderTimeOptions = () => {
+    //     const times =
+    //         editSectionShift === 0
+    //             ? Array.from({ length: 36 }, (_, i) => {
+    //                   const hours = 6 + Math.floor(i / 6);
+    //                   const minutes = (i % 6) * 10;
+    //                   return `${String(hours).padStart(2, '0')}:${String(
+    //                       minutes
+    //                   ).padStart(2, '0')} AM`;
+    //               })
+    //             : ['01:00 PM']; // Only one option for PM
+=======
     const handleDeleteAdditionalSchedule = (index) => {
         setEditAdditionalScheds((prevScheds) => prevScheds.filter((_, i) => i !== index));
     };
@@ -1154,13 +1181,14 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                       return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} AM`;
                   })
                 : ['01:00 PM']; // Only one option for PM
+>>>>>>> 6a9761fa32458ad6e1a2e1cdb604db2168a35c5c:src/components/Admin/SectionListContainer.jsx
 
-        return times.map((time) => (
-            <option key={time} value={time}>
-                {time}
-            </option>
-        ));
-    };
+    //     return times.map((time) => (
+    //         <option key={time} value={time}>
+    //             {time}
+    //         </option>
+    //     ));
+    // };
 
     //  =======================================================================================
     //  Handling ADD SECTION MODAL
@@ -1982,6 +2010,32 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                         </td>
 
                                         {editable && (
+<<<<<<< HEAD:src/components/Admin/SectionComponents/SectionListContainer.jsx
+                                            <td className="w-28">
+                                               
+                                            <div className='flex'>
+
+                                                     <SectionEdit 
+                                                        section = {section}
+                                                        reduxField={['section', 'subjects', 'units',]}
+                                                        reduxFunction={editSection}
+                                                        errorMessage={errorMessage}
+                                                        setErrorMessage={setErrorMessage}
+                                                        errorField={errorField}
+                                                        setErrorField={setErrorField}
+                                                        numOfSchoolDays={numOfSchoolDays}
+                                                        
+                                                        />
+
+                                                        <DeleteData
+                                                            id={section.id}
+                                                            reduxFunction={removeSection} />
+
+                                            </div>
+                                                      
+                                                   
+                                               
+=======
                                             <td className='w-28 text-right'>
                                                 {editSectionId === section.id ? (
                                                     <>
@@ -2048,6 +2102,7 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                         </dialog>
                                                     </>
                                                 )}
+>>>>>>> 6a9761fa32458ad6e1a2e1cdb604db2168a35c5c:src/components/Admin/SectionListContainer.jsx
                                             </td>
                                         )}
                                     </tr>
