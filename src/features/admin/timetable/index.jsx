@@ -93,7 +93,6 @@ function Timetable() {
 
     const { subjects: subjectsStore, status: subjectStatus } = useSelector((state) => state.subject);
     const { buildings: buildingsStore, status: buildingStatus } = useSelector((state) => {
-        console.log('statee e e e ee  ee e e ', state);
         return state.building;
     });
     const { teachers: teachersStore } = useSelector((state) => state.teacher);
@@ -168,9 +167,8 @@ function Timetable() {
             return acc;
         }, {});
 
-        console.log('🚀 ~ handleButtonClick ~ buildingsStore:', typeof buildingsStore, buildingsStore);
-
-        console.log('🚀 ~ handleButtonClick ~ buildingMapReverse:', buildingMapReverse);
+        // console.log('🚀 ~ handleButtonClick ~ buildingsStore:', typeof buildingsStore, buildingsStore);
+        // console.log('🚀 ~ handleButtonClick ~ buildingMapReverse:', buildingMapReverse);
 
         const buildingMap = Object.entries(buildingsStore).reduce((acc, [, building], index) => {
             console.log('🚀 ~ handleButtonClick ~ building:', building);
@@ -189,13 +187,14 @@ function Timetable() {
             return acc;
         }, {});
 
-        console.log('🚀 ~ handleButtonClick ~ buildingMap:', buildingMap);
+        // console.log('🚀 ~ handleButtonClick ~ buildingMap:', buildingMap);
 
         const buildingInfoArray = [];
         const buildingAdjacencyArray = [];
 
         Object.entries(buildingMap).forEach(([buildingID, building]) => {
-            // console.log('🚀 ~ Object.entries ~ building:', building);
+            console.log('🚀 ~ Object.entries ~ building:', building);
+
             // console.log('🚀 ~ Object.entries ~ buildingID:', buildingID);
             building.adjacency.forEach((adjacentBuildingID) => {
                 // console.log(
@@ -221,7 +220,7 @@ function Timetable() {
         const buildingInfo = new Int32Array([...buildingInfoArray]);
         const buildingAdjacency = new Int32Array([...buildingAdjacencyArray]);
 
-        console.log('🚀 ~ handleButtonClick ~ buildingAdjacencyArray:', buildingAdjacencyArray);
+        // console.log('🚀 ~ handleButtonClick ~ buildingAdjacencyArray:', buildingAdjacencyArray);
 
         const subjectMapReverse = Object.entries(subjectsStore).reduce((acc, [, subject], index) => {
             acc[subject.id] = {
@@ -242,7 +241,7 @@ function Timetable() {
         }, {});
 
         Object.entries(teachersStore).forEach(([key, section]) => {
-            console.log('🚀 ~ Object.entries ~ teachersStore:', teachersStore);
+            // console.log('🚀 ~ Object.entries ~ teachersStore:', teachersStore);
             // ...
         });
 
@@ -325,7 +324,7 @@ function Timetable() {
             Object.entries(fixedPositions)
                 .filter(([subjectID]) => !subjectsEveryDay.includes(subjectID))
                 .forEach(([subjectID, classBlock]) => {
-                    console.log(`${subjectID}: ${classBlock}`);
+                    // console.log(`${subjectID}: ${classBlock}`);
 
                     classBlock.forEach((timeslot, index) => {
                         const subjectConfiguration = {
@@ -387,7 +386,7 @@ function Timetable() {
             });
         });
 
-        console.log('🚀 ~ section.subjects.forEach ~ subjectConfigurationArray:', subjectConfigurationMap);
+        console.log('BBBBBBBBBBBB:', subjectConfigurationMap);
 
         const subjectConfigurationSubjectUnitsArray = [];
         const subjectConfigurationSubjectDurationArray = [];
@@ -453,6 +452,7 @@ function Timetable() {
             breakTimeDuration,
             durationUniqueAdditionalTeacherScheds
         );
+        console.log('🚀 ~ handleButtonClick ~ lowestSubjectDuration:', lowestSubjectDuration);
 
         let offset = lowestSubjectDuration - 1; // what is this minus 1 magic number?????
 
@@ -470,7 +470,7 @@ function Timetable() {
         let totalSectionSubjects = 0;
 
         const sectionMap = Object.entries(sectionsStore).reduce((acc, [, section], index) => {
-            // console.log('🚀 ~ sectionMap ~ section:', section);
+            console.log('sectionMap ~ section:', section);
 
             // Assuming section.subjects is an object with subject IDs as keys
             const subjectIDs = Object.keys(section.subjects);
@@ -532,7 +532,7 @@ function Timetable() {
             let subjectConfigurationArray = [];
 
             Object.entries(fixedPositions).forEach(([subjectID, positionArray]) => {
-                console.log(`Key: ${subjectID}, Value: ${positionArray}`);
+                // console.log(`Key: ${subjectID}, Value: ${positionArray}`);
 
                 if (
                     positionArray.length == numOfSchoolDays &&
@@ -595,10 +595,7 @@ function Timetable() {
                 }
             });
 
-            // console.log(
-            //     '🚀 ~ handleButtonClick ~ subjectConfiguration:',
-            //     subjectConfigurationArray
-            // );
+            console.log("🚀section ' s ~ subjectConfiguration:", section.id, subjectConfigurationArray);
 
             let sectionSubjectConfigurationIDs = [];
 
@@ -640,6 +637,7 @@ function Timetable() {
                 startTime: section.startTime,
                 id: section.id,
                 additionalScheds: section.additionalScheds,
+                roomDetails: section.roomDetails,
             };
 
             return acc;
@@ -665,7 +663,7 @@ function Timetable() {
         const sectionLocationArray = [];
 
         Object.entries(subjectsStore).forEach(([key, value]) => {
-            console.log(`Key: ${key}, Value: ${value}`);
+            // console.log(`Key: ${key}, Value: ${value}`);
 
             if (value.classDuration < lowestSubjectDuration) {
                 lowestSubjectDuration = value.classDuration;
@@ -730,6 +728,9 @@ function Timetable() {
                 sectionSubjectConfigurationArray.push(packInt16ToInt32(sectionKey, subjectConfigurationID));
             });
 
+            const roomDetails = section.roomDetails;
+            const buildingID = buildingMapReverse[roomDetails.buildingID];
+
             const exampleLocation = {
                 buildingID: 0,
                 floor: 0,
@@ -753,7 +754,7 @@ function Timetable() {
         const sectionConfiguration = new Int32Array([...sectionConfigurationArray]);
         const sectionSubjectConfiguration = new Int32Array([...sectionSubjectConfigurationArray]);
 
-        const maxIterations = 70;
+        const maxIterations = 5000;
         const beesPopulations = 4;
         const beesEmployed = 2;
         const beesOnlooker = 2;
@@ -1098,7 +1099,7 @@ function Timetable() {
                             fieldName2: null,
                             section: null,
                             subject: sched.subject || null,
-                            teacher: sched.name,
+                            teacher: key,
                         },
                     ]);
                 }
