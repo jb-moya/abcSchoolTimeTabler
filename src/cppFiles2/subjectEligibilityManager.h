@@ -12,13 +12,15 @@ class SubjectEligibilityManager {
 	std::unordered_map<SubjectID, std::vector<TeacherID>> eligible_teachers_in_subject;
 
    public:
+	static inline const std::vector<TeacherID> empty = {};
+
 	void addTeacher(SubjectID subjectId, TeacherID teacherId) {
 		eligible_teachers_in_subject[subjectId].push_back(teacherId);
 	}
 
 	const std::vector<TeacherID>& getEligibleTeachers(SubjectID subjectId) const {
 		if (eligible_teachers_in_subject.find(subjectId) == eligible_teachers_in_subject.end()) {
-			throw std::runtime_error("No eligible teachers available for subject." + std::to_string(subjectId));
+			return empty;
 		}
 
 		return eligible_teachers_in_subject.at(subjectId);
@@ -27,7 +29,7 @@ class SubjectEligibilityManager {
 	TeacherID getNewRandomTeacher(SubjectID subjectId, TeacherID old_teacher = -1) {
 		const auto& eligibleTeachers = getEligibleTeachers(subjectId);
 		if (eligibleTeachers.empty()) {
-			throw std::runtime_error("No eligible teachers available for subject.");
+			return -1;
 		}
 
 		if (eligibleTeachers.size() == 1) {
