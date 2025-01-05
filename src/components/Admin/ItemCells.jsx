@@ -33,34 +33,26 @@ const ItemCells = ({
     setAddClicked,
 }) => {
     // if (cell.teacherID === 1) {
-    //     console.log('cell: ', cell);
+    console.log('cell: ', cell);
     // }
 
     const itemRef = useRef(null);
 
     const [targetPosition, setTargetPosition] = useState(initialPosition);
     const [timeRange, setTimeRange] = useState(0);
-    const [options, setOptions] = useState([]); // Example state for options
-    const { subjects, status: subjectStatus } = useSelector(
-        (state) => state.subject
-    );
-    const dispatch = useDispatch(); // Initialize dispatch
+    const [options, setOptions] = useState([]);
+    // const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
+    const dispatch = useDispatch();
 
-    const { teachers, status: teacherStatus } = useSelector(
-        (state) => state.teacher
-    );
-
-    const [isResizing, setIsResizing] = useState(false);
-    const [resizeDirection, setResizeDirection] = useState(null);
-    const [startY, setStartY] = useState(null);
-    const [direction, setDirection] = useState('');
+    const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
     const [errors, setErrors] = useState({});
+    const [hovering, setHovering] = useState(false);
 
-    useEffect(() => {
-        if (subjectStatus === 'idle') {
-            dispatch(fetchSubjects());
-        }
-    }, [subjectStatus, dispatch]);
+    // useEffect(() => {
+    //     if (subjectStatus === 'idle') {
+    //         dispatch(fetchSubjects());
+    //     }
+    // }, [subjectStatus, dispatch]);
 
     useEffect(() => {
         if (teacherStatus === 'idle') {
@@ -187,9 +179,9 @@ const ItemCells = ({
         setTargetPosition(initialPosition);
     }, [initialPosition, isDragging]); // Include isDragging in the dependency array
 
-    useEffect(() => {
-        setOptions(getTeacherIdsBySubject(cell.subjectID));
-    }, [editMode]); // Include isDragging in the dependency array
+    // useEffect(() => {
+    //     setOptions(getTeacherIdsBySubject(cell.subjectID));
+    // }, [editMode]);
 
     function getTeacherIdsBySubject(subjectID) {
         return Object.values(teachers) // Convert the object to an array of teacher values
@@ -212,12 +204,11 @@ const ItemCells = ({
     //     currID={cell.teacherID}
     //     cell={cell}
     // />
-    const [hovering, setHovering] = React.useState(false);
 
-    useEffect(() => {
-        // console.log('editingCell: ', editingCell);
-        // console.log('start: ', `0${convertToTime(editingCell?.start)}`);
-    }, [editingCell]);
+    // useEffect(() => {
+    //      console.log('editingCell: ', editingCell);
+    //      console.log('start: ', `0${convertToTime(editingCell?.start)}`);
+    // }, [editingCell]);
 
     const generateTimeOptions = (startHour, endHour, isMorning) => {
         const times = [];
@@ -225,9 +216,7 @@ const ItemCells = ({
             for (let minute = 0; minute < 60; minute += 10) {
                 // Remove the padding for single-digit hours
                 const formattedHour = hour < 10 ? `${hour}` : `${hour}`;
-                const formattedTime = `${formattedHour}:${String(
-                    minute
-                ).padStart(2, '0')}`;
+                const formattedTime = `${formattedHour}:${String(minute).padStart(2, '0')}`;
                 const period = isMorning ? 'AM' : 'PM';
                 times.push(`${formattedTime} ${period}`);
             }
@@ -291,28 +280,24 @@ const ItemCells = ({
             dragElastic={0}
             animate={targetPosition}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            title={
-                !modalOpen
-                    ? `${cell.teacher || ''} \n${cell.subject || ''}`
-                    : undefined
-            }
+            title={!modalOpen ? `${cell.teacher || ''} \n${cell.subject || ''}` : undefined}
         >
             {/* Hover Wrapper */}
-            <div className="relative w-full h-full">
+            <div className='relative w-full h-full'>
                 {/* Original Content */}
                 {!editMode || !hovering ? (
                     <motion.div
-                        className="absolute inset-0 flex flex-col justify-center items-center p-1"
+                        className='absolute inset-0 flex flex-col justify-center items-center p-1'
                         initial={{ opacity: 1 }}
                         animate={{ opacity: editMode && hovering ? 0 : 1 }}
                     >
-                        <div className="font-medium text-ellipsis whitespace-nowrap overflow-hidden text-center text-[10px] sm:text-[10px] md:text-xs lg:text-sm">
+                        <div className='font-medium text-ellipsis whitespace-nowrap overflow-hidden text-center text-[10px] sm:text-[10px] md:text-xs lg:text-sm'>
                             {cellVal}
                         </div>
-                        <div className="text-[10px] sm:text-[10px] md:text-xs lg:text-xs text-slate-400 text-center overflow-hidden">
+                        <div className='text-[10px] sm:text-[10px] md:text-xs lg:text-xs text-slate-400 text-center overflow-hidden'>
                             {cell.subject}
                         </div>
-                        <div className="text-[10px] sm:text-[11px] md:text-[10px] lg:text-[9px] text-center overflow-hidden pt-0.5">
+                        <div className='text-[10px] sm:text-[11px] md:text-[10px] lg:text-[9px] text-center overflow-hidden pt-0.5'>
                             {startTime} - {endTime}
                         </div>
                     </motion.div>
@@ -321,7 +306,7 @@ const ItemCells = ({
                 {/* Edit Label */}
                 {editMode && (
                     <motion.div
-                        className="absolute inset-0 flex items-center justify-center text-primary font-medium"
+                        className='absolute inset-0 flex items-center justify-center text-primary font-medium'
                         initial={{ opacity: 0 }}
                         animate={{ opacity: hovering ? 1 : 0 }}
                     >
@@ -330,24 +315,22 @@ const ItemCells = ({
                 )}
             </div>
             {/* Hover State Management */}
-            <div
-                className="absolute inset-0"
-                onMouseEnter={() => setHovering(true)}
-                onMouseLeave={() => setHovering(false)}
-            />
-            <ScheduleDialog
-                editingCell={editingCell}
-                handleTeacherSelection={handleTeacherSelection}
-                handleStartChange={handleStartChange}
-                handleEndChange={handleEndChange}
-                generateTimeOptions={generateTimeOptions}
-                convertToTime={convertToTime}
-                setModalOpen={setModalOpen}
-                getTeacherIdsBySubject={getTeacherIdsBySubject}
-                errors={errors}
-                addSchedule={addSchedule}
-                setAddClicked={setAddClicked}
-            />
+            <div className='absolute inset-0' onMouseEnter={() => setHovering(true)} onMouseLeave={() => setHovering(false)} />
+            {modalOpen && (
+                <ScheduleDialog
+                    editingCell={editingCell}
+                    handleTeacherSelection={handleTeacherSelection}
+                    handleStartChange={handleStartChange}
+                    handleEndChange={handleEndChange}
+                    generateTimeOptions={generateTimeOptions}
+                    convertToTime={convertToTime}
+                    setModalOpen={setModalOpen}
+                    getTeacherIdsBySubject={getTeacherIdsBySubject}
+                    errors={errors}
+                    addSchedule={addSchedule}
+                    setAddClicked={setAddClicked}
+                />
+            )}
         </motion.div>
     );
 };

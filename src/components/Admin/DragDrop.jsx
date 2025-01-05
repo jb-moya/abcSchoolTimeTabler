@@ -16,6 +16,7 @@ const DragDrop = ({
     addClicked,
     setAddClicked,
 }) => {
+    console.log('value: ', value);
     const containerRef = React.useRef(null);
     const [lineRowPositions, setRowPositions] = useState([]);
     const [lineColPositions, setColPositions] = useState([]);
@@ -28,12 +29,7 @@ const DragDrop = ({
     const [modalOpen, setModalOpen] = useState(false);
     const [editingCell, setEditingCell] = useState({});
 
-    const handleCellUpdate = async (
-        tableKey,
-        cellId,
-        newCardData,
-        editingCell = null
-    ) => {
+    const handleCellUpdate = async (tableKey, cellId, newCardData, editingCell = null) => {
         let keyToFind = '';
         if (editingCell) {
             // console.log('has editing cell');
@@ -58,9 +54,7 @@ const DragDrop = ({
 
                 const cell = table.get(cellId);
                 if (!cell) {
-                    console.error(
-                        `Cell with ID \"${cellId}\" not found in table \"${tableKey}\".`
-                    );
+                    console.error(`Cell with ID \"${cellId}\" not found in table \"${tableKey}\".`);
                     return;
                 }
 
@@ -133,9 +127,7 @@ const DragDrop = ({
 
                 const cell = table.get(cellDynamicID);
                 if (!cell) {
-                    console.error(
-                        `Cell with ID \"${cellDynamicID}\" not found in table \"${tableKey}\".`
-                    );
+                    console.error(`Cell with ID \"${cellDynamicID}\" not found in table \"${tableKey}\".`);
                     return;
                 }
                 newObject.day = cell.day;
@@ -154,18 +146,11 @@ const DragDrop = ({
                 newObject.id = newObjectID;
                 newObject.dynamicID = newObjectID;
 
-                const partnerType =
-                    cell.type === 'teacher' ? 'section' : 'teacher';
-                keyToFind = cellDynamicID.replace(
-                    /(type-)([^-]+)/,
-                    `$1${partnerType}`
-                );
+                const partnerType = cell.type === 'teacher' ? 'section' : 'teacher';
+                keyToFind = cellDynamicID.replace(/(type-)([^-]+)/, `$1${partnerType}`);
 
                 const newObjPartnerKeyType = 'section';
-                let newObjPartnerKey = newObjectID.replace(
-                    /(type-)([^-]+)/,
-                    `$1${newObjPartnerKeyType}`
-                );
+                let newObjPartnerKey = newObjectID.replace(/(type-)([^-]+)/, `$1${newObjPartnerKeyType}`);
 
                 // console.log('keytoFind: ', keyToFind);
 
@@ -210,9 +195,7 @@ const DragDrop = ({
                 const newTable = draft.get(targetTableKey);
 
                 if (!newTable) {
-                    console.error(
-                        `Table with key \"${targetTableKey}\" not found.`
-                    );
+                    console.error(`Table with key \"${targetTableKey}\" not found.`);
                     return;
                 }
 
@@ -297,28 +280,22 @@ const DragDrop = ({
     }, []);
 
     return (
-        <div className="flex-1 gap-5 w-full">
-            <div
-                ref={containerRef}
-                className="h-full w-full border border-primary-content relative overflow-hidden"
-            >
+        <div className='flex-1 gap-5 w-full'>
+            <div ref={containerRef} className='h-full w-full border border-primary-content relative overflow-hidden'>
                 {loading ? (
-                    <div className="flex items-center justify-center h-full">
-                        <span class="loading loading-spinner loading-lg"></span>
+                    <div className='flex items-center justify-center h-full'>
+                        <span class='loading loading-spinner loading-lg'></span>
                     </div>
                 ) : (
                     <>
                         {rows.map((_, index) => {
                             const segmentHeight = tableHeight / rows.length;
-                            const subLineHeight =
-                                segmentHeight / (linesPerSegment + 1);
+                            const subLineHeight = segmentHeight / (linesPerSegment + 1);
                             return (
                                 <React.Fragment key={index}>
                                     <div
                                         className={`absolute top-0 left-0 w-full border-b ${
-                                            highlightedLine ===
-                                                (index + 1) * segmentHeight &&
-                                            isDragging
+                                            highlightedLine === (index + 1) * segmentHeight && isDragging
                                                 ? 'border-blue-500'
                                                 : 'border-gray-300'
                                         }`}
@@ -331,17 +308,12 @@ const DragDrop = ({
                                     {Array.from({
                                         length: linesPerSegment,
                                     }).map((_, subIndex) => {
-                                        const subLinePosition =
-                                            index * segmentHeight +
-                                            subIndex * subLineHeight;
+                                        const subLinePosition = index * segmentHeight + subIndex * subLineHeight;
                                         return (
                                             <div
                                                 key={`sub-${index}-${subIndex}`}
                                                 className={`absolute top-0 left-0 w-full border-b border-dashed ${
-                                                    highlightedLine ===
-                                                        index * segmentHeight +
-                                                            (subIndex + 1) *
-                                                                subLineHeight &&
+                                                    highlightedLine === index * segmentHeight + (subIndex + 1) * subLineHeight &&
                                                     isDragging
                                                         ? 'border-blue-500'
                                                         : 'border-gray-400'
@@ -363,7 +335,7 @@ const DragDrop = ({
                             return (
                                 <div
                                     key={`col-${colIndex}`}
-                                    className="absolute top-0 h-full border-l border-dashed border-gray-400"
+                                    className='absolute top-0 h-full border-l border-dashed border-gray-400'
                                     style={{
                                         left: `${colIndex * columnWidth}%`,
                                         width: 0,
@@ -375,61 +347,43 @@ const DragDrop = ({
                         })}
                         {lineRowPositions.length > 0 &&
                             lineColPositions.length > 0 &&
-                            Array.from(value.entries()).map(
-                                ([key, cell], index) => {
-                                    const pos = {
-                                        x: lineColPositions[cell.day - 1],
-                                        y: originalRowPositions[cell.start],
-                                    };
+                            Array.from(value.entries()).map(([key, cell], index) => {
+                                const pos = {
+                                    x: lineColPositions[cell.day - 1],
+                                    y: originalRowPositions[cell.start],
+                                };
 
-                                    return (
-                                        <ItemCells
-                                            key={index}
-                                            cell={cell}
-                                            containerRef={containerRef}
-                                            lineRowPositions={lineRowPositions}
-                                            lineColPositions={lineColPositions}
-                                            setHighlightedLine={
-                                                setHighlightedLine
-                                            }
-                                            setIsDragging={setIsDragging}
-                                            isDragging={isDragging}
-                                            initialPosition={pos}
-                                            mode={mode}
-                                            setItemWidth={setItemWidth}
-                                            handleCellUpdate={(
-                                                newCardData,
-                                                editingCell
-                                            ) =>
-                                                handleCellUpdate(
-                                                    tableKey,
-                                                    cell.dynamicID,
-                                                    newCardData,
-                                                    editingCell
-                                                )
-                                            }
-                                            scrollToTable={scrollToTable}
-                                            editMode={editMode}
-                                            handleSwitchTeacher={(
-                                                newCardData
-                                            ) =>
-                                                handleSwitchTeacher(
-                                                    tableKey,
-                                                    cell.dynamicID,
-                                                    newCardData
-                                                )
-                                            }
-                                            setLoading={setLoading}
-                                            setModalOpen={setModalOpen}
-                                            modalOpen={modalOpen}
-                                            setEditingCell={setEditingCell}
-                                            editingCell={editingCell}
-                                            addClicked={addClicked}
-                                            setAddClicked={setAddClicked}
-                                        />
-                                    );
-                                }
-                            )}
+                                return (
+                                    <ItemCells
+                                        key={index}
+                                        cell={cell}
+                                        containerRef={containerRef}
+                                        lineRowPositions={lineRowPositions}
+                                        lineColPositions={lineColPositions}
+                                        setHighlightedLine={setHighlightedLine}
+                                        setIsDragging={setIsDragging}
+                                        isDragging={isDragging}
+                                        initialPosition={pos}
+                                        mode={mode}
+                                        setItemWidth={setItemWidth}
+                                        handleCellUpdate={(newCardData, editingCell) =>
+                                            handleCellUpdate(tableKey, cell.dynamicID, newCardData, editingCell)
+                                        }
+                                        scrollToTable={scrollToTable}
+                                        editMode={editMode}
+                                        handleSwitchTeacher={(newCardData) =>
+                                            handleSwitchTeacher(tableKey, cell.dynamicID, newCardData)
+                                        }
+                                        setLoading={setLoading}
+                                        setModalOpen={setModalOpen}
+                                        modalOpen={modalOpen}
+                                        setEditingCell={setEditingCell}
+                                        editingCell={editingCell}
+                                        addClicked={addClicked}
+                                        setAddClicked={setAddClicked}
+                                    />
+                                );
+                            })}
                     </>
                 )}
             </div>

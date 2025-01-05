@@ -15,11 +15,11 @@ const ScheduleDialog = forwardRef((props, ref) => {
         addSchedule,
         setAddClicked,
     } = props;
-
+    console.log('editingCell: ', editingCell);
     return (
         <dialog
-            id="my_modal_2"
-            className="modal"
+            id='my_modal_2'
+            className='modal'
             ref={(el) => {
                 if (el) {
                     el.addEventListener('keydown', (e) => {
@@ -32,10 +32,10 @@ const ScheduleDialog = forwardRef((props, ref) => {
                 if (ref) ref(el); // Forward ref if needed
             }}
         >
-            <div className="modal-box h-52 overflow-hidden">
-                <form method="dialog">
+            <div className='modal-box h-52 overflow-hidden'>
+                <form method='dialog'>
                     <button
-                        className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                        className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2'
                         onClick={() => {
                             setAddClicked(false);
                             setModalOpen(false);
@@ -45,23 +45,20 @@ const ScheduleDialog = forwardRef((props, ref) => {
                     </button>
                 </form>
                 <SearchableDropdownToggler
-                    teacherID={props.getTeacherIdsBySubject(
-                        editingCell?.subjectID
-                    )}
+                    teacherID={props.getTeacherIdsBySubject(editingCell?.subjectID)}
                     setSelectedList={handleTeacherSelection}
                     currID={editingCell?.teacherID}
                 />
-                <div className="text-[10px] sm:text-[10px] md:text-xs lg:text-xs text-slate-400 text-center overflow-hidden">
+                <div className='text-[10px] sm:text-[10px] md:text-xs lg:text-xs text-slate-400 text-center overflow-hidden'>
                     {editingCell?.subject}
                 </div>
-                <div className="text-[10px] sm:text-[11px] md:text-[10px] lg:text-[9px] text-center overflow-hidden pt-0.5">
-                    {convertToTime(editingCell?.start)} -{' '}
-                    {convertToTime(editingCell?.end)}
+                <div className='text-[10px] sm:text-[11px] md:text-[10px] lg:text-[9px] text-center overflow-hidden pt-0.5'>
+                    {convertToTime(editingCell?.start)} - {convertToTime(editingCell?.end)}
                 </div>
-                <div className="flex flex-row">
-                    <div className="form-control w-1/2">
+                <div className='flex flex-row'>
+                    <div className='form-control w-1/2'>
                         <select
-                            className="select select-bordered w-full overflow-y-auto max-h-40"
+                            className='select select-bordered w-full overflow-y-auto max-h-40'
                             value={`${convertToTime(editingCell?.start)}`}
                             onChange={handleStartChange}
                         >
@@ -72,9 +69,9 @@ const ScheduleDialog = forwardRef((props, ref) => {
                             ))}
                         </select>
                     </div>
-                    <div className="form-control w-1/2">
+                    <div className='form-control w-1/2'>
                         <select
-                            className="select select-bordered w-full"
+                            className='select select-bordered w-full'
                             value={`${convertToTime(editingCell?.end)}`}
                             onChange={handleEndChange}
                         >
@@ -86,17 +83,15 @@ const ScheduleDialog = forwardRef((props, ref) => {
                         </select>
                     </div>
                 </div>
-                {errors.time && (
-                    <span className="text-red-500">{errors.time}</span>
-                )}
+                {errors.time && <span className='text-red-500'>{errors.time}</span>}
                 {!editingCell && (
-                    <form method="dialog">
+                    <form method='dialog'>
                         <button
                             onClick={() => {
                                 setAddClicked(false);
                                 addSchedule();
                             }}
-                            className="btn btn-secondary"
+                            className='btn btn-secondary'
                         >
                             Add
                         </button>
