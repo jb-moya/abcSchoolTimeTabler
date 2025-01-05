@@ -720,7 +720,9 @@ function Timetable() {
             });
 
             const roomDetails = section.roomDetails;
-            const buildingID = buildingMapReverse[roomDetails.buildingID];
+            console.log('🚀 ~ roomDetails roomDetailsroomDetailsroomDetailsroomDetailsroomDetails ~ roomDetails:', roomDetails);
+            const buildingID = buildingMapReverse[roomDetails.buildingId];
+            console.log('buildingMapReverse ~ buildingMapReverse:', buildingMapReverse);
 
             const exampleLocation = {
                 buildingID: 0,
@@ -728,8 +730,11 @@ function Timetable() {
                 room: 0,
             };
 
+            console.log('BAKIT ~ handleButtonClick ~ buildingID:');
+            console.log(buildingID, roomDetails.floorIdx, roomDetails.roomIdx);
+
             sectionLocationArray.push(
-                packThreeSignedIntsToInt32(exampleLocation.buildingID, exampleLocation.floor, exampleLocation.room)
+                packThreeSignedIntsToInt32(buildingID || 0, roomDetails.floorIdx || 0, roomDetails.roomIdx || 0)
             );
         }
 

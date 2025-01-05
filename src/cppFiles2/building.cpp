@@ -19,6 +19,8 @@ int Building::getDistanceTo(Location& from, Location& to_location, Building& to_
 
 	bool is_same_building = true;
 
+	// std::cout << "floor" << from.floor << "to" << to_location.floor << std::endl;
+
 	if (id != to_building_id) {
 		is_same_building = false;
 
@@ -27,13 +29,22 @@ int Building::getDistanceTo(Location& from, Location& to_location, Building& to_
 		auto it = std::find(adjacent_building.begin(), adjacent_building.end(), to_building_id);
 		if (it != adjacent_building.end()) {
 			total_cost += 100;
+
+			// std::cout << "adjacent building" << std::endl;
 		}
 	}
 
 	if (is_same_building) {
-		total_cost += std::abs(from.floor - to_location.floor);
+		int distance = std::abs(from.floor - to_location.floor);
+
+		total_cost += distance;
+
+		// std::cout << "distance: " << distance << std::endl;
 	} else {
-		total_cost += from.floor + to_location.floor;
+		int distance = from.floor + to_location.floor;
+		total_cost += distance;
+
+		// std::cout << "distance (different): " << distance << std::endl;
 	}
 
 	return total_cost;

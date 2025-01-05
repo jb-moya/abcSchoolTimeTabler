@@ -97,6 +97,8 @@ struct ObjectiveFunction {
 
 							int distance = from_building.getDistanceTo(from_section_location, to_section_location, to_building);
 
+							// print("distance", distance);
+
 							bee.teacher_violations[teacher_id].class_proximity += distance;
 
 							previous_section_class = section_id;

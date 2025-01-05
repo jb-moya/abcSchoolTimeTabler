@@ -27,13 +27,14 @@ inline int32_t packThreeSignedIntsToInt32(int first, int second, int third) {
 
 	int32_t result = ((first + (1 << 9)) << 22) | ((second + (1 << 9)) << 12) | (third + (1 << 11));
 
-	std::cout << std::bitset<32>(result) << std::endl;
+	// std::cout << "in integer: " << result << std::endl;
+	// std::cout << std::bitset<32>(result) << std::endl;
 
 	return result;
 }
 
 inline void unpackThreeSignedIntsFromInt32(int32_t packed, int &first, int &second, int &third) {
-	std::cout << "unpacking" << std::endl;
+	// std::cout << "unpacking" << std::endl;
 
 	first = (packed >> 22) & 0x3FF;
 	second = (packed >> 12) & 0x3FF;
@@ -43,14 +44,17 @@ inline void unpackThreeSignedIntsFromInt32(int32_t packed, int &first, int &seco
 	second -= (1 << 9);
 	third -= (1 << 11);
 
-	std::bitset<32> bits(first);
-	std::cout << bits << std::endl;
+	// std::bitset<32> bits(packed);
+	// std::cout << bits << std::endl;
 
-	std::bitset<32> bits2(second);
-	std::cout << bits2 << std::endl;
+	// std::bitset<32> bits2(first);
+	// std::cout << bits2 << std::endl;
 
-	std::bitset<32> bits3(third);
-	std::cout << bits3 << std::endl;
+	// std::bitset<32> bits3(second);
+	// std::cout << bits3 << std::endl;
+
+	// std::bitset<32> bits4(third);
+	// std::cout << bits4 << std::endl;
 }
 
 inline int32_t packInt16ToInt32(int16_t first, int16_t second) {
