@@ -53,14 +53,14 @@ const AddTeacherRankContainer = ({
 			setErrorMessage('Rank already exists.');
 			setErrorField('rank');
 			return;
-		} else {
-			dispatch(
-				reduxFunction({
-					rank: rankValue,
-					additionalRankScheds: additionalRankScheds,
-				})
-			);
 		}
+
+		dispatch(
+			reduxFunction({
+				rank: rankValue,
+				additionalRankScheds: additionalRankScheds,
+			})
+		);
 
 		toast.success('Rank added successfully', {
 			style: { backgroundColor: 'green', color: 'white', bordercolor: 'green', },
@@ -85,7 +85,6 @@ const AddTeacherRankContainer = ({
 				duration: 60,
 				frequency: 1,
 				shown: true,
-				time: 72,
 			},
 		]);
 	};
@@ -99,7 +98,9 @@ const AddTeacherRankContainer = ({
 	const handleReset = () => {
 		setErrorField('');
 		setErrorMessage('');
-		setRankValue('');
+
+		setRankValue('');	
+		setAdditionalRankScheds([]);
 	};
 
 	// useEffect(() => {

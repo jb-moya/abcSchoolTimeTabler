@@ -4,7 +4,9 @@ import { CiClock1 } from 'react-icons/ci';
 function TimeSelector({ 
 	interval = 5, 
 	time = '06:00 AM', 
-	setTime = () => {} 
+	setTime = () => {},
+	am = 0,
+	pm = 0, 
 }) {
 
 	const [isPanelVisible, setIsPanelVisible] = useState(false);
@@ -15,7 +17,12 @@ function TimeSelector({
 
 	const hours = useMemo(() => Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')), []);
 	const minutes = useMemo(() => Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')), []);
-	const periods = useMemo(() => ['AM', 'PM'], []);
+	const periods = useMemo(() => {
+		if (am === 1 && pm === 0) return ['AM']; // Show only AM
+		if (am === 0 && pm === 1) return ['PM']; // Show only PM
+		return ['AM', 'PM']; // Show both AM and PM
+	}, [am, pm]);
+	
 
 	const handleButtonClick = () => setIsPanelVisible((prev) => !prev);
 
@@ -78,7 +85,7 @@ function TimeSelector({
 			</div>
 
 			{isPanelVisible && (
-				<div className="w-5/6 absolute p-2 flex border border-gray-300 rounded-b-md shadow-lg bg-white z-100">
+				<div className="w-5/6 absolute p-2 flex border border-gray-300 rounded-b-md shadow-lg bg-white z-[1000]">
 					{/* Hours */}
 					<div className="w-1/3 p-1 border-r border-gray-300 overflow-y-auto max-h-48">
 						{hours.map((hour) => (

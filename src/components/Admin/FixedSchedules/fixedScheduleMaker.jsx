@@ -57,13 +57,11 @@ const getSubjectsPerPosition = (subs, subjectsStore, numOfSchoolDays, additional
 
 const FixedScheduleMaker = ({
     viewingMode = 0,
-
     pvs = 0,
-
     program = 0,
     grade = 0,
     section = 0,
-
+    // totalTimeslot,
     isForSection = false,
     selectedSubjects = [],
     additionalSchedules = [],
@@ -206,8 +204,8 @@ const FixedScheduleMaker = ({
         document
             .getElementById(
                 pvs === 0
-                    ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})`
-                    : `assign_fixed_sched_modal_section(${section})-grade(${grade})`
+                    ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})-view(${viewingMode})`
+                    : `assign_fixed_sched_modal_section(${section})-grade(${grade})-view(${viewingMode})`
             )
             .close();
     };
@@ -221,8 +219,8 @@ const FixedScheduleMaker = ({
         document
             .getElementById(
                 pvs === 0
-                    ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})`
-                    : `assign_fixed_sched_modal_section(${section})-grade(${grade})`
+                    ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})-view(${viewingMode})`
+                    : `assign_fixed_sched_modal_section(${section})-grade(${grade})-view(${viewingMode})`
             )
             .close();
     };
@@ -236,8 +234,8 @@ const FixedScheduleMaker = ({
         document
             .getElementById(
                 pvs === 0
-                    ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})`
-                    : `assign_fixed_sched_modal_section(${section})-grade(${grade})`
+                    ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})-view(${viewingMode})`
+                    : `assign_fixed_sched_modal_section(${section})-grade(${grade})-view(${viewingMode})`
             )
             .close();
     };
@@ -337,8 +335,8 @@ const FixedScheduleMaker = ({
         <dialog
             id={
                 pvs === 0
-                    ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})`
-                    : `assign_fixed_sched_modal_section(${section})-grade(${grade})`
+                    ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})-view(${viewingMode})`
+                    : `assign_fixed_sched_modal_section(${section})-grade(${grade})-view(${viewingMode})`
             }
             className='modal sm:modal-middle '
             onClose={handleCancel}

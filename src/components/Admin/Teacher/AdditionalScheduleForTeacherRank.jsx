@@ -7,16 +7,11 @@ import clsx from 'clsx';
 const AdditionalScheduleForTeacherRank = ({
     viewingMode = 0,
     rankID = 0,
-
     arrayIndex = 0,
-
     numOfSchoolDays = 1,
-
     additionalSchedsOfRank = [],
     setAdditionalScheds = () => {},
 }) => {
-    
-    const lastSchedTimeRef = useRef();
 
     const [schedName, setSchedName] = useState(additionalSchedsOfRank.name);
     const [schedSubject, setSchedSubject] = useState(
@@ -31,11 +26,6 @@ const AdditionalScheduleForTeacherRank = ({
     const [schedShown, setSchedShown] = useState(
         additionalSchedsOfRank.shown || false
     );
-    const [schedTime, setSchedTime] = useState(
-        additionalSchedsOfRank.time || 0
-    );
-
-    const [time, setTime] = useState();
 
     const handleSave = () => {
         const newSched = {
@@ -44,7 +34,6 @@ const AdditionalScheduleForTeacherRank = ({
             duration: schedDuration,
             frequency: schedFrequency,
             shown: schedShown,
-            time: getTimeSlotIndex(time),
         };
 
         // console.log('Old Sched: ', additionalSchedsOfRank);
@@ -87,21 +76,6 @@ const AdditionalScheduleForTeacherRank = ({
         setSchedShown(additionalSchedsOfRank.frequency);
     };
 
-    useEffect(() => {
-        if (schedTime !== lastSchedTimeRef.current) {
-            lastSchedTimeRef.current = schedTime;
-
-            const timeString = getTimeSlotString(schedTime);
-            // console.log('schedTime', schedTime);
-
-            // console.log('timeString', timeString);
-
-            if (timeString) {
-                setTime(timeString);
-            }
-
-        }
-    }, [schedTime]);
 
     useEffect(() => {
         setSchedName(additionalSchedsOfRank.name || '');
@@ -109,7 +83,6 @@ const AdditionalScheduleForTeacherRank = ({
         setSchedDuration(additionalSchedsOfRank.duration || 0);
         setSchedFrequency(additionalSchedsOfRank.frequency || '');
         setSchedShown(additionalSchedsOfRank.shown || false);
-        setSchedTime(additionalSchedsOfRank.time || 0);
     }, [additionalSchedsOfRank]);
 
     // useEffect(() => {
@@ -226,30 +199,7 @@ const AdditionalScheduleForTeacherRank = ({
                             <option value="No">No</option>
                         </select>
                     </div>
-
-                    {/* Time */}
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-1">
-                            Time:
-                        </label>
-                        {viewingMode === 0 ? (
-                            <TimeSelector 
-                                className='z-10'
-
-                                key={`newRankTimePicker-rank{${rankID}}-arrayIndex${arrayIndex}`}
-                                interval={5}
-                                time={time}
-                                setTime={setTime}
-                            />
-                        ) : (
-                            <div className="flex items-center justify-start input border rounded h-12 bg-white border border-gray-300 text-base">
-                                {time
-                                    ? time
-                                    : '--:--- --'}
-                            </div>
-                        )}
-                    </div>		
-
+                    	
                     <div className="mt-4 text-center text-lg font-bold">
                         {viewingMode !== 1 && (
                             <div className="flex flex-wrap gap-2 justify-center">

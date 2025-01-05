@@ -97,13 +97,30 @@ function Timetable() {
         return state.building;
     });
     const { teachers: teachersStore } = useSelector((state) => state.teacher);
-    const { sections: sectionsStore, status: sectionStatus } = useSelector((state) => state.section);
-    const { programs: programsStore, status: programStatus } = useSelector((state) => state.program);
+    const { sections: sectionsStore, status: sectionStatus } = useSelector(
+        (state) => state.section
+    );
+    const { programs: programsStore, status: programStatus } = useSelector(
+        (state) => state.program
+    );
+
+// ========================================================================
 
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
         return localStorage.getItem('numOfSchoolDays') || 5;
     });
-    const [prevNumOfSchoolDays, setPrevNumOfSchoolDays] = useState(numOfSchoolDays);
+
+    const [breakTimeDuration, setBreakTimeDuration] = useState(() => {
+        return localStorage.getItem('breakTimeDuration') || 30;
+    });
+
+    const [prevNumOfSchoolDays, setPrevNumOfSchoolDays] =
+        useState(numOfSchoolDays);
+
+    const [prevBreakTimeDuration, setPrevBreakTimeDuration] =
+        useState(breakTimeDuration);
+
+// ========================================================================
 
     const [sectionTimetables, setSectionTimetables] = useState({});
     const [teacherTimetables, setTeacherTimetables] = useState({});
@@ -1374,37 +1391,7 @@ function Timetable() {
                 dispatch(
                     editProgram({
                         programId: newProgram.id,
-                        updatedProgram: {
-                            program: newProgram.program,
-                            7: {
-                                subjects: newProgram[7].subjects,
-                                fixedDays: newProgram[7].fixedDays,
-                                fixedPositions: newProgram[7].fixedPositions,
-                                shift: newProgram[7].shift,
-                                startTime: getTimeSlotIndex(newProgram[7].startTime || '06:00 AM'),
-                            },
-                            8: {
-                                subjects: newProgram[8].subjects,
-                                fixedDays: newProgram[8].fixedDays,
-                                fixedPositions: newProgram[8].fixedPositions,
-                                shift: newProgram[8].shift,
-                                startTime: getTimeSlotIndex(newProgram[8].startTime || '06:00 AM'),
-                            },
-                            9: {
-                                subjects: newProgram[9].subjects,
-                                fixedDays: newProgram[9].fixedDays,
-                                fixedPositions: newProgram[9].fixedPositions,
-                                shift: newProgram[9].shift,
-                                startTime: getTimeSlotIndex(newProgram[9].startTime || '06:00 AM'),
-                            },
-                            10: {
-                                subjects: newProgram[10].subjects,
-                                fixedDays: newProgram[10].fixedDays,
-                                fixedPositions: newProgram[10].fixedPositions,
-                                shift: newProgram[10].shift,
-                                startTime: getTimeSlotIndex(newProgram[10].startTime || '06:00 AM'),
-                            },
-                        },
+                        updatedProgram: newProgram,
                     })
                 );
             }
@@ -1489,6 +1476,49 @@ function Timetable() {
         });
     };
 
+    const handleBreakTimeDurationChange = () => { // NEW ADDITION
+        localStorage.setItem('breakTimeDuration', breakTimeDuration);
+
+        if (breakTimeDuration === prevBreakTimeDuration) return;
+
+        setPrevBreakTimeDuration(breakTimeDuration);
+
+        if (Object.keys(programsStore).length === 0) return;
+
+        Object.entries(programsStore).forEach(([progId, prog]) => {
+
+            const originalProgram = JSON.parse(JSON.stringify(prog));
+            const newProgram = JSON.parse(JSON.stringify(prog));
+
+            [7, 8, 9, 10].forEach((grade) => {
+                if (newProgram[grade].subjects.length === 0) return;
+
+                const startTimeIdx = newProgram[grade].startTime;
+                const breakTimeCount = newProgram[grade].subjects.length > 10 ? 2 : 1;
+    
+                let totalDuration = breakTimeCount * breakTimeDuration;
+
+                newProgram[grade].subjects.forEach((subId) => {
+                    totalDuration += subjectsStore[subId].classDuration;
+                });
+
+                const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
+
+                newProgram[grade].endTime = endTimeIdx || 216; // 216 = 6:00 PM
+            });
+
+            if (originalProgram !== newProgram) {
+                dispatch(
+                    editProgram({
+                        programId: newProgram.id,
+                        updatedProgram: newProgram,
+                    })
+                );
+            }
+
+        });
+    };
+
     useEffect(() => {
         console.log('timetableGenerationStatus', timetableGenerationStatus);
 
@@ -1509,9 +1539,17 @@ function Timetable() {
         };
     }, [timetableGenerationStatus]); // The effect depends on the isProcessRunning state
 
+// =========================================================================
+
     useEffect(() => {
         handleNumOfSchoolDaysChange();
     }, [numOfSchoolDays]);
+
+    useEffect(() => {
+        handleBreakTimeDurationChange();
+    }, [breakTimeDuration]);
+
+// ========================================================================
 
     useEffect(() => {
         if (sectionStatus === 'idle') {
@@ -1567,8 +1605,13 @@ function Timetable() {
                 </div>
             </div>
 
-            <div className='mb-6'>
-                <Configuration numOfSchoolDays={numOfSchoolDays} setNumOfSchoolDays={setNumOfSchoolDays} />
+            <div className="mb-6">
+                <Configuration
+                    numOfSchoolDays={numOfSchoolDays}
+                    setNumOfSchoolDays={setNumOfSchoolDays}
+                    breakTimeDuration={breakTimeDuration}
+                    setBreakTimeDuration={setBreakTimeDuration}
+                />
             </div>
 
             {/* Responsive card layout for Subject and Teacher Lists */}
@@ -1583,9 +1626,12 @@ function Timetable() {
     </div>
   </div> */}
             <div>
-                <div className='mt-6 bg-base-100 p-6 rounded-lg shadow-lg'>
-                    <h2 className='text-lg font-semibold mb-4'>Subjects</h2>
-                    <SubjectListContainer numOfSchoolDays={numOfSchoolDays} />
+                <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
+                    <h2 className="text-lg font-semibold mb-4">Subjects</h2>
+                    <SubjectListContainer 
+                        numOfSchoolDays={numOfSchoolDays}
+                        breakTimeDuration={breakTimeDuration} 
+                    />
                 </div>
 
                 <div className='mt-6 bg-base-100 p-6 rounded-lg shadow-lg'>
@@ -1594,17 +1640,23 @@ function Timetable() {
                 </div>
 
                 {/* Program Lists */}
-                <div className='mt-6 bg-base-100 p-6 rounded-lg shadow-lg'>
-                    <h2 className='text-lg font-semibold mb-4'>Programs</h2>
-                    <ProgramListContainer numOfSchoolDays={numOfSchoolDays} />
+                <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
+                    <h2 className="text-lg font-semibold mb-4">Programs</h2>
+                    <ProgramListContainer 
+                        numOfSchoolDays={numOfSchoolDays} 
+                        breakTimeDuration={breakTimeDuration}
+                    />
                 </div>
 
                 {/* Section List with the Generate Timetable Button */}
-                <div className='mt-6'>
-                    <div className='bg-base-100 p-6 rounded-lg shadow-lg'>
-                        <h2 className='text-lg font-semibold mb-4'>Sections</h2>
-                        <SectionListContainer numOfSchoolDays={numOfSchoolDays} />
-                        <div className='mt-4'>
+                <div className="mt-6">
+                    <div className="bg-base-100 p-6 rounded-lg shadow-lg">
+                        <h2 className="text-lg font-semibold mb-4">Sections</h2>
+                        <SectionListContainer
+                            numOfSchoolDays={numOfSchoolDays}
+                            breakTimeDuration={breakTimeDuration}
+                        />
+                        <div className="mt-4">
                             <ViolationList violations={violations} />
                         </div>
                     </div>

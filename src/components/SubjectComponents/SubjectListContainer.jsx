@@ -20,483 +20,62 @@ import AddSubjectContainer from './AddSubjectContainer';
 import SubjectEdit from './SubjectEdit';
 import DeleteData from '../Admin/DeleteData';
 
-const SubjectListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editable = false }) => {
+const SubjectListContainer = ({
+    numOfSchoolDays: externalNumOfSchoolDays,
+    editable = false,
+    breakTimeDuration: externalBreakTimeDuration,
+}) => {
+
     const dispatch = useDispatch();
 
-    const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
-    // const { programs, status: programStatus } = useSelector(
-    //     (state) => state.program
-    // );
-    // const { sections, status: sectionStatus } = useSelector(
-    //     (state) => state.section
-    // );
+// ==============================================================================
+
+    const { subjects, status: subjectStatus } = useSelector(
+        (state) => state.subject
+    );
+
+// ==============================================================================
 
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
         return externalNumOfSchoolDays ?? (Number(localStorage.getItem('numOfSchoolDays')) || 0);
     });
-    const defaultSubjectClassDuration = localStorage.getItem('defaultSubjectClassDuration');
+
+    const defaultSubjectClassDuration = localStorage.getItem(
+        'defaultSubjectClassDuration'
+    );
+
+    const [breakTimeDuration, setBreakTimeDuration] = useState(() => {
+        return (
+            externalBreakTimeDuration ??
+            (Number(localStorage.getItem('breakTimeDuration')) || 0)
+        );
+    });
+
+    useEffect(() => {
+        if (externalNumOfSchoolDays !== undefined) {
+            setNumOfSchoolDays(externalNumOfSchoolDays);
+        }
+    }, [externalNumOfSchoolDays]);
+
+    useEffect(() => {
+        if (externalBreakTimeDuration !== undefined) {
+            setBreakTimeDuration(externalBreakTimeDuration);
+        }
+    }, [externalBreakTimeDuration]);
+
+    useEffect(() => {
+        console.log('numOfSchoolDays:', numOfSchoolDays);
+    }, [numOfSchoolDays]);
+
+// ==============================================================================
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
 
-    const [editSubjectId, setEditSubjectId] = useState(null);
     const [searchSubjectResult, setSearchSubjectResult] = useState(subjects);
-    const [editSubjectValue, setEditSubjectValue] = useState('');
-    const [editClassDuration, setEditClassDuration] = useState(0);
-    const [editSubjectWeeklyMinutes, setEditSubjectWeeklyMinutes] = useState(0);
-
     const [searchSubjectValue, setSearchSubjectValue] = useState('');
 
-    // const handleEditSubjectClick = (subject) => {
-    //     setEditSubjectId(subject.id);
-    //     setEditSubjectValue(subject.subject);
-    //     setEditClassDuration(subject.classDuration);
-    //     setEditSubjectWeeklyMinutes(subject.weeklyMinutes);
-    // };
-
-    // const handleEdit = (subject) => {
-    //     setEditSubjectId(subject.id);
-    //     setEditSubjectValue(subject.subject);
-    //     setEditClassDuration(subject.classDuration);
-    //     setEditSubjectWeeklyMinutes(subject.weeklyMinutes);
-
-    //     document.getElementById('edit_subject_modal').showModal();
-    // };
-
-    // const handleSaveSubjectEditClick = (subjectId) => {
-    //     if (!editSubjectValue.trim()) {
-    //         alert('Subject name cannot be empty');
-    //         return;
-    //     } else if (!editClassDuration) {
-    //         alert('Class duration cannot be empty');
-    //         return;
-    //     } else if (!editSubjectWeeklyMinutes) {
-    //         alert('Subject weekly minutes cannot be empty');
-    //         return;
-    //     }
-
-    //     const currentSubject = subjects[subjectId]?.subject || '';
-
-    //     if (
-    //         editSubjectValue.trim().toLowerCase() ===
-    //         currentSubject.toLowerCase()
-    //     ) {
-    //         dispatch(
-    //             editSubject({
-    //                 subjectId,
-    //                 updatedSubject: {
-    //                     subject: editSubjectValue,
-    //                     classDuration: editClassDuration,
-    //                     weeklyMinutes: editSubjectWeeklyMinutes,
-    //                 },
-    //             })
-    //         );
-
-    //         updateSubjectDependencies();
-
-    //         toast.success('Data and dependencies updated successfully', {
-    //             style: {
-    //                 backgroundColor: 'green',
-    //                 color: 'white',
-    //                 bordercolor: 'green',
-    //             },
-    //         });
-
-    //         setEditSubjectId(null);
-    //         setEditSubjectValue('');
-    //         setEditClassDuration(0);
-    //         setEditSubjectWeeklyMinutes(0);
-    //     } else {
-    //         const duplicateSubject = Object.values(subjects).find(
-    //             (subject) =>
-    //                 subject.subject.trim().toLowerCase() ===
-    //                 editSubjectValue.trim().toLowerCase()
-    //         );
-
-    //         if (duplicateSubject) {
-    //             alert('A subject with this name already exists.');
-    //         } else if (editSubjectValue.trim()) {
-    //             dispatch(
-    //                 editSubject({
-    //                     subjectId,
-    //                     updatedSubject: {
-    //                         subject: editSubjectValue,
-    //                         classDuration: editClassDuration,
-    //                         weeklyMinutes: editSubjectWeeklyMinutes,
-    //                     },
-    //                 })
-    //             );
-    //             updateSubjectDependencies();
-    //             // console.log('after :D subjects', subjects);
-    //             toast.success('Data and dependencies updated successfully!', {
-    //                 style: {
-    //                     backgroundColor: '#28a745',
-    //                     color: '#fff',
-    //                     borderColor: '#28a745',
-    //                 },
-    //             });
-
-    //             // resetInputs();
-    //         } else {
-    //             const duplicateSubject = Object.values(subjects).find(
-    //                 (subject) =>
-    //                     subject.subject.trim().toLowerCase() ===
-    //                     editSubjectValue.trim().toLowerCase()
-    //             );
-
-    //             if (duplicateSubject) {
-    //                 alert('A subject with this name already exists.');
-    //             } else if (editSubjectValue.trim()) {
-    //                 dispatch(
-    //                     editSubject({
-    //                         subjectId,
-    //                         updatedSubject: {
-    //                             subject: editSubjectValue,
-    //                             classDuration: editClassDuration,
-    //                             weeklyMinutes: editSubjectWeeklyMinutes,
-    //                         },
-    //                     })
-    //                 );
-
-    //                 updateSubjectDependencies();
-
-    //                 toast.success(
-    //                     'Data and dependencies updated successfully',
-    //                     {
-    //                         style: {
-    //                             backgroundColor: 'green',
-    //                             color: 'white',
-    //                             bordercolor: 'green',
-    //                         },
-    //                     }
-    //                 );
-
-    //                 setEditSubjectId(null);
-    //                 setEditSubjectValue('');
-    //                 setEditClassDuration(0);
-    //                 setEditSubjectWeeklyMinutes(0);
-    //             }
-    //         }
-    //     }
-    // };
-
-    // const updateSubjectDependencies = () => {
-    //     if (Object.keys(programs).length === 0) return;
-
-    //     // Update subject dependencies in PROGRAMS
-    //     Object.entries(programs).forEach(([id, program]) => {
-    //         const originalProgram = JSON.parse(JSON.stringify(program));
-    //         const newProgram = JSON.parse(JSON.stringify(program));
-
-    //         console.log('originalProgradsm', originalProgram);
-    //         console.log('newProgarm', newProgram);
-
-    //         [7, 8, 9, 10].forEach((grade) => {
-    //             if (!newProgram[grade].subjects.length === 0) {
-    //                 return;
-    //             }
-
-    // const totalNumOfClasses = calculateTotalClass(
-    //     {
-    //         ...subjects,
-    //         [editSubjectId]: {
-    //             ...subjects[editSubjectId],
-    //             subject: editSubjectValue,
-    //             classDuration: editClassDuration,
-    //             weeklyMinutes: editSubjectWeeklyMinutes,
-    //         },
-    //     },
-    //     newProgram[grade].subjects,
-    //     numOfSchoolDays
-    // );
-
-    // let totalTimeRow = Math.ceil(totalNumOfClasses / numOfSchoolDays);
-
-    // Object.entries(newProgram[grade].fixedPositions).forEach(
-    //     ([subjectId, fixedPosition]) => {
-    //         fixedPosition.forEach((item, i) => {
-    //             if (item > totalTimeRow) {
-    //                 fixedPosition[i] = 0;
-    //                 newProgram[grade].fixedDays[subjectId][i] = 0;
-    //             }
-    //         });
-    //     }
-    // );
-
-    // console.log(
-    //     'newTotalTimeslot', totalTimeRow);
-
-    //             console.log(`newProgram[${grade}].subjects`,
-    //                 newProgram[grade].subjects
-    //             );
-
-    //             let dayTimeSlots = {};
-    //             let positionTimeSlots = {};
-
-    //             for (let subjectID of newProgram[grade].subjects) {
-    //                 const { fixedDays, fixedPositions } = newProgram[grade];
-
-    //                 fixedDays[subjectID].forEach((day, i) => {
-    //                     const position = fixedPositions[subjectID][i];
-
-    //         if (day || position) { // Only process non-zero day or position
-    //             dayTimeSlots[day] ??= totalTimeRow; // Use nullish coalescing assignment
-    //             positionTimeSlots[position] ??= numOfSchoolDays;
-    //         }
-    //     });
-    // }
-
-    //             console.log('dayTimeSlots', dayTimeSlots);
-
-    //             console.log('positionTimeSlots', positionTimeSlots);
-
-    //             // Loop through all subjects of the year level
-    //             for (let subjectID of newProgram[grade].subjects) {
-    //                 // Retrieve the number of classes allowed for the subject
-    //                 let numOfClasses = 0;
-    //                 if (subjectID === editSubjectId) {
-    //                     numOfClasses = Math.min(
-    //                         Math.ceil(
-    //                             editSubjectWeeklyMinutes / editClassDuration
-    //                         ),
-    //                         numOfSchoolDays
-    //                     );
-    //                 } else {
-    //                     numOfClasses = Math.min(
-    //                         Math.ceil(
-    //                             subjects[subjectID].weeklyMinutes /
-    //                             subjects[subjectID].classDuration
-    //                         ),
-    //                         numOfSchoolDays
-    //                     );
-    //                 }
-    //                 console.log('grade', grade);
-    //                 console.log('subjectID', subjectID);
-    //                 console.log('numOfClasses', numOfClasses);
-
-    //                 const fixedDays = newProgram[grade].fixedDays[subjectID];
-    //                 const fixedPositions =
-    //                     newProgram[grade].fixedPositions[subjectID];
-
-    //                 console.log('fixedDays', fixedDays);
-    //                 console.log('fixedPositions', fixedPositions);
-
-    //                 // Use hash maps to quickly look up subjects and day-position pairs
-    //                 const dayPositionMap = new Map();
-
-    //                 fixedDays.forEach((day, index) => {
-    //                     const pos = fixedPositions[index];
-    //                     console.log('day', day);
-    //                     console.log('pos', pos);
-    //                     if (
-    //                         (
-    //                             (day !== 0 && pos === 0) ||
-    //                             (day === 0 && pos !== 0) ||
-    //                             (day !== 0 && pos !== 0)) &&
-    //                         !dayPositionMap.has(`${day}-${pos}`
-    //                         )
-    //                     ) {
-    //                         dayPositionMap.set(`${day}-${pos}`, [day, pos]);
-    //                     }
-    //                 });
-
-    //                 console.log('dayPositionMap', dayPositionMap);
-
-    //                 // Now we process the day-position pairs efficiently
-    //                 let result = [];
-    //                 dayPositionMap.forEach(([day, pos]) => {
-    //                     if (result.length < numOfClasses && dayTimeSlots[day] > 0 && positionTimeSlots[pos] > 0) {
-    //                         result.push([day, pos]);
-    //                         dayTimeSlots[day]--;
-    //                         positionTimeSlots[pos]--;
-    //                     }
-    //                 });
-
-    //                 console.log('result', result);
-
-    //                 // Pad with [0, 0] if necessary
-    //                 while (result.length < numOfClasses) {
-    //                     result.push([0, 0]);
-    //                 }
-
-    //                 // Split the combined array back into fixedDays and fixedPositions
-    //                 newProgram[grade].fixedDays[subjectID] = result.map(
-    //                     ([day]) => day
-    //                 );
-    //                 newProgram[grade].fixedPositions[subjectID] = result.map(
-    //                     ([_, pos]) => pos
-    //                 );
-    //             }
-    //         });
-
-    //         const updateProgramDetails = (newProgram, grade) => ({
-    //             subjects: newProgram[grade].subjects,
-    //             fixedDays: newProgram[grade].fixedDays,
-    //             fixedPositions: newProgram[grade].fixedPositions,
-    //             shift: newProgram[grade].shift,
-    //             startTime: getTimeSlotIndex(
-    //                 newProgram[grade].startTime || '06:00 AM' // TODO: David: paano kung panghapon ung section?
-    //             ),
-    //         });
-
-    //         console.log('updated newProgram', newProgram);
-
-    //         if (originalProgram !== newProgram) {
-    //             dispatch(
-    //                 editProgram({
-    //                     programId: newProgram.id,
-    //                     updatedProgram: {
-    //                         program: newProgram.program,
-    //                         ...[7, 8, 9, 10].reduce((grades, grade) => {
-    //                             grades[grade] = updateProgramDetails(
-    //                                 newProgram,
-    //                                 grade
-    //                             );
-    //                             return grades;
-    //                         }, {}),
-    //                     },
-    //                 })
-    //             );
-    //         } else {
-    //             console.log('no changes');
-    //         }
-    //     });
-
-    //     if (Object.keys(sections).length === 0) return;
-
-    //     // Update subject dependencies in SECTIONS
-    //     Object.entries(sections).forEach(([id, section]) => {
-    //         const originalSection = JSON.parse(JSON.stringify(section));
-    //         const newSection = JSON.parse(JSON.stringify(section));
-
-    //         if (!newSection.subjects.includes(editSubjectId)) return;
-
-    // const originalTotalNumOfClasses = calculateTotalClass(
-    //     subjects,
-    //     newSection.subjects,
-    //     numOfSchoolDays
-    // );
-
-    // let originalTotalTimeRow = Math.ceil(
-    //     originalTotalNumOfClasses / numOfSchoolDays
-    // );
-
-    // const newTotalNumOfClasses = calculateTotalClass(
-    //     {
-    //         ...subjects,
-    //         [editSubjectId]: {
-    //             ...subjects[editSubjectId],
-    //             subject: editSubjectValue,
-    //             classDuration: editClassDuration,
-    //             weeklyMinutes: editSubjectWeeklyMinutes,
-    //         },
-    //     },
-    //     newSection.subjects,
-    //     numOfSchoolDays
-    // );
-
-    // let newTotalTimeRow = Math.ceil(
-    //     newTotalNumOfClasses / numOfSchoolDays
-    // );
-
-    // if (newTotalTimeRow < originalTotalTimeRow) {
-    //     Object.entries(newSection.fixedPositions).forEach(
-    //         ([subjectId, fixedPosition]) => {
-    //             fixedPosition.forEach((item, i) => {
-    //                 if (item > newTotalTimeRow) {
-    //                     fixedPosition[i] = 0;
-    //                     newSection.fixedDays[subjectId][i] = 0;
-    //                 } // reset all positions to zero if timeslot is removed
-    //             });
-    //         }
-    //     );
-    // }
-
-    //         const numOfClasses = Math.min(
-    //             Math.ceil(editSubjectWeeklyMinutes / editClassDuration),
-    //             numOfSchoolDays
-    //         );
-
-    //         const fixedDays = newSection.fixedDays[editSubjectId];
-    //         const fixedPositions = newSection.fixedPositions[editSubjectId];
-
-    //         let dayTimeSlots = {};
-    //         let positionTimeSlots = {};
-
-    //         for (let subjectID of newSection.subjects) {
-    //             const { fixedDays, fixedPositions } = newSection;
-
-    //             fixedDays[subjectID].forEach((day, i) => {
-    //                 const position = fixedPositions[subjectID][i];
-
-    //         if (day || position) { // Only process non-zero day or position
-    //             dayTimeSlots[day] ??= newTotalTimeRow; // Use nullish coalescing assignment
-    //             positionTimeSlots[position] ??= numOfSchoolDays;
-    //         }
-    //     };
-    // }
-
-    //         // Use hash maps to quickly look up subjects and day-position pairs
-    //         const dayPositionMap = new Map();
-
-    //         fixedDays.forEach((day, index) => {
-    //             const pos = fixedPositions[index];
-    //             if (
-    //                 ((day !== 0 && pos === 0) ||
-    //                     (day === 0 && pos !== 0) ||
-    //                     (day !== 0 && pos !== 0)) &&
-    //                 !dayPositionMap.has(`${day}-${pos}`)
-    //             ) {
-    //                 dayPositionMap.set(`${day}-${pos}`, [day, pos]);
-    //             }
-    //         });
-
-    //         // Now we process the day-position pairs efficiently
-    //         let result = [];
-    //         dayPositionMap.forEach(([day, pos]) => {
-    //             if (result.length < numOfClasses && dayTimeSlots[day] > 0 && positionTimeSlots[pos] > 0) {
-    //                 result.push([day, pos]);
-    //                 dayTimeSlots[day] -= 1;
-    //                 positionTimeSlots[pos] -= 1;
-    //             }
-    //         });
-
-    //         console.log('fafaf dayPositionMap', dayPositionMap);
-
-    //         // Pad with [0, 0] if necessary
-    //         while (result.length < numOfClasses) {
-    //             result.push([0, 0]);
-    //         }
-
-    //         // Split the combined array back into fixedDays and fixedPositions
-    //         newSection.fixedDays[editSubjectId] = result.map(([day]) => day);
-    //         newSection.fixedPositions[editSubjectId] = result.map(
-    //             ([_, pos]) => pos
-    //         );
-
-    //         if (originalSection !== newSection) {
-    //             dispatch(
-    //                 editSection({
-    //                     sectionId: newSection.id,
-    //                     updatedSection: {
-    //                         id: newSection.id,
-    //                         teacher: newSection.teacher,
-    //                         program: newSection.program,
-    //                         section: newSection.section,
-    //                         subjects: newSection.subjects,
-    //                         fixedDays: newSection.fixedDays,
-    //                         fixedPositions: newSection.fixedPositions,
-    //                         year: newSection.year,
-    //                         shift: newSection.shift,
-    //                         startTime: getTimeSlotIndex(
-    //                             newSection.startTime || '06:00 AM'
-    //                         ),
-    //                     },
-    //                 })
-    //             );
-    //         }
-    //     });
-    // };
+// ==============================================================================
 
     const handleClose = () => {
         const modal = document.getElementById('add_subject_modal');
@@ -508,6 +87,16 @@ const SubjectListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
             console.error("Modal with ID 'add_subject_modal' not found.");
         }
     };
+
+// ==============================================================================
+
+    useEffect(() => {
+        if (subjectStatus === 'idle') {
+            dispatch(fetchSubjects());
+        }
+    }, [subjectStatus, dispatch]);
+
+// ==============================================================================
 
     const debouncedSearch = useCallback(
         debounce((searchValue, subjects) => {
@@ -525,35 +114,6 @@ const SubjectListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
     );
 
     useEffect(() => {
-        if (externalNumOfSchoolDays !== undefined) {
-            setNumOfSchoolDays(externalNumOfSchoolDays);
-        }
-    }, [externalNumOfSchoolDays]);
-
-    useEffect(() => {
-        console.log('numOfSchoolDays:', numOfSchoolDays);
-    }, [numOfSchoolDays]);
-
-    // Initialization of stores
-    useEffect(() => {
-        if (subjectStatus === 'idle') {
-            dispatch(fetchSubjects());
-        }
-    }, [subjectStatus, dispatch]);
-
-    // useEffect(() => {
-    //     if (programStatus === 'idle') {
-    //         dispatch(fetchPrograms());
-    //     }
-    // }, [programStatus, dispatch]);
-
-    // useEffect(() => {
-    //     if (sectionStatus === 'idle') {
-    //         dispatch(fetchSections());
-    //     }
-    // }, [sectionStatus, dispatch]);
-
-    useEffect(() => {
         debouncedSearch(searchSubjectValue, subjects);
     }, [searchSubjectValue, subjects, debouncedSearch]);
 
@@ -567,6 +127,8 @@ const SubjectListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Object.entries(searchSubjectResult).slice(indexOfFirstItem, indexOfLastItem);
+
+// ==============================================================================
 
     return (
         <div className='w-full'>
@@ -678,69 +240,42 @@ const SubjectListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                             </tr>
                         ) : (
                             currentItems.map(([, subject], index) => (
-                                <tr key={subject.id} className='group hover'>
+                                <tr key={subject.id} className="group hover">
+
+                                    {/* Subject ID */}
                                     <th>{subject.id}</th>
+
+                                    {/* Subject Name */}
+                                    <td>{subject.subject}</td>
+
+                                    {/* Class Duration */}
+                                    <td>{subject.classDuration}</td>
+
+                                    {/* Subject Weekly Minutes */}
+                                    <td>{subject.weeklyMinutes}</td>
+
+                                    {/* Number of Classes */}
                                     <td>
-                                        {editSubjectId === subject.id ? (
-                                            <input
-                                                type='text'
-                                                value={editSubjectValue}
-                                                onChange={(e) => setEditSubjectValue(e.target.value)}
-                                                className='input input-bordered input-sm w-full'
-                                            />
-                                        ) : (
-                                            subject.subject
+                                        {Math.min(
+                                            Math.ceil(subject.weeklyMinutes / subject.classDuration),
+                                            numOfSchoolDays
                                         )}
                                     </td>
-                                    <td>
-                                        {editSubjectId === subject.id ? (
-                                            <input
-                                                type='number'
-                                                value={editClassDuration}
-                                                onChange={(e) => {
-                                                    const newDuration = Number(e.target.value);
-                                                    setEditClassDuration(newDuration);
-                                                }}
-                                                className='input input-bordered input-sm w-full'
-                                                placeholder='Enter class duration'
-                                                step={5}
-                                                min={10}
-                                            />
-                                        ) : (
-                                            `${subject.classDuration}`
-                                        )}
-                                    </td>
-                                    <td>
-                                        {editSubjectId === subject.id ? (
-                                            <input
-                                                type='number'
-                                                value={editSubjectWeeklyMinutes}
-                                                onChange={(e) => {
-                                                    const newDuration = Number(e.target.value);
-                                                    setEditSubjectWeeklyMinutes(newDuration);
-                                                }}
-                                                className='input input-bordered input-sm w-full'
-                                                placeholder='Enter subject weekly minutes'
-                                                step={5}
-                                            />
-                                        ) : (
-                                            `${subject.weeklyMinutes}`
-                                        )}
-                                    </td>
-                                    <td>{Math.min(Math.ceil(subject.weeklyMinutes / subject.classDuration), numOfSchoolDays)}</td>
+
+                                    {/* Edit and Delete */}
                                     {editable && (
                                         <td className='w-28'>
                                             <div className='flex'>
                                                 <SubjectEdit
-                                                    className='btn btn-xs btn-ghost text-blue-500'
-                                                    close
-                                                    subject={subject} // Pass the entire subject object
+                                                    className="btn btn-xs btn-ghost text-blue-500"
+                                                    subject={subject}  // Pass the entire subject object
                                                     errorMessage={errorMessage}
                                                     setErrorMessage={setErrorMessage}
                                                     errorField={errorField}
                                                     setErrorField={setErrorField}
                                                     reduxFunction={editSubject}
-                                                    numOfSchoolDays={numOfSchoolDays}
+                                                    numOfSchoolDays = {numOfSchoolDays}
+                                                    breakTimeDuration={breakTimeDuration}
                                                 />
                                                 <DeleteData
                                                     className='btn btn-xs btn-ghost text-red-500'

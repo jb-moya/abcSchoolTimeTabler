@@ -1,5 +1,3 @@
-
-import TimeSelector from '@utils/timeSelector';
 import { clsx } from 'clsx';
 import { useState, useEffect, useRef} from 'react';
 import { useSelector } from 'react-redux';
@@ -10,25 +8,22 @@ const AdditionalScheduleForProgram = ({
     viewingMode = 0,
     programID = 0,
     grade = 0,
-
     arrayIndex = 0,
-
     progYearSubjects = [],
-
     numOfSchoolDays = 1,
-
     additionalSchedsOfProgYear = [],
     setAdditionalScheds = () => {},
 }) => {
+
     const subjects = useSelector((state) => state.subject.subjects);
 
-    const lastSchedTimeRef = useRef();
+// ==============================================================================
 
     const [schedName, setSchedName] = useState(
         additionalSchedsOfProgYear.name || ''
     );
     const [schedSubject, setSchedSubject] = useState(
-        additionalSchedsOfProgYear.subject || 0
+        additionalSchedsOfProgYear.subject || -1
     );
     const [schedDuration, setSchedDuration] = useState(
         additionalSchedsOfProgYear.duration || 0
@@ -39,12 +34,9 @@ const AdditionalScheduleForProgram = ({
     const [schedShown, setSchedShown] = useState(
         additionalSchedsOfProgYear.shown || false
     );
-    const [schedTime, setSchedtime] = useState(
-        additionalSchedsOfProgYear.time || 0
-    );
 
-    const [time, setTime] = useState();
- 
+// ==============================================================================
+
     const handleSave = () => {
         const newSched = {
             name: schedName,
@@ -52,7 +44,6 @@ const AdditionalScheduleForProgram = ({
             duration: schedDuration,
             frequency: schedFrequency,
             shown: schedShown,
-            time: getTimeSlotIndex(time),
         };
 
         setAdditionalScheds((prev) => {
@@ -94,34 +85,15 @@ const AdditionalScheduleForProgram = ({
         setSchedShown(additionalSchedsOfProgYear.frequency);
     };
 
+// ==============================================================================
+
     useEffect(() => {
         setSchedName(additionalSchedsOfProgYear.name || '');
-        setSchedSubject(additionalSchedsOfProgYear.subject || 0);
+        setSchedSubject(additionalSchedsOfProgYear.subject || -1);
         setSchedDuration(additionalSchedsOfProgYear.duration || 0);
         setSchedFrequency(additionalSchedsOfProgYear.frequency || 0);
         setSchedShown(additionalSchedsOfProgYear.shown || false);
-        setSchedtime(additionalSchedsOfProgYear.time || 0);
     }, [additionalSchedsOfProgYear]);
-
-    useEffect(() => {
-        if (schedTime !== lastSchedTimeRef.current) {
-            lastSchedTimeRef.current = schedTime;
-
-            const timeString = getTimeSlotString(schedTime);
-            // console.log('schedTime', schedTime);
-
-            // console.log('timeString', timeString);
-
-            if (timeString) {
-                setTime(timeString);
-            }
-
-        }
-    }, [schedTime]);
-
-    // useEffect(() => {
-    //     console.log('time', time);
-    // }, [time]);
 
     // useEffect(() => {
     //     console.log('schedName', schedName);
@@ -132,6 +104,8 @@ const AdditionalScheduleForProgram = ({
     //     console.log('schedShown', schedShown);
     //     console.log('schedTime', schedTime);
     // }, [schedName, schedSubject, schedDuration, schedFrequency, schedShown, schedTime]);
+
+// ==============================================================================
 
     return (
         <dialog
@@ -173,12 +147,12 @@ const AdditionalScheduleForProgram = ({
                         {viewingMode === 0 ? (
                             <select
                                 className="input input-bordered w-full"
-                                value={schedSubject === 0 ? 0 : schedSubject}
+                                value={schedSubject === -1 ? -1 : schedSubject}
                                 onChange={(e) =>
                                     setSchedSubject(Number(e.target.value))
                                 }
                             >
-                                <option value={0} className="text-gray-400">
+                                <option value={-1} className="text-gray-400">
                                     N/A
                                 </option>
                                 {progYearSubjects.map((id) => (
@@ -256,30 +230,6 @@ const AdditionalScheduleForProgram = ({
                             <option value="Yes">Yes</option>
                             <option value="No">No</option>
                         </select>
-                    </div>
-
-                    {/* Time */}
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-1">
-                            Time:
-                        </label>
-                        {viewingMode === 0 ? (
-                            <TimeSelector 
-                                className='z-10'
-
-                                key={`newProgramTimePicker-program{${programID}}-grade${grade}-arrayIndex${arrayIndex}`}
-                                interval={5}
-                                time={time}
-                                setTime={setTime}
-                            />
-                        ) : (
-                            <div className="flex items-center justify-start input border rounded h-12 bg-white border border-gray-300 text-base">
-                                {time
-                                    ? time
-                                    : '--:--- --'}
-                            </div>
-                        )}
-                        
                     </div>
 
                     <div className="mt-4 text-center text-lg font-bold">

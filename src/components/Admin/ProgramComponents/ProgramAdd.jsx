@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { getTimeSlotIndex} from '@utils/timeSlotMapper';
+import { getTimeSlotIndex } from '@utils/timeSlotMapper';
 import { toast } from 'sonner';
 import SearchableDropdownToggler from '../searchableDropdown';
 
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import AdditionalScheduleForProgram from './AdditionalScheduleForProgram';
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
+import TimeSelector from '@utils/timeSelector';
 
 const AddProgramContainer = ({
     close,
@@ -20,49 +21,71 @@ const AddProgramContainer = ({
     errorField,
     setErrorField,
     numOfSchoolDays,
+    breakTimeDuration,
 }) => {
+
     const inputNameRef = useRef();
-    const subjects = useSelector((state) => state.subject.subjects);
-    const programs = useSelector((state) => state.program.programs);
     const dispatch = useDispatch();
 
+// ===============================================================================
+
+    const subjects = useSelector((state) => state.subject.subjects);
+
+    const programs = useSelector((state) => state.program.programs);
+
+// ==============================================================================
+
     const [inputValue, setInputValue] = useState('');
+
     const [selectedSubjects, setSelectedSubjects] = useState({
         7: [],
         8: [],
         9: [],
         10: [],
     });
+
     // const [gradeTotalTimeslot, setGradeTotalTimeslot] = useState({
     //     7: null,
     //     8: null,
     //     9: null,
     //     10: null,
     // });
+    
     const [fixedDays, setFixedDays] = useState({
         7: {},
         8: {},
         9: {},
         10: {},
     });
+    
     const [fixedPositions, setFixedPositions] = useState({
         7: {},
         8: {},
         9: {},
         10: {},
     });
+    
     const [selectedShifts, setSelectedShifts] = useState({
         7: 0, // 0 for AM, 1 for PM
         8: 0,
         9: 0,
         10: 0,
     });
+    
     const [startTimes, setStartTimes] = useState({
         7: morningStartTime,
         8: morningStartTime,
         9: morningStartTime,
         10: morningStartTime,
     });
+
+    const [endTimes, setEndTimes] = useState({
+        7: afternoonStartTime,
+        8: afternoonStartTime,
+        9: afternoonStartTime,
+        10: afternoonStartTime,
+    })
+    
     const [additionalScheds, setAdditionalScheds] = useState({
         7: [],
         8: [],
@@ -70,148 +93,163 @@ const AddProgramContainer = ({
         10: [],
     });
 
-    const handleStartTimeChange = (grade, time) => {
-        setStartTimes((prevTimes) => ({
-            ...prevTimes,
-            [grade]: time,
-        }));
-    };
+// ==============================================================================
 
-    const renderTimeOptions = (shift) => {
-        const times =
-            shift === 0
-                ? Array.from({ length: 36 }, (_, i) => {
-                      const hours = 6 + Math.floor(i / 6);
-                      const minutes = (i % 6) * 10;
-                      return `${String(hours).padStart(2, '0')}:${String(
-                          minutes
-                      ).padStart(2, '0')} AM`;
-                  })
-                : ['01:00 PM'];
+    // Input
+        const handleInputChange = (e) => {
+            setInputValue(e.target.value);
+        };
 
-        return times.map((time) => (
-            <option key={time} value={time}>
-                {time}
-            </option>
-        ));
-    };
+    // End Time
+        const handleEndTimeChange = () => {
 
-    const handleInputChange = (e) => {
-        setInputValue(e.target.value);
-    };
+            console.log('breakTimeDuration', breakTimeDuration);
 
-    const handleSubjectSelection = (grade, selectedList) => {
-        const validCombinations = [];
+            [7, 8, 9, 10].forEach((grade) => {
+                if (selectedSubjects[grade].length === 0) return;
 
-        setSelectedSubjects((prevState) => ({
-            ...prevState,
-            [grade]: selectedList,
-        }));
+                const startTimeIdx = getTimeSlotIndex(startTimes[grade]);
+                const breakTimeCount = selectedSubjects[grade].length > 10 ? 2 : 1;
+    
+                let totalDuration = breakTimeCount * breakTimeDuration;
 
-        const updatedFixedDays = structuredClone(fixedDays[grade]);
-        const updatedFixedPositions = structuredClone(fixedPositions[grade]);
+                selectedSubjects[grade].forEach((subId) => {
+                    totalDuration += subjects[subId].classDuration;
+                });
 
-        Object.keys(updatedFixedDays).forEach((subID) => {
-            if (!selectedList.includes(Number(subID))) {
-                delete updatedFixedDays[subID];
-                delete updatedFixedPositions[subID];
-            }
-        });
+                console.log('totalDuration', totalDuration);
 
-        selectedList.forEach((subjectID) => {
-            if (!updatedFixedDays[subjectID]) {
-                const subject = subjects[subjectID];
-                if (subject) {
-                    const numClasses = Math.min(
-                        Math.ceil(
-                            subject.weeklyMinutes / subject.classDuration
-                        ),
-                        numOfSchoolDays
-                    );
-                    updatedFixedDays[subjectID] = Array(numClasses).fill(0);
-                    updatedFixedPositions[subjectID] =
-                        Array(numClasses).fill(0);
-                }
-            }
-        });
+                const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
 
-        selectedList.forEach((subID) => {
-            const subjDays = updatedFixedDays[subID] || [];
-            const subjPositions = updatedFixedPositions[subID] || [];
+                setEndTimes((prevEndTimes) => ({
+                    ...prevEndTimes,
+                    [grade]: endTimeIdx || 216, // 216 = 6:00 PM
+                }));
+                
+            });
 
-            subjDays.forEach((day, index) => {
-                const position = subjPositions[index];
-                if (day !== 0 && position !== 0) {
-                    validCombinations.push([day, position]);
+        };
+
+        useEffect(() => {
+            handleEndTimeChange();
+        }, [selectedSubjects, startTimes, breakTimeDuration]);
+
+    // Subjects
+        const handleSubjectSelection = (grade, selectedList) => {
+            const validCombinations = [];
+
+            setSelectedSubjects((prevState) => ({
+                ...prevState,
+                [grade]: selectedList,
+            }));
+
+            const updatedFixedDays = structuredClone(fixedDays[grade]);
+            const updatedFixedPositions = structuredClone(fixedPositions[grade]);
+
+            Object.keys(updatedFixedDays).forEach((subID) => {
+                if (!selectedList.includes(Number(subID))) {
+                    delete updatedFixedDays[subID];
+                    delete updatedFixedPositions[subID];
                 }
             });
-        });
 
-        selectedList.forEach((subID) => {
-            const subjDays = updatedFixedDays[subID];
-            const subjPositions = updatedFixedPositions[subID];
-
-            for (let i = 0; i < subjDays.length; i++) {
-                if (
-                    subjPositions[i] > selectedList.length ||
-                    subjDays[i] > numOfSchoolDays
-                ) {
-                    subjDays[i] = 0;
-                    subjPositions[i] = 0;
+            selectedList.forEach((subjectID) => {
+                if (!updatedFixedDays[subjectID]) {
+                    const subject = subjects[subjectID];
+                    if (subject) {
+                        const numClasses = Math.min(
+                            Math.ceil(
+                                subject.weeklyMinutes / subject.classDuration
+                            ),
+                            numOfSchoolDays
+                        );
+                        updatedFixedDays[subjectID] = Array(numClasses).fill(0);
+                        updatedFixedPositions[subjectID] =
+                            Array(numClasses).fill(0);
+                    }
                 }
-            }
+            });
 
-            updatedFixedDays[subID] = subjDays;
-            updatedFixedPositions[subID] = subjPositions;
-        });
+            selectedList.forEach((subID) => {
+                const subjDays = updatedFixedDays[subID] || [];
+                const subjPositions = updatedFixedPositions[subID] || [];
 
-        setFixedDays((prevState) => ({
-            ...prevState,
-            [grade]: updatedFixedDays, // Update only the specified grade
-        }));
+                subjDays.forEach((day, index) => {
+                    const position = subjPositions[index];
+                    if (day !== 0 && position !== 0) {
+                        validCombinations.push([day, position]);
+                    }
+                });
+            });
 
-        setFixedPositions((prevState) => ({
-            ...prevState,
-            [grade]: updatedFixedPositions, // Update only the specified grade
-        }));
-    };
+            selectedList.forEach((subID) => {
+                const subjDays = updatedFixedDays[subID];
+                const subjPositions = updatedFixedPositions[subID];
 
-    const handleShiftSelection = (grade, shift) => {
-        setSelectedShifts((prevState) => ({
-            ...prevState,
-            [grade]: shift,
-        }));
+                for (let i = 0; i < subjDays.length; i++) {
+                    if (
+                        subjPositions[i] > selectedList.length ||
+                        subjDays[i] > numOfSchoolDays
+                    ) {
+                        subjDays[i] = 0;
+                        subjPositions[i] = 0;
+                    }
+                }
 
-        const defaultTime = shift === 0 ? morningStartTime : afternoonStartTime;
-        setStartTimes((prevTimes) => ({
-            ...prevTimes,
-            [grade]: defaultTime,
-        }));
-    };
+                updatedFixedDays[subID] = subjDays;
+                updatedFixedPositions[subID] = subjPositions;
+            });
 
-    const handleDeleteAdditionalSchedule = (grade, index) => {
-        setAdditionalScheds((prevScheds) => ({
-            ...prevScheds,
-            [grade]: prevScheds[grade].filter((_, i) => i !== index),
-        }));
-    };
+            setFixedDays((prevState) => ({
+                ...prevState,
+                [grade]: updatedFixedDays, // Update only the specified grade
+            }));
 
-    const handleAddAdditionalSchedule = (grade) => {
-        setAdditionalScheds((prevScheds) => ({
-            ...prevScheds,
-            [grade]: [
-                ...prevScheds[grade],
-                {
-                    name: '',
-                    subject: 0,
-                    duration: 60,
-                    frequency: 1,
-                    shown: true,
-                    time: selectedShifts[grade] === 0 ? 192 : 96,
-                },
-            ],
-        }));
-    };
+            setFixedPositions((prevState) => ({
+                ...prevState,
+                [grade]: updatedFixedPositions, // Update only the specified grade
+            }));
+        };
+
+    // Shift
+        const handleShiftSelection = (grade, shift) => {
+            setSelectedShifts((prevState) => ({
+                ...prevState,
+                [grade]: shift,
+            }));
+
+            const defaultTime = shift === 0 ? morningStartTime : afternoonStartTime;
+            setStartTimes((prevTimes) => ({
+                ...prevTimes,
+                [grade]: defaultTime,
+            }));
+        };
+
+    // Additional Schedules
+        const handleAddAdditionalSchedule = (grade) => {
+            setAdditionalScheds((prevScheds) => ({
+                ...prevScheds,
+                [grade]: [
+                    ...prevScheds[grade],
+                    {
+                        name: '',
+                        subject: -1,
+                        duration: 60,
+                        frequency: 1,
+                        shown: true,
+                    },
+                ],
+            }));
+        };
+
+        const handleDeleteAdditionalSchedule = (grade, index) => {
+            setAdditionalScheds((prevScheds) => ({
+                ...prevScheds,
+                [grade]: prevScheds[grade].filter((_, i) => i !== index),
+            }));
+        };
+
+// ==============================================================================
 
     const handleAddEntry = () => {
         if (!inputValue.trim()) {
@@ -262,6 +300,7 @@ const AddProgramContainer = ({
             setErrorMessage('A program with this name already exists.');
             setErrorField('program');
         } else {
+
             dispatch(
                 reduxFunction({
                     [reduxField[0]]: inputValue,
@@ -271,6 +310,7 @@ const AddProgramContainer = ({
                         fixedPositions: fixedPositions[7],
                         shift: selectedShifts[7],
                         startTime: getTimeSlotIndex(startTimes[7]),
+                        endTime: endTimes[7],
                         additionalScheds: additionalScheds[7],
                     },
                     8: {
@@ -279,6 +319,7 @@ const AddProgramContainer = ({
                         fixedPositions: fixedPositions[8],
                         shift: selectedShifts[8],
                         startTime: getTimeSlotIndex(startTimes[8]),
+                        endTime: endTimes[8],
                         additionalScheds: additionalScheds[8],
                     },
                     9: {
@@ -287,6 +328,7 @@ const AddProgramContainer = ({
                         fixedPositions: fixedPositions[9],
                         shift: selectedShifts[9],
                         startTime: getTimeSlotIndex(startTimes[9]),
+                        endTime: endTimes[9],
                         additionalScheds: additionalScheds[9],
                     },
                     10: {
@@ -295,6 +337,7 @@ const AddProgramContainer = ({
                         fixedPositions: fixedPositions[10],
                         shift: selectedShifts[10],
                         startTime: getTimeSlotIndex(startTimes[10]),
+                        endTime: endTimes[10],
                         additionalScheds: additionalScheds[10],
                     },
                 })
@@ -346,6 +389,12 @@ const AddProgramContainer = ({
             9: morningStartTime,
             10: morningStartTime,
         });
+        setAdditionalScheds({
+            7: [],
+            8: [],
+            9: [],
+            10: [],
+        });
     };
 
     const handleClose = () => {
@@ -384,36 +433,15 @@ const AddProgramContainer = ({
         document.getElementById('add_program_modal').close();
     };
 
-    // useEffect(() => {
-    //     [7, 8, 9, 10].forEach((grade) => {
-    //         let totalNumOfClasses = 0;
-
-    //         selectedSubjects[grade].forEach((subject) => {
-    //             // console.log('updating timeslot checekr');
-    //             totalNumOfClasses += Math.min(Math.ceil(
-    //                 subjects[subject].weeklyMinutes /
-    //                     subjects[subject].classDuration
-    //             ), numOfSchoolDays);
-    //         });
-
-    //         let totalTimeslot = Math.ceil(totalNumOfClasses / numOfSchoolDays);
-
-    //         setGradeTotalTimeslot((prevState) => ({
-    //             ...prevState,
-    //             [grade]: totalTimeslot,
-    //         }));
-    //     });
-    // }, [selectedSubjects, subjects, numOfSchoolDays]);
-
-    // useEffect(() => {
-    //     // console.log(gradeTotalTimeslot);
-    // }, [gradeTotalTimeslot]);
+// ===================================================================================
 
     useEffect(() => {
         if (inputNameRef.current) {
             inputNameRef.current.focus();
         }
     }, []);
+
+// ==============================================================================
 
     return (
         <dialog
@@ -462,86 +490,64 @@ const AddProgramContainer = ({
                                         className="w-7/12 bg-white shadow-md rounded-lg p-4"
                                     >
                                         {/* Shift selection */}
-                                        <div className="mt-2 mb-2">
-                                            <label className="mr-2">
-                                                Shift:
+                                        <div className="mt-2 mb-2 text-base flex flex-wrap items-start items-center">
+                                            <label className="w-1/4 mr-2 p-2 flex justify-end font-bold">
+                                                SHIFT
                                             </label>
-                                            <label className="mr-2">
-                                                <input
-                                                    type="radio"
-                                                    value={
-                                                        selectedShifts[grade]
-                                                    }
-                                                    checked={
-                                                        selectedShifts[
-                                                            grade
-                                                        ] === 0
-                                                    }
-                                                    onChange={() =>
-                                                        handleShiftSelection(
-                                                            grade,
-                                                            0
-                                                        )
-                                                    }
-                                                />
-                                                AM
-                                            </label>
-                                            <label>
-                                                <input
-                                                    type="radio"
-                                                    value={
-                                                        selectedShifts[grade]
-                                                    }
-                                                    checked={
-                                                        selectedShifts[
-                                                            grade
-                                                        ] === 1
-                                                    }
-                                                    onChange={() =>
-                                                        handleShiftSelection(
-                                                            grade,
-                                                            1
-                                                        )
-                                                    }
-                                                />
-                                                PM
-                                            </label>
+                                            <div
+                                                className='flex flex-col pl-2'
+                                            >
+                                                <label
+                                                    className='mb-1'
+                                                >
+                                                    <input
+                                                        type="radio"
+                                                        value={selectedShifts[grade]}
+                                                        checked={selectedShifts[grade] === 0}
+                                                        onChange={() => handleShiftSelection(grade, 0)}
+                                                    />
+                                                    AM
+                                                </label>
+                                                <label>
+                                                    <input
+                                                        type="radio"
+                                                        value={selectedShifts[grade]}
+                                                        checked={selectedShifts[grade] === 1}
+                                                        onChange={() => handleShiftSelection(grade, 1)}
+                                                    />
+                                                    PM
+                                                </label>
+                                            </div>
                                         </div>
 
                                         {/* Start time selection */}
-                                        <div className="mt-2">
-                                            <label className="mr-2">
-                                                Start Time:
+                                        <div className="mt-2 flex flex-wrap">
+                                            <label className="w-1/4 mr-2 p-2 text-base flex items-center justify-end font-bold">
+                                                START TIME  
                                             </label>
-                                            <select
-                                                className="input input-bordered"
-                                                value={startTimes[grade]}
-                                                onChange={(e) =>
-                                                    handleStartTimeChange(
-                                                        grade,
-                                                        e.target.value
-                                                    )
-                                                }
+                                            <div
+                                                className='w-2/3 pl-2'
                                             >
-                                                {renderTimeOptions(
-                                                    selectedShifts[grade]
-                                                )}
-                                            </select>
+                                                <TimeSelector 
+                                                    time={startTimes[grade]}
+                                                    setTime={(newTime) => {
+                                                        setStartTimes((prevStartTimes) => ({
+                                                            ...prevStartTimes,
+                                                            [grade]: newTime, // Update the specific grade's time
+                                                        }));
+                                                    }}
+                                                    am={selectedShifts[grade] === 0 ? 1 : 0}
+                                                    pm={selectedShifts[grade] === 1 ? 1 : 0} 
+                                                />
+                                            </div>
                                         </div>
 
                                         {/* Subject selection */}
                                         <div className="flex items-center mb-2 py-4 flex-wrap">
                                             <div className="m-1">
                                                 <SearchableDropdownToggler
-                                                    selectedList={
-                                                        selectedSubjects[grade]
-                                                    }
-                                                    setSelectedList={(list) =>
-                                                        handleSubjectSelection(
-                                                            grade,
-                                                            list
-                                                        )
-                                                    }
+                                                    selectedList={selectedSubjects[grade]}
+                                                    setSelectedList={(list) => handleSubjectSelection(grade, list)}
                                                 />
                                             </div>
                                             {selectedSubjects[grade]?.map(
@@ -551,10 +557,7 @@ const AddProgramContainer = ({
                                                         className="p-2"
                                                     >
                                                         <div className="h-10 w-20 bg-green-400 rounded-md flex items-center justify-center truncate">
-                                                            {
-                                                                subjects[id]
-                                                                    ?.subject
-                                                            }
+                                                            {subjects[id]?.subject}
                                                         </div>
                                                     </div>
                                                 )
@@ -567,13 +570,7 @@ const AddProgramContainer = ({
                                             <div>
                                                 <button
                                                     className="btn btn-primary"
-                                                    onClick={() =>
-                                                        document
-                                                            .getElementById(
-                                                                `assign_fixed_sched_modal_prog(0)-grade(${grade})`
-                                                            )
-                                                            .showModal()
-                                                    }
+                                                    onClick={() => document.getElementById(`assign_fixed_sched_modal_prog(0)-grade(${grade})-view(0)`).showModal()}
                                                 >
                                                     Open Fixed Schedule Maker
                                                 </button>
@@ -587,20 +584,12 @@ const AddProgramContainer = ({
                                                     // totalTimeslot={
                                                     //     gradeTotalTimeslot[grade]
                                                     // }
-                                                    selectedSubjects={
-                                                        selectedSubjects[grade]
-                                                    }
+                                                    selectedSubjects={selectedSubjects[grade]}
                                                     fixedDays={fixedDays[grade]}
                                                     setFixedDays={setFixedDays}
-                                                    fixedPositions={
-                                                        fixedPositions[grade]
-                                                    }
-                                                    setFixedPositions={
-                                                        setFixedPositions
-                                                    }
-                                                    numOfSchoolDays={
-                                                        numOfSchoolDays
-                                                    }
+                                                    fixedPositions={fixedPositions[grade]}
+                                                    setFixedPositions={setFixedPositions}
+                                                    numOfSchoolDays={numOfSchoolDays}
                                                 />
                                             </div>
                                         )}
@@ -613,11 +602,7 @@ const AddProgramContainer = ({
 
                                         {/* Button to add schedules */}
                                         <button
-                                            onClick={() =>
-                                                handleAddAdditionalSchedule(
-                                                    grade
-                                                )
-                                            }
+                                            onClick={() => handleAddAdditionalSchedule(grade)}
                                             className="flex flex-wrap items-right text-xs mt-2 bg-blue-500 text-white px-2 py-1 rounded-lg hover:bg-blue-600"
                                         >
                                             Add Schedule
@@ -640,12 +625,7 @@ const AddProgramContainer = ({
                                                     >
                                                         <button
                                                             className="w-1/12 border rounded-l-lg hover:bg-gray-200 flex items-center justify-center"
-                                                            onClick={() =>
-                                                                handleDeleteAdditionalSchedule(
-                                                                    grade,
-                                                                    index
-                                                                )
-                                                            }
+                                                            onClick={() => handleDeleteAdditionalSchedule(grade, index)}
                                                         >
                                                             <RiDeleteBin7Line
                                                                 size={15}
@@ -654,43 +634,23 @@ const AddProgramContainer = ({
                                                         <div className="w-10/12">
                                                             <button
                                                                 className="w-full bg-gray-100 p-2 border shadow-sm hover:bg-gray-200"
-                                                                onClick={() =>
-                                                                    document
-                                                                        .getElementById(
-                                                                            `add_additional_sched_modal_1_grade-${grade}_prog-0_idx-${index}`
-                                                                        )
-                                                                        .showModal()
-                                                                }
+                                                                onClick={() => document.getElementById(`add_additional_sched_modal_1_grade-${grade}_prog-0_idx-${index}`).showModal()}
                                                             >
-                                                                {sched.name ||
-                                                                sched.subject ? (
+                                                                {sched.name ? (
                                                                     // Content to show when both are not empty
                                                                     <>
                                                                         <p>
-                                                                            Name:{' '}
-                                                                            {
-                                                                                sched.name
-                                                                            }
+                                                                            Name:{' '}{sched.name}
                                                                         </p>
                                                                         <p>
                                                                             Subject:{' '}
-                                                                            {sched.subject ===
-                                                                            0
-                                                                                ? 'N/A'
-                                                                                : subjects[
-                                                                                      sched
-                                                                                          .subject
-                                                                                  ]
-                                                                                      .subject}
+                                                                            {sched.subject === -1 ? 'N/A' : subjects[sched.subject].subject}
                                                                         </p>
                                                                     </>
                                                                 ) : (
                                                                     // Content to show when either is empty
                                                                     <p>
-                                                                        Untitled
-                                                                        Schedule{' '}
-                                                                        {index +
-                                                                            1}
+                                                                        Untitled Schedule{' '}{index + 1}
                                                                     </p>
                                                                 )}
                                                             </button>
@@ -698,23 +658,13 @@ const AddProgramContainer = ({
                                                                 viewingMode={1}
                                                                 programID={0}
                                                                 grade={grade}
-                                                                arrayIndex={
-                                                                    index
-                                                                }
-                                                                additionalSchedsOfProgYear={
-                                                                    sched
-                                                                }
+                                                                arrayIndex={index}
+                                                                additionalSchedsOfProgYear={sched}
                                                             />
                                                         </div>
                                                         <div className="w-1/12  flex items-center justify-center border rounded-r-lg hover:bg-gray-200">
                                                             <button
-                                                                onClick={() =>
-                                                                    document
-                                                                        .getElementById(
-                                                                            `add_additional_sched_modal_0_grade-${grade}_prog-0_idx-${index}`
-                                                                        )
-                                                                        .showModal()
-                                                                }
+                                                                onClick={() => document.getElementById(`add_additional_sched_modal_0_grade-${grade}_prog-0_idx-${index}`).showModal()}
                                                             >
                                                                 <RiEdit2Fill
                                                                     size={15}
@@ -724,23 +674,11 @@ const AddProgramContainer = ({
                                                                 viewingMode={0}
                                                                 programID={0}
                                                                 grade={grade}
-                                                                arrayIndex={
-                                                                    index
-                                                                }
-                                                                numOfSchoolDays={
-                                                                    numOfSchoolDays
-                                                                }
-                                                                progYearSubjects={
-                                                                    selectedSubjects[
-                                                                        grade
-                                                                    ]
-                                                                }
-                                                                additionalSchedsOfProgYear={
-                                                                    sched
-                                                                }
-                                                                setAdditionalScheds={
-                                                                    setAdditionalScheds
-                                                                }
+                                                                arrayIndex={index}
+                                                                numOfSchoolDays={numOfSchoolDays}
+                                                                progYearSubjects={selectedSubjects[grade]}
+                                                                additionalSchedsOfProgYear={sched}
+                                                                setAdditionalScheds={setAdditionalScheds}
                                                             />
                                                         </div>
                                                     </div>

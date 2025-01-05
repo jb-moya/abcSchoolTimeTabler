@@ -28,6 +28,7 @@ import AddSectionContainer from './SectionAdd';
 import DeleteData from '../DeleteData';
 import SectionEdit from './SectionEdit';
 
+
 const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editable = false }) => {
     const dispatch = useDispatch();
 
@@ -1140,8 +1141,14 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                         numOfSchoolDays={numOfSchoolDays}
                                                     />
 
-                                                    <DeleteData id={section.id} reduxFunction={removeSection} />
-                                                </div>
+                                                        <DeleteData
+                                                            id={section.id}
+                                                            reduxFunction={removeSection} />
+
+                                            </div>
+                                                      
+                                                   
+                                               
                                             </td>
                                         )}
                                     </tr>

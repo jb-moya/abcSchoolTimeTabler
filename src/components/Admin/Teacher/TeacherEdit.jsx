@@ -22,114 +22,106 @@ const TeacherEdit = ({
     setErrorField,
     numOfSchoolDays,
 }) => {
+
     const dispatch = useDispatch();
 
-    const { teachers, status: teacherStatus } = useSelector(
-        (state) => state.teacher
+// ==============================================================================
+
+    const { departments, status: departmentStatus } = useSelector(
+        (state) => state.department
+    );
+
+    const { ranks, status: rankStatus } = useSelector(
+        (state) => state.rank
     );
 
     const { subjects, status: subjectStatus } = useSelector(
         (state) => state.subject
     );
 
-    const { ranks, status: rankStatus } = useSelector((state) => state.rank);
-
-    const { departments, status: departmentStatus } = useSelector(
-        (state) => state.department
+    const { teachers, status: teacherStatus } = useSelector(
+        (state) => state.teacher
     );
+
+// ==============================================================================
 
     const [editTeacherId, setEditTeacherId] = useState(teacher.id || null);
+
     const [editTeacherRank, setEditTeacherRank] = useState(teacher.rank || 0);
 
-    const [editTeacherDepartment, setEditTeacherDepartment] = useState(0);
+    const [editTeacherDepartment, setEditTeacherDepartment] = useState(teacher.department || 0);
 
-    const [editTeacherValue, setEditTeacherValue] = useState(
-        teacher.teacher || ''
-    );
-    const [editTeacherCurr, setEditTeacherCurr] = useState(
-        teacher.subjects || []
-    );
-    const [editTeacherYearLevels, setEditTeacherYearLevels] = useState(
-        teacher.yearLevels || []
-    );
-    const [editTeacherAdditionalScheds, setEditTeacherAdditionalScheds] =
-        useState(teacher.additionalTeacherScheds || []);
+    const [editTeacherValue, setEditTeacherValue] = useState(teacher.teacher || '');
+
+    const [editTeacherCurr, setEditTeacherCurr] = useState(teacher.subjects || []);
+
+    const [editTeacherYearLevels, setEditTeacherYearLevels] = useState(teacher.yearLevels || []);
+
+    const [editTeacherAdditionalScheds, setEditTeacherAdditionalScheds] = useState(teacher.additionalTeacherScheds || []);
 
     // For rank change
     const [tempRank, setTempRank] = useState(teacher.rank || 0);
 
-    // ===========================================================
-
-
     // Update data when teacher changes
-    
     useEffect(() => {
-		setEditTeacherValue(teacher.teacher || "");
-        setEditTeacherId(teacher.id);
-        // setEditTeacherDepartment(teacher.department);
-		setEditTeacherRank(teacher.rank);
-		setEditTeacherValue(teacher.teacher);
-		setEditTeacherCurr(teacher.subjects);
-		setEditTeacherYearLevels(teacher.yearLevels);
-		setEditTeacherAdditionalScheds(teacher.additionalTeacherScheds);
-		setTempRank(teacher.rank);
+		if (teacher) {
+            setEditTeacherId(teacher.id || null);
+            setEditTeacherValue(teacher.teacher || '');
+            setEditTeacherDepartment(teacher.department || 0);
+            setEditTeacherRank(teacher.rank || 0);
+            setEditTeacherValue(teacher.teacher || '');
+            setEditTeacherCurr(teacher.subjects || []);
+            setEditTeacherYearLevels(teacher.yearLevels || []);
+            setEditTeacherAdditionalScheds(teacher.additionalTeacherScheds || []);
+            setTempRank(teacher.rank || 0);
+        }
 	}, [teacher]);
 
+    // Update additional teacher schedules when rank changes
+    useEffect(() => {
+        if (editTeacherRank !== tempRank) {
+            const rank = Object.values(ranks).find((rank) => rank.id === editTeacherRank);
+
+            if (rank) {
+                setEditTeacherAdditionalScheds(rank.additionalRankScheds);
+            }
+
+            setTempRank(editTeacherRank);
+        }
+    }, [editTeacherRank]);
+
+// ==============================================================================
 
     useEffect(() => {
-            if (teacherStatus === 'idle') {
-                dispatch(fetchTeachers());
-            }
-        }, [teacherStatus, dispatch]);
-    
-        useEffect(() => {
-            if (subjectStatus === 'idle') {
-                dispatch(fetchSubjects());
-            }
-        }, [subjectStatus, dispatch]);
-    
-        useEffect(() => {
-            if (rankStatus === 'idle') {
-                dispatch(fetchRanks());
-            }
-        }, [rankStatus, dispatch]);
-    
-        useEffect(() => {
-            if (departmentStatus === 'idle') {
-                dispatch(fetchDepartments());
-            }
-        }, [departmentStatus, dispatch]);
+        if (departmentStatus === 'idle') {
+            dispatch(fetchDepartments());
+        }
+    }, [departmentStatus, dispatch]);
 
-        // Update additional teacher schedules when rank changes
-            useEffect(() => {
-                if (editTeacherRank !== tempRank) {
-                    const rank = Object.values(ranks).find((rank) => rank.id === editTeacherRank);
-        
-                    if (rank) {
-                        setEditTeacherAdditionalScheds(rank.additionalRankScheds);
-                    }
-        
-                    setTempRank(editTeacherRank);
-                }
-            }, [editTeacherRank]);
+    useEffect(() => {
+        if (rankStatus === 'idle') {
+            dispatch(fetchRanks());
+        }
+    }, [rankStatus, dispatch]);
 
-        
-        
+    useEffect(() => {
+        if (subjectStatus === 'idle') {
+            dispatch(fetchSubjects());
+        }
+    }, [subjectStatus, dispatch]);
 
-    // ===========================================================
+    useEffect(() => {
+        if (teacherStatus === 'idle') {
+            dispatch(fetchTeachers());
+        }
+    }, [teacherStatus, dispatch]);
 
-    const resetStates = () => {
-        setEditTeacherId(teacher.id);
-		setEditTeacherRank(teacher.rank);
-		setEditTeacherValue(teacher.teacher);
-		setEditTeacherCurr(teacher.subjects);
-		setEditTeacherYearLevels(teacher.yearLevels);
-		setEditTeacherAdditionalScheds(teacher.additionalTeacherScheds);
-
-		setTempRank(teacher.rank);
-    }
+// ==============================================================================
 
     const handleSaveTeacherEditClick = (teacherId) => {
+
+        console.log('editTaecersId', editTeacherId);
+        console.log('editTeacherValue', editTeacherValue);
 
 		if (!editTeacherValue.trim() || editTeacherRank === 0 || editTeacherCurr.length === 0 || editTeacherYearLevels.length === 0) {
 			toast.error('All fields are required.', {
@@ -138,18 +130,18 @@ const TeacherEdit = ({
 			return;
 		}
 
-		const currentTeacher = teachers[teacherId]?.teacher || '';
+		const currentTeacher = teachers[editTeacherId]?.teacher || '';
 
 		if (editTeacherValue.trim().toLowerCase() === currentTeacher.trim().toLowerCase()) {
 			dispatch(
 				reduxFunction({
 					teacherId,
 					updatedTeacher: {
-					teacher: editTeacherValue,
-					rank: editTeacherRank,
-					subjects: editTeacherCurr,
-					yearLevels: editTeacherYearLevels,
-					additionalTeacherScheds: editTeacherAdditionalScheds,
+                        teacher: editTeacherValue,
+                        rank: editTeacherRank,
+                        subjects: editTeacherCurr,
+                        yearLevels: editTeacherYearLevels,
+                        additionalTeacherScheds: editTeacherAdditionalScheds,
 					},
 				})
 			);
@@ -192,53 +184,72 @@ const TeacherEdit = ({
 	}
 	};
 
-    const handleRankChange = (event) => {
-        setEditTeacherRank(parseInt(event.target.value));
-    };
+// ==============================================================================
 
-    const handleAddTeacherAdditionalSchedules = () => {
-		setEditTeacherAdditionalScheds((prevScheds) => [
-			...prevScheds,
-			{
-				name: '',
-				subject: 0,
-				duration: 60,
-				frequency: 1,
-				shown: true,
-				time: 72,
-			},
-		]);
-	};
+    // Rank
+        const handleRankChange = (event) => {
+            setEditTeacherRank(parseInt(event.target.value));
+        };
 
-    const handleDeleteTeacherAdditionalSchedule = (index) => {
-		setEditTeacherAdditionalScheds((prevScheds) =>
-			prevScheds.filter((_, i) => i !== index)
-		);
-	};
+    // Additional Teacher Schedules
+        const handleAddTeacherAdditionalSchedules = () => {
+            setEditTeacherAdditionalScheds((prevScheds) => [
+                ...prevScheds,
+                {
+                    name: '',
+                    subject: 0,
+                    duration: 60,
+                    frequency: 1,
+                    shown: true,
+                },
+            ]);
+        };
 
-    const handleDepartmentChange = (event) => {
-        setEditTeacherDepartment(parseInt(event.target.value));
-    };
-
-    const handleYearLevelChange = (level) => {
-        if (editTeacherYearLevels.includes(level)) {
-            setEditTeacherYearLevels(
-                editTeacherYearLevels.filter((l) => l !== level)
+        const handleDeleteTeacherAdditionalSchedule = (index) => {
+            setEditTeacherAdditionalScheds((prevScheds) =>
+                prevScheds.filter((_, i) => i !== index)
             );
-        } else {
-            setEditTeacherYearLevels([...editTeacherYearLevels, level]);
-        }
+        };
+
+    // Department
+        const handleDepartmentChange = (event) => {
+            setEditTeacherDepartment(parseInt(event.target.value));
+        };
+
+    // Assigned Year Levels
+        const handleYearLevelChange = (level) => {
+            if (editTeacherYearLevels.includes(level)) {
+                setEditTeacherYearLevels(
+                    editTeacherYearLevels.filter((l) => l !== level)
+                );
+            } else {
+                setEditTeacherYearLevels([...editTeacherYearLevels, level]);
+            }
+        };
+
+// ==============================================================================
+
+    const resetStates = () => {
+        setEditTeacherValue(teacher.teacher);
+        setEditTeacherId(teacher.id);
+        setEditTeacherDepartment(teacher.department);
+        setEditTeacherRank(teacher.rank);
+        setEditTeacherValue(teacher.teacher);
+        setEditTeacherCurr(teacher.subjects);
+        setEditTeacherYearLevels(teacher.yearLevels);
+        setEditTeacherAdditionalScheds(teacher.additionalTeacherScheds);
+        setTempRank(teacher.rank);
     };
 
     const closeModal = () => {
-        const modalCheckbox = document.getElementById(
-            `teacherEdit_modal_${teacher.id}`
-        );
+        const modalCheckbox = document.getElementById(`teacherEdit_modal_${teacher.id}`);
         if (modalCheckbox) {
             modalCheckbox.checked = false; // Uncheck the modal toggle
         }
         // handleReset();
     };
+
+// ==============================================================================
 
     return (
         <div className="flex items-center justify-center">
@@ -522,20 +533,20 @@ const TeacherEdit = ({
                                         className="w-full bg-gray-100 p-2 border shadow-sm hover:bg-gray-200"
                                         onClick={() => document.getElementById(`add_additional_sched_modal_1_teacher-${editTeacherId}_idx-${index}`).showModal()}
                                         >
-                                        {sched.name || sched.subject ? (
+                                        {sched.name ? (
                                             <>
-                                            <p>Name: {sched.name}</p>
-                                            <p>Subject: {sched.subject === 0 ? 'N/A' : subjects[sched.subject].subject}</p>
+                                                <p>Name: {sched.name}</p>
+                                                <p>Subject: {sched.subject === 0 ? 'N/A' : subjects[sched.subject].subject}</p>
                                             </>
                                         ) : (
                                             <p>Untitled Schedule {index + 1}</p>
                                         )}
                                         </button>
                                         <AdditionalScheduleForTeacher
-                                        viewingMode={1}
-                                        teacherID={editTeacherId}
-                                        arrayIndex={index}
-                                        additionalSchedsOfTeacher={sched}
+                                            viewingMode={1}
+                                            teacherID={editTeacherId}
+                                            arrayIndex={index}
+                                            additionalSchedsOfTeacher={sched}
                                         />
                                     </div>
                                     <div className="w-1/12 flex items-center justify-center border rounded-r-lg hover:bg-gray-200">
@@ -545,13 +556,13 @@ const TeacherEdit = ({
                                         <RiEdit2Fill size={15} />
                                         </button>
                                         <AdditionalScheduleForTeacher
-                                        viewingMode={0}
-                                        teacherID={editTeacherId}
-                                        arrayIndex={index}
-                                        teacherSubjects={editTeacherCurr}
-                                        numOfSchoolDays={numOfSchoolDays}
-                                        additionalSchedsOfTeacher={sched}
-                                        setAdditionalScheds={setEditTeacherAdditionalScheds}
+                                            viewingMode={0}
+                                            teacherID={editTeacherId}
+                                            arrayIndex={index}
+                                            teacherSubjects={editTeacherCurr}
+                                            numOfSchoolDays={numOfSchoolDays}
+                                            additionalSchedsOfTeacher={sched}
+                                            setAdditionalScheds={setEditTeacherAdditionalScheds}
                                         />
                                     </div>
                                     </div>
