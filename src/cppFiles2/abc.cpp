@@ -356,11 +356,11 @@ void ABC::getResult(int64_t* result, int64_t* result_2, TimePoint offset_duratio
 				    static_cast<int8_t>(timeslot),
 				    static_cast<int8_t>(day));
 
-				TimePoint start = section.getTimeslotStart(timeslot) + offset_duration * timeslot;
-				TimePoint end = section.getTimeslotEnd(timeslot) + offset_duration * (timeslot + 1);
+				TimePoint start = section.getTimeslotStart(timeslot) + (offset_duration)*timeslot;
+				TimePoint end = section.getTimeslotEnd(timeslot) + (offset_duration) * (timeslot + 1);
 
-				start += offset;
-				end += offset;
+				// start += offset;
+				// end += offset;
 
 				result[iter] = packed;
 				result_2[iter] = pack5IntToInt64(start, end, 0, 0, 0);

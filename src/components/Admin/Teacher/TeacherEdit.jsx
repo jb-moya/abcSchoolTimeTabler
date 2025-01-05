@@ -65,7 +65,14 @@ const TeacherEdit = ({
     
     useEffect(() => {
 		setEditTeacherValue(teacher.teacher || "");
-		
+        setEditTeacherId(teacher.id);
+        // setEditTeacherDepartment(teacher.department);
+		setEditTeacherRank(teacher.rank);
+		setEditTeacherValue(teacher.teacher);
+		setEditTeacherCurr(teacher.subjects);
+		setEditTeacherYearLevels(teacher.yearLevels);
+		setEditTeacherAdditionalScheds(teacher.additionalTeacherScheds);
+		setTempRank(teacher.rank);
 	}, [teacher]);
 
 
@@ -105,6 +112,8 @@ const TeacherEdit = ({
                     setTempRank(editTeacherRank);
                 }
             }, [editTeacherRank]);
+
+        
         
 
     // ===========================================================
