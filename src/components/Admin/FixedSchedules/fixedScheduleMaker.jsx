@@ -8,6 +8,7 @@ import DroppableSchedCell from './droppableSchedCell';
 import { ReserveDay, ReservePosition } from './reservation';
 import { spawnColors } from './bgColors';
 import calculateTotalClass from '../../../utils/calculateTotalClass';
+import isEqual from 'lodash.isequal';
 
 const hexToRgba = (hex, alpha) => {
     const [r, g, b] = hex
@@ -90,48 +91,43 @@ const FixedScheduleMaker = ({
     const [totalTimeslot, setTotalTimeslot] = useState(0);
 
     useEffect(() => {
-        // console.log(
-        //     'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA selectedSubjects',
-        //     selectedSubjects
-        // );
         setSubs(produce(selectedSubjects, (draft) => draft));
         setDays(produce(fixedDays, (draft) => draft));
         setPositions(produce(fixedPositions, (draft) => draft));
     }, [selectedSubjects, fixedDays, fixedPositions]);
 
+    // console.log("🚀 ~ useEffect ~ subjects:", subjects)
+    // setSubjectsPerPosition(subjects);
+
     useEffect(() => {
         const subjects = getSubjectsPerPosition(subs, subjectsStore, numOfSchoolDays, additionalSchedules, days, positions);
-        setSubjectsPerPosition(subjects);
 
         const ranges = findConsecutiveRanges(subjects);
-        setMergeData(ranges);
-    }, [subs, days, positions, subjectsStore, numOfSchoolDays, additionalSchedules]);
+
+        if (!isEqual(ranges, mergeData)) {
+            setMergeData(ranges);
+        }
+
+        console.log('🚀 ~ useEffect ~ ranges:', ranges);
+    }, [subs, days, positions, subjectsStore, numOfSchoolDays, additionalSchedules, mergeData]);
 
     // Initialize days and positions when fixedDays or fixedPositions change
     useEffect(() => {
         let totalNumOfClasses = calculateTotalClass(subjectsStore, subs, numOfSchoolDays);
 
-        // console.log('T I T E T I T E ~ additionalSchedules T I T E T I T E :', additionalSchedules);
-
         let additionalScheduleTotalNumOfClasses = additionalSchedules.reduce((acc, schedule) => {
-            // console.log('schedule', schedule);
             let frequency = schedule?.frequency || 0;
             return acc + frequency;
         }, 0);
-
-        // console.log(
-        //     '🚀 ~ additionalScheduleTotalNumOfClasses ~ additionalScheduleTotalNumOfClasses:',
-        //     additionalScheduleTotalNumOfClasses
-        // );
-
-        // additionalScheduleTotalNumOfClasses = 0;
 
         let totalTimeRow = Math.ceil((totalNumOfClasses + additionalScheduleTotalNumOfClasses) / numOfSchoolDays);
 
         totalTimeRow += totalTimeRow >= 10 ? 2 : 1;
 
-        setTotalTimeslot(totalTimeRow);
-    }, [subs, numOfSchoolDays, subjectsStore, additionalSchedules]);
+        if (totalTimeRow !== totalTimeslot) {
+            setTotalTimeslot(totalTimeRow);
+        }
+    }, [subs, numOfSchoolDays, subjectsStore, additionalSchedules, totalTimeslot]);
 
     const findConsecutiveRanges = (schedule) => {
         const mergeData = schedule.map((days, idx) => {
