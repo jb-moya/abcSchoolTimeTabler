@@ -221,7 +221,7 @@ void Timetable::initializeSectionFixedSubjectTeacher(int32_t* subject_fixed_teac
 		SubjectID subject_id = static_cast<int>(subject_fixed_teacher[count] >> 16);
 		TeacherID teacher_id = static_cast<int>(subject_fixed_teacher[count] & 0xFFFF);
 
-		print("section_id", section_id, "subject_id", subject_id, "teacher_id", teacher_id);
+		// print("section_id", section_id, "subject_id", subject_id, "teacher_id", teacher_id);
 
 		getSectionById(section_id).addSubjectFixedTeacher(subject_id, teacher_id);
 
@@ -260,7 +260,7 @@ void Timetable::initializeSectionSubjects(int total_section_subjects, int32_t* s
 		section_id = static_cast<int>(section_subject_configuration[i] >> 16);
 		subject_configuration_id = static_cast<int>(section_subject_configuration[i] & 0xFFFF);
 
-		print("section_id", section_id, "subject_configuration_id", subject_configuration_id);
+		// print("section_id", section_id, "subject_configuration_id", subject_configuration_id);
 
 		addSubjectToSection(section_id, subject_configuration_id);
 	}
@@ -516,7 +516,7 @@ void Timetable::setClasstimeslot(Section& section) {
 	const auto& classes = section.getClasses();
 
 	for (const auto& [timeslot, day_school_class] : classes) {
-		print("timeslot", timeslot);
+		// print("timeslot", timeslot);
 
 		if (day_school_class.count(ScheduledDay::EVERYDAY)) {
 			const SchoolClass& schoolClass = day_school_class.at(ScheduledDay::EVERYDAY);
@@ -658,19 +658,22 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 			ScheduledDay school_class_day = school_class.fixed_days;
 			section.addUtilizedTeacher(selected_teacher);
 
-			Timeslot timeslot_key = school_class_timeslot;
+			print("with_fixed_special_unit_subjects timeslot", school_class_timeslot);
 
-			if (timeslot_key == 0) {
-				auto it = std::find_if(timeslot_keys.begin(), timeslot_keys.end(),
-				                       [&timeslots](int key) { return timeslots[key].size() > 0; });
+			Timeslot timeslot_key = school_class_timeslot - 1;
 
-				if (it == timeslot_keys.end()) {
-					print("no more timeslots");
-					break;
-				}
+			// if (timeslot_key == 0) {
+			// 	auto it = std::find_if(timeslot_keys.begin(), timeslot_keys.end(),
+			// 	                       [&timeslots](int key) { return timeslots[key].size() > 0; });
 
-				timeslot_key = *it;
-			}
+			// 	if (it == timeslot_keys.end()) {
+			// 		print("no more timeslots");
+			// 		break;
+			// 	}
+
+			// 	timeslot_key = *it;
+			// }
+			print("timeslot_key", timeslot_key);
 
 			ScheduledDay day = school_class_day;
 			if (school_class_day == ScheduledDay::ANYDAY) {
@@ -702,7 +705,9 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 				getTeacherById(selected_teacher).incrementClassCount(static_cast<ScheduledDay>(day));
 			}
 
-			Timeslot timeslot_key = school_class.fixed_timeslot;
+			print("with_fixed_full_week_day_subjects timeslot", school_class.fixed_timeslot);
+
+			Timeslot timeslot_key = school_class.fixed_timeslot - 1;
 
 			timeslot_keys.erase(std::remove(timeslot_keys.begin(), timeslot_keys.end(), timeslot_key), timeslot_keys.end());
 

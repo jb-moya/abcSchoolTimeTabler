@@ -63,6 +63,26 @@ function addObjectToMap(map, key, newObject, IDIncrementer, propertyIDName) {
     return IDIncrementer;
 }
 
+function getVacantSlots(totalTimeslot, numOfSchoolDays, fixedPositions, fixedDays) {
+    // Create an array of sets, each set initialized with the range [1, numOfSchoolDays].
+    const vacant = Array.from(
+        { length: totalTimeslot },
+        () => new Set(Array.from({ length: numOfSchoolDays }, (_, index) => index + 1))
+    );
+
+    // Process each fixed position to adjust the `vacant` array.
+    Object.entries(fixedPositions).forEach(([subjectID, fixedPosition]) => {
+        fixedPosition.forEach((timeslot, index) => {
+            if (timeslot !== 0) {
+                const daysToDelete = fixedDays[subjectID][index];
+                vacant[timeslot - 1].delete(daysToDelete); // Remove the day from the corresponding timeslot's set.
+            }
+        });
+    });
+
+    return vacant;
+}
+
 function Timetable() {
     const dispatch = useDispatch();
 
@@ -217,14 +237,25 @@ function Timetable() {
 
             const fixedDays = section.fixedDays;
             const fixedPositions = section.fixedPositions;
+            const additionalScheds = section.additionalScheds;
 
             let totalNumOfClasses = calculateTotalClass(subjectsStore, section.subjects, numOfSchoolDays);
 
-            let totalTimeslot = Math.ceil(totalNumOfClasses / numOfSchoolDays);
+            let totalAdditionalScheduleNumOfClass = additionalScheds.reduce((total, additionalScheduleNumOfClass) => {
+                return total + additionalScheduleNumOfClass.frequency;
+            }, 0);
+
+            console.log('🚀 ~ handleButtonClick ~ totalAdditionalScheduleNumOfClass:', totalAdditionalScheduleNumOfClass);
+
+            let totalTimeslot = Math.ceil((totalNumOfClasses + totalAdditionalScheduleNumOfClass) / numOfSchoolDays);
 
             totalTimeslot += totalTimeslot >= 10 ? 2 : 1;
 
             const emptyEveryDayTimeslot = new Set(Array.from({ length: totalTimeslot }, (_, i) => i + 1));
+
+            let vacant = getVacantSlots(totalTimeslot, numOfSchoolDays, fixedPositions, fixedDays);
+
+            console.log('🚀 ~ Object.entries ~ vacant:', vacant);
 
             Object.keys(fixedPositions).forEach((subjectID) => {
                 if (fixedPositions[subjectID].every((element) => element === fixedPositions[subjectID][0])) {
@@ -259,7 +290,8 @@ function Timetable() {
                     subject: subjectMapReverse[subjectID].id,
                     is_consistent_everyday: emptyEveryDayTimeslot.size >= subjectsEveryDay.length,
                     classDuration: subjectMapReverse[subjectID].classDuration,
-                    fixed_timeslot: fixedPositions[subjectID][0] == 0 ? 0 : fixedPositions[subjectID][0] - 1,
+                    // fixed_timeslot: fixedPositions[subjectID][0] == 0 ? 0 : fixedPositions[subjectID][0] - 1,
+                    fixed_timeslot: fixedPositions[subjectID][0],
                     fixedDay: 0,
                     isOverlappable: true,
                 };
@@ -283,7 +315,8 @@ function Timetable() {
                             subject: subjectMapReverse[subjectID].id,
                             is_consistent_everyday: false,
                             classDuration: subjectMapReverse[subjectID].classDuration,
-                            fixed_timeslot: timeslot == 0 ? 0 : timeslot - 1,
+                            // fixed_timeslot: timeslot == 0 ? 0 : timeslot - 1,
+                            fixed_timeslot: timeslot,
                             fixedDay: fixedDays[subjectID][index],
                             isOverlappable: true,
                         };
@@ -298,23 +331,42 @@ function Timetable() {
                     });
                 });
 
-            section.additionalScheds.forEach((additionalSchedule) => {
-                const subjectConfiguration = {
-                    subject: subjectMapReverse[additionalSchedule.subject]?.id ?? -1,
-                    is_consistent_everyday: false,
-                    classDuration: additionalSchedule?.duration || 0,
-                    fixed_timeslot: section.shift == 0 ? totalTimeslot - 1 : 0,
-                    fixedDay: 0,
-                    isOverlappable: false,
-                };
+            let vacant_iterator = section.shift == 0 ? -1 : 0;
+            console.log('🚀 ~ Object.entries ~ vacant_iterator:', vacant_iterator);
 
-                subjectConfigurationIDIncrementer = addObjectToMap(
-                    subjectConfigurationMap,
-                    subjectMapReverse[additionalSchedule.subject]?.id ?? -1,
-                    subjectConfiguration,
-                    subjectConfigurationIDIncrementer,
-                    'subjectConfigurationID'
-                );
+            section.additionalScheds.forEach((additionalSchedule) => {
+                for (let i = 0; i < additionalSchedule.frequency; i++) {
+                    // console.log('🚀 ~ additionalScheds.forEach ~ vacant[vacant_iterator]:', vacant);
+                    // console.log('🚀 ~ additionalScheds.forEach ~ vacant[vacant_iterator]:', vacant[0]);
+                    // console.log('🚀 ~ additionalScheds.forEach ~ vacant[vacant_iterator]:', vacant[vacant_iterator]);
+
+                    if (vacant.at(vacant_iterator).size == 0) {
+                        vacant_iterator += section.shift == 0 ? -1 : 1;
+                    }
+
+                    const firstDay = vacant.at(vacant_iterator).values().next().value;
+                    vacant.at(vacant_iterator).delete(firstDay);
+
+                    console.log('PP', section.shift == 0 ? totalTimeslot + 1 + vacant_iterator : vacant_iterator + 1);
+                    console.log('🚀 ~ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', additionalSchedule?.duration || 0);
+
+                    const subjectConfiguration = {
+                        subject: subjectMapReverse[additionalSchedule.subject]?.id ?? -1,
+                        is_consistent_everyday: false,
+                        classDuration: additionalSchedule?.duration || 0,
+                        fixed_timeslot: section.shift == 0 ? totalTimeslot + 1 + vacant_iterator : vacant_iterator + 1,
+                        fixedDay: 0,
+                        isOverlappable: false,
+                    };
+
+                    subjectConfigurationIDIncrementer = addObjectToMap(
+                        subjectConfigurationMap,
+                        subjectMapReverse[additionalSchedule.subject]?.id ?? -1,
+                        subjectConfiguration,
+                        subjectConfigurationIDIncrementer,
+                        'subjectConfigurationID'
+                    );
+                }
             });
         });
 
@@ -420,31 +472,14 @@ function Timetable() {
 
             console.log('🚀 ~ handleButtonClick ~ totalAdditionalScheduleNumOfClass:', totalAdditionalScheduleNumOfClass);
 
-            let totalTimeslot = Math.ceil(totalNumOfClasses / numOfSchoolDays);
+            let totalTimeslot = Math.ceil((totalNumOfClasses + totalAdditionalScheduleNumOfClass) / numOfSchoolDays);
 
             totalTimeslot += totalTimeslot >= 10 ? 2 : 1;
 
             console.log('🚀 ~ sectionMap ~ fixedPositions:', fixedPositions);
             console.log('🚀 ~ sectionMap ~ fixedDays:', fixedDays);
 
-            let vacant = Array.from(
-                { length: totalTimeslot },
-                () => new Set(Array.from({ length: numOfSchoolDays }, (_, index) => index + 1))
-            );
-
-            Object.entries(fixedPositions).forEach(([subjectID, fixedPosition]) => {
-                console.log('🚀 HA N ', fixedPosition, index);
-
-                fixedPosition.forEach((timeslot, index) => {
-                    if (timeslot != 0) {
-                        let daysToDelete = fixedDays[subjectID][index];
-
-                        vacant[timeslot - 1].delete(daysToDelete);
-                        // console.log('🚀 ~ fixedPosition.forEach ~ daysToDelete:', daysToDelete);
-                        // ...
-                    }
-                });
-            });
+            let vacant = getVacantSlots(totalTimeslot, numOfSchoolDays, fixedPositions, fixedDays);
 
             console.log('🚀 ~ sectionMap ~ vacant:', vacant);
 
@@ -491,7 +526,8 @@ function Timetable() {
                         subject: subjectMapReverse[subjectID].id,
                         is_consistent_everyday: true,
                         classDuration: subjectMapReverse[subjectID].classDuration / timeDivision - offset,
-                        fixed_timeslot: positionArray[0] == 0 ? 0 : positionArray[0] - 1,
+                        // fixed_timeslot: positionArray[0] == 0 ? 0 : positionArray[0] - 1,
+                        fixed_timeslot: positionArray[0],
                         fixedDay: 0,
                         isOverlappable: true,
                     };
@@ -508,7 +544,8 @@ function Timetable() {
                         subject: subjectMapReverse[subjectID].id,
                         is_consistent_everyday: false,
                         classDuration: subjectMapReverse[subjectID].classDuration / timeDivision - offset,
-                        fixed_timeslot: timeslot == 0 ? 0 : timeslot - 1,
+                        // fixed_timeslot: timeslot == 0 ? 0 : timeslot - 1,
+                        fixed_timeslot: timeslot,
                         fixedDay: fixedDays[subjectID][index],
                         isOverlappable: true,
                     };
@@ -517,13 +554,24 @@ function Timetable() {
                 });
             });
 
+            let vacant_iterator = section.shift == 0 ? -1 : 0;
+
             additionalScheds.forEach((additionalSchedule) => {
+                console.log('🚀 ~ additionalScheds.forEach ~ additionalSchedule:', additionalSchedule);
+
                 for (let i = 0; i < additionalSchedule.frequency; i++) {
+                    if (vacant.at(vacant_iterator).size == 0) {
+                        vacant_iterator += section.shift == 0 ? -1 : 1;
+                    }
+
+                    const firstDay = vacant.at(vacant_iterator).values().next().value;
+                    vacant.at(vacant_iterator).delete(firstDay);
+
                     subjectConfigurationArray.push({
                         subject: subjectMapReverse[additionalSchedule.subject]?.id ?? -1,
                         is_consistent_everyday: false,
-                        classDuration: additionalSchedule?.duration || 0,
-                        fixed_timeslot: section.shift == 0 ? totalTimeslot - 1 : 0,
+                        classDuration: additionalSchedule?.duration / timeDivision - offset || 0,
+                        fixed_timeslot: section.shift == 0 ? totalTimeslot + 1 + vacant_iterator : vacant_iterator + 1,
                         fixedDay: 0,
                         isOverlappable: false,
                     });
@@ -819,7 +867,7 @@ function Timetable() {
             teacherMiddleTimePointGrowAllowanceForBreakTimeslot: teacherMiddleTimePointGrowAllowanceForBreakTimeslot,
             minTotalClassDurationForTwoBreaks: minTotalClassDurationForTwoBreaks,
             defaultClassDuration: defaultClassDuration,
-            offsetDuration: offset,
+            offsetDuration: offset + 4,
             resultTimetableLength: resultTimetableLength,
             resultViolationLength: resultViolationLength,
 
