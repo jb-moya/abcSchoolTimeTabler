@@ -901,6 +901,7 @@ const SectionListContainer = ({
                                                         errorField={errorField}
                                                         setErrorField={setErrorField}
                                                         numOfSchoolDays={numOfSchoolDays}
+                                                        breakTimeDuration={breakTimeDuration}
                                                     />
 
                                                     <DeleteData

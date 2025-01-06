@@ -735,66 +735,68 @@ const SectionEdit = ({
                             </div>
                             {editAdditionalScheds.map(
                                 (sched, index) => (
-                                    <div
-                                        key={index}
-                                        className="flex flex-wrap"
-                                    >
-                                        <button
-                                            className='w-full text-xs  p-2 shadow-sm '
-                                            onClick={() =>
-                                                document
-                                                    .getElementById(
-                                                        `add_additional_sched_modal_1_grade-${editSectionYear}_sec-${editSectionId}_idx-${index}`
-                                                    )
-                                                    .showModal()
-                                            }
+                                    <div>
+                                        <div
+                                            key={index}
+                                            className="flex flex-wrap"
                                         >
-                                            {sched.name ? (
-                                                // Content to show when both are not empty
-                                                <>
-                                                    <p>Name: {sched.name}</p>
-                                                    <p>
-                                                        Subject: {sched.subject === -1 ? 'N/A' : subjects[sched.subject].subject}
-                                                    </p>
-                                                </>
-                                            ) : (
-                                                // Content to show when either is empty
-                                                <p>Untitled Schedule {index + 1}</p>
-                                            )}
-                                        </button>
-                                        <AdditionalScheduleForSection
-                                            viewingMode={1}
-                                            sectionID={editSectionId}
-                                            grade={editSectionYear}
-                                            arrayIndex={index}
-                                            additionalSchedsOfSection={sched}
-                                        />
+                                            <button
+                                                className='w-full text-xs  p-2 shadow-sm '
+                                                onClick={() =>
+                                                    document
+                                                        .getElementById(
+                                                            `add_additional_sched_modal_1_grade-${editSectionYear}_sec-${editSectionId}_idx-${index}`
+                                                        )
+                                                        .showModal()
+                                                }
+                                            >
+                                                {sched.name ? (
+                                                    // Content to show when both are not empty
+                                                    <>
+                                                        <p>Name: {sched.name}</p>
+                                                        <p>
+                                                            Subject: {sched.subject === -1 ? 'N/A' : subjects[sched.subject].subject}
+                                                        </p>
+                                                    </>
+                                                ) : (
+                                                    // Content to show when either is empty
+                                                    <p>Untitled Schedule {index + 1}</p>
+                                                )}
+                                            </button>
+                                            <AdditionalScheduleForSection
+                                                viewingMode={1}
+                                                sectionID={editSectionId}
+                                                grade={editSectionYear}
+                                                arrayIndex={index}
+                                                additionalSchedsOfSection={sched}
+                                            />
+                                        </div>
+                                        <div className='w-1/12 text-xs font-bold rounded-r-lg   flex text-center justify-center items-center p-2 cursor-pointer'>
+                                            <button
+                                                className='hover:text-primary'
+                                                onClick={() =>
+                                                    document
+                                                        .getElementById(
+                                                            `add_additional_sched_modal_0_grade-${editSectionYear}_sec-${editSectionId}_idx-${index}`
+                                                        )
+                                                        .showModal()
+                                                }
+                                            >
+                                                <RiEdit2Fill size={15} />
+                                            </button>
+                                            <AdditionalScheduleForSection
+                                                viewingMode={0}
+                                                sectionID={editSectionId}
+                                                grade={editSectionYear}
+                                                arrayIndex={index}
+                                                numOfSchoolDays={numOfSchoolDays}
+                                                sectionSubjects={editSectionSubjects}
+                                                additionalSchedsOfSection={sched}
+                                                setAdditionalScheds={setEditAdditionalScheds}
+                                            />
+                                        </div>
+                                        
                                     </div>
-                                    <div className='w-1/12 text-xs font-bold rounded-r-lg   flex text-center justify-center items-center p-2 cursor-pointer'>
-                                        <button
-                                            className='hover:text-primary'
-                                            onClick={() =>
-                                                document
-                                                    .getElementById(
-                                                        `add_additional_sched_modal_0_grade-${editSectionYear}_sec-${editSectionId}_idx-${index}`
-                                                    )
-                                                    .showModal()
-                                            }
-                                        >
-                                            <RiEdit2Fill size={15} />
-                                        </button>
-                                        <AdditionalScheduleForSection
-                                            viewingMode={0}
-                                            sectionID={editSectionId}
-                                            grade={editSectionYear}
-                                            arrayIndex={index}
-                                            numOfSchoolDays={numOfSchoolDays}
-                                            sectionSubjects={editSectionSubjects}
-                                            additionalSchedsOfSection={sched}
-                                            setAdditionalScheds={setEditAdditionalScheds}
-                                        />
-                                    </div>
-                                </div>
                             ))}
                         </div>
 
