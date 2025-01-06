@@ -125,6 +125,7 @@ const ForTest = ({ hashMap }) => {
         const overlaps = detectOverlaps(valueMap);
         // console.log('overlaps', overlaps);
         const resolvedMap = updateOverlapFields(overlaps);
+        // console.log('resolvedmap: ', resolvedMap);
         setValueMap(resolvedMap);
 
         if (!deepEqualMaps(history[historyIndex], valueMap)) {
@@ -138,6 +139,7 @@ const ForTest = ({ hashMap }) => {
         }
 
         isUndoRedo.current = false; // Reset the flag
+        // console.log('overlaps: ');
     }, [valueMap]);
 
     function deepEqualMaps(map1, map2) {
@@ -182,8 +184,8 @@ const ForTest = ({ hashMap }) => {
                     const nextCell = cells[i + 1];
 
                     if (currentCell.end > nextCell.start) {
-                        console.log('overlap1 : ', currentCell);
-                        console.log('overlap2 : ', nextCell);
+                        // console.log('overlap1 : ', currentCell);
+                        // console.log('overlap2 : ', nextCell);
 
                         currentCell.overlap = true;
                         nextCell.overlap = true;
@@ -232,7 +234,7 @@ const ForTest = ({ hashMap }) => {
         // Push the additional overlaps to the main array
         overlappingCells.push(...additionalOverlaps);
         setErrorCount(overlappingCells.length);
-        console.log('overlappingCells: ', overlappingCells);
+        // console.log('overlappingCells: ', overlappingCells);
         return overlappingCells;
     }
 
@@ -344,6 +346,7 @@ const ForTest = ({ hashMap }) => {
             setCurrentPage(validCurrentPage);
 
             // Filter the valueMap based on the searchField
+
             const filteredValueMap = new Map(
                 Array.from(valueMap.entries()).filter(([key, value]) => key.toLowerCase().includes(searchField.toLowerCase()))
             );
@@ -376,6 +379,8 @@ const ForTest = ({ hashMap }) => {
         };
 
         updatePaginatedValueMap();
+        // console.log('paginatedValueMap: ');
+        // console.log('valueMap: ', valueMap);
     }, [currentPage, itemsPerPage, valueMap, searchField]);
 
     const handleInputChange = (event) => {
@@ -390,6 +395,18 @@ const ForTest = ({ hashMap }) => {
         // console.log('set');
         setValueMap(hashMap);
     }, [hashMap]);
+
+    useEffect(() => {
+        // console.log('valueMap: ', valueMap);
+    }, [valueMap]);
+
+    useEffect(() => {
+        const overlaps = detectOverlaps(valueMap);
+        // console.log('overlaps', overlaps);
+        const resolvedMap = updateOverlapFields(overlaps);
+        // console.log('resolvedmap: ', resolvedMap);
+        setValueMap(resolvedMap);
+    }, []);
 
     return (
         Array.from(paginatedValueMap.entries()).length > 0 && (
@@ -518,6 +535,14 @@ const ForTest = ({ hashMap }) => {
                     <div className='text-center text-lg font-semibold pt-10'>No Value</div>
                 ) : (
                     Array.from(paginatedValueMap.entries()).map(([key, value], index) => {
+                        let containerType = null;
+                        for (const [key, cell] of value.entries()) {
+                            if (cell.type) {
+                                containerType = cell.type;
+                                break; // Exit the loop when .type is found
+                            }
+                        }
+
                         return (
                             <div
                                 key={index}
@@ -528,7 +553,9 @@ const ForTest = ({ hashMap }) => {
                                 <div className='card bg-base-100 w-full shadow-xl pt-5'>
                                     <div className='card-body'>
                                         {/* Dynamically render section name */}
-                                        <h2 className='card-title'>Section: {key}</h2>
+                                        <h2 className='card-title capitalize'>
+                                            {containerType}: {key}
+                                        </h2>
                                         <Column />
                                         <div
                                             className='flex flex-row border border-gray-600'

@@ -32,7 +32,6 @@ const ItemCells = ({
     addClicked,
     setAddClicked,
 }) => {
-    // console.log('cell: ', cell);
     // console.log('initialPosition: ', initialPosition);
 
     const itemRef = useRef(null);
@@ -91,7 +90,7 @@ const ItemCells = ({
             case '10m':
                 return start * 2;
             case '20m':
-                return start * 3;
+                return start * 4;
             case '30m':
                 return start * 6;
             case '60m':
@@ -119,6 +118,7 @@ const ItemCells = ({
                 document.getElementById('my_modal_2').showModal();
             }, 0);
         } else {
+            if (!cell.teacher && !cell.section) return;
             scrollToTable(cell);
         }
     };
@@ -153,13 +153,17 @@ const ItemCells = ({
             const initialStart = lineRowPositions.indexOf(closestLine);
             const start = getUpdatedStart(mode, initialStart);
             const day = lineColPositions.indexOf(closestColumn) + 1;
-            const end = start + Number(timeRange) - 0.5;
+            // console.log('range: ', Number(timeRange));
+
+            // console.log('range: ', Number(timeRange));
+            // const end = start + Number(timeRange) * 2;
+            // console.log('end: ', end);
 
             setTimeout(() => {
                 setTargetPosition({ x: closestColumn + 1, y: closestLine });
             }, 10);
 
-            handleCellUpdate({ start, end, day });
+            handleCellUpdate({ start, day });
         }
     };
 
@@ -192,8 +196,7 @@ const ItemCells = ({
 
     const handleTeacherSelection = (teacherID, teacher) => {
         setLoading(true);
-        // console.log('SET THE LOADING');
-
+        setModalOpen(false);
         setTimeout(() => {
             handleSwitchTeacher({ teacherID, teacher });
         }, 0);
