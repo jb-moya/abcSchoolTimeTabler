@@ -28,6 +28,7 @@ import AddSectionContainer from './SectionAdd';
 import DeleteData from '../DeleteData';
 import SectionEdit from './SectionEdit';
 
+
 const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editable = false }) => {
     const dispatch = useDispatch();
 
@@ -617,157 +618,34 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                         <td>{section.id}</td>
 
                                         {/* Section Name, Shift, and Start Time */}
-                                        <td>
-                                            {editSectionId === section.id ? (
-                                                <>
-                                                    {/* Section Name */}
-                                                    <div className='flex items-center mb-2'>
-                                                        <label htmlFor='section-name' className='mr-2'>
-                                                            Name:
-                                                        </label>
-                                                        <input
-                                                            type='text'
-                                                            id='section-name'
-                                                            value={editSectionValue}
-                                                            onChange={(e) => setEditSectionValue(e.target.value)}
-                                                            className='input input-bordered input-sm w-full'
-                                                        />
-                                                    </div>
+                                        <td>  
+                                            {/* Section year and name */}
+                                            <div className='text-base font-bold'>
+                                                {`${section.year} -  ${section.section}`}
+                                            </div>
 
-                                                    {/* Section Program */}
-                                                    <div className='flex items-center mb-2'>
-                                                        <label htmlFor='section-name' className='mr-2'>
-                                                            Program:
-                                                        </label>
-                                                        <select
-                                                            value={editSectionProg}
-                                                            onChange={(e) => {
-                                                                const newProgram = parseInt(e.target.value, 10);
-                                                                setEditSectionProg(newProgram);
-                                                            }}
-                                                            className='select select-bordered'
-                                                        >
-                                                            {Object.entries(programs).map(([key, program]) => (
-                                                                <option key={key} value={key}>
-                                                                    {program.program}
-                                                                </option>
-                                                            ))}
-                                                        </select>
-                                                    </div>
+                                            {/* Section program */}
+                                            <div className='mt-1'>{`(${programs[section.program]?.program})`}</div>
 
-                                                    {/* Section Year */}
-                                                    <div className='flex items-center mb-2'>
-                                                        <label htmlFor='section-name' className='mr-2'>
-                                                            Year:
-                                                        </label>
-                                                        <select
-                                                            value={editSectionYear}
-                                                            onChange={(e) => {
-                                                                const newYear = parseInt(e.target.value, 10);
-                                                                setEditSectionYear(newYear);
-                                                            }}
-                                                            className='select select-bordered'
-                                                        >
-                                                            {[7, 8, 9, 10].map((year) => (
-                                                                <option key={year} value={year}>
-                                                                    {year}
-                                                                </option>
-                                                            ))}
-                                                        </select>
-                                                    </div>
+                                            {/* Section shift and start time */}
+                                            <div className='flex items-center mt-2'>
+                                                <span className='inline-block bg-blue-500 text-white text-sm font-semibold py-1 px-3 rounded-lg'>
+                                                    {section.shift === 0 ? 'AM' : 'PM'}
+                                                </span>
+                                                <span className='ml-2 text-sm font-medium'>
+                                                    {getTimeSlotString(section.startTime)} - {getTimeSlotString(section.endTime)}
+                                                </span>
+                                            </div>
 
-                                                    {/* Section Shift */}
-                                                    <div className='mt-2'>
-                                                        <label className='mr-2'>Shift:</label>
-                                                        <label className='mr-2'>
-                                                            <input
-                                                                type='radio'
-                                                                value={editSectionShift}
-                                                                checked={editSectionShift === 0}
-                                                                onChange={() => {
-                                                                    setEditSectionShift(0); // PM shift
-                                                                    setEditSectionStartTime('06:00 AM'); // Reset to default AM start time
-                                                                }}
-                                                            />
-                                                            AM
-                                                        </label>
-                                                        <label>
-                                                            <input
-                                                                type='radio'
-                                                                value={editSectionShift}
-                                                                checked={editSectionShift === 1}
-                                                                onChange={() => {
-                                                                    setEditSectionShift(1); // PM shift
-                                                                    setEditSectionStartTime('01:00 PM'); // Reset to default PM start time
-                                                                }}
-                                                            />
-                                                            PM
-                                                        </label>
-                                                    </div>
-
-                                                    {/* Section Start Time (AM or PM) */}
-                                                    <div>
-                                                        <label>Start Time:</label>
-                                                        <select
-                                                            value={editSectionStartTime}
-                                                            onChange={(e) => setEditSectionStartTime(e.target.value)}
-                                                        >
-                                                            {renderTimeOptions()}
-                                                        </select>
-                                                    </div>
-
-                                                    {/* Section Adviser */}
-                                                    <div className='flex flex-wrap mt-2'>
-                                                        <div className='w-1/4 p-2 font-bold flex items-center justify-center'>
-                                                            Adviser:
-                                                        </div>
-                                                        <select
-                                                            className='w-3/4 select select-bordered'
-                                                            value={editSectionAdviser}
-                                                            onChange={(e) => setEditSectionAdviser(parseInt(e.target.value, 10))}
-                                                        >
-                                                            <option value='' disabled>
-                                                                Assign an adviser
-                                                            </option>
-                                                            {Object.keys(teachers).map((key) => (
-                                                                <option key={teachers[key].id} value={teachers[key].id}>
-                                                                    {teachers[key].teacher}
-                                                                </option>
-                                                            ))}
-                                                        </select>
-                                                    </div>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    {/* Section year and name */}
-                                                    <div className='text-base font-bold'>
-                                                        {`${section.year} -  ${section.section}`}
-                                                    </div>
-
-                                                    {/* Section program */}
-                                                    <div className='mt-1'>{`(${programs[section.program]?.program})`}</div>
-
-                                                    {/* Section shift and start time */}
-                                                    <div className='flex items-center mt-2'>
-                                                        <span className='inline-block bg-blue-500 text-white text-sm font-semibold py-1 px-3 rounded-lg'>
-                                                            {section.shift === 0 ? 'AM' : 'PM'}
-                                                        </span>
-                                                        <span className='ml-2 text-sm font-medium'>
-                                                            {getTimeSlotString(section.startTime)}
-                                                        </span>
-                                                    </div>
-
-                                                    {/* Section Adviser */}
-                                                    <div className='flex flex-wrap mt-2'>
-                                                        <div className='w-1/4 p-2 font-bold flex items-center justify-center'>
-                                                            Adviser:
-                                                        </div>
-                                                        <div className='w-2/3 flex items-center justify-center bg-white border border-gray-300 rounded-lg m-1'>
-                                                            {teachers[section.teacher]?.teacher || 'Unknown Teacher'}
-                                                        </div>
-                                                    </div>
-                                                </>
-                                            )}
+                                            {/* Section Adviser */}
+                                            <div className='flex flex-wrap mt-2'>
+                                                <div className='w-1/4 p-2 font-bold flex items-center justify-center'>
+                                                    Adviser:
+                                                </div>
+                                                <div className='w-2/3 flex items-center justify-center bg-white border border-gray-300 rounded-lg m-1'>
+                                                    {teachers[section.teacher]?.teacher || 'Unknown Teacher'}
+                                                </div>
+                                            </div>
                                         </td>
 
                                         {/* Section room (work in progress) */}
@@ -815,7 +693,7 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                     </div>
                                                 </div>
 
-                                                {editSectionId === section.id && (
+                                                {/* {editSectionId === section.id && (
                                                     <div>
                                                         <div className='w-1/4 flex justify-start items-end'>
                                                             <button
@@ -839,7 +717,7 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                             setRoomDetails={setEditRoomDetails}
                                                         />
                                                     </div>
-                                                )}
+                                                )} */}
                                             </div>
                                         </td>
 
@@ -894,236 +772,97 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                     </tbody>
                                                 </table>
 
-                                                {editSectionId === section.id ? (
-                                                    <div className='p-2 flex justify-center'>
-                                                        <button
-                                                            className='btn'
-                                                            onClick={() =>
-                                                                document
-                                                                    .getElementById(
-                                                                        `assign_fixed_sched_modal_section(${section.id})-grade(${editSectionYear})`
-                                                                    )
-                                                                    .showModal()
-                                                            }
-                                                        >
-                                                            View Fixed Schedules
-                                                        </button>
+                                                
+                                                <div className='p-2 flex justify-center'>
+                                                    <button
+                                                        className='btn'
+                                                        onClick={() =>
+                                                            document
+                                                                .getElementById(
+                                                                    `assign_fixed_sched_modal_section(${section.id})-grade(${section.year})-view(1)`
+                                                                )
+                                                                .showModal()
+                                                        }
+                                                    >
+                                                        View Fixed Schedules
+                                                    </button>
 
-                                                        <FixedScheduleMaker
-                                                            key={editSectionYear}
-                                                            viewingMode={0}
-                                                            isForSection={true}
-                                                            pvs={1}
-                                                            section={section.id}
-                                                            grade={editSectionYear}
-                                                            selectedSubjects={editSectionSubjects}
-                                                            fixedDays={editSectionFixedDays}
-                                                            additionalSchedules={section.additionalScheds || []}
-                                                            setFixedDays={setEditSectionFixedDays}
-                                                            fixedPositions={editSectionFixedPositions}
-                                                            setFixedPositions={setEditSectionFixedPositions}
-                                                            numOfSchoolDays={numOfSchoolDays}
-                                                        />
-                                                    </div>
-                                                ) : (
-                                                    <div className='p-2 flex justify-center'>
-                                                        <button
-                                                            className='btn'
-                                                            onClick={() =>
-                                                                document
-                                                                    .getElementById(
-                                                                        `assign_fixed_sched_modal_section(${section.id})-grade(${section.year})`
-                                                                    )
-                                                                    .showModal()
-                                                            }
-                                                        >
-                                                            View Fixed Schedules
-                                                        </button>
-
-                                                        <FixedScheduleMaker
-                                                            key={section.year}
-                                                            viewingMode={1}
-                                                            isForSection={true}
-                                                            pvs={1}
-                                                            section={section.id}
-                                                            grade={section.year}
-                                                            selectedSubjects={section.subjects || []}
-                                                            fixedDays={section.fixedDays || {}}
-                                                            additionalSchedules={section.additionalScheds || []}
-                                                            fixedPositions={section.fixedPositions || {}}
-                                                            numOfSchoolDays={numOfSchoolDays}
-                                                        />
-                                                    </div>
-                                                )}
+                                                    <FixedScheduleMaker
+                                                        key={section.year}
+                                                        viewingMode={1}
+                                                        isForSection={true}
+                                                        pvs={1}
+                                                        section={section.id}
+                                                        grade={section.year}
+                                                        selectedSubjects={section.subjects || []}
+                                                        fixedDays={section.fixedDays || {}}
+                                                        additionalSchedules={section.additionalScheds || []}
+                                                        fixedPositions={section.fixedPositions || {}}
+                                                        numOfSchoolDays={numOfSchoolDays}
+                                                    />
+                                                </div>
+                                                
                                             </div>
                                         </td>
 
                                         {/* Additional Schedule */}
                                         <td>
-                                            {editSectionId === section.id ? (
-                                                <>
-                                                    <div
-                                                        key={`edit-add-sched-edit-section(${editSectionId})`}
-                                                        className='mt-2 overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg'
-                                                        style={{
-                                                            scrollbarWidth: 'thin',
-                                                            scrollbarColor: '#a0aec0 #edf2f7',
-                                                        }} // Optional for styled scrollbars
-                                                    >
-                                                        <div
-                                                            className='flex flex-wrap'
-                                                            style={{
-                                                                position: 'sticky',
-                                                                top: 0,
-                                                                zIndex: 1,
-                                                                backgroundColor: 'white',
-                                                            }}
-                                                        >
-                                                            <div className='w-9/12 font-bold p-2 border-b border-gray-300'>
-                                                                Grade {editSectionYear}
-                                                            </div>
-                                                            <div className='w-3/12 flex justify-center items-center border-b border-gray-300'>
-                                                                <button
-                                                                    className='w-3/4 bg-green-700 m-2 font-bold text-white rounded-lg hover:bg-green-500'
-                                                                    onClick={handleAddAdditionalSchedule}
-                                                                >
-                                                                    +
-                                                                </button>
-                                                            </div>
+                                            <div
+                                                key={`edit-add-sched-view-section(${section.id})`}
+                                                className='overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg'
+                                                style={{
+                                                    scrollbarWidth: 'thin',
+                                                    scrollbarColor: '#a0aec0 #edf2f7',
+                                                }} // Optional for styled scrollbars
+                                            >
+                                                <div
+                                                    className='font-bold p-2 border-b border-gray-300 bg-gray-300'
+                                                    style={{
+                                                        position: 'sticky',
+                                                        top: 0,
+                                                        zIndex: 1,
+                                                    }}
+                                                ></div>
+                                                {section.additionalScheds.map((sched, index) => (
+                                                    <div key={index} className='flex flex-wrap'>
+                                                        <div className='w-1/12 text-xs font-bold bg-blue-100 flex text-center justify-center items-center p-2'>
+                                                            {index + 1}
                                                         </div>
-                                                        {editAdditionalScheds.map((sched, index) => (
-                                                            <div key={index} className='flex flex-wrap'>
-                                                                <button
-                                                                    className='w-1/12 border rounded-l-lg bg-blue-200 hover:bg-blue-100 flex items-center justify-center'
-                                                                    onClick={() => handleDeleteAdditionalSchedule(index)}
-                                                                >
-                                                                    <RiDeleteBin7Line size={15} />
-                                                                </button>
-                                                                <div className='w-10/12'>
-                                                                    <button
-                                                                        className='w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-gray-200'
-                                                                        onClick={() =>
-                                                                            document
-                                                                                .getElementById(
-                                                                                    `add_additional_sched_modal_1_grade-${editSectionYear}_sec-${editSectionId}_idx-${index}`
-                                                                                )
-                                                                                .showModal()
-                                                                        }
-                                                                    >
-                                                                        {sched.name || sched.subject ? (
-                                                                            // Content to show when both are not empty
-                                                                            <>
-                                                                                <p>Name: {sched.name}</p>
-                                                                                <p>
-                                                                                    Subject:{' '}
-                                                                                    {sched.subject === 0
-                                                                                        ? 'N/A'
-                                                                                        : subjects[sched.subject].subject}
-                                                                                </p>
-                                                                            </>
-                                                                        ) : (
-                                                                            // Content to show when either is empty
-                                                                            <p>Untitled Schedule {index + 1}</p>
-                                                                        )}
-                                                                    </button>
-                                                                    <AdditionalScheduleForSection
-                                                                        viewingMode={1}
-                                                                        sectionID={editSectionId}
-                                                                        grade={editSectionYear}
-                                                                        arrayIndex={index}
-                                                                        additionalSchedsOfSection={sched}
-                                                                    />
-                                                                </div>
-                                                                <div className='w-1/12 text-xs font-bold rounded-r-lg bg-blue-200 hover:bg-blue-100 flex text-center justify-center items-center p-2 cursor-pointer'>
-                                                                    <button
-                                                                        onClick={() =>
-                                                                            document
-                                                                                .getElementById(
-                                                                                    `add_additional_sched_modal_0_grade-${editSectionYear}_sec-${editSectionId}_idx-${index}`
-                                                                                )
-                                                                                .showModal()
-                                                                        }
-                                                                    >
-                                                                        <RiEdit2Fill size={15} />
-                                                                    </button>
-                                                                    <AdditionalScheduleForSection
-                                                                        viewingMode={0}
-                                                                        sectionID={editSectionId}
-                                                                        grade={editSectionYear}
-                                                                        arrayIndex={index}
-                                                                        numOfSchoolDays={numOfSchoolDays}
-                                                                        sectionSubjects={editSectionSubjects}
-                                                                        additionalSchedsOfSection={sched}
-                                                                        setAdditionalScheds={setEditAdditionalScheds}
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        ))}
+                                                        <div className='w-11/12'>
+                                                            <button
+                                                                className='w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-white'
+                                                                onClick={() =>
+                                                                    document
+                                                                        .getElementById(
+                                                                            `add_additional_sched_modal_1_grade-${section.year}_sec-${section.id}_idx-${index}`
+                                                                        )
+                                                                        .showModal()
+                                                                }
+                                                            >
+                                                                {sched.name  ? (
+                                                                    // Content to show when both are not empty
+                                                                    <>
+                                                                        <p>Name: {sched.name}</p>
+                                                                        <p>
+                                                                            Subject:{' '}{sched.subject === -1 ? 'N/A' : subjects[sched.subject].subject}
+                                                                        </p>
+                                                                    </>
+                                                                ) : (
+                                                                    // Content to show when either is empty
+                                                                    <p>Untitled Schedule {index + 1}</p>
+                                                                )}
+                                                            </button>
+                                                            <AdditionalScheduleForSection
+                                                                viewingMode={1}
+                                                                sectionID={section.id}
+                                                                grade={section.year}
+                                                                arrayIndex={index}
+                                                                additionalSchedsOfSection={sched}
+                                                            />
+                                                        </div>
                                                     </div>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <div
-                                                        key={`edit-add-sched-view-section(${section.id})`}
-                                                        className='overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg'
-                                                        style={{
-                                                            scrollbarWidth: 'thin',
-                                                            scrollbarColor: '#a0aec0 #edf2f7',
-                                                        }} // Optional for styled scrollbars
-                                                    >
-                                                        <div
-                                                            className='font-bold p-2 border-b border-gray-300 bg-gray-300'
-                                                            style={{
-                                                                position: 'sticky',
-                                                                top: 0,
-                                                                zIndex: 1,
-                                                            }}
-                                                        ></div>
-                                                        {section.additionalScheds.map((sched, index) => (
-                                                            <div key={index} className='flex flex-wrap'>
-                                                                <div className='w-1/12 text-xs font-bold bg-blue-100 flex text-center justify-center items-center p-2'>
-                                                                    {index + 1}
-                                                                </div>
-                                                                <div className='w-11/12'>
-                                                                    <button
-                                                                        className='w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-white'
-                                                                        onClick={() =>
-                                                                            document
-                                                                                .getElementById(
-                                                                                    `add_additional_sched_modal_1_grade-${section.year}_sec-${section.id}_idx-${index}`
-                                                                                )
-                                                                                .showModal()
-                                                                        }
-                                                                    >
-                                                                        {sched.name || sched.subject ? (
-                                                                            // Content to show when both are not empty
-                                                                            <>
-                                                                                <p>Name: {sched.name}</p>
-                                                                                <p>
-                                                                                    Subject:{' '}
-                                                                                    {sched.subject === 0
-                                                                                        ? 'N/A'
-                                                                                        : subjects[sched.subject].subject}
-                                                                                </p>
-                                                                            </>
-                                                                        ) : (
-                                                                            // Content to show when either is empty
-                                                                            <p>Untitled Schedule {index + 1}</p>
-                                                                        )}
-                                                                    </button>
-                                                                    <AdditionalScheduleForSection
-                                                                        viewingMode={1}
-                                                                        sectionID={section.id}
-                                                                        grade={section.year}
-                                                                        arrayIndex={index}
-                                                                        additionalSchedsOfSection={sched}
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </>
-                                            )}
+                                                ))}
+                                            </div>
                                         </td>
 
                                         {editable && (
@@ -1140,8 +879,14 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                         numOfSchoolDays={numOfSchoolDays}
                                                     />
 
-                                                    <DeleteData id={section.id} reduxFunction={removeSection} />
-                                                </div>
+                                                        <DeleteData
+                                                            id={section.id}
+                                                            reduxFunction={removeSection} />
+
+                                            </div>
+                                                      
+                                                   
+                                               
                                             </td>
                                         )}
                                     </tr>

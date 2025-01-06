@@ -424,9 +424,6 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
             'Adviser',
             'Program',
             'Year',
-            'Subjects',
-            'Shift',
-            'Start Time',
             'Room Details',
         ]);
 
@@ -438,9 +435,6 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
         };
 
         exportData.sections.forEach((section) => {
-            const sectionSubjects = section.subjects
-                .map((subjectId) => subjects[subjectId].subject)
-                .join(', ');
             const sectionAdviser = teachers[section.teacher];
             const sectionProgram = programs[section.program];
 
@@ -453,9 +447,6 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                 sectionAdviser.teacher,
                 sectionProgram.program,
                 section.year,
-                sectionSubjects,
-                section.shift === 0 ? 'AM' : 'PM',
-                getTimeSlotString(section.startTime),
                 `[${building.name}, FLOOR ${
                     section.roomDetails.floorIdx + 1
                 }] ${room.roomName}`,
@@ -467,9 +458,6 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
             { key: 'sectionAdviser', width: 25 },
             { key: 'sectionProgram', width: 25 },
             { key: 'sectionYear', width: 10 },
-            { key: 'sectionSubjects', width: 35 },
-            { key: 'sectionShift', width: 10 },
-            { key: 'sectionStartTime', width: 15 },
             { key: 'sectionRoomDetails', width: 30 },
         ];
 

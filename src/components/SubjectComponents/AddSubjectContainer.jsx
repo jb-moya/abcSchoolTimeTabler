@@ -13,28 +13,24 @@ const AddSubjectContainer = ({
     setErrorField,
     defaultSubjectClassDuration,
 }) => {
+
     const inputNameRef = useRef();
     const dispatch = useDispatch();
+
+// ==============================================================================
+
     const subjects = useSelector((state) => state.subject.subjects);
 
-    // const dayNames = [
-    //     'Monday',
-    //     'Tuesday',
-    //     'Wednesday',
-    //     'Thursday',
-    //     'Friday',
-    //     'Saturday',
-    //     'Sunday',
-    // ];
+// ==============================================================================
 
     const [subjectName, setSubjectName] = useState('');
-    const [classSubjectDuration, setClassSubjectDuration] = useState(
-        defaultSubjectClassDuration || 10
-    );
-
+    const [classSubjectDuration, setClassSubjectDuration] = useState(defaultSubjectClassDuration || 10);
     const [subjectWeeklyMinutes, setSubjectWeeklyMinutes] = useState(200);
 
+// ==============================================================================
+
     const handleAddSubject = () => {
+
         if (!subjectName.trim()) {
             setErrorMessage('Subject name cannot be empty');
             setErrorField('name'); // Highlight Subject Name input
@@ -61,6 +57,7 @@ const AddSubjectContainer = ({
             setErrorMessage('A subject with this name already exists');
             setErrorField('name');
         } else {
+
             dispatch(
                 reduxFunction({
                     subject: subjectName,
@@ -93,6 +90,8 @@ const AddSubjectContainer = ({
             inputNameRef.current.focus();
         }
     };
+
+// =============================================================================
 
     // Tracks which input field has an error
     useEffect(() => {

@@ -2,35 +2,70 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
 import { fetchBuildings, editBuilding } from '@features/buildingSlice';
+import { fetchSections } from '@features/sectionSlice';
 
 const ViewRooms = ({
     viewMode = 1,
-
     sectionId = 0,
-
     building = 0,
-
     roomDetails = {},
     setRoomDetails = () => {},
+    startTime = 0,
+    endTime = 0,
 }) => {
 
     const dispatch = useDispatch();
+
+// ============================================================================
     
     const { buildings, status: buildingStatus } = useSelector(
         (state) => state.building
     );
 
+    const { sections, status: sectionStatus } = useSelector(
+        (state) => state.section
+    );
+
+    useEffect(() => {
+        if (buildingStatus === 'idle') {
+            dispatch(fetchBuildings());
+        }
+    }, [buildingStatus, dispatch]);
+
+    useEffect(() => {
+        if (sectionStatus === 'idle') {
+            dispatch(fetchSections());
+        }
+    }, [sectionStatus, dispatch]);
+
+// ============================================================================
+
     const [buildingId, setBuildingId] = useState(-1);
     const [floorIdx, setFloorIdx] = useState(-1);
     const [roomIdx, setRoomIdx] = useState(-1);
 
-    // Temporary state for room details
-    const [tempBuildingId, setTempBuildingId] = useState(-1);
-    const [tempFloorIdx, setTempFloorIdx] = useState(-1);
-    const [tempRoomIdx, setTempRoomIdx] = useState(-1);
+    const [selectedStartTime, setSelectedStartTime] = useState(0);
+    const [selectedEndTime, setSelectedEndTime] = useState(0);
 
     // For display of floors and rooms
     const [floors, setFloors] = useState([]);
+
+    // For setting the buildingId, floorIdx, and roomIdx
+    useEffect(() => {
+        setBuildingId(roomDetails.buildingId);
+        setFloorIdx(roomDetails.floorIdx);
+        setRoomIdx(roomDetails.roomIdx);
+    }, [roomDetails]);
+
+    useEffect(() => {
+        setSelectedStartTime(startTime);
+    }, [startTime]);
+
+    useEffect(() => {
+        setSelectedEndTime(endTime);
+    }, [endTime]);
+
+// ============================================================================
 
     const handleBuildingChange = (e) => {
         setBuildingId(parseInt(e.target.value, 10));
@@ -48,52 +83,21 @@ const ViewRooms = ({
 
     const handleConfirm = () => {
         
-        if (
-            tempBuildingId !== buildingId ||
-            tempFloorIdx !== floorIdx ||
-            tempRoomIdx !== roomIdx
-        ) {
-            // Create a deep copy of buildings to ensure immutability
-            const updatedBuildings = { ...buildings };
-        
-            // Update the previous room (make it available)
-            if (tempBuildingId !== -1 && tempFloorIdx !== -1 && tempRoomIdx !== -1) {
-                const tempBuilding = updatedBuildings[tempBuildingId];
-                updatedBuildings[tempBuildingId] = {
-                    ...tempBuilding,
-                    rooms: tempBuilding.rooms.map((floor, fIdx) =>
-                        fIdx === tempFloorIdx
-                            ? floor.map((room, rIdx) =>
-                                rIdx === tempRoomIdx
-                                    ? { ...room, isAvailable: true }
-                                    : room
-                            )
-                            : floor
-                    ),
-                };
+        // updatedBuildings[buildingId].rooms[floorIdx][roomIdx].occupyingSections.push(sectionId);
 
-                dispatch(editBuilding({ buildingId: tempBuildingId, updatedBuilding: updatedBuildings[tempBuildingId] }));
+        Object.entries(sections).forEach(([sectionId, section]) => {
+            if (section.roomDetails.buildingId === buildingId && section.roomDetails.floorIdx === floorIdx && section.roomDetails.roomIdx === roomIdx) {
+                const sectionStartTime = section.startTime;
+                const sectionEndTime = section.endTime;
+
+                if (selectedEndTime > sectionStartTime && selectedStartTime < sectionEndTime) {
+                    alert(`Overlapping schedules with Section ${section.section}. Consider adjusting start time.`);
+                    return;
+                }
             }
-        
-            // Update the current room (make it unavailable)
-            const currentBuilding = updatedBuildings[buildingId];
-            updatedBuildings[buildingId] = {
-                ...currentBuilding,
-                rooms: currentBuilding.rooms.map((floor, fIdx) =>
-                    fIdx === floorIdx
-                        ? floor.map((room, rIdx) =>
-                            rIdx === roomIdx
-                                ? { ...room, isAvailable: false }
-                                : room
-                        )
-                        : floor
-                ),
-            };
+        })
 
-        
-            // Dispatch the updated buildings
-            dispatch(editBuilding({ buildingId: buildingId, updatedBuilding: updatedBuildings[buildingId] }));
-        }        
+        // dispatch(editBuilding({ buildingId: buildingId, updatedBuilding: updatedBuildings[buildingId] }));
         
         setRoomDetails((prevDetails) => ({
             ...prevDetails,
@@ -123,45 +127,27 @@ const ViewRooms = ({
         }
     };
 
-    // For setting the buildingId, floorIdx, and roomIdx (and the temporary states)
-    useEffect(() => {
-        setBuildingId(roomDetails.buildingId);
-        setFloorIdx(roomDetails.floorIdx);
-        setRoomIdx(roomDetails.roomIdx);
-
-        setTempBuildingId(roomDetails.buildingId);
-        setTempFloorIdx(roomDetails.floorIdx);
-        setTempRoomIdx(roomDetails.roomIdx);
-    }, [roomDetails]);
-
-    // For setting the floors
-    useEffect(() => {
-        if (buildingId !== -1 && buildings[buildingId]) {
-            setFloors(buildings[buildingId].rooms);
-        } else {
-            setFloors([]); // Clear floors if no valid building
-        }
-    }, [buildingId, buildings]);    
-
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ DEBUG ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    useEffect(() => {
-        console.log('tempBuildingId: ', tempBuildingId);
-        console.log('tempFloorIdx: ', tempFloorIdx);
-        console.log('tempRoomIdx: ', tempRoomIdx);
-    }, [tempBuildingId, tempFloorIdx, tempRoomIdx]);
+    // useEffect(() => {
+    //     console.log('tempBuildingId: ', tempBuildingId);
+    //     console.log('tempFloorIdx: ', tempFloorIdx);
+    //     console.log('tempRoomIdx: ', tempRoomIdx);
+    // }, [tempBuildingId, tempFloorIdx, tempRoomIdx]);
 
     useEffect(() => {
         console.log('buildingId: ', buildingId);
         console.log('floorIdx: ', floorIdx);
         console.log('roomIdx: ', roomIdx);
     }, [roomIdx, floorIdx, buildingId]);
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ DEBUG ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     useEffect(() => {
-        if (buildingStatus === 'idle') {
-            dispatch(fetchBuildings());
+        if (buildingId !== -1 && buildings[buildingId]) {
+            setFloors(buildings[buildingId].rooms);
+        } else {
+            setFloors([]); // Clear floors if no valid building
         }
-    }, [dispatch]);
+    }, [buildingId, buildings]);   
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ DEBUG ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     return (
         <dialog
@@ -302,18 +288,9 @@ const ViewRooms = ({
                                     {floors[reversedFloorIndex].map((room, roomIndex) => (
                                         <button
                                             key={`${building}-${sectionId}-${reversedFloorIndex}-${roomIndex}`}
-                                            className={`w-1/12 h-20 max-h-20 px-4 py-2 border rounded text-sm 
-                                                ${ room.isAvailable
-                                                    ? 'bg-green-300 hover:bg-green-100'
-                                                    : 'bg-red-300 hover:bg-red-100'
-                                                }
-                                                ${ floorIdx === reversedFloorIndex && roomIdx === roomIndex
-                                                    ? 'bg-yellow-400 hover:bg-yellow-100'
-                                                    : ''
-                                                }
-                                            `}
+                                            className={`w-1/12 h-20 max-h-20 px-4 py-2 border rounded text-sm`}
                                             onClick={() => handleRoomSelect(reversedFloorIndex, roomIndex)}
-                                            disabled={!room.isAvailable || viewMode === 1}
+                                            disabled={viewMode === 1}
                                         >
                                             {room.roomName}
                                         </button>
