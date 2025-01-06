@@ -721,7 +721,7 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                         {/* Subject Details */}
                                         <td className='flex gap-1 flex-wrap'>
                                             <div className='overflow-x-auto mt-2'>
-                                                <table className='min-w-full border border-gray-300'>
+                                                <table className='min-w-full border border-base-content border-opacity-20'>
                                                     <thead>
                                                         <tr>
                                                             <th className='py-2 px-4 border-b border-base-content border-opacity-20 font-normal text-left'>
@@ -738,20 +738,20 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                     <tbody>
                                                         {Array.isArray(section.subjects) && section.subjects.length > 0 ? (
                                                             section.subjects.map((subjectID, index) => (
-                                                                <tr key={index} className='border-b border-gray-200'>
+                                                                <tr key={index} className='border-b border-base-content border-opacity-20'>
                                                                     {/* Subject Name */}
-                                                                    <td className='py-2 px-4 border-b border-gray-200'>
+                                                                    <td className='py-2 px-4 border-b border-base-content border-opacity-20'>
                                                                         {subjects[subjectID]?.subject ||
                                                                             'Unknown Subject, ID: ' + subjectID}
                                                                     </td>
 
                                                                     {/* Duration */}
-                                                                    <td className='py-2 px-4 border-b border-gray-200'>
+                                                                    <td className='py-2 px-4 border-b border-base-content border-opacity-20'>
                                                                         {subjects[subjectID]?.classDuration || ''}
                                                                     </td>
 
                                                                     {/* Weekly Minutes */}
-                                                                    <td className='py-2 px-4 border-b border-gray-200'>
+                                                                    <td className='py-2 px-4 border-b border-base-content border-opacity-20'>
                                                                         {subjects[subjectID]?.weeklyMinutes || ''}
                                                                     </td>
                                                                 </tr>
