@@ -655,8 +655,8 @@ function Timetable() {
 
         let defaultClassDuration = 40;
 
-        let maxTeacherWorkLoad = 300;
-        let minTeacherWorkLoad = 10;
+        let maxTeacherWorkLoad = 3000;
+        let minTeacherWorkLoad = 100;
 
         defaultClassDuration /= timeDivision;
         maxTeacherWorkLoad /= timeDivision;
@@ -680,10 +680,11 @@ function Timetable() {
         // console.log('🚀 ~ handleButtonClick ~ offset:', offset);
 
         let minTotalClassDurationForTwoBreaks = commonSubjectCount * defaultClassDuration;
+        console.log('🚀 ~ handleButtonClick ~ defaultClassDuration:', defaultClassDuration);
 
         defaultClassDuration -= offset;
         breakTimeDuration -= offset;
-        minTotalClassDurationForTwoBreaks /= offset;
+        // minTotalClassDurationForTwoBreaks /= 1;
 
         for (const [sectionKey, section] of Object.entries(sectionMap)) {
             console.log('🚀 ~ handleButtonClick ~ section:', section);
@@ -707,7 +708,8 @@ function Timetable() {
 
             totalTimeslot += numberOfBreak;
 
-            // console.log('🚀 ~ handleButtonClick ~ totalTimeslot:', totalTimeslot);
+            console.log('🚀 ~ handleButtonClick ~ numberOfBreak:', numberOfBreak);
+            console.log('🚀 ~ handleButtonClick ~ totalTimeslot:', totalTimeslot);
 
             // const notAllowedBreakslotGap = totalTimeslot >= 7 ? 2 : 1;
 
@@ -747,8 +749,12 @@ function Timetable() {
             console.log('BAKIT ~ handleButtonClick ~ buildingID:');
             console.log(buildingID, roomDetails.floorIdx, roomDetails.roomIdx);
 
+            // sectionLocationArray.push(
+            //     packThreeSignedIntsToInt32(buildingID || 0, roomDetails.floorIdx || 0, roomDetails.roomIdx || 0)
+            // );
+
             sectionLocationArray.push(
-                packThreeSignedIntsToInt32(buildingID || 0, roomDetails.floorIdx || 0, roomDetails.roomIdx || 0)
+                packThreeSignedIntsToInt32(exampleLocation.buildingID || 0, exampleLocation.floor || 0, exampleLocation.room || 0)
             );
         }
 
@@ -764,7 +770,7 @@ function Timetable() {
         const sectionConfiguration = new Int32Array([...sectionConfigurationArray]);
         const sectionSubjectConfiguration = new Int32Array([...sectionSubjectConfigurationArray]);
 
-        const maxIterations = 200;
+        const maxIterations = 3000;
         const beesPopulations = 4;
         const beesEmployed = 2;
         const beesOnlooker = 2;
@@ -780,7 +786,7 @@ function Timetable() {
         const teacherWeekLoadConfigArray = [];
 
         let teacherReservationConfigArray = [];
-        const teacherReservationConfigIDArray = [];
+        let teacherReservationConfigIDArray = [];
 
         const teacherReservedScheduleConfigurationSet = new Set();
 
@@ -833,6 +839,9 @@ function Timetable() {
 
         teacherReservationConfigArray.push(-1);
         teacherReservationConfigIDArray.push(-1);
+
+        teacherReservationConfigArray = [-1];
+        teacherReservationConfigIDArray = [-1];
 
         const teacherReservationConfigID = new Int32Array([...teacherReservationConfigIDArray]);
 

@@ -355,6 +355,8 @@ void Timetable::changeTeacher(Section& selected_section, Timeslot selected_times
 	SchoolClass school_class = selected_section.getSchoolClass(selected_timeslot, day);
 	school_class.teacher_id = new_teacher_id;
 
+	// std::cout << "new teacher id " << new_teacher_id << "\n";
+
 	// SchoolClass updated_school_class = SchoolClass{subject_id, new_teacher_id};
 	TeacherID old_teacher_id = selected_section.getClassTimeslotTeacherID(day, selected_timeslot);
 
@@ -395,7 +397,7 @@ void Timetable::updateTeachersAndSections(
 			Timeslot timeslot = day_zero->second.fixed_timeslot;
 			bool is_overlappable = day_zero->second.is_overlappable;
 
-			int class_type = is_overlappable ? 2 : 1;
+			int class_type = is_overlappable ? 1 : 2;
 
 			// print("duration", subject, day_zero->second.teacher_id, timeslot, duration);
 
@@ -451,7 +453,7 @@ void Timetable::updateTeachersAndSections(
 
 				Teacher& teacher = getTeacherById(teacher_id);
 
-				int class_type = is_overlappable ? 2 : 1;
+				int class_type = is_overlappable ? 1 : 2;
 
 				if (is_returning_teachers) {
 					update_teachers.insert(teacher_id);
@@ -588,6 +590,11 @@ void Timetable::setupTimeslots(int total_timeslot, std::deque<Timeslot>& timeslo
 	timeslot_keys.insert(timeslot_keys.end(), timeslot.begin(), timeslot.end());
 	s_rotary_timeslot.incrementShift();
 
+	// std::cout << "list of timeslot rotary" << std::endl;
+	// for (size_t i = 0; i < timeslot.size(); ++i) {
+	// 	std::cout << "e " << timeslot[i] << " ";
+	// }
+	// std::cout << "end of timeslot " << std::endl;
 	for (size_t i = 0; i < timeslot_keys.size(); ++i) {
 		for (int j = 1; j <= Timetable::getWorkWeek(); ++j) {
 			timeslots[timeslot_keys[i]].push_back(static_cast<ScheduledDay>(j));
@@ -739,6 +746,7 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 		// print("section", section_id);
 		std::vector<Timeslot> breaks = getBreaks(section);
 
+		// breaks = {2};
 		// printContainer(breaks);
 
 		for (Timeslot timeslot : breaks) {
@@ -867,6 +875,8 @@ std::pair<Timeslot, Timeslot> Timetable::pickRandomTimeslots(Section& selected_s
 
 	// TODO: SMART PICKING: when the violation is wrong break slot, pick one breakslot than swap it with non-break timeslot
 
+	// std::cout << "field: " << field << std::endl;
+
 	if (field == 0) {
 		bool is_timeslot_1_at_start_or_end_of_schedule = false;
 		bool is_timeslot_2_at_start_or_end_of_schedule = false;
@@ -951,7 +961,7 @@ Section& Timetable::pickRandomSection() {
 }
 
 int Timetable::pickRandomField(Section& selected_section) {
-	return 1;
+	// return 1;
 
 	if (selected_section.getDynamicSegmentedTimeslot().empty()) {
 		std::uniform_int_distribution<> dis(0, 1);
@@ -1027,6 +1037,7 @@ void Timetable::modify(Section& selected_section,
 			TeacherID new_teacher = eligibility_manager.getNewRandomTeacher(selected_timeslot_subject_id, old_teacher_id);
 
 			// print("selected_section", selected_section.getId(), "x old teacher", old_teacher_id, "x new teacher", new_teacher);
+
 			changeTeacher(selected_section, selected_timeslot_1, ScheduledDay::EVERYDAY, new_teacher, update_teachers);
 		} else {
 			TeacherID old_teacher_id = selected_section.getClassTimeslotTeacherID(randomScheduledDay, selected_timeslot_1);  // pick only one of the scheduled days because they have the same teacher
@@ -1112,4 +1123,18 @@ void Timetable::modify(Section& selected_section,
 		print("unreachable");
 		break;
 	}
+
+	// std::cout << "u t on modify: " << update_teachers.size() << std::endl;
+	// for (const int& value : update_teachers) {
+	// 	std::cout << value << " ";
+	// }
+
+	// std::cout << "after modify classes: " << std::endl;
+	// for (auto& timeslot : classes) {
+	// 	for (auto& day : timeslot.second) {
+	// 		print(day.second.subject_id);
+	// 		print(day.second.teacher_id);
+	// 	}
+	// }
+	// std::cout << "after emd" << std::endl;
 };
