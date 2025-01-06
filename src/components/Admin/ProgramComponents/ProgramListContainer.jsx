@@ -237,10 +237,10 @@ const ProgramListContainer = ({
                                 <tr>
                                     <th className=''>#</th>
                                     <th className=''>Program ID</th>
-                                    <th className='w-2/12'>Program</th>
+                                    <th className='w-1/12'>Program</th>
                                     <th className='w-5/12'>Shift, Start Time, and Subjects (per year level)</th>
                                     <th className='w-auto'>Additional Schedules</th>
-                                    {editable && <th className='w-auto'>Actions</th>}
+                                    {editable && <th className='w-2/12'>Actions</th>}
                                 </tr>
                             </thead>
                             <tbody>
@@ -259,10 +259,10 @@ const ProgramListContainer = ({
                                             <td>{program.id}</td>
 
                                             {/* Program Name */}
-                                            <td className='max-w-md'>{program.program}</td>
+                                            <td className='w-2/12'>{program.program}</td>
 
                                             {/* Shift, Start Time, and Subjects (per year level) */}
-                                            <td className='w-6/12'>
+                                            <td className='w-7/12'>
                                                 <div className=''>
                                                     {[7, 8, 9, 10].map((grade) => (
                                                         <div key={grade} className='my-4 flex flex-wrap'>
@@ -396,7 +396,7 @@ const ProgramListContainer = ({
 
                                             {editable && (
                                                 <td>
-                                                    <div className='h-full flex flex-wrap justify-center items-center'>
+                                                    <div className=' flex justify-center items-center'>
                                                         <ProgramEdit
                                                             className='btn btn-xs btn-ghost text-blue-500'
                                                             program={program}
