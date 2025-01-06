@@ -278,7 +278,7 @@ const SearchableDropdownToggler = ({
     };
 
   return (
-    <div className="dropdown w-full max-w-md md:max-w-lg lg:max-w-xl">
+    <div className="dropdown w-full max-w-md md:max-w-lg lg:max-w-full">
       <div
         tabIndex={0}
         role="button"
@@ -295,7 +295,7 @@ const SearchableDropdownToggler = ({
       </div>
       <ul
         tabIndex={0}
-        className="dropdown-content menu bg-base-100 rounded-box z-[1] w-42 h-auto shadow max-h-48 overflow-y-auto" // Updated here
+        className="dropdown-content menu bg-base-100 rounded-box z-[1] w-full h-auto shadow max-h-48 overflow-y-auto" // Updated here
       >
         <li>
           <input
