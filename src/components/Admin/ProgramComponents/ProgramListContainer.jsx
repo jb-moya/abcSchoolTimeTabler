@@ -7,7 +7,6 @@ import { fetchSubjects } from '@features/subjectSlice';
 
 import debounce from 'debounce';
 import { FcInfo } from 'react-icons/fc';
-import { FcInfo } from 'react-icons/fc';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import SearchableDropdownToggler from '../searchableDropdown';
 
@@ -42,7 +41,6 @@ const ProgramListContainer = ({
     const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
 
     const { sections, status: sectionStatus } = useSelector((state) => state.section);
-    const { sections, status: sectionStatus } = useSelector((state) => state.section);
 
     // ==============================================================================
     // ==============================================================================
@@ -58,7 +56,6 @@ const ProgramListContainer = ({
     });
 
     const [breakTimeDuration, setBreakTimeDuration] = useState(() => {
-        return externalBreakTimeDuration ?? (Number(localStorage.getItem('breakTimeDuration')) || 0);
         return externalBreakTimeDuration ?? (Number(localStorage.getItem('breakTimeDuration')) || 0);
     });
 
@@ -158,7 +155,6 @@ const ProgramListContainer = ({
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Object.entries(searchProgramResult).slice(indexOfFirstItem, indexOfLastItem);
-    const currentItems = Object.entries(searchProgramResult).slice(indexOfFirstItem, indexOfLastItem);
 
     // ================================================================
     // ================================================================
@@ -235,7 +231,6 @@ const ProgramListContainer = ({
                                 errorField={errorField}
                                 setErrorField={setErrorField}
                                 numOfSchoolDays={numOfSchoolDays}
-                                breakTimeDuration={breakTimeDuration}
                                 breakTimeDuration={breakTimeDuration}
                             />
                         </div>
