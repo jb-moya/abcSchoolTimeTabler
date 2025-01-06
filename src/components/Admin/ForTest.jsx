@@ -21,11 +21,6 @@ const ForTest = ({ hashMap }) => {
     const [loading, setLoading] = useState(false);
     const [addClicked, setAddClicked] = useState(false);
 
-    // useEffect(() => {
-    //   renderCount.current += 1;
-    //   console.log(`Render count: ${renderCount.current}`);
-    // });
-
     const [timeSlots, setTimeSlots] = useState([]);
     const [tableHeight, setTableHeight] = useState(0);
     const [tableWidth, setTableWidth] = useState(0);
@@ -86,17 +81,6 @@ const ForTest = ({ hashMap }) => {
         setCurrentPage(page);
     };
 
-    useEffect(() => {
-        const startTime = localStorage.getItem('morningStartTime') || '08:00 PM';
-        const endTime = '08:00 PM';
-
-        const slots = generateTimeSlots(startTime, endTime, 60); // You can change the interval here
-        const tableHeight = Math.round(110.625 * slots.length);
-        // console.log(slots)
-        setTimeSlots(slots);
-        setTableHeight(tableHeight);
-    }, []);
-
     const undo = () => {
         if (historyIndex > 1) {
             isUndoRedo.current = true; // Indicate this is an undo action
@@ -117,8 +101,15 @@ const ForTest = ({ hashMap }) => {
         console.log('saved');
     };
 
+    const clear = () => {
+        console.log('clear');
+        setCurrentPage(1);
+        setSearch('');
+        setSearchField('');
+    };
+
     const add = () => {
-        setAddClicked(true);
+        console.log('add');
     };
 
     useEffect(() => {
@@ -297,20 +288,17 @@ const ForTest = ({ hashMap }) => {
             const keyToFind = cell.partnerKey;
             // console.log('keyToFind: ', keyToFind);
             const targetCell = table.get(keyToFind);
+
             if (targetCell) {
                 targetTableId = targetCell.tableKey;
+                setCurrentPage(1);
+                setSearch(targetTableId);
+                setSearchField(targetTableId);
                 break;
+            } else {
+                console.error('no table found');
             }
         }
-        // console.log('targetTableId: ', targetTableId);
-
-        // console.log('moved');
-        setSearch(targetTableId);
-        setSearchField(targetTableId);
-        // const targetRef = tableRefs.current[targetTableId];
-        // if (targetRef) {
-        //   targetRef.scrollIntoView({ behavior: "smooth" });
-        // }
     };
 
     const Column = () => {
@@ -329,27 +317,17 @@ const ForTest = ({ hashMap }) => {
         );
     };
 
-    // useEffect(() => {
-    //   const filteredMap = new Map(
-    //     Array.from(valueMap.entries()).slice(
-    //         (currentPage - 1) * itemsPerPage,
-    //         currentPage * itemsPerPage
-    //     )
-    //   );
-    //   setPaginatedValueMap(filteredMap);
-    // }, [currentPage,itemsPerPage]);
-
     useEffect(() => {
         const updatePaginatedValueMap = () => {
-            // Ensure currentPage doesn't exceed totalPages
-            const validCurrentPage = Math.min(currentPage, totalPages);
-            setCurrentPage(validCurrentPage);
-
-            // Filter the valueMap based on the searchField
-
             const filteredValueMap = new Map(
                 Array.from(valueMap.entries()).filter(([key, value]) => key.toLowerCase().includes(searchField.toLowerCase()))
             );
+
+            if (filteredValueMap.size < 1) return;
+
+            const validCurrentPage = Math.min(currentPage, totalPages);
+            setCurrentPage(validCurrentPage);
+
             // console.log('valueMap: ', valueMap);
             // console.log('filteredValueMap: ', filteredValueMap);
 
@@ -375,12 +353,8 @@ const ForTest = ({ hashMap }) => {
 
             const updatedPageNumbers = generatePageNumbers(filteredValueMap);
             setPageNumbers(updatedPageNumbers);
-            // console.log('paginatedValueMap: ', paginatedValueMap);
         };
-
         updatePaginatedValueMap();
-        // console.log('paginatedValueMap: ');
-        // console.log('valueMap: ', valueMap);
     }, [currentPage, itemsPerPage, valueMap, searchField]);
 
     const handleInputChange = (event) => {
@@ -392,15 +366,19 @@ const ForTest = ({ hashMap }) => {
     };
 
     useEffect(() => {
-        // console.log('set');
         setValueMap(hashMap);
     }, [hashMap]);
 
     useEffect(() => {
-        // console.log('valueMap: ', valueMap);
-    }, [valueMap]);
+        const startTime = localStorage.getItem('morningStartTime') || '08:00 PM';
+        const endTime = '08:00 PM';
 
-    useEffect(() => {
+        const slots = generateTimeSlots(startTime, endTime, 60); // You can change the interval here
+        const tableHeight = Math.round(110.625 * slots.length);
+        // console.log(slots)
+        setTimeSlots(slots);
+        setTableHeight(tableHeight);
+
         const overlaps = detectOverlaps(valueMap);
         // console.log('overlaps', overlaps);
         const resolvedMap = updateOverlapFields(overlaps);
@@ -472,6 +450,9 @@ const ForTest = ({ hashMap }) => {
                             />
                         </svg>
                     </label>
+                    <button onClick={clear} className='btn btn-secondary' disabled={!searchField}>
+                        Clear
+                    </button>
                 </div>
 
                 <div className='flex flex-row items-center justify-between pt-10 pr-5'>
@@ -484,7 +465,7 @@ const ForTest = ({ hashMap }) => {
                     </div>
 
                     <div className='flex flex-row items-center space-x-2 ml-auto'>
-                        <button onClick={add} className='btn btn-secondary'>
+                        <button onClick={add} disabled className='btn btn-secondary'>
                             Add
                         </button>
                         <div className='form-control'>

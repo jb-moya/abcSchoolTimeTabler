@@ -19,55 +19,43 @@ import AddTeacherContainer from './TeacherAdd';
 import DeleteData from '../DeleteData';
 import TeacherEdit from './TeacherEdit';
 
-
-const TeacherListContainer = ({
-     editable = false 
-}) => {
-    
+const TeacherListContainer = ({ editable = false }) => {
     const dispatch = useDispatch();
 
-// ===================================================================================================
+    // ===================================================================================================
 
-    const { teachers, status: teacherStatus } = useSelector(
-        (state) => state.teacher
-    );
+    const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
 
-    const { subjects, status: subjectStatus } = useSelector(
-        (state) => state.subject
-    );
+    const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
 
-    const { ranks, status: rankStatus } = useSelector(
-        (state) => state.rank
-    );
+    const { ranks, status: rankStatus } = useSelector((state) => state.rank);
 
-    const { departments, status: departmentStatus } = useSelector(
-        (state) => state.department
-    );
+    const { departments, status: departmentStatus } = useSelector((state) => state.department);
 
-// ===================================================================================================
+    // ===================================================================================================
 
     const numOfSchoolDays = Number(localStorage.getItem('numOfSchoolDays')) || 0;
 
-// ===================================================================================================
+    // ===================================================================================================
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
 
-// ===================================================================================================
+    // ===================================================================================================
 
     // Handle closing of teacher addition modal
     const handleClose = () => {
-		const modal = document.getElementById('add_teacher_modal');
-		if (modal) {
-			modal.close();
-			setErrorMessage('');
-			setErrorField('');
-		} else {
-			console.error("Modal with ID 'add_teacher_modal' not found.");
-		}
-	};
+        const modal = document.getElementById('add_teacher_modal');
+        if (modal) {
+            modal.close();
+            setErrorMessage('');
+            setErrorField('');
+        } else {
+            console.error("Modal with ID 'add_teacher_modal' not found.");
+        }
+    };
 
-// ===================================================================================================
+    // ===================================================================================================
 
     useEffect(() => {
         if (teacherStatus === 'idle') {
@@ -93,7 +81,7 @@ const TeacherListContainer = ({
         }
     }, [departmentStatus, dispatch]);
 
-// ===================================================================================================
+    // ===================================================================================================
 
     const [searchTeacherResult, setSearchTeacherResult] = useState(teachers);
     const [searchTeacherValue, setSearcTeacherValue] = useState('');
@@ -132,7 +120,7 @@ const TeacherListContainer = ({
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Object.entries(searchTeacherResult).slice(indexOfFirstItem, indexOfLastItem);
 
-// ===================================================================================================
+    // ===================================================================================================
 
     return (
         <React.Fragment>
@@ -272,21 +260,15 @@ const TeacherListContainer = ({
                                                     <div key={subject} className='badge badge-secondary m-1'>
                                                         {subjects[subject]?.subject || 'Unknown Subject'}
                                                     </div>
-                                                ))
-                                            }
+                                                ))}
                                         </td>
 
                                         {/* Teacher Year Levels */}
                                         <td>
                                             <div>
-
                                                 {/* Grade 7 */}
                                                 <label>
-                                                    <input
-                                                        type='checkbox'
-                                                        checked={teacher.yearLevels.includes(0)}
-                                                        readOnly
-                                                    />
+                                                    <input type='checkbox' checked={teacher.yearLevels.includes(0)} readOnly />
                                                     Grade 7
                                                 </label>
 
@@ -294,11 +276,7 @@ const TeacherListContainer = ({
 
                                                 {/* Grade 8 */}
                                                 <label>
-                                                    <input
-                                                        type='checkbox'
-                                                        checked={teacher.yearLevels.includes(1)}
-                                                        readOnly
-                                                    />
+                                                    <input type='checkbox' checked={teacher.yearLevels.includes(1)} readOnly />
                                                     Grade 8
                                                 </label>
 
@@ -306,11 +284,7 @@ const TeacherListContainer = ({
 
                                                 {/* Grade 9 */}
                                                 <label>
-                                                    <input
-                                                        type='checkbox'
-                                                        checked={teacher.yearLevels.includes(2)}
-                                                        readOnly
-                                                    />
+                                                    <input type='checkbox' checked={teacher.yearLevels.includes(2)} readOnly />
                                                     Grade 9
                                                 </label>
 
@@ -318,19 +292,14 @@ const TeacherListContainer = ({
 
                                                 {/* Grade 10 */}
                                                 <label>
-                                                    <input
-                                                        type='checkbox'
-                                                        checked={teacher.yearLevels.includes(3)}
-                                                        readOnly
-                                                    />
+                                                    <input type='checkbox' checked={teacher.yearLevels.includes(3)} readOnly />
                                                     Grade 10
                                                 </label>
-                                                
                                             </div>
                                         </td>
 
                                         {/* Teacher Additional Schedules */}
-                                        <td>  
+                                        <td>
                                             <div
                                                 key={`edit-add-sched-view-teacher(${teacher.id})`}
                                                 className='overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg'
@@ -368,7 +337,10 @@ const TeacherListContainer = ({
                                                                     <>
                                                                         <p>Name: {sched.name}</p>
                                                                         <p>
-                                                                            Subject:{' '}{sched.subject === -1 ? 'N/A' : subjects[sched.subject].subject}
+                                                                            Subject:{' '}
+                                                                            {sched.subject === -1
+                                                                                ? 'N/A'
+                                                                                : subjects[sched.subject]?.subject}
                                                                         </p>
                                                                     </>
                                                                 ) : (
@@ -388,11 +360,11 @@ const TeacherListContainer = ({
                                             </div>
                                         </td>
 
-										{editable && (
-											<td className="w-28 text-right">
-												<div className='flex'>
-                                                    <TeacherEdit 
-                                                        teacher = {teacher}
+                                        {editable && (
+                                            <td className='w-28 text-right'>
+                                                <div className='flex'>
+                                                    <TeacherEdit
+                                                        teacher={teacher}
                                                         reduxFunction={editTeacher}
                                                         errorMessage={errorMessage}
                                                         setErrorMessage={setErrorMessage}
@@ -400,25 +372,20 @@ const TeacherListContainer = ({
                                                         setErrorField={setErrorField}
                                                         numOfSchoolDays={numOfSchoolDays}
                                                     />
-                                                            
-                                                    <DeleteData 
-                                                        id={teacher.id} 
-                                                        store={'teacher'}
-                                                        reduxFunction={removeTeacher} 
-                                                    />
-												</div>
-											</td>
-										)}
-									</tr>
-								))
-							)}
-						</tbody>
-					</table>
-				</div>
 
-			</div>
-		</React.Fragment>
-	);
+                                                    <DeleteData id={teacher.id} store={'teacher'} reduxFunction={removeTeacher} />
+                                                </div>
+                                            </td>
+                                        )}
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </React.Fragment>
+    );
 };
 
 export default TeacherListContainer;

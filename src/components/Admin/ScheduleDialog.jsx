@@ -1,6 +1,9 @@
 // ScheduleDialog.jsx
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useMemo } from 'react';
 import SearchableDropdownToggler from './searchableDropdownForAll';
+import { convertToTime } from '../../utils/convertToTime';
+import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
+import TimeSelector from '@utils/timeSelector';
 
 const ScheduleDialog = forwardRef((props, ref) => {
     const {
@@ -8,14 +11,27 @@ const ScheduleDialog = forwardRef((props, ref) => {
         handleTeacherSelection,
         handleStartChange,
         handleEndChange,
-        generateTimeOptions,
-        convertToTime,
         setModalOpen,
         errors,
         addSchedule,
         setAddClicked,
     } = props;
-    console.log('editingCell: ', editingCell);
+
+    const setStartTime = (newTime) => {
+        if (getTimeSlotIndex(newTime) >= 0 && newTime !== convertToTime(editingCell?.start)) {
+            console.log('changing: ', newTime);
+            handleStartChange(newTime);
+        }
+    };
+
+    const setEndTime = (newTime) => {
+        if (getTimeSlotIndex(newTime) >= 0 && newTime !== convertToTime(editingCell?.end)) {
+            console.log('changing: ', newTime);
+
+            handleEndChange(newTime);
+        }
+    };
+
     return (
         <dialog
             id='my_modal_2'
@@ -58,30 +74,15 @@ const ScheduleDialog = forwardRef((props, ref) => {
                 </div>
                 <div className='flex flex-row'>
                     <div className='form-control w-1/2'>
-                        <select
-                            className='select select-bordered w-full overflow-y-auto max-h-40'
-                            value={`${convertToTime(editingCell?.start)}`}
-                            onChange={handleStartChange}
-                        >
-                            {generateTimeOptions(6, 12, true).map((time) => (
-                                <option key={time} value={time}>
-                                    {time}
-                                </option>
-                            ))}
-                        </select>
+                        <TimeSelector
+                            key={`startTime`}
+                            interval={5}
+                            time={convertToTime(editingCell?.start)}
+                            setTime={setStartTime}
+                        />
                     </div>
                     <div className='form-control w-1/2'>
-                        <select
-                            className='select select-bordered w-full'
-                            value={`${convertToTime(editingCell?.end)}`}
-                            onChange={handleEndChange}
-                        >
-                            {generateTimeOptions(6, 12, true).map((time) => (
-                                <option key={time} value={time}>
-                                    {time}
-                                </option>
-                            ))}
-                        </select>
+                        <TimeSelector key={`endTime`} interval={5} time={convertToTime(editingCell?.end)} setTime={setEndTime} />
                     </div>
                 </div>
                 {errors.time && <span className='text-red-500'>{errors.time}</span>}

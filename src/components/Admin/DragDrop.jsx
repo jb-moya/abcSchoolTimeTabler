@@ -66,7 +66,9 @@ const DragDrop = ({
 
                 // console.log('keytoFind: ', keyToFind);
                 const range = cell.end - cell.start;
-                newCardData.end = newCardData.start + range;
+                if (!editingCell) {
+                    newCardData.end = newCardData.start + range;
+                }
                 // console.log('newCardData: ', newCardData);
                 table.set(cellId, { ...cell, ...newCardData });
                 if (editingCell) {
@@ -93,9 +95,6 @@ const DragDrop = ({
 
     const handleSwitchTeacher = (tableKey, cellDynamicID, newCardData) => {
         let keyToFind = '';
-        // console.log('tableKey:', tableKey);
-        // console.log('cellDynamicID:', cellDynamicID);
-        // console.log('newCardData:', newCardData);
         const newObject = {
             day: 0,
             end: 0,
@@ -286,7 +285,7 @@ const DragDrop = ({
             <div ref={containerRef} className='h-full w-full border border-primary-content relative overflow-hidden'>
                 {loading ? (
                     <div className='flex items-center justify-center h-full'>
-                        <span class='loading loading-spinner loading-lg'></span>
+                        <span className='loading loading-spinner loading-lg'></span>
                     </div>
                 ) : (
                     <>
@@ -370,14 +369,17 @@ const DragDrop = ({
                                         initialPosition={pos}
                                         mode={mode}
                                         setItemWidth={setItemWidth}
-                                        handleCellUpdate={(newCardData, editingCell) =>
-                                            handleCellUpdate(tableKey, cell.dynamicID, newCardData, editingCell)
-                                        }
+                                        handleCellUpdate={(newCardData, editingCell) => {
+                                            console.log('cell log: ', cell);
+
+                                            handleCellUpdate(tableKey, cell.dynamicID, newCardData, editingCell);
+                                        }}
                                         scrollToTable={scrollToTable}
                                         editMode={editMode}
-                                        handleSwitchTeacher={(newCardData) =>
-                                            handleSwitchTeacher(tableKey, cell.dynamicID, newCardData)
-                                        }
+                                        handleSwitchTeacher={(newCardData, cellChanged) => {
+                                            console.log('cell log: ', cellChanged);
+                                            handleSwitchTeacher(cellChanged.tableKey, cellChanged.dynamicID, newCardData);
+                                        }}
                                         setLoading={setLoading}
                                         setModalOpen={setModalOpen}
                                         modalOpen={modalOpen}
