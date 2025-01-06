@@ -207,26 +207,21 @@ const FixedScheduleMaker = ({
             .close();
     };
 
+    const handleReset = () => {
+        setDays(produce(fixedDays, (draft) => Object.entries(draft).forEach(([subjectID, days]) => days.fill(0))));
+
+        setPositions(
+            produce(fixedPositions, (draft) => Object.entries(draft).forEach(([subjectID, positions]) => positions.fill(0)))
+        );
+    };
+
     const handleCancel = () => {
         setSubs(produce(selectedSubjects, (draft) => draft));
         setDays(produce(fixedDays, (draft) => draft));
         setPositions(produce(fixedPositions, (draft) => draft));
-
-        setEditMode(false);
-        document
-            .getElementById(
-                pvs === 0
-                    ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})-view(${viewingMode})`
-                    : `assign_fixed_sched_modal_section(${section})-grade(${grade})-view(${viewingMode})`
-            )
-            .close();
     };
 
     const handleClose = () => {
-        setSubs(produce(selectedSubjects, (draft) => draft));
-        setDays(produce(fixedDays, (draft) => draft));
-        setPositions(produce(fixedPositions, (draft) => draft));
-
         setEditMode(false);
         document
             .getElementById(
@@ -329,7 +324,10 @@ const FixedScheduleMaker = ({
                     : `assign_fixed_sched_modal_section(${section})-grade(${grade})-view(${viewingMode})`
             }
             className='modal sm:modal-middle '
-            onClose={handleCancel}
+            onClose={() => {
+                handleCancel();
+                handleClose();
+            }}
         >
             <div
                 className='modal-box relative overflow-hidden'
@@ -356,10 +354,19 @@ const FixedScheduleMaker = ({
 
                     {editMode && (
                         <div className='ml-auto pr-10 flex gap-3 justify-center'>
+                            <button className='btn btn-accent' onClick={handleReset}>
+                                Reset
+                            </button>
                             <button className='btn btn-primary' onClick={handleSave}>
                                 Save
                             </button>
-                            <button className='btn' onClick={handleCancel}>
+                            <button
+                                className='btn'
+                                onClick={() => {
+                                    handleCancel();
+                                    handleClose();
+                                }}
+                            >
                                 Cancel
                             </button>
                         </div>
