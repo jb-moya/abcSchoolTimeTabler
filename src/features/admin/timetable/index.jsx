@@ -437,6 +437,8 @@ function Timetable() {
             durationUniqueAdditionalTeacherScheds,
         ]);
 
+        timeDivision = 5;
+
         console.log('🚀 ~ handleButtonClick ~ timeDivision:', timeDivision);
 
         subjectConfigurationSubjectDurationArray.forEach((duration, index) => {
@@ -456,7 +458,8 @@ function Timetable() {
         );
         console.log('🚀 ~ handleButtonClick ~ lowestSubjectDuration:', lowestSubjectDuration);
 
-        let offset = lowestSubjectDuration - 1; // what is this minus 1 magic number?????
+        // let offset = lowestSubjectDuration - 1; // what is this minus 1 magic number?????
+        let offset = 0; // what is this minus 1 magic number?????
 
         subjectConfigurationSubjectDurationArray.forEach((duration, index) => {
             let { first: subjectID, second: subjectDuration } = unpackInt32ToInt16(duration);
