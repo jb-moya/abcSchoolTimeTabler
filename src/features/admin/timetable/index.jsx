@@ -1779,8 +1779,8 @@ function Timetable() {
                         const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
 
                         scheduleMap.set(scheduleKey, {
-                            start: schedule.start,
-                            end: schedule.end,
+                            start: schedule.start - 72,
+                            end: schedule.end - 72,
                             sectionID: schedule.section,
                             subject: type === 'section' ? schedule.fieldName1 : schedule.fieldName2,
                             subjectID: schedule.subject,
@@ -1802,8 +1802,8 @@ function Timetable() {
                     const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
                     // Add the schedule to the nested Map
                     scheduleMap.set(scheduleKey, {
-                        start: schedule.start,
-                        end: schedule.end,
+                        start: schedule.start - 72,
+                        end: schedule.end - 72,
                         sectionID: schedule.section,
                         subject: type === 'section' ? schedule.fieldName1 : schedule.fieldName2,
                         subjectID: schedule.subject,
@@ -5988,6 +5988,7 @@ function Timetable() {
     //     console.log('changed: ', mapVal);
     //     console.log('Condition:', mapVal && mapVal.size > 0);
     // }, [mapVal]);
+    console.log('retrigger index');
     return (
         <div className='App container mx-auto px-4 py-6'>
             <NotificationHandler timetableCondition={timetableGenerationStatus} />

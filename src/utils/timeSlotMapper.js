@@ -5,10 +5,11 @@ export const generateTimeSlots = (interval = 5) => {
     let minutes = 0;
     let index = 0;
 
-    while (hours < 24) { // Stop at 11:59 PM
-        const suffix = hours < 12 ? "AM" : "PM";
-        const formattedHour = (hours % 12 === 0 ? 12 : hours % 12).toString().padStart(2, "0");
-        const formattedMinutes = minutes.toString().padStart(2, "0");
+    while (hours < 24) {
+        // Stop at 11:59 PM
+        const suffix = hours < 12 ? 'AM' : 'PM';
+        const formattedHour = (hours % 12 === 0 ? 12 : hours % 12).toString().padStart(2, '0');
+        const formattedMinutes = minutes.toString().padStart(2, '0');
 
         const timeString = `${formattedHour}:${formattedMinutes} ${suffix}`;
         timeSlots.push(timeString);
