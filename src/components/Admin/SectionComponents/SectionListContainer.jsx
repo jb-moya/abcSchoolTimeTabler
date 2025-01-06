@@ -879,14 +879,12 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                         numOfSchoolDays={numOfSchoolDays}
                                                     />
 
-                                                        <DeleteData
-                                                            id={section.id}
-                                                            reduxFunction={removeSection} />
-
-                                            </div>
-                                                      
-                                                   
-                                               
+                                                    <DeleteData
+                                                        id={section.id}
+                                                        store={'section'}
+                                                        reduxFunction={removeSection} 
+                                                    />
+                                                </div>
                                             </td>
                                         )}
                                     </tr>

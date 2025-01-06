@@ -505,6 +505,7 @@ const TeacherRankListContainer = ({
 												/>
 												<DeleteData 
 													id={rank.id}
+													store={'rank'}
 													reduxFunction={removeRank}
 												/>
 

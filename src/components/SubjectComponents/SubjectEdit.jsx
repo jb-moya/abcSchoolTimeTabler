@@ -48,8 +48,6 @@ const SubjectEdit = ({
 
     useEffect(() => {
         if (subject) {
-            console.log('subject:', subject);
-
             setEditSubjectId(subject.id || '');
             setEditSubjectValue(subject.subject || '');
             setEditClassDuration(subject.classDuration || 0);
@@ -460,11 +458,10 @@ const SubjectEdit = ({
     };
 
     const handleReset = () => {
-
-        setEditSubjectId('');
-        setEditSubjectValue('');
-        setEditClassDuration(0);
-        setEditSubjectWeeklyMinutes(0);
+        setEditSubjectId(subject.id || '');
+        setEditSubjectValue(subject.subject || '');
+        setEditClassDuration(subject.classDuration || 0);
+        setEditSubjectWeeklyMinutes(subject.weeklyMinutes || 0);
 
         setErrorMessage('');
         setErrorField('');

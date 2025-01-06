@@ -3,7 +3,7 @@ import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 import {RiDeleteBin7Line } from 'react-icons/ri';
 import { useDispatch } from 'react-redux';
 
-const DeleteData = ({ id, reduxFunction }) => {
+const DeleteData = ({ id, store, reduxFunction }) => {
     const dispatch = useDispatch();
     const handleDelete = () => {
         dispatch(reduxFunction(id)); // Call the passed Redux function with the subject ID
@@ -11,14 +11,14 @@ const DeleteData = ({ id, reduxFunction }) => {
     };
 
     const openModal = () => {
-        const deleteModalElement = document.getElementById(`delete_modal_${id}`);
+        const deleteModalElement = document.getElementById(`delete_modal_${store}_${id}`);
         if (deleteModalElement) {
             deleteModalElement.checked = true; // DaisyUI's checkbox-based toggle
         }
     };
 
     const closeModal = () => {
-        const deleteModalElement = document.getElementById(`delete_modal_${id}`);
+        const deleteModalElement = document.getElementById(`delete_modal_${store}_${id}`);
         if (deleteModalElement) {
             deleteModalElement.checked = false;
         }
@@ -37,7 +37,7 @@ const DeleteData = ({ id, reduxFunction }) => {
             {/* Modal */}
             <input
                 type="checkbox"
-                id={`delete_modal_${id}`}
+                id={`delete_modal_${store}_${id}`}
                 className="modal-toggle"
             />
             <div className="modal">
@@ -61,7 +61,7 @@ const DeleteData = ({ id, reduxFunction }) => {
                     <div className="modal-action flex justify-center">
                         {/* Cancel Button */}
                         <label
-                            htmlFor={`delete_modal_${id}`}
+                            htmlFor={`delete_modal_${store}_${id}`}
                             className="btn btn-sm btn-ghost"
                         >
                             Cancel

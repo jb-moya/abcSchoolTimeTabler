@@ -279,6 +279,7 @@ const SubjectListContainer = ({
                                                 />
                                                 <DeleteData
                                                     className='btn btn-xs btn-ghost text-red-500'
+                                                    store={'subject'}
                                                     id={subject.id}
                                                     reduxFunction={removeSubject}
                                                 />
