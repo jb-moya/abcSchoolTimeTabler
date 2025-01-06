@@ -32,7 +32,7 @@ const ScheduleDialog = forwardRef((props, ref) => {
                 if (ref) ref(el); // Forward ref if needed
             }}
         >
-            <div className='modal-box h-52 overflow-hidden'>
+            <div className='modal-box h-52 overflow-visible'>
                 <form method='dialog'>
                     <button
                         className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2'
@@ -48,6 +48,7 @@ const ScheduleDialog = forwardRef((props, ref) => {
                     teacherID={props.getTeacherIdsBySubject(editingCell?.subjectID)}
                     setSelectedList={handleTeacherSelection}
                     currID={editingCell?.teacherID}
+                    type={editingCell.type}
                 />
                 <div className='text-[10px] sm:text-[10px] md:text-xs lg:text-xs text-slate-400 text-center overflow-hidden'>
                     {editingCell?.subject}
