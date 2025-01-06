@@ -29,7 +29,12 @@ import DeleteData from '../DeleteData';
 import SectionEdit from './SectionEdit';
 
 
-const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editable = false }) => {
+const SectionListContainer = ({ 
+    numOfSchoolDays: externalNumOfSchoolDays, 
+    editable = false,
+    breakTimeDuration: externalBreakTimeDuration, 
+}) => {
+
     const dispatch = useDispatch();
 
     //  =======================================================================================
@@ -49,6 +54,25 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
         return externalNumOfSchoolDays ?? (Number(localStorage.getItem('numOfSchoolDays')) || 0);
     });
+
+    const [breakTimeDuration, setBreakTimeDuration] = useState(() => {
+        return (
+            externalBreakTimeDuration ??
+            (Number(localStorage.getItem('breakTimeDuration')) || 0)
+        );
+    });
+
+    useEffect(() => {
+        if (externalNumOfSchoolDays !== undefined) {
+            setNumOfSchoolDays(externalNumOfSchoolDays);
+        }
+    }, [externalNumOfSchoolDays]);
+
+    useEffect(() => {
+        if (externalBreakTimeDuration !== undefined) {
+            setBreakTimeDuration(externalBreakTimeDuration);
+        }
+    }, [externalBreakTimeDuration]);
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState([]);
@@ -571,6 +595,7 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                         errorField={errorField}
                                         setErrorField={setErrorField}
                                         numOfSchoolDays={numOfSchoolDays}
+                                        breakTimeDuration={breakTimeDuration}
                                     />
                                     <div className='modal-action'>
                                         <button
@@ -618,11 +643,9 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                         <td>{section.id}</td>
 
                                         {/* Section Name, Shift, and Start Time */}
-                                        <td>  
+                                        <td>
                                             {/* Section year and name */}
-                                            <div className='text-base font-bold'>
-                                                {`${section.year} -  ${section.section}`}
-                                            </div>
+                                            <div className='text-base font-bold'>{`${section.year} -  ${section.section}`}</div>
 
                                             {/* Section program */}
                                             <div className='mt-1'>{`(${programs[section.program]?.program})`}</div>
@@ -642,7 +665,7 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                 <div className='w-1/4 p-2 font-bold flex items-center justify-center'>
                                                     Adviser:
                                                 </div>
-                                                <div className='w-2/3 flex items-center justify-center bg-white border border-gray-300 rounded-lg m-1'>
+                                                <div className='w-2/3 flex items-center justify-center border border-base-content border-opacity-20 rounded-lg m-1'>
                                                     {teachers[section.teacher]?.teacher || 'Unknown Teacher'}
                                                 </div>
                                             </div>
@@ -724,16 +747,16 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                         {/* Subject Details */}
                                         <td className='flex gap-1 flex-wrap'>
                                             <div className='overflow-x-auto mt-2'>
-                                                <table className='min-w-full bg-white border border-gray-300'>
+                                                <table className='min-w-full border border-base-content border-opacity-20'>
                                                     <thead>
                                                         <tr>
-                                                            <th className='py-2 px-4 border-b border-gray-200 font-normal text-left'>
+                                                            <th className='py-2 px-4 border-b border-base-content border-opacity-20 font-normal text-left'>
                                                                 Subject
                                                             </th>
-                                                            <th className='py-2 px-4 border-b border-gray-200 font-normal text-left'>
+                                                            <th className='py-2 px-4 border-b border-base-content border-opacity-20 font-normal text-left'>
                                                                 Duration (min)
                                                             </th>
-                                                            <th className='py-2 px-4 border-b border-gray-200 font-normal text-left'>
+                                                            <th className='py-2 px-4 border-b border-base-content border-opacity-20 font-normal text-left'>
                                                                 Weekly Minutes
                                                             </th>
                                                         </tr>
@@ -741,20 +764,20 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                     <tbody>
                                                         {Array.isArray(section.subjects) && section.subjects.length > 0 ? (
                                                             section.subjects.map((subjectID, index) => (
-                                                                <tr key={index} className='border-b border-gray-200'>
+                                                                <tr key={index} className='border-b border-base-content border-opacity-20'>
                                                                     {/* Subject Name */}
-                                                                    <td className='py-2 px-4 border-b border-gray-200'>
+                                                                    <td className='py-2 px-4 border-b border-base-content border-opacity-20'>
                                                                         {subjects[subjectID]?.subject ||
                                                                             'Unknown Subject, ID: ' + subjectID}
                                                                     </td>
 
                                                                     {/* Duration */}
-                                                                    <td className='py-2 px-4 border-b border-gray-200'>
+                                                                    <td className='py-2 px-4 border-b border-base-content border-opacity-20'>
                                                                         {subjects[subjectID]?.classDuration || ''}
                                                                     </td>
 
                                                                     {/* Weekly Minutes */}
-                                                                    <td className='py-2 px-4 border-b border-gray-200'>
+                                                                    <td className='py-2 px-4 border-b border-base-content border-opacity-20'>
                                                                         {subjects[subjectID]?.weeklyMinutes || ''}
                                                                     </td>
                                                                 </tr>
@@ -772,7 +795,6 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                     </tbody>
                                                 </table>
 
-                                                
                                                 <div className='p-2 flex justify-center'>
                                                     <button
                                                         className='btn'
@@ -801,7 +823,6 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                         numOfSchoolDays={numOfSchoolDays}
                                                     />
                                                 </div>
-                                                
                                             </div>
                                         </td>
 
@@ -809,14 +830,14 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                         <td>
                                             <div
                                                 key={`edit-add-sched-view-section(${section.id})`}
-                                                className='overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg'
+                                                className='overflow-y-auto h-36 max-h-36 border border-base-content border-opacity-20 rounded-lg'
                                                 style={{
                                                     scrollbarWidth: 'thin',
                                                     scrollbarColor: '#a0aec0 #edf2f7',
                                                 }} // Optional for styled scrollbars
                                             >
                                                 <div
-                                                    className='font-bold p-2 border-b border-gray-300 bg-gray-300'
+                                                    className='font-bold p-2 border-b border-base-content border-opacity-20'
                                                     style={{
                                                         position: 'sticky',
                                                         top: 0,
@@ -839,12 +860,15 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                                         .showModal()
                                                                 }
                                                             >
-                                                                {sched.name  ? (
+                                                                {sched.name ? (
                                                                     // Content to show when both are not empty
                                                                     <>
                                                                         <p>Name: {sched.name}</p>
                                                                         <p>
-                                                                            Subject:{' '}{sched.subject === -1 ? 'N/A' : subjects[sched.subject].subject}
+                                                                            Subject:{' '}
+                                                                            {sched.subject === -1
+                                                                                ? 'N/A'
+                                                                                : subjects[sched.subject].subject}
                                                                         </p>
                                                                     </>
                                                                 ) : (
@@ -877,6 +901,7 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                         errorField={errorField}
                                                         setErrorField={setErrorField}
                                                         numOfSchoolDays={numOfSchoolDays}
+                                                        breakTimeDuration={breakTimeDuration}
                                                     />
 
                                                     <DeleteData

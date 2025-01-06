@@ -58,7 +58,7 @@ function TimeSelector({ interval = 5, time = '06:00 AM', setTime = () => {}, am 
     return (
         <div ref={ref} className='relative'>
             <div
-                className={`flex flex-wrap h-12 bg-white border border-gray-300 text-base ${
+                className={`flex flex-wrap h-12 bg-base-100 border border-base-content border-opacity-20 text-base ${
                     isPanelVisible ? 'rounded-t-md' : 'rounded-md'
                 }`}
             >
@@ -69,20 +69,20 @@ function TimeSelector({ interval = 5, time = '06:00 AM', setTime = () => {}, am 
                             : '--:--- --'}
                     </div>
                 </div>
-                <button className='w-1/6 flex items-center justify-center bg-gray-200' onClick={handleButtonClick}>
+                <button className='w-1/6 flex items-center justify-center ' onClick={handleButtonClick}>
                     <CiClock1 size={20} />
                 </button>
             </div>
 
             {isPanelVisible && (
-                <div className='w-5/6 absolute p-2 flex border border-gray-300 rounded-b-md shadow-lg bg-white z-[1000]'>
+                <div className='w-5/6 absolute p-2 flex bg-base-100 border border-base-content border-opacity-20 rounded-b-md shadow-lg z-[1000]'>
                     {/* Hours */}
                     <div className='w-1/3 p-1 border-r border-gray-300 overflow-y-auto max-h-48'>
                         {hours.map((hour) => (
                             <div
                                 key={hour}
                                 className={`p-2 text-center cursor-pointer ${
-                                    selectedTime.hour === hour ? 'font-bold text-blue-500' : 'text-gray-500'
+                                    selectedTime.hour === hour ? 'font-bold text-blue-500' : ''
                                 }`}
                                 onClick={() => updateSelectedTime('hour', hour)}
                             >
@@ -99,7 +99,7 @@ function TimeSelector({ interval = 5, time = '06:00 AM', setTime = () => {}, am 
                                 <div
                                     key={minute}
                                     className={`p-2 text-center cursor-pointer ${
-                                        selectedTime.minute === minute ? 'font-bold text-blue-500' : 'text-gray-500'
+                                        selectedTime.minute === minute ? 'font-bold text-blue-500' : ''
                                     }`}
                                     onClick={() => updateSelectedTime('minute', minute)}
                                 >
@@ -114,7 +114,7 @@ function TimeSelector({ interval = 5, time = '06:00 AM', setTime = () => {}, am 
                             <div
                                 key={period}
                                 className={`p-2 text-center cursor-pointer ${
-                                    selectedTime.period === period ? 'font-bold text-blue-500' : 'text-gray-500'
+                                    selectedTime.period === period ? 'font-bold text-blue-500' : ''
                                 }`}
                                 onClick={() => updateSelectedTime('period', period)}
                             >

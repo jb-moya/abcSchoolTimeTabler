@@ -302,14 +302,14 @@ const TeacherListContainer = ({ editable = false }) => {
                                         <td>
                                             <div
                                                 key={`edit-add-sched-view-teacher(${teacher.id})`}
-                                                className='overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg'
+                                                className='overflow-y-auto h-36 max-h-36 bg-base-100 border border-base-content border-opacity-20 rounded-lg'
                                                 style={{
                                                     scrollbarWidth: 'thin',
                                                     scrollbarColor: '#a0aec0 #edf2f7',
                                                 }} // Optional for styled scrollbars
                                             >
                                                 <div
-                                                    className='font-bold p-2 border-b border-gray-300 bg-gray-300'
+                                                    className='font-bold p-2 border-b bg-base-100 border-base-content border-opacity-20'
                                                     style={{
                                                         position: 'sticky',
                                                         top: 0,
@@ -318,12 +318,12 @@ const TeacherListContainer = ({ editable = false }) => {
                                                 ></div>
                                                 {teacher.additionalTeacherScheds.map((sched, index) => (
                                                     <div key={index} className='flex flex-wrap'>
-                                                        <div className='w-1/12 text-xs font-bold bg-blue-100 flex text-center justify-center items-center p-2'>
+                                                        <div className='w-1/12 text-xs font-bold border-b border-base-content border-opacity-20 flex text-center justify-center items-center p-2'>
                                                             {index + 1}
                                                         </div>
                                                         <div className='w-11/12'>
                                                             <button
-                                                                className='w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-white'
+                                                                className='w-full text-xs p-2 border-b border-base-content border-opacity-20 shadow-sm'
                                                                 onClick={() =>
                                                                     document
                                                                         .getElementById(
@@ -340,7 +340,7 @@ const TeacherListContainer = ({ editable = false }) => {
                                                                             Subject:{' '}
                                                                             {sched.subject === -1
                                                                                 ? 'N/A'
-                                                                                : subjects[sched.subject]?.subject}
+                                                                                : subjects[sched.subject].subject}
                                                                         </p>
                                                                     </>
                                                                 ) : (

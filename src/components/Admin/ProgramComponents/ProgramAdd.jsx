@@ -430,6 +430,8 @@ const AddProgramContainer = ({
             10: morningStartTime,
         });
 
+        setErrorField('');
+        setErrorMessage('');
         document.getElementById('add_program_modal').close();
     };
 
@@ -443,16 +445,22 @@ const AddProgramContainer = ({
 
     // ==============================================================================
 
+    const [activeTab, setActiveTab] = useState(7);
+
+    const grades = [7, 8, 9, 10];
+
     return (
         <dialog id='add_program_modal' className='modal modal-bottom sm:modal-middle'>
-            <div className='modal-box' style={{ width: '60%', maxWidth: 'none' }}>
-                <div className='p-6'>
+            <div className='modal-box' style={{ width: '48%', maxWidth: 'none' }}>
+                <div className>
                     {/* Header section with centered "Add {reduxField}" */}
                     <div className='flex justify-between mb-4'>
                         <h3 className='text-lg font-bold text-center w-full'>
                             Add New {reduxField[0].charAt(0).toUpperCase() + reduxField[0].slice(1).toLowerCase()}
                         </h3>
                     </div>
+
+                    <hr className='mb-4' />
 
                     {/* Input field for program name */}
                     <div className='mb-4'>
@@ -469,90 +477,96 @@ const AddProgramContainer = ({
 
                     {/* Subject, shift, and fixed schedules management */}
                     <div className='text-sm flex flex-col space-y-4'>
-                        {[7, 8, 9, 10].map((grade) => (
-                            <div key={grade}>
-                                <div>
-                                    <h3 className='font-bold mb-2'>{`Grade ${grade}`}</h3>
-                                </div>
-                                <div className='flex flex-wrap'>
-                                    <div key={grade} className='w-7/12 bg-white shadow-md rounded-lg p-4'>
-                                        {/* Shift selection */}
-                                        <div className='mt-2 mb-2 text-base flex flex-wrap items-start items-center'>
-                                            <label className='w-1/4 mr-2 p-2 flex justify-end font-bold'>SHIFT</label>
-                                            <div className='flex flex-col pl-2'>
-                                                <label className='mb-1'>
-                                                    <input
-                                                        type='radio'
-                                                        value={selectedShifts[grade]}
-                                                        checked={selectedShifts[grade] === 0}
-                                                        onChange={() => handleShiftSelection(grade, 0)}
-                                                    />
-                                                    AM
-                                                </label>
-                                                <label>
-                                                    <input
-                                                        type='radio'
-                                                        value={selectedShifts[grade]}
-                                                        checked={selectedShifts[grade] === 1}
-                                                        onChange={() => handleShiftSelection(grade, 1)}
-                                                    />
-                                                    PM
-                                                </label>
+                        {/* Tabs Navigation */}
+                        <div className='flex justify-between space-x-2 bg-primary-content p-3 rounded-lg border shadow-md'>
+                            {grades.map((grade) => (
+                                <button
+                                    key={grade}
+                                    onClick={() => setActiveTab(grade)}
+                                    className={`px-11 py-2 font-semibold rounded-lg transition ${
+                                        activeTab === grade ? 'bg-primary text-white shadow-md' : 'bg-base-100 hover:bg-base-200'
+                                    }`}
+                                >
+                                    Grade {grade}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Tab Content */}
+                        {grades.map((grade) => (
+                            <div key={grade} className={`${activeTab === grade ? 'block' : 'hidden'}`}>
+                                <div className='flex flex-col shadow-md rounded-lg'>
+                                    {/* Shift and Start Time Selection */}
+                                    <div className='space-y-4 bg-base-100 p-4'>
+                                        <div className='flex items-center'>
+                                            <label className='w-1/4 font-semibold text-base'>SHIFT:</label>
+                                            <div className='flex space-x-6 text-base'>
+                                                {['AM', 'PM'].map((shift, index) => (
+                                                    <label key={index} className='flex items-center space-x-2'>
+                                                        <input
+                                                            type='radio'
+                                                            value={index}
+                                                            checked={selectedShifts[grade] === index}
+                                                            onChange={() => handleShiftSelection(grade, index)}
+                                                            className='scale-150'
+                                                        />
+                                                        <span>{shift}</span>
+                                                    </label>
+                                                ))}
                                             </div>
                                         </div>
 
-                                        {/* Start time selection */}
-                                        <div className='mt-2 flex flex-wrap'>
-                                            {/* Label */}
-                                            <label className='w-1/4 mr-2 p-2 text-base flex items-center justify-end font-bold'>
-                                                START TIME
-                                            </label>
-
-                                            {/* Time selector */}
-                                            <div className='w-7/12 pl-2'>
-                                                <TimeSelector
-                                                    time={startTimes[grade]}
-                                                    setTime={(newTime) => {
-                                                        setStartTimes((prevStartTimes) => ({
-                                                            ...prevStartTimes,
-                                                            [grade]: newTime, // Update the specific grade's time
-                                                        }));
-                                                    }}
-                                                    am={selectedShifts[grade] === 0 ? 1 : 0}
-                                                    pm={selectedShifts[grade] === 1 ? 1 : 0}
-                                                />
-                                            </div>
-
-                                            {/* Warning icon */}
-                                            {!validEndTimes[grade] && (
-                                                <div
-                                                    className='w-auto flex ml-2 items-center tooltip text-red-500'
-                                                    data-tip='Total class time exceeds the day, consider adjusting the start time.'
-                                                >
-                                                    <IoWarningSharp size={35} />
+                                        <div className='flex items-center'>
+                                            <label className='w-1/4 font-semibold text-base'>START TIME:</label>
+                                            <div className='flex items-center space-x-4 w-3/4'>
+                                                <div className='w-full'>
+                                                    <TimeSelector
+                                                        time={startTimes[grade]}
+                                                        setTime={(newTime) =>
+                                                            setStartTimes((prevStartTimes) => ({
+                                                                ...prevStartTimes,
+                                                                [grade]: newTime,
+                                                            }))
+                                                        }
+                                                        am={selectedShifts[grade] === 0 ? 1 : 0}
+                                                        pm={selectedShifts[grade] === 1 ? 1 : 0}
+                                                    />
                                                 </div>
-                                            )}
-                                        </div>
-
-                                        {/* Subject selection */}
-                                        <div className='flex items-center mb-2 py-4 flex-wrap'>
-                                            <div className='m-1'>
-                                                <SearchableDropdownToggler
-                                                    selectedList={selectedSubjects[grade]}
-                                                    setSelectedList={(list) => handleSubjectSelection(grade, list)}
-                                                />
-                                            </div>
-                                            {selectedSubjects[grade]?.map((id, index) => (
-                                                <div key={id} className='p-2'>
-                                                    <div className='h-10 w-20 bg-green-400 rounded-md flex items-center justify-center truncate'>
-                                                        {subjects[id]?.subject}
+                                                {!validEndTimes[grade] && (
+                                                    <div
+                                                        className='tooltip text-red-500 flex items-center'
+                                                        data-tip='Total class time exceeds the day.'
+                                                    >
+                                                        <IoWarningSharp size={24} />
                                                     </div>
-                                                </div>
-                                            ))}
+                                                )}
+                                            </div>
                                         </div>
+                                    </div>
 
-                                        {/* Setting of fixed schedule (optional) */}
-                                        {selectedSubjects[grade]?.length > 0 && (
+                                    {/* Subject Selection */}
+                                    <div className='bg-base-100 py-2 rounded-lg space-y-4 p-4'>
+                                        <label className='font-semibold text-lg'>Subjects </label>
+                                        <div className='flex space-x-'>
+                                                <label className='font-semibold w-1/4'>Selected Subjects: </label>
+                                                {selectedSubjects[grade]?.length === 0 ? (
+                                                    <div className='text-gray-500 w-3/4 flex justify-start'>No Subjects Selected</div>
+                                                ) : (
+                                                    selectedSubjects[grade]?.map((id) => (
+                                                        <div key={id} className='badge badge-secondary px-4 py-2 truncate'>
+                                                            {subjects[id]?.subject}
+                                                        </div>
+                                                    ))
+                                                )}
+                                            </div>
+                                        <div className='flex p-2'>
+                                            <SearchableDropdownToggler
+                                                selectedList={selectedSubjects[grade]}
+                                                setSelectedList={(list) => handleSubjectSelection(grade, list)}
+                                            /> 
+                                        </div>
+                                           {/* Setting of fixed schedule (optional) */}
+                                           {selectedSubjects[grade]?.length > 0 && (
                                             <div>
                                                 <button
                                                     className='btn btn-primary'
@@ -588,13 +602,14 @@ const AddProgramContainer = ({
                                         )}
                                     </div>
 
-                                    <div className='w-5/12 p-1 rounded-lg'>
-                                        <div className='font-bold bg-blue-200 rounded-lg'>Additional Schedules</div>
+                                    {/* Additional Schedules */}
+                                    <div className='p-4 rounded-lg'>
+                                        <div className='text-lg font-semibold rounded-lg'>Additional Schedules</div>
 
                                         {/* Button to add schedules */}
                                         <button
                                             onClick={() => handleAddAdditionalSchedule(grade)}
-                                            className='flex flex-wrap items-right text-xs mt-2 bg-blue-500 text-white px-2 py-1 rounded-lg hover:bg-blue-600'
+                                            className='flex flex-wrap items-right text-sm mt-2 bg-primary p-4 text-white px-2 py-1 rounded-lg hover:bg-blue-600'
                                         >
                                             Add Schedule
                                         </button>
