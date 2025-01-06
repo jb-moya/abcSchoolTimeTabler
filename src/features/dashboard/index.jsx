@@ -15,26 +15,26 @@ function Dashboard() {
     // const dispatch = useDispatch();
     const [statsData, setStatsData] = useState([
         {
-            title: 'Departments',
+            title: 'Subjects',
             value: '0',
-            icon: <BuildingOfficeIcon className='w-8 h-8' />,
-            description: 'All active departments',
+            icon: <BookOpenIcon className='w-8 h-8' />,
+            description: 'Total number of subjects for all programs.',
         },
         {
-            title: 'Programs',
+            title: 'Teachers',
             value: '0',
-            icon: <ComputerDesktopIcon className='w-8 h-8' />,
-            description: 'Includes various courses',
+            icon: <UserGroupIcon className='w-8 h-8' />,
+            description: 'Combined departments.',
         },
-        { title: 'Ranks', value: '0', icon: <ChartBarIcon className='w-8 h-8' />, description: 'Staff hierarchy levels' },
+        { title: 'Ranks', value: '0', icon: <ChartBarIcon className='w-8 h-8' />, description: 'The total number of teacher ranks within the school.' },
         {
             title: 'Sections',
             value: '0',
             icon: <RectangleGroupIcon className='w-8 h-8' />,
-            description: 'Different class sections',
+            description: 'For all programs.',
         },
-        { title: 'Subjects', value: '0', icon: <BookOpenIcon className='w-8 h-8' />, description: '↗︎ Updated curriculum' },
-        { title: 'Teachers', value: '0', icon: <UserGroupIcon className='w-8 h-8' />, description: '↗︎ 5 new hires this month' },
+        { title: 'Buildings', value: '0', icon: <BuildingOfficeIcon className='w-8 h-8' />, description: 'The total number of buildings currently in use.' },
+        { title: 'Departments', value: '0', icon: <ComputerDesktopIcon className='w-8 h-8' />, description: 'The total number of departments within the school.' },
     ]);
 
     const fetchStats = async () => {
