@@ -35,8 +35,6 @@ const DragDrop = ({
             // console.log('has editing cell');
             tableKey = editingCell.tableKey;
             cellId = editingCell.dynamicID;
-        } else {
-            console.log('no editing cell');
         }
         setValueMap((prevState) =>
             produce(prevState, (draft) => {
@@ -67,7 +65,9 @@ const DragDrop = ({
                 keyToFind = cell.partnerKey;
 
                 // console.log('keytoFind: ', keyToFind);
-
+                const range = cell.end - cell.start;
+                newCardData.end = newCardData.start + range;
+                // console.log('newCardData: ', newCardData);
                 table.set(cellId, { ...cell, ...newCardData });
                 if (editingCell) {
                     setEditingCell(table.get(cellId));

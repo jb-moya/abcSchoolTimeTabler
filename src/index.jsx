@@ -11,7 +11,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     // <React.StrictMode>
     <Provider store={store}>
         {/* <WasmProvider> */}
-        <Toaster richColors position='top-right' />
+        <Toaster richColors position='top-right' />;
         <App />
         {/* </WasmProvider> */}
     </Provider>
