@@ -102,14 +102,10 @@ function Timetable() {
         return state.building;
     });
     const { teachers: teachersStore } = useSelector((state) => state.teacher);
-    const { sections: sectionsStore, status: sectionStatus } = useSelector(
-        (state) => state.section
-    );
-    const { programs: programsStore, status: programStatus } = useSelector(
-        (state) => state.program
-    );
+    const { sections: sectionsStore, status: sectionStatus } = useSelector((state) => state.section);
+    const { programs: programsStore, status: programStatus } = useSelector((state) => state.program);
 
-// ========================================================================
+    // ========================================================================
 
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
         return localStorage.getItem('numOfSchoolDays') || 5;
@@ -119,13 +115,11 @@ function Timetable() {
         return localStorage.getItem('breakTimeDuration') || 30;
     });
 
-    const [prevNumOfSchoolDays, setPrevNumOfSchoolDays] =
-        useState(numOfSchoolDays);
+    const [prevNumOfSchoolDays, setPrevNumOfSchoolDays] = useState(numOfSchoolDays);
 
-    const [prevBreakTimeDuration, setPrevBreakTimeDuration] =
-        useState(breakTimeDuration);
+    const [prevBreakTimeDuration, setPrevBreakTimeDuration] = useState(breakTimeDuration);
 
-// ========================================================================
+    // ========================================================================
 
     const [sectionTimetables, setSectionTimetables] = useState({});
     const [teacherTimetables, setTeacherTimetables] = useState({});
@@ -443,6 +437,8 @@ function Timetable() {
             durationUniqueAdditionalTeacherScheds,
         ]);
 
+        timeDivision = 5;
+
         console.log('🚀 ~ handleButtonClick ~ timeDivision:', timeDivision);
 
         subjectConfigurationSubjectDurationArray.forEach((duration, index) => {
@@ -462,7 +458,8 @@ function Timetable() {
         );
         console.log('🚀 ~ handleButtonClick ~ lowestSubjectDuration:', lowestSubjectDuration);
 
-        let offset = lowestSubjectDuration - 1; // what is this minus 1 magic number?????
+        // let offset = lowestSubjectDuration - 1; // what is this minus 1 magic number?????
+        let offset = 0; // what is this minus 1 magic number?????
 
         subjectConfigurationSubjectDurationArray.forEach((duration, index) => {
             let { first: subjectID, second: subjectDuration } = unpackInt32ToInt16(duration);
@@ -767,7 +764,7 @@ function Timetable() {
         const sectionConfiguration = new Int32Array([...sectionConfigurationArray]);
         const sectionSubjectConfiguration = new Int32Array([...sectionSubjectConfigurationArray]);
 
-        const maxIterations = 5000;
+        const maxIterations = 200;
         const beesPopulations = 4;
         const beesEmployed = 2;
         const beesOnlooker = 2;
@@ -898,7 +895,7 @@ function Timetable() {
             teacherMiddleTimePointGrowAllowanceForBreakTimeslot: teacherMiddleTimePointGrowAllowanceForBreakTimeslot,
             minTotalClassDurationForTwoBreaks: minTotalClassDurationForTwoBreaks,
             defaultClassDuration: defaultClassDuration,
-            offsetDuration: offset + 4,
+            offsetDuration: offset,
             resultTimetableLength: resultTimetableLength,
             resultViolationLength: resultViolationLength,
 
@@ -1526,7 +1523,8 @@ function Timetable() {
         });
     };
 
-    const handleBreakTimeDurationChange = () => { // NEW ADDITION
+    const handleBreakTimeDurationChange = () => {
+        // NEW ADDITION
         localStorage.setItem('breakTimeDuration', breakTimeDuration);
 
         if (breakTimeDuration === prevBreakTimeDuration) return;
@@ -1536,7 +1534,6 @@ function Timetable() {
         if (Object.keys(programsStore).length === 0) return;
 
         Object.entries(programsStore).forEach(([progId, prog]) => {
-
             const originalProgram = JSON.parse(JSON.stringify(prog));
             const newProgram = JSON.parse(JSON.stringify(prog));
 
@@ -1545,7 +1542,7 @@ function Timetable() {
 
                 const startTimeIdx = newProgram[grade].startTime;
                 const breakTimeCount = newProgram[grade].subjects.length > 10 ? 2 : 1;
-    
+
                 let totalDuration = breakTimeCount * breakTimeDuration;
 
                 newProgram[grade].subjects.forEach((subId) => {
@@ -1565,7 +1562,6 @@ function Timetable() {
                     })
                 );
             }
-
         });
 
         if (Object.keys(sectionsStore).length === 0) return;
@@ -1578,7 +1574,7 @@ function Timetable() {
 
             const startTimeIdx = newSection.startTime;
             const breakTimeCount = newSection.subjects.length > 10 ? 2 : 1;
-    
+
             let totalDuration = breakTimeCount * breakTimeDuration;
 
             newSection.subjects.forEach((subId) => {
@@ -1597,7 +1593,7 @@ function Timetable() {
                     })
                 );
             }
-        })
+        });
     };
 
     useEffect(() => {
@@ -5933,7 +5929,7 @@ function Timetable() {
         handleBreakTimeDurationChange();
     }, [breakTimeDuration]);
 
-// ========================================================================
+    // ========================================================================
 
     useEffect(() => {
         if (sectionStatus === 'idle') {
@@ -5989,8 +5985,11 @@ function Timetable() {
             <div className='mb-6 flex justify-between items-center'>
                 <Breadcrumbs title='Timetable' links={links} />
                 <div className='flex items-center gap-2'>
-                    <ExportImportDBButtons onClear={handleClearAndRefresh} numOfSchoolDays={numOfSchoolDays} />
-
+                    <ExportImportDBButtons
+                        onClear={handleClearAndRefresh}
+                        numOfSchoolDays={numOfSchoolDays}
+                        breakTimeDuration={breakTimeDuration}
+                    />
                     <button
                         className={clsx('btn btn-primary', {
                             'cursor-not-allowed': timetableGenerationStatus === 'running',
@@ -6015,7 +6014,7 @@ function Timetable() {
                 </div>
             </div>
 
-            <div className="mb-6">
+            <div className='mb-6'>
                 <Configuration
                     numOfSchoolDays={numOfSchoolDays}
                     setNumOfSchoolDays={setNumOfSchoolDays}
@@ -6036,12 +6035,9 @@ function Timetable() {
     </div>
   </div> */}
             <div>
-                <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
-                    <h2 className="text-lg font-semibold mb-4">Subjects</h2>
-                    <SubjectListContainer 
-                        numOfSchoolDays={numOfSchoolDays}
-                        breakTimeDuration={breakTimeDuration} 
-                    />
+                <div className='mt-6 bg-base-100 p-6 rounded-lg shadow-lg'>
+                    <h2 className='text-lg font-semibold mb-4'>Subjects</h2>
+                    <SubjectListContainer numOfSchoolDays={numOfSchoolDays} breakTimeDuration={breakTimeDuration} />
                 </div>
 
                 <div className='mt-6 bg-base-100 p-6 rounded-lg shadow-lg'>
@@ -6050,23 +6046,17 @@ function Timetable() {
                 </div>
 
                 {/* Program Lists */}
-                <div className="mt-6 bg-base-100 p-6 rounded-lg shadow-lg">
-                    <h2 className="text-lg font-semibold mb-4">Programs</h2>
-                    <ProgramListContainer 
-                        numOfSchoolDays={numOfSchoolDays} 
-                        breakTimeDuration={breakTimeDuration}
-                    />
+                <div className='mt-6 bg-base-100 p-6 rounded-lg shadow-lg'>
+                    <h2 className='text-lg font-semibold mb-4'>Programs</h2>
+                    <ProgramListContainer numOfSchoolDays={numOfSchoolDays} breakTimeDuration={breakTimeDuration} />
                 </div>
 
                 {/* Section List with the Generate Timetable Button */}
-                <div className="mt-6">
-                    <div className="bg-base-100 p-6 rounded-lg shadow-lg">
-                        <h2 className="text-lg font-semibold mb-4">Sections</h2>
-                        <SectionListContainer
-                            numOfSchoolDays={numOfSchoolDays}
-                            breakTimeDuration={breakTimeDuration}
-                        />
-                        <div className="mt-4">
+                <div className='mt-6'>
+                    <div className='bg-base-100 p-6 rounded-lg shadow-lg'>
+                        <h2 className='text-lg font-semibold mb-4'>Sections</h2>
+                        <SectionListContainer numOfSchoolDays={numOfSchoolDays} breakTimeDuration={breakTimeDuration} />
+                        <div className='mt-4'>
                             <ViolationList violations={violations} />
                         </div>
                     </div>
