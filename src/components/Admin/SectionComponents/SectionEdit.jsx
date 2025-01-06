@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
 
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
+import { IoWarningSharp } from 'react-icons/io5';
 
 import { fetchPrograms } from '@features/programSlice';
 import { fetchSubjects } from '@features/subjectSlice';
@@ -28,6 +29,7 @@ const SectionEdit = ({
     errorField,
     setErrorField,
     numOfSchoolDays,
+    breakTimeDuration,
 }) => {
 
     const dispatch = useDispatch();
@@ -91,6 +93,8 @@ const SectionEdit = ({
     const [currEditProgram, setCurrEditProgram] = useState(section.program || '');
 
     const [currEditYear, setCurrEditYear] = useState(section.year || '');
+
+    const [isEndTimeValid, setIsEndTimeValid] = useState(true);
 
     useEffect(() => {
         setEditSectionId(section.id || '');
@@ -200,7 +204,7 @@ const SectionEdit = ({
                         year: editSectionYear,
                         shift: editSectionShift,
                         startTime: getTimeSlotIndex(editSectionStartTime),
-                        endTime: getTimeSlotIndex(editSectionEndTime),
+                        endTime: editSectionEndTime,
                         additionalScheds: editAdditionalScheds,
                         roomDetails: editRoomDetails,
                     },
@@ -308,24 +312,58 @@ const SectionEdit = ({
 
 // =============================================================================================
 
-    const handleAddAdditionalSchedule = () => {
-        setEditAdditionalScheds((prevScheds) => [
-            ...prevScheds,
-            {
-                name: '',
-                subject: -1,
-                duration: 60,
-                frequency: 1,
-                shown: true,
-            },
-        ]);
-    };
+    // End Times
+        const handleEndTimeChange = () => {
+            if (editSectionSubjects.length === 0) return;
 
-    const handleDeleteAdditionalSchedule = (index) => {
-        setEditAdditionalScheds((prevScheds) =>
-            prevScheds.filter((_, i) => i !== index)
-        );
-    };
+            const startTimeIdx = getTimeSlotIndex(editSectionStartTime);
+            const breakTimeCount = editSectionSubjects.length > 10 ? 2 : 1;
+
+            let totalDuration = breakTimeCount * breakTimeDuration;
+
+            editSectionSubjects.forEach((subId) => {
+                totalDuration += subjects[subId].classDuration;
+            });
+
+            const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
+
+            if (!getTimeSlotString(endTimeIdx)) {
+                setIsEndTimeValid(false);
+                return;
+            }
+            
+            console.log('getTimeSlotString(endTimeIdx): ', getTimeSlotString(endTimeIdx));
+
+            setIsEndTimeValid(true);
+
+            setEditSectionEndTime(endTimeIdx);
+        };
+    
+        useEffect(() => {
+            if (editSectionSubjects.length === 0) return;
+    
+            handleEndTimeChange();
+        }, [editSectionSubjects, editSectionStartTime, breakTimeDuration]);
+
+    // Additional Schedules
+        const handleAddAdditionalSchedule = () => {
+            setEditAdditionalScheds((prevScheds) => [
+                ...prevScheds,
+                {
+                    name: '',
+                    subject: -1,
+                    duration: 60,
+                    frequency: 1,
+                    shown: true,
+                },
+            ]);
+        };
+
+        const handleDeleteAdditionalSchedule = (index) => {
+            setEditAdditionalScheds((prevScheds) =>
+                prevScheds.filter((_, i) => i !== index)
+            );
+        };
 
 // =============================================================================================  
 
@@ -547,16 +585,24 @@ const SectionEdit = ({
                             <label className="w-1/4 mr-2 p-2 text-sm flex items-center justify-end font-bold">
                                 START TIME  
                             </label>
-                            <div
-                                className='w-2/3 pl-2'
-                            >
+                            <div className='w-2/3 pl-2'>
                                 <TimeSelector 
+                                    key={`start-time-section(${editSectionId})`}
+                                    interval={5}
                                     time={editSectionStartTime}
-                                    setTime={(e) => setEditSectionStartTime(e.target.value)}
+                                    setTime={setEditSectionStartTime}
                                     am={editSectionShift === 0 ? 1 : 0}
                                     pm={editSectionShift === 1 ? 1 : 0} 
                                 />
                             </div>
+                            {!isEndTimeValid && (
+                                <div
+                                    className='w-auto flex ml-2 items-center tooltip text-red-500'
+                                    data-tip='Total class time exceeds the day, consider adjusting the start time.'
+                                >
+                                    <IoWarningSharp size={35} />
+                                </div>
+                            )}
                         </div>
 
                         {/* Section Adviser */}
@@ -658,7 +704,7 @@ const SectionEdit = ({
                                         sectionId={section.id}
                                         roomDetails={editRoomDetails}
                                         setRoomDetails={setEditRoomDetails}
-                                        startTime={editSectionStartTime}
+                                        startTime={getTimeSlotIndex(editSectionStartTime)}
                                         endTime={editSectionEndTime}
                                     />
                                 </div>
@@ -867,6 +913,7 @@ const SectionEdit = ({
                             <button
                                 className="btn btn-primary"
                                 onClick={() => handleSaveSectionEditClick(section.id)}
+                                disabled={!isEndTimeValid}
                             >
                                 Update Section
                             </button>

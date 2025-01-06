@@ -138,6 +138,7 @@ const TeacherEdit = ({
 					teacherId,
 					updatedTeacher: {
                         teacher: editTeacherValue,
+                        department: editTeacherDepartment,
                         rank: editTeacherRank,
                         subjects: editTeacherCurr,
                         yearLevels: editTeacherYearLevels,
@@ -284,6 +285,7 @@ const TeacherEdit = ({
                     </h3>
                     <hr className="mb-4" />
                     <div className="p-6">
+
                         {/* Input Field for Teacher Name */}
                         <div className="mb-4">
                             <label className="flex justify-center text-sm font-medium mb-2">
@@ -299,6 +301,7 @@ const TeacherEdit = ({
                             />
                         </div>
 
+                        {/* Dropdown List for Teacher Rank */}
                         <div className="mb-4">
                             <label className="flex justify-center text-sm font-medium mb-2">
                                 Teacher Rank:
@@ -347,6 +350,8 @@ const TeacherEdit = ({
                                 </div>
                             </div>
                         </div>
+
+                        {/* Dropdown List for Teacher Department */}
                         <div className="mb-4">
                             <label className="flex justify-center text-sm font-medium mb-2">
                                 Teacher Department:
@@ -361,8 +366,7 @@ const TeacherEdit = ({
                                     {/* <option value="" disabled>
                                         Select department
                                     </option> */}
-                                    {departments &&
-                                    Object.keys(departments).length > 0 ? (
+                                    {departments && Object.keys(departments).length > 0 ? (
                                         Object.values(departments).map(
                                             (department) => (
                                                 <option
@@ -370,16 +374,7 @@ const TeacherEdit = ({
                                                     value={department.id}
                                                 >
                                                     {`${department.name || ''}${
-                                                        teachers[
-                                                            department.head
-                                                        ]?.teacher
-                                                            ? ` - ${
-                                                                  teachers[
-                                                                      department
-                                                                          .head
-                                                                  ]?.teacher
-                                                              }`
-                                                            : ''
+                                                        teachers[department.head]?.teacher ? ` - ${teachers[department.head]?.teacher}`: ''
                                                     }`}
                                                 </option>
                                             )
@@ -505,70 +500,72 @@ const TeacherEdit = ({
 
 
                         <div
-                                key={`edit-add-sched-edit-teacher(${editTeacherId})`}
-                                className="mt-2 overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg"
-                                style={{ scrollbarWidth: 'thin', scrollbarColor: '#a0aec0 #edf2f7' }}
+                            key={`edit-add-sched-edit-teacher(${editTeacherId})`}
+                            className="mt-2 overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg"
+                            style={{ scrollbarWidth: 'thin', scrollbarColor: '#a0aec0 #edf2f7' }}
+                        >
+                            
+                            <div
+                                className="flex flex-wrap sticky top-0 z-10 bg-white"
+                            >
+                                <div className="w-3/12 flex justify-center items-center border-b border-gray-300">
+                                <button
+                                    className="w-3/4 bg-green-700 m-2 font-bold text-white rounded-lg hover:bg-green-500"
+                                    onClick={handleAddTeacherAdditionalSchedules}
                                 >
-                                <div
-                                    className="flex flex-wrap sticky top-0 z-10 bg-white"
+                                    +
+                                </button>
+                                </div>
+                            </div>
+
+                            {editTeacherAdditionalScheds.map((sched, index) => (
+                                <div key={index} className="flex flex-wrap">
+                                <button
+                                    className="w-1/12 border rounded-l-lg hover:bg-gray-200 flex items-center justify-center"
+                                    onClick={() => handleDeleteTeacherAdditionalSchedule(index)}
                                 >
-                                    <div className="w-3/12 flex justify-center items-center border-b border-gray-300">
+                                    <RiDeleteBin7Line size={15} />
+                                </button>
+                                <div className="w-10/12">
                                     <button
-                                        className="w-3/4 bg-green-700 m-2 font-bold text-white rounded-lg hover:bg-green-500"
-                                        onClick={handleAddTeacherAdditionalSchedules}
+                                    className="w-full bg-gray-100 p-2 border shadow-sm hover:bg-gray-200"
+                                    onClick={() => document.getElementById(`add_additional_sched_modal_1_teacher-${editTeacherId}_idx-${index}`).showModal()}
                                     >
-                                        +
+                                    {sched.name ? (
+                                        <>
+                                            <p>Name: {sched.name}</p>
+                                            <p>Subject: {sched.subject === -1 ? 'N/A' : subjects[sched.subject].subject}</p>
+                                        </>
+                                    ) : (
+                                        <p>Untitled Schedule {index + 1}</p>
+                                    )}
                                     </button>
-                                    </div>
+                                    <AdditionalScheduleForTeacher
+                                        viewingMode={1}
+                                        teacherID={editTeacherId}
+                                        arrayIndex={index}
+                                        additionalSchedsOfTeacher={sched}
+                                    />
                                 </div>
-                                {editTeacherAdditionalScheds.map((sched, index) => (
-                                    <div key={index} className="flex flex-wrap">
+                                <div className="w-1/12 flex items-center justify-center border rounded-r-lg hover:bg-gray-200">
                                     <button
-                                        className="w-1/12 border rounded-l-lg hover:bg-gray-200 flex items-center justify-center"
-                                        onClick={() => handleDeleteTeacherAdditionalSchedule(index)}
+                                    onClick={() => document.getElementById(`add_additional_sched_modal_0_teacher-${editTeacherId}_idx-${index}`).showModal()}
                                     >
-                                        <RiDeleteBin7Line size={15} />
+                                    <RiEdit2Fill size={15} />
                                     </button>
-                                    <div className="w-10/12">
-                                        <button
-                                        className="w-full bg-gray-100 p-2 border shadow-sm hover:bg-gray-200"
-                                        onClick={() => document.getElementById(`add_additional_sched_modal_1_teacher-${editTeacherId}_idx-${index}`).showModal()}
-                                        >
-                                        {sched.name ? (
-                                            <>
-                                                <p>Name: {sched.name}</p>
-                                                <p>Subject: {sched.subject === -1 ? 'N/A' : subjects[sched.subject].subject}</p>
-                                            </>
-                                        ) : (
-                                            <p>Untitled Schedule {index + 1}</p>
-                                        )}
-                                        </button>
-                                        <AdditionalScheduleForTeacher
-                                            viewingMode={1}
-                                            teacherID={editTeacherId}
-                                            arrayIndex={index}
-                                            additionalSchedsOfTeacher={sched}
-                                        />
-                                    </div>
-                                    <div className="w-1/12 flex items-center justify-center border rounded-r-lg hover:bg-gray-200">
-                                        <button
-                                        onClick={() => document.getElementById(`add_additional_sched_modal_0_teacher-${editTeacherId}_idx-${index}`).showModal()}
-                                        >
-                                        <RiEdit2Fill size={15} />
-                                        </button>
-                                        <AdditionalScheduleForTeacher
-                                            viewingMode={0}
-                                            teacherID={editTeacherId}
-                                            arrayIndex={index}
-                                            teacherSubjects={editTeacherCurr}
-                                            numOfSchoolDays={numOfSchoolDays}
-                                            additionalSchedsOfTeacher={sched}
-                                            setAdditionalScheds={setEditTeacherAdditionalScheds}
-                                        />
-                                    </div>
-                                    </div>
-                                ))}
+                                    <AdditionalScheduleForTeacher
+                                        viewingMode={0}
+                                        teacherID={editTeacherId}
+                                        arrayIndex={index}
+                                        teacherSubjects={editTeacherCurr}
+                                        numOfSchoolDays={numOfSchoolDays}
+                                        additionalSchedsOfTeacher={sched}
+                                        setAdditionalScheds={setEditTeacherAdditionalScheds}
+                                    />
                                 </div>
+                                </div>
+                            ))}
+                        </div>
                        
                         {/* Error Message */}
                         {errorMessage && (

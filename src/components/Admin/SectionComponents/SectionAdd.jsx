@@ -13,6 +13,9 @@ import { toast } from 'sonner';
 import ViewRooms from '../RoomsAndBuildings/ViewRooms';
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
 import AdditionalScheduleForSection from './AdditionalScheduleForSection';
+import TimeSelector from '@utils/timeSelector';
+
+import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
 
 const AddSectionContainer = ({
     close,
@@ -23,6 +26,7 @@ const AddSectionContainer = ({
     errorField,
     setErrorField,
     numOfSchoolDays,
+    breakTimeDuration,
 }) => {
 
     const inputNameRef = useRef();
@@ -57,9 +61,9 @@ const AddSectionContainer = ({
     const [selectedProgram, setSelectedProgram] = useState('');
     const [selectedYearLevel, setSelectedYearLevel] = useState('');
     const [selectedSubjects, setSelectedSubjects] = useState([]);
-    const [selectedShift, setSelectedShift] = useState(-1);
-    const [selectedStartTime, setSelectedStartTime] = useState(-1);
-    const [selectedEndTime, setSelectedEndTime] = useState(0);
+    const [selectedShift, setSelectedShift] = useState('');
+    const [selectedStartTime, setSelectedStartTime] = useState('');
+    const [selectedEndTime, setSelectedEndTime] = useState('');
     const [fixedDays, setFixedDays] = useState({});
     const [fixedPositions, setFixedPositions] = useState({});
     const [additionalScheds, setAdditionalScheds] = useState([]);
@@ -68,6 +72,8 @@ const AddSectionContainer = ({
         floorIdx: -1,
         roomIdx: -1,
     });
+
+    const [isEndTimeValid, setIsEndTimeValid] = useState(true);
 
     const isRoomSelectionDisabled = selectedShift === -1 && selectedStartTime === -1;
 
@@ -81,18 +87,19 @@ const AddSectionContainer = ({
 
                 setSelectedSubjects(program[selectedYearLevel].subjects || []);
                 setFixedDays(program[selectedYearLevel].fixedDays || {});
-                setFixedPositions(
-                    program[selectedYearLevel].fixedPositions || {}
-                );
-                setAdditionalScheds(
-                    program[selectedYearLevel].additionalScheds || []
-                );
+                setFixedPositions(program[selectedYearLevel].fixedPositions || {});
+                setAdditionalScheds(program[selectedYearLevel].additionalScheds || []);
                 setSelectedShift(program[selectedYearLevel].shift || 0);
-                setSelectedStartTime(program[selectedYearLevel].startTime || -1);
-                setSelectedEndTime(program[selectedYearLevel].endTime || -1);
+                setSelectedStartTime(getTimeSlotString(program[selectedYearLevel].startTime) || '06:00 AM');
+                setSelectedEndTime(getTimeSlotString(program[selectedYearLevel].endTime) || '06:00 PM');
             }
         }
     }, [selectedProgram, selectedYearLevel, programs]);
+
+    useEffect(() => {
+        console.log('selectedShift: ', selectedShift);
+        console.log('selectedStartTime: ', selectedStartTime);
+    }, [selectedShift, selectedStartTime]);
 
 // ===================================================================================================
 
@@ -236,7 +243,7 @@ const AddSectionContainer = ({
                     fixedDays: fixedDays,
                     fixedPositions: fixedPositions,
                     shift: selectedShift,
-                    startTime: selectedStartTime,
+                    startTime: getTimeSlotIndex(selectedStartTime || '06:00 AM'),
                     endTime: selectedEndTime,
                     additionalScheds: additionalScheds,
                     roomDetails: roomDetails,
@@ -264,24 +271,57 @@ const AddSectionContainer = ({
 
 // ===================================================================================================
 
-    const handleAddAdditionalSchedule = () => {
-        setAdditionalScheds((prevScheds) => [
-            ...prevScheds,
-            {
-                name: '',
-                subject: -1,
-                duration: 60,
-                frequency: 1,
-                shown: true,
-            },
-        ]);
-    };
+    // End Times
+        const handleEndTimeChange = () => {
+            if (selectedSubjects.length === 0) return;
 
-    const handleDeleteAdditionalSchedule = (index) => {
-        setAdditionalScheds((prevScheds) =>
-            prevScheds.filter((_, i) => i !== index)
-        );
-    };
+            const startTimeIdx = getTimeSlotIndex(selectedStartTime);
+            const breakTimeCount = selectedSubjects.length > 10 ? 2 : 1;
+
+            let totalDuration = breakTimeCount * breakTimeDuration;
+
+            selectedSubjects.forEach((subId) => {
+                totalDuration += subjects[subId].classDuration;
+            });
+
+            const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
+
+            if (!getTimeSlotString(endTimeIdx)) {
+                setIsEndTimeValid(false);
+                return;
+            }
+
+            setIsEndTimeValid(true);
+
+            setSelectedEndTime(endTimeIdx);
+        };
+    
+        useEffect(() => {
+            if (selectedSubjects.length === 0) return;
+    
+            handleEndTimeChange();
+        }, [selectedSubjects, selectedStartTime, breakTimeDuration]);
+
+
+    // Additional Schedules
+        const handleAddAdditionalSchedule = () => {
+            setAdditionalScheds((prevScheds) => [
+                ...prevScheds,
+                {
+                    name: '',
+                    subject: -1,
+                    duration: 60,
+                    frequency: 1,
+                    shown: true,
+                },
+            ]);
+        };
+
+        const handleDeleteAdditionalSchedule = (index) => {
+            setAdditionalScheds((prevScheds) =>
+                prevScheds.filter((_, i) => i !== index)
+            );
+        };
 
 // ===================================================================================================
 
@@ -294,7 +334,8 @@ const AddSectionContainer = ({
         setSelectedAdviser('');
         setSelectedSubjects([]);
         setSelectedShift(0);
-        setSelectedStartTime(0);
+        setSelectedStartTime('');
+        setSelectedEndTime('');
         setFixedDays({});
         setFixedPositions({});
         setAdditionalScheds([]);
@@ -435,6 +476,60 @@ const AddSectionContainer = ({
                     ))}
                 </select>
             </div>
+
+            {/* Section Shift */}
+            <div className="mt-5">
+                <label className="mr-2">Shift:</label>
+                <label className="mr-2">
+                    <input
+                        type="radio"
+                        value={selectedShift}
+                        checked={selectedShift === 0}
+                        onChange={() => {
+                            setSelectedShift(0); // PM shift
+                            setSelectedStartTime('06:00 AM'); // Reset to default AM start time
+                        }}
+                    />
+                    AM
+                </label>
+                <label>
+                    <input
+                        type="radio"
+                        value={selectedShift}
+                        checked={selectedShift === 1}
+                        onChange={() => {
+                            setSelectedShift(1); // PM shift
+                            setSelectedStartTime('01:00 PM'); // Reset to default PM start time
+                        }}
+                    />
+                    PM
+                </label>
+            </div>
+
+            {/* Section Start Time (AM or PM) */}
+            <div className="mt-2 flex flex-wrap">
+                <label className="w-1/4 mr-2 p-2 text-sm flex items-center justify-end font-bold">
+                    START TIME  
+                </label>
+                <div className='w-2/3 pl-2'>
+                    <TimeSelector 
+                        key={`start-time-section(0)`}
+                        interval={5}
+                        time={selectedStartTime}
+                        setTime={setSelectedStartTime}
+                        am={selectedShift === 0 ? 1 : 0}
+                        pm={selectedShift === 1 ? 1 : 0} 
+                    />
+                </div>
+                {!isEndTimeValid && (
+                    <div
+                        className='w-auto flex ml-2 items-center tooltip text-red-500'
+                        data-tip='Total class time exceeds the day, consider adjusting the start time.'
+                    >
+                        <IoWarningSharp size={35} />
+                    </div>
+                )}
+            </div>
             
             {/* Room Details */}
             <div className='mt-3'>
@@ -483,6 +578,7 @@ const AddSectionContainer = ({
                         />
                     </div>
 
+                    
                     <div className='w-1/4 flex justify-start items-end'>
                         <button 
                             className={`btn btn-primary btn-sm}`}
@@ -510,7 +606,7 @@ const AddSectionContainer = ({
                         viewMode={0}
                         roomDetails={roomDetails}
                         setRoomDetails={setRoomDetails}
-                        startTime={selectedStartTime}
+                        startTime={getTimeSlotIndex(selectedStartTime)}
                         endTime={selectedEndTime}
                     />
                 </div>
@@ -715,7 +811,7 @@ const AddSectionContainer = ({
                 <button className="btn btn-secondary" onClick={handleReset}>
                     Reset
                 </button>
-                <button className="btn btn-primary" onClick={handleAddEntry}>
+                <button className="btn btn-primary" onClick={handleAddEntry} disabled={!isEndTimeValid}>
                     Add Section
                 </button>
             </div>

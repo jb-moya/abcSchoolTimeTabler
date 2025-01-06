@@ -29,7 +29,12 @@ import DeleteData from '../DeleteData';
 import SectionEdit from './SectionEdit';
 
 
-const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editable = false }) => {
+const SectionListContainer = ({ 
+    numOfSchoolDays: externalNumOfSchoolDays, 
+    editable = false,
+    breakTimeDuration: externalBreakTimeDuration, 
+}) => {
+
     const dispatch = useDispatch();
 
     //  =======================================================================================
@@ -49,6 +54,25 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
         return externalNumOfSchoolDays ?? (Number(localStorage.getItem('numOfSchoolDays')) || 0);
     });
+
+    const [breakTimeDuration, setBreakTimeDuration] = useState(() => {
+        return (
+            externalBreakTimeDuration ??
+            (Number(localStorage.getItem('breakTimeDuration')) || 0)
+        );
+    });
+
+    useEffect(() => {
+        if (externalNumOfSchoolDays !== undefined) {
+            setNumOfSchoolDays(externalNumOfSchoolDays);
+        }
+    }, [externalNumOfSchoolDays]);
+
+    useEffect(() => {
+        if (externalBreakTimeDuration !== undefined) {
+            setBreakTimeDuration(externalBreakTimeDuration);
+        }
+    }, [externalBreakTimeDuration]);
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState([]);
@@ -571,6 +595,7 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                         errorField={errorField}
                                         setErrorField={setErrorField}
                                         numOfSchoolDays={numOfSchoolDays}
+                                        breakTimeDuration={breakTimeDuration}
                                     />
                                     <div className='modal-action'>
                                         <button
@@ -877,6 +902,7 @@ const SectionListContainer = ({ numOfSchoolDays: externalNumOfSchoolDays, editab
                                                         errorField={errorField}
                                                         setErrorField={setErrorField}
                                                         numOfSchoolDays={numOfSchoolDays}
+                                                        breakTimeDuration={breakTimeDuration}
                                                     />
 
                                                     <DeleteData
