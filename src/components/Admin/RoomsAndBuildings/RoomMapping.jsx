@@ -9,7 +9,7 @@ import { IoAdd, IoSearch, IoTrashBin } from 'react-icons/io5';
 import debounce from 'debounce';
 import { toast } from 'sonner';
 import NearbyBuildingDropdown from './nearbyBuildingDropdown';
-import { CiImageOff } from 'react-icons/ci';
+import { PiBuildingApartment } from 'react-icons/pi';
 
 const AddBuildingContainer = ({ close, setErrorMessage, setErrorField, errorMessage, errorField }) => {
     const dispatch = useDispatch();
@@ -216,7 +216,7 @@ const AddBuildingContainer = ({ close, setErrorMessage, setErrorField, errorMess
                         </div>
                     ) : (
                         <div className='flex justify-center rounded-md items-center w-full h-full opacity-50'>
-                            <CiImageOff size={100} />
+                            <PiBuildingApartment size={100} />
                         </div>
                     )}
                 </div>
@@ -775,7 +775,7 @@ const RoomListContainer = ({ editable = false }) => {
                                 />
                             ) : (
                                 <div className='flex justify-center rounded-md items-center w-full h-40 opacity-50'>
-                                    <CiImageOff size={100} />
+                                    <PiBuildingApartment size={100} />
                                 </div>
                             )}
                             <h2 className='text-lg font-bold mb-2'>{building.name}</h2>
@@ -829,7 +829,7 @@ const RoomListContainer = ({ editable = false }) => {
                                 </div>
                             ) : (
                                 <div className='flex justify-center rounded-md items-center w-full h-full opacity-50'>
-                                    <CiImageOff size={100} />
+                                    <PiBuildingApartment size={100} />
                                 </div>
                             )}
                         </div>
