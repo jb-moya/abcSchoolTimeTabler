@@ -791,7 +791,7 @@ const ProgramEdit = ({
                                                 <h3 className='font-bold'>{`Grade ${grade}`}</h3>
 
                                                 {/* Shift Selection */}
-                                                <div className='mt-2 mb-2 text-sm flex flex-wrap items-start items-center'>
+                                                <div className='mt-2 mb-2 text-sm flex flex-wrap items-start'>
                                                     <label className='w-1/4 mr-2 p-2 flex justify-end font-bold'>SHIFT</label>
                                                     <div className='flex flex-col pl-2'>
                                                         <label className='mb-1'>
@@ -911,8 +911,6 @@ const ProgramEdit = ({
                                             style={{
                                                 position: 'sticky',
                                                 top: 0,
-                                                zIndex: 1,
-                                                // backgroundColor: 'white',
                                             }}
                                         >
                                             <div className='w-9/12 font-bold p-2'>Grade {grade}</div>

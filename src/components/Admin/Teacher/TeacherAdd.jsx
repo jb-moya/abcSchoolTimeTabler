@@ -22,15 +22,11 @@ const AddTeacherContainer = ({
 }) => {
     const inputNameRef = useRef();
 
-    const { subjects, status: subjectStatus } = useSelector(
-        (state) => state.subject
-    );
+    const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
 
     const { ranks, status: rankStatus } = useSelector((state) => state.rank);
 
-    const { departments, status: departmentStatus } = useSelector(
-        (state) => state.department
-    );
+    const { departments, status: departmentStatus } = useSelector((state) => state.department);
 
     const { teachers } = useSelector((state) => state.teacher);
 
@@ -67,9 +63,7 @@ const AddTeacherContainer = ({
         }
 
         const duplicateTeacher = Object.values(teachers).find(
-            (teacher) =>
-                teacher.teacher.trim().toLowerCase() ===
-                teacherName.trim().toLowerCase()
+            (teacher) => teacher.teacher.trim().toLowerCase() === teacherName.trim().toLowerCase()
         );
 
         if (duplicateTeacher) {
@@ -139,9 +133,7 @@ const AddTeacherContainer = ({
     };
 
     const handleDeleteTeacherAdditionalSchedule = (index) => {
-        setAdditionalTeacherScheds((prevScheds) =>
-            prevScheds.filter((_, i) => i !== index)
-        );
+        setAdditionalTeacherScheds((prevScheds) => prevScheds.filter((_, i) => i !== index));
     };
 
     const handleReset = () => {
@@ -156,9 +148,7 @@ const AddTeacherContainer = ({
 
     useEffect(() => {
         if (teacherRank) {
-            const rank = Object.values(ranks).find(
-                (rank) => rank.id === teacherRank
-            );
+            const rank = Object.values(ranks).find((rank) => rank.id === teacherRank);
 
             if (rank) {
                 setAdditionalTeacherScheds(rank.additionalRankScheds);
@@ -191,48 +181,40 @@ const AddTeacherContainer = ({
     }, [dispatch, departmentStatus]);
 
     return (
-        <div className="justify-left">
-            <div className="flex justify-center mb-4">
-                <h3 className="text-xl font-bold">Add New Teacher</h3>
+        <div className='justify-left'>
+            <div className='flex justify-center mb-4'>
+                <h3 className='text-xl font-bold'>Add New Teacher</h3>
             </div>
 
             {/* Teacher Name */}
-            <div className="mb-4">
-                <label
-                    className="block text-sm font-medium mb-1"
-                    htmlFor="teacherName"
-                >
+            <div className='mb-4'>
+                <label className='block text-sm font-medium mb-1' htmlFor='teacherName'>
                     Teacher Name:
                 </label>
                 <input
-                    id="teacherName"
-                    type="text"
-                    className={`input input-bordered w-2/3 ${
-                        errorField === 'name' ? 'border-red-500' : ''
-                    }`}
+                    id='teacherName'
+                    type='text'
+                    className={`input input-bordered w-2/3 ${errorField === 'name' ? 'border-red-500' : ''}`}
                     value={teacherName}
                     onChange={(e) => setTeacherName(e.target.value)}
-                    placeholder="Enter teacher name"
-                    aria-label="Teacher Name"
+                    placeholder='Enter teacher name'
+                    aria-label='Teacher Name'
                     ref={inputNameRef}
                 />
             </div>
 
             {/* Teacher Rank */}
-            <div className="mb-4">
-                <label
-                    className="block text-sm font-medium mb-1"
-                    htmlFor="teacherRank"
-                >
+            <div className='mb-4'>
+                <label className='block text-sm font-medium mb-1' htmlFor='teacherRank'>
                     Select Rank:
                 </label>
                 <select
-                    id="teacherRank"
-                    className="input input-bordered w-2/3"
+                    id='teacherRank'
+                    className='input input-bordered w-2/3'
                     value={teacherRank || ''}
                     onChange={handleRankChange}
                 >
-                    <option value="" disabled>
+                    <option value='' disabled>
                         Select rank
                     </option>
                     {ranks && Object.keys(ranks).length > 0 ? (
@@ -248,31 +230,24 @@ const AddTeacherContainer = ({
             </div>
 
             {/* Departments */}
-            <div className="mb-4">
-                <label
-                    className="block text-sm font-medium mb-1"
-                    htmlFor="teacherDepartment"
-                >
+            <div className='mb-4'>
+                <label className='block text-sm font-medium mb-1' htmlFor='teacherDepartment'>
                     Select Department:
                 </label>
                 <select
-                    id="teacherDepartment"
-                    className="input input-bordered w-2/3"
+                    id='teacherDepartment'
+                    className='input input-bordered w-2/3'
                     value={teacherDepartment || ''}
                     onChange={handleDepartmentChange}
                 >
-                    <option value="" disabled>
+                    <option value='' disabled>
                         Select department
                     </option>
                     {departments && Object.keys(departments).length > 0 ? (
                         Object.values(departments).map((department) => (
                             <option key={department.id} value={department.id}>
                                 {`${department.name || ''}${
-                                    teachers[department.head]?.teacher
-                                        ? ` - ${
-                                              teachers[department.head]?.teacher
-                                          }`
-                                        : ''
+                                    teachers[department.head]?.teacher ? ` - ${teachers[department.head]?.teacher}` : ''
                                 }`}
                             </option>
                         ))
@@ -283,31 +258,21 @@ const AddTeacherContainer = ({
             </div>
 
             {/* Assigning of Subjects and Grade Levels to Teach */}
-            <div className="flex flex-wrap mb-4">
-                <div className="w-1/2 flex flex-col items-center justify-center">
-                    <div className="w-5/6 flex flex-wrap bg-gray-200 rounded-t-lg">
-                        <div className="w-5/12 flex items-center justify-center font-bold">
-                            Subjects
-                        </div>
+            <div className='flex flex-wrap mb-4'>
+                <div className='w-1/2 flex border border-base-content border-opacity-20 rounded-lg flex-col items-center justify-center'>
+                    <div className='w-5/6 flex flex-wrap rounded-t-lg'>
+                        <div className='w-5/12 flex items-center justify-center font-bold'>Subjects</div>
                         <div>
-                            <SearchableDropdownToggler
-                                selectedList={selectedSubjects}
-                                setSelectedList={setSelectedSubjects}
-                            />
+                            <SearchableDropdownToggler selectedList={selectedSubjects} setSelectedList={setSelectedSubjects} />
                         </div>
                     </div>
-                    <div className="w-5/6 p-2 border border-gray-200 rounded-b-lg ">
-                        <div className="flex flex-wrap gap-2 p-1 bg-gray-100">
+                    <div className='w-5/6 p-2 rounded-b-lg '>
+                        <div className='flex flex-wrap gap-2 p-1 '>
                             {selectedSubjects.length === 0 ? (
-                                <span className="w-full text-gray-500 mt-1">
-                                    No subjects selected
-                                </span>
+                                <span className='w-full text-gray-500 mt-1'>No subjects selected</span>
                             ) : (
                                 selectedSubjects.map((subjectID) => (
-                                    <div
-                                        key={subjectID}
-                                        className="p-1 bg-green-700 text-white rounded-lg"
-                                    >
+                                    <div key={subjectID} className='p-1 bg-green-700 rounded-lg'>
                                         {subjects[subjectID].subject}
                                     </div>
                                 ))
@@ -315,59 +280,51 @@ const AddTeacherContainer = ({
                         </div>
                     </div>
                 </div>
-                <div className="w-1/2 flex justify-center">
-                    <div className="w-5/6">
-                        <div className="p-2 font-bold bg-gray-200 rounded-t-lg">
+                <div className='w-1/2 flex justify-center '>
+                    <div className='w-5/6'>
+                        <div className='p-2 font-boldrounded-t-lg rounded-t-lg bg-base-200 border border-base-content border-opacity-20'>
                             Grade Levels to Teach
                         </div>
-                        <div className="flex flex-col items-center justify-center border border-gray-200 rounded-b-lg">
-                            <div className="w-1/3 flex justify-start">
+                        <div className='flex flex-col items-center justify-center border border-base-content border-opacity-20 rounded-b-lg'>
+                            <div className='w-1/3 flex justify-start'>
                                 <label>
                                     <input
-                                        type="checkbox"
+                                        type='checkbox'
                                         checked={assignedYearLevels.includes(0)}
-                                        onChange={() =>
-                                            handleYearLevelChange(0)
-                                        }
+                                        onChange={() => handleYearLevelChange(0)}
                                     />
                                     Grade 7
                                 </label>
                             </div>
 
-                            <div className="w-1/3 flex justify-start">
+                            <div className='w-1/3 flex justify-start'>
                                 <label>
                                     <input
-                                        type="checkbox"
+                                        type='checkbox'
                                         checked={assignedYearLevels.includes(1)}
-                                        onChange={() =>
-                                            handleYearLevelChange(1)
-                                        }
+                                        onChange={() => handleYearLevelChange(1)}
                                     />
                                     Grade 8
                                 </label>
                             </div>
 
-                            <div className="w-1/3 flex justify-start">
+                            <div className='w-1/3 flex justify-start'>
                                 <label>
                                     <input
-                                        type="checkbox"
+                                        type='checkbox'
                                         checked={assignedYearLevels.includes(2)}
-                                        onChange={() =>
-                                            handleYearLevelChange(2)
-                                        }
+                                        onChange={() => handleYearLevelChange(2)}
                                     />
                                     Grade 9
                                 </label>
                             </div>
 
-                            <div className="w-1/3 flex justify-start">
+                            <div className='w-1/3 flex justify-start'>
                                 <label>
                                     <input
-                                        type="checkbox"
+                                        type='checkbox'
                                         checked={assignedYearLevels.includes(3)}
-                                        onChange={() =>
-                                            handleYearLevelChange(3)
-                                        }
+                                        onChange={() => handleYearLevelChange(3)}
                                     />
                                     Grade 10
                                 </label>
@@ -378,57 +335,49 @@ const AddTeacherContainer = ({
             </div>
 
             {/* Additional Teacher Schedules */}
-            <div className="flex flex-col items-center justify-center p-1 rounded-lg">
-                <div className="w-2/3 p-1 block text-sm font-medium">
+            <div className='flex flex-col items-center justify-center p-1 rounded-lg'>
+                <div className='w-2/3 p-1 block text-sm font-medium'>
                     Additional Teacher Schedules
                     <b> (Optional) </b>:
                 </div>
 
-                <div className="mt-2 w-2/3 h-auto flex justify-end items-center border border-gray-300 rounded-t-lg">
+                <div className='mt-2 w-2/3 h-auto flex justify-end items-center border  rounded-t-lg'>
                     {/* Button to add schedules */}
                     <button
                         onClick={handleAddTeacherAdditionalSchedules}
-                        className="font-bold items-right text-xs m-1 bg-blue-900 text-white px-2 py-1 rounded-lg hover:bg-blue-600"
+                        className='font-bold items-right text-xs m-1 bg-blue-900  px-2 py-1 rounded-lg hover:bg-blue-600'
                     >
                         + Add Schedule
                     </button>
                 </div>
 
                 <div
-                    className="overflow-y-auto w-2/3 min-h-5 max-h-36 border border-gray-300 rounded-b-lg"
+                    className='overflow-y-auto w-2/3 min-h-5 max-h-36 border  rounded-b-lg'
                     style={{
                         scrollbarWidth: 'thin',
                         scrollbarColor: '#a0aec0 #edf2f7',
                     }} // Optional for styled scrollbars
                 >
                     {additionalTeacherScheds.map((sched, index) => (
-                        <div key={index} className="flex flex-wrap">
+                        <div key={index} className='flex flex-wrap border-b'>
                             <button
-                                className="w-1/12 border rounded-l-lg hover:bg-gray-200 flex items-center justify-center"
-                                onClick={() =>
-                                    handleDeleteTeacherAdditionalSchedule(index)
-                                }
+                                className='w-1/12  rounded-lg hover:text-error hover:bg-base-200 flex items-center justify-center'
+                                onClick={() => handleDeleteTeacherAdditionalSchedule(index)}
                             >
                                 <RiDeleteBin7Line size={15} />
                             </button>
-                            <div className="w-10/12">
+                            <div className='w-10/12'>
                                 <button
-                                    className="w-full bg-gray-100 p-2 border shadow-sm hover:bg-gray-200"
+                                    className='w-full  p-2  shadow-sm '
                                     onClick={() =>
-                                        document
-                                            .getElementById(
-                                                `add_additional_sched_modal_1_teacher-0_idx-${index}`
-                                            )
-                                            .showModal()
+                                        document.getElementById(`add_additional_sched_modal_1_teacher-0_idx-${index}`).showModal()
                                     }
                                 >
                                     {sched.name ? (
                                         // Content to show when both are not empty
                                         <>
                                             <p>Name: {sched.name}</p>
-                                            <p>
-                                                Subject:{' '}{sched.subject === -1 ? 'N/A' : subjects[sched.subject].subject}
-                                            </p>
+                                            <p>Subject: {sched.subject === -1 ? 'N/A' : subjects[sched.subject].subject}</p>
                                         </>
                                     ) : (
                                         // Content to show when either is empty
@@ -442,14 +391,11 @@ const AddTeacherContainer = ({
                                     additionalSchedsOfTeacher={sched}
                                 />
                             </div>
-                            <div className="w-1/12  flex items-center justify-center border rounded-r-lg hover:bg-gray-200">
+                            <div className='w-1/12 flex items-center rounded-lg '>
                                 <button
+                                    className='w-full flex items-center justify-center h-full text-center hover:text-error hover:bg-base-200'
                                     onClick={() =>
-                                        document
-                                            .getElementById(
-                                                `add_additional_sched_modal_0_teacher-0_idx-${index}`
-                                            )
-                                            .showModal()
+                                        document.getElementById(`add_additional_sched_modal_0_teacher-0_idx-${index}`).showModal()
                                     }
                                 >
                                     <RiEdit2Fill size={15} />
@@ -461,9 +407,7 @@ const AddTeacherContainer = ({
                                     teacherSubjects={selectedSubjects}
                                     numOfSchoolDays={numOfSchoolDays}
                                     additionalSchedsOfTeacher={sched}
-                                    setAdditionalScheds={
-                                        setAdditionalTeacherScheds
-                                    }
+                                    setAdditionalScheds={setAdditionalTeacherScheds}
                                 />
                             </div>
                         </div>
@@ -471,24 +415,16 @@ const AddTeacherContainer = ({
                 </div>
             </div>
 
-            {errorMessage && (
-                <p className="text-red-500 text-sm my-4 font-medium select-none ">
-                    {errorMessage}
-                </p>
-            )}
+            {errorMessage && <p className='text-red-500 text-sm my-4 font-medium select-none '>{errorMessage}</p>}
 
-            <div className="flex justify-center gap-2 mt-4">
-                <button
-                    className="btn btn-primary"
-                    onClick={handleAddTeacher}
-                >
+            <div className='flex justify-center gap-2 mt-4'>
+                <button className='btn btn-primary' onClick={handleAddTeacher}>
                     Add Teacher
                 </button>
-                <button className="btn btn-error" onClick={handleReset}>
+                <button className='btn btn-error' onClick={handleReset}>
                     Reset
                 </button>
             </div>
-
         </div>
     );
 };
