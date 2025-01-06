@@ -20,6 +20,7 @@ const ForTest = ({ hashMap }) => {
     const [errorCount, setErrorCount] = useState(0);
     const [loading, setLoading] = useState(false);
     const [addClicked, setAddClicked] = useState(false);
+    const [overlapsDisplay, setOverlapsDisplay] = useState([]);
 
     const [timeSlots, setTimeSlots] = useState([]);
     const [tableHeight, setTableHeight] = useState(0);
@@ -115,6 +116,7 @@ const ForTest = ({ hashMap }) => {
     useEffect(() => {
         const overlaps = detectOverlaps(valueMap);
         // console.log('overlaps', overlaps);
+        setOverlapsDisplay(overlaps);
         const resolvedMap = updateOverlapFields(overlaps);
         // console.log('resolvedmap: ', resolvedMap);
         setValueMap(resolvedMap);
@@ -181,8 +183,8 @@ const ForTest = ({ hashMap }) => {
                         currentCell.overlap = true;
                         nextCell.overlap = true;
 
-                        const currentKey = [tableKey, currentCell.cellKey];
-                        const nextKey = [tableKey, nextCell.cellKey];
+                        const currentKey = [tableKey, currentCell.cellKey, currentCell.type];
+                        const nextKey = [tableKey, nextCell.cellKey, nextCell.type];
 
                         if (!overlappingCells.some(([t, c]) => t === tableKey && c === currentCell.cellKey)) {
                             overlappingCells.push(currentKey);
@@ -214,7 +216,7 @@ const ForTest = ({ hashMap }) => {
 
                     const cell = table.get(keyToFind); // Use cellId directly to access the cell in each table
                     if (cell) {
-                        const currentKey = [tableKey, cell.dynamicID];
+                        const currentKey = [tableKey, cell.dynamicID, cell.type];
                         if (!overlappingCells.some(([t, c]) => t === tableKey && c === cell.dynamicID)) {
                             additionalOverlaps.push(currentKey);
                         }
@@ -295,9 +297,10 @@ const ForTest = ({ hashMap }) => {
                 setSearch(targetTableId);
                 setSearchField(targetTableId);
                 break;
-            } else {
-                console.error('no table found');
             }
+        }
+        if (!targetTableId) {
+            console.error('No table found');
         }
     };
 
@@ -386,36 +389,51 @@ const ForTest = ({ hashMap }) => {
         setValueMap(resolvedMap);
     }, []);
 
+    const handleErrorClick = () => {
+        const modal = document.getElementById('my_modal_3');
+        if (modal) {
+            modal.showModal();
+        }
+    };
+
+    const handleButtonErrorClick = (error) => {
+        setCurrentPage(1);
+        setSearch(error);
+        setSearchField(error);
+    };
     return (
         Array.from(paginatedValueMap.entries()).length > 0 && (
             <div className='overflow-hidden select-none'>
                 <div className='flex flex-row space-x-5 justify-end pt-10 pr-5'>
                     <div className='pagination-buttons join justify-between items-center'>
-                        <button
-                            className='join-item btn'
-                            onClick={() => handlePageChange(currentPage - 1)}
-                            disabled={currentPage === 1}
-                        >
-                            «
-                        </button>
-                        {pageNumbers.map((page, index) => (
+                        <div className='min-w-[310px] flex flex-grow mr-5'>
                             <button
-                                key={index}
-                                className={`join-item btn ${currentPage === page ? 'btn-active' : ''} ${
-                                    page === null ? 'btn-disabled' : ''
-                                }`}
-                                onClick={() => handlePageChange(page)}
+                                className='join-item btn flex-grow'
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 1}
                             >
-                                {page || '...'}
+                                «
                             </button>
-                        ))}
-                        <button
-                            className='join-item btn'
-                            onClick={() => handlePageChange(currentPage + 1)}
-                            disabled={currentPage === pageNumbers[pageNumbers.length - 1]}
-                        >
-                            »
-                        </button>
+                            {pageNumbers.map((page, index) => (
+                                <button
+                                    key={index}
+                                    className={`join-item btn flex-grow ${currentPage === page ? 'btn-active' : ''} ${
+                                        page === null ? 'btn-disabled' : ''
+                                    }`}
+                                    onClick={() => handlePageChange(page)}
+                                >
+                                    {page || '...'}
+                                </button>
+                            ))}
+                            <button
+                                className='join-item btn flex-grow'
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage === pageNumbers[pageNumbers.length - 1]}
+                            >
+                                »
+                            </button>
+                        </div>
+
                         <select
                             value={itemsPerPage}
                             onChange={(e) => setItemsPerPage(Number(e.target.value))}
@@ -455,8 +473,38 @@ const ForTest = ({ hashMap }) => {
                     </button>
                 </div>
 
+                {/* Modal */}
+                <dialog id='my_modal_3' className='modal'>
+                    <div className='modal-box'>
+                        <form method='dialog'>
+                            <button className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2'>✕</button>
+                            <h3 className='font-bold text-lg'>Error Details</h3>
+                            <div className='flex flex-col space-y-1'>
+                                {Object.entries(
+                                    overlapsDisplay.reduce((acc, [error, something, type]) => {
+                                        const key = `${error}-${type}`; // Use both error and type as a unique key
+                                        if (!acc[key]) {
+                                            acc[key] = { count: 0, error, type };
+                                        }
+                                        acc[key].count += 1; // Increment the count
+                                        return acc;
+                                    }, {})
+                                ).map(([key, { error, type, count }], index) => (
+                                    <button
+                                        key={index}
+                                        className='btn btn-outline capitalize'
+                                        onClick={() => handleButtonErrorClick(error)}
+                                    >
+                                        {type}: {error} (Error: {count})
+                                    </button>
+                                ))}
+                            </div>
+                        </form>
+                    </div>
+                </dialog>
+
                 <div className='flex flex-row items-center justify-between pt-10 pr-5'>
-                    <div className='flex-row justify-end'>
+                    <div className='flex-row justify-end cursor-pointer' onClick={handleErrorClick}>
                         <span className='label-text px-5'>Status:</span>
 
                         <div className={`badge ${errorCount === 0 ? 'badge-success' : 'badge-error'} gap-2`}>

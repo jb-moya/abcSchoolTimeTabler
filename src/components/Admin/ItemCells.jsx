@@ -241,8 +241,12 @@ const ItemCells = ({
         return 'MA';
     }, [cell.end]);
     const cellValue = useMemo(() => (cell.teacher ? cell.teacher : cell.section), [cell.teacher, cell.section]);
-    const cellVal = useMemo(() => (cellValue ? cellValue : 'Break'), [cellValue]);
-
+    const cellVal = useMemo(() => {
+        if (cell.teacher === null && cell.subject === null) {
+            return 'Break';
+        }
+        return cellValue ? cellValue : 'NA';
+    }, [cell.teacher, cell.section, cellValue]);
     return (
         <motion.div
             drag={!editMode} // Draggable only if editMode is false
