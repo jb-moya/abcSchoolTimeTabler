@@ -445,6 +445,7 @@ const ProgramListContainer = ({
                                                     />
                                                     <DeleteData
                                                         className="btn btn-xs btn-ghost text-red-500"
+                                                        store={'program'}
                                                         id={program.id}
                                                         reduxFunction={removeProgram}
                                                     />

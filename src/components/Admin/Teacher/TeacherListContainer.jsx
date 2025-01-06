@@ -403,6 +403,7 @@ const TeacherListContainer = ({
                                                             
                                                     <DeleteData 
                                                         id={teacher.id} 
+                                                        store={'teacher'}
                                                         reduxFunction={removeTeacher} 
                                                     />
 												</div>
