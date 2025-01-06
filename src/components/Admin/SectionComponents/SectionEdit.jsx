@@ -414,21 +414,6 @@ const SectionEdit = ({
                     <h3 className='flex justify-center text-lg font-bold mb-4'>Edit Section</h3>
                     <hr className='mb-4' />
                     <div className='p-6'>
-                        {/* Input Field for Program Name */}
-                        {/* <div className="mb-4">
-                            <label className="flex justify-center text-sm font-medium mb-2">
-                                Section Name:
-                            </label>
-                            <input
-                                type="text"
-                                className="input input-bordered w-full"
-                                value={editSectionValue}
-                                onChange={(e) =>
-                                    setEditSectionValue(e.target.value)
-                                }
-                                placeholder="Enter section name"
-                            />
-                        </div> */}
 
                         {/* Section Name */}
                         <div className='flex items-center mb-2'>
@@ -735,11 +720,10 @@ const SectionEdit = ({
                             </div>
                             {editAdditionalScheds.map(
                                 (sched, index) => (
-                                    <div>
-                                        <div
-                                            key={index}
-                                            className="flex flex-wrap"
-                                        >
+                                    <div
+                                        key={`edit-add-sched-${editSectionId}-${index}`}
+                                    >
+                                        <div className="flex flex-wrap">
                                             <button
                                                 className='w-full text-xs  p-2 shadow-sm '
                                                 onClick={() =>
@@ -795,7 +779,6 @@ const SectionEdit = ({
                                                 setAdditionalScheds={setEditAdditionalScheds}
                                             />
                                         </div>
-                                        
                                     </div>
                             ))}
                         </div>

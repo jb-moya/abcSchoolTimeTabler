@@ -452,7 +452,7 @@ const AddProgramContainer = ({
     return (
         <dialog id='add_program_modal' className='modal modal-bottom sm:modal-middle'>
             <div className='modal-box' style={{ width: '48%', maxWidth: 'none' }}>
-                <div className>
+                <div>
                     {/* Header section with centered "Add {reduxField}" */}
                     <div className='flex justify-between mb-4'>
                         <h3 className='text-lg font-bold text-center w-full'>
