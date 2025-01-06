@@ -48,7 +48,11 @@ function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
+const ExportImportDBButtons = ({ 
+    onClear, 
+    numOfSchoolDays,
+    breakTimeDuration,
+}) => {
     const dispatch = useDispatch();
 
     const [isImporting, setIsImporting] = useState(false);
@@ -604,6 +608,9 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
         // FILTER SUBJECTS
         if (normalizedData['Subjects']) {
             normalizedData['Subjects'].forEach((subject) => {
+
+                subject.subject = String(subject.subject || '').trim();
+
                 if (
                     subject.subject === '' ||
                     subject.subject === null ||
@@ -648,6 +655,9 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
         // FILTER RANKS
         if (normalizedData['Ranks']) {
             normalizedData['Ranks'].forEach((rank) => {
+
+                rank.rank = String(rank.rank || '').trim();
+
                 if (
                     rank.rank === '' ||
                     rank.rank === null ||
@@ -683,9 +693,9 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
             const grouped = normalizedData['Buildings'].reduce(
                 (acc, item) => {
                     const buildingName =
-                        item.buildingname || acc.currentBuilding;
+                        String(item.buildingname || acc.currentBuilding).trim();
                     const floor = item.floor || acc.currentFloor;
-                    const roomName = item.room;
+                    const roomName = String(item.room).trim();
 
                     if (
                         floor === '' ||
@@ -743,15 +753,6 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
 
             if (Object.values(grouped).length > 0) {
                 Object.keys(grouped).forEach((buildingName) => {
-                    // dispatch(
-                    // 	addBuilding({
-                    // 		name: buildingName,
-                    // 		floors: Object.values(grouped[buildingName]).length,
-                    // 		rooms: Object.values(grouped[buildingName]),
-                    // 		image: null,
-                    // 		nearbyBuildings: [],
-                    // 	})
-                    // )
 
                     addedBuildings.push({
                         name: buildingName,
@@ -764,6 +765,13 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
         // FILTER TEACHERS
         if (normalizedData['Teachers']) {
             normalizedData['Teachers'].forEach((teacher) => {
+
+                teacher.teacher = String(teacher.teacher || '').trim();
+                teacher.rank = String(teacher.rank || '').trim();
+                teacher.department = String(teacher.department || '').trim();
+                teacher.subjects = String(teacher.subjects || '').trim();
+                teacher.assignedyearlevels = String(teacher.assignedyearlevels || '').trim();
+
                 if (
                     teacher.teacher === '' ||
                     teacher.teacher === null ||
@@ -892,6 +900,10 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
         // FILTER DEPARTMENTS
         if (normalizedData['Departments']) {
             normalizedData['Departments'].forEach((department) => {
+
+                department.department = String(department.department || '').trim();
+                department.departmenthead = String(department.departmenthead || '').trim();
+
                 if (
                     department.department === '' ||
                     department.department === null ||
@@ -963,6 +975,21 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
         // FILTER PROGRAMS
         if (normalizedData['Programs']) {
             normalizedData['Programs'].slice(1).forEach((program) => {
+
+                program.program = String(program.program || '').trim();
+                program[7] = String(program[7] || '').trim();
+                program[8] = String(program[8] || '').trim();
+                program[9] = String(program[9] || '').trim();
+                program[10] = String(program[10] || '').trim();
+                program['__empty'] = String(program['__empty'] || '').trim();
+                // program['__empty_1'] = String(program['__empty_1'] || '').trim();
+                program['__empty_2'] = String(program['__empty_2'] || '').trim();
+                // program['__empty_3'] = String(program['__empty_3'] || '').trim();
+                program['__empty_4'] = String(program['__empty_4'] || '').trim();
+                // program['__empty_5'] = String(program['__empty_5'] || '').trim();
+                program['__empty_6'] = String(program['__empty_6'] || '').trim();
+                // program['__empty_7'] = String(program['__empty_7'] || '').trim();
+
                 if (
                     program.program === '' ||
                     program.program === null ||
@@ -1018,25 +1045,41 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                     unaddedPrograms.push([1, program]);
                     return;
                 } else {
-                    const subjIds7 = [];
-                    const fixedDays7 = {}; //add new objects for fixed days
-                    const fixedPositions7 = {}; //add new objects for fixed days
+                    // =======================================================
 
-                    const subjIds8 = [];
-                    const fixedDays8 = {};
-                    const fixedPositions8 = {};
+                        const subjIds7 = [];
+                        const fixedDays7 = {}; //add new objects for fixed days
+                        const fixedPositions7 = {}; //add new objects for fixed days
 
-                    const subjIds9 = [];
-                    const fixedDays9 = {};
-                    const fixedPositions9 = {};
+                        const subjIds8 = [];
+                        const fixedDays8 = {};
+                        const fixedPositions8 = {};
 
-                    const subjIds10 = [];
-                    const fixedDays10 = {};
-                    const fixedPositions10 = {};
+                        const subjIds9 = [];
+                        const fixedDays9 = {};
+                        const fixedPositions9 = {};
+
+                        const subjIds10 = [];
+                        const fixedDays10 = {};
+                        const fixedPositions10 = {};
+
+                    // =======================================================
+
+                        let totalDuration7 = 0;
+                        let totalDuration8 = 0;
+                        let totalDuration9 = 0;
+                        let totalDuration10 = 0;
 
                     const subjArray7 = program[7]
                         .split(',')
                         .map((subject) => subject.trim());
+
+                    if (subjArray7.length > 10) {
+                        totalDuration7 += 2 * Number(breakTimeDuration);
+                    } else {
+                        totalDuration7 += Number(breakTimeDuration);
+                    }
+                
                     subjArray7.forEach((subjectName) => {
                         let found = false; // Flag to track if the subject was found
 
@@ -1074,6 +1117,11 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                                     numOfClasses
                                 ).fill(0);
                                 found = true;
+                                
+                                totalDuration7 += Number(
+                                    addedSubjects[index]['classduration']
+                                );
+
                                 break;
                             }
                         }
@@ -1086,6 +1134,13 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                     const subjArray8 = program[8]
                         .split(',')
                         .map((subject) => subject.trim());
+
+                    if (subjArray8.length > 10) {
+                        totalDuration8 += 2 * Number(breakTimeDuration);
+                    } else {
+                        totalDuration8 += Number(breakTimeDuration);
+                    }
+
                     subjArray8.forEach((subjectName) => {
                         let found = false;
 
@@ -1123,6 +1178,11 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                                     numOfClasses
                                 ).fill(0);
                                 found = true;
+                                
+                                totalDuration8 += Number(
+                                    addedSubjects[index]['classduration']
+                                );
+
                                 break;
                             }
                         }
@@ -1135,6 +1195,13 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                     const subjArray9 = program[9]
                         .split(',')
                         .map((subject) => subject.trim());
+
+                    if (subjArray9.length > 10) {
+                        totalDuration9 += 2 * Number(breakTimeDuration);
+                    } else {
+                        totalDuration9 += Number(breakTimeDuration);
+                    }
+                    
                     subjArray9.forEach((subjectName) => {
                         let found = false; // Flag to track if the subject was found
 
@@ -1172,6 +1239,11 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                                     numOfClasses
                                 ).fill(0);
                                 found = true;
+
+                                totalDuration9 += Number(
+                                    addedSubjects[index]['classduration']
+                                );
+
                                 break;
                             }
                         }
@@ -1184,6 +1256,13 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                     const subjArray10 = program[10]
                         .split(',')
                         .map((subject) => subject.trim());
+
+                    if (subjArray10.length > 10) {
+                        totalDuration10 += 2 * Number(breakTimeDuration);
+                    } else {
+                        totalDuration10 += Number(breakTimeDuration);
+                    }
+
                     subjArray10.forEach((subjectName) => {
                         let found = false; // Flag to track if the subject was found
 
@@ -1221,6 +1300,11 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                                     numOfClasses
                                 ).fill(0);
                                 found = true;
+
+                                totalDuration10 += Number(
+                                    addedSubjects[index]['classduration']
+                                );
+
                                 break;
                             }
                         }
@@ -1320,9 +1404,26 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                             startTime9Idx === -1 ||
                             startTime10Idx === -1
                         ) {
+                            console.log('ito ba?');
                             unaddedPrograms.push([2, program]); // Start time is invalid
                             return;
                         }
+
+                        console.log('totalDuration7: ', totalDuration7);
+                        console.log('totalDuration8: ', totalDuration8);
+                        console.log('totalDuration9: ', totalDuration9);
+                        console.log('totalDuration10: ', totalDuration10);
+
+                        // END TIME
+                        totalDuration7 /= 5;
+                        totalDuration8 /= 5;
+                        totalDuration9 /= 5;
+                        totalDuration10 /= 5;
+
+                        const endTime7Idx = startTime7Idx + totalDuration7;
+                        const endTime8Idx = startTime8Idx + totalDuration8;
+                        const endTime9Idx = startTime9Idx + totalDuration9;
+                        const endTime10Idx = startTime10Idx + totalDuration10;
 
                         addedPrograms.push({
                             program: program.program,
@@ -1330,6 +1431,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                                 subjects: subjIds7,
                                 shift: shiftYear7 === 'AM' ? 0 : 1,
                                 startTime: startTime7Idx,
+                                endTime: endTime7Idx,
                                 fixedDays: fixedDays7,
                                 fixedPositions: fixedPositions7,
                                 additionalScheds: [],
@@ -1338,6 +1440,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                                 subjects: subjIds8,
                                 shift: shiftYear8 === 'AM' ? 0 : 1,
                                 startTime: startTime8Idx,
+                                endTime: endTime8Idx,
                                 fixedDays: fixedDays8,
                                 fixedPositions: fixedPositions8,
                                 additionalScheds: [],
@@ -1346,6 +1449,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                                 subjects: subjIds9,
                                 shift: shiftYear9 === 'AM' ? 0 : 1,
                                 startTime: startTime9Idx,
+                                endTime: endTime9Idx,
                                 fixedDays: fixedDays9,
                                 fixedPositions: fixedPositions9,
                                 additionalScheds: [],
@@ -1354,6 +1458,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                                 subjects: subjIds10,
                                 shift: shiftYear10 === 'AM' ? 0 : 1,
                                 startTime: startTime10Idx,
+                                endTime: endTime10Idx,
                                 fixedDays: fixedDays10,
                                 fixedPositions: fixedPositions10,
                                 additionalScheds: [],
@@ -1370,6 +1475,12 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
             const assignedRoom = [];
 
             normalizedData['Sections'].forEach((section) => {
+
+                section.sectionname = String(section.sectionname).trim().toUpperCase();
+                section.program = String(section.program).trim().toUpperCase();
+                section.adviser = String(section.adviser).trim().toUpperCase();
+                section.roomdetails = String(section.roomdetails).trim().toUpperCase();
+
                 let roomDetailsIssue = false;
 
                 if (
@@ -1385,15 +1496,6 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                     section.year === '' ||
                     section.year === null ||
                     section.year === undefined ||
-                    section.subjects === '' ||
-                    section.subjects === null ||
-                    section.subjects === undefined ||
-                    section.shift === '' ||
-                    section.shift === null ||
-                    section.shift === undefined ||
-                    section.starttime === '' ||
-                    section.starttime === null ||
-                    section.starttime === undefined ||
                     section.roomdetails === '' ||
                     section.roomdetails === null ||
                     section.roomdetails === undefined
@@ -1411,59 +1513,6 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                     unaddedSections.push([1, section]);
                     return;
                 } else {
-                    const sectionSubjects = [];
-                    const sectionFixedDays = {};
-                    const sectionFixedPositions = {};
-                    const isUnknownSubject = [];
-
-                    // Check if subjects are valid
-                    const subjArray = section.subjects
-                        .split(',')
-                        .map((subject) => subject.trim());
-                    for (let sub of subjArray) {
-                        let found = false;
-
-                        for (
-                            let index = 0;
-                            index < addedSubjects.length;
-                            index++
-                        ) {
-                            if (
-                                addedSubjects[index]['subject']
-                                    .trim()
-                                    .toLowerCase() === sub.trim().toLowerCase()
-                            ) {
-                                sectionSubjects.push(index + 1);
-                                const numOfClasses = Math.min(
-                                    Math.ceil(
-                                        Number(
-                                            addedSubjects[index][
-                                                'weeklyminutes'
-                                            ]
-                                        ) /
-                                            Number(
-                                                addedSubjects[index][
-                                                    'classduration'
-                                                ]
-                                            )
-                                    ),
-                                    numOfSchoolDays
-                                );
-                                sectionFixedDays[index + 1] = new Array(
-                                    numOfClasses
-                                ).fill(0);
-                                sectionFixedPositions[index + 1] = new Array(
-                                    numOfClasses
-                                ).fill(0);
-                                found = true;
-                                break;
-                            }
-                        }
-
-                        if (!found) {
-                            isUnknownSubject.push(sub);
-                        }
-                    }
 
                     // Check if program is valid
                     const progID = addedPrograms.findIndex(
@@ -1481,24 +1530,6 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
 
                     // Check if year is valid
                     const year = Number(section.year);
-
-                    // Check if shift is valid
-                    const shift = section.shift.trim().toUpperCase();
-
-                    // Check if start time is valid
-                    let sectionStartTime = '';
-                    if (typeof section.starttime !== 'string') {
-                        sectionStartTime = convertExcelTimeToTimeString(
-                            section.starttime
-                        );
-                    } else {
-                        sectionStartTime = section.starttime;
-                    }
-                    const startTimeIdx = getTimeSlotIndex(
-                        formatTimeWithLeadingZero(
-                            sectionStartTime.trim().toUpperCase()
-                        )
-                    );
 
                     // Check if building is valid
                     const roomDetailsMatch = section.roomdetails.match(
@@ -1601,10 +1632,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                         return;
                     }
 
-                    if (isUnknownSubject.length > 0) {
-                        unaddedSections.push([2, section]); // Unknown subject
-                        return;
-                    } else if (progID === -1 || advID === -1) {
+                    if (progID === -1 || advID === -1) {
                         unaddedSections.push([2, section]); // Unknown program or adviser
                         return;
                     } else if (assignedAdviser.includes(advID)) {
@@ -1616,13 +1644,32 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                     ) {
                         unaddedSections.push([2, section]); // Unknown year
                         return;
-                    } else if (shift !== 'AM' && shift !== 'PM') {
-                        unaddedSections.push([2, section]); // Unknown shift
-                        return;
-                    } else if (startTimeIdx === -1) {
-                        unaddedSections.push([2, section]); // Unknown start time
-                        return;
                     } else {
+                        const program = addedPrograms[progID];
+                        const sectionSubjects = program[year].subjects;
+                        const sectionFixedDays = program[year].fixedDays;
+                        const sectionFixedPositions = program[year].fixedPositions;
+                        const sectionShift = program[year].shift;
+                        const startTimeIdx = program[year].startTime;
+                        const endTimeIdx = program[year].endTime;
+
+                        let isOverlap = false;
+                        addedSections_2.forEach((section) => {
+                            if (section.roomDetails.buildingId === roomDetails.buildingId 
+                                && section.roomDetails.floorIdx === roomDetails.floorIdx 
+                                    && section.roomDetails.roomIdx === roomDetails.roomIdx) {
+                                        if (section.endTime > startTimeIdx && section.startTime < endTimeIdx) {
+                                            isOverlap = true;
+                                            return;
+                                        }
+                            }
+                        })
+                        
+                        if (isOverlap) {
+                            unaddedSections.push([1, section]); // Overlapping room
+                            return;
+                        }
+
                         addedSections.push(section);
                         addedSections_2.push({
                             section: section.sectionname,
@@ -1632,8 +1679,9 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                             subjects: sectionSubjects,
                             fixedDays: sectionFixedDays,
                             fixedPositions: sectionFixedPositions,
-                            shift: shift === 'AM' ? 0 : 1,
+                            shift: sectionShift,
                             startTime: startTimeIdx,
+                            endTime: endTimeIdx,
                             roomDetails: roomDetails,
                             additionalScheds: [],
                         });
@@ -1641,6 +1689,10 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                     }
                 }
             });
+
+            // console.log('addedSections', addedSections);
+            // console.log('addedSections_2', addedSections_2);
+            // console.log('unaddedSections', unaddedSections);
         }
 
         // ======================== ADD ALL ENTRIES TO DATABASE ======================== //
@@ -1677,31 +1729,6 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
         for (let i = 0; i < addedBuildings.length; i++) {
             const building = addedBuildings[i];
 
-            for (let j = 0; j < addedSections.length; j++) {
-                const section = addedSections[j];
-                const roomDetailsMatch = section.roomdetails.match(
-                    /\[(.*?), FLOOR (\d+)\] (.*)/
-                );
-
-                if (roomDetailsMatch) {
-                    const buildingName = roomDetailsMatch[1];
-                    const floorNumber = Number(roomDetailsMatch[2]) - 1;
-                    const roomName = roomDetailsMatch[3];
-
-                    const roomIdx = building.data[floorNumber].findIndex(
-                        (room) => room.roomName === roomName
-                    );
-
-                    // if (
-                    //     buildingName === building.name &&
-                    //     building.data[floorNumber] &&
-                    //     roomIdx !== -1
-                    // ) {
-                    //     building.data[floorNumber][roomIdx].isAvailable = false;
-                    // }
-                }
-            }
-
             dispatch(
                 addBuilding({
                     name: building.name,
@@ -1724,9 +1751,6 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                     teacher.department.trim().toLowerCase()
             );
 
-            console.log('teacher', teacher);
-            console.log('dept idx', departmentIndex);
-
             if (departmentIndex === -1) {
                 unaddedTeachers.push([2, teacher]);
                 addedTeachers.splice(i, 1);
@@ -1747,10 +1771,10 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
                 // If teacher is an adviser of a section then add an additional schedule
                 teacher.additionalTeacherScheds.push({
                     name: 'Advisory Load',
-                    subject: 0,
+                    subject: -1,
                     duration: 60,
                     frequency: numOfSchoolDays,
-                    shown: true,
+                    shown: false,
                     time: 96,
                 });
             }
@@ -1807,21 +1831,20 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays }) => {
             dispatch(addSection(section));
         }
 
-        console.log('Added sections:', addedSections);
-        console.log('Added subjects:', addedSubjects);
-        console.log('Added teachers:', addedTeachers);
-        console.log('Added programs:', addedPrograms);
-        console.log('Added ranks:', addedRanks);
-        console.log('Added buildings:', addedBuildings);
-        console.log('Added departments:', addedDepartments);
+        // console.log('Added sections:', addedSections);
+        // console.log('Added subjects:', addedSubjects);
+        // console.log('Added teachers:', addedTeachers);
+        // console.log('Added programs:', addedPrograms);
+        // console.log('Added ranks:', addedRanks);
+        // console.log('Added buildings:', addedBuildings);
+        // console.log('Added departments:', addedDepartments);
 
-        console.log('Unadded subjects: ', unaddedSubjects);
-        console.log('Unadded teachers: ', unaddedTeachers);
+        // console.log('Unadded subjects: ', unaddedSubjects);
+        // console.log('Unadded teachers: ', unaddedTeachers);
         console.log('Unadded programs: ', unaddedPrograms);
         console.log('Unadded sections: ', unaddedSections);
-        console.log('Unadded ranks: ', unaddedRanks);
-        // console.log('Unadded buildings: ', unaddedBuildings);
-        console.log('Unadded departments: ', unaddedDepartments);
+        // console.log('Unadded ranks: ', unaddedRanks);
+        // console.log('Unadded departments: ', unaddedDepartments);
     };
 
     // =======================================================================
