@@ -82,22 +82,26 @@ const ViewRooms = ({
     };
 
     const handleConfirm = () => {
-        
-        // updatedBuildings[buildingId].rooms[floorIdx][roomIdx].occupyingSections.push(sectionId);
+
+        let hasConflict = false;
 
         Object.entries(sections).forEach(([sectionId, section]) => {
             if (section.roomDetails.buildingId === buildingId && section.roomDetails.floorIdx === floorIdx && section.roomDetails.roomIdx === roomIdx) {
                 const sectionStartTime = section.startTime;
                 const sectionEndTime = section.endTime;
 
+                console.log('sectionStartTime: ', sectionStartTime, 'sectionEndTime: ', sectionEndTime);
+                console.log('selectedStartTime: ', selectedStartTime, 'selectedEndTime: ', selectedEndTime);
+
                 if (selectedEndTime > sectionStartTime && selectedStartTime < sectionEndTime) {
                     alert(`Overlapping schedules with Section ${section.section}. Consider adjusting start time.`);
+                    hasConflict = true;
                     return;
                 }
             }
         })
 
-        // dispatch(editBuilding({ buildingId: buildingId, updatedBuilding: updatedBuildings[buildingId] }));
+        if (hasConflict) return;
         
         setRoomDetails((prevDetails) => ({
             ...prevDetails,

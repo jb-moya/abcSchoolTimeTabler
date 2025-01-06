@@ -125,6 +125,7 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
                     teacherId,
                     updatedTeacher: {
                         teacher: editTeacherValue,
+                        department: editTeacherDepartment,
                         rank: editTeacherRank,
                         subjects: editTeacherCurr,
                         yearLevels: editTeacherYearLevels,
