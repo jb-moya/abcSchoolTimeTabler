@@ -73,7 +73,6 @@ const FixedScheduleMaker = ({
     numOfSchoolDays = 0,
 }) => {
     const subjectsStore = useSelector((state) => state.subject.subjects);
-    // console.log('🚀 ~ subjectsStore:', subjectsStore);
 
     const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -105,8 +104,6 @@ const FixedScheduleMaker = ({
         if (!isEqual(ranges, mergeData)) {
             setMergeData(ranges);
         }
-
-        console.log('🚀 ~ useEffect ~ ranges:', ranges);
     }, [subs, days, positions, subjectsStore, numOfSchoolDays, additionalSchedules, mergeData]);
 
     // Initialize days and positions when fixedDays or fixedPositions change
@@ -275,13 +272,6 @@ const FixedScheduleMaker = ({
         const daySlots = countSlots(subs, 'days', 'positions', targetDay, days[draggedSubjectID]?.[draggedDay]);
         const positionSlots = countSlots(subs, 'positions', 'days', targetPos, positions[draggedSubjectID]?.[draggedDay]);
 
-        // console.log(
-        //     '%c Oh my heavens! ',
-        //     'background: #222; color: #bada55',
-        //     daySlots,
-        //     positionSlots
-        // );
-
         // Validate slots
         if (daySlots === totalTimeslot && positionSlots >= numOfSchoolDays) {
             alert(`No spots left in ${dayNames[targetDay - 1]} and position ${targetPos}.`);
@@ -387,11 +377,6 @@ const FixedScheduleMaker = ({
                                         className='my-2 rounded-lg '
                                         key={`g${grade}-s${subject}`}
                                         style={{
-                                            // backgroundColor:
-                                            //     spawnColors[
-                                            //         index %
-                                            //             spawnColors.length
-                                            //     ],
                                             backgroundColor: hexToRgba(spawnColors[index % spawnColors.length], 0.1),
                                             borderWidth: '2px', // Width of the left border
                                             borderLeftStyle: 'solid', // Style of the border (solid, dashed, dotted, etc.)
@@ -408,10 +393,6 @@ const FixedScheduleMaker = ({
                                                 }}
                                             >
                                                 {subjectsStore[subject]?.subject}
-                                                {/* {
-                                                    subjectsStore[subject]
-                                                        ?.id
-                                                } */}
                                             </div>
                                             <ContainerSpawn
                                                 key={`spawn-g${grade}-s${subject}`}
@@ -453,7 +434,6 @@ const FixedScheduleMaker = ({
                                         </div>
                                     )}
                                     {/* Schedule */}
-                                    {/* {subs?.map((subject, subIndex) => ( */}
                                     {Array.from({
                                         length: totalTimeslot,
                                     }).map((_, subIndex) => (
@@ -499,59 +479,3 @@ const FixedScheduleMaker = ({
 };
 
 export default FixedScheduleMaker;
-
-{
-    /* Reserve position */
-}
-{
-    /* <ReservePosition
-                                                    key={`reservePos-g${grade}-p${subIndex + 1}`}
-                                                    editMode={editMode}
-                                                    grade={grade}
-                                                    subjectID={-1}
-                                                    day={0}
-                                                    position={subIndex + 1}
-                                                    subs={subs}
-                                                    days={days}
-                                                    setDays={setDays}
-                                                    positions={positions}
-                                                    setPositions={setPositions}
-                                                /> */
-}
-{
-    /* Reserve day */
-}
-{
-    /* {subs?.length > 0 && (
-                                            <div
-                                                key="reserveDay"
-                                                className="flex flex-wrap justify-center items-center"
-                                            >
-                                                <div className="w-20 h-10 bg-transparent border border-transparent"></div>
-
-                                                {Array.from({
-                                                    length: numOfSchoolDays,
-                                                }).map((_, index) => (
-                                                    <ReserveDay
-                                                        key={`reserveDay-g${grade}-d${
-                                                            index + 1
-                                                        }`}
-                                                        editMode={editMode}
-                                                        grade={grade}
-                                                        subjectID={-1}
-                                                        day={index + 1}
-                                                        position={0}
-                                                        subs={subs}
-                                                        days={days}
-                                                        setDays={setDays}
-                                                        positions={positions}
-                                                        setPositions={
-                                                            setPositions
-                                                        }
-                                                    />
-                                                ))}
-
-                                                <div className="w-10 h-10 bg-transparent border border-transparent"></div>
-                                            </div>
-                                        )} */
-}
