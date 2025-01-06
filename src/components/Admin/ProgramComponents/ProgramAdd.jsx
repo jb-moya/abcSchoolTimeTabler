@@ -616,23 +616,26 @@ const AddProgramContainer = ({
 
                                         {/* Render the ScheduleComponent as many times as specified */}
                                         <div
-                                            className='mt-2 overflow-y-auto max-h-36 border border-gray-300 rounded-lg'
+                                            className='mt-2 overflow-y-auto max-h-36 border border-base-content border-opacity-20 rounded-lg'
                                             style={{
                                                 scrollbarWidth: 'thin',
                                                 scrollbarColor: '#a0aec0 #edf2f7',
                                             }} // Optional for styled scrollbars
                                         >
                                             {additionalScheds[grade].map((sched, index) => (
-                                                <div key={index} className='flex flex-wrap'>
+                                                <div
+                                                    key={index}
+                                                    className='flex flex-wrap border border-base-content border-opacity-20'
+                                                >
                                                     <button
-                                                        className='w-1/12 border rounded-l-lg hover:bg-gray-200 flex items-center justify-center'
+                                                        className='w-1/12 rounded-l-lg  flex items-center justify-center hover:text-error hover:bg-base-200'
                                                         onClick={() => handleDeleteAdditionalSchedule(grade, index)}
                                                     >
                                                         <RiDeleteBin7Line size={15} />
                                                     </button>
                                                     <div className='w-10/12'>
                                                         <button
-                                                            className='w-full bg-gray-100 p-2 border shadow-sm hover:bg-gray-200'
+                                                            className='w-full p-2 shadow-sm '
                                                             onClick={() =>
                                                                 document
                                                                     .getElementById(
@@ -665,8 +668,9 @@ const AddProgramContainer = ({
                                                             additionalSchedsOfProgYear={sched}
                                                         />
                                                     </div>
-                                                    <div className='w-1/12  flex items-center justify-center border rounded-r-lg hover:bg-gray-200'>
+                                                    <div className='w-1/12 flex items-center  bg-base-100 hover:bg-base-200 justify-center'>
                                                         <button
+                                                            className='hover:text-primary'
                                                             onClick={() =>
                                                                 document
                                                                     .getElementById(

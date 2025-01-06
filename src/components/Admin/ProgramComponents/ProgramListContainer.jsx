@@ -7,6 +7,7 @@ import { fetchSubjects } from '@features/subjectSlice';
 
 import debounce from 'debounce';
 import { FcInfo } from 'react-icons/fc';
+import { FcInfo } from 'react-icons/fc';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import SearchableDropdownToggler from '../searchableDropdown';
 
@@ -31,7 +32,9 @@ const ProgramListContainer = ({
     const dispatch = useDispatch();
 
     // ==============================================================================
+    // ==============================================================================
 
+    // ==============================================================================
     // ==============================================================================
 
     const { programs, status: programStatus } = useSelector((state) => state.program);
@@ -39,12 +42,15 @@ const ProgramListContainer = ({
     const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
 
     const { sections, status: sectionStatus } = useSelector((state) => state.section);
+    const { sections, status: sectionStatus } = useSelector((state) => state.section);
 
+    // ==============================================================================
     // ==============================================================================
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
 
+    // ==============================================================================
     // ==============================================================================
 
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
@@ -52,6 +58,7 @@ const ProgramListContainer = ({
     });
 
     const [breakTimeDuration, setBreakTimeDuration] = useState(() => {
+        return externalBreakTimeDuration ?? (Number(localStorage.getItem('breakTimeDuration')) || 0);
         return externalBreakTimeDuration ?? (Number(localStorage.getItem('breakTimeDuration')) || 0);
     });
 
@@ -75,6 +82,7 @@ const ProgramListContainer = ({
         console.log('breakTimeDuration', breakTimeDuration);
     }, [breakTimeDuration]);
 
+    // ==============================================================================
     // ==============================================================================
 
     const handleClose = () => {
@@ -108,6 +116,7 @@ const ProgramListContainer = ({
         }
     }, [subjectStatus, dispatch]);
 
+    // ================================================================================
     // ================================================================================
 
     const [searchProgramResult, setSearchProgramResult] = useState(programs);
@@ -149,7 +158,9 @@ const ProgramListContainer = ({
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Object.entries(searchProgramResult).slice(indexOfFirstItem, indexOfLastItem);
+    const currentItems = Object.entries(searchProgramResult).slice(indexOfFirstItem, indexOfLastItem);
 
+    // ================================================================
     // ================================================================
 
     return (
@@ -224,6 +235,7 @@ const ProgramListContainer = ({
                                 errorField={errorField}
                                 setErrorField={setErrorField}
                                 numOfSchoolDays={numOfSchoolDays}
+                                breakTimeDuration={breakTimeDuration}
                                 breakTimeDuration={breakTimeDuration}
                             />
                         </div>

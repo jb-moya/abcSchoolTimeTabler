@@ -155,18 +155,18 @@ const AddTeacherRankContainer = ({
 					:
 				</div>
 
-				<div className='mt-2 w-2/3 h-auto flex justify-end items-center border border-gray-300 rounded-t-lg'>
+				<div className='mt-2 w-2/3 h-auto flex justify-end items-center border rounded-t-lg'>
 					{/* Button to add schedules */}
 					<button
 						onClick={handleAddTeacherAdditionalSchedules}
-						className="font-bold items-right text-xs m-1 bg-blue-900 text-white px-2 py-1 rounded-lg hover:bg-blue-600"
+						className="font-bold items-right text-xs m-1 bg-blue-900 px-2 py-1 rounded-lg hover:bg-blue-600"
 					>
 						+ Add Schedule
 					</button>
 				</div>
 
 				<div
-					className="overflow-y-auto w-2/3 min-h-5 max-h-36 border border-gray-300 rounded-b-lg"
+					className="overflow-y-auto w-2/3 min-h-5 max-h-36 border rounded-b-lg"
 					style={{
 						scrollbarWidth: 'thin',
 						scrollbarColor:
@@ -180,7 +180,7 @@ const AddTeacherRankContainer = ({
 								className="flex flex-wrap"
 							>
 								<button
-									className="w-1/12 border rounded-l-lg hover:bg-gray-200 flex items-center justify-center"
+									className="w-1/12 border rounded-l-lg flex items-center justify-center"
 									onClick={() => handleDeleteTeacherAdditionalSchedule(index)}
 								>
 									<RiDeleteBin7Line
@@ -189,7 +189,7 @@ const AddTeacherRankContainer = ({
 								</button>
 								<div className="w-10/12">
 									<button
-										className="w-full bg-gray-100 p-2 border shadow-sm hover:bg-gray-200"
+										className="w-full p-2 border shadow-sm"
 										onClick={() =>
 											document
 												.getElementById(

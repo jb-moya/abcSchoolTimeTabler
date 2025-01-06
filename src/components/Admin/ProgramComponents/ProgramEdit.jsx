@@ -8,6 +8,7 @@ import SearchableDropdownToggler from '../searchableDropdown';
 
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { IoWarningSharp } from 'react-icons/io5';
+import { IoWarningSharp } from 'react-icons/io5';
 
 import AdditionalScheduleForProgram from './AdditionalScheduleForProgram';
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
@@ -32,13 +33,18 @@ const ProgramEdit = ({
     const dispatch = useDispatch();
 
     // ==========================================================================
+    // ==========================================================================
 
+    const { programs, status: programStatus } = useSelector((state) => state.program);
     const { programs, status: programStatus } = useSelector((state) => state.program);
 
     const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
+    const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
 
     const { sections, status: sectionStatus } = useSelector((state) => state.section);
+    const { sections, status: sectionStatus } = useSelector((state) => state.section);
 
+    // ==========================================================================
     // ==========================================================================
 
     const [editProgramId, setEditProgramId] = useState('');
@@ -72,6 +78,7 @@ const ProgramEdit = ({
         9: afternoonStartTime,
         10: afternoonStartTime,
     });
+    });
 
     const [editFixedDays, setEditFixedDays] = useState({
         7: {},
@@ -98,6 +105,7 @@ const ProgramEdit = ({
         7: true,
         8: true,
         9: true,
+        9: true,
         10: true,
     });
 
@@ -108,9 +116,11 @@ const ProgramEdit = ({
     }, [editAdditionalScheds]);
 
     // ==========================================================================
+    // ==========================================================================
 
     const initializeStates = () => {
         if (!program) return;
+
 
         const editProgramCurr = {};
         const editSelectedShifts = {};
@@ -119,6 +129,7 @@ const ProgramEdit = ({
         const editFixedDays = {};
         const editFixedPositions = {};
         const editAdditionalScheds = {};
+
 
         [7, 8, 9, 10].forEach((level) => {
             editProgramCurr[level] = program[level]?.subjects || [];
@@ -129,6 +140,7 @@ const ProgramEdit = ({
             editFixedPositions[level] = program[level]?.fixedPositions || {};
             editAdditionalScheds[level] = program[level]?.additionalScheds || [];
         });
+
 
         setEditProgramId(program.id || null);
         setEditProgramValue(program.program || '');
@@ -148,6 +160,7 @@ const ProgramEdit = ({
     }, [program]);
 
     // ==========================================================================
+    // ==========================================================================
 
     const [sectionDetailsToUpdate, setSectionDetailsToUpdate] = useState({
         shiftAndStartTime: false,
@@ -156,8 +169,11 @@ const ProgramEdit = ({
     });
 
     // ==========================================================================
+    // ==========================================================================
 
     // Subjects
+    const handleSubjectSelection = (grade, selectedList) => {
+        const validCombinations = [];
     const handleSubjectSelection = (grade, selectedList) => {
         const validCombinations = [];
 
@@ -165,7 +181,14 @@ const ProgramEdit = ({
             ...prevState,
             [grade]: selectedList,
         }));
+        setEditProgramCurr((prevState) => ({
+            ...prevState,
+            [grade]: selectedList,
+        }));
 
+        const updatedFixedDays = structuredClone(editFixedDays[grade]);
+        const updatedFixedPositions = structuredClone(editFixedPositions[grade]);
+        const updatedAdditionalScheds = structuredClone(editAdditionalScheds[grade]);
         const updatedFixedDays = structuredClone(editFixedDays[grade]);
         const updatedFixedPositions = structuredClone(editFixedPositions[grade]);
         const updatedAdditionalScheds = structuredClone(editAdditionalScheds[grade]);
@@ -176,13 +199,33 @@ const ProgramEdit = ({
                 delete updatedFixedPositions[subID];
             }
         });
+        Object.keys(updatedFixedDays).forEach((subID) => {
+            if (!selectedList.includes(Number(subID))) {
+                delete updatedFixedDays[subID];
+                delete updatedFixedPositions[subID];
+            }
+        });
 
+        const filteredAdditionalScheds = updatedAdditionalScheds.filter(
+            (sched) => selectedList.includes(sched.subject) || sched.subject === -1
+        );
         const filteredAdditionalScheds = updatedAdditionalScheds.filter(
             (sched) => selectedList.includes(sched.subject) || sched.subject === -1
         );
 
         console.log('filteredAdditionalScheds', filteredAdditionalScheds);
+        console.log('filteredAdditionalScheds', filteredAdditionalScheds);
 
+        selectedList.forEach((subjectID) => {
+            if (!updatedFixedDays[subjectID]) {
+                const subject = subjects[subjectID];
+                if (subject) {
+                    const numClasses = Math.min(Math.ceil(subject.weeklyMinutes / subject.classDuration), numOfSchoolDays);
+                    updatedFixedDays[subjectID] = Array(numClasses).fill(0);
+                    updatedFixedPositions[subjectID] = Array(numClasses).fill(0);
+                }
+            }
+        });
         selectedList.forEach((subjectID) => {
             if (!updatedFixedDays[subjectID]) {
                 const subject = subjects[subjectID];
@@ -197,7 +240,17 @@ const ProgramEdit = ({
         selectedList.forEach((subID) => {
             const subjDays = updatedFixedDays[subID] || [];
             const subjPositions = updatedFixedPositions[subID] || [];
+        selectedList.forEach((subID) => {
+            const subjDays = updatedFixedDays[subID] || [];
+            const subjPositions = updatedFixedPositions[subID] || [];
 
+            subjDays.forEach((day, index) => {
+                const position = subjPositions[index];
+                if (day !== 0 && position !== 0) {
+                    validCombinations.push([day, position]);
+                }
+            });
+        });
             subjDays.forEach((day, index) => {
                 const position = subjPositions[index];
                 if (day !== 0 && position !== 0) {
@@ -209,7 +262,16 @@ const ProgramEdit = ({
         selectedList.forEach((subID) => {
             const subjDays = structuredClone(updatedFixedDays[subID]);
             const subjPositions = structuredClone(updatedFixedPositions[subID]);
+        selectedList.forEach((subID) => {
+            const subjDays = structuredClone(updatedFixedDays[subID]);
+            const subjPositions = structuredClone(updatedFixedPositions[subID]);
 
+            for (let i = 0; i < subjDays.length; i++) {
+                if (subjPositions[i] > selectedList.length || subjDays[i] > numOfSchoolDays) {
+                    subjDays[i] = 0;
+                    subjPositions[i] = 0;
+                }
+            }
             for (let i = 0; i < subjDays.length; i++) {
                 if (subjPositions[i] > selectedList.length || subjDays[i] > numOfSchoolDays) {
                     subjDays[i] = 0;
@@ -220,12 +282,23 @@ const ProgramEdit = ({
             updatedFixedDays[subID] = subjDays;
             updatedFixedPositions[subID] = subjPositions;
         });
+            updatedFixedDays[subID] = subjDays;
+            updatedFixedPositions[subID] = subjPositions;
+        });
 
         setEditFixedDays((prevState) => ({
             ...prevState,
             [grade]: updatedFixedDays, // Update only the specified grade
         }));
+        setEditFixedDays((prevState) => ({
+            ...prevState,
+            [grade]: updatedFixedDays, // Update only the specified grade
+        }));
 
+        setEditFixedPositions((prevState) => ({
+            ...prevState,
+            [grade]: updatedFixedPositions, // Update only the specified grade
+        }));
         setEditFixedPositions((prevState) => ({
             ...prevState,
             [grade]: updatedFixedPositions, // Update only the specified grade
@@ -236,23 +309,45 @@ const ProgramEdit = ({
             [grade]: filteredAdditionalScheds, // Update only the specified grade
         }));
     };
+        setEditAdditionalScheds((prevState) => ({
+            ...prevState,
+            [grade]: filteredAdditionalScheds, // Update only the specified grade
+        }));
+    };
 
     // End Time
+    const handleEndTimeChange = () => {
+        [7, 8, 9, 10].forEach((grade) => {
+            if (editProgramCurr[grade].length === 0) return;
     const handleEndTimeChange = () => {
         [7, 8, 9, 10].forEach((grade) => {
             if (editProgramCurr[grade].length === 0) return;
 
             const startTimeIdx = getTimeSlotIndex(editStartTimes[grade]);
             const breakTimeCount = editProgramCurr[grade].length > 10 ? 2 : 1;
+            const startTimeIdx = getTimeSlotIndex(editStartTimes[grade]);
+            const breakTimeCount = editProgramCurr[grade].length > 10 ? 2 : 1;
 
+            let totalDuration = breakTimeCount * breakTimeDuration;
             let totalDuration = breakTimeCount * breakTimeDuration;
 
             editProgramCurr[grade].forEach((subId) => {
                 totalDuration += subjects[subId].classDuration;
             });
+            editProgramCurr[grade].forEach((subId) => {
+                totalDuration += subjects[subId].classDuration;
+            });
 
             const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
+            const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
 
+            if (!getTimeSlotString(endTimeIdx)) {
+                setValidEndTimes((prevValidEndTimes) => ({
+                    ...prevValidEndTimes,
+                    [grade]: false,
+                }));
+                return;
+            }
             if (!getTimeSlotString(endTimeIdx)) {
                 setValidEndTimes((prevValidEndTimes) => ({
                     ...prevValidEndTimes,
@@ -265,7 +360,17 @@ const ProgramEdit = ({
                 ...prevValidEndTimes,
                 [grade]: true,
             }));
+            setValidEndTimes((prevValidEndTimes) => ({
+                ...prevValidEndTimes,
+                [grade]: true,
+            }));
 
+            setEditEndTimes((prevEndTimes) => ({
+                ...prevEndTimes,
+                [grade]: endTimeIdx || 216, // 216 = 6:00 PM
+            }));
+        });
+    };
             setEditEndTimes((prevEndTimes) => ({
                 ...prevEndTimes,
                 [grade]: endTimeIdx || 216, // 216 = 6:00 PM
@@ -275,7 +380,11 @@ const ProgramEdit = ({
 
     useEffect(() => {
         if (editProgramCurr.length === 0) return;
+    useEffect(() => {
+        if (editProgramCurr.length === 0) return;
 
+        handleEndTimeChange();
+    }, [editProgramCurr, editStartTimes, breakTimeDuration]);
         handleEndTimeChange();
     }, [editProgramCurr, editStartTimes, breakTimeDuration]);
 
@@ -285,7 +394,18 @@ const ProgramEdit = ({
             ...prevState,
             [grade]: shift,
         }));
+    const handleShiftSelection = (grade, shift) => {
+        setEditSelectedShifts((prevState) => ({
+            ...prevState,
+            [grade]: shift,
+        }));
 
+        const defaultTime = shift === 0 ? morningStartTime : afternoonStartTime;
+        setEditStartTimes((prevState) => ({
+            ...prevState,
+            [grade]: defaultTime,
+        }));
+    };
         const defaultTime = shift === 0 ? morningStartTime : afternoonStartTime;
         setEditStartTimes((prevState) => ({
             ...prevState,
@@ -309,6 +429,21 @@ const ProgramEdit = ({
             ],
         }));
     };
+    const handleAddAdditionalSchedule = (grade) => {
+        setEditAdditionalScheds((prevScheds) => ({
+            ...prevScheds,
+            [grade]: [
+                ...prevScheds[grade],
+                {
+                    name: '',
+                    subject: -1,
+                    duration: 60,
+                    frequency: 1,
+                    shown: true,
+                },
+            ],
+        }));
+    };
 
     const handleDeleteAdditionalSchedule = (grade, index) => {
         setEditAdditionalScheds((prevScheds) => ({
@@ -316,7 +451,14 @@ const ProgramEdit = ({
             [grade]: prevScheds[grade].filter((_, i) => i !== index),
         }));
     };
+    const handleDeleteAdditionalSchedule = (grade, index) => {
+        setEditAdditionalScheds((prevScheds) => ({
+            ...prevScheds,
+            [grade]: prevScheds[grade].filter((_, i) => i !== index),
+        }));
+    };
 
+    // ==========================================================================
     // ==========================================================================
 
     const updateProgramDependencies = () => {
@@ -338,6 +480,7 @@ const ProgramEdit = ({
             // Update additional schedules (if true)
             if (sectionDetailsToUpdate.additionalScheds === true)
                 newSection.additionalScheds = editAdditionalScheds[newSection.year];
+                newSection.additionalScheds = editAdditionalScheds[newSection.year];
 
             // Update fixed schedules (if true)
             if (sectionDetailsToUpdate.fixedScheds === true) {
@@ -351,6 +494,7 @@ const ProgramEdit = ({
 
                 // Early return if there are no changes
                 if (newSubs.size !== originalSubs.size || ![...newSubs].every((subjectId) => originalSubs.has(subjectId))) {
+                if (newSubs.size !== originalSubs.size || ![...newSubs].every((subjectId) => originalSubs.has(subjectId))) {
                     // Add subjects from the edited program-year to the current section
                     editProgramCurr[newSection.year].forEach((subjectId) => {
                         if (!originalSubs.has(subjectId)) {
@@ -360,6 +504,7 @@ const ProgramEdit = ({
                     });
 
                     // Remove subjects from the current section that are not in the edited program-year
+                    newSection.subjects = newSection.subjects.filter((subjectId) => newSubs.has(subjectId));
                     newSection.subjects = newSection.subjects.filter((subjectId) => newSubs.has(subjectId));
 
                     // Update the section in the sections object
@@ -382,6 +527,12 @@ const ProgramEdit = ({
                                 dayPositionMap.set(`${day}-${pos}`, true);
                             }
                         });
+                        newSection.fixedDays[subjectId].forEach((day, index) => {
+                            const pos = newSection.fixedPositions[subjectId][index];
+                            if (day !== 0 && pos !== 0 && !dayPositionMap.has(`${day}-${pos}`)) {
+                                dayPositionMap.set(`${day}-${pos}`, true);
+                            }
+                        });
                     });
 
                     // Add fixed schedules from the edited program-year to the current section
@@ -393,11 +544,16 @@ const ProgramEdit = ({
                             for (let i = 0; i < editFixedDays[newSection.year][subjectId].length; i++) {
                                 const day = editFixedDays[newSection.year][subjectId][i];
                                 const position = editFixedPositions[newSection.year][subjectId][i];
+                            for (let i = 0; i < editFixedDays[newSection.year][subjectId].length; i++) {
+                                const day = editFixedDays[newSection.year][subjectId][i];
+                                const position = editFixedPositions[newSection.year][subjectId][i];
 
                                 // Check if the day-position combination is already occupied
                                 if (day !== 0 && position !== 0 && !dayPositionMap.has(`${day}-${position}`)) {
+                                if (day !== 0 && position !== 0 && !dayPositionMap.has(`${day}-${position}`)) {
                                     newSubjDays.push(day);
                                     newSubjPositions.push(position);
+                                    dayPositionMap.set(`${day}-${position}`, true);
                                     dayPositionMap.set(`${day}-${position}`, true);
                                 }
                                 // else if (Number(day) + Number(position) === 1) {
@@ -411,6 +567,7 @@ const ProgramEdit = ({
                             }
 
                             newSection.fixedDays[subjectId] = newSubjDays;
+                            newSection.fixedPositions[subjectId] = newSubjPositions;
                             newSection.fixedPositions[subjectId] = newSubjPositions;
                         }
                     });
@@ -431,6 +588,8 @@ const ProgramEdit = ({
                             fixedPositions: newSection.fixedPositions,
                             year: newSection.year,
                             shift: newSection.shift,
+                            startTime: getTimeSlotIndex(newSection.startTime || '06:00 AM'),
+                            endTime: newSection.endTime,
                             startTime: getTimeSlotIndex(newSection.startTime || '06:00 AM'),
                             endTime: newSection.endTime,
                             additionalScheds: newSection.additionalScheds,
@@ -529,6 +688,7 @@ const ProgramEdit = ({
         const currentProgram = programs[editProgramId]?.program || '';
 
         if (editProgramValue.trim().toLowerCase() === currentProgram.trim().toLowerCase()) {
+        if (editProgramValue.trim().toLowerCase() === currentProgram.trim().toLowerCase()) {
             dispatch(
                 reduxFunction({
                     programId: editProgramId,
@@ -540,6 +700,7 @@ const ProgramEdit = ({
                             fixedPositions: editFixedPositions[7],
                             shift: editSelectedShifts[7],
                             startTime: getTimeSlotIndex(editStartTimes[7] || '06:00 AM'),
+                            startTime: getTimeSlotIndex(editStartTimes[7] || '06:00 AM'),
                             endTime: editEndTimes[7],
                             additionalScheds: editAdditionalScheds[7],
                         },
@@ -548,6 +709,7 @@ const ProgramEdit = ({
                             fixedDays: editFixedDays[8],
                             fixedPositions: editFixedPositions[8],
                             shift: editSelectedShifts[8],
+                            startTime: getTimeSlotIndex(editStartTimes[8] || '06:00 AM'),
                             startTime: getTimeSlotIndex(editStartTimes[8] || '06:00 AM'),
                             endTime: editEndTimes[8],
                             additionalScheds: editAdditionalScheds[8],
@@ -558,6 +720,7 @@ const ProgramEdit = ({
                             fixedPositions: editFixedPositions[9],
                             shift: editSelectedShifts[9],
                             startTime: getTimeSlotIndex(editStartTimes[9] || '06:00 AM'),
+                            startTime: getTimeSlotIndex(editStartTimes[9] || '06:00 AM'),
                             endTime: editEndTimes[9],
                             additionalScheds: editAdditionalScheds[9],
                         },
@@ -566,6 +729,7 @@ const ProgramEdit = ({
                             fixedDays: editFixedDays[10],
                             fixedPositions: editFixedPositions[10],
                             shift: editSelectedShifts[10],
+                            startTime: getTimeSlotIndex(editStartTimes[10] || '06:00 AM'),
                             startTime: getTimeSlotIndex(editStartTimes[10] || '06:00 AM'),
                             endTime: editEndTimes[10],
                             additionalScheds: editAdditionalScheds[10],
@@ -590,6 +754,7 @@ const ProgramEdit = ({
         } else {
             const duplicateProgram = Object.values(programs).find(
                 (program) => program.program.trim().toLowerCase() === editProgramValue.trim().toLowerCase()
+                (program) => program.program.trim().toLowerCase() === editProgramValue.trim().toLowerCase()
             );
 
             if (duplicateProgram) {
@@ -611,6 +776,7 @@ const ProgramEdit = ({
                                 fixedPositions: editFixedPositions[7],
                                 shift: editSelectedShifts[7],
                                 startTime: getTimeSlotIndex(editStartTimes[7] || '06:00 AM'),
+                                startTime: getTimeSlotIndex(editStartTimes[7] || '06:00 AM'),
                                 endTime: editEndTimes[7],
                                 additionalScheds: editAdditionalScheds[7],
                             },
@@ -619,6 +785,7 @@ const ProgramEdit = ({
                                 fixedDays: editFixedDays[8],
                                 fixedPositions: editFixedPositions[8],
                                 shift: editSelectedShifts[8],
+                                startTime: getTimeSlotIndex(editStartTimes[8] || '06:00 AM'),
                                 startTime: getTimeSlotIndex(editStartTimes[8] || '06:00 AM'),
                                 endTime: editEndTimes[8],
                                 additionalScheds: editAdditionalScheds[8],
@@ -629,6 +796,7 @@ const ProgramEdit = ({
                                 fixedPositions: editFixedPositions[9],
                                 shift: editSelectedShifts[9],
                                 startTime: getTimeSlotIndex(editStartTimes[9] || '06:00 AM'),
+                                startTime: getTimeSlotIndex(editStartTimes[9] || '06:00 AM'),
                                 endTime: editEndTimes[9],
                                 additionalScheds: editAdditionalScheds[9],
                             },
@@ -637,6 +805,7 @@ const ProgramEdit = ({
                                 fixedDays: editFixedDays[10],
                                 fixedPositions: editFixedPositions[10],
                                 shift: editSelectedShifts[10],
+                                startTime: getTimeSlotIndex(editStartTimes[10] || '06:00 AM'),
                                 startTime: getTimeSlotIndex(editStartTimes[10] || '06:00 AM'),
                                 endTime: editEndTimes[10],
                                 additionalScheds: editAdditionalScheds[10],
@@ -662,6 +831,7 @@ const ProgramEdit = ({
         }
     };
 
+    // ===========================================================================
     // ===========================================================================
 
     const resetStates = () => {
@@ -692,6 +862,10 @@ const ProgramEdit = ({
             8: program[8]?.fixedDays || {},
             9: program[9]?.fixedDays || {},
             10: program[10]?.fixedDays || {},
+            7: program[7]?.fixedDays || {},
+            8: program[8]?.fixedDays || {},
+            9: program[9]?.fixedDays || {},
+            10: program[10]?.fixedDays || {},
         });
         setEditFixedPositions({
             7: program[7]?.fixedPositions || {},
@@ -708,6 +882,7 @@ const ProgramEdit = ({
     };
 
     // ==========================================================================
+    // ==========================================================================
 
     const handleConfirmationModalClose = () => {
         setSectionDetailsToUpdate({
@@ -721,12 +896,14 @@ const ProgramEdit = ({
 
     const closeModal = () => {
         const modalCheckbox = document.getElementById(`programEdit_modal_${program.id}`);
+        const modalCheckbox = document.getElementById(`programEdit_modal_${program.id}`);
         if (modalCheckbox) {
             modalCheckbox.checked = false; // Uncheck the modal toggle
         }
         // handleReset();
     };
 
+    // ==========================================================================
     // ==========================================================================
 
     useEffect(() => {
@@ -755,7 +932,9 @@ const ProgramEdit = ({
 
     return (
         <div className='flex items-center justify-center'>
+        <div className='flex items-center justify-center'>
             {/* Trigger Button */}
+            <label htmlFor={`programEdit_modal_${program.id}`} className='btn btn-xs btn-ghost text-blue-500'>
             <label htmlFor={`programEdit_modal_${program.id}`} className='btn btn-xs btn-ghost text-blue-500'>
                 <RiEdit2Fill size={20} />
             </label>
@@ -1042,7 +1221,10 @@ const ProgramEdit = ({
 
             <dialog id={`confirm_program_edit_modal_${program.id}`} className='modal modal-bottom sm:modal-middle'>
                 <div className='modal-box' style={{ width: '30%', maxWidth: 'none' }}>
+            <dialog id={`confirm_program_edit_modal_${program.id}`} className='modal modal-bottom sm:modal-middle'>
+                <div className='modal-box' style={{ width: '30%', maxWidth: 'none' }}>
                     <div>
+                        <div className='mb-3 text-center text-lg font-bold'>Confirmation for Modifications on Program</div>
                         <div className='mb-3 text-center text-lg font-bold'>Confirmation for Modifications on Program</div>
                     </div>
 
@@ -1050,7 +1232,12 @@ const ProgramEdit = ({
                         <div className='m-2 p-2'>
                             Your modifications in this program will be saved as well in all associated sections. Please select
                             which section details you would like to update.
+                        <div className='m-2 p-2'>
+                            Your modifications in this program will be saved as well in all associated sections. Please select
+                            which section details you would like to update.
                         </div>
+                        <div className='flex justify-center items-center'>
+                            <div className='text-left'>
                         <div className='flex justify-center items-center'>
                             <div className='text-left'>
                                 <label>
@@ -1059,7 +1246,15 @@ const ProgramEdit = ({
                                         name='shift'
                                         className='mr-2'
                                         checked={sectionDetailsToUpdate.shiftAndStartTime}
+                                        type='checkbox'
+                                        name='shift'
+                                        className='mr-2'
+                                        checked={sectionDetailsToUpdate.shiftAndStartTime}
                                         onChange={(e) =>
+                                            setSectionDetailsToUpdate((prev) => ({
+                                                ...prev,
+                                                shiftAndStartTime: e.target.checked,
+                                            }))
                                             setSectionDetailsToUpdate((prev) => ({
                                                 ...prev,
                                                 shiftAndStartTime: e.target.checked,
@@ -1076,7 +1271,15 @@ const ProgramEdit = ({
                                         name='fixedScheds'
                                         className='mr-2'
                                         checked={sectionDetailsToUpdate.fixedScheds}
+                                        type='checkbox'
+                                        name='fixedScheds'
+                                        className='mr-2'
+                                        checked={sectionDetailsToUpdate.fixedScheds}
                                         onChange={(e) =>
+                                            setSectionDetailsToUpdate((prev) => ({
+                                                ...prev,
+                                                fixedScheds: e.target.checked,
+                                            }))
                                             setSectionDetailsToUpdate((prev) => ({
                                                 ...prev,
                                                 fixedScheds: e.target.checked,
@@ -1092,7 +1295,15 @@ const ProgramEdit = ({
                                         name='additionalScheds'
                                         className='mr-2'
                                         checked={sectionDetailsToUpdate.additionalScheds}
+                                        type='checkbox'
+                                        name='additionalScheds'
+                                        className='mr-2'
+                                        checked={sectionDetailsToUpdate.additionalScheds}
                                         onChange={(e) =>
+                                            setSectionDetailsToUpdate((prev) => ({
+                                                ...prev,
+                                                additionalScheds: e.target.checked,
+                                            }))
                                             setSectionDetailsToUpdate((prev) => ({
                                                 ...prev,
                                                 additionalScheds: e.target.checked,
@@ -1104,12 +1315,15 @@ const ProgramEdit = ({
                             </div>
                         </div>
                         <div className='mt-4 flex justify-center items-center gap-3'>
+                        <div className='mt-4 flex justify-center items-center gap-3'>
                             <button
+                                className='btn btn-sm bg-green-400 hover:bg-green-200'
                                 className='btn btn-sm bg-green-400 hover:bg-green-200'
                                 onClick={() => handleSaveProgramEditClick()}
                             >
                                 Confirm
                             </button>
+                            <button className='btn btn-sm' onClick={() => handleConfirmationModalClose()}>
                             <button className='btn btn-sm' onClick={() => handleConfirmationModalClose()}>
                                 Cancel
                             </button>
@@ -1117,7 +1331,9 @@ const ProgramEdit = ({
                     </div>
 
                     <div className='modal-action w-full mt-0'>
+                    <div className='modal-action w-full mt-0'>
                         <button
+                            className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2'
                             className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2'
                             onClick={handleConfirmationModalClose}
                         >

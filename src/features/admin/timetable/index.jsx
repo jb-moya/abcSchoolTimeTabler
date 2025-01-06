@@ -5989,8 +5989,16 @@ function Timetable() {
             <div className='mb-6 flex justify-between items-center'>
                 <Breadcrumbs title='Timetable' links={links} />
                 <div className='flex items-center gap-2'>
+<<<<<<< HEAD
                     <ExportImportDBButtons onClear={handleClearAndRefresh} numOfSchoolDays={numOfSchoolDays} />
 
+=======
+                    <ExportImportDBButtons 
+                        onClear={handleClearAndRefresh} 
+                        numOfSchoolDays={numOfSchoolDays} 
+                        breakTimeDuration={breakTimeDuration}
+                    />
+>>>>>>> 03f8816956ff8a2a4924be0ebed6149a2f77471e
                     <button
                         className={clsx('btn btn-primary', {
                             'cursor-not-allowed': timetableGenerationStatus === 'running',
