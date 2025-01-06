@@ -31,9 +31,7 @@ const ProgramListContainer = ({
     const dispatch = useDispatch();
 
     // ==============================================================================
-    // ==============================================================================
 
-    // ==============================================================================
     // ==============================================================================
 
     const { programs, status: programStatus } = useSelector((state) => state.program);
@@ -43,12 +41,10 @@ const ProgramListContainer = ({
     const { sections, status: sectionStatus } = useSelector((state) => state.section);
 
     // ==============================================================================
-    // ==============================================================================
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
 
-    // ==============================================================================
     // ==============================================================================
 
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
@@ -79,7 +75,6 @@ const ProgramListContainer = ({
         console.log('breakTimeDuration', breakTimeDuration);
     }, [breakTimeDuration]);
 
-    // ==============================================================================
     // ==============================================================================
 
     const handleClose = () => {
@@ -113,7 +108,6 @@ const ProgramListContainer = ({
         }
     }, [subjectStatus, dispatch]);
 
-    // ================================================================================
     // ================================================================================
 
     const [searchProgramResult, setSearchProgramResult] = useState(programs);
@@ -156,7 +150,6 @@ const ProgramListContainer = ({
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Object.entries(searchProgramResult).slice(indexOfFirstItem, indexOfLastItem);
 
-    // ================================================================
     // ================================================================
 
     return (
