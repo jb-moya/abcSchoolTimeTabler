@@ -658,25 +658,25 @@ const SectionEdit = ({
                         {/* Additional Schedules */}
                         <div
                             key={`edit-add-sched-edit-section(${editSectionId})`}
-                            className='mt-2 overflow-y-auto h-36 max-h-36 border  bg-white rounded-lg'
+                            className='mt-2 overflow-y-auto h-36 max-h-36 border bg-base-100 border-opacity-20 rounded-lg'
                             style={{
                                 scrollbarWidth: 'thin',
                                 scrollbarColor: '#a0aec0 #edf2f7',
                             }} // Optional for styled scrollbars
                         >
                             <div
-                                className='flex flex-wrap'
+                                className='flex flex-wrap bg-base-200 border-b border-opacity-20'
                                 style={{
                                     position: 'sticky',
                                     top: 0,
                                     zIndex: 1,
-                                    backgroundColor: 'white',
+                                    // backgroundColor: 'white',
                                 }}
                             >
-                                <div className='w-9/12 font-bold p-2 border-b border-gray-300'>Grade {editSectionYear}</div>
-                                <div className='w-3/12 flex justify-center items-center border-b border-gray-300'>
+                                <div className='w-9/12 font-bold p-2'>Grade {editSectionYear}</div>
+                                <div className='w-3/12 flex justify-center items-center'>
                                     <button
-                                        className='w-3/4 bg-green-700 m-2 font-bold text-white rounded-lg hover:bg-green-500'
+                                        className='w-3/4 bg-green-700 m-2 font-bold  rounded-lg'
                                         onClick={handleAddAdditionalSchedule}
                                     >
                                         +
@@ -684,16 +684,16 @@ const SectionEdit = ({
                                 </div>
                             </div>
                             {editAdditionalScheds.map((sched, index) => (
-                                <div key={index} className='flex flex-wrap'>
+                                <div key={index} className='flex flex-wrap border-b'>
                                     <button
-                                        className='w-1/12 border rounded-l-lg bg-blue-200 hover:bg-blue-100 flex items-center justify-center'
+                                        className='w-1/12 rounded-l-lg flex items-center justify-center hover:text-error hover:bg-base-200'
                                         onClick={() => handleDeleteAdditionalSchedule(index)}
                                     >
                                         <RiDeleteBin7Line size={15} />
                                     </button>
                                     <div className='w-10/12'>
                                         <button
-                                            className='w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-gray-200'
+                                            className='w-full text-xs  p-2 shadow-sm '
                                             onClick={() =>
                                                 document
                                                     .getElementById(
@@ -723,8 +723,9 @@ const SectionEdit = ({
                                             additionalSchedsOfSection={sched}
                                         />
                                     </div>
-                                    <div className='w-1/12 text-xs font-bold rounded-r-lg bg-blue-200 hover:bg-blue-100 flex text-center justify-center items-center p-2 cursor-pointer'>
+                                    <div className='w-1/12 text-xs font-bold rounded-r-lg   flex text-center justify-center items-center p-2 cursor-pointer'>
                                         <button
+                                            className='hover:text-primary'
                                             onClick={() =>
                                                 document
                                                     .getElementById(
