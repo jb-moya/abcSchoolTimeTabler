@@ -437,6 +437,8 @@ function Timetable() {
             durationUniqueAdditionalTeacherScheds,
         ]);
 
+        timeDivision = 5;
+
         console.log('🚀 ~ handleButtonClick ~ timeDivision:', timeDivision);
 
         subjectConfigurationSubjectDurationArray.forEach((duration, index) => {
@@ -456,7 +458,8 @@ function Timetable() {
         );
         console.log('🚀 ~ handleButtonClick ~ lowestSubjectDuration:', lowestSubjectDuration);
 
-        let offset = lowestSubjectDuration - 1; // what is this minus 1 magic number?????
+        // let offset = lowestSubjectDuration - 1; // what is this minus 1 magic number?????
+        let offset = 0; // what is this minus 1 magic number?????
 
         subjectConfigurationSubjectDurationArray.forEach((duration, index) => {
             let { first: subjectID, second: subjectDuration } = unpackInt32ToInt16(duration);
@@ -761,7 +764,7 @@ function Timetable() {
         const sectionConfiguration = new Int32Array([...sectionConfigurationArray]);
         const sectionSubjectConfiguration = new Int32Array([...sectionSubjectConfigurationArray]);
 
-        const maxIterations = 5000;
+        const maxIterations = 200;
         const beesPopulations = 4;
         const beesEmployed = 2;
         const beesOnlooker = 2;
@@ -892,7 +895,7 @@ function Timetable() {
             teacherMiddleTimePointGrowAllowanceForBreakTimeslot: teacherMiddleTimePointGrowAllowanceForBreakTimeslot,
             minTotalClassDurationForTwoBreaks: minTotalClassDurationForTwoBreaks,
             defaultClassDuration: defaultClassDuration,
-            offsetDuration: offset + 4,
+            offsetDuration: offset,
             resultTimetableLength: resultTimetableLength,
             resultViolationLength: resultViolationLength,
 
@@ -5983,8 +5986,11 @@ function Timetable() {
             <div className='mb-6 flex justify-between items-center'>
                 <Breadcrumbs title='Timetable' links={links} />
                 <div className='flex items-center gap-2'>
-                    <ExportImportDBButtons onClear={handleClearAndRefresh} numOfSchoolDays={numOfSchoolDays} />
-
+                    <ExportImportDBButtons
+                        onClear={handleClearAndRefresh}
+                        numOfSchoolDays={numOfSchoolDays}
+                        breakTimeDuration={breakTimeDuration}
+                    />
                     <button
                         className={clsx('btn btn-primary', {
                             'cursor-not-allowed': timetableGenerationStatus === 'running',
