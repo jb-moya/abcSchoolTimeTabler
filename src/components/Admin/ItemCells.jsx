@@ -228,14 +228,14 @@ const ItemCells = ({
     };
 
     const startTime = useMemo(() => {
-        if (cell.start) {
+        if (cell.start !== null && cell.start !== undefined) {
             return convertToTime(cell.start);
         }
         return 'NA';
     }, [cell.start]);
 
     const endTime = useMemo(() => {
-        if (cell.end) {
+        if (cell.end !== null && cell.end !== undefined) {
             return convertToTime(cell.end);
         }
         return 'MA';

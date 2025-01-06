@@ -1767,8 +1767,8 @@ function Timetable() {
                         const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
 
                         scheduleMap.set(scheduleKey, {
-                            start: schedule.start,
-                            end: schedule.end,
+                            start: schedule.start - 72,
+                            end: schedule.end - 72,
                             sectionID: schedule.section,
                             subject: type === 'section' ? schedule.fieldName1 : schedule.fieldName2,
                             subjectID: schedule.subject,
@@ -1790,8 +1790,8 @@ function Timetable() {
                     const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
                     // Add the schedule to the nested Map
                     scheduleMap.set(scheduleKey, {
-                        start: schedule.start,
-                        end: schedule.end,
+                        start: schedule.start - 72,
+                        end: schedule.end - 72,
                         sectionID: schedule.section,
                         subject: type === 'section' ? schedule.fieldName1 : schedule.fieldName2,
                         subjectID: schedule.subject,

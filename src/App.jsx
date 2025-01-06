@@ -1,7 +1,6 @@
 import React, { lazy, useEffect } from 'react';
 import './App.css';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { themeChange } from 'theme-change';
 import checkAuth from './app/auth';
 import initializeApp from './app/init';
@@ -48,7 +47,7 @@ function App() {
                     <Route path='/app/*' element={<Layout />} />
                     <Route path='/app/*' element={<Layout />} />
 
-                    <Route path='*' element={<Navigate to={token ? '/app/dashboard' : '/search'} replace />} />
+                    <Route path='*' element={<Navigate to={token ? '/app/welcome' : '/search'} replace />} />
                 </Routes>
             </Router>
         </>
