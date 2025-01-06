@@ -394,14 +394,14 @@ const TeacherRankListContainer = ({ editable = false }) => {
                                         <td>
                                             <div
                                                 key={`edit-add-sched-view-tr(${rank.id})`}
-                                                className='w-2/3 overflow-y-auto h-36 max-h-36 border rounded-lg'
+                                                className='w-2/3 overflow-y-auto h-36 max-h-36 border border-base-content border-opacity-20 rounded-lg'
                                                 style={{
                                                     scrollbarWidth: 'thin',
                                                     scrollbarColor: '#a0aec0 #edf2f7',
                                                 }} // Optional for styled scrollbars
                                             >
                                                 <div
-                                                    className='font-bold p-2 border-b bg-base-200'
+                                                    className='font-bold p-2 border-b border-base-content border-opacity-20 bg-base-200'
                                                     style={{
                                                         position: 'sticky',
                                                         top: 0,
@@ -409,7 +409,10 @@ const TeacherRankListContainer = ({ editable = false }) => {
                                                     }}
                                                 ></div>
                                                 {rank.additionalRankScheds.map((sched, index) => (
-                                                    <div key={index} className='flex flex-wrap border-b'>
+                                                    <div
+                                                        key={index}
+                                                        className='flex flex-wrap border-b border-base-content border-opacity-20'
+                                                    >
                                                         <div className='w-1/12 text-xs font-bold flex text-center justify-center items-center p-2'>
                                                             {index + 1}
                                                         </div>

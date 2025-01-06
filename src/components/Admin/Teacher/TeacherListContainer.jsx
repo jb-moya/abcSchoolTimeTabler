@@ -309,7 +309,7 @@ const TeacherListContainer = ({ editable = false }) => {
                                                 }} // Optional for styled scrollbars
                                             >
                                                 <div
-                                                    className='font-bold p-2 border-b border-base-content border-opacity-20'
+                                                    className='font-bold p-2 border-b bg-base-100 border-base-content border-opacity-20'
                                                     style={{
                                                         position: 'sticky',
                                                         top: 0,
