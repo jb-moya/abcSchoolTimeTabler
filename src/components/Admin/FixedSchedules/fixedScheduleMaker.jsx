@@ -57,13 +57,11 @@ const getSubjectsPerPosition = (subs, subjectsStore, numOfSchoolDays, additional
 
 const FixedScheduleMaker = ({
     viewingMode = 0,
-
     pvs = 0,
-
     program = 0,
     grade = 0,
     section = 0,
-
+    // totalTimeslot,
     isForSection = false,
     selectedSubjects = [],
     additionalSchedules = [],
@@ -75,7 +73,6 @@ const FixedScheduleMaker = ({
     numOfSchoolDays = 0,
 }) => {
     const subjectsStore = useSelector((state) => state.subject.subjects);
-    // console.log('🚀 ~ subjectsStore:', subjectsStore);
 
     const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -107,8 +104,6 @@ const FixedScheduleMaker = ({
         if (!isEqual(ranges, mergeData)) {
             setMergeData(ranges);
         }
-
-        console.log('🚀 ~ useEffect ~ ranges:', ranges);
     }, [subs, days, positions, subjectsStore, numOfSchoolDays, additionalSchedules, mergeData]);
 
     // Initialize days and positions when fixedDays or fixedPositions change
@@ -206,38 +201,33 @@ const FixedScheduleMaker = ({
         document
             .getElementById(
                 pvs === 0
-                    ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})`
-                    : `assign_fixed_sched_modal_section(${section})-grade(${grade})`
+                    ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})-view(${viewingMode})`
+                    : `assign_fixed_sched_modal_section(${section})-grade(${grade})-view(${viewingMode})`
             )
             .close();
+    };
+
+    const handleReset = () => {
+        setDays(produce(fixedDays, (draft) => Object.entries(draft).forEach(([subjectID, days]) => days.fill(0))));
+
+        setPositions(
+            produce(fixedPositions, (draft) => Object.entries(draft).forEach(([subjectID, positions]) => positions.fill(0)))
+        );
     };
 
     const handleCancel = () => {
         setSubs(produce(selectedSubjects, (draft) => draft));
         setDays(produce(fixedDays, (draft) => draft));
         setPositions(produce(fixedPositions, (draft) => draft));
-
-        setEditMode(false);
-        document
-            .getElementById(
-                pvs === 0
-                    ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})`
-                    : `assign_fixed_sched_modal_section(${section})-grade(${grade})`
-            )
-            .close();
     };
 
     const handleClose = () => {
-        setSubs(produce(selectedSubjects, (draft) => draft));
-        setDays(produce(fixedDays, (draft) => draft));
-        setPositions(produce(fixedPositions, (draft) => draft));
-
         setEditMode(false);
         document
             .getElementById(
                 pvs === 0
-                    ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})`
-                    : `assign_fixed_sched_modal_section(${section})-grade(${grade})`
+                    ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})-view(${viewingMode})`
+                    : `assign_fixed_sched_modal_section(${section})-grade(${grade})-view(${viewingMode})`
             )
             .close();
     };
@@ -276,13 +266,6 @@ const FixedScheduleMaker = ({
         // Calculate slots with your conditions
         const daySlots = countSlots(subs, 'days', 'positions', targetDay, days[draggedSubjectID]?.[draggedDay]);
         const positionSlots = countSlots(subs, 'positions', 'days', targetPos, positions[draggedSubjectID]?.[draggedDay]);
-
-        // console.log(
-        //     '%c Oh my heavens! ',
-        //     'background: #222; color: #bada55',
-        //     daySlots,
-        //     positionSlots
-        // );
 
         // Validate slots
         if (daySlots === totalTimeslot && positionSlots >= numOfSchoolDays) {
@@ -337,11 +320,14 @@ const FixedScheduleMaker = ({
         <dialog
             id={
                 pvs === 0
-                    ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})`
-                    : `assign_fixed_sched_modal_section(${section})-grade(${grade})`
+                    ? `assign_fixed_sched_modal_prog(${program})-grade(${grade})-view(${viewingMode})`
+                    : `assign_fixed_sched_modal_section(${section})-grade(${grade})-view(${viewingMode})`
             }
             className='modal sm:modal-middle '
-            onClose={handleCancel}
+            onClose={() => {
+                handleCancel();
+                handleClose();
+            }}
         >
             <div
                 className='modal-box relative overflow-hidden'
@@ -368,10 +354,19 @@ const FixedScheduleMaker = ({
 
                     {editMode && (
                         <div className='ml-auto pr-10 flex gap-3 justify-center'>
+                            <button className='btn btn-accent' onClick={handleReset}>
+                                Reset
+                            </button>
                             <button className='btn btn-primary' onClick={handleSave}>
                                 Save
                             </button>
-                            <button className='btn' onClick={handleCancel}>
+                            <button
+                                className='btn'
+                                onClick={() => {
+                                    handleCancel();
+                                    handleClose();
+                                }}
+                            >
                                 Cancel
                             </button>
                         </div>
@@ -389,11 +384,6 @@ const FixedScheduleMaker = ({
                                         className='my-2 rounded-lg '
                                         key={`g${grade}-s${subject}`}
                                         style={{
-                                            // backgroundColor:
-                                            //     spawnColors[
-                                            //         index %
-                                            //             spawnColors.length
-                                            //     ],
                                             backgroundColor: hexToRgba(spawnColors[index % spawnColors.length], 0.1),
                                             borderWidth: '2px', // Width of the left border
                                             borderLeftStyle: 'solid', // Style of the border (solid, dashed, dotted, etc.)
@@ -410,10 +400,6 @@ const FixedScheduleMaker = ({
                                                 }}
                                             >
                                                 {subjectsStore[subject]?.subject}
-                                                {/* {
-                                                    subjectsStore[subject]
-                                                        ?.id
-                                                } */}
                                             </div>
                                             <ContainerSpawn
                                                 key={`spawn-g${grade}-s${subject}`}
@@ -455,7 +441,6 @@ const FixedScheduleMaker = ({
                                         </div>
                                     )}
                                     {/* Schedule */}
-                                    {/* {subs?.map((subject, subIndex) => ( */}
                                     {Array.from({
                                         length: totalTimeslot,
                                     }).map((_, subIndex) => (
@@ -501,59 +486,3 @@ const FixedScheduleMaker = ({
 };
 
 export default FixedScheduleMaker;
-
-{
-    /* Reserve position */
-}
-{
-    /* <ReservePosition
-                                                    key={`reservePos-g${grade}-p${subIndex + 1}`}
-                                                    editMode={editMode}
-                                                    grade={grade}
-                                                    subjectID={-1}
-                                                    day={0}
-                                                    position={subIndex + 1}
-                                                    subs={subs}
-                                                    days={days}
-                                                    setDays={setDays}
-                                                    positions={positions}
-                                                    setPositions={setPositions}
-                                                /> */
-}
-{
-    /* Reserve day */
-}
-{
-    /* {subs?.length > 0 && (
-                                            <div
-                                                key="reserveDay"
-                                                className="flex flex-wrap justify-center items-center"
-                                            >
-                                                <div className="w-20 h-10 bg-transparent border border-transparent"></div>
-
-                                                {Array.from({
-                                                    length: numOfSchoolDays,
-                                                }).map((_, index) => (
-                                                    <ReserveDay
-                                                        key={`reserveDay-g${grade}-d${
-                                                            index + 1
-                                                        }`}
-                                                        editMode={editMode}
-                                                        grade={grade}
-                                                        subjectID={-1}
-                                                        day={index + 1}
-                                                        position={0}
-                                                        subs={subs}
-                                                        days={days}
-                                                        setDays={setDays}
-                                                        positions={positions}
-                                                        setPositions={
-                                                            setPositions
-                                                        }
-                                                    />
-                                                ))}
-
-                                                <div className="w-10 h-10 bg-transparent border border-transparent"></div>
-                                            </div>
-                                        )} */
-}

@@ -10811,7 +10811,6 @@ const AddBuildingContainer = ({
                     `${buildingName || 'room'} - ${
                         (floorIndex + 1) * 100 + i + 1
                     }`,
-                occupyingSections: [],
                 // isAvailable:
                 //     updatedRoomNames[floorIndex]?.[i]?.isAvailable || true,
             })
@@ -11353,7 +11352,6 @@ const RoomListContainer = ({ editable = false }) => {
                     `${editBuildingName || 'room'} - ${
                         (floorIndex + 1) * 100 + i + 1
                     }`,
-                occupyingSections: [],
                 // isAvailable:
                 //     updatedRoomNames[floorIndex]?.[i]?.isAvailable || true,
             })

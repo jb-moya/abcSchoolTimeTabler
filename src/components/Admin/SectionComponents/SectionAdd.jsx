@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
+import { IoWarningSharp } from "react-icons/io5";
 
 import { fetchPrograms } from '@features/programSlice';
 import { fetchSubjects } from '@features/subjectSlice';
@@ -12,7 +13,6 @@ import { toast } from 'sonner';
 import ViewRooms from '../RoomsAndBuildings/ViewRooms';
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
 import AdditionalScheduleForSection from './AdditionalScheduleForSection';
-
 
 const AddSectionContainer = ({
     close,
@@ -57,8 +57,9 @@ const AddSectionContainer = ({
     const [selectedProgram, setSelectedProgram] = useState('');
     const [selectedYearLevel, setSelectedYearLevel] = useState('');
     const [selectedSubjects, setSelectedSubjects] = useState([]);
-    const [selectedShift, setSelectedShift] = useState(0);
-    const [selectedStartTime, setSelectedStartTime] = useState(0);
+    const [selectedShift, setSelectedShift] = useState(-1);
+    const [selectedStartTime, setSelectedStartTime] = useState(-1);
+    const [selectedEndTime, setSelectedEndTime] = useState(0);
     const [fixedDays, setFixedDays] = useState({});
     const [fixedPositions, setFixedPositions] = useState({});
     const [additionalScheds, setAdditionalScheds] = useState([]);
@@ -67,6 +68,31 @@ const AddSectionContainer = ({
         floorIdx: -1,
         roomIdx: -1,
     });
+
+    const isRoomSelectionDisabled = selectedShift === -1 && selectedStartTime === -1;
+
+    useEffect(() => {
+        if (selectedProgram && selectedYearLevel) {
+            const program = Object.values(programs).find(
+                (p) => p.id === selectedProgram
+            );
+
+            if (program) {
+
+                setSelectedSubjects(program[selectedYearLevel].subjects || []);
+                setFixedDays(program[selectedYearLevel].fixedDays || {});
+                setFixedPositions(
+                    program[selectedYearLevel].fixedPositions || {}
+                );
+                setAdditionalScheds(
+                    program[selectedYearLevel].additionalScheds || []
+                );
+                setSelectedShift(program[selectedYearLevel].shift || 0);
+                setSelectedStartTime(program[selectedYearLevel].startTime || -1);
+                setSelectedEndTime(program[selectedYearLevel].endTime || -1);
+            }
+        }
+    }, [selectedProgram, selectedYearLevel, programs]);
 
 // ===================================================================================================
 
@@ -181,7 +207,7 @@ const AddSectionContainer = ({
             // Add advisory load to teacher
             const advisoryLoad = {
                 name: 'Advisory Load',
-                subject: 0,
+                subject: -1,
                 duration: 60,
                 frequency: numOfSchoolDays,
                 shown: false,
@@ -211,6 +237,7 @@ const AddSectionContainer = ({
                     fixedPositions: fixedPositions,
                     shift: selectedShift,
                     startTime: selectedStartTime,
+                    endTime: selectedEndTime,
                     additionalScheds: additionalScheds,
                     roomDetails: roomDetails,
                 })
@@ -242,11 +269,10 @@ const AddSectionContainer = ({
             ...prevScheds,
             {
                 name: '',
-                subject: 0,
+                subject: -1,
                 duration: 60,
                 frequency: 1,
                 shown: true,
-                time: selectedShift === 0 ? 192 : 96,
             },
         ]);
     };
@@ -313,27 +339,6 @@ const AddSectionContainer = ({
         console.log('additionalScheds:', additionalScheds);
     }, [additionalScheds]);
 
-    useEffect(() => {
-        if (selectedProgram && selectedYearLevel) {
-            const program = Object.values(programs).find(
-                (p) => p.id === selectedProgram
-            );
-
-            if (program) {
-                setSelectedSubjects(program[selectedYearLevel].subjects || []);
-                setFixedDays(program[selectedYearLevel].fixedDays || {});
-                setFixedPositions(
-                    program[selectedYearLevel].fixedPositions || {}
-                );
-                setAdditionalScheds(
-                    program[selectedYearLevel].additionalScheds || []
-                );
-                setSelectedShift(program[selectedYearLevel].shift || 0);
-                setSelectedStartTime(program[selectedYearLevel].startTime || 0);
-            }
-        }
-    }, [selectedProgram, selectedYearLevel, programs]);
-
 // ===================================================================================================
 
     return (
@@ -376,6 +381,56 @@ const AddSectionContainer = ({
                     {Object.keys(teachers).map((key) => (
                         <option key={teachers[key].id} value={teachers[key].id}>
                             {teachers[key].teacher}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            {/* Program */}
+            <div className="mt-3">
+                <label className="label">
+                    <span className="label-text">Select Program</span>
+                </label>
+                <select
+                    className={`select select-bordered w-full ${
+                        errorField.includes('program') ? 'border-red-500' : ''
+                    }`}
+                    value={selectedProgram}
+                    onChange={(e) =>
+                        setSelectedProgram(parseInt(e.target.value, 10))
+                    }
+                >
+                    <option value="" disabled>
+                        Select a program
+                    </option>
+                    {Object.keys(programs).map((key) => (
+                        <option key={programs[key].id} value={programs[key].id}>
+                            {programs[key].program}
+                        </option>
+                    ))}
+                </select>
+            </div>
+            
+            {/* Year Level */}
+            <div className="mt-3">
+                <label className="label">
+                    <span className="label-text">Select Year Level</span>
+                </label>
+                <select
+                    className={`select select-bordered w-full ${
+                        errorField.includes('yearLevel') ? 'border-red-500' : ''
+                    }`}
+                    value={selectedYearLevel}
+                    onChange={(e) =>
+                        setSelectedYearLevel(parseInt(e.target.value, 10))
+                    }
+                >
+                    <option value="" disabled>
+                        Select a year level
+                    </option>
+                    {[7, 8, 9, 10].map((level) => (
+                        <option key={level} value={level}>
+                            Grade {level}
                         </option>
                     ))}
                 </select>
@@ -430,69 +485,35 @@ const AddSectionContainer = ({
 
                     <div className='w-1/4 flex justify-start items-end'>
                         <button 
-                            className='btn btn-primary btn-sm'
+                            className={`btn btn-primary btn-sm}`}
                             onClick={() => document.getElementById(`view_rooms_modal_viewMode(0)_section(0)_building(0)`).showModal()}
+                            data-tip="Select a room"
+                            disabled={isRoomSelectionDisabled}
                         >
                             Select Room
                         </button>
+                        {
+                            isRoomSelectionDisabled && (
+                                <div 
+                                    className='w-auto flex ml-2 items-center tooltip text-yellow-500'
+                                    data-tip='Select program and year level first'
+                                >
+                                    <IoWarningSharp 
+                                        size={35}
+                                    />
+                                </div>
+                            )
+                        }
                     </div>
-                    
+
                     <ViewRooms
                         viewMode={0}
                         roomDetails={roomDetails}
                         setRoomDetails={setRoomDetails}
+                        startTime={selectedStartTime}
+                        endTime={selectedEndTime}
                     />
                 </div>
-            </div>
-
-            {/* Program */}
-            <div className="mt-3">
-                <label className="label">
-                    <span className="label-text">Select Program</span>
-                </label>
-                <select
-                    className={`select select-bordered w-full ${
-                        errorField.includes('program') ? 'border-red-500' : ''
-                    }`}
-                    value={selectedProgram}
-                    onChange={(e) =>
-                        setSelectedProgram(parseInt(e.target.value, 10))
-                    }
-                >
-                    <option value="" disabled>
-                        Select a program
-                    </option>
-                    {Object.keys(programs).map((key) => (
-                        <option key={programs[key].id} value={programs[key].id}>
-                            {programs[key].program}
-                        </option>
-                    ))}
-                </select>
-            </div>
-            
-            {/* Year Level */}
-            <div className="mt-3">
-                <label className="label">
-                    <span className="label-text">Select Year Level</span>
-                </label>
-                <select
-                    className={`select select-bordered w-full ${
-                        errorField.includes('yearLevel') ? 'border-red-500' : ''
-                    }`}
-                    value={selectedYearLevel}
-                    onChange={(e) =>
-                        setSelectedYearLevel(parseInt(e.target.value, 10))
-                    }
-                >
-                    <option value="" disabled>
-                        Select a year level
-                    </option>
-                    {[7, 8, 9, 10].map((level) => (
-                        <option key={level} value={level}>
-                            Grade {level}
-                        </option>
-                    ))}
-                </select>
             </div>
             
             {/* Subjects and Fixed Schedules */}
@@ -554,7 +575,7 @@ const AddSectionContainer = ({
                         onClick={() =>
                             document
                                 .getElementById(
-                                    `assign_fixed_sched_modal_section(0)-grade(${selectedYearLevel})`
+                                    `assign_fixed_sched_modal_section(0)-grade(${selectedYearLevel})-view(0)`
                                 )
                                 .showModal()
                         }
@@ -564,7 +585,7 @@ const AddSectionContainer = ({
 
                     <FixedScheduleMaker
                         key={selectedYearLevel}
-                        addingMode={0}
+                        viewingMode={0}
                         isForSection={true}
                         pvs={1}
                         section={0}
@@ -632,17 +653,12 @@ const AddSectionContainer = ({
                                                 .showModal()
                                         }
                                     >
-                                        {sched.name || sched.subject ? (
+                                        {sched.name ? (
                                             // Content to show when both are not empty
                                             <>
                                                 <p>Name: {sched.name}</p>
                                                 <p>
-                                                    Subject:{' '}
-                                                    {sched.subject === 0
-                                                        ? 'N/A'
-                                                        : subjects[
-                                                              sched.subject
-                                                          ].subject}
+                                                    Subject:{' '}{sched.subject === -1 ? 'N/A' : subjects[sched.subject].subject}
                                                 </p>
                                             </>
                                         ) : (

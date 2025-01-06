@@ -374,6 +374,7 @@ const DepartmentListContainer = ({ editable = false }) => {
                             <DeleteData
                               className="btn btn-xs btn-ghost text-red-500"
                               id={department.id}
+                              store={'department'}
                               reduxFunction={removeDepartment}
                             />
                           </div>

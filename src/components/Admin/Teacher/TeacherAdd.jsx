@@ -129,7 +129,7 @@ const AddTeacherContainer = ({
             ...prevScheds,
             {
                 name: '',
-                subject: 0,
+                subject: -1,
                 duration: 60,
                 frequency: 1,
                 shown: true,
@@ -377,6 +377,7 @@ const AddTeacherContainer = ({
                 </div>
             </div>
 
+            {/* Additional Teacher Schedules */}
             <div className="flex flex-col items-center justify-center p-1 rounded-lg">
                 <div className="w-2/3 p-1 block text-sm font-medium">
                     Additional Teacher Schedules
@@ -421,16 +422,12 @@ const AddTeacherContainer = ({
                                             .showModal()
                                     }
                                 >
-                                    {sched.name || sched.subject ? (
+                                    {sched.name ? (
                                         // Content to show when both are not empty
                                         <>
                                             <p>Name: {sched.name}</p>
                                             <p>
-                                                Subject:{' '}
-                                                {sched.subject === 0
-                                                    ? 'N/A'
-                                                    : subjects[sched.subject]
-                                                          .subject}
+                                                Subject:{' '}{sched.subject === -1 ? 'N/A' : subjects[sched.subject].subject}
                                             </p>
                                         </>
                                     ) : (

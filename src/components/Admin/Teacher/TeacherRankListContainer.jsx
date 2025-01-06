@@ -133,7 +133,6 @@ const TeacherRankListContainer = ({
 						duration: updatedSched.duration || existingSched.duration,
 						frequency: updatedSched.frequency || existingSched.frequency,
 						shown: updatedSched.shown ?? existingSched.shown,
-						time: updatedSched.time || existingSched.time,
 					};
 				}
 
@@ -419,236 +418,99 @@ const TeacherRankListContainer = ({
 								<td>{index + indexOfFirstItem + 1}</td>
 								<th>{rank.id}</th>
 								<td>
-									{editRankId === rank.id ? (
-										<input
-											type="text"
-											className="input input-bordered input-sm w-full"
-											value={editRankValue}
-											onChange={(e) => setEditRankValue(e.target.value)}
-										/>
-									) : (
-										rank.rank
-									)}
+									{rank.rank}
 								</td>
 								<td>
-									{editRankId === rank.id ? (
-										<>
-											<div
-												key={`edit-add-sched-edit-tr(${editRankId})`}
-												className="mt-2 overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg"
-												style={{
-													scrollbarWidth:
-														'thin',
-													scrollbarColor:
-														'#a0aec0 #edf2f7',
-												}} // Optional for styled scrollbars
-											>
+									<div
+										key={`edit-add-sched-view-tr(${rank.id})`}
+										className="w-2/3 overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg"
+										style={{
+											scrollbarWidth: 'thin',
+											scrollbarColor: '#a0aec0 #edf2f7',
+										}} // Optional for styled scrollbars
+									>
+										<div
+											className="font-bold p-2 border-b border-gray-300 bg-gray-300"
+											style={{
+												position: 'sticky',
+												top: 0,
+												zIndex: 1,
+											}}
+										></div>
+										{rank.additionalRankScheds.map((sched, index) =>
+											(
 												<div
+													key={index}
 													className="flex flex-wrap"
-													style={{
-														position: 'sticky',
-														top: 0,
-														zIndex: 1,
-														backgroundColor:'white',
-													}}
 												>
-													<div className="w-3/12 flex justify-center items-center border-b border-gray-300">
+													<div className="w-1/12 text-xs font-bold bg-blue-100 flex text-center justify-center items-center p-2">
+														{index + 1}
+													</div>
+													<div className="w-11/12">
 														<button
-															className="w-3/4 bg-green-700 m-2 font-bold text-white rounded-lg hover:bg-green-500"
-															onClick={handleAddAdditionalSchedule}
+															className="w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-white"
+															onClick={() =>
+																document.getElementById(`add_additional_sched_modal_1_tr-${rank.id}_idx-${index}`).showModal()
+															}
 														>
-															+
+															{sched.name ? (
+																// Content to show when both are not empty
+																<>
+																	<p>
+																		Name:{' '}{sched.name}
+																	</p>
+																	<p>
+																		Subject:{' '}{sched.subject === -1 ? 'N/A' : subjects[sched.subject].subject}
+																	</p>
+																</>
+															) : (
+																// Content to show when either is empty
+																<p>
+																	Untitled Schedule{' '}{index + 1}
+																</p>
+															)}
 														</button>
+														<AdditionalScheduleForTeacherRank
+															viewingMode={1}
+															rankID={rank.id}
+															arrayIndex={index}
+															additionalSchedsOfRank={sched}
+														/>
 													</div>
 												</div>
-												{editAdditionalRankScheds.map((sched, index) => 
-													(
-														<div
-															key={index}
-															className="flex flex-wrap"
-														>
-															<button
-																className="w-1/12 border rounded-l-lg bg-blue-200 hover:bg-blue-100 flex items-center justify-center"
-																onClick={() => handleDeleteAdditionalSchedule(index)}
-															>
-																<RiDeleteBin7Line
-																	size={15}
-																/>
-															</button>
-															<div className="w-10/12">
-																<button
-																	className="w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-gray-200"
-																	onClick={() =>
-																		document.getElementById(`add_additional_sched_modal_1_tr-${editRankId}_idx-${index}`).showModal()
-																	}
-																>
-																	{sched.name ||
-																		sched.subject ? (
-																			// Content to show when both are not empty
-																			<>
-																				<p>
-																					Name:{' '}{sched.name}
-																				</p>
-																				<p>
-																					Subject:{' '}
-																					{sched.subject === 0
-																						? 'N/A'
-																						: subjects[sched.subject].subject}
-																				</p>
-																			</>
-																		) : (
-																			// Content to show when either is empty
-																			<p>
-																				Untitled Schedule{' '}{index + 1}
-																			</p>
-																	)}
-																</button>
-																<AdditionalScheduleForTeacherRank
-																	viewingMode={1}
-																	rankID={editRankId}
-																	arrayIndex={index}
-																	additionalSchedsOfRank={sched}
-																/>
-															</div>
-															<div className="w-1/12 text-xs font-bold rounded-r-lg bg-blue-200 hover:bg-blue-100 flex text-center justify-center items-center p-2 cursor-pointer">
-																<button
-																	onClick={() =>
-																		document.getElementById(`add_additional_sched_modal_0_tr-${editRankId}_idx-${index}`).showModal()
-																	}
-																>
-																	<RiEdit2Fill
-																		size={15}
-																	/>
-																</button>
-																<AdditionalScheduleForTeacherRank
-																	viewingMode={0}
-																	rankID={editRankId}
-																	arrayIndex={index}
-																	numOfSchoolDays={numOfSchoolDays}
-																	additionalSchedsOfRank={sched}
-																	setAdditionalScheds={setEditAdditionalRankScheds}
-																/>
-															</div>
-														</div>
-													)
-												)}
-											</div>
-										</>
-									) : (
-										<>
-											<div
-												key={`edit-add-sched-view-tr(${rank.id})`}
-												className="w-2/3 overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg"
-												style={{
-													scrollbarWidth: 'thin',
-													scrollbarColor: '#a0aec0 #edf2f7',
-												}} // Optional for styled scrollbars
-											>
-												<div
-													className="font-bold p-2 border-b border-gray-300 bg-gray-300"
-													style={{
-														position: 'sticky',
-														top: 0,
-														zIndex: 1,
-													}}
-												></div>
-												{rank.additionalRankScheds.map((sched, index) =>
-													(
-														<div
-															key={index}
-															className="flex flex-wrap"
-														>
-															<div className="w-1/12 text-xs font-bold bg-blue-100 flex text-center justify-center items-center p-2">
-																{index + 1}
-															</div>
-															<div className="w-11/12">
-																<button
-																	className="w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-white"
-																	onClick={() =>
-																		document.getElementById(`add_additional_sched_modal_1_tr-${rank.id}_idx-${index}`).showModal()
-																	}
-																>
-																	{sched.name || sched.subject ? (
-																		// Content to show when both are not empty
-																		<>
-																			<p>
-																				Name:{' '}{sched.name}
-																			</p>
-																			<p>
-																				Subject:{' '}
-																				{sched.subject === 0
-																					? 'N/A'
-																					: subjects[sched.subject].subject
-																				}
-																			</p>
-																		</>
-																	) : (
-																		// Content to show when either is empty
-																		<p>
-																			Untitled Schedule{' '}
-																			{index + 1}
-																		</p>
-																	)}
-																</button>
-																<AdditionalScheduleForTeacherRank
-																	viewingMode={1}
-																	rankID={rank.id}
-																	arrayIndex={index}
-																	additionalSchedsOfRank={sched}
-																/>
-															</div>
-														</div>
-													)
-												)}
-											</div>
-										</>
-									)}
+											)
+										)}
+									</div>
 								</td>
 
 								{editable && 
 									(
 										<td className="w-28">
-											{editRankId === rank.id ? (
-												<>
-													<button
-														className="btn btn-xs btn-ghost text-green-500"
-														onClick={() => document.getElementById(`confirm_rank_edit_modal`).showModal()}
-													>
-														Save
-													</button>
-													<button
-														className="btn btn-xs btn-ghost text-red-500"
-														onClick={() => handleCancelRankEditClick()}
-													>
-														Cancel
-													</button>
-												</>
-												) : (
-												<>
-													{/* <button
-														className="btn btn-xs btn-ghost text-blue-500"
-														onClick={() => handleEditRankClick(rank)}
-													>
-														<RiEdit2Fill size={20} />
-													</button> */}
+											<>
+												{/* <button
+													className="btn btn-xs btn-ghost text-blue-500"
+													onClick={() => handleEditRankClick(rank)}
+												>
+													<RiEdit2Fill size={20} />
+												</button> */}
 
-													<TeacherRankEdit
-														rank = {rank}
-														reduxFunction={editRank}
-														errorMessage={errorMessage}
-														setErrorMessage={setErrorMessage}
-														errorField={errorField}
-														setErrorField={setErrorField}
-														numOfSchoolDays={numOfSchoolDays}
-													/>
-													<DeleteData 
-														id={rank.id}
-														reduxFunction={removeRank}
-													/>
+												<TeacherRankEdit
+													rank = {rank}
+													reduxFunction={editRank}
+													errorMessage={errorMessage}
+													setErrorMessage={setErrorMessage}
+													errorField={errorField}
+													setErrorField={setErrorField}
+													numOfSchoolDays={numOfSchoolDays}
+												/>
+												<DeleteData 
+													id={rank.id}
+													store={'rank'}
+													reduxFunction={removeRank}
+												/>
 
-													
-												</>
-											)}
+												
+											</>
 										</td>
 									)
 								}

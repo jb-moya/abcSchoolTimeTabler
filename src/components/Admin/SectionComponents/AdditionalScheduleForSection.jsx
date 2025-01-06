@@ -10,18 +10,13 @@ const AdditionalScheduleForSection = ({
     viewingMode = 0,
     sectionID = 0,
     grade = 0,
-
     arrayIndex = 0,
-
     sectionSubjects = [],
-
     numOfSchoolDays = 1,
-
     additionalSchedsOfSection = [],
     setAdditionalScheds = () => {},
 }) => {
 
-    const lastSchedTimeRef = useRef();
 
     const subjects = useSelector((state) => state.subject.subjects);
 
@@ -42,13 +37,6 @@ const AdditionalScheduleForSection = ({
     const [schedShown, setSchedShown] = useState(
         additionalSchedsOfSection.shown || false
     );
-    const [schedTime, setSchedtime] = useState(
-        additionalSchedsOfSection.time || 0
-    );
-
-// ===================================================================================================
-
-    const [time, setTime] = useState();
 
 // ===================================================================================================
 
@@ -59,7 +47,6 @@ const AdditionalScheduleForSection = ({
             duration: schedDuration,
             frequency: schedFrequency,
             shown: schedShown,
-            time: getTimeSlotIndex(time),
         };
 
         // console.log('Old Sched: ', additionalSchedsOfSection);
@@ -112,24 +99,7 @@ const AdditionalScheduleForSection = ({
         setSchedDuration(additionalSchedsOfSection.duration || 0);
         setSchedFrequency(additionalSchedsOfSection.frequency || '');
         setSchedShown(additionalSchedsOfSection.shown || false);
-        setSchedtime(additionalSchedsOfSection.time || 0);
     }, [additionalSchedsOfSection]);
-
-    useEffect(() => {
-        if (schedTime !== lastSchedTimeRef.current) {
-            lastSchedTimeRef.current = schedTime;
-
-            const timeString = getTimeSlotString(schedTime);
-            // console.log('schedTime', schedTime);
-
-            // console.log('timeString', timeString);
-
-            if (timeString) {
-                setTime(timeString);
-            }
-
-        }
-    }, [schedTime]);
 
 // ===================================================================================================
 
@@ -256,27 +226,6 @@ const AdditionalScheduleForSection = ({
                             <option value="Yes">Yes</option>
                             <option value="No">No</option>
                         </select>
-                    </div>
-
-                    {/* Time */}
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-1">
-                            Time:
-                        </label>
-                        {viewingMode === 0 ? (
-                            <TimeSelector 
-                                className='z-10'
-                                key={`newSectionTimePicker-section{${sectionID}}-grade${grade}-arrayIndex${arrayIndex}`}
-                                interval={5}
-                                time={time}
-                                setTime={setTime}
-                            />
-                        ) : (
-                            <div className="flex items-center justify-start input border rounded h-12 bg-white border border-gray-300 text-base">
-                                {time ? time : '--:--- --'}
-                            </div>
-                        )}
-                        
                     </div>
 
                     <div className="mt-4 text-center text-lg font-bold">
