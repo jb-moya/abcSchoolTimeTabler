@@ -140,7 +140,7 @@ void runExperiment(
 	for (const auto& section : final_bee.timetable.getSectionsSet()) {
 		Section& section_info = final_bee.timetable.getSectionById(section);
 
-		print("fff", section, section_info.getId());
+		// print("fff", section, section_info.getId());
 	}
 
 	printSchoolClasses(final_bee.timetable);
