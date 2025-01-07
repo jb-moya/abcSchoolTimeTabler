@@ -274,7 +274,7 @@ const AdditionalScheduleForTeacher = ({
                                 setTime={setTime}
                             />
                         ) : (
-                            <div className="flex items-center justify-start input border rounded h-12 bg-white border border-gray-300 text-base">
+                            <div className="flex items-center justify-start input border border-opacity-20 rounded h-12 border-base-content text-base">
                                 {time ? time : '--:--- --'}
                             </div>
                         )}
