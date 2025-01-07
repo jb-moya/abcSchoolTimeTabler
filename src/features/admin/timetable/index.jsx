@@ -723,7 +723,8 @@ function Timetable() {
             // TODO: update teacher workload in real data
             // TODO: test on real high data
 
-            const isDynamicSubjectConsistentDuration = 0; // false
+            // const isDynamicSubjectConsistentDuration = 0; // false
+            const isDynamicSubjectConsistentDuration = 1; // false
 
             sectionConfigurationArray[sectionKey] = packInt8ToInt32(
                 numberOfBreak,
