@@ -453,13 +453,15 @@ function Timetable() {
                 let { second: subjectDuration } = unpackInt32ToInt16(duration);
                 return subjectDuration;
             }),
-            breakTimeDuration,
-            durationUniqueAdditionalTeacherScheds
+            breakTimeDuration
+            // durationUniqueAdditionalTeacherScheds
         );
+        console.log('🚀 ~ handleButtonClick ~ durationUniqueAdditionalTeacherScheds:', durationUniqueAdditionalTeacherScheds);
         console.log('🚀 ~ handleButtonClick ~ lowestSubjectDuration:', lowestSubjectDuration);
 
-        // let offset = lowestSubjectDuration - 1; // what is this minus 1 magic number?????
-        let offset = 0; // what is this minus 1 magic number?????
+        let offset = lowestSubjectDuration - 1; // what is this minus 1 magic number?????
+        console.log('🚀 ~ handleButtonClick ~ offset:', offset);
+        // let offset = 0; // what is this minus 1 magic number?????
 
         subjectConfigurationSubjectDurationArray.forEach((duration, index) => {
             let { first: subjectID, second: subjectDuration } = unpackInt32ToInt16(duration);
@@ -684,11 +686,9 @@ function Timetable() {
 
         defaultClassDuration -= offset;
         breakTimeDuration -= offset;
-        // minTotalClassDurationForTwoBreaks /= 1;
+        minTotalClassDurationForTwoBreaks /= offset || 1;
 
         for (const [sectionKey, section] of Object.entries(sectionMap)) {
-            console.log('🚀 ~ handleButtonClick ~ section:', section);
-
             sectionStartArray[sectionKey] = section.startTime;
 
             let totalNumOfClasses = calculateTotalClass(subjectsStore, section.subjects, numOfSchoolDays);
@@ -708,21 +708,22 @@ function Timetable() {
 
             totalTimeslot += numberOfBreak;
 
-            console.log('🚀 ~ handleButtonClick ~ numberOfBreak:', numberOfBreak);
-            console.log('🚀 ~ handleButtonClick ~ totalTimeslot:', totalTimeslot);
-
             // const notAllowedBreakslotGap = totalTimeslot >= 7 ? 2 : 1;
 
             let notAllowedBreakslotGap = 0;
             if (totalTimeslot >= 5 && totalTimeslot < 7) {
                 notAllowedBreakslotGap = 1;
             } else if (totalTimeslot >= 7) {
-                notAllowedBreakslotGap = 3;
+                notAllowedBreakslotGap = 2;
             } else if (totalTimeslot >= 10) {
                 notAllowedBreakslotGap = 3;
             }
 
-            const isDynamicSubjectConsistentDuration = 0;
+            // TODO: include teacher additional scheulde
+            // TODO: update teacher workload in real data
+            // TODO: test on real high data
+
+            const isDynamicSubjectConsistentDuration = 0; // false
 
             sectionConfigurationArray[sectionKey] = packInt8ToInt32(
                 numberOfBreak,
@@ -736,9 +737,15 @@ function Timetable() {
             });
 
             const roomDetails = section.roomDetails;
-            console.log('🚀 ~ roomDetails roomDetailsroomDetailsroomDetailsroomDetailsroomDetails ~ roomDetails:', roomDetails);
             const buildingID = buildingMapReverse[roomDetails.buildingId];
-            console.log('buildingMapReverse ~ buildingMapReverse:', buildingMapReverse);
+
+            console.log('🚀 ~ handleButtonClick ~ section:', section);
+            console.log('|| ~ handleButtonClick ~ notAllowedBreakslotGap:', notAllowedBreakslotGap);
+            console.log('|| ~ handleButtonClick ~ numberOfBreak:', numberOfBreak);
+            console.log('|| ~ handleButtonClick ~ totalTimeslot:', totalTimeslot);
+            console.log('|| ~ roomDetails roomDetailsroomDetailsroomDetailsroomDetailsroomDetails ~ roomDetails:', roomDetails);
+            console.log('|| ~ buildingMapReverse:', buildingMapReverse);
+            console.log('|| ~ handleButtonClick ~ buildingID:');
 
             const exampleLocation = {
                 buildingID: 0,
@@ -746,16 +753,15 @@ function Timetable() {
                 room: 0,
             };
 
-            console.log('BAKIT ~ handleButtonClick ~ buildingID:');
             console.log(buildingID, roomDetails.floorIdx, roomDetails.roomIdx);
 
-            // sectionLocationArray.push(
-            //     packThreeSignedIntsToInt32(buildingID || 0, roomDetails.floorIdx || 0, roomDetails.roomIdx || 0)
-            // );
-
             sectionLocationArray.push(
-                packThreeSignedIntsToInt32(exampleLocation.buildingID || 0, exampleLocation.floor || 0, exampleLocation.room || 0)
+                packThreeSignedIntsToInt32(buildingID || 0, roomDetails.floorIdx || 0, roomDetails.roomIdx || 0)
             );
+
+            // sectionLocationArray.push(
+            //     packThreeSignedIntsToInt32(exampleLocation.buildingID || 0, exampleLocation.floor || 0, exampleLocation.room || 0)
+            // );
         }
 
         console.log('🚀 ~ handleButtonClick ~ sectionStartArray:', sectionStartArray);
@@ -840,8 +846,8 @@ function Timetable() {
         teacherReservationConfigArray.push(-1);
         teacherReservationConfigIDArray.push(-1);
 
-        teacherReservationConfigArray = [-1];
-        teacherReservationConfigIDArray = [-1];
+        // teacherReservationConfigArray = [-1];
+        // teacherReservationConfigIDArray = [-1];
 
         const teacherReservationConfigID = new Int32Array([...teacherReservationConfigIDArray]);
 
@@ -1093,7 +1099,7 @@ function Timetable() {
         // });
 
         // console.log("timetable", timetableMap);
-        console.log('section timetable', sectionTimetable);
+        console.log('%cP O O P section timetable', 'color: red; font-weight: bold;', sectionTimetable);
 
         teacherTimetable.forEach((value, key) => {
             console.log('🚀 ~ teacherTimetable.forEach ~ value:', value);
@@ -1136,7 +1142,7 @@ function Timetable() {
             }
         });
 
-        console.log('teacher timetable', teacherTimetable);
+        console.log('%cP O O P teacher timetable', 'color: red; font-weight: bold;', teacherTimetable);
 
         function mapToObject(map) {
             if (!(map instanceof Map)) return map; // If it's not a Map, return as is
@@ -1360,11 +1366,11 @@ function Timetable() {
         XLSX.writeFile(teacherWorkbook, 'teacher_schedules.xlsx');
     };
 
-    const handleClearAndRefresh = () => {
+    const handleClearAndRefresh = async () => {
         // clearAllEntriesAndResetIDs().then(() => {
         //     setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey to trigger re-render
         // });
-        clearAllEntriesAndResetIDs();
+        await clearAllEntriesAndResetIDs();
     };
 
     const handleNumOfSchoolDaysChange = () => {
@@ -6134,4 +6140,4 @@ function Timetable() {
     );
 }
 
-export default Timetable;
+export default Timetable; 

@@ -570,18 +570,40 @@ std::vector<Timeslot> Timetable::getBreaks(const Section& section) const {
 	Timeslot gap = section.getNotAllowedBreakslotGap();
 	int total_timeslot = section.getTotalTimeslot();
 
-	std::vector<std::vector<Timeslot>> possible_breaks = getAllBreaksCombination(
-	    total_timeslot,
-	    num_breaks,
-	    gap,
-	    num_breaks == 1 ? gap + 1 : gap);  // FIXME: temporary fix. make this dynamic
+	// std::cout << "total timeslot " << total_timeslot << std::endl;
+	// std::cout << "num_breaks " << num_breaks << std::endl;
+	// std::cout << "gap " << gap << std::endl;
+	// std::cout << "end gap " << (num_breaks == 1 ? gap + 1 : gap) << std::endl;
+
+	// gap = 1;
+
+	std::vector<std::vector<Timeslot>>
+	    possible_breaks = getAllBreaksCombination(
+	        total_timeslot,
+	        num_breaks,
+	        gap,
+	        num_breaks == 1 ? gap + 1 : gap);  // FIXME: temporary fix. make this dynamic
 
 	// FIXME: temporary fix might be code smell
 	// Calculate the reverse index based on the current try count
+	std::cout << "possible breaks size " << possible_breaks.size() << std::endl;
+	for (size_t i = 0; i < possible_breaks.size(); ++i) {
+		std::cout << "possible break " << i << ": ";
+		for (size_t j = 0; j < possible_breaks[i].size(); ++j) {
+			std::cout << possible_breaks[i][j] << " ";
+		}
+		std::cout << std::endl;
+	}
+
 	int index = (possible_breaks.size() - (s_rotary_timeslot.getTotalTry() % possible_breaks.size())) % possible_breaks.size();
+
 	// int index = s_rotary_timeslot.getTotalTry() % possible_breaks.size();
+	// std::cout << "index " << index << std::endl;
+
+	// std::cout << "possible breaks end " << std::endl;
 
 	return possible_breaks[index];
+	// return {3};
 }
 
 void Timetable::setupTimeslots(int total_timeslot, std::deque<Timeslot>& timeslot_keys, std::map<Timeslot, std::vector<ScheduledDay>>& timeslots, const std::vector<Timeslot>& skips) const {

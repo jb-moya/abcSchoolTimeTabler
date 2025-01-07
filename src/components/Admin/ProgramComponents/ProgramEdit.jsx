@@ -247,7 +247,11 @@ const ProgramEdit = ({
 
             let totalDuration = breakTimeCount * breakTimeDuration;
 
+            console.log('🚀 ~ editProgramCurr[grade].forEach ~ subjects:', subjects);
+
             editProgramCurr[grade].forEach((subId) => {
+                console.log('🚀 ~ editProgramCurr[grade].forEach ~ subId:', subId);
+                console.log('🚀 ~ editProgramCurr[grade].forEach ~ subjects[subId]:', subjects[subId]);
                 totalDuration += subjects[subId].classDuration;
             });
 
@@ -767,9 +771,7 @@ const ProgramEdit = ({
                     <div>
                         {/* Header section with centered "Add {reduxField}" */}
                         <div className='flex justify-between mb-4'>
-                            <h3 className='text-lg font-bold text-center w-full'>
-                               Edit Program
-                            </h3>
+                            <h3 className='text-lg font-bold text-center w-full'>Edit Program</h3>
                         </div>
 
                         <hr className='mb-4' />
@@ -919,7 +921,9 @@ const ProgramEdit = ({
 
                                         {/* Additional Schedules */}
                                         <div className='p-4 rounded-lg'>
-                                            <div className='flex justify-center text-lg font-semibold rounded-lg'>Additional Schedules</div>
+                                            <div className='flex justify-center text-lg font-semibold rounded-lg'>
+                                                Additional Schedules
+                                            </div>
 
                                             {/* Button to add schedules */}
                                             <button

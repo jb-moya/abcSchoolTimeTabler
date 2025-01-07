@@ -49,7 +49,7 @@ void ABC::run() {
 				bees_abandoned[i]++;
 
 				if (bees_abandoned[i] >= limit) {
-					print("employ abandoning bee", iter, i);
+					// print("employ abandoning bee", iter, i);
 
 					above_limit_abandoned_bees.insert(i);
 				}
@@ -123,7 +123,7 @@ void ABC::run() {
 				bees_abandoned[i]++;
 
 				if (bees_abandoned[i] >= limit) {
-					print("abandoning bee", iter, i);
+					// print("abandoning bee", iter, i);
 					above_limit_abandoned_bees.insert(i);
 				}
 			}
@@ -306,7 +306,7 @@ void ABC::getViolation(int64_t* result_violation) {
 	int iter = 0;
 	for (const auto& [violation_type, teacher_violation_count] : teacher_violations) {
 		for (const auto& [teacher_id, violation_count] : teacher_violation_count) {
-			print("violation_type", violation_type, teacher_id, violation_count);
+			// print("violation_type", violation_type, teacher_id, violation_count);
 			int64_t packed = pack5IntToInt64(violation_type, teacher_id, violation_count, 0, 0);
 
 			result_violation[iter++] = packed;
@@ -315,7 +315,7 @@ void ABC::getViolation(int64_t* result_violation) {
 
 	for (const auto& [violation_type, section_violation_count] : section_violations) {
 		for (const auto& [section_id, violation_count] : section_violation_count) {
-			print("violation_type", violation_type, section_id, violation_count);
+			// print("violation_type", violation_type, section_id, violation_count);
 			int64_t packed = pack5IntToInt64(violation_type, section_id, violation_count, 0, 0);
 
 			result_violation[iter++] = packed;
@@ -358,14 +358,14 @@ void ABC::getResult(int64_t* result, int64_t* result_2, TimePoint offset_duratio
 
 				// std::cout << "teacher in getResult: " << schoolClass.teacher_id << std::endl;
 
-				// TimePoint start = section.getTimeslotStart(timeslot) + (offset_duration)*timeslot;
-				// TimePoint end = section.getTimeslotEnd(timeslot) + (offset_duration) * (timeslot + 1);
+				TimePoint start = section.getTimeslotStart(timeslot) + (offset_duration)*timeslot;
+				TimePoint end = section.getTimeslotEnd(timeslot) + (offset_duration) * (timeslot + 1);
 
 				// TimePoint start = section.getTimeslotStart(timeslot) + (1)*timeslot;
 				// TimePoint end = section.getTimeslotEnd(timeslot) + (1) * (timeslot + 1);
 
-				TimePoint start = section.getTimeslotStart(timeslot);
-				TimePoint end = section.getTimeslotEnd(timeslot);
+				// TimePoint start = section.getTimeslotStart(timeslot);
+				// TimePoint end = section.getTimeslotEnd(timeslot);
 
 				// std::cout << "start " << start << " end " << end << std::endl;
 

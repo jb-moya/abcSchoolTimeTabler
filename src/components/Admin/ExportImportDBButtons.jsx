@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CiExport, CiImport } from 'react-icons/ci';
 import { createPortal } from 'react-dom';
-import {
-    exportIndexedDB,
-    loadFile,
-    importIndexedDB,
-    DB_NAME,
-} from '@src/indexedDB';
+import { exportIndexedDB, loadFile, importIndexedDB, DB_NAME } from '@src/indexedDB';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
@@ -14,10 +9,7 @@ import { addSubject, fetchSubjects } from '@features/subjectSlice';
 import { addSection, fetchSections } from '@features/sectionSlice';
 import { addTeacher, fetchTeachers } from '@features/teacherSlice';
 import { addProgram, fetchPrograms } from '@features/programSlice';
-import {
-    addDepartment,
-    fetchDepartments,
-} from '../../features/departmentSlice';
+import { addDepartment, fetchDepartments } from '../../features/departmentSlice';
 import { addBuilding, fetchBuildings } from '@features/buildingSlice';
 
 import { addRank, fetchRanks } from '@features/rankSlice';
@@ -36,9 +28,9 @@ import { BiUpload } from 'react-icons/bi';
 
 const ImportingFullScreenLoader = () => {
     return createPortal(
-        <div className="z-[999]  bg-gray-950 bg-opacity-50 fixed top-0 left-0 w-screen h-screen flex flex-col justify-center items-center gap-4">
-            <span className="loading loading-bars loading-lg"></span>
-            <span className="">importing data</span>
+        <div className='z-[999]  bg-gray-950 bg-opacity-50 fixed top-0 left-0 w-screen h-screen flex flex-col justify-center items-center gap-4'>
+            <span className='loading loading-bars loading-lg'></span>
+            <span className=''>importing data</span>
         </div>,
         document.body
     );
@@ -48,42 +40,26 @@ function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-const ExportImportDBButtons = ({ 
-    onClear, 
-    numOfSchoolDays,
-    breakTimeDuration,
-}) => {
+const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) => {
     const dispatch = useDispatch();
 
     const [isImporting, setIsImporting] = useState(false);
 
     // =======================================================================
 
-    const { programs, status: programStatus } = useSelector(
-        (state) => state.program
-    );
+    const { programs, status: programStatus } = useSelector((state) => state.program);
 
-    const { subjects, status: subjectStatus } = useSelector(
-        (state) => state.subject
-    );
+    const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
 
-    const { teachers, status: teacherStatus } = useSelector(
-        (state) => state.teacher
-    );
+    const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
 
     const { ranks, status: rankStatus } = useSelector((state) => state.rank);
 
-    const { departments, status: departmentStatus } = useSelector(
-        (state) => state.department
-    );
+    const { departments, status: departmentStatus } = useSelector((state) => state.department);
 
-    const { buildings, status: buildingStatus } = useSelector(
-        (state) => state.building
-    );
+    const { buildings, status: buildingStatus } = useSelector((state) => state.building);
 
-    const { sections, status: sectionStatus } = useSelector(
-        (state) => state.section
-    );
+    const { sections, status: sectionStatus } = useSelector((state) => state.section);
 
     // =======================================================================
 
@@ -154,21 +130,32 @@ const ExportImportDBButtons = ({
     const importDB = async (format) => {
         try {
             const data = await loadFile(format); // Wait for file to load
+            setIsImporting(true);
 
-            if (format === 'json') {
-                const message = await importIndexedDB(DB_NAME, data); // Wait for IndexedDB import
-                console.log(message);
-            } else if (format === 'excel') {
+            document.getElementById('import-format-modal').close();
+            await onClear();
+
+            console.log('FGFFFF');
+            // await sleep(1000);
+
+            console.log('🚀 ~ importDB ~ data:', data);
+
+            if (!data) {
+                console.error('No file selected FEFJLE:FJLK:EJFLK:EJFKLEJ');
+                throw new Error('No file selected');
+            }
+
+            // if (format === 'json') {
+            //     const message = await importIndexedDB(DB_NAME, data); // Wait for IndexedDB import
+            //     console.log(message);
+            // } else
+            if (format === 'excel') {
                 await importDBfromExcel(data); // Wait for Excel import
             } else {
-                throw new Error(
-                    'Unsupported file format. Please upload a JSON or Excel file.'
-                );
+                throw new Error('Unsupported file format. Please upload a JSON or Excel file.');
             }
 
             // Reset statuses
-
-            setIsImporting(true);
 
             dispatch(setSubjectStatusIdle());
             dispatch(setTeacherStatusIdle());
@@ -185,6 +172,9 @@ const ExportImportDBButtons = ({
             console.error(error);
         } finally {
             // Close the modal
+            console.log('DONE M O T H E R F U C K E R ');
+            console.log('DONE M O T H E R F U C K E R ');
+            setIsImporting(false);
             document.getElementById('import-confirmation-modal').close();
         }
     };
@@ -218,11 +208,7 @@ const ExportImportDBButtons = ({
         subjHeaderRow.alignment = { horizontal: 'center', vertical: 'middle' };
 
         exportData.subjects.forEach((subject) => {
-            subjWorksheet.addRow([
-                subject.subject,
-                subject.classDuration,
-                subject.weeklyMinutes,
-            ]);
+            subjWorksheet.addRow([subject.subject, subject.classDuration, subject.weeklyMinutes]);
         });
 
         subjWorksheet.columns = [
@@ -234,13 +220,7 @@ const ExportImportDBButtons = ({
         // *******************************
         // ------- EXPORT TEACHERS -------
         // *******************************
-        teacherWorksheet.addRow([
-            'Teacher',
-            'Rank',
-            'Department',
-            'Subjects',
-            'Assigned Year Level(s)',
-        ]);
+        teacherWorksheet.addRow(['Teacher', 'Rank', 'Department', 'Subjects', 'Assigned Year Level(s)']);
 
         const teacherHeaderRow = teacherWorksheet.getRow(1);
         teacherHeaderRow.font = { bold: true };
@@ -251,9 +231,7 @@ const ExportImportDBButtons = ({
 
         exportData.teachers.forEach((teacher) => {
             // Convert teacher.subjects (IDs) to subject names
-            const subjectNames = teacher.subjects
-                .map((subjectId) => subjects[subjectId].subject)
-                .join(', ');
+            const subjectNames = teacher.subjects.map((subjectId) => subjects[subjectId].subject).join(', ');
 
             // Convert teacher.yearLevels to a comma-separated string
             const yearLevels = teacher.yearLevels
@@ -315,21 +293,7 @@ const ExportImportDBButtons = ({
         // *******************************
         // ------- EXPORT PROGRAMS -------
         // *******************************
-        programWorksheet.addRow([
-            'Program',
-            '7',
-            '',
-            '',
-            '8',
-            '',
-            '',
-            '9',
-            '',
-            '',
-            '10',
-            '',
-            '',
-        ]);
+        programWorksheet.addRow(['Program', '7', '', '', '8', '', '', '9', '', '', '10', '', '']);
         programWorksheet.addRow([
             '',
             'Subjects',
@@ -390,18 +354,10 @@ const ExportImportDBButtons = ({
         programWorksheet.getColumn(13).alignment = { horizontal: 'center' };
 
         exportData.programs.forEach((program) => {
-            const year7Subjects = program[7].subjects
-                .map((subjectId) => subjects[subjectId].subject)
-                .join(', ');
-            const year8Subjects = program[8].subjects
-                .map((subjectId) => subjects[subjectId].subject)
-                .join(', ');
-            const year9Subjects = program[9].subjects
-                .map((subjectId) => subjects[subjectId].subject)
-                .join(', ');
-            const year10Subjects = program[10].subjects
-                .map((subjectId) => subjects[subjectId].subject)
-                .join(', ');
+            const year7Subjects = program[7].subjects.map((subjectId) => subjects[subjectId].subject).join(', ');
+            const year8Subjects = program[8].subjects.map((subjectId) => subjects[subjectId].subject).join(', ');
+            const year9Subjects = program[9].subjects.map((subjectId) => subjects[subjectId].subject).join(', ');
+            const year10Subjects = program[10].subjects.map((subjectId) => subjects[subjectId].subject).join(', ');
 
             programWorksheet.addRow([
                 program.program,
@@ -423,13 +379,7 @@ const ExportImportDBButtons = ({
         // *******************************
         // ------- EXPORT SECTIONS -------
         // *******************************
-        sectionWorksheet.addRow([
-            'Section Name',
-            'Adviser',
-            'Program',
-            'Year',
-            'Room Details',
-        ]);
+        sectionWorksheet.addRow(['Section Name', 'Adviser', 'Program', 'Year', 'Room Details']);
 
         const sectionHeaderRow = sectionWorksheet.getRow(1);
         sectionHeaderRow.font = { bold: true };
@@ -451,9 +401,7 @@ const ExportImportDBButtons = ({
                 sectionAdviser.teacher,
                 sectionProgram.program,
                 section.year,
-                `[${building.name}, FLOOR ${
-                    section.roomDetails.floorIdx + 1
-                }] ${room.roomName}`,
+                `[${building.name}, FLOOR ${section.roomDetails.floorIdx + 1}] ${room.roomName}`,
             ]);
         });
 
@@ -491,9 +439,7 @@ const ExportImportDBButtons = ({
                     currentRow++;
                 });
 
-                bldgWorksheet.mergeCells(
-                    `B${startFloorRow}:B${currentRow - 1}`
-                );
+                bldgWorksheet.mergeCells(`B${startFloorRow}:B${currentRow - 1}`);
 
                 const floorCell = bldgWorksheet.getCell(`B${startFloorRow}`);
                 floorCell.alignment = {
@@ -550,9 +496,7 @@ const ExportImportDBButtons = ({
 
             const period = hours24 >= 12 ? 'PM' : 'AM';
 
-            return `${
-                formattedHour < 10 ? `0${formattedHour}` : formattedHour
-            }:${formattedMinute} ${period}`;
+            return `${formattedHour < 10 ? `0${formattedHour}` : formattedHour}:${formattedMinute} ${period}`;
         }
 
         const addedSubjects = [];
@@ -577,10 +521,7 @@ const ExportImportDBButtons = ({
             const normalizedObj = {};
 
             Object.keys(obj).forEach((key) => {
-                const normalizedKey = key
-                    .toLowerCase()
-                    .replace(/\s+/g, '')
-                    .replace(/[()]/g, '');
+                const normalizedKey = key.toLowerCase().replace(/\s+/g, '').replace(/[()]/g, '');
                 normalizedObj[normalizedKey] = obj[key];
             });
 
@@ -590,9 +531,7 @@ const ExportImportDBButtons = ({
         const normalizedData = {};
 
         Object.keys(data).forEach((sheetName) => {
-            normalizedData[sheetName] = data[sheetName].map((entry) =>
-                normalizeKeys(entry)
-            );
+            normalizedData[sheetName] = data[sheetName].map((entry) => normalizeKeys(entry));
         });
 
         /*
@@ -608,7 +547,6 @@ const ExportImportDBButtons = ({
         // FILTER SUBJECTS
         if (normalizedData['Subjects']) {
             normalizedData['Subjects'].forEach((subject) => {
-
                 subject.subject = String(subject.subject || '').trim();
 
                 if (
@@ -629,18 +567,13 @@ const ExportImportDBButtons = ({
                 const classDurationAsNumber = Number(subject.classduration);
                 const weeklyMinutesAsNumber = Number(subject.weeklyminutes);
 
-                if (
-                    !Number.isInteger(classDurationAsNumber) ||
-                    !Number.isInteger(weeklyMinutesAsNumber)
-                ) {
+                if (!Number.isInteger(classDurationAsNumber) || !Number.isInteger(weeklyMinutesAsNumber)) {
                     unaddedSubjects.push([-1, subject]);
                     return;
                 }
 
                 const isDuplicateSub = addedSubjects.find(
-                    (sub) =>
-                        sub.subject.trim().toLowerCase() ===
-                        subject.subject.trim().toLowerCase()
+                    (sub) => sub.subject.trim().toLowerCase() === subject.subject.trim().toLowerCase()
                 );
 
                 if (isDuplicateSub) {
@@ -655,23 +588,14 @@ const ExportImportDBButtons = ({
         // FILTER RANKS
         if (normalizedData['Ranks']) {
             normalizedData['Ranks'].forEach((rank) => {
-
                 rank.rank = String(rank.rank || '').trim();
 
-                if (
-                    rank.rank === '' ||
-                    rank.rank === null ||
-                    rank.rank === undefined
-                ) {
+                if (rank.rank === '' || rank.rank === null || rank.rank === undefined) {
                     unaddedRanks.push([0, rank]);
                     return;
                 }
 
-                const isDuplicateRank = addedRanks.find(
-                    (r) =>
-                        r.rank.trim().toLowerCase() ===
-                        rank.rank.trim().toLowerCase()
-                );
+                const isDuplicateRank = addedRanks.find((r) => r.rank.trim().toLowerCase() === rank.rank.trim().toLowerCase());
 
                 if (isDuplicateRank) {
                     unaddedRanks.push([1, rank]);
@@ -692,8 +616,7 @@ const ExportImportDBButtons = ({
         if (normalizedData['Buildings']) {
             const grouped = normalizedData['Buildings'].reduce(
                 (acc, item) => {
-                    const buildingName =
-                        String(item.buildingname || acc.currentBuilding).trim();
+                    const buildingName = String(item.buildingname || acc.currentBuilding).trim();
                     const floor = item.floor || acc.currentFloor;
                     const roomName = String(item.room).trim();
 
@@ -720,8 +643,7 @@ const ExportImportDBButtons = ({
                         acc[buildingName] = {};
                     }
 
-                    const floorIndex =
-                        parseInt(floor?.replace('Floor ', ''), 10) - 1;
+                    const floorIndex = parseInt(floor?.replace('Floor ', ''), 10) - 1;
 
                     if (!acc[buildingName][floorIndex]) {
                         acc[buildingName][floorIndex] = [];
@@ -753,7 +675,6 @@ const ExportImportDBButtons = ({
 
             if (Object.values(grouped).length > 0) {
                 Object.keys(grouped).forEach((buildingName) => {
-
                     addedBuildings.push({
                         name: buildingName,
                         data: grouped[buildingName], // Store the full data for the building
@@ -765,7 +686,6 @@ const ExportImportDBButtons = ({
         // FILTER TEACHERS
         if (normalizedData['Teachers']) {
             normalizedData['Teachers'].forEach((teacher) => {
-
                 teacher.teacher = String(teacher.teacher || '').trim();
                 teacher.rank = String(teacher.rank || '').trim();
                 teacher.department = String(teacher.department || '').trim();
@@ -796,9 +716,7 @@ const ExportImportDBButtons = ({
                 let yearLevelString = teacher.assignedyearlevels.toString();
 
                 const isDuplicateTeacher = addedTeachers.find(
-                    (t) =>
-                        t.teacher.trim().toLowerCase() ===
-                        teacher.teacher.trim().toLowerCase()
+                    (t) => t.teacher.trim().toLowerCase() === teacher.teacher.trim().toLowerCase()
                 );
 
                 if (isDuplicateTeacher) {
@@ -806,21 +724,15 @@ const ExportImportDBButtons = ({
                     return;
                 } else {
                     const rankIndex = addedRanks.findIndex(
-                        (r) =>
-                            r.rank.trim().toLowerCase() ===
-                            teacher.rank.trim().toLowerCase()
+                        (r) => r.rank.trim().toLowerCase() === teacher.rank.trim().toLowerCase()
                     );
                     if (rankIndex === -1) {
                         unaddedTeachers.push([2, teacher]); // RANK NOT FOUND
                         return;
                     }
 
-                    const departmentIndex = normalizedData[
-                        'Departments'
-                    ].findIndex(
-                        (d) =>
-                            d.department.trim().toLowerCase() ===
-                            teacher.department.trim().toLowerCase()
+                    const departmentIndex = normalizedData['Departments'].findIndex(
+                        (d) => d.department.trim().toLowerCase() === teacher.department.trim().toLowerCase()
                     );
                     if (departmentIndex === -1) {
                         unaddedTeachers.push([2, teacher]); // DEPARTMENT NOT FOUND
@@ -828,23 +740,12 @@ const ExportImportDBButtons = ({
                     }
 
                     const subjIds = [];
-                    const subjArray = teacher.subjects
-                        .split(',')
-                        .map((subject) => subject.trim());
+                    const subjArray = teacher.subjects.split(',').map((subject) => subject.trim());
                     subjArray.forEach((subjectName) => {
                         let found = false;
 
-                        for (
-                            let index = 0;
-                            index < addedSubjects.length;
-                            index++
-                        ) {
-                            if (
-                                addedSubjects[index]['subject']
-                                    .trim()
-                                    .toLowerCase() ===
-                                subjectName.trim().toLowerCase()
-                            ) {
+                        for (let index = 0; index < addedSubjects.length; index++) {
+                            if (addedSubjects[index]['subject'].trim().toLowerCase() === subjectName.trim().toLowerCase()) {
                                 subjIds.push(index + 1);
                                 found = true;
                                 break;
@@ -858,9 +759,7 @@ const ExportImportDBButtons = ({
 
                     // Get year level IDs
                     const yearLevelIds = [];
-                    const yearLevelArray = yearLevelString
-                        .split(',')
-                        .map((yearLevel) => yearLevel.trim());
+                    const yearLevelArray = yearLevelString.split(',').map((yearLevel) => yearLevel.trim());
                     yearLevelArray.forEach((yearLevel) => {
                         if (yearLevel === '7') {
                             yearLevelIds.push(0);
@@ -900,23 +799,16 @@ const ExportImportDBButtons = ({
         // FILTER DEPARTMENTS
         if (normalizedData['Departments']) {
             normalizedData['Departments'].forEach((department) => {
-
                 department.department = String(department.department || '').trim();
                 department.departmenthead = String(department.departmenthead || '').trim();
 
-                if (
-                    department.department === '' ||
-                    department.department === null ||
-                    department.department === undefined
-                ) {
+                if (department.department === '' || department.department === null || department.department === undefined) {
                     unaddedDepartments.push([0, department]);
                     return;
                 }
 
                 const isDuplicateName = addedDepartments.find(
-                    (d) =>
-                        d.department.trim().toLowerCase() ===
-                        department.department.trim().toLowerCase()
+                    (d) => d.department.trim().toLowerCase() === department.department.trim().toLowerCase()
                 );
 
                 if (isDuplicateName) {
@@ -924,15 +816,11 @@ const ExportImportDBButtons = ({
                     return;
                 } else {
                     const isDuplicateHead =
-                        department.departmenthead &&
-                        department.departmenthead.trim() !== ''
+                        department.departmenthead && department.departmenthead.trim() !== ''
                             ? addedDepartments.find(
                                   (d) =>
                                       d.departmenthead &&
-                                      d.departmenthead.trim().toLowerCase() ===
-                                          department.departmenthead
-                                              .trim()
-                                              .toLowerCase()
+                                      d.departmenthead.trim().toLowerCase() === department.departmenthead.trim().toLowerCase()
                               )
                             : false;
 
@@ -941,18 +829,11 @@ const ExportImportDBButtons = ({
                         return;
                     } else {
                         const headIndex =
-                            department.departmenthead &&
-                            department.departmenthead.trim() !== ''
+                            department.departmenthead && department.departmenthead.trim() !== ''
                                 ? addedTeachers.findIndex(
                                       (t) =>
-                                          t.teacher.trim().toLowerCase() ===
-                                              department.departmenthead
-                                                  .trim()
-                                                  .toLowerCase() &&
-                                          t.department.trim().toLowerCase() ===
-                                              department.department
-                                                  .trim()
-                                                  .toLowerCase()
+                                          t.teacher.trim().toLowerCase() === department.departmenthead.trim().toLowerCase() &&
+                                          t.department.trim().toLowerCase() === department.department.trim().toLowerCase()
                                   )
                                 : '';
                         if (headIndex === -1) {
@@ -975,7 +856,6 @@ const ExportImportDBButtons = ({
         // FILTER PROGRAMS
         if (normalizedData['Programs']) {
             normalizedData['Programs'].slice(1).forEach((program) => {
-
                 program.program = String(program.program || '').trim();
                 program[7] = String(program[7] || '').trim();
                 program[8] = String(program[8] || '').trim();
@@ -1036,9 +916,7 @@ const ExportImportDBButtons = ({
                 }
 
                 const isDuplicateProgram = addedPrograms.find(
-                    (p) =>
-                        p.program.trim().toLowerCase() ===
-                        program.program.trim().toLowerCase()
+                    (p) => p.program.trim().toLowerCase() === program.program.trim().toLowerCase()
                 );
 
                 if (isDuplicateProgram) {
@@ -1047,80 +925,55 @@ const ExportImportDBButtons = ({
                 } else {
                     // =======================================================
 
-                        const subjIds7 = [];
-                        const fixedDays7 = {}; //add new objects for fixed days
-                        const fixedPositions7 = {}; //add new objects for fixed days
+                    const subjIds7 = [];
+                    const fixedDays7 = {}; //add new objects for fixed days
+                    const fixedPositions7 = {}; //add new objects for fixed days
 
-                        const subjIds8 = [];
-                        const fixedDays8 = {};
-                        const fixedPositions8 = {};
+                    const subjIds8 = [];
+                    const fixedDays8 = {};
+                    const fixedPositions8 = {};
 
-                        const subjIds9 = [];
-                        const fixedDays9 = {};
-                        const fixedPositions9 = {};
+                    const subjIds9 = [];
+                    const fixedDays9 = {};
+                    const fixedPositions9 = {};
 
-                        const subjIds10 = [];
-                        const fixedDays10 = {};
-                        const fixedPositions10 = {};
+                    const subjIds10 = [];
+                    const fixedDays10 = {};
+                    const fixedPositions10 = {};
 
                     // =======================================================
 
-                        let totalDuration7 = 0;
-                        let totalDuration8 = 0;
-                        let totalDuration9 = 0;
-                        let totalDuration10 = 0;
+                    let totalDuration7 = 0;
+                    let totalDuration8 = 0;
+                    let totalDuration9 = 0;
+                    let totalDuration10 = 0;
 
-                    const subjArray7 = program[7]
-                        .split(',')
-                        .map((subject) => subject.trim());
+                    const subjArray7 = program[7].split(',').map((subject) => subject.trim());
 
                     if (subjArray7.length > 10) {
                         totalDuration7 += 2 * Number(breakTimeDuration);
                     } else {
                         totalDuration7 += Number(breakTimeDuration);
                     }
-                
+
                     subjArray7.forEach((subjectName) => {
                         let found = false; // Flag to track if the subject was found
 
-                        for (
-                            let index = 0;
-                            index < addedSubjects.length;
-                            index++
-                        ) {
-                            if (
-                                addedSubjects[index]['subject']
-                                    .trim()
-                                    .toLowerCase() ===
-                                subjectName.trim().toLowerCase()
-                            ) {
+                        for (let index = 0; index < addedSubjects.length; index++) {
+                            if (addedSubjects[index]['subject'].trim().toLowerCase() === subjectName.trim().toLowerCase()) {
                                 subjIds7.push(index + 1);
                                 const numOfClasses = Math.min(
                                     Math.ceil(
-                                        Number(
-                                            addedSubjects[index][
-                                                'weeklyminutes'
-                                            ]
-                                        ) /
-                                            Number(
-                                                addedSubjects[index][
-                                                    'classduration'
-                                                ]
-                                            )
+                                        Number(addedSubjects[index]['weeklyminutes']) /
+                                            Number(addedSubjects[index]['classduration'])
                                     ),
                                     numOfSchoolDays
                                 );
-                                fixedDays7[index + 1] = new Array(
-                                    numOfClasses
-                                ).fill(0);
-                                fixedPositions7[index + 1] = new Array(
-                                    numOfClasses
-                                ).fill(0);
+                                fixedDays7[index + 1] = new Array(numOfClasses).fill(0);
+                                fixedPositions7[index + 1] = new Array(numOfClasses).fill(0);
                                 found = true;
-                                
-                                totalDuration7 += Number(
-                                    addedSubjects[index]['classduration']
-                                );
+
+                                totalDuration7 += Number(addedSubjects[index]['classduration']);
 
                                 break;
                             }
@@ -1131,9 +984,7 @@ const ExportImportDBButtons = ({
                         }
                     });
 
-                    const subjArray8 = program[8]
-                        .split(',')
-                        .map((subject) => subject.trim());
+                    const subjArray8 = program[8].split(',').map((subject) => subject.trim());
 
                     if (subjArray8.length > 10) {
                         totalDuration8 += 2 * Number(breakTimeDuration);
@@ -1144,44 +995,21 @@ const ExportImportDBButtons = ({
                     subjArray8.forEach((subjectName) => {
                         let found = false;
 
-                        for (
-                            let index = 0;
-                            index < addedSubjects.length;
-                            index++
-                        ) {
-                            if (
-                                addedSubjects[index]['subject']
-                                    .trim()
-                                    .toLowerCase() ===
-                                subjectName.trim().toLowerCase()
-                            ) {
+                        for (let index = 0; index < addedSubjects.length; index++) {
+                            if (addedSubjects[index]['subject'].trim().toLowerCase() === subjectName.trim().toLowerCase()) {
                                 subjIds8.push(index + 1);
                                 const numOfClasses = Math.min(
                                     Math.ceil(
-                                        Number(
-                                            addedSubjects[index][
-                                                'weeklyminutes'
-                                            ]
-                                        ) /
-                                            Number(
-                                                addedSubjects[index][
-                                                    'classduration'
-                                                ]
-                                            )
+                                        Number(addedSubjects[index]['weeklyminutes']) /
+                                            Number(addedSubjects[index]['classduration'])
                                     ),
                                     numOfSchoolDays
                                 );
-                                fixedDays8[index + 1] = new Array(
-                                    numOfClasses
-                                ).fill(0);
-                                fixedPositions8[index + 1] = new Array(
-                                    numOfClasses
-                                ).fill(0);
+                                fixedDays8[index + 1] = new Array(numOfClasses).fill(0);
+                                fixedPositions8[index + 1] = new Array(numOfClasses).fill(0);
                                 found = true;
-                                
-                                totalDuration8 += Number(
-                                    addedSubjects[index]['classduration']
-                                );
+
+                                totalDuration8 += Number(addedSubjects[index]['classduration']);
 
                                 break;
                             }
@@ -1192,57 +1020,32 @@ const ExportImportDBButtons = ({
                         }
                     });
 
-                    const subjArray9 = program[9]
-                        .split(',')
-                        .map((subject) => subject.trim());
+                    const subjArray9 = program[9].split(',').map((subject) => subject.trim());
 
                     if (subjArray9.length > 10) {
                         totalDuration9 += 2 * Number(breakTimeDuration);
                     } else {
                         totalDuration9 += Number(breakTimeDuration);
                     }
-                    
+
                     subjArray9.forEach((subjectName) => {
                         let found = false; // Flag to track if the subject was found
 
-                        for (
-                            let index = 0;
-                            index < addedSubjects.length;
-                            index++
-                        ) {
-                            if (
-                                addedSubjects[index]['subject']
-                                    .trim()
-                                    .toLowerCase() ===
-                                subjectName.trim().toLowerCase()
-                            ) {
+                        for (let index = 0; index < addedSubjects.length; index++) {
+                            if (addedSubjects[index]['subject'].trim().toLowerCase() === subjectName.trim().toLowerCase()) {
                                 subjIds9.push(index + 1);
                                 const numOfClasses = Math.min(
                                     Math.ceil(
-                                        Number(
-                                            addedSubjects[index][
-                                                'weeklyminutes'
-                                            ]
-                                        ) /
-                                            Number(
-                                                addedSubjects[index][
-                                                    'classduration'
-                                                ]
-                                            )
+                                        Number(addedSubjects[index]['weeklyminutes']) /
+                                            Number(addedSubjects[index]['classduration'])
                                     ),
                                     numOfSchoolDays
                                 );
-                                fixedDays9[index + 1] = new Array(
-                                    numOfClasses
-                                ).fill(0);
-                                fixedPositions9[index + 1] = new Array(
-                                    numOfClasses
-                                ).fill(0);
+                                fixedDays9[index + 1] = new Array(numOfClasses).fill(0);
+                                fixedPositions9[index + 1] = new Array(numOfClasses).fill(0);
                                 found = true;
 
-                                totalDuration9 += Number(
-                                    addedSubjects[index]['classduration']
-                                );
+                                totalDuration9 += Number(addedSubjects[index]['classduration']);
 
                                 break;
                             }
@@ -1253,9 +1056,7 @@ const ExportImportDBButtons = ({
                         }
                     });
 
-                    const subjArray10 = program[10]
-                        .split(',')
-                        .map((subject) => subject.trim());
+                    const subjArray10 = program[10].split(',').map((subject) => subject.trim());
 
                     if (subjArray10.length > 10) {
                         totalDuration10 += 2 * Number(breakTimeDuration);
@@ -1266,44 +1067,21 @@ const ExportImportDBButtons = ({
                     subjArray10.forEach((subjectName) => {
                         let found = false; // Flag to track if the subject was found
 
-                        for (
-                            let index = 0;
-                            index < addedSubjects.length;
-                            index++
-                        ) {
-                            if (
-                                addedSubjects[index]['subject']
-                                    .trim()
-                                    .toLowerCase() ===
-                                subjectName.trim().toLowerCase()
-                            ) {
+                        for (let index = 0; index < addedSubjects.length; index++) {
+                            if (addedSubjects[index]['subject'].trim().toLowerCase() === subjectName.trim().toLowerCase()) {
                                 subjIds10.push(index + 1);
                                 const numOfClasses = Math.min(
                                     Math.ceil(
-                                        Number(
-                                            addedSubjects[index][
-                                                'weeklyminutes'
-                                            ]
-                                        ) /
-                                            Number(
-                                                addedSubjects[index][
-                                                    'classduration'
-                                                ]
-                                            )
+                                        Number(addedSubjects[index]['weeklyminutes']) /
+                                            Number(addedSubjects[index]['classduration'])
                                     ),
                                     numOfSchoolDays
                                 );
-                                fixedDays10[index + 1] = new Array(
-                                    numOfClasses
-                                ).fill(0);
-                                fixedPositions10[index + 1] = new Array(
-                                    numOfClasses
-                                ).fill(0);
+                                fixedDays10[index + 1] = new Array(numOfClasses).fill(0);
+                                fixedPositions10[index + 1] = new Array(numOfClasses).fill(0);
                                 found = true;
 
-                                totalDuration10 += Number(
-                                    addedSubjects[index]['classduration']
-                                );
+                                totalDuration10 += Number(addedSubjects[index]['classduration']);
 
                                 break;
                             }
@@ -1314,28 +1092,15 @@ const ExportImportDBButtons = ({
                         }
                     });
 
-                    if (
-                        subjIds7.includes(-1) ||
-                        subjIds8.includes(-1) ||
-                        subjIds9.includes(-1) ||
-                        subjIds10.includes(-1)
-                    ) {
+                    if (subjIds7.includes(-1) || subjIds8.includes(-1) || subjIds9.includes(-1) || subjIds10.includes(-1)) {
                         unaddedPrograms.push([2, program]);
                         return;
                     } else {
                         // CHECK IF YEAR SHIFTS ARE VALID
-                        const shiftYear7 = program['__empty']
-                            .trim()
-                            .toUpperCase();
-                        const shiftYear8 = program['__empty_2']
-                            .trim()
-                            .toUpperCase();
-                        const shiftYear9 = program['__empty_4']
-                            .trim()
-                            .toUpperCase();
-                        const shiftYear10 = program['__empty_6']
-                            .trim()
-                            .toUpperCase();
+                        const shiftYear7 = program['__empty'].trim().toUpperCase();
+                        const shiftYear8 = program['__empty_2'].trim().toUpperCase();
+                        const shiftYear9 = program['__empty_4'].trim().toUpperCase();
+                        const shiftYear10 = program['__empty_6'].trim().toUpperCase();
 
                         if (
                             (shiftYear7 !== 'AM' && shiftYear7 !== 'PM') ||
@@ -1354,43 +1119,27 @@ const ExportImportDBButtons = ({
                         let startTime10 = '';
 
                         if (typeof program['__empty_1'] !== 'string') {
-                            startTime7 = convertExcelTimeToTimeString(
-                                program['__empty_1']
-                            );
+                            startTime7 = convertExcelTimeToTimeString(program['__empty_1']);
                         } else {
-                            startTime7 = formatTimeWithLeadingZero(
-                                program['__empty_1'].trim().toUpperCase()
-                            );
+                            startTime7 = formatTimeWithLeadingZero(program['__empty_1'].trim().toUpperCase());
                         }
 
                         if (typeof program['__empty_3'] !== 'string') {
-                            startTime8 = convertExcelTimeToTimeString(
-                                program['__empty_3']
-                            );
+                            startTime8 = convertExcelTimeToTimeString(program['__empty_3']);
                         } else {
-                            startTime8 = formatTimeWithLeadingZero(
-                                program['__empty_3'].trim().toUpperCase()
-                            );
+                            startTime8 = formatTimeWithLeadingZero(program['__empty_3'].trim().toUpperCase());
                         }
 
                         if (typeof program['__empty_5'] !== 'string') {
-                            startTime9 = convertExcelTimeToTimeString(
-                                program['__empty_5']
-                            );
+                            startTime9 = convertExcelTimeToTimeString(program['__empty_5']);
                         } else {
-                            startTime9 = formatTimeWithLeadingZero(
-                                program['__empty_5'].trim().toUpperCase()
-                            );
+                            startTime9 = formatTimeWithLeadingZero(program['__empty_5'].trim().toUpperCase());
                         }
 
                         if (typeof program['__empty_7'] !== 'string') {
-                            startTime10 = convertExcelTimeToTimeString(
-                                program['__empty_7']
-                            );
+                            startTime10 = convertExcelTimeToTimeString(program['__empty_7']);
                         } else {
-                            startTime10 = formatTimeWithLeadingZero(
-                                program['__empty_7'].trim().toUpperCase()
-                            );
+                            startTime10 = formatTimeWithLeadingZero(program['__empty_7'].trim().toUpperCase());
                         }
 
                         const startTime7Idx = getTimeSlotIndex(startTime7);
@@ -1398,12 +1147,7 @@ const ExportImportDBButtons = ({
                         const startTime9Idx = getTimeSlotIndex(startTime9);
                         const startTime10Idx = getTimeSlotIndex(startTime10);
 
-                        if (
-                            startTime7Idx === -1 ||
-                            startTime8Idx === -1 ||
-                            startTime9Idx === -1 ||
-                            startTime10Idx === -1
-                        ) {
+                        if (startTime7Idx === -1 || startTime8Idx === -1 || startTime9Idx === -1 || startTime10Idx === -1) {
                             console.log('ito ba?');
                             unaddedPrograms.push([2, program]); // Start time is invalid
                             return;
@@ -1475,7 +1219,6 @@ const ExportImportDBButtons = ({
             const assignedRoom = [];
 
             normalizedData['Sections'].forEach((section) => {
-
                 section.sectionname = String(section.sectionname).trim().toUpperCase();
                 section.program = String(section.program).trim().toUpperCase();
                 section.adviser = String(section.adviser).trim().toUpperCase();
@@ -1505,82 +1248,58 @@ const ExportImportDBButtons = ({
                 }
 
                 const isDuplicateSection = addedSections.find(
-                    (s) =>
-                        s['sectionname'].trim().toLowerCase() ===
-                        section.sectionname.trim().toLowerCase()
+                    (s) => s['sectionname'].trim().toLowerCase() === section.sectionname.trim().toLowerCase()
                 );
                 if (isDuplicateSection) {
                     unaddedSections.push([1, section]);
                     return;
                 } else {
-
                     // Check if program is valid
                     const progID = addedPrograms.findIndex(
-                        (program) =>
-                            program['program'].trim().toLowerCase() ===
-                            section.program.trim().toLowerCase()
+                        (program) => program['program'].trim().toLowerCase() === section.program.trim().toLowerCase()
                     );
 
                     // Check if adviser is valid
                     const advID = addedTeachers.findIndex(
-                        (t) =>
-                            t.teacher.trim().toLowerCase() ===
-                            section.adviser.trim().toLowerCase()
+                        (t) => t.teacher.trim().toLowerCase() === section.adviser.trim().toLowerCase()
                     );
 
                     // Check if year is valid
                     const year = Number(section.year);
 
                     // Check if building is valid
-                    const roomDetailsMatch = section.roomdetails.match(
-                        /\[(.*?), FLOOR (\d+)\] (.*)/
-                    );
+                    const roomDetailsMatch = section.roomdetails.match(/\[(.*?), FLOOR (\d+)\] (.*)/);
                     const roomDetails = {
                         buildingId: -1,
                         floorIdx: -1,
                         roomIdx: -1,
                     };
                     if (roomDetailsMatch) {
-                        const [, bldgName, floorNumber, rmName] =
-                            roomDetailsMatch;
-                        const floorNumberDecremented =
-                            parseInt(floorNumber, 10) - 1;
+                        const [, bldgName, floorNumber, rmName] = roomDetailsMatch;
+                        const floorNumberDecremented = parseInt(floorNumber, 10) - 1;
 
-                        const normalizedBldgName = bldgName
-                            .trim()
-                            .toLowerCase();
+                        const normalizedBldgName = bldgName.trim().toLowerCase();
                         const normalizedRmName = rmName.trim().toLowerCase();
 
                         let bldgFound = false;
 
                         addedBuildings.some((building, buildingIdx) => {
-                            if (
-                                building.name.trim().toLowerCase() ===
-                                normalizedBldgName
-                            ) {
+                            if (building.name.trim().toLowerCase() === normalizedBldgName) {
                                 bldgFound = true;
 
-                                const floorData =
-                                    building.data[floorNumberDecremented];
+                                const floorData = building.data[floorNumberDecremented];
 
                                 if (floorData) {
                                     const room = floorData.find(
-                                        (room, idx) =>
-                                            room.roomName
-                                                .trim()
-                                                .toLowerCase() ===
-                                            normalizedRmName
+                                        (room, idx) => room.roomName.trim().toLowerCase() === normalizedRmName
                                     );
 
                                     if (room) {
                                         const isValid = assignedRoom.filter(
                                             (room) =>
-                                                room.buildingId ===
-                                                    buildingIdx + 1 &&
-                                                room.floorIdx ===
-                                                    floorNumberDecremented &&
-                                                room.roomIdx ===
-                                                    floorData.indexOf(room)
+                                                room.buildingId === buildingIdx + 1 &&
+                                                room.floorIdx === floorNumberDecremented &&
+                                                room.roomIdx === floorData.indexOf(room)
                                         );
 
                                         if (isValid.length > 0) {
@@ -1589,18 +1308,11 @@ const ExportImportDBButtons = ({
                                             return;
                                         }
 
-                                        roomDetails.buildingId =
-                                            buildingIdx + 1;
-                                        roomDetails.floorIdx =
-                                            floorNumberDecremented;
-                                        roomDetails.roomIdx =
-                                            floorData.indexOf(room);
+                                        roomDetails.buildingId = buildingIdx + 1;
+                                        roomDetails.floorIdx = floorNumberDecremented;
+                                        roomDetails.roomIdx = floorData.indexOf(room);
 
-                                        if (section.sectionname === 'Malandi')
-                                            console.log(
-                                                'roomDetails',
-                                                roomDetails
-                                            );
+                                        if (section.sectionname === 'Malandi') console.log('roomDetails', roomDetails);
 
                                         assignedRoom.push(roomDetails);
 
@@ -1638,10 +1350,7 @@ const ExportImportDBButtons = ({
                     } else if (assignedAdviser.includes(advID)) {
                         unaddedSections.push([1, section]); // Duplicate adviser
                         return;
-                    } else if (
-                        ![7, 8, 9, 10].includes(year) ||
-                        !Number.isInteger(year)
-                    ) {
+                    } else if (![7, 8, 9, 10].includes(year) || !Number.isInteger(year)) {
                         unaddedSections.push([2, section]); // Unknown year
                         return;
                     } else {
@@ -1655,16 +1364,18 @@ const ExportImportDBButtons = ({
 
                         let isOverlap = false;
                         addedSections_2.forEach((section) => {
-                            if (section.roomDetails.buildingId === roomDetails.buildingId 
-                                && section.roomDetails.floorIdx === roomDetails.floorIdx 
-                                    && section.roomDetails.roomIdx === roomDetails.roomIdx) {
-                                        if (section.endTime > startTimeIdx && section.startTime < endTimeIdx) {
-                                            isOverlap = true;
-                                            return;
-                                        }
+                            if (
+                                section.roomDetails.buildingId === roomDetails.buildingId &&
+                                section.roomDetails.floorIdx === roomDetails.floorIdx &&
+                                section.roomDetails.roomIdx === roomDetails.roomIdx
+                            ) {
+                                if (section.endTime > startTimeIdx && section.startTime < endTimeIdx) {
+                                    isOverlap = true;
+                                    return;
+                                }
                             }
-                        })
-                        
+                        });
+
                         if (isOverlap) {
                             unaddedSections.push([1, section]); // Overlapping room
                             return;
@@ -1746,9 +1457,7 @@ const ExportImportDBButtons = ({
 
             // Get department ID
             const departmentIndex = addedDepartments.findIndex(
-                (d) =>
-                    d.department.trim().toLowerCase() ===
-                    teacher.department.trim().toLowerCase()
+                (d) => d.department.trim().toLowerCase() === teacher.department.trim().toLowerCase()
             );
 
             if (departmentIndex === -1) {
@@ -1762,9 +1471,7 @@ const ExportImportDBButtons = ({
 
             // Check if teacher is an adviser of a section
             const isAdviser = addedSections.some(
-                (section) =>
-                    section.adviser.trim().toLowerCase() ===
-                    teacher.teacher.trim().toLowerCase()
+                (section) => section.adviser.trim().toLowerCase() === teacher.teacher.trim().toLowerCase()
             );
 
             if (isAdviser) {
@@ -1787,16 +1494,11 @@ const ExportImportDBButtons = ({
             const department = addedDepartments[i];
 
             const headIndex =
-                department.departmenthead &&
-                department.departmenthead.trim() !== ''
+                department.departmenthead && department.departmenthead.trim() !== ''
                     ? addedTeachers.findIndex(
                           (t) =>
-                              t.teacher.trim().toLowerCase() ===
-                                  department.departmenthead
-                                      .trim()
-                                      .toLowerCase() &&
-                              t.department.trim().toLowerCase() ===
-                                  department.department.trim().toLowerCase()
+                              t.teacher.trim().toLowerCase() === department.departmenthead.trim().toLowerCase() &&
+                              t.department.trim().toLowerCase() === department.department.trim().toLowerCase()
                       )
                     : '';
 
@@ -1821,9 +1523,7 @@ const ExportImportDBButtons = ({
             const section_2 = addedSections[i]; // original
 
             const advID = addedTeachers.findIndex(
-                (t) =>
-                    t.teacher.trim().toLowerCase() ===
-                    section_2.adviser.trim().toLowerCase()
+                (t) => t.teacher.trim().toLowerCase() === section_2.adviser.trim().toLowerCase()
             );
 
             section.teacher = advID + 1;
@@ -1850,9 +1550,9 @@ const ExportImportDBButtons = ({
     // =======================================================================
 
     return (
-        <div className="flex gap-2">
+        <div className='flex gap-2'>
             <button
-                className="btn btn-secondary"
+                className='btn btn-secondary'
                 onClick={() => {
                     document.getElementById('export-format-modal').showModal();
                 }}
@@ -1861,25 +1561,20 @@ const ExportImportDBButtons = ({
             </button>
 
             <button
-                className="btn btn-secondary"
+                className='btn btn-secondary'
                 onClick={() => {
-                    document
-                        .getElementById('import-confirmation-modal')
-                        .showModal();
+                    document.getElementById('import-confirmation-modal').showModal();
                 }}
             >
                 Import <CiImport size={20} />
             </button>
 
             {/* Export Format Modal */}
-            <dialog id="export-format-modal" className="modal">
-                <div className="modal-box">
-                    <h3 className="font-bold text-lg">Choose Export Format</h3>
-                    <p className="py-4">
-                        Select the format in which you want to export the
-                        database:
-                    </p>
-                    <div className="modal-action">
+            <dialog id='export-format-modal' className='modal'>
+                <div className='modal-box'>
+                    <h3 className='font-bold text-lg'>Choose Export Format</h3>
+                    <p className='py-4'>Select the format in which you want to export the database:</p>
+                    <div className='modal-action'>
                         {/* Option to Export as JSON */}
                         {/* <button
                             className="btn btn-primary"
@@ -1896,65 +1591,51 @@ const ExportImportDBButtons = ({
 
                         {/* Option to Export as Excel */}
                         <button
-                            className="btn btn-primary"
+                            className='btn btn-primary'
                             onClick={() => {
                                 exportDB('excel');
-                                document
-                                    .getElementById('export-format-modal')
-                                    .close();
+                                document.getElementById('export-format-modal').close();
                                 // exportDB();
                             }}
                         >
                             Export as Excel
                         </button>
 
-                        <form method="dialog">
-                            <button className="btn btn-error">Cancel</button>
+                        <form method='dialog'>
+                            <button className='btn btn-error'>Cancel</button>
                         </form>
                     </div>
                 </div>
             </dialog>
 
-            <dialog id="import-confirmation-modal" className="modal">
-                <div className="modal-box">
-                    <h3 className="font-bold text-lg">Import Confirmation</h3>
-                    <p className="py-4">
-                        Importing will override all current data in the
-                        database. Are you sure?
-                    </p>
-                    <div className="modal-action">
+            <dialog id='import-confirmation-modal' className='modal'>
+                <div className='modal-box'>
+                    <h3 className='font-bold text-lg'>Import Confirmation</h3>
+                    <p className='py-4'>Importing will override all current data in the database. Are you sure?</p>
+                    <div className='modal-action'>
                         <button
-                            className="btn btn-primary"
+                            className='btn btn-primary'
                             onClick={async () => {
-                                await onClear(); // Wait for the onClear function to complete
-                                document
-                                    .getElementById('import-confirmation-modal')
-                                    .close();
-                                document
-                                    .getElementById('import-format-modal')
-                                    .showModal();
+                                document.getElementById('import-confirmation-modal').close();
+                                document.getElementById('import-format-modal').showModal();
                             }}
                         >
                             Upload Data File <BiUpload size={20} />
                         </button>
-                        <form method="dialog">
-                            <div className="flex gap-2">
-                                <button className="btn btn-error">
-                                    Cancel
-                                </button>
+                        <form method='dialog'>
+                            <div className='flex gap-2'>
+                                <button className='btn btn-error'>Cancel</button>
                             </div>
                         </form>
                     </div>
                 </div>
             </dialog>
 
-            <dialog id="import-format-modal" className="modal">
-                <div className="modal-box">
-                    <h3 className="font-bold text-lg">Choose Import Format</h3>
-                    <p className="py-4">
-                        Select the format in which you want to import your data:
-                    </p>
-                    <div className="modal-action">
+            <dialog id='import-format-modal' className='modal'>
+                <div className='modal-box'>
+                    <h3 className='font-bold text-lg'>Choose Import Format</h3>
+                    <p className='py-4'>Select the format in which you want to import your data:</p>
+                    <div className='modal-action'>
                         {/* Option to Import a JSON */}
                         {/* <button
                             className="btn btn-primary"
@@ -1970,40 +1651,31 @@ const ExportImportDBButtons = ({
 
                         {/* Option to Import an Excel */}
                         <button
-                            className="btn btn-primary"
+                            className='btn btn-primary'
                             onClick={async () => {
                                 try {
                                     await importDB('excel');
-                                    document
-                                        .getElementById('import-format-modal')
-                                        .close();
-
-                                    await sleep(2000);
 
                                     console.log('Import completed!');
                                 } catch (error) {
-                                    console.error(
-                                        'Error during import:',
-                                        error
-                                    );
-                                } finally {
-                                    setIsImporting(false);
+                                    console.error('Error during import:', error);
                                 }
                             }}
+                            disabled={isImporting}
                         >
                             Import EXCEL
                         </button>
 
-                        <form method="dialog">
-                            <button className="btn btn-error">Cancel</button>
+                        <form method='dialog'>
+                            <button className='btn btn-error' disabled={isImporting}>
+                                Cancel
+                            </button>
                         </form>
                     </div>
                 </div>
             </dialog>
 
-            {isImporting && (
-                <ImportingFullScreenLoader />
-            )}
+            {isImporting && <ImportingFullScreenLoader />}
         </div>
     );
 };
