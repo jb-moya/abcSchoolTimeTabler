@@ -306,6 +306,7 @@ const ItemCells = ({
             <div
                 className='absolute inset-0'
                 onMouseEnter={() => {
+                    console.log('cells: ', cell);
                     setHovering(true);
                 }}
                 onMouseLeave={() => setHovering(false)}
