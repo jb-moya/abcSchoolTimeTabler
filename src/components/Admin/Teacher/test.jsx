@@ -263,64 +263,71 @@ const AddTeacherContainer = ({
                         </select>
                     </div>
                 </div>
-                
+
                 {/* Assigning of Subjects and Grade Levels to Teach */}
-                <div className='flex flex-wrap mb-4 '>
+                <div className='flex flex-wrap mb-4'>
                     {/* Subjects Section */}
-                    <div className='w-full sm:w-1/2 p-2'>
-                        <div className='rounded-lg border p-4 shadow-md'>
-                            <h4 className='font-semibold text-sm text-left'>Subjects</h4>
-                            <hr className='my-2'></hr>
-                            <SearchableDropdownToggler 
+                    <div className='w-full sm:w-1/2 flex justify-center'>
+                        <div className='w-5/6 flex flex-col h-full'>
+                            {/* Header Section */}
+                            <div className='p-2 font-bold rounded-t-lg bg-base-200 border border-base-content border-opacity-20'>
+                                Subjects
+                            </div>
+
+                            {/* Add Subject Section */}
+                            <div className='p-2 bg-base-100 border border-base-content border-opacity-20 flex justify-start items-center rounded-lg mt-2'>
+                                <SearchableDropdownToggler
                                     selectedList={selectedSubjects}
-                                    setSelectedList={setSelectedSubjects} />
-                            <div className='mt-2'>
-                                <p className='font-medium text-left text-sm mb-2'>Selected Subjects:</p>
-                                {selectedSubjects.length === 0 ? (
-                                    <p className='text-gray-500 text-left text-sm'>No selected subject</p>
-                                ) : (
-                                    <div className='flex flex-wrap gap-2'>
-                                        {selectedSubjects.map((subjectID) => (
-                                            <span
-                                                key={subjectID}
-                                                className='bg-secondary text-white text-sm px-2 py-1 rounded-lg'
-                                            >
+                                    setSelectedList={setSelectedSubjects}
+                                />
+                            </div>
+
+                            {/* Selected Subjects Section */}
+                            <div className='p-2 bg-base-100 border border-base-content border-opacity-20 flex flex-col items-start mt-2 rounded-lg'>
+                                <span className='font-semibold'>Selected Subjects:</span>
+                                <div className='w-full mt-1 flex flex-wrap gap-2'>
+                                    {selectedSubjects.length === 0 ? (
+                                        <span className='text-gray-500'>No Selected Subject</span>
+                                    ) : (
+                                        selectedSubjects.map((subjectID) => (
+                                            <div key={subjectID} className='p-1 bg-secondary text-white text-sm rounded-lg'>
                                                 {subjects[subjectID].subject}
-                                            </span>
-                                        ))}
-                                    </div>
-                                )}
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Grade Levels */}
-                    <div className='w-full sm:w-1/2 p-2'>
-                        <div className='rounded-lg border p-4 shadow-md'>
-                            <h4 className='font-semibold text-sm text-left '>Grade Levels</h4>
-                            <hr className='my-2'></hr>
-                            <div className='grid grid-cols-2 gap-2 mt-2 text-sm'>
+                    {/* Grade Levels Section */}
+                    <div className='w-full sm:w-1/2 flex justify-center'>
+                        <div className='w-5/6'>
+                            <div className='p-2 font-bold rounded-t-lg bg-base-200 border border-base-content border-opacity-20'>
+                                Grade Levels to Teach
+                            </div>
+                            <div className='flex flex-col items-center justify-center border border-base-content border-opacity-20 rounded-b-lg'>
                                 {['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'].map((grade, index) => (
-                                    <label key={index} className='flex items-center gap-2'>
-                                        <input
-                                            type='checkbox'
-                                            checked={assignedYearLevels.includes(index)}
-                                            onChange={() => handleYearLevelChange(index)}
-                                        />
-                                        {grade}
-                                    </label>
+                                    <div key={index} className='w-full sm:w-1/3 flex justify-start'>
+                                        <label>
+                                            <input
+                                                type='checkbox'
+                                                checked={assignedYearLevels.includes(index)}
+                                                onChange={() => handleYearLevelChange(index)}
+                                            />
+                                            {grade}
+                                        </label>
+                                    </div>
                                 ))}
                             </div>
                         </div>
                     </div>
                 </div>
-
             </div>
 
             {/* Additional Schedules */}
-             <div className='p-4 border rounded-lg shadow-md'>
+            <div className='p-4 rounded-lg shadow-md'>
                 <div className='text-lg font-semibold rounded-lg'>Additional Teacher Schedules</div>
-                <hr className='my-2'></hr>
 
                 {/* Button to add schedules */}
                 <button
@@ -361,7 +368,7 @@ const AddTeacherContainer = ({
                                         </>
                                     ) : (
                                         // Content to show when either is empty
-                                        <p className='text-sm'>Untitled Schedule {index + 1}</p>
+                                        <p>Untitled Schedule {index + 1}</p>
                                     )}
                                 </button>
                                 <AdditionalScheduleForTeacher

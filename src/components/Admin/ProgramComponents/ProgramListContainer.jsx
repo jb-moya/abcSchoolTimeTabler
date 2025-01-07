@@ -396,7 +396,7 @@ const ProgramListContainer = ({
 
                                             {editable && (
                                                 <td>
-                                                    <div className=' flex justify-center items-center'>
+                                                    <div className='flex justify-center items-center'>
                                                         <ProgramEdit
                                                             className='btn btn-xs btn-ghost text-blue-500'
                                                             program={program}
