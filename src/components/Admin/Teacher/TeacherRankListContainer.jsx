@@ -401,7 +401,7 @@ const TeacherRankListContainer = ({ editable = false }) => {
                                                 }} // Optional for styled scrollbars
                                             >
                                                 <div
-                                                    className='font-bold p-2 border-b border-base-content border-opacity-20 bg-base-200'
+                                                    className='font-bold border-base-content border-opacity-20 bg-base-200'
                                                     style={{
                                                         position: 'sticky',
                                                         top: 0,

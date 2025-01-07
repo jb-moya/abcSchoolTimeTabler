@@ -389,33 +389,35 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
                         {/* Button to add schedules */}
                         <button
                             onClick={handleAddTeacherAdditionalSchedules}
-                            className='flex flex-wrap items-right text-sm mt-2 bg-primary p-4 text-white px-2 py-1 rounded-lg hover:bg-blue-600'
+                            className='flex flex-wrap items-right text-sm mt-2 bg-primary p-4 px-2 py-1 rounded-lg hover:bg-blue-600'
                         >
                             Add Schedule
                         </button>
 
                         {/* Render the ScheduleComponent as many times as specified */}
                         <div
-                            className='mt-2 overflow-y-auto max-h-36 border border-gray-300 rounded-lg'
+                            className='mt-2 overflow-y-auto max-h-36 border rounded-lg'
                             style={{
                                 scrollbarWidth: 'thin',
                                 scrollbarColor: '#a0aec0 #edf2f7',
                             }} // Optional for styled scrollbars
                         >
                             {editTeacherAdditionalScheds.map((sched, index) => (
-                                <div key={index} className='flex flex-wrap'>
+                                <div key={index} className='flex flex-wrap border-b'>
                                     <button
-                                        className='w-1/12 border rounded-l-lg hover:bg-gray-200 flex items-center justify-center'
+                                        className='w-1/12 rounded-lg hover:bg-primary-content hover:text-error flex items-center justify-center'
                                         onClick={() => handleDeleteTeacherAdditionalSchedule(index)}
                                     >
                                         <RiDeleteBin7Line size={15} />
                                     </button>
                                     <div className='w-10/12'>
                                         <button
-                                            className='w-full bg-gray-100 p-2 border shadow-sm hover:bg-gray-200'
+                                            className='w-full p-2 rounded-lg  shadow-sm hover:bg-primary-content'
                                             onClick={() =>
                                                 document
-                                                    .getElementById(`add_additional_sched_modal_1_teacher-${editTeacherId}_idx-${index}`)
+                                                    .getElementById(
+                                                        `add_additional_sched_modal_1_teacher-${editTeacherId}_idx-${index}`
+                                                    )
                                                     .showModal()
                                             }
                                         >
@@ -439,26 +441,27 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
                                             additionalSchedsOfTeacher={sched}
                                         />
                                     </div>
-                                    <div className='w-1/12 flex items-center justify-center border rounded-r-lg hover:bg-gray-200'>
-                                        <button
-                                            onClick={() =>
-                                                document
-                                                    .getElementById(`add_additional_sched_modal_0_teacher-${editTeacherId}_idx-${index}`)
-                                                    .showModal()
-                                            }
-                                        >
-                                            <RiEdit2Fill size={15} />
-                                        </button>
-                                        <AdditionalScheduleForTeacher
-                                            viewingMode={0}
-                                            teacherID={editTeacherId}
-                                            arrayIndex={index}
-                                            teacherSubjects={editTeacherCurr}
-                                            numOfSchoolDays={numOfSchoolDays}
-                                            additionalSchedsOfTeacher={sched}
-                                            setAdditionalScheds={setEditTeacherAdditionalScheds}
-                                        />
-                                    </div>
+                                    <button
+                                        className='w-1/12 flex items-center  hover:text-primary justify-center rounded-lg hover:bg-primary-content'
+                                        onClick={() =>
+                                            document
+                                                .getElementById(
+                                                    `add_additional_sched_modal_0_teacher-${editTeacherId}_idx-${index}`
+                                                )
+                                                .showModal()
+                                        }
+                                    >
+                                        <RiEdit2Fill size={15} />
+                                    </button>
+                                    <AdditionalScheduleForTeacher
+                                        viewingMode={0}
+                                        teacherID={editTeacherId}
+                                        arrayIndex={index}
+                                        teacherSubjects={editTeacherCurr}
+                                        numOfSchoolDays={numOfSchoolDays}
+                                        additionalSchedsOfTeacher={sched}
+                                        setAdditionalScheds={setEditTeacherAdditionalScheds}
+                                    />
                                 </div>
                             ))}
                         </div>

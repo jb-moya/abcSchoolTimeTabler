@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';
 import TimeSelector from '@utils/timeSelector';
@@ -12,10 +11,9 @@ const AdditionalScheduleForTeacherRank = ({
     additionalSchedsOfRank = [],
     setAdditionalScheds = () => {},
 }) => {
-
     const lastSchedTimeRef = useRef();
 
-// =============================================================================
+    // =============================================================================
 
     const [schedName, setSchedName] = useState(additionalSchedsOfRank.name);
 
@@ -29,11 +27,11 @@ const AdditionalScheduleForTeacherRank = ({
 
     const [schedTime, setSchedtime] = useState(additionalSchedsOfRank.time || 0);
 
-// =============================================================================
+    // =============================================================================
 
     const [time, setTime] = useState();
 
-// =============================================================================
+    // =============================================================================
 
     const handleSave = () => {
         const newSched = {
@@ -58,17 +56,11 @@ const AdditionalScheduleForTeacherRank = ({
 
         resetStates();
 
-        document
-            .getElementById(
-                `add_additional_sched_modal_${viewingMode}_tr-${rankID}_idx-${arrayIndex}`
-            )
-            .close();
+        document.getElementById(`add_additional_sched_modal_${viewingMode}_tr-${rankID}_idx-${arrayIndex}`).close();
     };
 
     const handleClose = () => {
-        const modal = document.getElementById(
-            `add_additional_sched_modal_${viewingMode}_tr-${rankID}_idx-${arrayIndex}`
-        );
+        const modal = document.getElementById(`add_additional_sched_modal_${viewingMode}_tr-${rankID}_idx-${arrayIndex}`);
 
         resetStates();
 
@@ -86,7 +78,7 @@ const AdditionalScheduleForTeacherRank = ({
         setSchedtime(additionalSchedsOfRank.time);
     };
 
-// =============================================================================
+    // =============================================================================
 
     useEffect(() => {
         setSchedName(additionalSchedsOfRank.name || '');
@@ -109,11 +101,10 @@ const AdditionalScheduleForTeacherRank = ({
             if (timeString) {
                 setTime(timeString);
             }
-
         }
     }, [schedTime]);
 
-// =============================================================================
+    // =============================================================================
 
     // useEffect(() => {
     //     console.log('schedName', schedName);
@@ -127,80 +118,64 @@ const AdditionalScheduleForTeacherRank = ({
     return (
         <dialog
             id={`add_additional_sched_modal_${viewingMode}_tr-${rankID}_idx-${arrayIndex}`}
-            className="modal modal-bottom sm:modal-middle"
+            className='modal modal-bottom sm:modal-middle'
         >
-            <div className="modal-box">
+            <div className='modal-box'>
                 <div>
-                    <div className="mb-3 text-center text-lg font-bold">
-                        {viewingMode === 1 ? (
-                            <div>View Mode</div>
-                        ) : (
-                            <div>Edit Mode</div>
-                        )}
+                    <div className='mb-3 text-center text-lg font-bold'>
+                        {viewingMode === 1 ? <div>View Mode</div> : <div>Edit Mode</div>}
                     </div>
 
                     {/* Schedule Name */}
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-1">
-                            Schedule Name:
-                        </label>
+                    <div className='mb-4'>
+                        <label className='block text-sm font-medium mb-1'>Schedule Name:</label>
                         <input
-                            type="text"
+                            type='text'
                             // ref={inputNameRef}
-                            className="input input-bordered w-full"
+                            className='input input-bordered w-full'
                             value={schedName}
                             onChange={(e) => setSchedName(e.target.value)}
-                            placeholder="Enter schedule name"
+                            placeholder={viewingMode === 1 ? 'N/A' : 'Enter schedule name'}
                             // disabled={viewingMode !== 0}
                             readOnly={viewingMode !== 0}
                         />
                     </div>
 
                     {/* Schedule Subject */}
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-1">
-                            Subject:
-                        </label>
+                    <div className='mb-4'>
+                        <label className='block text-sm font-medium mb-1'>Subject:</label>
                         <input
-                            type="text"
-                            className="input input-bordered w-full"
+                            type='text'
+                            className='input input-bordered w-full'
                             value='N/A'
-                            placeholder="Enter schedule name"
+                            placeholder='select subject'
                             readOnly
                         />
                     </div>
 
                     {/* Schedule Duration */}
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-1">
-                            Duration (in minutes):
-                        </label>
+                    <div className='mb-4'>
+                        <label className='block text-sm font-medium mb-1'>Duration (in minutes):</label>
                         <input
-                            type="number"
-                            className="input input-bordered w-full"
+                            type='number'
+                            className='input input-bordered w-full'
                             value={schedDuration}
-                            onChange={(e) =>
-                                setSchedDuration(Number(e.target.value))
-                            }
-                            placeholder="Enter duration"
+                            onChange={(e) => setSchedDuration(Number(e.target.value))}
+                            placeholder='Enter duration'
                             // disabled={viewingMode !== 0}
                             readOnly={viewingMode !== 0}
                         />
                     </div>
 
                     {/* Schedule Frequency */}
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-1">
-                            Frequency:
-                        </label>
+                    <div className='mb-4'>
+                        <label className='block text-sm font-medium mb-1'>Frequency:</label>
                         <input
-                            type="number"
-                            className="input input-bordered w-full"
+                            type='number'
+                            className='input input-bordered w-full'
                             value={schedFrequency}
-                            onChange={(e) =>
-                                setSchedFrequency(Number(e.target.value))
-                            }
-                            placeholder="Enter frequency"
+                            onChange={(e) => setSchedFrequency(Number(e.target.value))}
+                            placeholder='Enter frequency'
                             min={1}
                             max={numOfSchoolDays}
                             // disabled={viewingMode !== 0}
@@ -209,34 +184,28 @@ const AdditionalScheduleForTeacherRank = ({
                     </div>
 
                     {/* Must Appear on Schedule */}
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-1">
-                            Must Appear on Schedule:
-                        </label>
+                    <div className='mb-4'>
+                        <label className='block text-sm font-medium mb-1'>Must Appear on Schedule:</label>
                         <select
                             className={clsx('input input-bordered w-full', {
                                 'pointer-events-none': viewingMode !== 0,
                                 select: viewingMode === 0,
                             })}
                             value={schedShown ? 'Yes' : 'No'}
-                            onChange={(e) =>
-                                setSchedShown(e.target.value === 'Yes')
-                            }
+                            onChange={(e) => setSchedShown(e.target.value === 'Yes')}
                             // disabled={viewingMode !== 0}
                             readOnly={viewingMode !== 0}
                         >
-                            <option value="Yes">Yes</option>
-                            <option value="No">No</option>
+                            <option value='Yes'>Yes</option>
+                            <option value='No'>No</option>
                         </select>
                     </div>
 
                     {/* Schedule time */}
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-1">
-                            Time:
-                        </label>
+                    <div className='mb-4'>
+                        <label className='block text-sm font-medium mb-1'>Time:</label>
                         {viewingMode === 0 ? (
-                            <TimeSelector 
+                            <TimeSelector
                                 className='z-10'
                                 key={`newRankTimePicker-rank{${rankID}}-arrayIndex${arrayIndex}`}
                                 interval={5}
@@ -244,24 +213,23 @@ const AdditionalScheduleForTeacherRank = ({
                                 setTime={setTime}
                             />
                         ) : (
-                            <div className="flex items-center justify-start input border rounded h-12 bg-white border border-gray-300 text-base">
+                            <div className='flex items-center justify-start input border rounded-lg h-12 border-base-content border-opacity-20 text-base'>
                                 {time ? time : '--:--- --'}
                             </div>
                         )}
-                        
                     </div>
-                    	
-                    <div className="mt-4 text-center text-lg font-bold">
+
+                    <div className='mt-4 text-center text-lg font-bold'>
                         {viewingMode !== 1 && (
-                            <div className="flex flex-wrap gap-2 justify-center">
+                            <div className='flex flex-wrap gap-2 justify-center'>
                                 <button
-                                    className="btn btn-sm rounded-lg bg-green-600 text-white hover:bg-green-500"
+                                    className='btn btn-sm rounded-lg bg-green-600 text-white hover:bg-green-500'
                                     onClick={handleSave}
                                 >
                                     Save
                                 </button>
                                 <button
-                                    className="btn btn-sm rounded-lg bg-red-600 text-white hover:bg-red-500"
+                                    className='btn btn-sm rounded-lg bg-red-600 text-white hover:bg-red-500'
                                     onClick={handleClose}
                                 >
                                     Cancel
@@ -271,11 +239,8 @@ const AdditionalScheduleForTeacherRank = ({
                     </div>
                 </div>
 
-                <div className="modal-action w-full mt-0">
-                    <button
-                        className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                        onClick={handleClose}
-                    >
+                <div className='modal-action w-full mt-0'>
+                    <button className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2' onClick={handleClose}>
                         ✕
                     </button>
                 </div>

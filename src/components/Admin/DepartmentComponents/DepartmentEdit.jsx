@@ -207,7 +207,7 @@ const DepartmentEdit = ({
 
 							{/* Filtered Teacher List */}
 							<ul
-								className="flex flex-col bg-base-100 rounded-box max-h-[8rem] overflow-y-auto border w-full space-y-1"
+								className="flex flex-col bg-base-100 rounded-lg max-h-[8rem] overflow-y-auto border border-base-content border-opacity-20 w-full space-y-1"
 							>
 								{Object.keys(teachers)
 									.filter(
@@ -218,7 +218,7 @@ const DepartmentEdit = ({
 											.includes(searchTerm.toLowerCase())
 									)
 									.map((key) => (
-										<li key={teachers[key].id} className="border-b last:border-b-0">
+										<li key={teachers[key].id} className="border-b last:border-b-0 border-base-content border-opacity-20">
 										<button
 											className="w-full text-left py-2 px-4 hover:bg-blue-100"
 											onClick={() => handleTeacherClick(teachers[key].id)}

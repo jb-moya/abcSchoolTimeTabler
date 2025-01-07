@@ -157,169 +157,169 @@ const ProgramEdit = ({
 
     // ==========================================================================
 
-        // Subjects
-        const handleSubjectSelection = (grade, selectedList) => {
-            const validCombinations = [];
+    // Subjects
+    const handleSubjectSelection = (grade, selectedList) => {
+        const validCombinations = [];
 
-            setEditProgramCurr((prevState) => ({
-                ...prevState,
-                [grade]: selectedList,
-            }));
+        setEditProgramCurr((prevState) => ({
+            ...prevState,
+            [grade]: selectedList,
+        }));
 
-            const updatedFixedDays = structuredClone(editFixedDays[grade]);
-            const updatedFixedPositions = structuredClone(editFixedPositions[grade]);
-            const updatedAdditionalScheds = structuredClone(editAdditionalScheds[grade]);
+        const updatedFixedDays = structuredClone(editFixedDays[grade]);
+        const updatedFixedPositions = structuredClone(editFixedPositions[grade]);
+        const updatedAdditionalScheds = structuredClone(editAdditionalScheds[grade]);
 
-            Object.keys(updatedFixedDays).forEach((subID) => {
-                if (!selectedList.includes(Number(subID))) {
-                    delete updatedFixedDays[subID];
-                    delete updatedFixedPositions[subID];
+        Object.keys(updatedFixedDays).forEach((subID) => {
+            if (!selectedList.includes(Number(subID))) {
+                delete updatedFixedDays[subID];
+                delete updatedFixedPositions[subID];
+            }
+        });
+
+        const filteredAdditionalScheds = updatedAdditionalScheds.filter(
+            (sched) => selectedList.includes(sched.subject) || sched.subject === -1
+        );
+
+        console.log('filteredAdditionalScheds', filteredAdditionalScheds);
+
+        selectedList.forEach((subjectID) => {
+            if (!updatedFixedDays[subjectID]) {
+                const subject = subjects[subjectID];
+                if (subject) {
+                    const numClasses = Math.min(Math.ceil(subject.weeklyMinutes / subject.classDuration), numOfSchoolDays);
+                    updatedFixedDays[subjectID] = Array(numClasses).fill(0);
+                    updatedFixedPositions[subjectID] = Array(numClasses).fill(0);
+                }
+            }
+        });
+
+        selectedList.forEach((subID) => {
+            const subjDays = updatedFixedDays[subID] || [];
+            const subjPositions = updatedFixedPositions[subID] || [];
+
+            subjDays.forEach((day, index) => {
+                const position = subjPositions[index];
+                if (day !== 0 && position !== 0) {
+                    validCombinations.push([day, position]);
                 }
             });
+        });
 
-            const filteredAdditionalScheds = updatedAdditionalScheds.filter(
-                (sched) => selectedList.includes(sched.subject) || sched.subject === -1
-            );
+        selectedList.forEach((subID) => {
+            const subjDays = structuredClone(updatedFixedDays[subID]);
+            const subjPositions = structuredClone(updatedFixedPositions[subID]);
 
-            console.log('filteredAdditionalScheds', filteredAdditionalScheds);
-
-            selectedList.forEach((subjectID) => {
-                if (!updatedFixedDays[subjectID]) {
-                    const subject = subjects[subjectID];
-                    if (subject) {
-                        const numClasses = Math.min(Math.ceil(subject.weeklyMinutes / subject.classDuration), numOfSchoolDays);
-                        updatedFixedDays[subjectID] = Array(numClasses).fill(0);
-                        updatedFixedPositions[subjectID] = Array(numClasses).fill(0);
-                    }
+            for (let i = 0; i < subjDays.length; i++) {
+                if (subjPositions[i] > selectedList.length || subjDays[i] > numOfSchoolDays) {
+                    subjDays[i] = 0;
+                    subjPositions[i] = 0;
                 }
+            }
+
+            updatedFixedDays[subID] = subjDays;
+            updatedFixedPositions[subID] = subjPositions;
+        });
+
+        setEditFixedDays((prevState) => ({
+            ...prevState,
+            [grade]: updatedFixedDays, // Update only the specified grade
+        }));
+
+        setEditFixedPositions((prevState) => ({
+            ...prevState,
+            [grade]: updatedFixedPositions, // Update only the specified grade
+        }));
+
+        setEditAdditionalScheds((prevState) => ({
+            ...prevState,
+            [grade]: filteredAdditionalScheds, // Update only the specified grade
+        }));
+    };
+
+    // End Time
+    const handleEndTimeChange = () => {
+        [7, 8, 9, 10].forEach((grade) => {
+            if (editProgramCurr[grade].length === 0) return;
+
+            const startTimeIdx = getTimeSlotIndex(editStartTimes[grade]);
+            const breakTimeCount = editProgramCurr[grade].length > 10 ? 2 : 1;
+
+            let totalDuration = breakTimeCount * breakTimeDuration;
+
+            console.log('🚀 ~ editProgramCurr[grade].forEach ~ subjects:', subjects);
+
+            editProgramCurr[grade].forEach((subId) => {
+                console.log('🚀 ~ editProgramCurr[grade].forEach ~ subId:', subId);
+                console.log('🚀 ~ editProgramCurr[grade].forEach ~ subjects[subId]:', subjects[subId]);
+                totalDuration += subjects[subId].classDuration;
             });
 
-            selectedList.forEach((subID) => {
-                const subjDays = updatedFixedDays[subID] || [];
-                const subjPositions = updatedFixedPositions[subID] || [];
+            const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
 
-                subjDays.forEach((day, index) => {
-                    const position = subjPositions[index];
-                    if (day !== 0 && position !== 0) {
-                        validCombinations.push([day, position]);
-                    }
-                });
-            });
-
-            selectedList.forEach((subID) => {
-                const subjDays = structuredClone(updatedFixedDays[subID]);
-                const subjPositions = structuredClone(updatedFixedPositions[subID]);
-
-                for (let i = 0; i < subjDays.length; i++) {
-                    if (subjPositions[i] > selectedList.length || subjDays[i] > numOfSchoolDays) {
-                        subjDays[i] = 0;
-                        subjPositions[i] = 0;
-                    }
-                }
-
-                updatedFixedDays[subID] = subjDays;
-                updatedFixedPositions[subID] = subjPositions;
-            });
-
-            setEditFixedDays((prevState) => ({
-                ...prevState,
-                [grade]: updatedFixedDays, // Update only the specified grade
-            }));
-
-            setEditFixedPositions((prevState) => ({
-                ...prevState,
-                [grade]: updatedFixedPositions, // Update only the specified grade
-            }));
-
-            setEditAdditionalScheds((prevState) => ({
-                ...prevState,
-                [grade]: filteredAdditionalScheds, // Update only the specified grade
-            }));
-        };
-
-        // End Time
-        const handleEndTimeChange = () => {
-            [7, 8, 9, 10].forEach((grade) => {
-                if (editProgramCurr[grade].length === 0) return;
-
-                const startTimeIdx = getTimeSlotIndex(editStartTimes[grade]);
-                const breakTimeCount = editProgramCurr[grade].length > 10 ? 2 : 1;
-
-                let totalDuration = breakTimeCount * breakTimeDuration;
-
-                console.log('🚀 ~ editProgramCurr[grade].forEach ~ subjects:', subjects);
-
-                editProgramCurr[grade].forEach((subId) => {
-                    console.log('🚀 ~ editProgramCurr[grade].forEach ~ subId:', subId);
-                    console.log('🚀 ~ editProgramCurr[grade].forEach ~ subjects[subId]:', subjects[subId]);
-                    totalDuration += subjects[subId].classDuration;
-                });
-
-                const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
-
-                if (!getTimeSlotString(endTimeIdx)) {
-                    setValidEndTimes((prevValidEndTimes) => ({
-                        ...prevValidEndTimes,
-                        [grade]: false,
-                    }));
-                    return;
-                }
-
+            if (!getTimeSlotString(endTimeIdx)) {
                 setValidEndTimes((prevValidEndTimes) => ({
                     ...prevValidEndTimes,
-                    [grade]: true,
+                    [grade]: false,
                 }));
+                return;
+            }
 
-                setEditEndTimes((prevEndTimes) => ({
-                    ...prevEndTimes,
-                    [grade]: endTimeIdx || 216, // 216 = 6:00 PM
-                }));
-            });
-        };
-
-        useEffect(() => {
-            if (editProgramCurr.length === 0) return;
-
-            handleEndTimeChange();
-        }, [editProgramCurr, editStartTimes, breakTimeDuration]);
-
-        // Shift
-        const handleShiftSelection = (grade, shift) => {
-            setEditSelectedShifts((prevState) => ({
-                ...prevState,
-                [grade]: shift,
+            setValidEndTimes((prevValidEndTimes) => ({
+                ...prevValidEndTimes,
+                [grade]: true,
             }));
 
-            const defaultTime = shift === 0 ? morningStartTime : afternoonStartTime;
-            setEditStartTimes((prevState) => ({
-                ...prevState,
-                [grade]: defaultTime,
+            setEditEndTimes((prevEndTimes) => ({
+                ...prevEndTimes,
+                [grade]: endTimeIdx || 216, // 216 = 6:00 PM
             }));
-        };
+        });
+    };
 
-        // Additional Schedule
-        const handleAddAdditionalSchedule = (grade) => {
-            setEditAdditionalScheds((prevScheds) => ({
-                ...prevScheds,
-                [grade]: [
-                    ...prevScheds[grade],
-                    {
-                        name: '',
-                        subject: -1,
-                        duration: 60,
-                        frequency: 1,
-                        shown: true,
-                    },
-                ],
-            }));
-        };
+    useEffect(() => {
+        if (editProgramCurr.length === 0) return;
 
-        const handleDeleteAdditionalSchedule = (grade, index) => {
-            setEditAdditionalScheds((prevScheds) => ({
-                ...prevScheds,
-                [grade]: prevScheds[grade].filter((_, i) => i !== index),
-            }));
-        };
+        handleEndTimeChange();
+    }, [editProgramCurr, editStartTimes, breakTimeDuration]);
+
+    // Shift
+    const handleShiftSelection = (grade, shift) => {
+        setEditSelectedShifts((prevState) => ({
+            ...prevState,
+            [grade]: shift,
+        }));
+
+        const defaultTime = shift === 0 ? morningStartTime : afternoonStartTime;
+        setEditStartTimes((prevState) => ({
+            ...prevState,
+            [grade]: defaultTime,
+        }));
+    };
+
+    // Additional Schedule
+    const handleAddAdditionalSchedule = (grade) => {
+        setEditAdditionalScheds((prevScheds) => ({
+            ...prevScheds,
+            [grade]: [
+                ...prevScheds[grade],
+                {
+                    name: '',
+                    subject: -1,
+                    duration: 60,
+                    frequency: 1,
+                    shown: true,
+                },
+            ],
+        }));
+    };
+
+    const handleDeleteAdditionalSchedule = (grade, index) => {
+        setEditAdditionalScheds((prevScheds) => ({
+            ...prevScheds,
+            [grade]: prevScheds[grade].filter((_, i) => i !== index),
+        }));
+    };
 
     // ==========================================================================
 
@@ -339,7 +339,6 @@ const ProgramEdit = ({
                 console.log('editStartTimes[newSection.year]:', editStartTimes[newSection.year]);
 
                 newSection.startTime = getTimeSlotIndex(editStartTimes[newSection.year]);
-
 
                 newSection.endTime = editEndTimes[newSection.year];
 
@@ -362,8 +361,7 @@ const ProgramEdit = ({
 
                 // Early return if there are no changes
                 if (newSubs.size !== originalSubs.size || ![...newSubs].every((subjectId) => originalSubs.has(subjectId))) {
-                
-                // ================================================================================================
+                    // ================================================================================================
 
                     const startTimeIdx = newSection.startTime;
                     const breakTimeCount = newSubs.length > 10 ? 2 : 1;
@@ -382,7 +380,7 @@ const ProgramEdit = ({
                         newSection.endTime = 216; // 216 = 6:00 PM
                     }
 
-                // =================================================================================================
+                    // =================================================================================================
 
                     // Add subjects from the edited program-year to the current section
                     editProgramCurr[newSection.year].forEach((subjectId) => {
@@ -821,7 +819,7 @@ const ProgramEdit = ({
                         {/* Subject, shift, and fixed schedules management */}
                         <div className='text-sm flex flex-col space-y-4'>
                             {/* Tabs Navigation */}
-                            <div className='flex justify-between space-x-2 bg-primary-content p-3 rounded-lg border shadow-md'>
+                            <div className='flex justify-between space-x-2 bg-base-300 p-3 rounded-lg border border-base-content border-opacity-20 shadow-md'>
                                 {grades.map((grade) => (
                                     <button
                                         key={grade}
@@ -842,7 +840,7 @@ const ProgramEdit = ({
                                 <div key={grade} className={`${activeTab === grade ? 'block' : 'hidden'}`}>
                                     <div className='flex flex-col'>
                                         {/* Shift and Start Time Selection */}
-                                        <div className='rounded-lg shadow-md border space-y-2 p-4 mb-4'>
+                                        <div className='rounded-lg shadow-md border border-base-content border-opacity-20 space-y-2 p-4 mb-4'>
                                             <div className='flex items-center'>
                                                 <label className='w-1/4 font-semibold text-base text-center'>SHIFT:</label>
                                                 <div className='flex space-x-6 text-base'>
@@ -890,12 +888,12 @@ const ProgramEdit = ({
                                         </div>
 
                                         {/* Subject Selection */}
-                                        <div className='rounded-lg shadow-md border space-y-2 p-4 mb-4'>
+                                        <div className='rounded-lg shadow-md border border-base-content border-opacity-20 space-y-2 p-4 mb-4'>
                                             <div className='font-semibold text-lg text-center'>Subjects</div>
                                             <hr className='my-2'></hr>
                                             <div className='bg-base-100 py-2 rounded-lg space-y-4'>
                                                 <div className='bg-base-100 py-2 rounded-lg space-y-4 p-4'>
-                                                    <div className=' bg-white '>
+                                                    <div className=''>
                                                         {/* Dropdown and Button */}
                                                         <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
                                                             {/* Searchable Dropdown */}
@@ -966,7 +964,7 @@ const ProgramEdit = ({
 
                                         {/* Additional Schedules */}
 
-                                        <div className='p-4 rounded-lg shadow-md border'>
+                                        <div className='p-4 rounded-lg shadow-md border border-base-content border-opacity-20'>
                                             <div className='text-center font-semibold text-lg'>Additional Schedules</div>
                                             <hr className='my-2'></hr>
 

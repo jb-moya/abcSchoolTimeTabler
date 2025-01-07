@@ -328,7 +328,7 @@ const AddBuildingContainer = ({ close, setErrorMessage, setErrorField, errorMess
 
             <div className='flex-grow overflow-auto grid grid-cols-1 md:grid-cols-4 gap-4'>
                 {Array.from({ length: numberOfFloors }, (_, floorIndex) => (
-                    <div key={floorIndex} className='flex flex-col border h-96 rounded-md p-2 shadow-sm'>
+                    <div key={floorIndex} className='flex flex-col border border-base-content border-opacity-20 h-96 rounded-md p-2 shadow-sm'>
                         <div className='flex mb-3 gap-1 items-center'>
                             <div className='w-6/12 leading-none'>
                                 <h4 className='text-sm font-semibold'>Floor {floorIndex + 1}</h4>
@@ -765,7 +765,7 @@ const RoomListContainer = ({ editable = false }) => {
                     searchBuildingResult.map((building) => (
                         <div
                             key={building.id}
-                            className='card shadow-lg border border-gray-200 hover:shadow-xl p-4 cursor-pointer'
+                            className='card shadow-lg border border-base-content border-opacity-20 hover:shadow-xl p-4 cursor-pointer'
                         >
                             {building.image ? (
                                 <img
@@ -935,7 +935,7 @@ const RoomListContainer = ({ editable = false }) => {
 
                     <div className='flex-grow grid grid-cols-1 md:grid-cols-4 gap-4 overflow-auto'>
                         {Array.from({ length: editNumberOfFloors }, (_, floorIndex) => (
-                            <div key={floorIndex} className='flex flex-col border rounded-lg h-96 p-3 shadow-sm'>
+                            <div key={floorIndex} className='flex flex-col border border-base-content border-opacity-20 rounded-lg h-96 p-3 shadow-sm'>
                                 <div className='flex mb-3 gap-1 items-center'>
                                     <div className='w-6/12 leading-none'>
                                         <h4 className='text-sm font-semibold'>Floor {floorIndex + 1}</h4>
