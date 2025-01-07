@@ -471,7 +471,7 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
 
                     <div className='flex justify-center gap-2 mt-4'>
                         <button className='btn btn-primary' onClick={() => handleSaveTeacherEditClick(teacher.id)}>
-                            Add Teacher
+                            Edit Teacher
                         </button>
                         <button className='btn btn-error' onClick={() => resetStates()}>
                             Reset
