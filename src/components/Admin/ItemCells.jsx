@@ -267,7 +267,13 @@ const ItemCells = ({
             dragMomentum={false}
             dragElastic={0}
             animate={targetPosition}
-            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            transition={{
+                type: 'spring', // Use spring physics
+                stiffness: 50, // Controls the rigidity of the spring
+                damping: 15, // Controls the "bounciness" (lower = more bounce)
+                mass: 1, // Affects inertia (higher = slower motion)
+                restDelta: 1, // Minimum movement before stopping
+            }}
             title={!modalOpen ? `${cell.teacher || ''} \n${cell.subject || ''}` : undefined}
         >
             {/* Hover Wrapper */}
