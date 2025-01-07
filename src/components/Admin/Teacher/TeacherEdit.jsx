@@ -415,7 +415,7 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
                                             className='w-full bg-gray-100 p-2 border shadow-sm hover:bg-gray-200'
                                             onClick={() =>
                                                 document
-                                                    .getElementById(`add_additional_sched_modal_1_teacher-0_idx-${index}`)
+                                                    .getElementById(`add_additional_sched_modal_1_teacher-${editTeacherId}_idx-${index}`)
                                                     .showModal()
                                             }
                                         >
@@ -434,7 +434,7 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
                                         </button>
                                         <AdditionalScheduleForTeacher
                                             viewingMode={1}
-                                            teacherID={0}
+                                            teacherID={editTeacherId}
                                             arrayIndex={index}
                                             additionalSchedsOfTeacher={sched}
                                         />
@@ -443,7 +443,7 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
                                         <button
                                             onClick={() =>
                                                 document
-                                                    .getElementById(`add_additional_sched_modal_0_teacher-0_idx-${index}`)
+                                                    .getElementById(`add_additional_sched_modal_0_teacher-${editTeacherId}_idx-${index}`)
                                                     .showModal()
                                             }
                                         >

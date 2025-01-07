@@ -135,7 +135,7 @@ const TeacherListContainer = ({ editable = false }) => {
                                     if (currentPage > 1) {
                                         setCurrentPage(currentPage - 1);
                                     }
-                                    handleCancelTeacherEditClick();
+                                    // handleCancelTeacherEditClick();
                                 }}
                                 disabled={currentPage === 1}
                             >
@@ -150,7 +150,7 @@ const TeacherListContainer = ({ editable = false }) => {
                                     if (currentPage < totalPages) {
                                         setCurrentPage(currentPage + 1);
                                     }
-                                    handleCancelTeacherEditClick();
+                                    // handleCancelTeacherEditClick();
                                 }}
                                 disabled={currentPage === totalPages}
                             >

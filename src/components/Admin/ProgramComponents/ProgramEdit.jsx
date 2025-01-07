@@ -157,169 +157,169 @@ const ProgramEdit = ({
 
     // ==========================================================================
 
-    // Subjects
-    const handleSubjectSelection = (grade, selectedList) => {
-        const validCombinations = [];
+        // Subjects
+        const handleSubjectSelection = (grade, selectedList) => {
+            const validCombinations = [];
 
-        setEditProgramCurr((prevState) => ({
-            ...prevState,
-            [grade]: selectedList,
-        }));
+            setEditProgramCurr((prevState) => ({
+                ...prevState,
+                [grade]: selectedList,
+            }));
 
-        const updatedFixedDays = structuredClone(editFixedDays[grade]);
-        const updatedFixedPositions = structuredClone(editFixedPositions[grade]);
-        const updatedAdditionalScheds = structuredClone(editAdditionalScheds[grade]);
+            const updatedFixedDays = structuredClone(editFixedDays[grade]);
+            const updatedFixedPositions = structuredClone(editFixedPositions[grade]);
+            const updatedAdditionalScheds = structuredClone(editAdditionalScheds[grade]);
 
-        Object.keys(updatedFixedDays).forEach((subID) => {
-            if (!selectedList.includes(Number(subID))) {
-                delete updatedFixedDays[subID];
-                delete updatedFixedPositions[subID];
-            }
-        });
-
-        const filteredAdditionalScheds = updatedAdditionalScheds.filter(
-            (sched) => selectedList.includes(sched.subject) || sched.subject === -1
-        );
-
-        console.log('filteredAdditionalScheds', filteredAdditionalScheds);
-
-        selectedList.forEach((subjectID) => {
-            if (!updatedFixedDays[subjectID]) {
-                const subject = subjects[subjectID];
-                if (subject) {
-                    const numClasses = Math.min(Math.ceil(subject.weeklyMinutes / subject.classDuration), numOfSchoolDays);
-                    updatedFixedDays[subjectID] = Array(numClasses).fill(0);
-                    updatedFixedPositions[subjectID] = Array(numClasses).fill(0);
-                }
-            }
-        });
-
-        selectedList.forEach((subID) => {
-            const subjDays = updatedFixedDays[subID] || [];
-            const subjPositions = updatedFixedPositions[subID] || [];
-
-            subjDays.forEach((day, index) => {
-                const position = subjPositions[index];
-                if (day !== 0 && position !== 0) {
-                    validCombinations.push([day, position]);
+            Object.keys(updatedFixedDays).forEach((subID) => {
+                if (!selectedList.includes(Number(subID))) {
+                    delete updatedFixedDays[subID];
+                    delete updatedFixedPositions[subID];
                 }
             });
-        });
 
-        selectedList.forEach((subID) => {
-            const subjDays = structuredClone(updatedFixedDays[subID]);
-            const subjPositions = structuredClone(updatedFixedPositions[subID]);
+            const filteredAdditionalScheds = updatedAdditionalScheds.filter(
+                (sched) => selectedList.includes(sched.subject) || sched.subject === -1
+            );
 
-            for (let i = 0; i < subjDays.length; i++) {
-                if (subjPositions[i] > selectedList.length || subjDays[i] > numOfSchoolDays) {
-                    subjDays[i] = 0;
-                    subjPositions[i] = 0;
+            console.log('filteredAdditionalScheds', filteredAdditionalScheds);
+
+            selectedList.forEach((subjectID) => {
+                if (!updatedFixedDays[subjectID]) {
+                    const subject = subjects[subjectID];
+                    if (subject) {
+                        const numClasses = Math.min(Math.ceil(subject.weeklyMinutes / subject.classDuration), numOfSchoolDays);
+                        updatedFixedDays[subjectID] = Array(numClasses).fill(0);
+                        updatedFixedPositions[subjectID] = Array(numClasses).fill(0);
+                    }
                 }
-            }
-
-            updatedFixedDays[subID] = subjDays;
-            updatedFixedPositions[subID] = subjPositions;
-        });
-
-        setEditFixedDays((prevState) => ({
-            ...prevState,
-            [grade]: updatedFixedDays, // Update only the specified grade
-        }));
-
-        setEditFixedPositions((prevState) => ({
-            ...prevState,
-            [grade]: updatedFixedPositions, // Update only the specified grade
-        }));
-
-        setEditAdditionalScheds((prevState) => ({
-            ...prevState,
-            [grade]: filteredAdditionalScheds, // Update only the specified grade
-        }));
-    };
-
-    // End Time
-    const handleEndTimeChange = () => {
-        [7, 8, 9, 10].forEach((grade) => {
-            if (editProgramCurr[grade].length === 0) return;
-
-            const startTimeIdx = getTimeSlotIndex(editStartTimes[grade]);
-            const breakTimeCount = editProgramCurr[grade].length > 10 ? 2 : 1;
-
-            let totalDuration = breakTimeCount * breakTimeDuration;
-
-            console.log('🚀 ~ editProgramCurr[grade].forEach ~ subjects:', subjects);
-
-            editProgramCurr[grade].forEach((subId) => {
-                console.log('🚀 ~ editProgramCurr[grade].forEach ~ subId:', subId);
-                console.log('🚀 ~ editProgramCurr[grade].forEach ~ subjects[subId]:', subjects[subId]);
-                totalDuration += subjects[subId].classDuration;
             });
 
-            const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
+            selectedList.forEach((subID) => {
+                const subjDays = updatedFixedDays[subID] || [];
+                const subjPositions = updatedFixedPositions[subID] || [];
 
-            if (!getTimeSlotString(endTimeIdx)) {
+                subjDays.forEach((day, index) => {
+                    const position = subjPositions[index];
+                    if (day !== 0 && position !== 0) {
+                        validCombinations.push([day, position]);
+                    }
+                });
+            });
+
+            selectedList.forEach((subID) => {
+                const subjDays = structuredClone(updatedFixedDays[subID]);
+                const subjPositions = structuredClone(updatedFixedPositions[subID]);
+
+                for (let i = 0; i < subjDays.length; i++) {
+                    if (subjPositions[i] > selectedList.length || subjDays[i] > numOfSchoolDays) {
+                        subjDays[i] = 0;
+                        subjPositions[i] = 0;
+                    }
+                }
+
+                updatedFixedDays[subID] = subjDays;
+                updatedFixedPositions[subID] = subjPositions;
+            });
+
+            setEditFixedDays((prevState) => ({
+                ...prevState,
+                [grade]: updatedFixedDays, // Update only the specified grade
+            }));
+
+            setEditFixedPositions((prevState) => ({
+                ...prevState,
+                [grade]: updatedFixedPositions, // Update only the specified grade
+            }));
+
+            setEditAdditionalScheds((prevState) => ({
+                ...prevState,
+                [grade]: filteredAdditionalScheds, // Update only the specified grade
+            }));
+        };
+
+        // End Time
+        const handleEndTimeChange = () => {
+            [7, 8, 9, 10].forEach((grade) => {
+                if (editProgramCurr[grade].length === 0) return;
+
+                const startTimeIdx = getTimeSlotIndex(editStartTimes[grade]);
+                const breakTimeCount = editProgramCurr[grade].length > 10 ? 2 : 1;
+
+                let totalDuration = breakTimeCount * breakTimeDuration;
+
+                console.log('🚀 ~ editProgramCurr[grade].forEach ~ subjects:', subjects);
+
+                editProgramCurr[grade].forEach((subId) => {
+                    console.log('🚀 ~ editProgramCurr[grade].forEach ~ subId:', subId);
+                    console.log('🚀 ~ editProgramCurr[grade].forEach ~ subjects[subId]:', subjects[subId]);
+                    totalDuration += subjects[subId].classDuration;
+                });
+
+                const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
+
+                if (!getTimeSlotString(endTimeIdx)) {
+                    setValidEndTimes((prevValidEndTimes) => ({
+                        ...prevValidEndTimes,
+                        [grade]: false,
+                    }));
+                    return;
+                }
+
                 setValidEndTimes((prevValidEndTimes) => ({
                     ...prevValidEndTimes,
-                    [grade]: false,
+                    [grade]: true,
                 }));
-                return;
-            }
 
-            setValidEndTimes((prevValidEndTimes) => ({
-                ...prevValidEndTimes,
-                [grade]: true,
+                setEditEndTimes((prevEndTimes) => ({
+                    ...prevEndTimes,
+                    [grade]: endTimeIdx || 216, // 216 = 6:00 PM
+                }));
+            });
+        };
+
+        useEffect(() => {
+            if (editProgramCurr.length === 0) return;
+
+            handleEndTimeChange();
+        }, [editProgramCurr, editStartTimes, breakTimeDuration]);
+
+        // Shift
+        const handleShiftSelection = (grade, shift) => {
+            setEditSelectedShifts((prevState) => ({
+                ...prevState,
+                [grade]: shift,
             }));
 
-            setEditEndTimes((prevEndTimes) => ({
-                ...prevEndTimes,
-                [grade]: endTimeIdx || 216, // 216 = 6:00 PM
+            const defaultTime = shift === 0 ? morningStartTime : afternoonStartTime;
+            setEditStartTimes((prevState) => ({
+                ...prevState,
+                [grade]: defaultTime,
             }));
-        });
-    };
+        };
 
-    useEffect(() => {
-        if (editProgramCurr.length === 0) return;
+        // Additional Schedule
+        const handleAddAdditionalSchedule = (grade) => {
+            setEditAdditionalScheds((prevScheds) => ({
+                ...prevScheds,
+                [grade]: [
+                    ...prevScheds[grade],
+                    {
+                        name: '',
+                        subject: -1,
+                        duration: 60,
+                        frequency: 1,
+                        shown: true,
+                    },
+                ],
+            }));
+        };
 
-        handleEndTimeChange();
-    }, [editProgramCurr, editStartTimes, breakTimeDuration]);
-
-    // Shift
-    const handleShiftSelection = (grade, shift) => {
-        setEditSelectedShifts((prevState) => ({
-            ...prevState,
-            [grade]: shift,
-        }));
-
-        const defaultTime = shift === 0 ? morningStartTime : afternoonStartTime;
-        setEditStartTimes((prevState) => ({
-            ...prevState,
-            [grade]: defaultTime,
-        }));
-    };
-
-    // Additional Schedule
-    const handleAddAdditionalSchedule = (grade) => {
-        setEditAdditionalScheds((prevScheds) => ({
-            ...prevScheds,
-            [grade]: [
-                ...prevScheds[grade],
-                {
-                    name: '',
-                    subject: -1,
-                    duration: 60,
-                    frequency: 1,
-                    shown: true,
-                },
-            ],
-        }));
-    };
-
-    const handleDeleteAdditionalSchedule = (grade, index) => {
-        setEditAdditionalScheds((prevScheds) => ({
-            ...prevScheds,
-            [grade]: prevScheds[grade].filter((_, i) => i !== index),
-        }));
-    };
+        const handleDeleteAdditionalSchedule = (grade, index) => {
+            setEditAdditionalScheds((prevScheds) => ({
+                ...prevScheds,
+                [grade]: prevScheds[grade].filter((_, i) => i !== index),
+            }));
+        };
 
     // ==========================================================================
 
@@ -335,8 +335,15 @@ const ProgramEdit = ({
             // Update shift and start time (if true)
             if (sectionDetailsToUpdate.shiftAndStartTime === true) {
                 newSection.shift = editSelectedShifts[newSection.year];
-                newSection.startTime = editStartTimes[newSection.year];
+
+                console.log('editStartTimes[newSection.year]:', editStartTimes[newSection.year]);
+
+                newSection.startTime = getTimeSlotIndex(editStartTimes[newSection.year]);
+
+
                 newSection.endTime = editEndTimes[newSection.year];
+
+                console.log('newSection.endTime:', newSection.endTime);
             }
 
             // Update additional schedules (if true)
@@ -355,6 +362,28 @@ const ProgramEdit = ({
 
                 // Early return if there are no changes
                 if (newSubs.size !== originalSubs.size || ![...newSubs].every((subjectId) => originalSubs.has(subjectId))) {
+                
+                // ================================================================================================
+
+                    const startTimeIdx = newSection.startTime;
+                    const breakTimeCount = newSubs.length > 10 ? 2 : 1;
+
+                    let totalDuration = breakTimeCount * breakTimeDuration;
+
+                    newSubs.forEach((subId) => {
+                        totalDuration += subjects[subId].classDuration;
+                    });
+
+                    const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
+
+                    if (getTimeSlotString(endTimeIdx)) {
+                        newSection.endTime = endTimeIdx;
+                    } else {
+                        newSection.endTime = 216; // 216 = 6:00 PM
+                    }
+
+                // =================================================================================================
+
                     // Add subjects from the edited program-year to the current section
                     editProgramCurr[newSection.year].forEach((subjectId) => {
                         if (!originalSubs.has(subjectId)) {
@@ -435,7 +464,7 @@ const ProgramEdit = ({
                             fixedPositions: newSection.fixedPositions,
                             year: newSection.year,
                             shift: newSection.shift,
-                            startTime: getTimeSlotIndex(newSection.startTime || '06:00 AM'),
+                            startTime: newSection.startTime,
                             endTime: newSection.endTime,
                             additionalScheds: newSection.additionalScheds,
                         },
