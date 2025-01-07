@@ -356,8 +356,18 @@ void ABC::getResult(int64_t* result, int64_t* result_2, TimePoint offset_duratio
 				    static_cast<int8_t>(timeslot),
 				    static_cast<int8_t>(day));
 
-				TimePoint start = section.getTimeslotStart(timeslot) + (offset_duration)*timeslot;
-				TimePoint end = section.getTimeslotEnd(timeslot) + (offset_duration) * (timeslot + 1);
+				// std::cout << "teacher in getResult: " << schoolClass.teacher_id << std::endl;
+
+				// TimePoint start = section.getTimeslotStart(timeslot) + (offset_duration)*timeslot;
+				// TimePoint end = section.getTimeslotEnd(timeslot) + (offset_duration) * (timeslot + 1);
+
+				// TimePoint start = section.getTimeslotStart(timeslot) + (1)*timeslot;
+				// TimePoint end = section.getTimeslotEnd(timeslot) + (1) * (timeslot + 1);
+
+				TimePoint start = section.getTimeslotStart(timeslot);
+				TimePoint end = section.getTimeslotEnd(timeslot);
+
+				// std::cout << "start " << start << " end " << end << std::endl;
 
 				// start += offset;
 				// end += offset;
