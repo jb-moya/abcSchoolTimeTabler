@@ -973,30 +973,33 @@ const ProgramEdit = ({
                                             {/* Button to add schedules */}
                                             <button
                                                 onClick={() => handleAddAdditionalSchedule(grade)}
-                                                className='flex flex-wrap items-right text-sm mt-2 bg-primary p-4 text-white px-2 py-1 rounded-lg hover:bg-blue-600'
+                                                className='flex flex-wrap items-right text-sm mt-2 bg-primary p-4 px-2 py-1 rounded-lg hover:bg-blue-600'
                                             >
                                                 Add Schedule
                                             </button>
 
                                             {/* Render the ScheduleComponent as many times as specified */}
                                             <div
-                                                className='mt-2 overflow-y-auto max-h-36 border border-gray-300 rounded-lg'
+                                                className='mt-2 overflow-y-auto max-h-36 border border-base-content border-opacity-20 rounded-lg'
                                                 style={{
                                                     scrollbarWidth: 'thin',
                                                     scrollbarColor: '#a0aec0 #edf2f7',
                                                 }} // Optional for styled scrollbars
                                             >
                                                 {editAdditionalScheds[grade].map((sched, index) => (
-                                                    <div key={index} className='flex flex-wrap'>
+                                                    <div
+                                                        key={index}
+                                                        className='flex flex-wrap border-b border-base-content border-opacity-20'
+                                                    >
                                                         <button
-                                                            className='w-1/12 border rounded-l-lg hover:bg-gray-200 flex items-center justify-center'
+                                                            className='w-1/12 rounded-l-lg hover:bg-primary-content flex rounded-lg hover:text-error items-center justify-center'
                                                             onClick={() => handleDeleteAdditionalSchedule(grade, index)}
                                                         >
                                                             <RiDeleteBin7Line size={15} />
                                                         </button>
                                                         <div className='w-10/12'>
                                                             <button
-                                                                className='w-full bg-gray-100 p-2 border shadow-sm hover:bg-gray-200'
+                                                                className='w-full p-2 shadow-sm hover:bg-primary-content rounded-lg'
                                                                 onClick={() =>
                                                                     document
                                                                         .getElementById(
@@ -1030,7 +1033,7 @@ const ProgramEdit = ({
                                                             />
                                                         </div>
                                                         <button
-                                                            className='w-1/12 flex items-center justify-center border rounded-r-lg hover:bg-gray-200'
+                                                            className='w-1/12 flex items-center justify-center rounded-lg hover:text-primary hover:bg-primary-content'
                                                             onClick={() =>
                                                                 document
                                                                     .getElementById(
