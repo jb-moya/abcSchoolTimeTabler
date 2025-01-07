@@ -896,7 +896,6 @@ const ProgramEdit = ({
                                             <div className='bg-base-100 py-2 rounded-lg space-y-4'>
                                                 <div className='bg-base-100 py-2 rounded-lg space-y-4 p-4'>
                                                     <div className=' bg-white '>
-                                                     
                                                         {/* Dropdown and Button */}
                                                         <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
                                                             {/* Searchable Dropdown */}
@@ -911,8 +910,6 @@ const ProgramEdit = ({
 
                                                             {/* Fixed Schedule Maker Button */}
                                                             <div className='flex justify-center md:justify-start'>
-                                                               
-
                                                                 <div className='flex justify-center'>
                                                                     <button
                                                                         className='btn btn-primary'
@@ -1032,29 +1029,28 @@ const ProgramEdit = ({
                                                                 additionalSchedsOfProgYear={sched}
                                                             />
                                                         </div>
-                                                        <div className='w-1/12  flex items-center justify-center border rounded-r-lg hover:bg-gray-200'>
-                                                            <button
-                                                                onClick={() =>
-                                                                    document
-                                                                        .getElementById(
-                                                                            `add_additional_sched_modal_0_grade-${grade}_prog-${editProgramId}_idx-${index}`
-                                                                        )
-                                                                        .showModal()
-                                                                }
-                                                            >
-                                                                <RiEdit2Fill size={15} />
-                                                            </button>
-                                                            <AdditionalScheduleForProgram
-                                                                viewingMode={0}
-                                                                programID={editProgramId}
-                                                                grade={grade}
-                                                                arrayIndex={index}
-                                                                numOfSchoolDays={numOfSchoolDays}
-                                                                progYearSubjects={editProgramCurr[grade]}
-                                                                additionalSchedsOfProgYear={sched}
-                                                                setAdditionalScheds={setEditAdditionalScheds}
-                                                            />
-                                                        </div>
+                                                        <button
+                                                            className='w-1/12 flex items-center justify-center border rounded-r-lg hover:bg-gray-200'
+                                                            onClick={() =>
+                                                                document
+                                                                    .getElementById(
+                                                                        `add_additional_sched_modal_0_grade-${grade}_prog-${editProgramId}_idx-${index}`
+                                                                    )
+                                                                    .showModal()
+                                                            }
+                                                        >
+                                                            <RiEdit2Fill size={15} />
+                                                        </button>
+                                                        <AdditionalScheduleForProgram
+                                                            viewingMode={0}
+                                                            programID={editProgramId}
+                                                            grade={grade}
+                                                            arrayIndex={index}
+                                                            numOfSchoolDays={numOfSchoolDays}
+                                                            progYearSubjects={editProgramCurr[grade]}
+                                                            additionalSchedsOfProgYear={sched}
+                                                            setAdditionalScheds={setEditAdditionalScheds}
+                                                        />
                                                     </div>
                                                 ))}
                                             </div>

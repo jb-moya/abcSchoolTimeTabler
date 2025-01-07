@@ -333,28 +333,28 @@ const ProgramListContainer = ({
                                                     {[7, 8, 9, 10].map((grade) => (
                                                         <div
                                                             key={`edit-add-sched-view-prog(${program.id})-grade(${grade})`}
-                                                            className='mt-2 overflow-y-auto h-36 max-h-36 border border-gray-300 bg-white rounded-lg'
+                                                            className='mt-2 overflow-y-auto h-36 max-h-36 border border-base-content border-opacity-20 rounded-lg'
                                                             style={{ scrollbarWidth: 'thin', scrollbarColor: '#a0aec0 #edf2f7' }} // Optional for styled scrollbars
                                                         >
                                                             <div
-                                                                className='font-bold p-2 border-b border-gray-300'
+                                                                className='font-bold p-2 bg-base-200 border-b border-base-content border-opacity-20'
                                                                 style={{
                                                                     position: 'sticky',
                                                                     top: 0,
                                                                     zIndex: 1,
-                                                                    backgroundColor: 'white',
+                                                                    // backgroundColor: 'white',
                                                                 }}
                                                             >
                                                                 Grade {grade}
                                                             </div>
                                                             {program[grade]?.additionalScheds.map((sched, index) => (
-                                                                <div key={index} className='flex flex-wrap'>
-                                                                    <div className='w-1/12 text-xs font-bold bg-blue-100 flex text-center justify-center items-center p-2'>
+                                                                <div key={index} className='flex flex-wrap  border-2 border-base-content border-opacity-20'>
+                                                                    <div className='w-1/12 text-xs font-bold flex text-center justify-center items-center p-2'>
                                                                         {index + 1}
                                                                     </div>
                                                                     <div className='w-11/12'>
                                                                         <button
-                                                                            className='w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-gray-200'
+                                                                            className='w-full text-xs p-2 shadow-sm hover:bg-primary-content'
                                                                             onClick={() =>
                                                                                 document
                                                                                     .getElementById(
