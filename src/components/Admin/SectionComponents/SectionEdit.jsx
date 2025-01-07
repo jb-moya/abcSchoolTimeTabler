@@ -47,67 +47,76 @@ const SectionEdit = ({
 
     // ===============================================================================================
 
-    const [editSectionAdviser, setEditSectionAdviser] = useState(section.teacher || '');
+    const [editSectionAdviser, setEditSectionAdviser] = useState('');
 
-    const [prevAdviser, setPrevAdviser] = useState(section.teacher || '');
+    const [prevAdviser, setPrevAdviser] = useState('');
 
-    const [editSectionProg, setEditSectionProg] = useState(section.program || '');
+    const [editSectionProg, setEditSectionProg] = useState('');
 
-    const [editSectionYear, setEditSectionYear] = useState(section.year || '');
+    const [editSectionYear, setEditSectionYear] = useState('');
 
-    const [editSectionId, setEditSectionId] = useState(section.id || '');
+    const [editSectionId, setEditSectionId] = useState('');
 
-    const [editSectionValue, setEditSectionValue] = useState(section.section || '');
+    const [editSectionValue, setEditSectionValue] = useState('');
 
-    const [editSectionSubjects, setEditSectionSubjects] = useState(section.subjects || []);
+    const [editSectionSubjects, setEditSectionSubjects] = useState([]);
 
-    const [editSectionShift, setEditSectionShift] = useState(section.shift || 0);
+    const [editSectionShift, setEditSectionShift] = useState(0);
 
-    const [editSectionStartTime, setEditSectionStartTime] = useState(getTimeSlotString(section.startTime) || '');
+    const [editSectionStartTime, setEditSectionStartTime] = useState('');
 
-    const [editSectionEndTime, setEditSectionEndTime] = useState(getTimeSlotString(section.endTime) || '');
+    const [editSectionEndTime, setEditSectionEndTime] = useState('');
 
-    const [editSectionFixedDays, setEditSectionFixedDays] = useState(section.fixedDays || {});
+    const [editSectionFixedDays, setEditSectionFixedDays] = useState({});
 
-    const [editSectionFixedPositions, setEditSectionFixedPositions] = useState(section.fixedPositions || {});
+    const [editSectionFixedPositions, setEditSectionFixedPositions] = useState({});
 
-    const [editAdditionalScheds, setEditAdditionalScheds] = useState(section.additionalScheds || []);
+    const [editAdditionalScheds, setEditAdditionalScheds] = useState([]);
 
     const [editRoomDetails, setEditRoomDetails] = useState({
-        buildingId: section.roomDetails.buildingId,
-        floorIdx: section.roomDetails.floorIdx,
-        roomIdx: section.roomDetails.roomIdx,
+        buildingId: -1,
+        floorIdx: -1,
+        roomIdx: -1,
     });
 
-    const [currEditProgram, setCurrEditProgram] = useState(section.program || '');
+    const [currEditProgram, setCurrEditProgram] = useState('');
 
-    const [currEditYear, setCurrEditYear] = useState(section.year || '');
+    const [currEditYear, setCurrEditYear] = useState('');
 
     const [isEndTimeValid, setIsEndTimeValid] = useState(true);
 
     useEffect(() => {
-        setEditSectionId(section.id || '');
-        setEditSectionValue(section.section || '');
-        setEditSectionAdviser(section.teacher || '');
-        setEditSectionProg(section.program || '');
-        setEditSectionYear(section.year || '');
-        setEditSectionShift(section.shift || 0);
-        setEditSectionSubjects(section.subjects || []);
-        setEditSectionStartTime(getTimeSlotString(section.startTime) || '');
-        setEditSectionEndTime(getTimeSlotString(section.endTime) || '');
-        setEditSectionFixedDays(section.fixedDays || {});
-        setEditSectionFixedPositions(section.fixedPositions || {});
-        setEditAdditionalScheds(section.additionalScheds || []);
+        if (section) {
+            setEditSectionId(section.id || '');
+            setEditSectionValue(section.section || '');
+            setEditSectionAdviser(section.teacher || '');
+            setEditSectionProg(section.program || '');
+            setEditSectionYear(section.year || '');
+            setEditSectionShift(section.shift || 0);
+            setEditSectionSubjects(section.subjects || []);
+            setEditSectionStartTime(getTimeSlotString(section.startTime) || '');
+            setEditSectionEndTime(getTimeSlotString(section.endTime) || '');
+            setEditSectionFixedDays(section.fixedDays || {});
+            setEditSectionFixedPositions(section.fixedPositions || {});
+            setEditAdditionalScheds(section.additionalScheds || []);
 
-        setCurrEditProgram(section.program || '');
-        setCurrEditYear(section.year || '');
+            setCurrEditProgram(section.program || '');
+            setCurrEditYear(section.year || '');
 
-        setEditRoomDetails({
-            buildingId: section.roomDetails.buildingId,
-            floorIdx: section.roomDetails.floorIdx,
-            roomIdx: section.roomDetails.roomIdx,
-        });
+            setEditRoomDetails({
+                buildingId: section.roomDetails.buildingId,
+                floorIdx: section.roomDetails.floorIdx,
+                roomIdx: section.roomDetails.roomIdx,
+            });
+
+            setPrevAdviser(section.teacher || '');
+        }
     }, [section]);
+
+    useEffect(() => {
+        console.log('editSectionStartTime', editSectionStartTime);
+        console.log('editSectionEndTime', editSectionEndTime);
+    }, [editSectionStartTime, editSectionEndTime]);
 
     useEffect(() => {
         if (
@@ -133,12 +142,12 @@ const SectionEdit = ({
 
                 setEditSectionFixedPositions(program[editSectionYear]?.fixedPositions || {});
 
-                setEditAdditionalScheds(program[editSectionYear]?.additionalTeacherScheds || []);
+                setEditAdditionalScheds(program[editSectionYear]?.additionalScheds || []);
             }
         }
     }, [editSectionYear, editSectionProg, programs]);
 
-    // ===============================================================================================
+// ===============================================================================================
 
     const handleSaveSectionEditClick = (sectionId) => {
         if (
@@ -191,15 +200,22 @@ const SectionEdit = ({
                 },
             });
 
-            resetStates();
+            // resetStates();
         } else {
             const duplicateSection = Object.values(sections).find(
                 (section) =>
                     section.section.trim().toLowerCase() === editSectionValue.trim().toLowerCase() &&
-                    section.section.trim().toLowerCase() !== currentSection.trim().toLowerCase()
+                    section.section.trim().toLowerCase() !== currentSection.trim().toLowerCase() &&
+                    section.id !== sectionId
             );
 
-            const duplicateAdviser = Object.values(sections).find((section) => section.teacher === editSectionAdviser);
+            const duplicateAdviser = Object.values(sections).find(
+                (section) => 
+                    section.teacher === editSectionAdviser &&
+                    section.id !== sectionId
+            );
+
+            console.log('editSectionEndTime: ', editSectionEndTime);
 
             // console.log('duplicateAdviser: ', duplicateAdviser);
 
@@ -225,6 +241,8 @@ const SectionEdit = ({
                 if (prevAdviser !== editSectionAdviser) {
                     const prevSectionAdviser = structuredClone(teachers[prevAdviser]);
 
+                    console.log('prevSectionAdviser: ', prevSectionAdviser);
+
                     if (prevSectionAdviser.additionalTeacherScheds) {
                         prevSectionAdviser.additionalTeacherScheds = prevSectionAdviser.additionalTeacherScheds.filter(
                             (sched) => sched.name !== 'Advisory Load'
@@ -233,7 +251,7 @@ const SectionEdit = ({
 
                     dispatch(
                         editTeacher({
-                            id: prevAdviser,
+                            teacherId: prevAdviser,
                             updatedTeacher: prevSectionAdviser,
                         })
                     );
@@ -264,19 +282,22 @@ const SectionEdit = ({
                             year: editSectionYear,
                             shift: editSectionShift,
                             startTime: getTimeSlotIndex(editSectionStartTime),
-                            endTime: getTimeSlotIndex(editSectionEndTime),
+                            endTime: editSectionEndTime,
                             additionalScheds: editAdditionalScheds,
                             roomDetails: editRoomDetails,
                         },
                     })
                 );
 
-                resetStates();
+                // resetStates();
             }
         }
+
+        resetStates();
+        closeModal();
     };
 
-    // =============================================================================================
+// =============================================================================================
 
     // End Times
         const handleEndTimeChange = () => {
@@ -298,7 +319,7 @@ const SectionEdit = ({
                 return;
             }
             
-            console.log('getTimeSlotString(endTimeIdx): ', getTimeSlotString(endTimeIdx));
+            // console.log('getTimeSlotString(endTimeIdx): ', getTimeSlotString(endTimeIdx));
 
             setIsEndTimeValid(true);
 
@@ -329,7 +350,7 @@ const SectionEdit = ({
         setEditAdditionalScheds((prevScheds) => prevScheds.filter((_, i) => i !== index));
     };
 
-    // =============================================================================================
+// =============================================================================================
 
     useEffect(() => {
         if (buildingStatus === 'idle') {
@@ -361,7 +382,7 @@ const SectionEdit = ({
         }
     }, [teacherStatus, dispatch]);
 
-    // ===============================================================================================
+// ===============================================================================================
 
     const resetStates = () => {
         // Reset the editing state
@@ -724,6 +745,12 @@ const SectionEdit = ({
                                         key={`edit-add-sched-${editSectionId}-${index}`}
                                     >
                                         <div className="flex flex-wrap">
+                                            <button
+                                                className="w-1/12 border rounded-bl-lg hover:bg-gray-200 flex items-center justify-center"
+                                                onClick={() => handleDeleteAdditionalSchedule(index)}
+                                            >
+                                                <RiDeleteBin7Line size={15} />
+                                            </button>
                                             <button
                                                 className='w-full text-xs  p-2 shadow-sm '
                                                 onClick={() =>
