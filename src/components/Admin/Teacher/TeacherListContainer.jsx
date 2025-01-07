@@ -135,7 +135,7 @@ const TeacherListContainer = ({ editable = false }) => {
                                     if (currentPage > 1) {
                                         setCurrentPage(currentPage - 1);
                                     }
-                                    handleCancelTeacherEditClick();
+                                    // handleCancelTeacherEditClick();
                                 }}
                                 disabled={currentPage === 1}
                             >
@@ -150,7 +150,7 @@ const TeacherListContainer = ({ editable = false }) => {
                                     if (currentPage < totalPages) {
                                         setCurrentPage(currentPage + 1);
                                     }
-                                    handleCancelTeacherEditClick();
+                                    // handleCancelTeacherEditClick();
                                 }}
                                 disabled={currentPage === totalPages}
                             >
@@ -361,7 +361,7 @@ const TeacherListContainer = ({ editable = false }) => {
                                         </td>
 
                                         {editable && (
-                                            <td className='w-28 text-right'>
+                                            <td className='w-28'>
                                                 <div className='flex'>
                                                     <TeacherEdit
                                                         teacher={teacher}

@@ -157,169 +157,169 @@ const ProgramEdit = ({
 
     // ==========================================================================
 
-    // Subjects
-    const handleSubjectSelection = (grade, selectedList) => {
-        const validCombinations = [];
+        // Subjects
+        const handleSubjectSelection = (grade, selectedList) => {
+            const validCombinations = [];
 
-        setEditProgramCurr((prevState) => ({
-            ...prevState,
-            [grade]: selectedList,
-        }));
+            setEditProgramCurr((prevState) => ({
+                ...prevState,
+                [grade]: selectedList,
+            }));
 
-        const updatedFixedDays = structuredClone(editFixedDays[grade]);
-        const updatedFixedPositions = structuredClone(editFixedPositions[grade]);
-        const updatedAdditionalScheds = structuredClone(editAdditionalScheds[grade]);
+            const updatedFixedDays = structuredClone(editFixedDays[grade]);
+            const updatedFixedPositions = structuredClone(editFixedPositions[grade]);
+            const updatedAdditionalScheds = structuredClone(editAdditionalScheds[grade]);
 
-        Object.keys(updatedFixedDays).forEach((subID) => {
-            if (!selectedList.includes(Number(subID))) {
-                delete updatedFixedDays[subID];
-                delete updatedFixedPositions[subID];
-            }
-        });
-
-        const filteredAdditionalScheds = updatedAdditionalScheds.filter(
-            (sched) => selectedList.includes(sched.subject) || sched.subject === -1
-        );
-
-        console.log('filteredAdditionalScheds', filteredAdditionalScheds);
-
-        selectedList.forEach((subjectID) => {
-            if (!updatedFixedDays[subjectID]) {
-                const subject = subjects[subjectID];
-                if (subject) {
-                    const numClasses = Math.min(Math.ceil(subject.weeklyMinutes / subject.classDuration), numOfSchoolDays);
-                    updatedFixedDays[subjectID] = Array(numClasses).fill(0);
-                    updatedFixedPositions[subjectID] = Array(numClasses).fill(0);
-                }
-            }
-        });
-
-        selectedList.forEach((subID) => {
-            const subjDays = updatedFixedDays[subID] || [];
-            const subjPositions = updatedFixedPositions[subID] || [];
-
-            subjDays.forEach((day, index) => {
-                const position = subjPositions[index];
-                if (day !== 0 && position !== 0) {
-                    validCombinations.push([day, position]);
+            Object.keys(updatedFixedDays).forEach((subID) => {
+                if (!selectedList.includes(Number(subID))) {
+                    delete updatedFixedDays[subID];
+                    delete updatedFixedPositions[subID];
                 }
             });
-        });
 
-        selectedList.forEach((subID) => {
-            const subjDays = structuredClone(updatedFixedDays[subID]);
-            const subjPositions = structuredClone(updatedFixedPositions[subID]);
+            const filteredAdditionalScheds = updatedAdditionalScheds.filter(
+                (sched) => selectedList.includes(sched.subject) || sched.subject === -1
+            );
 
-            for (let i = 0; i < subjDays.length; i++) {
-                if (subjPositions[i] > selectedList.length || subjDays[i] > numOfSchoolDays) {
-                    subjDays[i] = 0;
-                    subjPositions[i] = 0;
+            console.log('filteredAdditionalScheds', filteredAdditionalScheds);
+
+            selectedList.forEach((subjectID) => {
+                if (!updatedFixedDays[subjectID]) {
+                    const subject = subjects[subjectID];
+                    if (subject) {
+                        const numClasses = Math.min(Math.ceil(subject.weeklyMinutes / subject.classDuration), numOfSchoolDays);
+                        updatedFixedDays[subjectID] = Array(numClasses).fill(0);
+                        updatedFixedPositions[subjectID] = Array(numClasses).fill(0);
+                    }
                 }
-            }
-
-            updatedFixedDays[subID] = subjDays;
-            updatedFixedPositions[subID] = subjPositions;
-        });
-
-        setEditFixedDays((prevState) => ({
-            ...prevState,
-            [grade]: updatedFixedDays, // Update only the specified grade
-        }));
-
-        setEditFixedPositions((prevState) => ({
-            ...prevState,
-            [grade]: updatedFixedPositions, // Update only the specified grade
-        }));
-
-        setEditAdditionalScheds((prevState) => ({
-            ...prevState,
-            [grade]: filteredAdditionalScheds, // Update only the specified grade
-        }));
-    };
-
-    // End Time
-    const handleEndTimeChange = () => {
-        [7, 8, 9, 10].forEach((grade) => {
-            if (editProgramCurr[grade].length === 0) return;
-
-            const startTimeIdx = getTimeSlotIndex(editStartTimes[grade]);
-            const breakTimeCount = editProgramCurr[grade].length > 10 ? 2 : 1;
-
-            let totalDuration = breakTimeCount * breakTimeDuration;
-
-            console.log('🚀 ~ editProgramCurr[grade].forEach ~ subjects:', subjects);
-
-            editProgramCurr[grade].forEach((subId) => {
-                console.log('🚀 ~ editProgramCurr[grade].forEach ~ subId:', subId);
-                console.log('🚀 ~ editProgramCurr[grade].forEach ~ subjects[subId]:', subjects[subId]);
-                totalDuration += subjects[subId].classDuration;
             });
 
-            const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
+            selectedList.forEach((subID) => {
+                const subjDays = updatedFixedDays[subID] || [];
+                const subjPositions = updatedFixedPositions[subID] || [];
 
-            if (!getTimeSlotString(endTimeIdx)) {
+                subjDays.forEach((day, index) => {
+                    const position = subjPositions[index];
+                    if (day !== 0 && position !== 0) {
+                        validCombinations.push([day, position]);
+                    }
+                });
+            });
+
+            selectedList.forEach((subID) => {
+                const subjDays = structuredClone(updatedFixedDays[subID]);
+                const subjPositions = structuredClone(updatedFixedPositions[subID]);
+
+                for (let i = 0; i < subjDays.length; i++) {
+                    if (subjPositions[i] > selectedList.length || subjDays[i] > numOfSchoolDays) {
+                        subjDays[i] = 0;
+                        subjPositions[i] = 0;
+                    }
+                }
+
+                updatedFixedDays[subID] = subjDays;
+                updatedFixedPositions[subID] = subjPositions;
+            });
+
+            setEditFixedDays((prevState) => ({
+                ...prevState,
+                [grade]: updatedFixedDays, // Update only the specified grade
+            }));
+
+            setEditFixedPositions((prevState) => ({
+                ...prevState,
+                [grade]: updatedFixedPositions, // Update only the specified grade
+            }));
+
+            setEditAdditionalScheds((prevState) => ({
+                ...prevState,
+                [grade]: filteredAdditionalScheds, // Update only the specified grade
+            }));
+        };
+
+        // End Time
+        const handleEndTimeChange = () => {
+            [7, 8, 9, 10].forEach((grade) => {
+                if (editProgramCurr[grade].length === 0) return;
+
+                const startTimeIdx = getTimeSlotIndex(editStartTimes[grade]);
+                const breakTimeCount = editProgramCurr[grade].length > 10 ? 2 : 1;
+
+                let totalDuration = breakTimeCount * breakTimeDuration;
+
+                console.log('🚀 ~ editProgramCurr[grade].forEach ~ subjects:', subjects);
+
+                editProgramCurr[grade].forEach((subId) => {
+                    console.log('🚀 ~ editProgramCurr[grade].forEach ~ subId:', subId);
+                    console.log('🚀 ~ editProgramCurr[grade].forEach ~ subjects[subId]:', subjects[subId]);
+                    totalDuration += subjects[subId].classDuration;
+                });
+
+                const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
+
+                if (!getTimeSlotString(endTimeIdx)) {
+                    setValidEndTimes((prevValidEndTimes) => ({
+                        ...prevValidEndTimes,
+                        [grade]: false,
+                    }));
+                    return;
+                }
+
                 setValidEndTimes((prevValidEndTimes) => ({
                     ...prevValidEndTimes,
-                    [grade]: false,
+                    [grade]: true,
                 }));
-                return;
-            }
 
-            setValidEndTimes((prevValidEndTimes) => ({
-                ...prevValidEndTimes,
-                [grade]: true,
+                setEditEndTimes((prevEndTimes) => ({
+                    ...prevEndTimes,
+                    [grade]: endTimeIdx || 216, // 216 = 6:00 PM
+                }));
+            });
+        };
+
+        useEffect(() => {
+            if (editProgramCurr.length === 0) return;
+
+            handleEndTimeChange();
+        }, [editProgramCurr, editStartTimes, breakTimeDuration]);
+
+        // Shift
+        const handleShiftSelection = (grade, shift) => {
+            setEditSelectedShifts((prevState) => ({
+                ...prevState,
+                [grade]: shift,
             }));
 
-            setEditEndTimes((prevEndTimes) => ({
-                ...prevEndTimes,
-                [grade]: endTimeIdx || 216, // 216 = 6:00 PM
+            const defaultTime = shift === 0 ? morningStartTime : afternoonStartTime;
+            setEditStartTimes((prevState) => ({
+                ...prevState,
+                [grade]: defaultTime,
             }));
-        });
-    };
+        };
 
-    useEffect(() => {
-        if (editProgramCurr.length === 0) return;
+        // Additional Schedule
+        const handleAddAdditionalSchedule = (grade) => {
+            setEditAdditionalScheds((prevScheds) => ({
+                ...prevScheds,
+                [grade]: [
+                    ...prevScheds[grade],
+                    {
+                        name: '',
+                        subject: -1,
+                        duration: 60,
+                        frequency: 1,
+                        shown: true,
+                    },
+                ],
+            }));
+        };
 
-        handleEndTimeChange();
-    }, [editProgramCurr, editStartTimes, breakTimeDuration]);
-
-    // Shift
-    const handleShiftSelection = (grade, shift) => {
-        setEditSelectedShifts((prevState) => ({
-            ...prevState,
-            [grade]: shift,
-        }));
-
-        const defaultTime = shift === 0 ? morningStartTime : afternoonStartTime;
-        setEditStartTimes((prevState) => ({
-            ...prevState,
-            [grade]: defaultTime,
-        }));
-    };
-
-    // Additional Schedule
-    const handleAddAdditionalSchedule = (grade) => {
-        setEditAdditionalScheds((prevScheds) => ({
-            ...prevScheds,
-            [grade]: [
-                ...prevScheds[grade],
-                {
-                    name: '',
-                    subject: -1,
-                    duration: 60,
-                    frequency: 1,
-                    shown: true,
-                },
-            ],
-        }));
-    };
-
-    const handleDeleteAdditionalSchedule = (grade, index) => {
-        setEditAdditionalScheds((prevScheds) => ({
-            ...prevScheds,
-            [grade]: prevScheds[grade].filter((_, i) => i !== index),
-        }));
-    };
+        const handleDeleteAdditionalSchedule = (grade, index) => {
+            setEditAdditionalScheds((prevScheds) => ({
+                ...prevScheds,
+                [grade]: prevScheds[grade].filter((_, i) => i !== index),
+            }));
+        };
 
     // ==========================================================================
 
@@ -335,8 +335,15 @@ const ProgramEdit = ({
             // Update shift and start time (if true)
             if (sectionDetailsToUpdate.shiftAndStartTime === true) {
                 newSection.shift = editSelectedShifts[newSection.year];
-                newSection.startTime = editStartTimes[newSection.year];
+
+                console.log('editStartTimes[newSection.year]:', editStartTimes[newSection.year]);
+
+                newSection.startTime = getTimeSlotIndex(editStartTimes[newSection.year]);
+
+
                 newSection.endTime = editEndTimes[newSection.year];
+
+                console.log('newSection.endTime:', newSection.endTime);
             }
 
             // Update additional schedules (if true)
@@ -355,6 +362,28 @@ const ProgramEdit = ({
 
                 // Early return if there are no changes
                 if (newSubs.size !== originalSubs.size || ![...newSubs].every((subjectId) => originalSubs.has(subjectId))) {
+                
+                // ================================================================================================
+
+                    const startTimeIdx = newSection.startTime;
+                    const breakTimeCount = newSubs.length > 10 ? 2 : 1;
+
+                    let totalDuration = breakTimeCount * breakTimeDuration;
+
+                    newSubs.forEach((subId) => {
+                        totalDuration += subjects[subId].classDuration;
+                    });
+
+                    const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
+
+                    if (getTimeSlotString(endTimeIdx)) {
+                        newSection.endTime = endTimeIdx;
+                    } else {
+                        newSection.endTime = 216; // 216 = 6:00 PM
+                    }
+
+                // =================================================================================================
+
                     // Add subjects from the edited program-year to the current section
                     editProgramCurr[newSection.year].forEach((subjectId) => {
                         if (!originalSubs.has(subjectId)) {
@@ -435,7 +464,7 @@ const ProgramEdit = ({
                             fixedPositions: newSection.fixedPositions,
                             year: newSection.year,
                             shift: newSection.shift,
-                            startTime: getTimeSlotIndex(newSection.startTime || '06:00 AM'),
+                            startTime: newSection.startTime,
                             endTime: newSection.endTime,
                             additionalScheds: newSection.additionalScheds,
                         },
@@ -811,11 +840,11 @@ const ProgramEdit = ({
                             {/* Tab Content */}
                             {grades.map((grade) => (
                                 <div key={grade} className={`${activeTab === grade ? 'block' : 'hidden'}`}>
-                                    <div className='flex flex-col shadow-md rounded-lg'>
+                                    <div className='flex flex-col'>
                                         {/* Shift and Start Time Selection */}
-                                        <div className='space-y-4 bg-base-100 p-4'>
+                                        <div className='rounded-lg shadow-md border space-y-2 p-4 mb-4'>
                                             <div className='flex items-center'>
-                                                <label className='w-1/4 font-semibold text-base'>SHIFT:</label>
+                                                <label className='w-1/4 font-semibold text-base text-center'>SHIFT:</label>
                                                 <div className='flex space-x-6 text-base'>
                                                     {['AM', 'PM'].map((shift, index) => (
                                                         <label key={index} className='flex items-center space-x-2'>
@@ -833,7 +862,7 @@ const ProgramEdit = ({
                                             </div>
 
                                             <div className='flex items-center'>
-                                                <label className='w-1/4 font-semibold text-base'>START TIME:</label>
+                                                <label className='w-1/4 font-semibold text-base text-center'>START TIME:</label>
                                                 <div className='flex items-center space-x-4 w-3/4'>
                                                     <div className='w-full'>
                                                         <TimeSelector
@@ -861,97 +890,116 @@ const ProgramEdit = ({
                                         </div>
 
                                         {/* Subject Selection */}
-                                        <div className='bg-base-100 py-2 rounded-lg space-y-4 p-4'>
-                                            <div className='bg-base-100 py-2 rounded-lg space-y-4 p-4'>
-                                                <label className='flex justify-center font-semibold text-lg'>Subjects</label>
-                                                <div className='flex space-x-4'>
-                                                    <label className='font-semibold w-1/4'>Selected Subjects:</label>
-                                                    {editProgramCurr[grade]?.length === 0 ? (
-                                                        <div className='text-gray-500 w-3/4 flex justify-start'>
-                                                            No Subjects Selected
-                                                        </div>
-                                                    ) : (
-                                                        editProgramCurr[grade]?.map((id) => (
-                                                            <div key={id} className='badge badge-secondary px-4 py-2 truncate'>
-                                                                {subjects[id]?.subject || 'Subject not found'}
+                                        <div className='rounded-lg shadow-md border space-y-2 p-4 mb-4'>
+                                            <div className='font-semibold text-lg text-center'>Subjects</div>
+                                            <hr className='my-2'></hr>
+                                            <div className='bg-base-100 py-2 rounded-lg space-y-4'>
+                                                <div className='bg-base-100 py-2 rounded-lg space-y-4 p-4'>
+                                                    <div className=' bg-white '>
+                                                        {/* Dropdown and Button */}
+                                                        <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
+                                                            {/* Searchable Dropdown */}
+                                                            <div className='flex-1'>
+                                                                <SearchableDropdownToggler
+                                                                    selectedList={editProgramCurr[grade] || []}
+                                                                    setSelectedList={(list) =>
+                                                                        handleSubjectSelection(grade, list)
+                                                                    }
+                                                                />
                                                             </div>
-                                                        ))
-                                                    )}
-                                                </div>
-                                                <div className='flex p-2'>
-                                                    <SearchableDropdownToggler
-                                                        selectedList={editProgramCurr[grade] || []}
-                                                        setSelectedList={(list) => handleSubjectSelection(grade, list)}
-                                                    />
+
+                                                            {/* Fixed Schedule Maker Button */}
+                                                            <div className='flex justify-center md:justify-start'>
+                                                                <div className='flex justify-center'>
+                                                                    <button
+                                                                        className='btn btn-primary'
+                                                                        onClick={() =>
+                                                                            document
+                                                                                .getElementById(
+                                                                                    `assign_fixed_sched_modal_prog(${editProgramId})-grade(${grade})-view(0)`
+                                                                                )
+                                                                                .showModal()
+                                                                        }
+                                                                        disabled={!editProgramCurr[grade]?.length}
+                                                                    >
+                                                                        Open Fixed Schedule Maker
+                                                                    </button>
+
+                                                                    <FixedScheduleMaker
+                                                                        key={grade}
+                                                                        viewingMode={0}
+                                                                        pvs={0}
+                                                                        program={editProgramId}
+                                                                        grade={grade}
+                                                                        selectedSubjects={editProgramCurr[grade] || []}
+                                                                        fixedDays={editFixedDays[grade] || {}}
+                                                                        setFixedDays={setEditFixedDays}
+                                                                        fixedPositions={editFixedPositions[grade] || {}}
+                                                                        setFixedPositions={setEditFixedPositions}
+                                                                        numOfSchoolDays={numOfSchoolDays}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className='flex space-x-2'>
+                                                        <label className='font-semibold w-1/4'>Selected Subjects:</label>
+                                                        {editProgramCurr[grade]?.length === 0 ? (
+                                                            <div className='text-gray-500 w-3/4 flex justify-start'>
+                                                                No Subjects Selected
+                                                            </div>
+                                                        ) : (
+                                                            editProgramCurr[grade]?.map((id) => (
+                                                                <div
+                                                                    key={id}
+                                                                    className='badge badge-secondary px-4 py-2 truncate'
+                                                                >
+                                                                    {subjects[id]?.subject || 'Subject not found'}
+                                                                </div>
+                                                            ))
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
-
-                                            {/* Setting of fixed schedule (optional) */}
-                                            {editProgramCurr[grade]?.length > 0 && (
-                                                <div className='flex justify-center'>
-                                                    <button
-                                                        className='btn btn-primary'
-                                                        onClick={() =>
-                                                            document
-                                                                .getElementById(
-                                                                    `assign_fixed_sched_modal_prog(${editProgramId})-grade(${grade})-view(0)`
-                                                                )
-                                                                .showModal()
-                                                        }
-                                                    >
-                                                        Open Fixed Schedule Maker
-                                                    </button>
-
-                                                    <FixedScheduleMaker
-                                                        key={grade}
-                                                        viewingMode={0}
-                                                        pvs={0}
-                                                        program={editProgramId}
-                                                        grade={grade}
-                                                        selectedSubjects={editProgramCurr[grade] || []}
-                                                        fixedDays={editFixedDays[grade] || {}}
-                                                        setFixedDays={setEditFixedDays}
-                                                        fixedPositions={editFixedPositions[grade] || {}}
-                                                        setFixedPositions={setEditFixedPositions}
-                                                        numOfSchoolDays={numOfSchoolDays}
-                                                    />
-                                                </div>
-                                            )}
                                         </div>
 
                                         {/* Additional Schedules */}
-                                        <div className='p-4 rounded-lg'>
-                                            <div className='flex justify-center text-lg font-semibold rounded-lg'>
-                                                Additional Schedules
-                                            </div>
+
+                                        <div className='p-4 rounded-lg shadow-md border'>
+                                            <div className='text-center font-semibold text-lg'>Additional Schedules</div>
+                                            <hr className='my-2'></hr>
 
                                             {/* Button to add schedules */}
                                             <button
                                                 onClick={() => handleAddAdditionalSchedule(grade)}
-                                                className='flex flex-wrap items-right text-sm mt-2 bg-primary p-4 text-white px-2 py-1 rounded-lg hover:bg-blue-600'
+                                                className='flex flex-wrap items-right text-sm mt-2 bg-primary p-4 px-2 py-1 rounded-lg hover:bg-blue-600'
                                             >
                                                 Add Schedule
                                             </button>
 
                                             {/* Render the ScheduleComponent as many times as specified */}
                                             <div
-                                                className='mt-2 overflow-y-auto max-h-36 border border-gray-300 rounded-lg'
+                                                className='mt-2 overflow-y-auto max-h-36 border border-base-content border-opacity-20 rounded-lg'
                                                 style={{
                                                     scrollbarWidth: 'thin',
                                                     scrollbarColor: '#a0aec0 #edf2f7',
                                                 }} // Optional for styled scrollbars
                                             >
                                                 {editAdditionalScheds[grade].map((sched, index) => (
-                                                    <div key={index} className='flex flex-wrap'>
+                                                    <div
+                                                        key={index}
+                                                        className='flex flex-wrap border-b border-base-content border-opacity-20'
+                                                    >
                                                         <button
-                                                            className='w-1/12 border rounded-l-lg hover:bg-gray-200 flex items-center justify-center'
+                                                            className='w-1/12 rounded-l-lg hover:bg-primary-content flex rounded-lg hover:text-error items-center justify-center'
                                                             onClick={() => handleDeleteAdditionalSchedule(grade, index)}
                                                         >
                                                             <RiDeleteBin7Line size={15} />
                                                         </button>
                                                         <div className='w-10/12'>
                                                             <button
-                                                                className='w-full bg-gray-100 p-2 border shadow-sm hover:bg-gray-200'
+                                                                className='w-full p-2 shadow-sm hover:bg-primary-content rounded-lg'
                                                                 onClick={() =>
                                                                     document
                                                                         .getElementById(
@@ -984,29 +1032,28 @@ const ProgramEdit = ({
                                                                 additionalSchedsOfProgYear={sched}
                                                             />
                                                         </div>
-                                                        <div className='w-1/12  flex items-center justify-center border rounded-r-lg hover:bg-gray-200'>
-                                                            <button
-                                                                onClick={() =>
-                                                                    document
-                                                                        .getElementById(
-                                                                            `add_additional_sched_modal_0_grade-${grade}_prog-${editProgramId}_idx-${index}`
-                                                                        )
-                                                                        .showModal()
-                                                                }
-                                                            >
-                                                                <RiEdit2Fill size={15} />
-                                                            </button>
-                                                            <AdditionalScheduleForProgram
-                                                                viewingMode={0}
-                                                                programID={editProgramId}
-                                                                grade={grade}
-                                                                arrayIndex={index}
-                                                                numOfSchoolDays={numOfSchoolDays}
-                                                                progYearSubjects={editProgramCurr[grade]}
-                                                                additionalSchedsOfProgYear={sched}
-                                                                setAdditionalScheds={setEditAdditionalScheds}
-                                                            />
-                                                        </div>
+                                                        <button
+                                                            className='w-1/12 flex items-center justify-center rounded-lg hover:text-primary hover:bg-primary-content'
+                                                            onClick={() =>
+                                                                document
+                                                                    .getElementById(
+                                                                        `add_additional_sched_modal_0_grade-${grade}_prog-${editProgramId}_idx-${index}`
+                                                                    )
+                                                                    .showModal()
+                                                            }
+                                                        >
+                                                            <RiEdit2Fill size={15} />
+                                                        </button>
+                                                        <AdditionalScheduleForProgram
+                                                            viewingMode={0}
+                                                            programID={editProgramId}
+                                                            grade={grade}
+                                                            arrayIndex={index}
+                                                            numOfSchoolDays={numOfSchoolDays}
+                                                            progYearSubjects={editProgramCurr[grade]}
+                                                            additionalSchedsOfProgYear={sched}
+                                                            setAdditionalScheds={setEditAdditionalScheds}
+                                                        />
                                                     </div>
                                                 ))}
                                             </div>

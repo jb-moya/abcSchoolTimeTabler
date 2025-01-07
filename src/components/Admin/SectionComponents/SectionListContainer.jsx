@@ -28,13 +28,11 @@ import AddSectionContainer from './SectionAdd';
 import DeleteData from '../DeleteData';
 import SectionEdit from './SectionEdit';
 
-
-const SectionListContainer = ({ 
-    numOfSchoolDays: externalNumOfSchoolDays, 
+const SectionListContainer = ({
+    numOfSchoolDays: externalNumOfSchoolDays,
     editable = false,
-    breakTimeDuration: externalBreakTimeDuration, 
+    breakTimeDuration: externalBreakTimeDuration,
 }) => {
-
     const dispatch = useDispatch();
 
     //  =======================================================================================
@@ -56,10 +54,7 @@ const SectionListContainer = ({
     });
 
     const [breakTimeDuration, setBreakTimeDuration] = useState(() => {
-        return (
-            externalBreakTimeDuration ??
-            (Number(localStorage.getItem('breakTimeDuration')) || 0)
-        );
+        return externalBreakTimeDuration ?? (Number(localStorage.getItem('breakTimeDuration')) || 0);
     });
 
     useEffect(() => {
@@ -371,31 +366,10 @@ const SectionListContainer = ({
 
         dispatch(
             editTeacher({
-                id: teacherId,
+                teacherId: teacherId,
                 updatedTeacher: prevSectionAdviser,
             })
         );
-
-        // Reset the room assigned to the section as AVAILABLE
-        const buildingId = sections[id].roomDetails.buildingId;
-        const floorIdx = sections[id].roomDetails.floorIdx;
-        const roomIdx = sections[id].roomDetails.roomIdx;
-
-        if (buildingId !== -1 && floorIdx !== -1 && roomIdx !== -1) {
-            const building = structuredClone(buildings[buildingId]);
-
-            building.rooms[floorIdx][roomIdx].isAvailable = true;
-
-            dispatch(
-                editBuilding({
-                    buildingId,
-                    updatedBuilding: building,
-                })
-            );
-        }
-
-        dispatch(removeSection(id)); // Perform the delete action
-        document.getElementById('delete_modal').close(); // Close the modal after deleting
     };
 
     //  =======================================================================================
@@ -764,7 +738,10 @@ const SectionListContainer = ({
                                                     <tbody>
                                                         {Array.isArray(section.subjects) && section.subjects.length > 0 ? (
                                                             section.subjects.map((subjectID, index) => (
-                                                                <tr key={index} className='border-b border-base-content border-opacity-20'>
+                                                                <tr
+                                                                    key={index}
+                                                                    className='border-b border-base-content border-opacity-20'
+                                                                >
                                                                     {/* Subject Name */}
                                                                     <td className='py-2 px-4 border-b border-base-content border-opacity-20'>
                                                                         {subjects[subjectID]?.subject ||
@@ -837,7 +814,7 @@ const SectionListContainer = ({
                                                 }} // Optional for styled scrollbars
                                             >
                                                 <div
-                                                    className='font-bold p-2 border-b border-base-content border-opacity-20'
+                                                    className='font-bold border-base-content border-opacity-20'
                                                     style={{
                                                         position: 'sticky',
                                                         top: 0,
@@ -845,13 +822,16 @@ const SectionListContainer = ({
                                                     }}
                                                 ></div>
                                                 {section.additionalScheds.map((sched, index) => (
-                                                    <div key={index} className='flex flex-wrap'>
-                                                        <div className='w-1/12 text-xs font-bold bg-blue-100 flex text-center justify-center items-center p-2'>
+                                                    <div
+                                                        key={index}
+                                                        className='flex flex-wrap border-b border-base-content border-opacity-20 hover:bg-primary-content'
+                                                    >
+                                                        <div className='w-1/12 text-xs  font-bold flex text-center justify-center items-center p-2'>
                                                             {index + 1}
                                                         </div>
                                                         <div className='w-11/12'>
                                                             <button
-                                                                className='w-full text-xs bg-gray-100 p-2 border shadow-sm hover:bg-white'
+                                                                className='w-full text-xs p-2  shadow-sm'
                                                                 onClick={() =>
                                                                     document
                                                                         .getElementById(
@@ -907,7 +887,10 @@ const SectionListContainer = ({
                                                     <DeleteData
                                                         id={section.id}
                                                         store={'section'}
-                                                        reduxFunction={removeSection} 
+                                                        reduxFunction={removeSection}
+                                                        callback={() => {
+                                                            handleDelete(section.id);
+                                                        }}
                                                     />
                                                 </div>
                                             </td>

@@ -495,17 +495,16 @@ const AddProgramContainer = ({
                         {/* Tab Content */}
                         {grades.map((grade) => (
                             <div key={grade} className={`${activeTab === grade ? 'block' : 'hidden'}`}>
-                                <div className='flex flex-col shadow-md rounded-lg'>
+                                <div className='flex flex-col'>
                                     {/* Shift and Start Time Selection */}
-                                    <div className='space-y-4 bg-base-100 p-4'>
+                                    <div className='rounded-lg shadow-md border space-y-2 p-4 mb-4'>
                                         <div className='flex items-center'>
-                                            <label className='w-1/4 font-semibold text-base'>SHIFT:</label>
+                                            <label className='w-1/4 font-semibold text-base text-center'>SHIFT:</label>
                                             <div className='flex space-x-6 text-base'>
                                                 {['AM', 'PM'].map((shift, index) => (
                                                     <label key={index} className='flex items-center space-x-2'>
                                                         <input
                                                             type='radio'
-                                                            value={index}
                                                             checked={selectedShifts[grade] === index}
                                                             onChange={() => handleShiftSelection(grade, index)}
                                                             className='scale-150'
@@ -517,7 +516,7 @@ const AddProgramContainer = ({
                                         </div>
 
                                         <div className='flex items-center'>
-                                            <label className='w-1/4 font-semibold text-base'>START TIME:</label>
+                                            <label className='w-1/4 font-semibold text-base text-center'>START TIME:</label>
                                             <div className='flex items-center space-x-4 w-3/4'>
                                                 <div className='w-full'>
                                                     <TimeSelector
@@ -545,70 +544,88 @@ const AddProgramContainer = ({
                                     </div>
 
                                     {/* Subject Selection */}
-                                    <div className='bg-base-100 py-2 rounded-lg space-y-4 p-4'>
-                                        <label className='font-semibold text-lg'>Subjects </label>
-                                        <div className='flex space-x-'>
-                                                <label className='font-semibold w-1/4'>Selected Subjects: </label>
-                                                {selectedSubjects[grade]?.length === 0 ? (
-                                                    <div className='text-gray-500 w-3/4 flex justify-start'>No Subjects Selected</div>
-                                                ) : (
-                                                    selectedSubjects[grade]?.map((id) => (
-                                                        <div key={id} className='badge badge-secondary px-4 py-2 truncate'>
-                                                            {subjects[id]?.subject}
+                                    <div className='rounded-lg shadow-md border space-y-2 p-4 mb-4'>
+                                        <div className='font-semibold text-lg text-center'>Subjects</div>
+                                        <hr className='my-2'></hr>
+                                        <div className='bg-base-100 py-2 rounded-lg space-y-4'>
+                                            <div className='bg-base-100 py-2 rounded-lg space-y-4 p-4'>
+                                                <div className=' bg-white '>
+                                                    {/* Dropdown and Button */}
+                                                    <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
+                                                        {/* Searchable Dropdown */}
+                                                        <div className='flex-1'>
+                                                            <SearchableDropdownToggler
+                                                                selectedList={selectedSubjects[grade]}
+                                                                setSelectedList={(list) => handleSubjectSelection(grade, list)}
+                                                            />
                                                         </div>
-                                                    ))
-                                                )}
-                                            </div>
-                                        <div className='flex p-2'>
-                                            <SearchableDropdownToggler
-                                                selectedList={selectedSubjects[grade]}
-                                                setSelectedList={(list) => handleSubjectSelection(grade, list)}
-                                            /> 
-                                        </div>
-                                           {/* Setting of fixed schedule (optional) */}
-                                           {selectedSubjects[grade]?.length > 0 && (
-                                            <div>
-                                                <button
-                                                    className='btn btn-primary'
-                                                    onClick={() =>
-                                                        document
-                                                            .getElementById(
-                                                                `assign_fixed_sched_modal_prog(0)-grade(${grade})-view(0)`
-                                                            )
-                                                            .showModal()
-                                                    }
-                                                >
-                                                    Open Fixed Schedule Maker
-                                                </button>
 
-                                                <FixedScheduleMaker
-                                                    key={grade}
-                                                    viewingMode={0}
-                                                    pvs={0}
-                                                    program={0}
-                                                    grade={grade}
-                                                    // totalTimeslot={
-                                                    //     gradeTotalTimeslot[grade]
-                                                    // }
-                                                    additionalSchedules={additionalScheds[grade] || []}
-                                                    selectedSubjects={selectedSubjects[grade]}
-                                                    fixedDays={fixedDays[grade]}
-                                                    setFixedDays={setFixedDays}
-                                                    fixedPositions={fixedPositions[grade]}
-                                                    setFixedPositions={setFixedPositions}
-                                                    numOfSchoolDays={numOfSchoolDays}
-                                                />
+                                                        {/* Fixed Schedule Maker Button */}
+                                                        <div className='flex justify-center md:justify-start'>
+                                                            <div className='flex justify-center'>
+                                                                <button
+                                                                    className='btn btn-primary'
+                                                                    onClick={() =>
+                                                                        document
+                                                                            .getElementById(
+                                                                                `assign_fixed_sched_modal_prog(0)-grade(${grade})-view(0)`
+                                                                            )
+                                                                            .showModal()
+                                                                    }
+                                                                    disabled={!selectedSubjects[grade]?.length}
+                                                                >
+                                                                    Open Fixed Schedule Maker
+                                                                </button>
+
+                                                                <FixedScheduleMaker
+                                                                    key={grade}
+                                                                    viewingMode={0}
+                                                                    pvs={0}
+                                                                    program={0}
+                                                                    grade={grade}
+                                                                    // totalTimeslot={
+                                                                    //     gradeTotalTimeslot[grade]
+                                                                    // }
+                                                                    additionalSchedules={additionalScheds[grade] || []}
+                                                                    selectedSubjects={selectedSubjects[grade]}
+                                                                    fixedDays={fixedDays[grade]}
+                                                                    setFixedDays={setFixedDays}
+                                                                    fixedPositions={fixedPositions[grade]}
+                                                                    setFixedPositions={setFixedPositions}
+                                                                    numOfSchoolDays={numOfSchoolDays}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className='flex space-x-2'>
+                                                    <label className='font-semibold w-1/4'>Selected Subjects:</label>
+                                                    {selectedSubjects[grade]?.length === 0 ? (
+                                                        <div className='text-gray-500 w-3/4 flex justify-start'>
+                                                            No Subjects Selected
+                                                        </div>
+                                                    ) : (
+                                                        selectedSubjects[grade]?.map((id) => (
+                                                            <div key={id} className='badge badge-secondary px-4 py-2 truncate'>
+                                                                {subjects[id]?.subject || 'Subject not found'}
+                                                            </div>
+                                                        ))
+                                                    )}
+                                                </div>
                                             </div>
-                                        )}
+                                        </div>
                                     </div>
 
                                     {/* Additional Schedules */}
-                                    <div className='p-4 rounded-lg'>
-                                        <div className='text-lg font-semibold rounded-lg'>Additional Schedules</div>
+
+                                    <div className='p-4 rounded-lg shadow-md border'>
+                                        <div className='text-center font-semibold text-lg'>Additional Schedules</div>
+                                        <hr className='my-2'></hr>
 
                                         {/* Button to add schedules */}
                                         <button
-                                            onClick={() => handleAddAdditionalSchedule(grade)}
+                                            onClick={() =>  handleAddAdditionalSchedule(grade)}
                                             className='flex flex-wrap items-right text-sm mt-2 bg-primary p-4 text-white px-2 py-1 rounded-lg hover:bg-blue-600'
                                         >
                                             Add Schedule
@@ -678,14 +695,11 @@ const AddProgramContainer = ({
                                                             <RiEdit2Fill size={15} />
                                                         </button>
                                                         <AdditionalScheduleForProgram
-                                                            viewingMode={0}
-                                                            programID={0}
-                                                            grade={grade}
-                                                            arrayIndex={index}
-                                                            numOfSchoolDays={numOfSchoolDays}
-                                                            progYearSubjects={selectedSubjects[grade]}
-                                                            additionalSchedsOfProgYear={sched}
-                                                            setAdditionalScheds={setAdditionalScheds}
+                                                             viewingMode={1}
+                                                             programID={0}
+                                                             grade={grade}
+                                                             arrayIndex={index}
+                                                             additionalSchedsOfProgYear={sched}
                                                         />
                                                     </div>
                                                 </div>
@@ -693,6 +707,8 @@ const AddProgramContainer = ({
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Shift and Start Time Selection */}
                             </div>
                         ))}
                     </div>

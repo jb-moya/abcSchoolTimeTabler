@@ -586,14 +586,14 @@ std::vector<Timeslot> Timetable::getBreaks(const Section& section) const {
 
 	// FIXME: temporary fix might be code smell
 	// Calculate the reverse index based on the current try count
-	std::cout << "possible breaks size " << possible_breaks.size() << std::endl;
-	for (size_t i = 0; i < possible_breaks.size(); ++i) {
-		std::cout << "possible break " << i << ": ";
-		for (size_t j = 0; j < possible_breaks[i].size(); ++j) {
-			std::cout << possible_breaks[i][j] << " ";
-		}
-		std::cout << std::endl;
-	}
+	// std::cout << "possible breaks size " << possible_breaks.size() << std::endl;
+	// for (size_t i = 0; i < possible_breaks.size(); ++i) {
+	// 	std::cout << "possible break " << i << ": ";
+	// 	for (size_t j = 0; j < possible_breaks[i].size(); ++j) {
+	// 		std::cout << possible_breaks[i][j] << " ";
+	// 	}
+	// 	std::cout << std::endl;
+	// }
 
 	int index = (possible_breaks.size() - (s_rotary_timeslot.getTotalTry() % possible_breaks.size())) % possible_breaks.size();
 
