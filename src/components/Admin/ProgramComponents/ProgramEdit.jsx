@@ -247,7 +247,11 @@ const ProgramEdit = ({
 
             let totalDuration = breakTimeCount * breakTimeDuration;
 
+            console.log('🚀 ~ editProgramCurr[grade].forEach ~ subjects:', subjects);
+
             editProgramCurr[grade].forEach((subId) => {
+                console.log('🚀 ~ editProgramCurr[grade].forEach ~ subId:', subId);
+                console.log('🚀 ~ editProgramCurr[grade].forEach ~ subjects[subId]:', subjects[subId]);
                 totalDuration += subjects[subId].classDuration;
             });
 
@@ -764,7 +768,7 @@ const ProgramEdit = ({
             <input type='checkbox' id={`programEdit_modal_${program.id}`} className='modal-toggle' />
             <div className='modal'>
                 <div className='modal-box' style={{ width: '48%', maxWidth: 'none' }}>
-                    <div className>
+                    <div>
                         {/* Header section with centered "Add {reduxField}" */}
                         <div className='flex justify-between mb-4'>
                             <h3 className='text-lg font-bold text-center w-full'>Edit Program</h3>
@@ -970,7 +974,7 @@ const ProgramEdit = ({
                                                                 onClick={() =>
                                                                     document
                                                                         .getElementById(
-                                                                            `add_additional_sched_modal_1_grade-${grade}_prog-0_idx-${index}`
+                                                                            `add_additional_sched_modal_1_grade-${grade}_prog-${editProgramId}_idx-${index}`
                                                                         )
                                                                         .showModal()
                                                                 }
@@ -993,7 +997,7 @@ const ProgramEdit = ({
                                                             </button>
                                                             <AdditionalScheduleForProgram
                                                                 viewingMode={1}
-                                                                programID={0}
+                                                                programID={editProgramId}
                                                                 grade={grade}
                                                                 arrayIndex={index}
                                                                 additionalSchedsOfProgYear={sched}
@@ -1004,7 +1008,7 @@ const ProgramEdit = ({
                                                                 onClick={() =>
                                                                     document
                                                                         .getElementById(
-                                                                            `add_additional_sched_modal_0_grade-${grade}_prog-0_idx-${index}`
+                                                                            `add_additional_sched_modal_0_grade-${grade}_prog-${editProgramId}_idx-${index}`
                                                                         )
                                                                         .showModal()
                                                                 }
@@ -1013,7 +1017,7 @@ const ProgramEdit = ({
                                                             </button>
                                                             <AdditionalScheduleForProgram
                                                                 viewingMode={0}
-                                                                programID={program.id}
+                                                                programID={editProgramId}
                                                                 grade={grade}
                                                                 arrayIndex={index}
                                                                 numOfSchoolDays={numOfSchoolDays}

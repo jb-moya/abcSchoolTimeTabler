@@ -17,8 +17,8 @@ function convertToNumber(timeStr) {
     // Calculate the total minutes since 6:00 AM
     const totalMinutes = (hours - startHour) * 60 + (minutes - startMinute);
 
-    // Each step corresponds to 10 minutes
-    const num = Math.floor(totalMinutes / 10);
+    // Each step corresponds to 5 minutes
+    const num = Math.floor(totalMinutes / 5);
 
     return num >= 0 ? num : 0; // Ensure non-negative values
 }

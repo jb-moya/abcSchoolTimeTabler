@@ -180,6 +180,21 @@ export const removeEntityFromDB = async (storeName, entityId) => {
 					'Dependency Error: Department is referenced by teachers.'
 				);
 			}
+		} else if (storeName === STORE_NAMES.BUILDINGS) {
+			const sections = await sectionsStore.getAll();
+			const sectionDependent = sections.find((section) =>
+				section.roomDetails.buildingId === entityId
+			);
+
+			if (sectionDependent) {
+				toast.error(
+					'Cannot delete building as it is referenced by sections.'
+				);
+				throw new Error(
+					'Dependency Error: Building is referenced by sections.'
+				);
+			}
+			
 		}
 
 		const deleteTx = db.transaction(storeName, 'readwrite');

@@ -80,8 +80,14 @@ struct ObjectiveFunction {
 					TimePoint time_point = it->first;
 					auto& utilized_time_in_section = it->second;
 					SectionID section_id = std::get<0>(utilized_time_in_section);
-					int overlappable = std::get<2>(utilized_time_in_section);
-					int time_point_class_count = std::get<1>(utilized_time_in_section) + (overlappable >= 1 ? 1 : 0);
+					int time_point_class_count = std::get<1>(utilized_time_in_section);
+					int overlap_able = std::get<2>(utilized_time_in_section);
+
+					// flase overlappble - able to overlap such as additional schedules
+
+					// std::cout << "overlappable in objectivefunction " << overlap_able << std::endl;
+
+					// int time_point_class_count = std::get<1>(utilized_time_in_section) + (overlap_able >= 1 ? 1 : 0);
 
 					// i will not calculate the workload of the teacher in reserved schedule because it is already added.
 

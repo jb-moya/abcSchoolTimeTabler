@@ -26,8 +26,6 @@ function TimeSelector({ interval = 5, time = '06:00 AM', setTime = () => {}, am 
         if (time !== lastTimeRef.current) {
             lastTimeRef.current = time;
 
-            console.log(`'${time}'`);
-
             const [hourAndMinute, period] = time.split(' ');
             const [hour, minute] = hourAndMinute.split(':');
 

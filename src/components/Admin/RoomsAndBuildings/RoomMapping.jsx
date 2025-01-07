@@ -460,7 +460,7 @@ const RoomListContainer = ({ editable = false }) => {
                 document.getElementById('delete_modal').close();
 
                 // Optionally, show success toast
-                toast.success('Building deleted successfully.');
+                // toast.success('Building deleted successfully.');
             })
             .catch((error) => {
                 console.error('Error deleting building:', error);

@@ -340,7 +340,7 @@ const TeacherListContainer = ({ editable = false }) => {
                                                                             Subject:{' '}
                                                                             {sched.subject === -1
                                                                                 ? 'N/A'
-                                                                                : subjects[sched.subject].subject}
+                                                                                : subjects[sched.subject]?.subject}
                                                                         </p>
                                                                     </>
                                                                 ) : (
