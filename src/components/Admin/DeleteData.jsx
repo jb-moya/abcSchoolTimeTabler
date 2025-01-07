@@ -3,10 +3,16 @@ import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 import {RiDeleteBin7Line } from 'react-icons/ri';
 import { useDispatch } from 'react-redux';
 
-const DeleteData = ({ id, store, reduxFunction }) => {
+const DeleteData = ({ id, store, reduxFunction, callback }) => {
     const dispatch = useDispatch();
-    const handleDelete = () => {
-        dispatch(reduxFunction(id)); // Call the passed Redux function with the subject ID
+    const handleDelete = async () => {
+
+        const result = await dispatch(reduxFunction(id));
+
+        if (callback) {
+            callback(result);
+        }
+
         closeModal();
     };
 

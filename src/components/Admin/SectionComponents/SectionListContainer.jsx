@@ -346,7 +346,7 @@ const SectionListContainer = ({
         }
     };
 
-    //  =======================================================================================
+//  =======================================================================================
     //  Handling DELETE SECTION MODAL
 
     const deleteModal = (id) => {
@@ -371,34 +371,13 @@ const SectionListContainer = ({
 
         dispatch(
             editTeacher({
-                id: teacherId,
+                teacherId: teacherId,
                 updatedTeacher: prevSectionAdviser,
             })
         );
-
-        // Reset the room assigned to the section as AVAILABLE
-        const buildingId = sections[id].roomDetails.buildingId;
-        const floorIdx = sections[id].roomDetails.floorIdx;
-        const roomIdx = sections[id].roomDetails.roomIdx;
-
-        if (buildingId !== -1 && floorIdx !== -1 && roomIdx !== -1) {
-            const building = structuredClone(buildings[buildingId]);
-
-            building.rooms[floorIdx][roomIdx].isAvailable = true;
-
-            dispatch(
-                editBuilding({
-                    buildingId,
-                    updatedBuilding: building,
-                })
-            );
-        }
-
-        dispatch(removeSection(id)); // Perform the delete action
-        document.getElementById('delete_modal').close(); // Close the modal after deleting
     };
 
-    //  =======================================================================================
+//  =======================================================================================
 
     const resetStates = () => {
         // Reset the editing state
@@ -440,7 +419,7 @@ const SectionListContainer = ({
         []
     );
 
-    //  =======================================================================================
+//  =======================================================================================
 
     useEffect(() => {
         if (buildingStatus === 'idle') {
@@ -472,7 +451,7 @@ const SectionListContainer = ({
         }
     }, [teacherStatus, dispatch]);
 
-    //  =======================================================================================
+//  =======================================================================================
 
     useEffect(() => {
         if (externalNumOfSchoolDays !== undefined) {
@@ -907,7 +886,10 @@ const SectionListContainer = ({
                                                     <DeleteData
                                                         id={section.id}
                                                         store={'section'}
-                                                        reduxFunction={removeSection} 
+                                                        reduxFunction={removeSection}
+                                                        callback={() => {
+                                                            handleDelete(section.id);
+                                                        }} 
                                                     />
                                                 </div>
                                             </td>
