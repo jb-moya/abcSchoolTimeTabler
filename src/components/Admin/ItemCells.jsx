@@ -257,8 +257,8 @@ const ItemCells = ({
                 x,
                 y,
             }}
-            className={`absolute border border-primary-content ${
-                cell.overlap ? 'bg-red-500' : 'bg-secondary-content'
+            className={`absolute border border-base-content border-opacity-50 ${
+                cell.overlap ? 'bg-error' : 'bg-base-200 '
             } rounded-lg`}
             ref={itemRef}
             onDragEnd={handleDragEnd}

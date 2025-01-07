@@ -287,7 +287,7 @@ const DragDrop = ({
 
     return (
         <div className='flex-1 gap-5 w-full'>
-            <div ref={containerRef} className='h-full w-full border border-primary-content relative overflow-hidden'>
+            <div ref={containerRef} className='h-full w-full relative overflow-hidden'>
                 {loading ? (
                     <div className='flex items-center justify-center h-full'>
                         <span className='loading loading-spinner loading-lg'></span>
@@ -302,8 +302,8 @@ const DragDrop = ({
                                     <div
                                         className={`absolute top-0 left-0 w-full border-b ${
                                             highlightedLine === (index + 1) * segmentHeight && isDragging
-                                                ? 'border-blue-500'
-                                                : 'border-gray-300'
+                                                ? 'border-blue-500 border-b-8'
+                                                : 'border-base-content border-opacity-30 border-b-2'
                                         }`}
                                         style={{
                                             height: segmentHeight,
@@ -318,11 +318,11 @@ const DragDrop = ({
                                         return (
                                             <div
                                                 key={`sub-${index}-${subIndex}`}
-                                                className={`absolute top-0 left-0 w-full border-b border-dashed ${
+                                                className={`absolute top-0 left-0 w-full border-b border-dashed border-opacity-25 ${
                                                     highlightedLine === index * segmentHeight + (subIndex + 1) * subLineHeight &&
                                                     isDragging
                                                         ? 'border-blue-500'
-                                                        : 'border-gray-400'
+                                                        : 'border-base-content'
                                                 }`}
                                                 style={{
                                                     height: subLineHeight,

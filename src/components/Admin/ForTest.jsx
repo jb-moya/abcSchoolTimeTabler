@@ -308,10 +308,15 @@ const ForTest = ({ hashMap }) => {
         const days = ['Mon', 'Tue', 'Wed', 'Thur', 'Fri'];
         return (
             <div className='flex'>
-                <div className='min-w-[105px] max-w-[105px] border border-primary-content text-center font-bold'>Time</div>
-                <div className='w-full flex border border-primary-content'>
+                <div className='min-w-[105px] max-w-[105px] border border-base-content border-opacity-20 text-center font-bold'>
+                    Time
+                </div>
+                <div className='w-full flex border border-base-content border-opacity-20'>
                     {days.map((day, index) => (
-                        <div key={`header-${index}`} className='flex-1 border-r border-primary-content text-center font-bold'>
+                        <div
+                            key={`header-${index}`}
+                            className='border-r border-base-content border-opacity-20 flex-1 text-center font-bold'
+                        >
                             {day}
                         </div>
                     ))}
@@ -478,8 +483,8 @@ const ForTest = ({ hashMap }) => {
                     <div className='modal-box'>
                         <form method='dialog'>
                             <button className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2'>✕</button>
-                            <h3 className='font-bold text-lg'>Error Details</h3>
-                            <div className='flex flex-col space-y-1'>
+                            <h3 className='font-bold text-lg mb-4'>Error Details</h3>
+                            <div className='flex flex-col space-y-4'>
                                 {Object.entries(
                                     overlapsDisplay.reduce((acc, [error, something, type]) => {
                                         const key = `${error}-${type}`; // Use both error and type as a unique key
@@ -490,11 +495,7 @@ const ForTest = ({ hashMap }) => {
                                         return acc;
                                     }, {})
                                 ).map(([key, { error, type, count }], index) => (
-                                    <button
-                                        key={index}
-                                        className='btn btn-outline capitalize'
-                                        onClick={() => handleButtonErrorClick(error)}
-                                    >
+                                    <button key={index} className='btn capitalize' onClick={() => handleButtonErrorClick(error)}>
                                         {error} (Error: {count})
                                     </button>
                                 ))}
@@ -503,14 +504,17 @@ const ForTest = ({ hashMap }) => {
                     </div>
                 </dialog>
 
-                <div className='flex flex-row items-center justify-between pt-10 pr-5'>
-                    <div className='flex-row justify-end cursor-pointer' onClick={handleErrorClick}>
-                        <span className='label-text px-5'>Status:</span>
+                <div className='flex flex-row items-center justify-between pt-10 px-5'>
+                    <button
+                        className='btn btn-outline flex-row items-center justify-center cursor-pointer'
+                        onClick={handleErrorClick}
+                    >
+                        <span className=''>Status:</span>
 
                         <div className={`badge ${errorCount === 0 ? 'badge-success' : 'badge-error'} gap-2`}>
                             {errorCount === 0 ? 'Verified' : `Error ${errorCount}`}
                         </div>
-                    </div>
+                    </button>
 
                     <div className='flex flex-row items-center space-x-2 ml-auto'>
                         <button onClick={add} disabled className='btn btn-secondary'>
@@ -585,7 +589,7 @@ const ForTest = ({ hashMap }) => {
                                         <h2 className='card-title capitalize'>{key}</h2>
                                         <Column />
                                         <div
-                                            className='flex flex-row border border-gray-600'
+                                            className='flex flex-row'
                                             style={{
                                                 maxHeight: `${tableHeight}px`,
                                                 minHeight: `${tableHeight}px`,
@@ -605,7 +609,7 @@ const ForTest = ({ hashMap }) => {
                                                             height: `calc(${tableHeight}px / ${timeSlots.length})`,
                                                         }}
                                                         key={timeIndex}
-                                                        className='flex items-center justify-center text-lg w-full text-center border border-primary-content font-semibold shadow py-10 mx-5'
+                                                        className='flex items-center justify-center text-lg w-full text-center border border-base-content border-opacity-20 font-semibold shadow py-10 mx-5'
                                                     >
                                                         {time}
                                                     </div>
