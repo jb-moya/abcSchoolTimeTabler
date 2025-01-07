@@ -130,10 +130,24 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
     const importDB = async (format) => {
         try {
             const data = await loadFile(format); // Wait for file to load
+            // console.log('🚀 ~ importDB ~ data:', typeof data);
+            // console.log('🚀 ~ importDB ~ data:', typeof data);
+
+            // const data = {};
+
+            console.log('p o tang ina mo');
+
             setIsImporting(true);
 
             document.getElementById('import-format-modal').close();
-            await onClear();
+
+            try {
+                await onClear();
+                toast.success('Data cleared successfully');
+            } catch (error) {
+                toast.error('Error clearing data');
+                console.error('Error clearing data:', error);
+            }
 
             console.log('FGFFFF');
             // await sleep(1000);
