@@ -137,10 +137,15 @@ const DragDrop = ({
                 newObject.teacherID = newCardData.teacherID;
                 newObject.sectionID = cell.sectionID;
                 newObject.type = 'teacher';
-                //wala tableKey, id ,dynamicID
+                newObject.additional = cell.additional;
 
-                const newObjectID = `section-${cell.sectionID}-teacher-${newCardData.teacherID}-subject-${cell.subjectID}-day-${cell.day}-type-teacher`;
-                const currCellNewID = `section-${cell.sectionID}-teacher-${newCardData.teacherID}-subject-${cell.subjectID}-day-${cell.day}-type-${cell.type}`;
+                let newObjectID = `section-${cell.sectionID}-teacher-${newCardData.teacherID}-subject-${cell.subjectID}-day-${cell.day}-type-teacher`;
+                let currCellNewID = `section-${cell.sectionID}-teacher-${newCardData.teacherID}-subject-${cell.subjectID}-day-${cell.day}-type-${cell.type}`;
+
+                if (cell.additional) {
+                    newObjectID = `additional-section-${cell.sectionID}-teacher-${newCardData.teacherID}-subject-${cell.subjectID}-day-${cell.day}-type-teacher`;
+                    currCellNewID = `additional-section-${cell.sectionID}-teacher-${newCardData.teacherID}-subject-${cell.subjectID}-day-${cell.day}-type-${cell.type}`;
+                }
 
                 newObject.id = newObjectID;
                 newObject.dynamicID = newObjectID;

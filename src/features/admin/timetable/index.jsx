@@ -1777,11 +1777,15 @@ function Timetable() {
                 // console.log('day in timetable: ', schedule.day);
                 const type = schedule.type;
                 const partnerType = type === 'teacher' ? 'section' : 'teacher';
-
                 if (schedule.day === 0) {
                     for (let i = 1; i <= 5; i++) {
-                        const scheduleKey = `section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${i}-type-${type}`;
-                        // Add the schedule to the nested Map
+                        let scheduleKey = `section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${i}-type-${type}`;
+
+                        let duplicate = false;
+                        if (scheduleMap.has(scheduleKey)) {
+                            duplicate = true;
+                            scheduleKey = `additional-section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${i}-type-${type}`;
+                        }
                         const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
 
                         scheduleMap.set(scheduleKey, {
@@ -1798,15 +1802,22 @@ function Timetable() {
                             day: i,
                             overlap: false,
                             type: type,
+                            additional: duplicate ? true : false,
                             ...(type === 'teacher' && { section: schedule.fieldName1 }),
                             ...(type === 'section' && { teacher: schedule.fieldName2 }),
                         });
                     }
                 } else {
                     // Use sectionID, subjectID, and start time to create a unique key for the schedule
-                    const scheduleKey = `section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${schedule.day}-type-${type}`;
-                    const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
-                    // Add the schedule to the nested Map
+                    let scheduleKey = `section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${schedule.day}-type-${type}`;
+
+                    let duplicate = false;
+                    if (scheduleMap.has(scheduleKey)) {
+                        duplicate = true;
+                        scheduleKey = `additional-section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${schedule.day}-type-${type}`;
+                    }
+                    let keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
+
                     scheduleMap.set(scheduleKey, {
                         start: schedule.start - 72,
                         end: schedule.end - 72,
@@ -1821,13 +1832,13 @@ function Timetable() {
                         dynamicID: scheduleKey,
                         overlap: false,
                         day: schedule.day,
+                        additional: duplicate ? true : false,
                         ...(type === 'teacher' && { section: schedule.fieldName1 }),
                         ...(type === 'section' && { teacher: schedule.fieldName2 }),
                     });
                 }
             }
         }
-        // console.log('resultMap: ', resultMap);
 
         return resultMap;
     };
@@ -6140,4 +6151,4 @@ function Timetable() {
     );
 }
 
-export default Timetable; 
+export default Timetable;
