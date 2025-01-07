@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { IoChevronDown, IoRemove, IoAdd } from 'react-icons/io5';
 import { createPortal } from 'react-dom';
 import { useSelector } from 'react-redux';
@@ -29,7 +29,7 @@ const SearchableDropdownToggler = ({ teacherID, setSelectedList, currID, type })
         setSelectedList(teacherID, teacher);
     };
     const teacherName = filteredTeachers.find((item) => item.id === currID)?.teacher || null;
-    console.log('searchResults: ', searchResults);
+    // console.log('searchResults: ', searchResults);
 
     return (
         <div className='dropdown '>
@@ -39,7 +39,7 @@ const SearchableDropdownToggler = ({ teacherID, setSelectedList, currID, type })
                 tabIndex={type === 'section' ? 0 : -1} // Allow tab focus only if type === 'section'
                 className={clsx(
                     'font-medium text-ellipsis whitespace-nowrap text-center text-[10px] sm:text-[10px] md:text-xs lg:text-sm flex items-center',
-                    type === 'section' ? 'cursor-pointer' : 'cursor-default' // Change cursor based on type
+                    type === 'section' ? 'cursor-pointer' : 'cursor-default'
                 )}
             >
                 <span>{teacherName}</span>
@@ -47,7 +47,7 @@ const SearchableDropdownToggler = ({ teacherID, setSelectedList, currID, type })
             </div>
 
             {type === 'section' && (
-                <ul tabIndex={0} className='dropdown-content menu bg-base-100 rounded-box w-52 p-2 shadow'>
+                <ul tabIndex={0} className='dropdown-content menu z-[2000] bg-base-100 rounded-box w-52 p-2 shadow'>
                     <li>
                         <input
                             type='text'

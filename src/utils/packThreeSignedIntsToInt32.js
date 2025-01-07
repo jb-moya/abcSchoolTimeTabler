@@ -20,8 +20,8 @@ function packThreeSignedIntsToInt32(first, second, third) {
 
     // const result = (((first + (1 << 9)) & 0x3ff) << 22) | (((second + (1 << 9)) & 0x3ff) << 12) | ((third + (1 << 11)) & 0x7ff);
     // Log the binary representation of the result
-    console.log(result.toString(2));
-    console.log(unsignedResult.toString(2));
+    // console.log(result.toString(2));
+    // console.log(unsignedResult.toString(2));
 
     // return result;
     return unsignedResult;
@@ -78,8 +78,8 @@ function runTests() {
     });
 }
 
-runTests();
+// runTests();
 
-console.log('packThreeSignedIntsToInt32');
+// console.log('packThreeSignedIntsToInt32');
 
 export { packThreeSignedIntsToInt32, unpackThreeSignedIntsFromInt32 };

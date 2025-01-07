@@ -1,9 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
 import { motion, useMotionValue, useMotionValueEvent } from 'framer-motion';
-import { convertToTime } from '../../utils/convertToTime';
 import { convertToNumber } from '../../utils/convertToNumber';
+import { convertToTime } from '../../utils/convertToTime';
 
 import { fetchSubjects } from '@features/subjectSlice';
 import { fetchTeachers } from '@features/teacherSlice';
@@ -32,8 +32,6 @@ const ItemCells = ({
     addClicked,
     setAddClicked,
 }) => {
-    // console.log('initialPosition: ', initialPosition);
-
     const itemRef = useRef(null);
 
     const [targetPosition, setTargetPosition] = useState(initialPosition);
@@ -174,10 +172,6 @@ const ItemCells = ({
         setHighlightedLine(closestLine);
     });
 
-    const startTime = convertToTime(cell.start);
-    const endTime = convertToTime(cell.end);
-    const cellValue = cell.teacher ? cell.teacher : cell.section;
-    const cellVal = cellValue ? cellValue : 'Break';
     useEffect(() => {
         if (isDragging) return; // Prevent the effect from running while dragging
 
@@ -197,40 +191,14 @@ const ItemCells = ({
     const handleTeacherSelection = (teacherID, teacher) => {
         setLoading(true);
         setModalOpen(false);
+
         setTimeout(() => {
-            handleSwitchTeacher({ teacherID, teacher });
+            handleSwitchTeacher({ teacherID, teacher }, editingCell);
         }, 0);
     };
 
-    //     <SearchableDropdownToggler
-    //     teacherID={getTeacherIdsBySubject(cell.subjectID)}
-    //     setSelectedList={handleTeacherSelection}
-    //     currID={cell.teacherID}
-    //     cell={cell}
-    // />
-
-    // useEffect(() => {
-    //      console.log('editingCell: ', editingCell);
-    //      console.log('start: ', `0${convertToTime(editingCell?.start)}`);
-    // }, [editingCell]);
-
-    const generateTimeOptions = (startHour, endHour, isMorning) => {
-        const times = [];
-        for (let hour = startHour; hour <= endHour; hour++) {
-            for (let minute = 0; minute < 60; minute += 10) {
-                // Remove the padding for single-digit hours
-                const formattedHour = hour < 10 ? `${hour}` : `${hour}`;
-                const formattedTime = `${formattedHour}:${String(minute).padStart(2, '0')}`;
-                const period = isMorning ? 'AM' : 'PM';
-                times.push(`${formattedTime} ${period}`);
-            }
-        }
-        return times;
-    };
-
-    const handleStartChange = (event) => {
+    const handleStartChange = (time) => {
         const newErrors = {};
-        const time = event.target.value;
         const start = convertToNumber(time);
 
         if (start >= editingCell.end) {
@@ -242,13 +210,9 @@ const ItemCells = ({
         setErrors(newErrors);
     };
 
-    const handleEndChange = (event) => {
+    const handleEndChange = (time) => {
         const newErrors = {};
-
-        const time = event.target.value;
         const end = convertToNumber(time);
-        // console.log('editingCell: ', editingCell);
-        // console.log('end: ', end);
 
         if (end <= editingCell.start) {
             newErrors.time = 'Invalid Time Set';
@@ -259,10 +223,30 @@ const ItemCells = ({
     };
 
     const addSchedule = () => {
-        // console.log('added');
+        console.log('added');
         setModalOpen(false);
     };
 
+    const startTime = useMemo(() => {
+        if (cell.start !== null && cell.start !== undefined) {
+            return convertToTime(cell.start);
+        }
+        return 'NA';
+    }, [cell.start]);
+
+    const endTime = useMemo(() => {
+        if (cell.end !== null && cell.end !== undefined) {
+            return convertToTime(cell.end);
+        }
+        return 'MA';
+    }, [cell.end]);
+    const cellValue = useMemo(() => (cell.teacher ? cell.teacher : cell.section), [cell.teacher, cell.section]);
+    const cellVal = useMemo(() => {
+        if (cell.teacher === null && cell.subject === null) {
+            return 'Break';
+        }
+        return cellValue ? cellValue : 'NA';
+    }, [cell.teacher, cell.section, cellValue]);
     return (
         <motion.div
             drag={!editMode} // Draggable only if editMode is false
@@ -319,15 +303,19 @@ const ItemCells = ({
                 )}
             </div>
             {/* Hover State Management */}
-            <div className='absolute inset-0' onMouseEnter={() => setHovering(true)} onMouseLeave={() => setHovering(false)} />
+            <div
+                className='absolute inset-0'
+                onMouseEnter={() => {
+                    setHovering(true);
+                }}
+                onMouseLeave={() => setHovering(false)}
+            />
             {modalOpen && (
                 <ScheduleDialog
                     editingCell={editingCell}
                     handleTeacherSelection={handleTeacherSelection}
                     handleStartChange={handleStartChange}
                     handleEndChange={handleEndChange}
-                    generateTimeOptions={generateTimeOptions}
-                    convertToTime={convertToTime}
                     setModalOpen={setModalOpen}
                     getTeacherIdsBySubject={getTeacherIdsBySubject}
                     errors={errors}

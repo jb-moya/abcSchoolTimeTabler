@@ -244,30 +244,39 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
             {/* Modal */}
             <input type='checkbox' id={`teacherEdit_modal_${teacher.id}`} className='modal-toggle' />
             <div className='modal'>
-                <div className='modal-box relative' style={{ width: '50%', maxWidth: 'none' }}>
+                <div className='modal-box ' style={{ width: '40%', maxWidth: 'none' }}>
                     <label onClick={closeModal} className='btn btn-sm btn-circle absolute right-2 top-2'>
                         ✕
                     </label>
                     <h3 className='flex justify-center text-lg font-bold mb-4'>Edit Teacher</h3>
                     <hr className='mb-4' />
-                    <div className='p-6'>
-                        {/* Input Field for Teacher Name */}
+
+                    <div className='rounded-lg shadow-md md:shadow-lg sm:shadow-sm space-y-4 mb-4 p-4'>
+                        {/* Teacher Name */}
                         <div className='mb-4'>
-                            <label className='flex justify-center text-sm font-medium mb-2'>Teacher Name:</label>
+                            <label className='block text-sm font-medium mb-1' htmlFor='teacherName'>
+                                Teacher Name:
+                            </label>
                             <input
+                                id='teacherName'
                                 type='text'
-                                className='input input-bordered input-sm w-full'
+                                className={`input input-bordered w-full ${errorField === 'name' ? 'border-red-500' : ''}`}
                                 value={editTeacherValue}
                                 onChange={(e) => setEditTeacherValue(e.target.value)}
+                                placeholder='Enter teacher name'
+                                aria-label='Teacher Name'
                             />
                         </div>
 
+                        {/* Teacher Rank */}
                         <div className='mb-4'>
-                            <label className='flex justify-center text-sm font-medium mb-2'>Teacher Rank:</label>
-                            <div className='relative w-full'>
+                            <label className='block text-sm font-medium mb-1' htmlFor='teacherRank'>
+                                Select Rank:
+                            </label>
+                            <div className='relative'>
                                 <select
                                     id='teacherRank'
-                                    className='input input-bordered input-sm w-full appearance-none pr-10'
+                                    className='select select-bordered w-full'
                                     value={editTeacherRank || ''}
                                     onChange={handleRankChange}
                                 >
@@ -284,32 +293,24 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
                                         <option disabled>No ranks available</option>
                                     )}
                                 </select>
-                                {/* Dropdown Icon */}
-                                <div className='absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none'>
-                                    <svg
-                                        className='w-4 h-4 text-gray-500'
-                                        xmlns='http://www.w3.org/2000/svg'
-                                        fill='none'
-                                        viewBox='0 0 24 24'
-                                        stroke='currentColor'
-                                    >
-                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
-                                    </svg>
-                                </div>
                             </div>
                         </div>
+
+                        {/* Departments */}
                         <div className='mb-4'>
-                            <label className='flex justify-center text-sm font-medium mb-2'>Teacher Department:</label>
-                            <div className='relative w-full'>
+                            <label className='block text-sm font-medium mb-1' htmlFor='teacherDepartment'>
+                                Select Department:
+                            </label>
+                            <div className='relative'>
                                 <select
                                     id='teacherDepartment'
-                                    className='input input-bordered input-sm w-full appearance-none pr-10'
+                                    className='select select-bordered w-full'
                                     value={editTeacherDepartment || ''}
                                     onChange={handleDepartmentChange}
                                 >
-                                    {/* <option value="" disabled>
+                                    <option value='' disabled>
                                         Select department
-                                    </option> */}
+                                    </option>
                                     {departments && Object.keys(departments).length > 0 ? (
                                         Object.values(departments).map((department) => (
                                             <option key={department.id} value={department.id}>
@@ -324,127 +325,102 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
                                         <option disabled>No departments available</option>
                                     )}
                                 </select>
-                                {/* Dropdown Icon */}
-                                <div className='absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none'>
-                                    <svg
-                                        className='w-4 h-4 text-gray-500'
-                                        xmlns='http://www.w3.org/2000/svg'
-                                        fill='none'
-                                        viewBox='0 0 24 24'
-                                        stroke='currentColor'
-                                    >
-                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
-                                    </svg>
-                                </div>
                             </div>
                         </div>
 
-                        <div className='flex gap-1 flex-wrap mb-4'>
-                            <div className='m-1'>Selected Subjects:</div>
-                            {editTeacherCurr && Array.isArray(editTeacherCurr) && subjects ? (
-                                editTeacherCurr.map((subjectID) => (
-                                    <div key={subjectID} className='badge badge-secondary m-1'>
-                                        {subjects[subjectID]?.subject || subjectID}
+                        {/* Assigning of Subjects and Grade Levels to Teach */}
+                        <div className='flex flex-wrap mb-4 '>
+                            {/* Subjects Section */}
+                            <div className='w-full sm:w-1/2 p-2'>
+                                <div className='rounded-lg border p-4 shadow-md'>
+                                    <h4 className='font-semibold '>Subjects</h4>
+                                    <hr className='my-2'></hr>
+                                    <SearchableDropdownToggler
+                                        selectedList={editTeacherCurr}
+                                        setSelectedList={setEditTeacherCurr}
+                                    />
+                                    <div className='mt-2'>
+                                        <p className='font-medium mb-2'>Selected Subjects:</p>
+                                        {editTeacherCurr.length === 0 ? (
+                                            <p className='text-gray-500'>No selected subject</p>
+                                        ) : (
+                                            <div className='flex flex-wrap gap-2'>
+                                                {editTeacherCurr.map((subjectID) => (
+                                                    <span
+                                                        key={subjectID}
+                                                        className='bg-secondary text-white text-sm px-2 py-1 rounded-lg'
+                                                    >
+                                                        {subjects[subjectID].subject}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
-                                ))
-                            ) : (
-                                <div>No subjects selected</div>
-                            )}
-                            <SearchableDropdownToggler
-                                selectedList={editTeacherCurr}
-                                setSelectedList={setEditTeacherCurr}
-                                isEditable={true}
-                            />
-                        </div>
-
-                        <div className='w-1/2 flex justify-center'>
-                            <div className='w-5/6'>
-                                <div className='p-2 flex justify-center font-bold bg-base-200 border border-base-content border-opacity-20 rounded-t-lg'>
-                                    Grade Levels to Teach
                                 </div>
-                                <div className='flex flex-col items-center justify-center border border-base-content border-opacity-20 rounded-b-lg'>
-                                    <div className='w-1/3 flex justify-start'>
-                                        <label>
-                                            <input
-                                                type='checkbox'
-                                                checked={editTeacherYearLevels.includes(0)}
-                                                onChange={() => handleYearLevelChange(0)}
-                                            />
-                                            Grade 7
-                                        </label>
-                                    </div>
+                            </div>
 
-                                    <div className='w-1/3 flex justify-start'>
-                                        <label>
-                                            <input
-                                                type='checkbox'
-                                                checked={editTeacherYearLevels.includes(1)}
-                                                onChange={() => handleYearLevelChange(1)}
-                                            />
-                                            Grade 8
-                                        </label>
-                                    </div>
-
-                                    <div className='w-1/3 flex justify-start'>
-                                        <label>
-                                            <input
-                                                type='checkbox'
-                                                checked={editTeacherYearLevels.includes(2)}
-                                                onChange={() => handleYearLevelChange(2)}
-                                            />
-                                            Grade 9
-                                        </label>
-                                    </div>
-
-                                    <div className='w-1/3 flex justify-start'>
-                                        <label>
-                                            <input
-                                                type='checkbox'
-                                                checked={editTeacherYearLevels.includes(3)}
-                                                onChange={() => handleYearLevelChange(3)}
-                                            />
-                                            Grade 10
-                                        </label>
+                            {/* Grade Levels */}
+                            <div className='w-full sm:w-1/2 p-2'>
+                                <div className='rounded-lg border p-4 shadow-md'>
+                                    <h4 className='font-semibold'>Grade Levels</h4>
+                                    <hr className='my-2'></hr>
+                                    <div className='grid grid-cols-2 gap-2 mt-2'>
+                                        {['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'].map((grade, index) => (
+                                            <label key={index} className='flex items-center gap-2'>
+                                                <input
+                                                    type='checkbox'
+                                                    checked={editTeacherYearLevels.includes(index)}
+                                                    onChange={() => handleYearLevelChange(index)}
+                                                />
+                                                {grade}
+                                            </label>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div
-                            key={`edit-add-sched-edit-teacher(${editTeacherId})`}
-                            className='mt-2 overflow-y-auto h-36 max-h-36 border border-base-content border-opacity-20 rounded-lg'
-                            style={{ scrollbarWidth: 'thin', scrollbarColor: '#a0aec0 #edf2f7' }}
+                    {/* Additional Schedules */}
+                    <div className='p-4 rounded-lg shadow-md'>
+                        <div className='text-lg font-semibold rounded-lg text-center'>Additional Teacher Schedules</div>
+                        <hr className='my-2'></hr>
+
+                        {/* Button to add schedules */}
+                        <button
+                            onClick={handleAddTeacherAdditionalSchedules}
+                            className='flex flex-wrap items-right text-sm mt-2 bg-primary p-4 text-white px-2 py-1 rounded-lg hover:bg-blue-600'
                         >
-                            <div className='flex flex-wrap sticky top-0 z-10 bg-base-200 '>
-                                <div className='w-3/12 flex justify-center items-center border-gray-300'>
-                                    <button
-                                        className='w-3/4 bg-green-700 m-2 font-bold rounded-lg hover:bg-green-500'
-                                        onClick={handleAddTeacherAdditionalSchedules}
-                                    >
-                                        +
-                                    </button>
-                                </div>
-                            </div>
+                            Add Schedule
+                        </button>
+
+                        {/* Render the ScheduleComponent as many times as specified */}
+                        <div
+                            className='mt-2 overflow-y-auto max-h-36 border border-gray-300 rounded-lg'
+                            style={{
+                                scrollbarWidth: 'thin',
+                                scrollbarColor: '#a0aec0 #edf2f7',
+                            }} // Optional for styled scrollbars
+                        >
                             {editTeacherAdditionalScheds.map((sched, index) => (
-                                <div key={index} className='flex flex-wrap border-b border-base-content border-opacity-20'>
+                                <div key={index} className='flex flex-wrap'>
                                     <button
-                                        className='w-1/12  rounded-lg  flex items-center justify-center hover:text-error hover:bg-base-200'
+                                        className='w-1/12 border rounded-l-lg hover:bg-gray-200 flex items-center justify-center'
                                         onClick={() => handleDeleteTeacherAdditionalSchedule(index)}
                                     >
                                         <RiDeleteBin7Line size={15} />
                                     </button>
                                     <div className='w-10/12'>
                                         <button
-                                            className='w-full  p-2  shadow-sm '
+                                            className='w-full bg-gray-100 p-2 border shadow-sm hover:bg-gray-200'
                                             onClick={() =>
                                                 document
-                                                    .getElementById(
-                                                        `add_additional_sched_modal_1_teacher-${editTeacherId}_idx-${index}`
-                                                    )
+                                                    .getElementById(`add_additional_sched_modal_1_teacher-0_idx-${index}`)
                                                     .showModal()
                                             }
                                         >
                                             {sched.name ? (
+                                                // Content to show when both are not empty
                                                 <>
                                                     <p>Name: {sched.name}</p>
                                                     <p>
@@ -452,24 +428,22 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
                                                     </p>
                                                 </>
                                             ) : (
+                                                // Content to show when either is empty
                                                 <p>Untitled Schedule {index + 1}</p>
                                             )}
                                         </button>
                                         <AdditionalScheduleForTeacher
                                             viewingMode={1}
-                                            teacherID={editTeacherId}
+                                            teacherID={0}
                                             arrayIndex={index}
                                             additionalSchedsOfTeacher={sched}
                                         />
                                     </div>
-                                    <div className='w-1/12 flex items-center justify-center  rounded-lg'>
+                                    <div className='w-1/12 flex items-center justify-center border rounded-r-lg hover:bg-gray-200'>
                                         <button
-                                            className='w-full h-full flex items-center justify-center rounded-lg hover:text-error hover:bg-base-200'
                                             onClick={() =>
                                                 document
-                                                    .getElementById(
-                                                        `add_additional_sched_modal_0_teacher-${editTeacherId}_idx-${index}`
-                                                    )
+                                                    .getElementById(`add_additional_sched_modal_0_teacher-0_idx-${index}`)
                                                     .showModal()
                                             }
                                         >
@@ -488,19 +462,17 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
                                 </div>
                             ))}
                         </div>
+                    </div>
 
-                        {/* Error Message */}
-                        {errorMessage && <p className='text-red-500 text-sm my-4 font-medium'>{errorMessage}</p>}
+                    {errorMessage && <p className='text-red-500 text-sm my-4 font-medium select-none '>{errorMessage}</p>}
 
-                        {/* Action Buttons */}
-                        <div className='flex justify-center gap-2 mt-4'>
-                            <button className='btn btn-primary' onClick={() => handleSaveTeacherEditClick(teacher.id)}>
-                                Update Teacher
-                            </button>
-                            <button className='btn btn-error' onClick={() => resetStates()}>
-                                Reset
-                            </button>
-                        </div>
+                    <div className='flex justify-center gap-2 mt-4'>
+                        <button className='btn btn-primary' onClick={() => handleSaveTeacherEditClick(teacher.id)}>
+                            Add Teacher
+                        </button>
+                        <button className='btn btn-error' onClick={() => resetStates()}>
+                            Reset
+                        </button>
                     </div>
                 </div>
             </div>

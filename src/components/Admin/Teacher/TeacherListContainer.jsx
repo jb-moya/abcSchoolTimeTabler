@@ -340,7 +340,7 @@ const TeacherListContainer = ({ editable = false }) => {
                                                                             Subject:{' '}
                                                                             {sched.subject === -1
                                                                                 ? 'N/A'
-                                                                                : subjects[sched.subject].subject}
+                                                                                : subjects[sched.subject]?.subject}
                                                                         </p>
                                                                     </>
                                                                 ) : (
@@ -361,7 +361,7 @@ const TeacherListContainer = ({ editable = false }) => {
                                         </td>
 
                                         {editable && (
-                                            <td className='w-28 text-right'>
+                                            <td className='w-28'>
                                                 <div className='flex'>
                                                     <TeacherEdit
                                                         teacher={teacher}

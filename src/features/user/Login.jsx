@@ -22,16 +22,14 @@ function Login() {
         e.preventDefault();
         setErrorMessage('');
 
-        if (loginObj.emailId.trim() === '')
-            return setErrorMessage('Email Id is required!');
-        if (loginObj.password.trim() === '')
-            return setErrorMessage('Password is required!');
+        if (loginObj.emailId.trim() === '') return setErrorMessage('Email Id is required!');
+        if (loginObj.password.trim() === '') return setErrorMessage('Password is required!');
         else {
             setLoading(true);
             setTimeout(() => {
                 localStorage.setItem('token', 'DummyTokenHere');
                 setLoading(false);
-                window.location.href = '/app/welcome';
+                window.location.href = '/app/dashboard';
             }, 1500);
         }
     };
@@ -50,95 +48,71 @@ function Login() {
     }
 
     return (
-        <div className="relative h-screen w-screen">
+        <div className='relative h-screen w-screen'>
             {/* Background section with Swiper */}
-            <div className="absolute inset-0 z-0">
-                <Swiper
-                    modules={[Autoplay]}
-                    slidesPerView={1}
-                    autoplay={{ delay: 3000 }}
-                    className="h-full"
-                >
+            <div className='absolute inset-0 z-0'>
+                <Swiper modules={[Autoplay]} slidesPerView={1} autoplay={{ delay: 3000 }} className='h-full'>
                     {Array.from({ length: 5 }).map((_, index) => (
                         <SwiperSlide key={index}>
-                            <img
-                                src={imgUrl()}
-                                alt={`Slide ${index + 1}`}
-                                className="w-full h-full object-cover"
-                            />
+                            <img src={imgUrl()} alt={`Slide ${index + 1}`} className='w-full h-full object-cover' />
                         </SwiperSlide>
                     ))}
                 </Swiper>
                 {/* Blur effect and dark overlay */}
-                <div className="absolute inset-0 bg-black bg-opacity-40 backdrop-blur-sm"></div>
+                <div className='absolute inset-0 bg-black bg-opacity-40 backdrop-blur-sm'></div>
             </div>
 
             {/* Login form section */}
-            <div className="absolute inset-0 z-10 flex items-center justify-center backdrop-blur-sm ">
-                <div className="w-full max-w-sm bg-white bg-opacity-90 backdrop-blur-md rounded-lg  shadow-2xl p-8">
+            <div className='absolute inset-0 z-10 flex items-center justify-center backdrop-blur-sm '>
+                <div className='w-full max-w-sm bg-white bg-opacity-90 backdrop-blur-md rounded-lg  shadow-2xl p-8'>
                     {/* Logo section */}
-                    <div className="mb-4 flex flex-col justify-center items-center select-none">
-                        <img
-                            src="/Batasan Logo.png"
-                            alt="Logo"
-                            className="h-16 w-16 mb-2"
-                        />
-                        <div className="text-2xl font-bold text-center">
-                            Batasan High School
-                        </div>
-                        <div className="text-sm text-center text-gray-500">
-                            Timetabling System
-                        </div>
+                    <div className='mb-4 flex flex-col justify-center items-center select-none'>
+                        <img src='/Batasan Logo.png' alt='Logo' className='h-16 w-16 mb-2' />
+                        <div className='text-2xl font-bold text-center'>Batasan High School</div>
+                        <div className='text-sm text-center text-gray-500'>Timetabling System</div>
                     </div>
 
-                    <h2 className="text-base font-medium mb-4 text-center text-gray-500">
+                    <h2 className='text-base font-medium mb-4 text-center text-gray-500'>
                         Please enter your credentials to continue
                     </h2>
 
                     {/* Form */}
                     <form onSubmit={(e) => submitForm(e)}>
-                        <div className="mb-6">
+                        <div className='mb-6'>
                             {/* Email input */}
                             <InputText
-                                type="emailId"
+                                type='emailId'
                                 defaultValue={loginObj.emailId}
-                                updateType="emailId"
-                                containerStyle="mt-4"
-                                labelTitle="Username"
+                                updateType='emailId'
+                                containerStyle='mt-4'
+                                labelTitle='Username'
                                 updateFormValue={updateFormValue}
                             />
 
                             {/* Password input */}
                             <InputText
                                 defaultValue={loginObj.password}
-                                type="password"
-                                updateType="password"
-                                containerStyle="mt-4"
-                                labelTitle="Password"
+                                type='password'
+                                updateType='password'
+                                containerStyle='mt-4'
+                                labelTitle='Password'
                                 updateFormValue={updateFormValue}
                             />
                         </div>
 
                         {/* Forgot password link */}
-                        <div className="text-right mb-4">
-                            <Link
-                                to="/forgot-password"
-                                className="text-sm text-primary hover:underline"
-                            >
+                        <div className='text-right mb-4'>
+                            <Link to='/forgot-password' className='text-sm text-primary hover:underline'>
                                 Forgot Password?
                             </Link>
                         </div>
 
                         {/* Error message */}
-                        {errorMessage && (
-                            <ErrorText styleClass="mt-2 text-center">
-                                {errorMessage}
-                            </ErrorText>
-                        )}
+                        {errorMessage && <ErrorText styleClass='mt-2 text-center'>{errorMessage}</ErrorText>}
 
                         {/* Submit button */}
                         <button
-                            type="submit"
+                            type='submit'
                             className={`btn mt-4 w-full btn-primary text-white transition-all duration-75 ease-in-out flex items-center justify-center ${
                                 loading ? 'cursor-not-allowed' : ''
                             }`}
@@ -146,7 +120,7 @@ function Login() {
                         >
                             {loading ? (
                                 <>
-                                    <span className="loading loading-spinner"></span>
+                                    <span className='loading loading-spinner'></span>
                                     Logging In
                                 </>
                             ) : (
@@ -155,12 +129,9 @@ function Login() {
                         </button>
 
                         {/* Register link */}
-                        <div className="text-center mt-6 text-gray-600">
+                        <div className='text-center mt-6 text-gray-600'>
                             Sign as Guest?{' '}
-                            <button
-                                className="text-primary hover:underline"
-                                onClick={goToGuestPage}
-                            >
+                            <button className='text-primary hover:underline' onClick={goToGuestPage}>
                                 here
                             </button>
                         </div>

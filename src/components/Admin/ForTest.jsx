@@ -20,11 +20,7 @@ const ForTest = ({ hashMap }) => {
     const [errorCount, setErrorCount] = useState(0);
     const [loading, setLoading] = useState(false);
     const [addClicked, setAddClicked] = useState(false);
-
-    // useEffect(() => {
-    //   renderCount.current += 1;
-    //   console.log(`Render count: ${renderCount.current}`);
-    // });
+    const [overlapsDisplay, setOverlapsDisplay] = useState([]);
 
     const [timeSlots, setTimeSlots] = useState([]);
     const [tableHeight, setTableHeight] = useState(0);
@@ -86,17 +82,6 @@ const ForTest = ({ hashMap }) => {
         setCurrentPage(page);
     };
 
-    useEffect(() => {
-        const startTime = localStorage.getItem('morningStartTime') || '08:00 PM';
-        const endTime = '08:00 PM';
-
-        const slots = generateTimeSlots(startTime, endTime, 60); // You can change the interval here
-        const tableHeight = Math.round(110.625 * slots.length);
-        // console.log(slots)
-        setTimeSlots(slots);
-        setTableHeight(tableHeight);
-    }, []);
-
     const undo = () => {
         if (historyIndex > 1) {
             isUndoRedo.current = true; // Indicate this is an undo action
@@ -117,13 +102,21 @@ const ForTest = ({ hashMap }) => {
         console.log('saved');
     };
 
+    const clear = () => {
+        console.log('clear');
+        setCurrentPage(1);
+        setSearch('');
+        setSearchField('');
+    };
+
     const add = () => {
-        setAddClicked(true);
+        console.log('add');
     };
 
     useEffect(() => {
         const overlaps = detectOverlaps(valueMap);
         // console.log('overlaps', overlaps);
+        setOverlapsDisplay(overlaps);
         const resolvedMap = updateOverlapFields(overlaps);
         // console.log('resolvedmap: ', resolvedMap);
         setValueMap(resolvedMap);
@@ -190,8 +183,8 @@ const ForTest = ({ hashMap }) => {
                         currentCell.overlap = true;
                         nextCell.overlap = true;
 
-                        const currentKey = [tableKey, currentCell.cellKey];
-                        const nextKey = [tableKey, nextCell.cellKey];
+                        const currentKey = [tableKey, currentCell.cellKey, currentCell.type];
+                        const nextKey = [tableKey, nextCell.cellKey, nextCell.type];
 
                         if (!overlappingCells.some(([t, c]) => t === tableKey && c === currentCell.cellKey)) {
                             overlappingCells.push(currentKey);
@@ -223,7 +216,7 @@ const ForTest = ({ hashMap }) => {
 
                     const cell = table.get(keyToFind); // Use cellId directly to access the cell in each table
                     if (cell) {
-                        const currentKey = [tableKey, cell.dynamicID];
+                        const currentKey = [tableKey, cell.dynamicID, cell.type];
                         if (!overlappingCells.some(([t, c]) => t === tableKey && c === cell.dynamicID)) {
                             additionalOverlaps.push(currentKey);
                         }
@@ -297,20 +290,18 @@ const ForTest = ({ hashMap }) => {
             const keyToFind = cell.partnerKey;
             // console.log('keyToFind: ', keyToFind);
             const targetCell = table.get(keyToFind);
+
             if (targetCell) {
                 targetTableId = targetCell.tableKey;
+                setCurrentPage(1);
+                setSearch(targetTableId);
+                setSearchField(targetTableId);
                 break;
             }
         }
-        // console.log('targetTableId: ', targetTableId);
-
-        // console.log('moved');
-        setSearch(targetTableId);
-        setSearchField(targetTableId);
-        // const targetRef = tableRefs.current[targetTableId];
-        // if (targetRef) {
-        //   targetRef.scrollIntoView({ behavior: "smooth" });
-        // }
+        if (!targetTableId) {
+            console.error('No table found');
+        }
     };
 
     const Column = () => {
@@ -329,27 +320,17 @@ const ForTest = ({ hashMap }) => {
         );
     };
 
-    // useEffect(() => {
-    //   const filteredMap = new Map(
-    //     Array.from(valueMap.entries()).slice(
-    //         (currentPage - 1) * itemsPerPage,
-    //         currentPage * itemsPerPage
-    //     )
-    //   );
-    //   setPaginatedValueMap(filteredMap);
-    // }, [currentPage,itemsPerPage]);
-
     useEffect(() => {
         const updatePaginatedValueMap = () => {
-            // Ensure currentPage doesn't exceed totalPages
-            const validCurrentPage = Math.min(currentPage, totalPages);
-            setCurrentPage(validCurrentPage);
-
-            // Filter the valueMap based on the searchField
-
             const filteredValueMap = new Map(
                 Array.from(valueMap.entries()).filter(([key, value]) => key.toLowerCase().includes(searchField.toLowerCase()))
             );
+
+            if (filteredValueMap.size < 1) return;
+
+            const validCurrentPage = Math.min(currentPage, totalPages);
+            setCurrentPage(validCurrentPage);
+
             // console.log('valueMap: ', valueMap);
             // console.log('filteredValueMap: ', filteredValueMap);
 
@@ -375,12 +356,8 @@ const ForTest = ({ hashMap }) => {
 
             const updatedPageNumbers = generatePageNumbers(filteredValueMap);
             setPageNumbers(updatedPageNumbers);
-            // console.log('paginatedValueMap: ', paginatedValueMap);
         };
-
         updatePaginatedValueMap();
-        // console.log('paginatedValueMap: ');
-        // console.log('valueMap: ', valueMap);
     }, [currentPage, itemsPerPage, valueMap, searchField]);
 
     const handleInputChange = (event) => {
@@ -392,15 +369,19 @@ const ForTest = ({ hashMap }) => {
     };
 
     useEffect(() => {
-        // console.log('set');
         setValueMap(hashMap);
     }, [hashMap]);
 
     useEffect(() => {
-        // console.log('valueMap: ', valueMap);
-    }, [valueMap]);
+        const startTime = localStorage.getItem('morningStartTime') || '08:00 PM';
+        const endTime = '08:00 PM';
 
-    useEffect(() => {
+        const slots = generateTimeSlots(startTime, endTime, 60); // You can change the interval here
+        const tableHeight = Math.round(110.625 * slots.length);
+        // console.log(slots)
+        setTimeSlots(slots);
+        setTableHeight(tableHeight);
+
         const overlaps = detectOverlaps(valueMap);
         // console.log('overlaps', overlaps);
         const resolvedMap = updateOverlapFields(overlaps);
@@ -408,36 +389,51 @@ const ForTest = ({ hashMap }) => {
         setValueMap(resolvedMap);
     }, []);
 
+    const handleErrorClick = () => {
+        const modal = document.getElementById('my_modal_3');
+        if (modal) {
+            modal.showModal();
+        }
+    };
+
+    const handleButtonErrorClick = (error) => {
+        setCurrentPage(1);
+        setSearch(error);
+        setSearchField(error);
+    };
     return (
         Array.from(paginatedValueMap.entries()).length > 0 && (
             <div className='overflow-hidden select-none'>
                 <div className='flex flex-row space-x-5 justify-end pt-10 pr-5'>
                     <div className='pagination-buttons join justify-between items-center'>
-                        <button
-                            className='join-item btn'
-                            onClick={() => handlePageChange(currentPage - 1)}
-                            disabled={currentPage === 1}
-                        >
-                            «
-                        </button>
-                        {pageNumbers.map((page, index) => (
+                        <div className='min-w-[310px] flex flex-grow mr-5'>
                             <button
-                                key={index}
-                                className={`join-item btn ${currentPage === page ? 'btn-active' : ''} ${
-                                    page === null ? 'btn-disabled' : ''
-                                }`}
-                                onClick={() => handlePageChange(page)}
+                                className='join-item btn flex-grow'
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 1}
                             >
-                                {page || '...'}
+                                «
                             </button>
-                        ))}
-                        <button
-                            className='join-item btn'
-                            onClick={() => handlePageChange(currentPage + 1)}
-                            disabled={currentPage === pageNumbers[pageNumbers.length - 1]}
-                        >
-                            »
-                        </button>
+                            {pageNumbers.map((page, index) => (
+                                <button
+                                    key={index}
+                                    className={`join-item btn flex-grow ${currentPage === page ? 'btn-active' : ''} ${
+                                        page === null ? 'btn-disabled' : ''
+                                    }`}
+                                    onClick={() => handlePageChange(page)}
+                                >
+                                    {page || '...'}
+                                </button>
+                            ))}
+                            <button
+                                className='join-item btn flex-grow'
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage === pageNumbers[pageNumbers.length - 1]}
+                            >
+                                »
+                            </button>
+                        </div>
+
                         <select
                             value={itemsPerPage}
                             onChange={(e) => setItemsPerPage(Number(e.target.value))}
@@ -472,10 +468,43 @@ const ForTest = ({ hashMap }) => {
                             />
                         </svg>
                     </label>
+                    <button onClick={clear} className='btn btn-secondary' disabled={!searchField}>
+                        Clear
+                    </button>
                 </div>
 
+                {/* Modal */}
+                <dialog id='my_modal_3' className='modal'>
+                    <div className='modal-box'>
+                        <form method='dialog'>
+                            <button className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2'>✕</button>
+                            <h3 className='font-bold text-lg'>Error Details</h3>
+                            <div className='flex flex-col space-y-1'>
+                                {Object.entries(
+                                    overlapsDisplay.reduce((acc, [error, something, type]) => {
+                                        const key = `${error}-${type}`; // Use both error and type as a unique key
+                                        if (!acc[key]) {
+                                            acc[key] = { count: 0, error, type };
+                                        }
+                                        acc[key].count += 1; // Increment the count
+                                        return acc;
+                                    }, {})
+                                ).map(([key, { error, type, count }], index) => (
+                                    <button
+                                        key={index}
+                                        className='btn btn-outline capitalize'
+                                        onClick={() => handleButtonErrorClick(error)}
+                                    >
+                                        {error} (Error: {count})
+                                    </button>
+                                ))}
+                            </div>
+                        </form>
+                    </div>
+                </dialog>
+
                 <div className='flex flex-row items-center justify-between pt-10 pr-5'>
-                    <div className='flex-row justify-end'>
+                    <div className='flex-row justify-end cursor-pointer' onClick={handleErrorClick}>
                         <span className='label-text px-5'>Status:</span>
 
                         <div className={`badge ${errorCount === 0 ? 'badge-success' : 'badge-error'} gap-2`}>
@@ -484,7 +513,7 @@ const ForTest = ({ hashMap }) => {
                     </div>
 
                     <div className='flex flex-row items-center space-x-2 ml-auto'>
-                        <button onClick={add} className='btn btn-secondary'>
+                        <button onClick={add} disabled className='btn btn-secondary'>
                             Add
                         </button>
                         <div className='form-control'>
@@ -553,9 +582,7 @@ const ForTest = ({ hashMap }) => {
                                 <div className='card bg-base-100 w-full shadow-xl pt-5'>
                                     <div className='card-body'>
                                         {/* Dynamically render section name */}
-                                        <h2 className='card-title capitalize'>
-                                            {containerType}: {key}
-                                        </h2>
+                                        <h2 className='card-title capitalize'>{key}</h2>
                                         <Column />
                                         <div
                                             className='flex flex-row border border-gray-600'

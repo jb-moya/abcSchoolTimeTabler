@@ -209,7 +209,7 @@ const getTimetable = async (params) =>
                     break;
                 }
 
-                console.log('🚀 ~ newPromise ~ resultArray:', resultArray);
+                // console.log('🚀 ~ newPromise ~ resultArray:', resultArray);
             }
 
             console.log('timetable result', timetable);

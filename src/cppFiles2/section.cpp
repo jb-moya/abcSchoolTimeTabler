@@ -135,6 +135,13 @@ void Section::updateClassTimeslotDay(
     Timeslot timeslot,
     SchoolClass& school_class) {
 	classes[timeslot][day] = school_class;
+
+	// std::cout << "updateClassTimeslotDay\n";
+	// for (auto& classTimeslot : classes.find(timeslot)->second) {
+	// 	std::cout << classTimeslot.second.subject_id << "\n";
+	// 	std::cout << classTimeslot.second.teacher_id << "\n";
+	// }
+	// std::cout << "e n d updateClassTimeslotDay\n";
 }
 
 void Section::setViolation(bool violation) {

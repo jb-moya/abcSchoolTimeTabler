@@ -453,13 +453,15 @@ function Timetable() {
                 let { second: subjectDuration } = unpackInt32ToInt16(duration);
                 return subjectDuration;
             }),
-            breakTimeDuration,
-            durationUniqueAdditionalTeacherScheds
+            breakTimeDuration
+            // durationUniqueAdditionalTeacherScheds
         );
+        console.log('🚀 ~ handleButtonClick ~ durationUniqueAdditionalTeacherScheds:', durationUniqueAdditionalTeacherScheds);
         console.log('🚀 ~ handleButtonClick ~ lowestSubjectDuration:', lowestSubjectDuration);
 
-        // let offset = lowestSubjectDuration - 1; // what is this minus 1 magic number?????
-        let offset = 0; // what is this minus 1 magic number?????
+        let offset = lowestSubjectDuration - 1; // what is this minus 1 magic number?????
+        console.log('🚀 ~ handleButtonClick ~ offset:', offset);
+        // let offset = 0; // what is this minus 1 magic number?????
 
         subjectConfigurationSubjectDurationArray.forEach((duration, index) => {
             let { first: subjectID, second: subjectDuration } = unpackInt32ToInt16(duration);
@@ -655,8 +657,8 @@ function Timetable() {
 
         let defaultClassDuration = 40;
 
-        let maxTeacherWorkLoad = 300;
-        let minTeacherWorkLoad = 10;
+        let maxTeacherWorkLoad = 3000;
+        let minTeacherWorkLoad = 100;
 
         defaultClassDuration /= timeDivision;
         maxTeacherWorkLoad /= timeDivision;
@@ -680,14 +682,13 @@ function Timetable() {
         // console.log('🚀 ~ handleButtonClick ~ offset:', offset);
 
         let minTotalClassDurationForTwoBreaks = commonSubjectCount * defaultClassDuration;
+        console.log('🚀 ~ handleButtonClick ~ defaultClassDuration:', defaultClassDuration);
 
         defaultClassDuration -= offset;
         breakTimeDuration -= offset;
-        minTotalClassDurationForTwoBreaks /= offset;
+        minTotalClassDurationForTwoBreaks /= offset || 1;
 
         for (const [sectionKey, section] of Object.entries(sectionMap)) {
-            console.log('🚀 ~ handleButtonClick ~ section:', section);
-
             sectionStartArray[sectionKey] = section.startTime;
 
             let totalNumOfClasses = calculateTotalClass(subjectsStore, section.subjects, numOfSchoolDays);
@@ -707,20 +708,22 @@ function Timetable() {
 
             totalTimeslot += numberOfBreak;
 
-            // console.log('🚀 ~ handleButtonClick ~ totalTimeslot:', totalTimeslot);
-
             // const notAllowedBreakslotGap = totalTimeslot >= 7 ? 2 : 1;
 
             let notAllowedBreakslotGap = 0;
             if (totalTimeslot >= 5 && totalTimeslot < 7) {
                 notAllowedBreakslotGap = 1;
             } else if (totalTimeslot >= 7) {
-                notAllowedBreakslotGap = 3;
+                notAllowedBreakslotGap = 2;
             } else if (totalTimeslot >= 10) {
                 notAllowedBreakslotGap = 3;
             }
 
-            const isDynamicSubjectConsistentDuration = 0;
+            // TODO: include teacher additional scheulde
+            // TODO: update teacher workload in real data
+            // TODO: test on real high data
+
+            const isDynamicSubjectConsistentDuration = 0; // false
 
             sectionConfigurationArray[sectionKey] = packInt8ToInt32(
                 numberOfBreak,
@@ -734,9 +737,15 @@ function Timetable() {
             });
 
             const roomDetails = section.roomDetails;
-            console.log('🚀 ~ roomDetails roomDetailsroomDetailsroomDetailsroomDetailsroomDetails ~ roomDetails:', roomDetails);
             const buildingID = buildingMapReverse[roomDetails.buildingId];
-            console.log('buildingMapReverse ~ buildingMapReverse:', buildingMapReverse);
+
+            console.log('🚀 ~ handleButtonClick ~ section:', section);
+            console.log('|| ~ handleButtonClick ~ notAllowedBreakslotGap:', notAllowedBreakslotGap);
+            console.log('|| ~ handleButtonClick ~ numberOfBreak:', numberOfBreak);
+            console.log('|| ~ handleButtonClick ~ totalTimeslot:', totalTimeslot);
+            console.log('|| ~ roomDetails roomDetailsroomDetailsroomDetailsroomDetailsroomDetails ~ roomDetails:', roomDetails);
+            console.log('|| ~ buildingMapReverse:', buildingMapReverse);
+            console.log('|| ~ handleButtonClick ~ buildingID:');
 
             const exampleLocation = {
                 buildingID: 0,
@@ -744,12 +753,15 @@ function Timetable() {
                 room: 0,
             };
 
-            console.log('BAKIT ~ handleButtonClick ~ buildingID:');
             console.log(buildingID, roomDetails.floorIdx, roomDetails.roomIdx);
 
             sectionLocationArray.push(
                 packThreeSignedIntsToInt32(buildingID || 0, roomDetails.floorIdx || 0, roomDetails.roomIdx || 0)
             );
+
+            // sectionLocationArray.push(
+            //     packThreeSignedIntsToInt32(exampleLocation.buildingID || 0, exampleLocation.floor || 0, exampleLocation.room || 0)
+            // );
         }
 
         console.log('🚀 ~ handleButtonClick ~ sectionStartArray:', sectionStartArray);
@@ -764,7 +776,7 @@ function Timetable() {
         const sectionConfiguration = new Int32Array([...sectionConfigurationArray]);
         const sectionSubjectConfiguration = new Int32Array([...sectionSubjectConfigurationArray]);
 
-        const maxIterations = 200;
+        const maxIterations = 3000;
         const beesPopulations = 4;
         const beesEmployed = 2;
         const beesOnlooker = 2;
@@ -780,7 +792,7 @@ function Timetable() {
         const teacherWeekLoadConfigArray = [];
 
         let teacherReservationConfigArray = [];
-        const teacherReservationConfigIDArray = [];
+        let teacherReservationConfigIDArray = [];
 
         const teacherReservedScheduleConfigurationSet = new Set();
 
@@ -833,6 +845,9 @@ function Timetable() {
 
         teacherReservationConfigArray.push(-1);
         teacherReservationConfigIDArray.push(-1);
+
+        // teacherReservationConfigArray = [-1];
+        // teacherReservationConfigIDArray = [-1];
 
         const teacherReservationConfigID = new Int32Array([...teacherReservationConfigIDArray]);
 
@@ -1084,7 +1099,7 @@ function Timetable() {
         // });
 
         // console.log("timetable", timetableMap);
-        console.log('section timetable', sectionTimetable);
+        console.log('%cP O O P section timetable', 'color: red; font-weight: bold;', sectionTimetable);
 
         teacherTimetable.forEach((value, key) => {
             console.log('🚀 ~ teacherTimetable.forEach ~ value:', value);
@@ -1127,7 +1142,7 @@ function Timetable() {
             }
         });
 
-        console.log('teacher timetable', teacherTimetable);
+        console.log('%cP O O P teacher timetable', 'color: red; font-weight: bold;', teacherTimetable);
 
         function mapToObject(map) {
             if (!(map instanceof Map)) return map; // If it's not a Map, return as is
@@ -1149,8 +1164,8 @@ function Timetable() {
 
         // const combined = combineMaps(sectionTimetable, teacherTimetable);
         // console.log('combined: ', combined);
-        const sectionEdited = convertToHashMap(sectionTimetable);
-        const teacherEdited = convertToHashMap(teacherTimetable);
+        const sectionEdited = convertToHashMap(sectionTimetable, 'Section');
+        const teacherEdited = convertToHashMap(teacherTimetable, 'Teacher');
         // console.log('sectionEdited: ', sectionEdited);
         // console.log('teacherEdited: ', teacherEdited);
         const combined = combineMaps(sectionEdited, teacherEdited);
@@ -1351,11 +1366,11 @@ function Timetable() {
         XLSX.writeFile(teacherWorkbook, 'teacher_schedules.xlsx');
     };
 
-    const handleClearAndRefresh = () => {
+    const handleClearAndRefresh = async () => {
         // clearAllEntriesAndResetIDs().then(() => {
         //     setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey to trigger re-render
         // });
-        clearAllEntriesAndResetIDs();
+        await clearAllEntriesAndResetIDs();
     };
 
     const handleNumOfSchoolDaysChange = () => {
@@ -1718,7 +1733,7 @@ function Timetable() {
     //     return resultMap;
     // };
 
-    const convertToHashMap = (inputMap) => {
+    const convertToHashMap = (inputMap, type) => {
         const resultMap = new Map(); // Initialize the outer Map
 
         // Iterate through each entry in the input HashMap
@@ -1739,7 +1754,7 @@ function Timetable() {
                 console.warn(`Missing containerName or timetable for tableKey: ${tableKey}`);
                 continue;
             }
-            let setTableKey = `${containerName} - ${tableKey}`;
+            let setTableKey = `${type}: ${containerName} - ${tableKey}`;
             // console.log('sectionData: ', sectionData);
             // console.log('setTableKey: ', setTableKey);
 
@@ -1770,8 +1785,8 @@ function Timetable() {
                         const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
 
                         scheduleMap.set(scheduleKey, {
-                            start: schedule.start,
-                            end: schedule.end,
+                            start: schedule.start - 72,
+                            end: schedule.end - 72,
                             sectionID: schedule.section,
                             subject: type === 'section' ? schedule.fieldName1 : schedule.fieldName2,
                             subjectID: schedule.subject,
@@ -1793,8 +1808,8 @@ function Timetable() {
                     const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
                     // Add the schedule to the nested Map
                     scheduleMap.set(scheduleKey, {
-                        start: schedule.start,
-                        end: schedule.end,
+                        start: schedule.start - 72,
+                        end: schedule.end - 72,
                         sectionID: schedule.section,
                         subject: type === 'section' ? schedule.fieldName1 : schedule.fieldName2,
                         subjectID: schedule.subject,
@@ -5900,15 +5915,33 @@ function Timetable() {
     }
     function combineMaps(map1, map2) {
         const combinedMap = new Map(map1); // Start with entries from map1
-        const maxKey = Math.max(...Array.from(map1.keys()).map(Number), -1); // Find the largest key in map1
 
         for (const [key, value] of map2?.entries()) {
-            const newKey = typeof key === 'number' ? key + maxKey + 1 : key; // Adjust the key for map2
-            combinedMap.set(newKey, value);
+            combinedMap.set(key, value); // Use original keys from map2
         }
 
         return combinedMap;
     }
+
+    // function combineMaps(map1, map2) {
+    //     const combinedMap = new Map();
+    //     let currentKey = 1;
+
+    //     // Add entries from map1 starting with key 1
+    //     for (const [, value] of map1.entries()) {
+    //         combinedMap.set(currentKey, value);
+    //         currentKey++;
+    //     }
+
+    //     // Add entries from map2 continuing the sequence
+    //     for (const [, value] of map2?.entries()) {
+    //         combinedMap.set(currentKey, value);
+    //         currentKey++;
+    //     }
+
+    //     console.log('final: ', combinedMap);
+    //     return combinedMap;
+    // }
 
     function objectToMap(obj) {
         if (typeof obj !== 'object' || obj === null) return obj; // If not an object, return as is
@@ -5979,6 +6012,7 @@ function Timetable() {
     //     console.log('changed: ', mapVal);
     //     console.log('Condition:', mapVal && mapVal.size > 0);
     // }, [mapVal]);
+    console.log('retrigger index');
     return (
         <div className='App container mx-auto px-4 py-6'>
             <NotificationHandler timetableCondition={timetableGenerationStatus} />
@@ -6106,4 +6140,4 @@ function Timetable() {
     );
 }
 
-export default Timetable;
+export default Timetable; 

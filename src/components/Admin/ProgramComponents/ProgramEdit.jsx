@@ -247,7 +247,11 @@ const ProgramEdit = ({
 
             let totalDuration = breakTimeCount * breakTimeDuration;
 
+            console.log('🚀 ~ editProgramCurr[grade].forEach ~ subjects:', subjects);
+
             editProgramCurr[grade].forEach((subId) => {
+                console.log('🚀 ~ editProgramCurr[grade].forEach ~ subId:', subId);
+                console.log('🚀 ~ editProgramCurr[grade].forEach ~ subjects[subId]:', subjects[subId]);
                 totalDuration += subjects[subId].classDuration;
             });
 
@@ -767,9 +771,7 @@ const ProgramEdit = ({
                     <div>
                         {/* Header section with centered "Add {reduxField}" */}
                         <div className='flex justify-between mb-4'>
-                            <h3 className='text-lg font-bold text-center w-full'>
-                               Edit Program
-                            </h3>
+                            <h3 className='text-lg font-bold text-center w-full'>Edit Program</h3>
                         </div>
 
                         <hr className='mb-4' />
@@ -809,11 +811,11 @@ const ProgramEdit = ({
                             {/* Tab Content */}
                             {grades.map((grade) => (
                                 <div key={grade} className={`${activeTab === grade ? 'block' : 'hidden'}`}>
-                                    <div className='flex flex-col shadow-md rounded-lg'>
+                                    <div className='flex flex-col'>
                                         {/* Shift and Start Time Selection */}
-                                        <div className='space-y-4 bg-base-100 p-4'>
+                                        <div className='rounded-lg shadow-md border space-y-2 p-4 mb-4'>
                                             <div className='flex items-center'>
-                                                <label className='w-1/4 font-semibold text-base'>SHIFT:</label>
+                                                <label className='w-1/4 font-semibold text-base text-center'>SHIFT:</label>
                                                 <div className='flex space-x-6 text-base'>
                                                     {['AM', 'PM'].map((shift, index) => (
                                                         <label key={index} className='flex items-center space-x-2'>
@@ -831,7 +833,7 @@ const ProgramEdit = ({
                                             </div>
 
                                             <div className='flex items-center'>
-                                                <label className='w-1/4 font-semibold text-base'>START TIME:</label>
+                                                <label className='w-1/4 font-semibold text-base text-center'>START TIME:</label>
                                                 <div className='flex items-center space-x-4 w-3/4'>
                                                     <div className='w-full'>
                                                         <TimeSelector
@@ -859,67 +861,88 @@ const ProgramEdit = ({
                                         </div>
 
                                         {/* Subject Selection */}
-                                        <div className='bg-base-100 py-2 rounded-lg space-y-4 p-4'>
-                                            <div className='bg-base-100 py-2 rounded-lg space-y-4 p-4'>
-                                                <label className='flex justify-center font-semibold text-lg'>Subjects</label>
-                                                <div className='flex space-x-4'>
-                                                    <label className='font-semibold w-1/4'>Selected Subjects:</label>
-                                                    {editProgramCurr[grade]?.length === 0 ? (
-                                                        <div className='text-gray-500 w-3/4 flex justify-start'>
-                                                            No Subjects Selected
-                                                        </div>
-                                                    ) : (
-                                                        editProgramCurr[grade]?.map((id) => (
-                                                            <div key={id} className='badge badge-secondary px-4 py-2 truncate'>
-                                                                {subjects[id]?.subject || 'Subject not found'}
+                                        <div className='rounded-lg shadow-md border space-y-2 p-4 mb-4'>
+                                            <div className='font-semibold text-lg text-center'>Subjects</div>
+                                            <hr className='my-2'></hr>
+                                            <div className='bg-base-100 py-2 rounded-lg space-y-4'>
+                                                <div className='bg-base-100 py-2 rounded-lg space-y-4 p-4'>
+                                                    <div className=' bg-white '>
+                                                     
+                                                        {/* Dropdown and Button */}
+                                                        <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
+                                                            {/* Searchable Dropdown */}
+                                                            <div className='flex-1'>
+                                                                <SearchableDropdownToggler
+                                                                    selectedList={editProgramCurr[grade] || []}
+                                                                    setSelectedList={(list) =>
+                                                                        handleSubjectSelection(grade, list)
+                                                                    }
+                                                                />
                                                             </div>
-                                                        ))
-                                                    )}
-                                                </div>
-                                                <div className='flex p-2'>
-                                                    <SearchableDropdownToggler
-                                                        selectedList={editProgramCurr[grade] || []}
-                                                        setSelectedList={(list) => handleSubjectSelection(grade, list)}
-                                                    />
+
+                                                            {/* Fixed Schedule Maker Button */}
+                                                            <div className='flex justify-center md:justify-start'>
+                                                               
+
+                                                                <div className='flex justify-center'>
+                                                                    <button
+                                                                        className='btn btn-primary'
+                                                                        onClick={() =>
+                                                                            document
+                                                                                .getElementById(
+                                                                                    `assign_fixed_sched_modal_prog(${editProgramId})-grade(${grade})-view(0)`
+                                                                                )
+                                                                                .showModal()
+                                                                        }
+                                                                        disabled={!editProgramCurr[grade]?.length}
+                                                                    >
+                                                                        Open Fixed Schedule Maker
+                                                                    </button>
+
+                                                                    <FixedScheduleMaker
+                                                                        key={grade}
+                                                                        viewingMode={0}
+                                                                        pvs={0}
+                                                                        program={editProgramId}
+                                                                        grade={grade}
+                                                                        selectedSubjects={editProgramCurr[grade] || []}
+                                                                        fixedDays={editFixedDays[grade] || {}}
+                                                                        setFixedDays={setEditFixedDays}
+                                                                        fixedPositions={editFixedPositions[grade] || {}}
+                                                                        setFixedPositions={setEditFixedPositions}
+                                                                        numOfSchoolDays={numOfSchoolDays}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className='flex space-x-2'>
+                                                        <label className='font-semibold w-1/4'>Selected Subjects:</label>
+                                                        {editProgramCurr[grade]?.length === 0 ? (
+                                                            <div className='text-gray-500 w-3/4 flex justify-start'>
+                                                                No Subjects Selected
+                                                            </div>
+                                                        ) : (
+                                                            editProgramCurr[grade]?.map((id) => (
+                                                                <div
+                                                                    key={id}
+                                                                    className='badge badge-secondary px-4 py-2 truncate'
+                                                                >
+                                                                    {subjects[id]?.subject || 'Subject not found'}
+                                                                </div>
+                                                            ))
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
-
-                                            {/* Setting of fixed schedule (optional) */}
-                                            {editProgramCurr[grade]?.length > 0 && (
-                                                <div className='flex justify-center'>
-                                                    <button
-                                                        className='btn btn-primary'
-                                                        onClick={() =>
-                                                            document
-                                                                .getElementById(
-                                                                    `assign_fixed_sched_modal_prog(${editProgramId})-grade(${grade})-view(0)`
-                                                                )
-                                                                .showModal()
-                                                        }
-                                                    >
-                                                        Open Fixed Schedule Maker
-                                                    </button>
-
-                                                    <FixedScheduleMaker
-                                                        key={grade}
-                                                        viewingMode={0}
-                                                        pvs={0}
-                                                        program={editProgramId}
-                                                        grade={grade}
-                                                        selectedSubjects={editProgramCurr[grade] || []}
-                                                        fixedDays={editFixedDays[grade] || {}}
-                                                        setFixedDays={setEditFixedDays}
-                                                        fixedPositions={editFixedPositions[grade] || {}}
-                                                        setFixedPositions={setEditFixedPositions}
-                                                        numOfSchoolDays={numOfSchoolDays}
-                                                    />
-                                                </div>
-                                            )}
                                         </div>
 
                                         {/* Additional Schedules */}
-                                        <div className='p-4 rounded-lg'>
-                                            <div className='flex justify-center text-lg font-semibold rounded-lg'>Additional Schedules</div>
+
+                                        <div className='p-4 rounded-lg shadow-md border'>
+                                            <div className='text-center font-semibold text-lg'>Additional Schedules</div>
+                                            <hr className='my-2'></hr>
 
                                             {/* Button to add schedules */}
                                             <button
