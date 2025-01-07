@@ -370,8 +370,6 @@ const DragDrop = ({
                                         mode={mode}
                                         setItemWidth={setItemWidth}
                                         handleCellUpdate={(newCardData, editingCell) => {
-                                            console.log('cell log: ', cell);
-
                                             handleCellUpdate(tableKey, cell.dynamicID, newCardData, editingCell);
                                         }}
                                         scrollToTable={scrollToTable}

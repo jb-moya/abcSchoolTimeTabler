@@ -1149,8 +1149,8 @@ function Timetable() {
 
         // const combined = combineMaps(sectionTimetable, teacherTimetable);
         // console.log('combined: ', combined);
-        const sectionEdited = convertToHashMap(sectionTimetable);
-        const teacherEdited = convertToHashMap(teacherTimetable);
+        const sectionEdited = convertToHashMap(sectionTimetable, 'Section');
+        const teacherEdited = convertToHashMap(teacherTimetable, 'Teacher');
         // console.log('sectionEdited: ', sectionEdited);
         // console.log('teacherEdited: ', teacherEdited);
         const combined = combineMaps(sectionEdited, teacherEdited);
@@ -1718,7 +1718,7 @@ function Timetable() {
     //     return resultMap;
     // };
 
-    const convertToHashMap = (inputMap) => {
+    const convertToHashMap = (inputMap, type) => {
         const resultMap = new Map(); // Initialize the outer Map
 
         // Iterate through each entry in the input HashMap
@@ -1739,7 +1739,7 @@ function Timetable() {
                 console.warn(`Missing containerName or timetable for tableKey: ${tableKey}`);
                 continue;
             }
-            let setTableKey = `${containerName} - ${tableKey}`;
+            let setTableKey = `${type}: ${containerName} - ${tableKey}`;
             // console.log('sectionData: ', sectionData);
             // console.log('setTableKey: ', setTableKey);
 
@@ -5900,15 +5900,33 @@ function Timetable() {
     }
     function combineMaps(map1, map2) {
         const combinedMap = new Map(map1); // Start with entries from map1
-        const maxKey = Math.max(...Array.from(map1.keys()).map(Number), -1); // Find the largest key in map1
 
         for (const [key, value] of map2?.entries()) {
-            const newKey = typeof key === 'number' ? key + maxKey + 1 : key; // Adjust the key for map2
-            combinedMap.set(newKey, value);
+            combinedMap.set(key, value); // Use original keys from map2
         }
 
         return combinedMap;
     }
+
+    // function combineMaps(map1, map2) {
+    //     const combinedMap = new Map();
+    //     let currentKey = 1;
+
+    //     // Add entries from map1 starting with key 1
+    //     for (const [, value] of map1.entries()) {
+    //         combinedMap.set(currentKey, value);
+    //         currentKey++;
+    //     }
+
+    //     // Add entries from map2 continuing the sequence
+    //     for (const [, value] of map2?.entries()) {
+    //         combinedMap.set(currentKey, value);
+    //         currentKey++;
+    //     }
+
+    //     console.log('final: ', combinedMap);
+    //     return combinedMap;
+    // }
 
     function objectToMap(obj) {
         if (typeof obj !== 'object' || obj === null) return obj; // If not an object, return as is

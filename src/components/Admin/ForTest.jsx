@@ -495,7 +495,7 @@ const ForTest = ({ hashMap }) => {
                                         className='btn btn-outline capitalize'
                                         onClick={() => handleButtonErrorClick(error)}
                                     >
-                                        {type}: {error} (Error: {count})
+                                        {error} (Error: {count})
                                     </button>
                                 ))}
                             </div>
@@ -582,9 +582,7 @@ const ForTest = ({ hashMap }) => {
                                 <div className='card bg-base-100 w-full shadow-xl pt-5'>
                                     <div className='card-body'>
                                         {/* Dynamically render section name */}
-                                        <h2 className='card-title capitalize'>
-                                            {containerType}: {key}
-                                        </h2>
+                                        <h2 className='card-title capitalize'>{key}</h2>
                                         <Column />
                                         <div
                                             className='flex flex-row border border-gray-600'
