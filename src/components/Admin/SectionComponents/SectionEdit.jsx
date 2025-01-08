@@ -698,6 +698,7 @@ const SectionEdit = ({
                                     grade={editSectionYear}
                                     selectedSubjects={editSectionSubjects}
                                     fixedDays={editSectionFixedDays}
+                                    additionalSchedules={editAdditionalScheds || []}
                                     // totalTimeslot={
                                     //     sectionTotalTimeslot[
                                     //         section.id
