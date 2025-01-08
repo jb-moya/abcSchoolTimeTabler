@@ -46,9 +46,18 @@ const getSubjectsPerPosition = (subs, subjectsStore, numOfSchoolDays, additional
             const day = fixedDay[j];
             const pos = fixedPos[j];
 
-            if (day !== 0 && pos !== 0) {
-                subjectPositionArray[pos - 1][day - 1] = subject;
+            // console.log('🚀 ~ getSubjectsPerPosition ~ day:', day);
+            // console.log('🚀 ~ getSubjectsPerPosition ~ pos:', pos);
+
+            if (day === 0 || pos === 0) {
+                continue;
             }
+
+            if (subjectPositionArray[pos - 1]?.[day - 1] === undefined) {
+                continue;
+            }
+
+            subjectPositionArray[pos - 1][day - 1] = subject;
         }
     }
 
@@ -61,7 +70,6 @@ const FixedScheduleMaker = ({
     program = 0,
     grade = 0,
     section = 0,
-    // totalTimeslot,
     isForSection = false,
     selectedSubjects = [],
     additionalSchedules = [],
@@ -69,23 +77,27 @@ const FixedScheduleMaker = ({
     setFixedDays = () => {},
     fixedPositions = {},
     setFixedPositions = () => {},
-
     numOfSchoolDays = 0,
 }) => {
+    console.log('FixedShceuldermakerrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr');
     const subjectsStore = useSelector((state) => state.subject.subjects);
 
     const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
     const [editMode, setEditMode] = useState(false);
 
-    const [subs, setSubs] = useState([]);
-    const [days, setDays] = useState({});
-    const [positions, setPositions] = useState({});
+    // const [subs, setSubs] = useState(produce(selectedSubjects, (draft) => draft));
+    // const [days, setDays] = useState(produce(fixedDays, (draft) => draft));
+    // const [positions, setPositions] = useState(produce(fixedPositions, (draft) => draft));
+
+    const [subs, setSubs] = useState(selectedSubjects);
+    const [days, setDays] = useState(fixedDays);
+    const [positions, setPositions] = useState(fixedPositions);
 
     const [subjectsPerPosition, setSubjectsPerPosition] = useState([]);
     const [mergeData, setMergeData] = useState({});
 
-    const [totalTimeslot, setTotalTimeslot] = useState(0);
+    const [totalTimeslot, setTotalTimeslot] = useState(-1);
 
     useEffect(() => {
         setSubs(produce(selectedSubjects, (draft) => draft));
@@ -108,6 +120,7 @@ const FixedScheduleMaker = ({
 
     // Initialize days and positions when fixedDays or fixedPositions change
     useEffect(() => {
+        if (!subs || subs.length === 0) return;
         let totalNumOfClasses = calculateTotalClass(subjectsStore, subs, numOfSchoolDays);
 
         let additionalScheduleTotalNumOfClasses = additionalSchedules.reduce((acc, schedule) => {
@@ -123,6 +136,39 @@ const FixedScheduleMaker = ({
             setTotalTimeslot(totalTimeRow);
         }
     }, [subs, numOfSchoolDays, subjectsStore, additionalSchedules, totalTimeslot]);
+
+    useEffect(() => {
+        if (!positions || Object.keys(positions).length === 0) return;
+        if (!days || Object.keys(days).length === 0) return;
+        if (totalTimeslot === -1) return;
+
+        console.log('total timeslot', totalTimeslot);
+
+        const updatedData = produce({ days: days, positions: positions }, (draft) => {
+            Object.entries(draft.positions).forEach(([subjectID, positions]) => {
+                positions.forEach((pos, idx) => {
+                    if (pos > totalTimeslot) {
+                        console.log('AAAAAAAAAAAAAAAAAAAAAA');
+                        draft.positions[subjectID][idx] = 0; // Update positions
+                        draft.days[subjectID][idx] = 0; // Update days
+                    }
+                });
+            });
+        });
+
+        setPositions(updatedData.positions);
+        setDays(updatedData.days);
+
+        // setFixedDays(updatedData.days);
+        // setFixedPositions(updatedData.positions);
+    }, [totalTimeslot, days, positions]);
+    // }, [totalTimeslot, days, positions, setFixedDays, setFixedPositions]);
+
+    useEffect(() => {
+        console.log('is updating positions', positions);
+    }, [positions]);
+
+    // Initialize days and positions when fixedDays or fixedPositions change
 
     const findConsecutiveRanges = (schedule) => {
         const mergeData = schedule.map((days, idx) => {
