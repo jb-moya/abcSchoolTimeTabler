@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import DraggableSchedules from './draggableSchedules';
 import { useDroppable } from '@dnd-kit/core';
 import clsx from 'clsx';
+import { spawnColors } from './bgColors';
 
 const ContainerSpawn = ({
     editMode,
@@ -33,11 +34,9 @@ const ContainerSpawn = ({
     });
 
     return (
-        <div
-            ref={setNodeRef}
-            className={'w-full p-2 min-h-13 flex items-center'}
-        >
-            <div className="flex flex-wrap gap-2">
+        <div ref={setNodeRef} className={'w-full min-h-13 flex flex-col justify-start'}>
+            <div className='px-2 flex max-w-fit text-lg rounded-br-lg rounded-tl-sm'>subjectID</div>
+            <div className='flex flex-wrap p-2 gap-2'>
                 {selectedSubjects?.map((subject, index) => {
                     const arrayLength = fixedDays?.[subject]?.length || 0;
 
@@ -59,10 +58,7 @@ const ContainerSpawn = ({
                                     day={day}
                                     pos={position}
                                     colorIdx={colorIndex}
-                                    subjectName={
-                                        subjects[subjectID]?.subject ||
-                                        'Unknown'
-                                    }
+                                    subjectName={subjects[subjectID]?.subject || 'Unknown'}
                                 />
                             );
                         }

@@ -437,16 +437,7 @@ const FixedScheduleMaker = ({
                                         }}
                                     >
                                         <div className='w-12/12'>
-                                            <div
-                                                key={`spawn_label-g${grade}-s${subject}`}
-                                                className='px-2 flex max-w-fit text-lg rounded-br-lg rounded-tl-sm mb-2'
-                                                style={{
-                                                    backgroundColor: spawnColors[index % spawnColors.length], // Background color
-                                                    color: 'black',
-                                                }}
-                                            >
-                                                {subjectsStore[subject]?.subject}
-                                            </div>
+                                            
                                             <ContainerSpawn
                                                 key={`spawn-g${grade}-s${subject}`}
                                                 editMode={editMode}
