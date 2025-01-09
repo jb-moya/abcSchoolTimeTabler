@@ -657,7 +657,12 @@ void Timetable::initializeClassBlock(Section& section,
 		ScheduledDay fixed_days = subject_configuration->getFixedDay();
 		bool is_overlappable = subject_configuration->isOverlappable();
 
-		TeacherID teacher_id = getRandomInitialTeacher(section, subject_id, duration);
+		TeacherID teacher_id;
+		if (is_overlappable) {
+			teacher_id = getRandomInitialTeacherInQueue(section, subject_id, is_consistent_everyday ? duration * Timetable::getWorkWeek() : duration);
+		} else {
+			teacher_id = Timetable::getRandomTeacher(subject_id);
+		}
 
 		SchoolClass school_class = SchoolClass{subject_id, teacher_id, duration, is_consistent_everyday, fixed_timeslot, fixed_days, is_overlappable};
 
@@ -774,6 +779,18 @@ void Timetable::initializeRandomTimetable(std::unordered_set<int>& update_teache
 
 		// print("section", section_id);
 		std::vector<Timeslot> breaks = getBreaks(section);
+
+		auto first_timeslot_key = timeslot_keys.front();
+
+		if (std::find(breaks.begin(), breaks.end(), first_timeslot_key) != breaks.end()) {
+			if (!timeslot_keys.empty()) {
+				int last = timeslot_keys.back();  // Store the last element
+				timeslot_keys.pop_back();         // Remove the last element
+				timeslot_keys.push_front(last);   // Insert it at the front
+			}
+
+			s_rotary_timeslot.incrementShift();
+		}
 
 		// breaks = {2};
 		// printContainer(breaks);
