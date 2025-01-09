@@ -384,11 +384,11 @@ void ABC::getResult(int64_t* result, int64_t* result_2, TimePoint offset_duratio
 
 		for (const auto& [timeslot, classMap] : classes) {
 			for (const auto& [day, schoolClass] : classMap) {
-				print("class xx",
-				      schoolClass.subject_id,
-				      schoolClass.teacher_id,
-				      static_cast<int>(timeslot),
-				      static_cast<int>(day));
+				// print("class xx",
+				//       schoolClass.subject_id,
+				//       schoolClass.teacher_id,
+				//       static_cast<int>(timeslot),
+				//       static_cast<int>(day));
 
 				int64_t packed = pack5IntToInt64(
 				    section_id,

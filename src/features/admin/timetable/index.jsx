@@ -422,7 +422,7 @@ function Timetable() {
 
                 subjectConfigurationSubjectUnitsArray[id] = packInt16ToInt32(
                     subjectID,
-                    subjectConfiguration.is_consistent_everyday ? 0 : 1
+                    subjectConfiguration.is_consistent_everyday ? 1 : 0
                 );
                 subjectConfigurationSubjectDurationArray[id] = packInt16ToInt32(subjectID, subjectConfiguration.classDuration);
                 subjectConfigurationSubjectFixedTimeslotArray[id] = packInt16ToInt32(
@@ -761,13 +761,13 @@ function Timetable() {
             const roomDetails = section.roomDetails;
             const buildingID = buildingMapReverse[roomDetails.buildingId];
 
-            console.log('🚀 ~ handleButtonClick ~ section:', section);
-            console.log('|| ~ handleButtonClick ~ notAllowedBreakslotGap:', notAllowedBreakslotGap);
-            console.log('|| ~ handleButtonClick ~ numberOfBreak:', numberOfBreak);
-            console.log('|| ~ handleButtonClick ~ totalTimeslot:', totalTimeslot);
-            console.log('|| ~ roomDetails roomDetailsroomDetailsroomDetailsroomDetailsroomDetails ~ roomDetails:', roomDetails);
-            console.log('|| ~ buildingMapReverse:', buildingMapReverse);
-            console.log('|| ~ handleButtonClick ~ buildingID:');
+            // console.log('🚀 ~ handleButtonClick ~ section:', section);
+            // console.log('|| ~ handleButtonClick ~ notAllowedBreakslotGap:', notAllowedBreakslotGap);
+            // console.log('|| ~ handleButtonClick ~ numberOfBreak:', numberOfBreak);
+            // console.log('|| ~ handleButtonClick ~ totalTimeslot:', totalTimeslot);
+            // console.log('|| ~ roomDetails roomDetailsroomDetailsroomDetailsroomDetailsroomDetails ~ roomDetails:', roomDetails);
+            // console.log('|| ~ buildingMapReverse:', buildingMapReverse);
+            // console.log('|| ~ handleButtonClick ~ buildingID:');
 
             const exampleLocation = {
                 buildingID: 0,
@@ -798,7 +798,7 @@ function Timetable() {
         const sectionConfiguration = new Int32Array([...sectionConfigurationArray]);
         const sectionSubjectConfiguration = new Int32Array([...sectionSubjectConfigurationArray]);
 
-        const maxIterations = 3000;
+        const maxIterations = 20000;
         const beesPopulations = 4;
         const beesEmployed = 2;
         const beesOnlooker = 2;

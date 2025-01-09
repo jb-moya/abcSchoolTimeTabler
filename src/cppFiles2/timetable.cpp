@@ -341,8 +341,8 @@ void Timetable::moveTeacherClassCountToNewDay(TeacherID teacher_id, ScheduledDay
 	getTeacherById(teacher_id).incrementClassCount(static_cast<ScheduledDay>(to_day));
 }
 
-void Timetable::addSubjectConfiguration(SubjectConfigurationID id, SubjectID subject_id, TimeDuration duration, int units, Timeslot fixed_timeslot, ScheduledDay fixed_days, bool is_overlappable) {
-	auto subject_configuration = std::make_shared<SubjectConfiguration>(id, subject_id, duration, units, fixed_timeslot, fixed_days, is_overlappable);
+void Timetable::addSubjectConfiguration(SubjectConfigurationID id, SubjectID subject_id, TimeDuration duration, int is_consistent_everyday, Timeslot fixed_timeslot, ScheduledDay fixed_days, bool is_overlappable) {
+	auto subject_configuration = std::make_shared<SubjectConfiguration>(id, subject_id, duration, is_consistent_everyday, fixed_timeslot, fixed_days, is_overlappable);
 	subject_configurations.push_back(subject_configuration);
 }
 
@@ -649,6 +649,9 @@ void Timetable::initializeClassBlock(Section& section,
                                      std::vector<SchoolClass>& dynamic_full_week_day_subjects,
                                      std::vector<SchoolClass>& dynamic_special_unit_subjects) {
 	const auto& subject_configurations = section.getSubjectConfigurations();
+
+	int offset_duration = Timetable::getOffsetDuration();
+
 	for (const auto& subject_configuration : subject_configurations) {
 		SubjectID subject_id = subject_configuration->getSubjectId();
 		TimeDuration duration = subject_configuration->getDuration();
@@ -659,14 +662,14 @@ void Timetable::initializeClassBlock(Section& section,
 
 		TeacherID teacher_id;
 		if (is_overlappable) {
-			teacher_id = getRandomInitialTeacherInQueue(section, subject_id, is_consistent_everyday ? duration * Timetable::getWorkWeek() : duration);
+			teacher_id = getRandomInitialTeacherInQueue(section, subject_id, is_consistent_everyday ? (duration + offset_duration) * Timetable::getWorkWeek() : duration + offset_duration);
 		} else {
 			teacher_id = Timetable::getRandomTeacher(subject_id);
 		}
 
 		SchoolClass school_class = SchoolClass{subject_id, teacher_id, duration, is_consistent_everyday, fixed_timeslot, fixed_days, is_overlappable};
 
-		if (is_consistent_everyday == 0) {
+		if (is_consistent_everyday == 1) {
 			if (fixed_timeslot == 0) {
 				dynamic_full_week_day_subjects.push_back(school_class);
 			} else {

@@ -79,7 +79,6 @@ const FixedScheduleMaker = ({
     setFixedPositions = () => {},
     numOfSchoolDays = 0,
 }) => {
-    console.log('FixedShceuldermakerrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr');
     const subjectsStore = useSelector((state) => state.subject.subjects);
 
     const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
