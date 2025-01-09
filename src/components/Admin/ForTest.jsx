@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import DragDrop from './DragDrop';
 import { generateTimeSlots } from './utils';
 import { produce } from 'immer';
+import { PiConfetti } from 'react-icons/pi';
 
 const ForTest = ({ hashMap }) => {
     const [selectedModeValue, setSelectedModeValue] = useState('5m');
@@ -115,7 +116,7 @@ const ForTest = ({ hashMap }) => {
 
     useEffect(() => {
         const overlaps = detectOverlaps(valueMap);
-        // console.log('overlaps', overlaps);
+        console.log('overlaps', overlaps);
         setOverlapsDisplay(overlaps);
         const resolvedMap = updateOverlapFields(overlaps);
         // console.log('resolvedmap: ', resolvedMap);
@@ -485,20 +486,35 @@ const ForTest = ({ hashMap }) => {
                             <button className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2'>✕</button>
                             <h3 className='font-bold text-lg mb-4'>Error Details</h3>
                             <div className='flex flex-col space-y-4'>
-                                {Object.entries(
-                                    overlapsDisplay.reduce((acc, [error, something, type]) => {
-                                        const key = `${error}-${type}`; // Use both error and type as a unique key
-                                        if (!acc[key]) {
-                                            acc[key] = { count: 0, error, type };
-                                        }
-                                        acc[key].count += 1; // Increment the count
-                                        return acc;
-                                    }, {})
-                                ).map(([key, { error, type, count }], index) => (
-                                    <button key={index} className='btn capitalize' onClick={() => handleButtonErrorClick(error)}>
-                                        {error} (Error: {count})
-                                    </button>
-                                ))}
+                                {overlapsDisplay.length > 0 ? (
+                                    Object.entries(
+                                        overlapsDisplay.reduce((acc, [error, something, type]) => {
+                                            const key = `${error}-${type}`; // Use both error and type as a unique key
+                                            if (!acc[key]) {
+                                                acc[key] = { count: 0, error, type };
+                                            }
+                                            acc[key].count += 1; // Increment the count
+                                            return acc;
+                                        }, {})
+                                    ).map(([key, { error, type, count }], index) => (
+                                        <button
+                                            key={index}
+                                            className='btn capitalize'
+                                            onClick={() => handleButtonErrorClick(error)}
+                                        >
+                                            {error} (Error: {count})
+                                        </button>
+                                    ))
+                                ) : (
+                                    <div className='flex justify-center gap-2 items-center'>
+                                        <span className='text-xl'>No errors found!</span>
+                                        <span className='flex'>
+                                            <PiConfetti className='text-2xl text-primary' />
+                                            <PiConfetti className='text-2xl text-secondary' />
+                                            <PiConfetti className='text-2xl text-accent' />
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                         </form>
                     </div>

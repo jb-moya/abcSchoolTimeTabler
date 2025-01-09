@@ -175,7 +175,7 @@ const ReserveList = ({
                     </button>
                 </div>
 
-                <div className="relative p-4 bg-white flex-auto">
+                <div className="relative p-4 flex-auto">
                     <div>
                         <table className="table table-sm table-zebra w-full">
                             <thead>
