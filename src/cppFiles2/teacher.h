@@ -11,8 +11,8 @@
 struct Teacher {
    private:
 	TeacherID id;
-	TimeDuration max_work_load;
-	TimeDuration min_work_load;
+	TimeDuration max_week_work_load;
+	TimeDuration min_week_work_load;
 
 	std::unordered_map<ScheduledDay,
 	                   std::map<TimePoint,
@@ -20,11 +20,11 @@ struct Teacher {
 	                                       /* class type */
 	                                       int, /* overlappable */
 	                                       int, /* non-overlappable */
-	                                       int /* reserved */
+	                                       int  /* reserved */
 	                                       >>>
 	    utilized_time;
 
-	std::unordered_map<ScheduledDay, TimeDuration> day_total_work_load;
+	std::unordered_map<ScheduledDay, TimeDuration> school_class_day_count;
 
 	bool has_violation;
 
@@ -35,13 +35,13 @@ struct Teacher {
 	void initializeClass(int work_week);
 
 	TeacherID getId() const;
-	TimeDuration getMaxDayWorkLoad() const;
-	TimeDuration getMinDayWorkLoad() const;
+	TimeDuration getMaxWeekWorkLoad() const;
+	TimeDuration getMinWeekWorkLoad() const;
 
 	bool hasViolation() const;
 
 	const std::unordered_map<ScheduledDay, std::map<TimePoint, std::tuple<SectionID, int, int, int>>> getUtilizedTime() const;
-	const std::unordered_map<ScheduledDay, TimeDuration> getDayTotalWorkLoad() const;
+	const std::unordered_map<ScheduledDay, TimeDuration> getSchoolClassDayCount() const;
 
 	bool isEmptyUtilizedTimePoint(int day, TimePoint timePoint) const;
 

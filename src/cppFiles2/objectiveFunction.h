@@ -36,23 +36,20 @@ struct ObjectiveFunction {
 			Teacher teacher = bee.timetable.getTeacherById(teacher_id);
 
 			const auto& daily_class_schedule = teacher.getUtilizedTime();
-			const auto& total_day_work_load = teacher.getDayTotalWorkLoad();
+			const auto& total_school_class_count = teacher.getSchoolClassDayCount();
+			const auto& offset_duration = bee.timetable.getOffsetDuration();
 
-			const TimeDuration max_teacher_work_load = teacher.getMaxDayWorkLoad();
-			const TimeDuration min_teacher_work_load = teacher.getMinDayWorkLoad();
+			const TimeDuration max_teacher_work_load = teacher.getMaxWeekWorkLoad();
+			const TimeDuration min_teacher_work_load = teacher.getMinWeekWorkLoad();
 			const TimeDuration break_time_duration = bee.timetable.getBreakTimeDuration();
 
+			int total_week_workload = 0;
+
+			for (const auto& [day, total_class_count] : total_school_class_count) {
+				total_week_workload += total_class_count * offset_duration;
+			}
+
 			for (const auto& [day, time_points_class_count] : daily_class_schedule) {
-				if (total_day_work_load.at(day) > max_teacher_work_load) {
-					bee.teacher_violations[teacher_id].exceed_workload++;
-				}
-
-				// print("work load", total_day_work_load.at(day));;
-
-				if (total_day_work_load.at(day) < min_teacher_work_load) {
-					bee.teacher_violations[teacher_id].exceed_workload++;
-				}
-
 				if (show_penalty) {
 					print(YELLOW, "ff day", static_cast<int>(day), "size timeslot", time_points_class_count.size(), RESET);
 				}
@@ -83,6 +80,8 @@ struct ObjectiveFunction {
 					int time_point_class_count = std::get<1>(utilized_time_in_section);
 					int overlap_able = std::get<2>(utilized_time_in_section);
 
+					total_week_workload += time_point_class_count;
+
 					// flase overlappble - able to overlap such as additional schedules
 
 					// std::cout << "overlappable in objectivefunction " << overlap_able << std::endl;
@@ -103,7 +102,6 @@ struct ObjectiveFunction {
 
 							int distance = from_building.getDistanceTo(from_section_location, to_section_location, to_building);
 
-							// print("distance", distance);
 
 							bee.teacher_violations[teacher_id].class_proximity += distance;
 
@@ -142,12 +140,20 @@ struct ObjectiveFunction {
 					}
 				}
 
-				if (!break_found && total_day_work_load.at(day) >= bee.timetable.getTeacherBreakThreshold()) {
+				if (!break_found && total_school_class_count.at(day) >= bee.timetable.getTeacherBreakThreshold()) {
 					if (show_penalty) {
 						print(GREEN_B, "teacher with no break", teacher_id, "day", static_cast<int>(day), RESET);
 					}
 					bee.teacher_violations[teacher_id].no_break += 1;
 				}
+			}
+
+			if (total_week_workload > max_teacher_work_load) {
+				bee.teacher_violations[teacher_id].exceed_workload++;
+			}
+
+			if (total_week_workload < min_teacher_work_load) {
+				bee.teacher_violations[teacher_id].exceed_workload++;
 			}
 
 			if (show_penalty) {

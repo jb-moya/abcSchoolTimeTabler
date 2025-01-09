@@ -36,6 +36,9 @@ void Timetable::setTeachersSet(const std::unordered_set<TeacherID>& teachers_set
 void Timetable::setSectionsSet(const std::unordered_set<SectionID>& sections_set_) {
 	s_sections_set = sections_set_;
 }
+void Timetable::setOffsetDuration(int offset_duration_) {
+	offset_duration = offset_duration_;
+}
 
 int Timetable::s_teacher_break_threshold;
 int Timetable::s_teacher_middle_time_point_grow_allowance_for_break_timeslot;
@@ -43,6 +46,7 @@ TimeDuration Timetable::s_default_class_duration;
 TimeDuration Timetable::s_break_time_duration;
 int Timetable::s_work_week;
 int Timetable::s_total_section;
+int Timetable::offset_duration;
 std::unordered_set<SectionID> Timetable::s_sections_set;
 std::unordered_set<TeacherID> Timetable::s_teachers_set;
 std::uniform_int_distribution<SectionID> Timetable::s_random_section_id;
@@ -107,8 +111,8 @@ void Timetable::addSection(SectionID section_id,
 	sections.emplace(section_id, Section(section_id, num_break, start_time, total_timeslot, not_allowed_breakslot_gap, is_dynamic_subject_consistent_duration, location));
 }
 
-void Timetable::addTeacher(TeacherID teacher_id, TimeDuration max_work_load, TimeDuration min_work_load) {
-	teachers.emplace(teacher_id, Teacher(teacher_id, max_work_load, min_work_load));
+void Timetable::addTeacher(TeacherID teacher_id, TimeDuration max_week_work_load, TimeDuration min_week_work_load) {
+	teachers.emplace(teacher_id, Teacher(teacher_id, max_week_work_load, min_week_work_load));
 }
 
 void Timetable::initializeRandomFieldDistribution(int min, int max) {
@@ -239,16 +243,18 @@ void Timetable::initializeTeachers(int number_of_teacher,
 	}
 }
 
-void Timetable::initializeTeacherSubjects(int teacher_subjects_length, int32_t* teacher_subjects) {
+void Timetable::initializeTeacherSubjectsAndQueue(int teacher_subjects_length, int32_t* teacher_subjects, int32_t* teacher_week_load_config) {
 	for (int i = 0; i < teacher_subjects_length; i++) {
 		TeacherID teacher_id;
 		SubjectID subject_id;
 		teacher_id = static_cast<int>(teacher_subjects[i] >> 16);
 		subject_id = static_cast<int>(teacher_subjects[i] & 0xFFFF);
 
+		TimeDuration max_weekly_load = static_cast<int>(teacher_week_load_config[teacher_id] >> 16);
+
 		Timetable::addEligibleTeacher(subject_id, teacher_id);
 
-		Timetable::s_subject_teacher_queue.addTeacher(subject_id, teacher_id, 70);
+		Timetable::s_subject_teacher_queue.addTeacher(subject_id, teacher_id, max_weekly_load);
 	}
 }
 
@@ -299,6 +305,7 @@ TimeDuration Timetable::getDefaultClassDuration() { return s_default_class_durat
 TimeDuration Timetable::getBreakTimeDuration() { return s_break_time_duration; }
 int Timetable::getWorkWeek() { return s_work_week; }
 int Timetable::getTotalSection() { return s_total_section; }
+int Timetable::getOffsetDuration() { return offset_duration; }
 
 std::unordered_set<TeacherID>& Timetable::getTeachersSet() { return s_teachers_set; }
 std::unordered_set<SectionID>& Timetable::getSectionsSet() { return s_sections_set; }
@@ -624,7 +631,7 @@ void Timetable::setupTimeslots(int total_timeslot, std::deque<Timeslot>& timeslo
 	}
 }
 
-TeacherID Timetable::getRandomInitialTeacher(Section& section, SubjectID subject_id, TimeDuration class_duration) const {
+TeacherID Timetable::getRandomInitialTeacherInQueue(Section& section, SubjectID subject_id, TimeDuration class_duration) const {
 	TeacherID fixed_teacher_id = section.getSubjectFixedTeacher(subject_id);
 	if (fixed_teacher_id == -1) {
 		TeacherID queued_teacher = Timetable::s_subject_teacher_queue.getTeacher(subject_id, class_duration);

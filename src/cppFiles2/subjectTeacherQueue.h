@@ -9,10 +9,10 @@
 
 struct TeacherWorkload {
 	TeacherID id;
-	int max_work_load;
+	int max_week_work_load;
 
 	TeacherWorkload(TeacherID id, int workload)
-	    : id(id), max_work_load(workload) {}
+	    : id(id), max_week_work_load(workload) {}
 };
 
 class SubjectTeacherQueue {
@@ -21,7 +21,7 @@ class SubjectTeacherQueue {
 	std::map<SubjectID, std::vector<TeacherWorkload>> initial_state;
 
    public:
-	void addTeacher(SubjectID subject_id, TeacherID teacher_id, int max_work_load);
+	void addTeacher(SubjectID subject_id, TeacherID teacher_id, int max_week_work_load);
 	TeacherWorkload* peekFrontTeacher(SubjectID subject_id);
 	TeacherID getTeacher(SubjectID subject_id, int decrement_work_load);
 	void resetQueue();

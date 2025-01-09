@@ -5,15 +5,15 @@
 int Teacher::teacher_count;
 
 Teacher::Teacher(TeacherID id_, TimeDuration max_work_load_, TimeDuration min_work_load_)
-    : id(id_), max_work_load(max_work_load_), min_work_load(min_work_load_), utilized_time(), has_violation(false) {
+    : id(id_), max_week_work_load(max_work_load_), min_week_work_load(min_work_load_), utilized_time(), has_violation(false) {
 	for (int day = 1; day <= Timetable::getWorkWeek(); day++) {
-		day_total_work_load[static_cast<ScheduledDay>(day)] = 0;
+		school_class_day_count[static_cast<ScheduledDay>(day)] = 0;
 	}
 }
 
 void Teacher::initializeClass(int work_week) {
 	for (int day = 1; day <= work_week; ++day) {
-		day_total_work_load[static_cast<ScheduledDay>(day)] = 0;
+		school_class_day_count[static_cast<ScheduledDay>(day)] = 0;
 	}
 }
 
@@ -21,12 +21,12 @@ TeacherID Teacher::getId() const {
 	return id;
 }
 
-int Teacher::getMaxDayWorkLoad() const {
-	return max_work_load;
+int Teacher::getMaxWeekWorkLoad() const {
+	return max_week_work_load;
 }
 
-int Teacher::getMinDayWorkLoad() const {
-	return min_work_load;
+int Teacher::getMinWeekWorkLoad() const {
+	return min_week_work_load;
 }
 
 bool Teacher::hasViolation() const {
@@ -37,27 +37,27 @@ const std::unordered_map<ScheduledDay, std::map<TimePoint, std::tuple<SectionID,
 	return utilized_time;
 }
 
-const std::unordered_map<ScheduledDay, TimeDuration> Teacher::getDayTotalWorkLoad() const {
-	return day_total_work_load;
+const std::unordered_map<ScheduledDay, TimeDuration> Teacher::getSchoolClassDayCount() const {
+	return school_class_day_count;
 }
 
 void Teacher::incrementClassCount(ScheduledDay day) {
 	if (day == ScheduledDay::EVERYDAY) {
 		for (int day = 1; day <= Timetable::getWorkWeek(); day++) {
-			++day_total_work_load[static_cast<ScheduledDay>(day)];
+			++school_class_day_count[static_cast<ScheduledDay>(day)];
 		}
 	} else {
-		++day_total_work_load[day];
+		++school_class_day_count[day];
 	}
 }
 
 void Teacher::decrementClassCount(ScheduledDay day) {
 	if (day == ScheduledDay::EVERYDAY) {
 		for (int day = 1; day <= Timetable::getWorkWeek(); day++) {
-			--day_total_work_load[static_cast<ScheduledDay>(day)];
+			--school_class_day_count[static_cast<ScheduledDay>(day)];
 		}
 	} else {
-		--day_total_work_load[day];
+		--school_class_day_count[day];
 	}
 }
 

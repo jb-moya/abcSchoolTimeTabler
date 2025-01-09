@@ -128,17 +128,17 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 			CHECK(old_teacher.getUtilizedTime().count(static_cast<ScheduledDay>(i)) == 1);
 			CHECK(new_teacher.getUtilizedTime().count(static_cast<ScheduledDay>(i)) == 1);
 
-			CHECK(old_teacher.getDayTotalWorkLoad().count(static_cast<ScheduledDay>(i)) == 1);
-			CHECK(new_teacher.getDayTotalWorkLoad().count(static_cast<ScheduledDay>(i)) == 1);
+			CHECK(old_teacher.getSchoolClassDayCount().count(static_cast<ScheduledDay>(i)) == 1);
+			CHECK(new_teacher.getSchoolClassDayCount().count(static_cast<ScheduledDay>(i)) == 1);
 		}
 
 		for (int i = 1; i <= Timetable::getWorkWeek(); ++i) {
 			ScheduledDay day = static_cast<ScheduledDay>(i);
 
 			REQUIRE(old_teacher.getUtilizedTime().count(day) == 1);
-			REQUIRE(old_teacher.getDayTotalWorkLoad().count(day) == 1);
+			REQUIRE(old_teacher.getSchoolClassDayCount().count(day) == 1);
 			REQUIRE(new_teacher.getUtilizedTime().count(day) == 1);
-			REQUIRE(new_teacher.getDayTotalWorkLoad().count(day) == 1);
+			REQUIRE(new_teacher.getSchoolClassDayCount().count(day) == 1);
 
 			std::map<Timeslot, int> old_teacher_utilized_time = old_teacher.getUtilizedTime().find(day)->second;
 			std::map<Timeslot, int> new_teacher_utilized_time = new_teacher.getUtilizedTime().find(day)->second;
@@ -146,7 +146,7 @@ SCENARIO("Initialization of Timetable is working as expected", "[timetable]") {
 			printContainer(old_teacher_utilized_time, "old_teacher_utilized_time");
 			printContainer(new_teacher_utilized_time, "new_teacher_utilized_time");
 
-			int new_teacher_class_count = new_teacher.getDayTotalWorkLoad().find(day)->second;
+			int new_teacher_class_count = new_teacher.getSchoolClassDayCount().find(day)->second;
 
 			auto& updated_section_utilized_teachers = old_section.getUtilizedTeachers();
 

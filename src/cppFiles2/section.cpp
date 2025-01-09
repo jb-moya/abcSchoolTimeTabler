@@ -5,12 +5,7 @@
 
 int Section::total_section;
 
-// SubjectConfiguration& Section::getSubject(SubjectID subject_id) {
-// 	return *subject_configurations[subject_id];
-// }
-
 void Section::addSubject(const std::shared_ptr<SubjectConfiguration>& subject_configuration_) {
-	// SubjectID subject_id = subject_configuration_->getSubjectId();
 	subject_configurations.push_back(subject_configuration_);
 }
 
