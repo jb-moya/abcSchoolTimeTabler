@@ -1429,7 +1429,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
         try {
             
             // Add all subjects
-            const subjectPromises = data.addedSubjects.map((subject) => {
+            const subjectPromises = addedSubjects.map((subject) => {
                 dispatch(
                     addSubject({
                         subject: subject.subject,
@@ -1440,7 +1440,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
             });
     
             // Add all ranks
-            const rankPromises = data.addedRanks.map((rank) => {
+            const rankPromises = addedRanks.map((rank) => {
                 return dispatch(
                     addRank({
                         rank: rank.rank,
@@ -1450,7 +1450,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
             });
             
             // Add all buildings
-            const buildingPromises = data.addedBuildings.map((building) => {
+            const buildingPromises = addedBuildings.map((building) => {
                 dispatch(
                     addBuilding({
                         name: building.name,
@@ -1463,11 +1463,11 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
             });
     
             // Add all teachers
-            const teacherPromises = data.addedTeachers.map((teacherData, i) => {
+            const teacherPromises = addedTeachers.map((teacherData, i) => {
                 const teacher = JSON.parse(JSON.stringify(teacherData));
     
                 // Get department ID
-                const departmentIndex = data.addedDepartments.findIndex(
+                const departmentIndex = addedDepartments.findIndex(
                     (d) => d.department.trim().toLowerCase() === teacher.department.trim().toLowerCase()
                 );
     
@@ -1480,7 +1480,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                 teacher.department = departmentIndex + 1;
     
                 // Check if teacher is an adviser of a section
-                const isAdviser = data.addedSections.some(
+                const isAdviser = addedSections.some(
                     (section) => section.adviser.trim().toLowerCase() === teacher.teacher.trim().toLowerCase()
                 );
     
@@ -1490,7 +1490,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                         name: 'Advisory Load',
                         subject: -1,
                         duration: 60,
-                        frequency: data.numOfSchoolDays,
+                        frequency: numOfSchoolDays,
                         shown: false,
                         time: 96,
                     });
@@ -1502,10 +1502,10 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
             }).filter(Boolean);
     
             // Add all departments
-            const departmentPromises = data.addedDepartments.map((department) => {
+            const departmentPromises = addedDepartments.map((department) => {
                 const headIndex =
                     department.departmenthead && department.departmenthead.trim() !== ''
-                        ? data.addedTeachers.findIndex(
+                        ? addedTeachers.findIndex(
                               (t) =>
                                   t.teacher.trim().toLowerCase() === department.departmenthead.trim().toLowerCase() &&
                                   t.department.trim().toLowerCase() === department.department.trim().toLowerCase()
@@ -1521,15 +1521,15 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
             });
     
             // Add all programs
-            const programPromises = data.addedPrograms.map((program) =>
+            const programPromises = addedPrograms.map((program) =>
                 dispatch(addProgram(program))
             );
     
             // Add all sections
-            const sectionPromises = data.addedSections_2.map((section, i) => {
-                const section_2 = data.addedSections[i]; // Original section data
+            const sectionPromises = addedSections_2.map((section, i) => {
+                const section_2 = addedSections[i]; // Original section data
     
-                const advID = data.addedTeachers.findIndex(
+                const advID = addedTeachers.findIndex(
                     (t) => t.teacher.trim().toLowerCase() === section_2.adviser.trim().toLowerCase()
                 );
     
