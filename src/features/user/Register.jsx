@@ -3,36 +3,42 @@ import { Link } from 'react-router-dom';
 import LandingIntro from './LandingIntro';
 import ErrorText from '../../components/Typography/ErrorText';
 import InputText from '../../components/Input/InputText';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { signUpWithEmailAndPassword } from '../userSlice';
 
 function Register() {
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+
     const INITIAL_REGISTER_OBJ = {
         name: '',
         password: '',
-        emailId: '',
+        confirmPassword: '',
+        schoolName: '',
+        email: '',
     };
 
-    const [loading, setLoading] = useState(false);
-    const [errorMessage, setErrorMessage] = useState('');
     const [registerObj, setRegisterObj] = useState(INITIAL_REGISTER_OBJ);
+
+    const { user, error: userError, status: userStatus } = useSelector((state) => state.user);
 
     const submitForm = (e) => {
         e.preventDefault();
-        setErrorMessage('');
 
-        if (registerObj.name.trim() === '') return setErrorMessage('Name is required! (use any value)');
-        if (registerObj.emailId.trim() === '') return setErrorMessage('Email Id is required! (use any value)');
-        if (registerObj.password.trim() === '') return setErrorMessage('Password is required! (use any value)');
-        else {
-            setLoading(true);
-            // Call API to check user credentials and save token in localstorage
-            localStorage.setItem('token', 'DumyTokenHere');
-            setLoading(false);
-            window.location.href = '/app/dashboard';
-        }
+        try {
+            const result = dispatch(signUpWithEmailAndPassword(registerObj));
+
+            if (result.meta.requestStatus === 'rejected') {
+                return;
+            }
+
+            console.log('successfully registered');
+            navigate('/app/dashboard');
+        } catch (error) {}
     };
 
     const updateFormValue = ({ updateType, value }) => {
-        setErrorMessage('');
         setRegisterObj({ ...registerObj, [updateType]: value });
     };
 
@@ -48,10 +54,18 @@ function Register() {
                 />
 
                 <InputText
-                    defaultValue={registerObj.emailId}
-                    updateType='emailId'
+                    defaultValue={registerObj.email}
+                    updateType='email'
                     containerStyle='mt-4'
-                    labelTitle='Email Id'
+                    labelTitle='Email'
+                    updateFormValue={updateFormValue}
+                />
+
+                <InputText
+                    defaultValue={registerObj.schoolName}
+                    updateType='schoolName'
+                    containerStyle='mt-4'
+                    labelTitle='School Name'
                     updateFormValue={updateFormValue}
                 />
 
@@ -63,11 +77,34 @@ function Register() {
                     labelTitle='Password'
                     updateFormValue={updateFormValue}
                 />
+
+                <InputText
+                    defaultValue={registerObj.confirmPassword}
+                    type='password'
+                    updateType='confirmPassword'
+                    containerStyle='mt-4'
+                    labelTitle='Confirm Password'
+                    updateFormValue={updateFormValue}
+                />
             </div>
 
-            <ErrorText styleClass='mt-8'>{errorMessage}</ErrorText>
-            <button type='submit' className={'btn mt-2 w-full btn-primary' + (loading ? ' loading' : '')}>
-                Register
+            {userError && <ErrorText styleClass='mt-8'>{userError}</ErrorText>}
+
+            <button
+                type='submit'
+                className={`btn mt-4 w-full btn-primary text-white transition-all duration-75 ease-in-out flex items-center justify-center ${
+                    userStatus == 'loading' ? 'cursor-not-allowed ' : ''
+                }`}
+                disabled={userStatus == 'loading'}
+            >
+                {userStatus == 'loading' ? (
+                    <>
+                        <span className='loading loading-spinner'></span>
+                        Signing Up
+                    </>
+                ) : (
+                    'Sign Up'
+                )}
             </button>
         </form>
     );

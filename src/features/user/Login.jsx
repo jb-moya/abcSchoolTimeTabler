@@ -3,39 +3,53 @@ import ErrorText from '@components/Typography/ErrorText';
 import InputText from '../../components/Input/InputText';
 import { loginUser } from '../userSlice';
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+
     const INITIAL_LOGIN_OBJ = {
-        password: '123',
-        emailId: '123',
+        email: 'admin@email.com',
+        password: '123456',
     };
 
     // const [loading, setLoading] = useState(false);
-    const [errorMessage, setErrorMessage] = useState('');
+    // const [errorMessage, setErrorMessage] = useState('');
     const [loginObj, setLoginObj] = useState(INITIAL_LOGIN_OBJ);
-    const dispatch = useDispatch();
 
-    const { user, userStatus } = useSelector((state) => state.subject);
+    const { user, error: userError, status: userStatus } = useSelector((state) => state.user);
 
-    const submitForm = (e) => {
+    const submitForm = async (e) => {
         e.preventDefault();
-        setErrorMessage('');
 
-        if (loginObj.emailId.trim() === '') return setErrorMessage('Email Id is required!');
-        if (loginObj.password.trim() === '') return setErrorMessage('Password is required!');
-        else {
-            // setLoading(true);
-            dispatch(loginUser(loginObj));
-            setTimeout(() => {
-                localStorage.setItem('token', 'DummyTokenHere');
-                // setLoading(false);
-                window.location.href = '/app/dashboard';
-            }, 1500);
+        if (loginObj.email.trim() === '') {
+            return;
+        }
+        if (loginObj.password.trim() === '') {
+            return;
+        }
+
+        try {
+            const result = await dispatch(loginUser(loginObj)); // Wait for login to complete
+
+            console.log('🚀 ~ submitForm ~ result:', result);
+            console.log('🚀 ~ submitForm ~ loginUser:', loginUser);
+
+            if (result.meta.requestStatus === 'rejected') {
+                return;
+            }
+
+            console.log('successfully logged in');
+            navigate('/app/dashboard');
+        } catch (error) {
+            // ...
         }
     };
 
     const updateFormValue = ({ updateType, value }) => {
-        setErrorMessage('');
+        // setErrorMessage('');
         setLoginObj({ ...loginObj, [updateType]: value });
     };
 
@@ -49,12 +63,13 @@ function Login() {
                 <div className='mb-6'>
                     {/* Email input */}
                     <InputText
-                        type='emailId'
-                        defaultValue={loginObj.emailId}
-                        updateType='emailId'
+                        type='email'
+                        defaultValue={loginObj.email}
+                        updateType='email'
                         containerStyle='mt-4'
                         labelTitle='Username'
                         updateFormValue={updateFormValue}
+                        disabled={userStatus == 'loading'}
                     />
 
                     {/* Password input */}
@@ -65,6 +80,7 @@ function Login() {
                         containerStyle='mt-4'
                         labelTitle='Password'
                         updateFormValue={updateFormValue}
+                        disabled={userStatus == 'loading'}
                     />
                 </div>
 
@@ -76,13 +92,13 @@ function Login() {
                 </div> */}
 
                 {/* Error message */}
-                {errorMessage && <ErrorText styleClass='mt-2 text-center'>{errorMessage}</ErrorText>}
+                {userError && <ErrorText styleClass='mt-2 text-center'>{userError}</ErrorText>}
 
                 {/* Submit button */}
                 <button
                     type='submit'
                     className={`btn mt-4 w-full btn-primary text-white transition-all duration-75 ease-in-out flex items-center justify-center ${
-                        userStatus == 'loading' ? 'cursor-not-allowed' : ''
+                        userStatus == 'loading' ? 'cursor-not-allowed ' : ''
                     }`}
                     disabled={userStatus == 'loading'}
                 >

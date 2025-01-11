@@ -24,7 +24,7 @@ function ExternalPage() {
 
                     <div className='mt-6 text-center'>
                         <div className='text-sm text-gray-500'>Don&apos;t have an account?</div>
-                        <button className='mt-1 btn-sm btn btn-ghost btn-wide' onClick={() => navigate('/register')}>
+                        <button className='mt-1 btn-sm btn btn-ghost btn-wide' onClick={() => navigate('/auth/register')}>
                             Sign Up
                         </button>
                     </div>

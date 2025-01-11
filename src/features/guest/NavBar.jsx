@@ -33,7 +33,7 @@ const NavBar = () => {
 
     function goToLoginPage() {
         // window.location.href = '/login';
-        navigate('/login');
+        navigate('/auth/login');
     }
 
     // const toggleTheme = () => {
