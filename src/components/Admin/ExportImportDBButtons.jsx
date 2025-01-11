@@ -170,13 +170,14 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
             }
 
             // Reset statuses
-
-            dispatch(setSubjectStatusIdle());
-            dispatch(setTeacherStatusIdle());
-            dispatch(setProgramStatusIdle());
-            dispatch(setSectionStatusIdle());
-            dispatch(setDepartmentStatusIdle());
-            dispatch(setBuildingStatusIdle());
+            await Promise.all([
+                dispatch(setSubjectStatusIdle()),
+                dispatch(setTeacherStatusIdle()),
+                dispatch(setProgramStatusIdle()),
+                dispatch(setSectionStatusIdle()),
+                dispatch(setDepartmentStatusIdle()),
+                dispatch(setBuildingStatusIdle()),
+            ]);
 
             // Show success message
             toast.success('DB imported successfully');
@@ -1425,124 +1426,133 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
         // console.log('teachers', addedTeachers);
         // console.log('sections', addedSections_2);
 
-        // Add all subjects
-        for (let i = 0; i < addedSubjects.length; i++) {
-            const subject = addedSubjects[i];
+        try {
+            
+            // Add all subjects
+            const subjectPromises = data.addedSubjects.map((subject) => {
+                dispatch(
+                    addSubject({
+                        subject: subject.subject,
+                        classDuration: Number(subject.classduration),
+                        weeklyMinutes: Number(subject.weeklyminutes),
+                    })
+                )
+            });
+    
+            // Add all ranks
+            const rankPromises = data.addedRanks.map((rank) => {
+                return dispatch(
+                    addRank({
+                        rank: rank.rank,
+                        additionalRankScheds: [],
+                    })
+                );
+            });
+            
+            // Add all buildings
+            const buildingPromises = data.addedBuildings.map((building) => {
+                dispatch(
+                    addBuilding({
+                        name: building.name,
+                        floors: Object.values(building.data).length,
+                        rooms: Object.values(building.data),
+                        image: null,
+                        nearbyBuildings: [],
+                    })
+                )
+            });
+    
+            // Add all teachers
+            const teacherPromises = data.addedTeachers.map((teacherData, i) => {
+                const teacher = JSON.parse(JSON.stringify(teacherData));
+    
+                // Get department ID
+                const departmentIndex = data.addedDepartments.findIndex(
+                    (d) => d.department.trim().toLowerCase() === teacher.department.trim().toLowerCase()
+                );
+    
+                if (departmentIndex === -1) {
+                    // Skip this teacher if department is not found
+                    console.warn(`Skipping teacher at index ${i} because department was not found.`);
+                    return null; // Return null for skipped teachers
+                }
+    
+                teacher.department = departmentIndex + 1;
+    
+                // Check if teacher is an adviser of a section
+                const isAdviser = data.addedSections.some(
+                    (section) => section.adviser.trim().toLowerCase() === teacher.teacher.trim().toLowerCase()
+                );
+    
+                if (isAdviser) {
+                    // Add advisory schedule
+                    teacher.additionalTeacherScheds.push({
+                        name: 'Advisory Load',
+                        subject: -1,
+                        duration: 60,
+                        frequency: data.numOfSchoolDays,
+                        shown: false,
+                        time: 96,
+                    });
+                }
 
-            dispatch(
-                addSubject({
-                    subject: subject.subject,
-                    classDuration: Number(subject.classduration),
-                    weeklyMinutes: Number(subject.weeklyminutes),
-                })
+                console.log('Processing teacher:', teacher);
+    
+                return dispatch(addTeacher(teacher));
+            }).filter(Boolean);
+    
+            // Add all departments
+            const departmentPromises = data.addedDepartments.map((department) => {
+                const headIndex =
+                    department.departmenthead && department.departmenthead.trim() !== ''
+                        ? data.addedTeachers.findIndex(
+                              (t) =>
+                                  t.teacher.trim().toLowerCase() === department.departmenthead.trim().toLowerCase() &&
+                                  t.department.trim().toLowerCase() === department.department.trim().toLowerCase()
+                          )
+                        : '';
+    
+                return dispatch(
+                    addDepartment({
+                        name: department.department,
+                        head: headIndex === '' ? '' : headIndex + 1,
+                    })
+                );
+            });
+    
+            // Add all programs
+            const programPromises = data.addedPrograms.map((program) =>
+                dispatch(addProgram(program))
             );
-        }
-
-        // Add all ranks
-        for (let i = 0; i < addedRanks.length; i++) {
-            const rank = addedRanks[i];
-
-            dispatch(
-                addRank({
-                    rank: rank.rank,
-                    additionalRankScheds: [],
-                })
-            );
-        }
-
-        // Add all buildings
-        for (let i = 0; i < addedBuildings.length; i++) {
-            const building = addedBuildings[i];
-
-            dispatch(
-                addBuilding({
-                    name: building.name,
-                    floors: Object.values(building.data).length,
-                    rooms: Object.values(building.data),
-                    image: null,
-                    nearbyBuildings: [],
-                })
-            );
-        }
-
-        // Add all teachers
-        for (let i = 0; i < addedTeachers.length; i++) {
-            const teacher = JSON.parse(JSON.stringify(addedTeachers[i]));
-
-            // Get department ID
-            const departmentIndex = addedDepartments.findIndex(
-                (d) => d.department.trim().toLowerCase() === teacher.department.trim().toLowerCase()
-            );
-
-            if (departmentIndex === -1) {
-                unaddedTeachers.push([2, teacher]);
-                addedTeachers.splice(i, 1);
-                i--;
-                continue;
-            }
-
-            teacher.department = departmentIndex + 1;
-
-            // Check if teacher is an adviser of a section
-            const isAdviser = addedSections.some(
-                (section) => section.adviser.trim().toLowerCase() === teacher.teacher.trim().toLowerCase()
-            );
-
-            if (isAdviser) {
-                // If teacher is an adviser of a section then add an additional schedule
-                teacher.additionalTeacherScheds.push({
-                    name: 'Advisory Load',
-                    subject: -1,
-                    duration: 60,
-                    frequency: numOfSchoolDays,
-                    shown: false,
-                    time: 96,
-                });
-            }
-
-            dispatch(addTeacher(teacher));
-        }
-
-        // Add all departments
-        for (let i = 0; i < addedDepartments.length; i++) {
-            const department = addedDepartments[i];
-
-            const headIndex =
-                department.departmenthead && department.departmenthead.trim() !== ''
-                    ? addedTeachers.findIndex(
-                          (t) =>
-                              t.teacher.trim().toLowerCase() === department.departmenthead.trim().toLowerCase() &&
-                              t.department.trim().toLowerCase() === department.department.trim().toLowerCase()
-                      )
-                    : '';
-
-            dispatch(
-                addDepartment({
-                    name: department.department,
-                    head: headIndex === '' ? '' : headIndex + 1,
-                })
-            );
-        }
-
-        // Add all programs
-        for (let i = 0; i < addedPrograms.length; i++) {
-            const program = addedPrograms[i];
-
-            dispatch(addProgram(program));
-        }
-
-        // Add all sections
-        for (let i = 0; i < addedSections_2.length; i++) {
-            const section = addedSections_2[i]; // normalized
-            const section_2 = addedSections[i]; // original
-
-            const advID = addedTeachers.findIndex(
-                (t) => t.teacher.trim().toLowerCase() === section_2.adviser.trim().toLowerCase()
-            );
-
-            section.teacher = advID + 1;
-
-            dispatch(addSection(section));
+    
+            // Add all sections
+            const sectionPromises = data.addedSections_2.map((section, i) => {
+                const section_2 = data.addedSections[i]; // Original section data
+    
+                const advID = data.addedTeachers.findIndex(
+                    (t) => t.teacher.trim().toLowerCase() === section_2.adviser.trim().toLowerCase()
+                );
+    
+                section.teacher = advID + 1;
+    
+                return dispatch(addSection(section));
+            });
+    
+            // Wait for all promises to resolve
+            await Promise.all([
+                ...subjectPromises,
+                ...rankPromises,
+                ...buildingPromises,
+                ...teacherPromises,
+                ...departmentPromises,
+                ...programPromises,
+                ...sectionPromises,
+            ]);
+    
+            console.log('All data has been added successfully');
+        } catch (error) {
+            console.error('Error importing data:', error);
+            throw error;
         }
 
         // console.log('Added sections:', addedSections);
