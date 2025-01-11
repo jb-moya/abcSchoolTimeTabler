@@ -20,7 +20,7 @@ const routes = [
     },
     {
         path: '',
-        icon: <Table className={`${iconClasses} inline`} />, 
+        icon: <Table className={`${iconClasses} inline`} />,
         name: 'Timetable',
         submenu: [
             {
@@ -30,7 +30,7 @@ const routes = [
             },
             {
                 path: '/app/admin/modify-subjects',
-                icon: <PiBooksThin className={submenuIconClasses} />, 
+                icon: <PiBooksThin className={submenuIconClasses} />,
                 name: 'Modify Subjects and Programs',
             },
             {
@@ -57,12 +57,12 @@ const routes = [
     },
     {
         path: '',
-        icon: <GrSchedules className={`${iconClasses} inline`} />, 
+        icon: <GrSchedules className={`${iconClasses} inline`} />,
         name: 'Report Schedules',
         submenu: [
             {
                 path: '/app/reports/display-teachers-schedule',
-                icon: <FaChalkboardTeacher className={submenuIconClasses} />, 
+                icon: <FaChalkboardTeacher className={submenuIconClasses} />,
                 name: 'Teacher Schedule',
             },
             {
@@ -72,7 +72,7 @@ const routes = [
             },
             {
                 path: '/app/reports/display-subjects-schedule',
-                icon: <UsersIcon className={submenuIconClasses} />, 
+                icon: <UsersIcon className={submenuIconClasses} />,
                 name: 'Subject Schedule',
             },
         ],
