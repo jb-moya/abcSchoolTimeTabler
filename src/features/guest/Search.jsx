@@ -68,7 +68,7 @@ const Search = () => {
     }, []);
 
     return (
-        <div className='space-y-8 w-full h-full flex flex-col items-center justify-center px-4 lg:px-12 mt-[-100px] select-none'>
+        <div className='space-y-8 w-full h-full flex flex-col items-center justify-center mb-10 px-4 lg:px-12 select-none'>
             {/* Heading */}
             <div className='text-center w-full max-w-9xl space-y-4'>
                 <h1 className='font-bold text-3xl lg:text-6xl'>How can we help?</h1>
