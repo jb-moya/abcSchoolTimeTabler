@@ -289,9 +289,7 @@ const SubjectEdit = ({
                 fixedDays: newProgram[grade].fixedDays,
                 fixedPositions: newProgram[grade].fixedPositions,
                 shift: newProgram[grade].shift,
-                startTime: getTimeSlotIndex(
-                    newProgram[grade].startTime || newProgram[grade].shift === 0 ? '06:00 AM' : '01:00 PM'
-                ),
+                startTime: newProgram[grade].startTime,
                 endTime: newProgram[grade].endTime, 
                 additionalScheds: newProgram[grade].additionalScheds,
             });
