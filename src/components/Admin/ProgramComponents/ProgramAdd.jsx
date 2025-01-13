@@ -695,7 +695,7 @@ const AddProgramContainer = ({
                                                             <RiEdit2Fill size={15} />
                                                         </button>
                                                         <AdditionalScheduleForProgram
-                                                             viewingMode={1}
+                                                             viewingMode={0}
                                                              programID={0}
                                                              grade={grade}
                                                              arrayIndex={index}

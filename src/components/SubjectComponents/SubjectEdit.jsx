@@ -449,7 +449,8 @@ const SubjectEdit = ({
                             fixedPositions: newSection.fixedPositions,
                             year: newSection.year,
                             shift: newSection.shift,
-                            startTime: getTimeSlotIndex(newSection.startTime || '06:00 AM'),
+                            startTime: newSection.startTime,
+                            endTime: newSection.endTime,
                         },
                     })
                 );
