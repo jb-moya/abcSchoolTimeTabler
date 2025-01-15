@@ -39,20 +39,11 @@ const DraggableSchedules = ({
         let result = 'rounded';
 
         for (let merges of mergeData) {
-            if (
-                merges.start.dayIndex === merges.end.dayIndex &&
-                merges.start.positionIndex === merges.end.positionIndex
-            ) {
+            if (merges.start.dayIndex === merges.end.dayIndex && merges.start.positionIndex === merges.end.positionIndex) {
                 result = 'rounded';
-            } else if (
-                merges.start.dayIndex === day - 1 &&
-                merges.start.positionIndex === pos - 1
-            ) {
+            } else if (merges.start.dayIndex === day - 1 && merges.start.positionIndex === pos - 1) {
                 result = 'rounded-tl-lg rounded-bl-lg';
-            } else if (
-                merges.end.dayIndex === day - 1 &&
-                merges.end.positionIndex === pos - 1
-            ) {
+            } else if (merges.end.dayIndex === day - 1 && merges.end.positionIndex === pos - 1) {
                 result = 'rounded-tr-lg rounded-br-lg';
             } else if (
                 merges.start.dayIndex < day - 1 &&
@@ -69,23 +60,18 @@ const DraggableSchedules = ({
     const compBorder = checkPosition();
 
     return (
-        <div
-            className={editMode ? '' : 'tooltip'}
-            data-tip="switch to edit mode to drag"
-        >
+        <div className={editMode ? '' : 'tooltip'} data-tip='switch to edit mode to drag'>
             <div
                 ref={editMode ? setNodeRef : null}
                 {...(editMode ? listeners : {})}
                 {...(editMode ? attributes : {})}
                 className={`w-20 h-10 p-1 flex items-center justify-center ${colorClass} ${compBorder} ${
-                    editMode
-                        ? 'ring-black hover:ring-2 ring-inset cursor-grab shadow-sm hover:shadow-lg'
-                        : ''
+                    editMode ? 'ring-black hover:ring-2 ring-inset cursor-grab shadow-sm hover:shadow-lg' : ''
                 }`}
                 style={editMode ? style : undefined}
             >
-                <h3 className="font-medium text-black text-xs text-center">
-                    <div className="">{subjectName}</div>
+                <h3 className='font-medium text-black text-xs text-center'>
+                    <div className=''>{subjectName}</div>
                 </h3>
             </div>
         </div>

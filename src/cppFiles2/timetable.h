@@ -42,6 +42,7 @@
 #define EARLY_BREAK_INT 5
 #define SMALL_BREAK_GAP_INT 6
 #define LATE_BREAK_INT 7
+#define CLASS_PROXIMITY_INT 8
 
 struct Timetable {
    private:
@@ -51,6 +52,7 @@ struct Timetable {
 	static int s_work_week;
 	static int s_total_section;
 	static int s_teacher_middle_time_point_grow_allowance_for_break_timeslot;
+	static int offset_duration;
 
 	static std::unordered_set<SectionID> s_sections_set;
 	static std::unordered_set<TeacherID> s_teachers_set;
@@ -69,6 +71,7 @@ struct Timetable {
 	static void setTotalSection(int s_total_section);
 	static void setTeachersSet(const std::unordered_set<SectionID>& s_teachers_set);
 	static void setSectionsSet(const std::unordered_set<TeacherID>& s_sections_set);
+	static void setOffsetDuration(int offset_duration);
 
 	static int getTeacherBreakThreshold();
 	static int getTeacherMiddleTimePointGrowAllowanceForBreakTimeslot();
@@ -78,6 +81,7 @@ struct Timetable {
 	static int getTotalSection();
 	static std::unordered_set<TeacherID>& getTeachersSet();
 	static std::unordered_set<SectionID>& getSectionsSet();
+	static int getOffsetDuration();
 
 	// Helper method to find a subject by name
 	std::shared_ptr<SubjectConfiguration> findSubjectConfigurationById(SubjectConfigurationID id);
@@ -152,10 +156,10 @@ struct Timetable {
 	void initializeSectionFixedSubjectTeacher(int32_t* subject_fixed_teacher_section, int32_t* subject_fixed_teacher);
 
 	void initializeTeachers(int number_of_teacher, int32_t* teacher_week_load_config);
-	void initializeTeacherSubjects(int teacher_subjects_length, int32_t* teacher_subjects);
+	void initializeTeacherSubjectsAndQueue(int teacher_subjects_length, int32_t* teacher_subjects, int32_t* teacher_week_load_config);
 	void initializeSectionSubjects(int total_section_subjects, int32_t* section_subject_configuration);
 
-	TeacherID getRandomInitialTeacher(Section& section, SubjectID subject_id, TimeDuration class_duration) const;
+	TeacherID getRandomInitialTeacherInQueue(Section& section, SubjectID subject_id, TimeDuration class_duration) const;
 
 	void modify(Section& selected_section,
 	            int choice,

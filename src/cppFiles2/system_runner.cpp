@@ -79,6 +79,7 @@ void runExperiment(
 	Timetable::setDefaultClassDuration(default_class_duration);
 	Timetable::setBreakTimeDuration(break_time_duration);
 	Timetable::setWorkWeek(work_week);
+	Timetable::setOffsetDuration(offset_duration);
 
 	Timetable::initializeSectionSet(total_section);
 	Timetable::initializeTeachersSet(num_teachers);
@@ -93,7 +94,7 @@ void runExperiment(
 	timetable.initializeSections(total_section, section_configuration, section_start, section_location);
 	timetable.initializeSectionFixedSubjectTeacher(subject_fixed_teacher_section, subject_fixed_teacher);
 	timetable.initializeTeachers(num_teachers, teacher_week_load_config);
-	timetable.initializeTeacherSubjects(teacher_subjects_length, teacher_subjects);
+	timetable.initializeTeacherSubjectsAndQueue(teacher_subjects_length, teacher_subjects, teacher_week_load_config);
 	timetable.initializeTeacherReservedSchedule(teacher_reservation_config, teacher_reservation_config_id);
 	timetable.initializeSectionSubjects(total_section_subjects, section_subject_configuration);
 

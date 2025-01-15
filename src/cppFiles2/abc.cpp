@@ -176,20 +176,27 @@ void ABC::getViolation(int64_t* result_violation) {
 		Teacher teacher = best_solution.timetable.getTeacherById(teacher_id);
 
 		const auto& daily_class_schedule = teacher.getUtilizedTime();
-		const auto& total_day_work_load = teacher.getDayTotalWorkLoad();
+		const auto& total_school_class_count = teacher.getSchoolClassDayCount();
+		const auto& offset_duration = Timetable::getOffsetDuration();
 
-		const TimeDuration max_teacher_work_load = teacher.getMaxDayWorkLoad();
-		const TimeDuration min_teacher_work_load = teacher.getMinDayWorkLoad();
+		const TimeDuration max_teacher_work_load = teacher.getMaxWeekWorkLoad();
+		const TimeDuration min_teacher_work_load = teacher.getMinWeekWorkLoad();
 		const TimeDuration break_time_duration = best_solution.timetable.getBreakTimeDuration();
 
-		for (const auto& [day, time_points_class_count] : daily_class_schedule) {
-			if (total_day_work_load.at(day) > max_teacher_work_load) {
-				teacher_violations[EXCEED_MAX_WORKLOAD_INT][teacher_id]++;
-			}
+		int total_week_workload = 0;
 
-			if (total_day_work_load.at(day) < min_teacher_work_load) {
-				teacher_violations[BELOW_MIN_WORKLOAD_INT][teacher_id]++;
-			}
+		for (const auto& [day, total_class_count] : total_school_class_count) {
+			total_week_workload += total_class_count * offset_duration;
+		}
+
+		for (const auto& [day, time_points_class_count] : daily_class_schedule) {
+			// if (total_school_class_count.at(day) > max_teacher_work_load) {
+			// 	teacher_violations[EXCEED_MAX_WORKLOAD_INT][teacher_id]++;
+			// }
+
+			// if (total_school_class_count.at(day) < min_teacher_work_load) {
+			// 	teacher_violations[BELOW_MIN_WORKLOAD_INT][teacher_id]++;
+			// }
 
 			if (time_points_class_count.size() == 0) {
 				continue;
@@ -209,10 +216,36 @@ void ABC::getViolation(int64_t* result_violation) {
 
 			bool break_found = false;
 
+			SectionID previous_section_class = -1;
+
 			while (it != time_points_class_count.end()) {
 				TimePoint time_point = it->first;
 				auto& utilized_time_in_section = it->second;
+				SectionID section_id = std::get<0>(utilized_time_in_section);
 				int time_point_class_count = std::get<1>(utilized_time_in_section);
+				int overlap_able = std::get<2>(utilized_time_in_section);
+
+				total_week_workload += time_point_class_count;
+
+				if (previous_section_class == -1) {
+					previous_section_class = section_id;
+				} else {
+					if (section_id != previous_section_class) {
+						Location from_section_location = best_solution.timetable.getSectionById(previous_section_class).getLocation();
+						Location to_section_location = best_solution.timetable.getSectionById(section_id).getLocation();
+
+						Building& from_building = best_solution.timetable.getBuildingById(from_section_location.building_id);
+						Building& to_building = best_solution.timetable.getBuildingById(to_section_location.building_id);
+
+						int distance = from_building.getDistanceTo(from_section_location, to_section_location, to_building);
+
+						if (distance > 0) {
+							teacher_violations[CLASS_PROXIMITY_INT][teacher_id] += distance;
+						}
+
+						previous_section_class = section_id;
+					}
+				}
 
 				if (nextIt != time_points_class_count.end()) {
 					TimePoint next_time_point = nextIt->first;
@@ -235,9 +268,17 @@ void ABC::getViolation(int64_t* result_violation) {
 				}
 			}
 
-			if (!break_found && total_day_work_load.at(day) >= best_solution.timetable.getTeacherBreakThreshold()) {
+			if (!break_found && total_school_class_count.at(day) >= best_solution.timetable.getTeacherBreakThreshold()) {
 				teacher_violations[NO_BREAK_INT][teacher_id]++;
 			}
+		}
+
+		if (total_week_workload > max_teacher_work_load) {
+			teacher_violations[EXCEED_MAX_WORKLOAD_INT][teacher_id]++;
+		}
+
+		if (total_week_workload < min_teacher_work_load) {
+			teacher_violations[BELOW_MIN_WORKLOAD_INT][teacher_id]++;
 		}
 	}
 
@@ -343,11 +384,11 @@ void ABC::getResult(int64_t* result, int64_t* result_2, TimePoint offset_duratio
 
 		for (const auto& [timeslot, classMap] : classes) {
 			for (const auto& [day, schoolClass] : classMap) {
-				print("class xx",
-				      schoolClass.subject_id,
-				      schoolClass.teacher_id,
-				      static_cast<int>(timeslot),
-				      static_cast<int>(day));
+				// print("class xx",
+				//       schoolClass.subject_id,
+				//       schoolClass.teacher_id,
+				//       static_cast<int>(timeslot),
+				//       static_cast<int>(day));
 
 				int64_t packed = pack5IntToInt64(
 				    section_id,

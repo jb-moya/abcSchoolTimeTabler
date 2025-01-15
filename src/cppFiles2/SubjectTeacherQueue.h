@@ -9,10 +9,10 @@
 
 struct TeacherWorkload {
 	TeacherID id;
-	int max_work_load;
+	int max_week_work_load;
 
 	TeacherWorkload(TeacherID id, int workload)
-	    : id(id), max_work_load(workload) {}
+	    : id(id), max_week_work_load(workload) {}
 };
 
 class SubjectTeacherQueue {

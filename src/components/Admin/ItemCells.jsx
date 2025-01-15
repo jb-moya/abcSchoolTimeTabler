@@ -258,7 +258,7 @@ const ItemCells = ({
                 y,
             }}
             className={`absolute border border-base-content border-opacity-50 ${
-                cell.overlap ? 'bg-error' : 'bg-base-200 '
+                cell.overlap ? 'border-red-400 bg-red-400 bg-opacity-40' : 'bg-base-200 '
             } rounded-lg`}
             ref={itemRef}
             onDragEnd={handleDragEnd}
@@ -281,18 +281,16 @@ const ItemCells = ({
                 {/* Original Content */}
                 {!editMode || !hovering ? (
                     <motion.div
-                        className='absolute inset-0 flex flex-col justify-center items-center p-1'
+                        className='absolute inset-0 flex truncate flex-col justify-center items-center p-1 sm:text-[9px] md:text-[11px] lg:text-base text-base'
                         initial={{ opacity: 1 }}
                         animate={{ opacity: editMode && hovering ? 0 : 1 }}
                     >
-                        <div className='font-medium text-ellipsis whitespace-nowrap overflow-hidden text-center text-[10px] sm:text-[10px] md:text-xs lg:text-sm'>
+                        <div className='font-medium overflow-hidden text-center'>
                             {cellVal}
                         </div>
-                        <div className='text-[10px] sm:text-[10px] md:text-xs lg:text-xs text-slate-400 text-center overflow-hidden'>
-                            {cell.subject}
-                        </div>
-                        <div className='text-[10px] sm:text-[11px] md:text-[10px] lg:text-[9px] text-center overflow-hidden pt-0.5'>
-                            {startTime} - {endTime}
+                        <div className='text-center overflow-hidden'>{cell.subject}</div>
+                        <div className='text-center text-[80%] overflow-hidden pt-0.5'>
+                            {startTime} {endTime}
                         </div>
                     </motion.div>
                 ) : null}

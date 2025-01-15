@@ -115,6 +115,22 @@ function Timetable() {
         return localStorage.getItem('breakTimeDuration') || 30;
     });
 
+    const [minTeachingLoad, setMinTeachingLoad] = useState(() => {
+        return parseInt(localStorage.getItem('minTeachingLoad'), 10) || 1300;
+    });
+
+    const [maxTeachingLoad, setMaxTeachingLoad] = useState(() => {
+        return parseInt(localStorage.getItem('maxTeachingLoad'), 10) || 1500;
+    });
+
+    const [defaultSubjectClassDuration, setDefaultSubjectClassDuration] = useState(() => {
+        return parseInt(localStorage.getItem('defaultSubjectDuration'), 10) || 40;
+    });
+
+    const [defaultBreakTimeDuration, setDefaultBreakTimeDuration] = useState(() => {
+        return parseInt(localStorage.getItem('breakTimeDuration'), 10) || 30;
+    })
+
     const [prevNumOfSchoolDays, setPrevNumOfSchoolDays] = useState(numOfSchoolDays);
 
     const [prevBreakTimeDuration, setPrevBreakTimeDuration] = useState(breakTimeDuration);
@@ -406,7 +422,7 @@ function Timetable() {
 
                 subjectConfigurationSubjectUnitsArray[id] = packInt16ToInt32(
                     subjectID,
-                    subjectConfiguration.is_consistent_everyday ? 0 : 1
+                    subjectConfiguration.is_consistent_everyday ? 1 : 0
                 );
                 subjectConfigurationSubjectDurationArray[id] = packInt16ToInt32(subjectID, subjectConfiguration.classDuration);
                 subjectConfigurationSubjectFixedTimeslotArray[id] = packInt16ToInt32(
@@ -420,7 +436,7 @@ function Timetable() {
             });
         });
 
-        let breakTimeDuration = 30;
+        let breakTimeDurationForAlgo = breakTimeDuration;
 
         const durationUniqueAdditionalTeacherScheds = [
             ...new Set(
@@ -433,7 +449,7 @@ function Timetable() {
                 let { second: subjectDuration } = unpackInt32ToInt16(duration);
                 return subjectDuration;
             }),
-            breakTimeDuration,
+            breakTimeDurationForAlgo,
             durationUniqueAdditionalTeacherScheds,
         ]);
 
@@ -446,14 +462,14 @@ function Timetable() {
             subjectConfigurationSubjectDurationArray[index] = packInt16ToInt32(subjectID, subjectDuration / timeDivision);
         });
 
-        breakTimeDuration /= timeDivision;
+        breakTimeDurationForAlgo /= timeDivision;
 
         let lowestSubjectDuration = Math.min(
             ...subjectConfigurationSubjectDurationArray.map((duration) => {
                 let { second: subjectDuration } = unpackInt32ToInt16(duration);
                 return subjectDuration;
             }),
-            breakTimeDuration
+            breakTimeDurationForAlgo
             // durationUniqueAdditionalTeacherScheds
         );
         console.log('🚀 ~ handleButtonClick ~ durationUniqueAdditionalTeacherScheds:', durationUniqueAdditionalTeacherScheds);
@@ -655,10 +671,15 @@ function Timetable() {
         console.log('teacherMap', teacherMap);
         console.log('sectionMap', sectionMap);
 
-        let defaultClassDuration = 40;
+        let defaultClassDuration = defaultSubjectClassDuration;
 
-        let maxTeacherWorkLoad = 3000;
-        let minTeacherWorkLoad = 100;
+        let maxTeacherWorkLoad = maxTeachingLoad;
+        // console.log('🚀 ~ handleButtonClick ~ maxTeachingLoad:', maxTeachingLoad);
+        // console.log('🚀 ~ handleButtonClick ~ minTeachingLoad:', minTeachingLoad);
+        let minTeacherWorkLoad = minTeachingLoad;
+
+        // maxTeacherWorkLoad = 4000;
+        // minTeacherWorkLoad = 100;
 
         defaultClassDuration /= timeDivision;
         maxTeacherWorkLoad /= timeDivision;
@@ -685,7 +706,7 @@ function Timetable() {
         console.log('🚀 ~ handleButtonClick ~ defaultClassDuration:', defaultClassDuration);
 
         defaultClassDuration -= offset;
-        breakTimeDuration -= offset;
+        breakTimeDurationForAlgo -= offset;
         minTotalClassDurationForTwoBreaks /= offset || 1;
 
         for (const [sectionKey, section] of Object.entries(sectionMap)) {
@@ -740,13 +761,13 @@ function Timetable() {
             const roomDetails = section.roomDetails;
             const buildingID = buildingMapReverse[roomDetails.buildingId];
 
-            console.log('🚀 ~ handleButtonClick ~ section:', section);
-            console.log('|| ~ handleButtonClick ~ notAllowedBreakslotGap:', notAllowedBreakslotGap);
-            console.log('|| ~ handleButtonClick ~ numberOfBreak:', numberOfBreak);
-            console.log('|| ~ handleButtonClick ~ totalTimeslot:', totalTimeslot);
-            console.log('|| ~ roomDetails roomDetailsroomDetailsroomDetailsroomDetailsroomDetails ~ roomDetails:', roomDetails);
-            console.log('|| ~ buildingMapReverse:', buildingMapReverse);
-            console.log('|| ~ handleButtonClick ~ buildingID:');
+            // console.log('🚀 ~ handleButtonClick ~ section:', section);
+            // console.log('|| ~ handleButtonClick ~ notAllowedBreakslotGap:', notAllowedBreakslotGap);
+            // console.log('|| ~ handleButtonClick ~ numberOfBreak:', numberOfBreak);
+            // console.log('|| ~ handleButtonClick ~ totalTimeslot:', totalTimeslot);
+            // console.log('|| ~ roomDetails roomDetailsroomDetailsroomDetailsroomDetailsroomDetails ~ roomDetails:', roomDetails);
+            // console.log('|| ~ buildingMapReverse:', buildingMapReverse);
+            // console.log('|| ~ handleButtonClick ~ buildingID:');
 
             const exampleLocation = {
                 buildingID: 0,
@@ -777,7 +798,7 @@ function Timetable() {
         const sectionConfiguration = new Int32Array([...sectionConfigurationArray]);
         const sectionSubjectConfiguration = new Int32Array([...sectionSubjectConfigurationArray]);
 
-        const maxIterations = 3000;
+        const maxIterations = 20000;
         const beesPopulations = 4;
         const beesEmployed = 2;
         const beesOnlooker = 2;
@@ -868,7 +889,8 @@ function Timetable() {
 
         const resultViolationLength = numOfViolationType * totalSections + numOfViolationType * totalTeachers;
 
-        const teacherMiddleTimePointGrowAllowanceForBreakTimeslot = 4;
+        // TEMPORARY
+        const teacherMiddleTimePointGrowAllowanceForBreakTimeslot = 8;
 
         const params2 = {
             maxIterations: maxIterations,
@@ -906,7 +928,7 @@ function Timetable() {
             limit: limits,
             workWeek: numOfSchoolDays,
 
-            breakTimeDuration: breakTimeDuration,
+            breakTimeDuration: breakTimeDurationForAlgo,
             teacherBreakThreshold: teacherBreakThreshold,
             teacherMiddleTimePointGrowAllowanceForBreakTimeslot: teacherMiddleTimePointGrowAllowanceForBreakTimeslot,
             minTotalClassDurationForTwoBreaks: minTotalClassDurationForTwoBreaks,

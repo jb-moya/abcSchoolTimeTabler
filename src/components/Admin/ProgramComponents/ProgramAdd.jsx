@@ -549,7 +549,7 @@ const AddProgramContainer = ({
                                         <hr className='my-2'></hr>
                                         <div className='bg-base-100 py-2 rounded-lg space-y-4'>
                                             <div className='bg-base-100 py-2 rounded-lg space-y-4 p-4'>
-                                                <div className=' bg-white '>
+                                                <div className=''>
                                                     {/* Dropdown and Button */}
                                                     <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
                                                         {/* Searchable Dropdown */}

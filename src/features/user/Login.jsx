@@ -64,7 +64,7 @@ function Login() {
 
             {/* Login form section */}
             <div className='absolute inset-0 z-10 flex items-center justify-center backdrop-blur-sm '>
-                <div className='w-full max-w-sm bg-white bg-opacity-90 backdrop-blur-md rounded-lg  shadow-2xl p-8'>
+                <div className='w-full max-w-sm bg-base-100 bg-opacity-90 backdrop-blur-md rounded-lg  shadow-2xl p-8'>
                     {/* Logo section */}
                     <div className='mb-4 flex flex-col justify-center items-center select-none'>
                         <img src='/Batasan Logo.png' alt='Logo' className='h-16 w-16 mb-2' />
