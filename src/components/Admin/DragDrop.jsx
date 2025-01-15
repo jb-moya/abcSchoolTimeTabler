@@ -94,6 +94,7 @@ const DragDrop = ({
     };
 
     const handleSwitchTeacher = (tableKey, cellDynamicID, newCardData) => {
+        // console.log('newCardData: ', newCardData);
         let keyToFind = '';
         const newObject = {
             day: 0,
