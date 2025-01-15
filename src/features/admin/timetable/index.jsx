@@ -129,7 +129,7 @@ function Timetable() {
 
     const [defaultBreakTimeDuration, setDefaultBreakTimeDuration] = useState(() => {
         return parseInt(localStorage.getItem('breakTimeDuration'), 10) || 30;
-    })
+    });
 
     const [prevNumOfSchoolDays, setPrevNumOfSchoolDays] = useState(numOfSchoolDays);
 
@@ -1799,17 +1799,26 @@ function Timetable() {
 
                 // console.log('day in timetable: ', schedule.day);
                 const type = schedule.type;
+
                 const partnerType = type === 'teacher' ? 'section' : 'teacher';
                 if (schedule.day === 0) {
                     for (let i = 1; i <= 5; i++) {
-                        let scheduleKey = `section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${i}-type-${type}`;
+                        // let scheduleKey = `section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${i}-type-${type}`;
+                        let scheduleKey = `${schedule.section ?? 'n'}-${schedule.teacher ?? 'n'}-${schedule.subject ?? 'n'}-${
+                            i ?? 'n'
+                        }-${type[0] ?? 'n'}`;
 
                         let duplicate = false;
                         if (scheduleMap.has(scheduleKey)) {
                             duplicate = true;
-                            scheduleKey = `additional-section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${i}-type-${type}`;
+                            // scheduleKey = `additional-section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${i}-type-${type}`;
+
+                            scheduleKey = `a-${schedule.section ?? 'n'}-${schedule.teacher ?? 'n'}-${schedule.subject ?? 'n'}-${
+                                i ?? 'n'
+                            }-${type[0] ?? 'n'}`;
                         }
-                        const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
+                        // const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
+                        let keyToFind = scheduleKey.replace(/[^-]+$/, partnerType[0] ?? 'n');
 
                         scheduleMap.set(scheduleKey, {
                             start: schedule.start - 72,
@@ -1832,14 +1841,21 @@ function Timetable() {
                     }
                 } else {
                     // Use sectionID, subjectID, and start time to create a unique key for the schedule
-                    let scheduleKey = `section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${schedule.day}-type-${type}`;
+                    // let scheduleKey = `section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${schedule.day}-type-${type}`;
+                    let scheduleKey = `${schedule.section ?? 'n'}-${schedule.teacher ?? 'n'}-${schedule.subject ?? 'n'}-${
+                        schedule.day ?? 'n'
+                    }-${type[0] ?? 'n'}`;
 
                     let duplicate = false;
                     if (scheduleMap.has(scheduleKey)) {
                         duplicate = true;
-                        scheduleKey = `additional-section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${schedule.day}-type-${type}`;
+                        // scheduleKey = `additional-section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${schedule.day}-type-${type}`;
+                        scheduleKey = `a-${schedule.section ?? 'n'}-${schedule.teacher ?? 'n'}-${schedule.subject ?? 'n'}-${
+                            schedule.day ?? 'n'
+                        }-${type[0] ?? 'n'}`;
                     }
-                    let keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
+                    // let keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
+                    let keyToFind = scheduleKey.replace(/[^-]+$/, partnerType[0] ?? 'n');
 
                     scheduleMap.set(scheduleKey, {
                         start: schedule.start - 72,

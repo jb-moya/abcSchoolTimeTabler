@@ -140,22 +140,38 @@ const DragDrop = ({
                 newObject.type = 'teacher';
                 newObject.additional = cell.additional;
 
-                let newObjectID = `section-${cell.sectionID}-teacher-${newCardData.teacherID}-subject-${cell.subjectID}-day-${cell.day}-type-teacher`;
-                let currCellNewID = `section-${cell.sectionID}-teacher-${newCardData.teacherID}-subject-${cell.subjectID}-day-${cell.day}-type-${cell.type}`;
+                // let newObjectID = `section-${cell.sectionID}-teacher-${newCardData.teacherID}-subject-${cell.subjectID}-day-${cell.day}-type-teacher`;
+                let newObjectID = `${cell.sectionID ?? 'n'}-${newCardData.teacherID ?? 'n'}-${cell.subjectID ?? 'n'}-${
+                    cell.day ?? 'n'
+                }-t`;
+
+                // let currCellNewID = `section-${cell.sectionID}-teacher-${newCardData.teacherID}-subject-${cell.subjectID}-day-${cell.day}-type-${cell.type}`;
+                let currCellNewID = `${cell.sectionID ?? 'n'}-${newCardData.teacherID ?? 'n'}-${cell.subjectID ?? 'n'}-${
+                    cell.day ?? 'n'
+                }-${cell.type[0]} ?? 'n'`;
 
                 if (cell.additional) {
-                    newObjectID = `additional-section-${cell.sectionID}-teacher-${newCardData.teacherID}-subject-${cell.subjectID}-day-${cell.day}-type-teacher`;
-                    currCellNewID = `additional-section-${cell.sectionID}-teacher-${newCardData.teacherID}-subject-${cell.subjectID}-day-${cell.day}-type-${cell.type}`;
+                    // newObjectID = `additional-section-${cell.sectionID}-teacher-${newCardData.teacherID}-subject-${cell.subjectID}-day-${cell.day}-type-teacher`;
+                    newObjectID = `a-${cell.sectionID ?? 'n'}-${newCardData.teacherID ?? 'n'}-${cell.subjectID ?? 'n'}-${
+                        cell.day ?? 'n'
+                    }-t`;
+
+                    // currCellNewID = `additional-section-${cell.sectionID}-teacher-${newCardData.teacherID}-subject-${cell.subjectID}-day-${cell.day}-type-${cell.type}`;
+                    currCellNewID = `a-${cell.sectionID ?? 'n'}-${newCardData.teacherID ?? 'n'}-${cell.subjectID ?? 'n'}-${
+                        cell.day ?? 'n'
+                    }-${cell.type[0] ?? 'n'}`;
                 }
 
                 newObject.id = newObjectID;
                 newObject.dynamicID = newObjectID;
 
                 const partnerType = cell.type === 'teacher' ? 'section' : 'teacher';
-                keyToFind = cellDynamicID.replace(/(type-)([^-]+)/, `$1${partnerType}`);
+                // keyToFind = cellDynamicID.replace(/(type-)([^-]+)/, `$1${partnerType}`);
+                keyToFind = cellDynamicID.replace(/[^-]+$/, partnerType[0] ?? 'n');
 
                 const newObjPartnerKeyType = 'section';
-                let newObjPartnerKey = newObjectID.replace(/(type-)([^-]+)/, `$1${newObjPartnerKeyType}`);
+                // let newObjPartnerKey = newObjectID.replace(/(type-)([^-]+)/, `$1${newObjPartnerKeyType}`);
+                let newObjPartnerKey = newObjectID.replace(/[^-]+$/, newObjPartnerKeyType[0] ?? 'n');
 
                 // console.log('keytoFind: ', keyToFind);
 
