@@ -1,5 +1,5 @@
 // ScheduleDialog.jsx
-import React, { forwardRef, useMemo } from 'react';
+import React, { forwardRef, useEffect, useState } from 'react';
 import SearchableDropdownToggler from './searchableDropdownForAll';
 import { convertToTime } from '../../utils/convertToTime';
 import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
@@ -17,20 +17,51 @@ const ScheduleDialog = forwardRef((props, ref) => {
         setAddClicked,
     } = props;
 
+    const [teacher, setTeacher] = useState({ teacher: editingCell?.teacher, teacherID: editingCell?.teacherID });
+    const [start, setStart] = useState(convertToTime(editingCell?.start));
+    const [end, setEnd] = useState(convertToTime(editingCell?.end));
+
     const setStartTime = (newTime) => {
-        if (getTimeSlotIndex(newTime) >= 0 && newTime !== convertToTime(editingCell?.start)) {
-            console.log('changing: ', newTime);
-            handleStartChange(newTime);
+        if (getTimeSlotIndex(newTime) >= 0 && newTime !== convertToTime(start)) {
+            setStart(newTime);
         }
     };
 
     const setEndTime = (newTime) => {
-        if (getTimeSlotIndex(newTime) >= 0 && newTime !== convertToTime(editingCell?.end)) {
-            console.log('changing: ', newTime);
-
-            handleEndChange(newTime);
+        if (getTimeSlotIndex(newTime) >= 0 && newTime !== convertToTime(end)) {
+            setEnd(newTime);
         }
     };
+
+    const handleSubmitButton = () => {
+        if (editingCell) {
+            handleTeacherSelection(teacher.teacherID, teacher.teacher);
+            handleStartChange(start);
+            handleEndChange(end);
+        } else {
+            //add
+            setAddClicked(false);
+            addSchedule();
+        }
+    };
+
+    const handleResetButton = () => {
+        setTeacher({ teacher: editingCell?.teacher, teacherID: editingCell?.teacherID });
+        setStart(convertToTime(editingCell?.start));
+        setEnd(convertToTime(editingCell?.end));
+    };
+
+    // useEffect(() => {
+    //     console.log('teacher Log: ', teacher);
+    // }, [teacher]);
+
+    // useEffect(() => {
+    //     console.log('start log: ', start);
+    // }, [start]);
+
+    // useEffect(() => {
+    //     console.log('end log: ', end);
+    // }, [end]);
 
     return (
         <dialog
@@ -48,7 +79,7 @@ const ScheduleDialog = forwardRef((props, ref) => {
                 if (ref) ref(el); // Forward ref if needed
             }}
         >
-            <div className='modal-box h-52 overflow-visible'>
+            <div className='modal-box h-auto overflow-visible'>
                 <form method='dialog'>
                     <button
                         className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2'
@@ -60,19 +91,45 @@ const ScheduleDialog = forwardRef((props, ref) => {
                         ✕
                     </button>
                 </form>
-                <SearchableDropdownToggler
-                    teacherID={props.getTeacherIdsBySubject(editingCell?.subjectID)}
-                    setSelectedList={handleTeacherSelection}
-                    currID={editingCell?.teacherID}
-                    type={editingCell.type}
-                />
-                <div className='text-[10px] sm:text-[10px] md:text-xs lg:text-xs text-slate-400 text-center overflow-hidden'>
-                    {editingCell?.subject}
+                <h3 className='text-lg font-bold mb-4'>{editingCell ? 'Editing Class Block' : 'Adding Class Block'}</h3>
+
+                <hr className='mb-4' />
+                <div className='mb-4'>
+                    <label className='block text-sm font-medium mb-2'>Teacher Name:</label>
+                    <SearchableDropdownToggler
+                        teacherIDs={props.getTeacherIdsBySubject(editingCell?.subjectID)}
+                        setSelectedList={setTeacher}
+                        currentTeacherID={teacher.teacherID}
+                        type={editingCell?.type}
+                    />
                 </div>
-                <div className='text-[10px] sm:text-[11px] md:text-[10px] lg:text-[9px] text-center overflow-hidden pt-0.5'>
-                    {convertToTime(editingCell?.start)} - {convertToTime(editingCell?.end)}
+
+                <div className='mb-4'>
+                    <label className='block text-sm font-medium mb-2'>Subject:</label>
+                    <input
+                        type='text'
+                        className='input input-bordered w-full text-center cursor-default'
+                        placeholder={editingCell?.subject}
+                        readOnly
+                    />
                 </div>
-                <div className='flex flex-row'>
+
+                <div className='mb-4 '>
+                    <label className='block text-sm font-medium mb-2'>Time Slot:</label>
+                    <div className='flex flex-row'>
+                        <div className='form-control w-1/2'>
+                            <div className='text-[11px] pt-0.5'>start</div>
+
+                            <TimeSelector key={`startTime`} interval={5} time={start} setTime={setStartTime} />
+                        </div>
+                        <div className='form-control w-1/2'>
+                            <div className='text-[11px] pt-0.5'>end</div>
+
+                            <TimeSelector key={`endTime`} interval={5} time={end} setTime={setEndTime} />
+                        </div>
+                    </div>
+                </div>
+                {/* <div className='flex flex-row'>
                     <div className='form-control w-1/2'>
                         <TimeSelector
                             key={`startTime`}
@@ -84,21 +141,35 @@ const ScheduleDialog = forwardRef((props, ref) => {
                     <div className='form-control w-1/2'>
                         <TimeSelector key={`endTime`} interval={5} time={convertToTime(editingCell?.end)} setTime={setEndTime} />
                     </div>
-                </div>
+                </div> */}
                 {errors.time && <span className='text-red-500'>{errors.time}</span>}
-                {!editingCell && (
+                <div className='flex flex-row justify-center space-x-2'>
                     <form method='dialog'>
                         <button
                             onClick={() => {
-                                setAddClicked(false);
-                                addSchedule();
+                                handleSubmitButton();
                             }}
                             className='btn btn-secondary'
+                            disabled
                         >
-                            Add
+                            {editingCell ? 'Save' : 'Add'}
                         </button>
                     </form>
-                )}
+                    <button
+                        onClick={() => {
+                            handleResetButton();
+                        }}
+                        disabled={
+                            teacher.teacher === editingCell?.teacher &&
+                            teacher.teacherID === editingCell?.teacherID &&
+                            start === convertToTime(editingCell?.start) &&
+                            end === convertToTime(editingCell?.end)
+                        }
+                        className='btn btn-error'
+                    >
+                        Reset
+                    </button>
+                </div>
             </div>
         </dialog>
     );

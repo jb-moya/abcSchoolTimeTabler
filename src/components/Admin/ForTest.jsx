@@ -111,6 +111,7 @@ const ForTest = ({ hashMap }) => {
     };
 
     const add = () => {
+        setAddClicked(true);
         console.log('add');
     };
 
@@ -533,7 +534,7 @@ const ForTest = ({ hashMap }) => {
                     </button>
 
                     <div className='flex flex-row items-center space-x-2 ml-auto'>
-                        <button onClick={add} disabled className='btn btn-secondary'>
+                        <button onClick={add} className='btn btn-secondary'>
                             Add
                         </button>
                         <div className='form-control'>
