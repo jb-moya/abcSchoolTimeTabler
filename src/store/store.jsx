@@ -25,6 +25,7 @@ import programReducer from '../features/programSlice';
 import departmentReducer from '../features/departmentSlice';
 import buildingReducer from '../features/buildingSlice';
 import userSlice from '../features/userSlice';
+import configurationSlice from '../features/configurationSlice';
 
 const combinedReducer = {
   header: headerSlice,
@@ -39,6 +40,7 @@ const combinedReducer = {
   department: departmentReducer,
   building: buildingReducer,
   user: userSlice,
+  configuration: configurationSlice,
 };
 
 const store = configureStore({

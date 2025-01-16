@@ -98,12 +98,11 @@ function Timetable() {
     ];
 
     const { subjects: subjectsStore, status: subjectStatus } = useSelector((state) => state.subject);
-    const { buildings: buildingsStore, status: buildingStatus } = useSelector((state) => {
-        return state.building;
-    });
+    const { buildings: buildingsStore, status: buildingStatus } = useSelector((state) => state.building);
     const { teachers: teachersStore } = useSelector((state) => state.teacher);
     const { sections: sectionsStore, status: sectionStatus } = useSelector((state) => state.section);
     const { programs: programsStore, status: programStatus } = useSelector((state) => state.program);
+    const { minTeacherLoad: minTeachingLoad, maxTeacherLoad: maxTeachingLoad } = useSelector((state) => state.configuration);
 
     // ========================================================================
 
@@ -115,21 +114,13 @@ function Timetable() {
         return localStorage.getItem('breakTimeDuration') || 30;
     });
 
-    const [minTeachingLoad, setMinTeachingLoad] = useState(() => {
-        return parseInt(localStorage.getItem('minTeachingLoad'), 10) || 1300;
-    });
-
-    const [maxTeachingLoad, setMaxTeachingLoad] = useState(() => {
-        return parseInt(localStorage.getItem('maxTeachingLoad'), 10) || 1500;
-    });
-
     const [defaultSubjectClassDuration, setDefaultSubjectClassDuration] = useState(() => {
         return parseInt(localStorage.getItem('defaultSubjectDuration'), 10) || 40;
     });
 
     const [defaultBreakTimeDuration, setDefaultBreakTimeDuration] = useState(() => {
         return parseInt(localStorage.getItem('breakTimeDuration'), 10) || 30;
-    })
+    });
 
     const [prevNumOfSchoolDays, setPrevNumOfSchoolDays] = useState(numOfSchoolDays);
 
@@ -890,7 +881,7 @@ function Timetable() {
         const resultViolationLength = numOfViolationType * totalSections + numOfViolationType * totalTeachers;
 
         // TEMPORARY
-        const teacherMiddleTimePointGrowAllowanceForBreakTimeslot = 8;
+        const teacherMiddleTimePointGrowAllowanceForBreakTimeslot = 12;
 
         const params2 = {
             maxIterations: maxIterations,
