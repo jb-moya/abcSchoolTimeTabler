@@ -61,6 +61,8 @@ struct ObjectiveFunction {
 				auto last_time_point = --time_points_class_count.end();
 				float middle_time_point = (time_points_class_count.begin()->first + last_time_point->first) / 2;
 
+				// TODO: exclude additional schedules on calculating the middle timepoint
+
 				float min_time_point_allowance = middle_time_point - (bee.timetable.getTeacherMiddleTimePointGrowAllowanceForBreakTimeslot());
 				float max_time_point_allowance = middle_time_point + (bee.timetable.getTeacherMiddleTimePointGrowAllowanceForBreakTimeslot());
 
@@ -194,7 +196,10 @@ struct ObjectiveFunction {
 			Section section = bee.timetable.getSectionById(section_id);
 
 			TimePoint early_not_allowed_break_duration_gap = section.getNotAllowedBreakslotGap() * bee.timetable.getDefaultClassDuration();
-			TimePoint late_not_allowed_break_duration_gap = (section.getNotAllowedBreakslotGap() + 1) * bee.timetable.getDefaultClassDuration();  // +1 magic number
+
+			int end_gap_increment = section.getNumberOfBreak() == 1 ? 1 : 0;
+
+			TimePoint late_not_allowed_break_duration_gap = (section.getNotAllowedBreakslotGap() + end_gap_increment) * bee.timetable.getDefaultClassDuration();  // +1 magic number
 
 			if (!is_initial) {
 				bee.total_cost -= bee.section_violations[section_id].early_break;
@@ -226,12 +231,20 @@ struct ObjectiveFunction {
 				if (break_slots.size() >= 2) {
 					// this always assumes that there's only 2 break slots
 					auto it = break_slots.begin();
-					Timeslot first_break_time = *it;
+					Timeslot break_time_1 = *it;
 					++it;
-					Timeslot last_break_time = *it;
+					Timeslot break_time_2 = *it;
 
-					TimePoint first_start = section.getTimeslotStart(first_break_time);
-					TimePoint last_end = section.getTimeslotEnd(last_break_time);
+					TimePoint break_time_1_start = section.getTimeslotStart(break_time_1);
+					TimePoint break_time_2_start = section.getTimeslotStart(break_time_2);
+
+					TimePoint break_time_1_end = section.getTimeslotEnd(break_time_1);
+					TimePoint break_time_2_end = section.getTimeslotEnd(break_time_2);
+
+					TimePoint first_start = std::min(break_time_1_start, break_time_2_start);
+					TimePoint last_end = std::max(break_time_1_end, break_time_2_end);
+
+					// print("first_start", first_start, last_end, early_not_allowed_break_duration_gap, last_end - first_start);
 
 					if (last_end > max_time - late_not_allowed_break_duration_gap) {
 						bee.section_violations[section_id].late_break += 10000;
@@ -241,7 +254,7 @@ struct ObjectiveFunction {
 						bee.section_violations[section_id].early_break += 10000;
 					}
 
-					if (last_end - first_start <= early_not_allowed_break_duration_gap) {
+					if (last_end - first_start < early_not_allowed_break_duration_gap) {
 						bee.section_violations[section_id].small_break_gap += 10000;
 					}
 				} else {

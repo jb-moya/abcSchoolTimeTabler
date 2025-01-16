@@ -935,7 +935,7 @@ std::pair<Timeslot, Timeslot> Timetable::pickRandomTimeslots(Section& selected_s
 
 		bool ignore_break_slots = false;
 
-		bool is_consistent_duration = selected_section.isDynamicSubjectConsistentDuration();
+		// bool is_consistent_duration = selected_section.isDynamicSubjectConsistentDuration();
 
 		do {
 			selected_timeslot_1 = selected_section.getRandomDynamicTimeslot();
@@ -947,7 +947,8 @@ std::pair<Timeslot, Timeslot> Timetable::pickRandomTimeslots(Section& selected_s
 			is_timeslot_1_break = section_break_slots.find(selected_timeslot_1) != section_break_slots.end();
 			is_timeslot_2_break = section_break_slots.find(selected_timeslot_2) != section_break_slots.end();
 
-			if (is_consistent_duration && (is_timeslot_1_break || is_timeslot_2_break)) {
+			// if (is_consistent_duration && (is_timeslot_1_break || is_timeslot_2_break)) {
+			if ((is_timeslot_1_break || is_timeslot_2_break)) {
 				ignore_break_slots = true;
 			} else {
 				ignore_break_slots = false;
