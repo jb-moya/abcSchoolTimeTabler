@@ -723,12 +723,12 @@ function Timetable() {
             // const notAllowedBreakslotGap = totalTimeslot >= 7 ? 2 : 1;
 
             let notAllowedBreakslotGap = 0;
-            if (totalTimeslot >= 5 && totalTimeslot < 7) {
+            if (totalTimeslot >= 3 && totalTimeslot < 7) {
                 notAllowedBreakslotGap = 1;
-            } else if (totalTimeslot >= 7) {
+            } else if (totalTimeslot == 7) {
                 notAllowedBreakslotGap = 2;
-            } else if (totalTimeslot >= 10) {
-                notAllowedBreakslotGap = 3;
+            } else if (totalTimeslot >= 8) {
+                notAllowedBreakslotGap = 3; // BE CAREFUL WITH THIS, ANYTHING HIGHER WILL CAUSE ERRORS IF BREAK SLOT IS TWO
             }
 
             // TODO: include teacher additional scheulde
