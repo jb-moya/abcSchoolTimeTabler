@@ -695,11 +695,14 @@ const AddProgramContainer = ({
                                                             <RiEdit2Fill size={15} />
                                                         </button>
                                                         <AdditionalScheduleForProgram
-                                                             viewingMode={1}
+                                                             viewingMode={0}
                                                              programID={0}
                                                              grade={grade}
+                                                             progYearSubjects={selectedSubjects[grade]}
                                                              arrayIndex={index}
                                                              additionalSchedsOfProgYear={sched}
+                                                             setAdditionalScheds={setAdditionalScheds}
+                                                             numOfSchoolDays={numOfSchoolDays}
                                                         />
                                                     </div>
                                                 </div>

@@ -1,15 +1,35 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import DragDrop from './DragDrop';
 import { generateTimeSlots } from './utils';
 import { produce } from 'immer';
 import { PiConfetti } from 'react-icons/pi';
 
+import { addSched, fetchScheds } from '@features/schedulesSlice';
+
 const ForTest = ({ hashMap }) => {
+
+    const dispatch = useDispatch();
+    const inputNameRef = useRef();
+
+    const { schedules, status: schedStatus } = useSelector((state) => state.schedule);
+
+    const [scheduleVerName, setScheduleVerName] = useState('');
+
+    useEffect(() => {
+        if (schedStatus === 'idle') {
+            dispatch(fetchScheds());
+        }
+    }, [schedStatus, dispatch]);
+
     const [selectedModeValue, setSelectedModeValue] = useState('5m');
+
     const [valueMap, setValueMap] = useState(hashMap);
+
     const handleSelectChange = (event) => {
         setSelectedModeValue(event.target.value);
     };
+
     const tableRefs = useRef({}); // Make sure this initializes as an object
     const [history, setHistory] = useState([new Map()]); // history stack (array of Maps)
     const [historyIndex, setHistoryIndex] = useState(0); // current position in history
@@ -99,8 +119,48 @@ const ForTest = ({ hashMap }) => {
         }
     };
 
+
     const save = () => {
+
+        function mapToObject(map) {
+            if (!(map instanceof Map)) return map;
+            
+            return Object.fromEntries(
+                Array.from(map.entries()).map(([key, value]) => [key, mapToObject(value)])
+            );
+        }
+
         console.log('saved');
+        console.log('valueMap: ', valueMap);
+
+        if (!scheduleVerName.trim()) {
+            alert('Please enter a version name');
+            return;
+        }
+
+        const duplicateScheduleName = Object.values(schedules).find(
+            (schedule) => 
+                schedule.name.trim().toLowerCase() === 
+                scheduleVerName.trim().toLowerCase()
+        )
+
+        if (duplicateScheduleName) {
+            alert('A schedule with this name already exists');
+            return;
+        } else {
+
+            const schedObject = mapToObject(valueMap);
+
+            dispatch(
+                addSched({
+                    name: scheduleVerName,
+                    data: schedObject,
+                })
+            )
+
+            document.getElementById('confirm_schedule_save_modal').close()
+
+        }
     };
 
     const clear = () => {
@@ -111,6 +171,7 @@ const ForTest = ({ hashMap }) => {
     };
 
     const add = () => {
+        setAddClicked(true);
         console.log('add');
     };
 
@@ -407,6 +468,7 @@ const ForTest = ({ hashMap }) => {
         setSearch(error);
         setSearchField(error);
     };
+
     return (
         Array.from(paginatedValueMap.entries()).length > 0 && (
             <div className='overflow-hidden select-none'>
@@ -533,7 +595,7 @@ const ForTest = ({ hashMap }) => {
                     </button>
 
                     <div className='flex flex-row items-center space-x-2 ml-auto'>
-                        <button onClick={add} disabled className='btn btn-secondary'>
+                        <button onClick={add} className='btn btn-secondary'>
                             Add
                         </button>
                         <div className='form-control'>
@@ -573,7 +635,11 @@ const ForTest = ({ hashMap }) => {
                         >
                             Redo
                         </button>
-                        <button onClick={save} className='btn btn-secondary' disabled={errorCount > 0}>
+                        <button 
+                            className='btn btn-secondary' 
+                            disabled={errorCount > 0}
+                            onClick={() => document.getElementById('confirm_schedule_save_modal').showModal()}
+                        >
                             Save
                         </button>
                     </div>
@@ -655,6 +721,48 @@ const ForTest = ({ hashMap }) => {
                         );
                     })
                 )}
+
+                <dialog id='confirm_schedule_save_modal' className='modal'>
+                    <div className='modal-box'>
+                        <div className='modal-action'>
+                            <div className="w-full">
+                                <label className="block text-sm font-medium mb-2 w-full">
+                                    Provide a name for this set of schedules:
+                                </label>
+                                <input
+                                    type="text"
+                                    // className={`input input-bordered w-full ${
+                                    //     errorField === 'name' ? 'border-red-500' : ''
+                                    // }`}
+                                    className={`input input-bordered w-full mb-4`}
+                                    value={scheduleVerName}
+                                    onChange={(e) => setScheduleVerName(e.target.value)}
+                                    placeholder="Enter name"
+                                    ref={inputNameRef}
+                                />
+                                <div className="flex justify-center gap-2">
+                                    <button className="btn btn-primary" onClick={save}>
+                                        Confirm
+                                    </button>
+                                    <button
+                                        className="btn btn-error border-0"
+                                        onClick={() => setScheduleVerName('')}
+                                    >
+                                        Reset
+                                    </button>
+                                </div>
+                            </div>
+                            
+
+                            <button
+                                className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2'
+                                onClick={() => document.getElementById('confirm_schedule_save_modal').close()}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+                </dialog>
             </div>
         )
     );
