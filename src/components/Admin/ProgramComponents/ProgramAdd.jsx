@@ -450,7 +450,7 @@ const AddProgramContainer = ({
     const grades = [7, 8, 9, 10];
 
     return (
-        <dialog id='add_program_modal' className='modal modal-bottom sm:modal-middle'>
+        <dialog id='add_program_modal' className='modal'>
             <div className='modal-box' style={{ width: '48%', maxWidth: 'none' }}>
                 <div>
                     {/* Header section with centered "Add {reduxField}" */}
@@ -478,7 +478,7 @@ const AddProgramContainer = ({
                     {/* Subject, shift, and fixed schedules management */}
                     <div className='text-sm flex flex-col space-y-4'>
                         {/* Tabs Navigation */}
-                        <div className='flex justify-between space-x-2 bg-primary-content p-3 rounded-lg border shadow-md'>
+                        <div className='flex justify-between space-x-2 bg-base-300 p-3 rounded-lg overflow-auto border border-base-content border-opacity-20 shadow-md'>
                             {grades.map((grade) => (
                                 <button
                                     key={grade}
