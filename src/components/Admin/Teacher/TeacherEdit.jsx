@@ -235,7 +235,7 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
     // ==============================================================================
 
     return (
-        <div className='flex items-center justify-center'>
+        <div className=''>
             {/* Trigger Button */}
             <label htmlFor={`teacherEdit_modal_${teacher.id}`} className='btn btn-xs btn-ghost text-blue-500'>
                 <RiEdit2Fill size={20} />
@@ -254,7 +254,7 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
                     <div className='rounded-lg shadow-md md:shadow-lg sm:shadow-sm space-y-4 mb-4 p-4'>
                         {/* Teacher Name */}
                         <div className='mb-4'>
-                            <label className='block text-sm font-medium mb-1' htmlFor='teacherName'>
+                            <label className='text-sm font-medium mb-1 flex justify-center ' htmlFor='teacherName'>
                                 Teacher Name:
                             </label>
                             <input
@@ -270,7 +270,7 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
 
                         {/* Teacher Rank */}
                         <div className='mb-4'>
-                            <label className='block text-sm font-medium mb-1' htmlFor='teacherRank'>
+                            <label className=' flex justify-center  text-sm font-medium mb-1' htmlFor='teacherRank'>
                                 Select Rank:
                             </label>
                             <div className='relative'>
@@ -298,7 +298,7 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
 
                         {/* Departments */}
                         <div className='mb-4'>
-                            <label className='block text-sm font-medium mb-1' htmlFor='teacherDepartment'>
+                            <label className='flex justify-center  text-sm font-medium mb-1' htmlFor='teacherDepartment'>
                                 Select Department:
                             </label>
                             <div className='relative'>
@@ -389,7 +389,7 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
                         {/* Button to add schedules */}
                         <button
                             onClick={handleAddTeacherAdditionalSchedules}
-                            className='flex flex-wrap items-right text-sm mt-2 bg-primary p-4 px-2 py-1 rounded-lg hover:bg-blue-600'
+                            className='flex flex-wrap items-right text-sm mt-2 bg-primary text-white p-4 px-2 py-1 rounded-lg hover:bg-blue-600'
                         >
                             Add Schedule
                         </button>

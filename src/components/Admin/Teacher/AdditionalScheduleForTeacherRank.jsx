@@ -15,7 +15,7 @@ const AdditionalScheduleForTeacherRank = ({
 
     // =============================================================================
 
-    const [schedName, setSchedName] = useState(additionalSchedsOfRank.name);
+    const [schedName, setSchedName] = useState(additionalSchedsOfRank.name || '');
 
     const [schedSubject, setSchedSubject] = useState(additionalSchedsOfRank.subject || -1);
 
