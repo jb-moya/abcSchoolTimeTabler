@@ -137,7 +137,7 @@ const DragDrop = ({
                 newObject.subjectID = cell.subjectID;
                 newObject.teacherID = newCardData.teacherID;
                 newObject.sectionID = cell.sectionID;
-                newObject.type = 'teacher';
+                newObject.type = 't';
                 newObject.additional = cell.additional;
 
                 // let newObjectID = `section-${cell.sectionID}-teacher-${newCardData.teacherID}-subject-${cell.subjectID}-day-${cell.day}-type-teacher`;
@@ -148,7 +148,7 @@ const DragDrop = ({
                 // let currCellNewID = `section-${cell.sectionID}-teacher-${newCardData.teacherID}-subject-${cell.subjectID}-day-${cell.day}-type-${cell.type}`;
                 let currCellNewID = `${cell.sectionID ?? 'n'}-${newCardData.teacherID ?? 'n'}-${cell.subjectID ?? 'n'}-${
                     cell.day ?? 'n'
-                }-${cell.type[0]} ?? 'n'`;
+                }-${cell.type} ?? 'n'`;
 
                 if (cell.additional) {
                     // newObjectID = `additional-section-${cell.sectionID}-teacher-${newCardData.teacherID}-subject-${cell.subjectID}-day-${cell.day}-type-teacher`;
@@ -159,17 +159,17 @@ const DragDrop = ({
                     // currCellNewID = `additional-section-${cell.sectionID}-teacher-${newCardData.teacherID}-subject-${cell.subjectID}-day-${cell.day}-type-${cell.type}`;
                     currCellNewID = `a-${cell.sectionID ?? 'n'}-${newCardData.teacherID ?? 'n'}-${cell.subjectID ?? 'n'}-${
                         cell.day ?? 'n'
-                    }-${cell.type[0] ?? 'n'}`;
+                    }-${cell.type ?? 'n'}`;
                 }
 
                 newObject.id = newObjectID;
                 newObject.dynamicID = newObjectID;
 
-                const partnerType = cell.type === 'teacher' ? 'section' : 'teacher';
+                const partnerType = cell.type === 't' ? 's' : 't';
                 // keyToFind = cellDynamicID.replace(/(type-)([^-]+)/, `$1${partnerType}`);
                 keyToFind = cellDynamicID.replace(/[^-]+$/, partnerType[0] ?? 'n');
 
-                const newObjPartnerKeyType = 'section';
+                const newObjPartnerKeyType = 's';
                 // let newObjPartnerKey = newObjectID.replace(/(type-)([^-]+)/, `$1${newObjPartnerKeyType}`);
                 let newObjPartnerKey = newObjectID.replace(/[^-]+$/, newObjPartnerKeyType[0] ?? 'n');
 

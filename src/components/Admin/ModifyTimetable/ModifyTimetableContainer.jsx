@@ -414,6 +414,8 @@ const ModifyTimetableContainer = ({ hashMap }) => {
         setSearch(error);
         setSearchField(error);
     };
+
+    const optimizeTable = () => {};
     return (
         Array.from(paginatedValueMap.entries()).length > 0 && (
             <div className='overflow-hidden select-none'>

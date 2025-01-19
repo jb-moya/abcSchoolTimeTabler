@@ -1801,9 +1801,9 @@ function Timetable() {
                 // console.log('value in timetable: ', schedule);
 
                 // console.log('day in timetable: ', schedule.day);
-                const type = schedule.type;
+                const type = schedule.type[0];
 
-                const partnerType = type === 'teacher' ? 'section' : 'teacher';
+                const partnerType = type === 't' ? 's' : 't';
                 if (schedule.day === 0) {
                     for (let i = 1; i <= 5; i++) {
                         // let scheduleKey = `section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${i}-type-${type}`;
@@ -1827,7 +1827,7 @@ function Timetable() {
                             start: schedule.start - 72,
                             end: schedule.end - 72,
                             sectionID: schedule.section,
-                            subject: type === 'section' ? schedule.fieldName1 : schedule.fieldName2,
+                            subject: type === 's' ? schedule.fieldName1 : schedule.fieldName2,
                             subjectID: schedule.subject,
                             teacherID: schedule.teacher,
                             tableKey: setTableKey,
@@ -1838,8 +1838,8 @@ function Timetable() {
                             overlap: false,
                             type: type,
                             additional: duplicate ? true : false,
-                            ...(type === 'teacher' && { section: schedule.fieldName1 }),
-                            ...(type === 'section' && { teacher: schedule.fieldName2 }),
+                            ...(type === 't' && { section: schedule.fieldName1 }),
+                            ...(type === 's' && { teacher: schedule.fieldName2 }),
                         });
                     }
                 } else {
@@ -1864,7 +1864,7 @@ function Timetable() {
                         start: schedule.start - 72,
                         end: schedule.end - 72,
                         sectionID: schedule.section,
-                        subject: type === 'section' ? schedule.fieldName1 : schedule.fieldName2,
+                        subject: type === 's' ? schedule.fieldName1 : schedule.fieldName2,
                         subjectID: schedule.subject,
                         teacherID: schedule.teacher,
                         tableKey: setTableKey,
@@ -1875,8 +1875,8 @@ function Timetable() {
                         overlap: false,
                         day: schedule.day,
                         additional: duplicate ? true : false,
-                        ...(type === 'teacher' && { section: schedule.fieldName1 }),
-                        ...(type === 'section' && { teacher: schedule.fieldName2 }),
+                        ...(type === 't' && { section: schedule.fieldName1 }),
+                        ...(type === 's' && { teacher: schedule.fieldName2 }),
                     });
                 }
             }

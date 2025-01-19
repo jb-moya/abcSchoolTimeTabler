@@ -258,8 +258,8 @@ const ItemCells = ({
                 y,
             }}
             className={`absolute border border-base-content border-opacity-50 ${
-                cell.overlap ? 'border-red-400 bg-red-400 bg-opacity-40' : 'bg-base-200 '
-            } rounded-lg`}
+                cell.overlap ? 'border-red-400 bg-red-400 bg-opacity-40' : 'bg-base-200'
+            } ${hovering ? 'border-blue-400' : ''} rounded-lg`}
             ref={itemRef}
             onDragEnd={handleDragEnd}
             onDragStart={handleDragStart}
@@ -306,7 +306,7 @@ const ItemCells = ({
             </div>
             {/* Hover State Management */}
             <div
-                className='absolute inset-0'
+                className={`absolute inset-0 ${isDragging ? 'cursor-grabbing' : hovering ? 'cursor-grab' : ''}`}
                 onMouseEnter={() => {
                     console.log('cells: ', cell);
                     setHovering(true);

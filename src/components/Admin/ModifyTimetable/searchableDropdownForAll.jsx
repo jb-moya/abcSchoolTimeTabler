@@ -35,17 +35,17 @@ const SearchableDropdownToggler = ({ teacherIDs, setSelectedList, currentTeacher
             {/* Toggler */}
             <div
                 role='button'
-                tabIndex={type === 'section' ? 0 : -1} // Allow tab focus only if type === 'section'
+                tabIndex={type === 's' ? 0 : -1}
                 className={clsx(
                     'text-center flex items-center justify-between',
-                    type === 'section' ? 'cursor-pointer' : 'cursor-default'
+                    type === 's' ? 'cursor-pointer' : 'cursor-default'
                 )}
             >
                 <span className='flex-grow text-center font-medium text-ellipsis whitespace-nowrap text-lg'>{teacherName}</span>
-                {type === 'section' && <IoChevronDown size={16} className='ml-2' />}
+                {type === 's' && <IoChevronDown size={16} className='ml-2' />}
             </div>
 
-            {type === 'section' && (
+            {type === 's' && (
                 <ul tabIndex={0} className='dropdown-content menu z-[2000] bg-base-100 rounded-box w-full p-2 shadow'>
                     <li>
                         <input
