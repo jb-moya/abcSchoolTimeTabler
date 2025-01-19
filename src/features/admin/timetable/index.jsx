@@ -11,6 +11,7 @@ import clsx from 'clsx';
 import * as XLSX from 'xlsx';
 import GeneratedTimetable from '@components/Admin/TimeTable';
 import ForTest from '@components/Admin/ForTest';
+import { useNavigate } from 'react-router-dom';
 
 import validateTimetableVariables from '@validation/validateTimetableVariables';
 import { toast } from 'sonner';
@@ -91,6 +92,7 @@ function getVacantSlots(totalTimeslot, numOfSchoolDays, fixedPositions, fixedDay
 
 function Timetable() {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     const links = [
         { name: 'Home', href: '/' },
@@ -1191,10 +1193,11 @@ function Timetable() {
         const teacherEdited = convertToHashMap(teacherTimetable, 'Teacher');
         // console.log('sectionEdited: ', sectionEdited);
         // console.log('teacherEdited: ', teacherEdited);
-        const combined = combineMaps(sectionEdited, teacherEdited);
-        console.log('DATA SA DRAGDROP: ', combined);
+        const generatedMap = combineMaps(sectionEdited, teacherEdited);
+        console.log('DATA SA DRAGDROP: ', generatedMap);
+        navigate('/app/admin/modify-timetable', { state: { generatedMap } });
 
-        setMapVal(combined);
+        // setMapVal(combined);
     };
 
     const handleSchedExport = () => {
