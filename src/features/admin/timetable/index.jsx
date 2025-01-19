@@ -10,7 +10,7 @@ import Configuration from '@components/Admin/Configuration';
 import clsx from 'clsx';
 import * as XLSX from 'xlsx';
 import GeneratedTimetable from '@components/Admin/TimeTable';
-import ForTest from '@components/Admin/ForTest';
+// import ForTest from '@components/Admin/ForTest';
 import { useNavigate } from 'react-router-dom';
 
 import validateTimetableVariables from '@validation/validateTimetableVariables';
@@ -1809,7 +1809,7 @@ function Timetable() {
                         // let scheduleKey = `section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${i}-type-${type}`;
                         let scheduleKey = `${schedule.section ?? 'n'}-${schedule.teacher ?? 'n'}-${schedule.subject ?? 'n'}-${
                             i ?? 'n'
-                        }-${type[0] ?? 'n'}`;
+                        }-${type ?? 'n'}`;
 
                         let duplicate = false;
                         if (scheduleMap.has(scheduleKey)) {
@@ -1818,7 +1818,7 @@ function Timetable() {
 
                             scheduleKey = `a-${schedule.section ?? 'n'}-${schedule.teacher ?? 'n'}-${schedule.subject ?? 'n'}-${
                                 i ?? 'n'
-                            }-${type[0] ?? 'n'}`;
+                            }-${type ?? 'n'}`;
                         }
                         // const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
                         let keyToFind = scheduleKey.replace(/[^-]+$/, partnerType[0] ?? 'n');
@@ -1838,6 +1838,7 @@ function Timetable() {
                             overlap: false,
                             type: type,
                             additional: duplicate ? true : false,
+                            containerName: containerName,
                             ...(type === 't' && { section: schedule.fieldName1 }),
                             ...(type === 's' && { teacher: schedule.fieldName2 }),
                         });
@@ -1875,6 +1876,7 @@ function Timetable() {
                         overlap: false,
                         day: schedule.day,
                         additional: duplicate ? true : false,
+                        containerName: containerName,
                         ...(type === 't' && { section: schedule.fieldName1 }),
                         ...(type === 's' && { teacher: schedule.fieldName2 }),
                     });
@@ -2038,12 +2040,11 @@ function Timetable() {
                     EXPORT SCHEDULES
                 </button>
             )}
-            {mapVal && mapVal.size > 0 && (
+            {/* {mapVal && mapVal.size > 0 && (
                 <>
-                    {/* {console.log('Rendering ForTest with mapVal:', mapVal)} */}
                     <ForTest hashMap={mapVal} />
                 </>
-            )}
+            )} */}
 
             {/* pag section need Container section + sectionid + teacherid for error */}
             {/* <GeneratedTimetable

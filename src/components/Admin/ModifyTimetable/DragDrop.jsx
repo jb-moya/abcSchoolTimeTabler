@@ -110,6 +110,7 @@ const DragDrop = ({
             partnerKey: '',
             teacherID: 0,
             type: '',
+            containerName: '',
         };
 
         setValueMap((prevState) =>
@@ -139,6 +140,7 @@ const DragDrop = ({
                 newObject.sectionID = cell.sectionID;
                 newObject.type = 't';
                 newObject.additional = cell.additional;
+                newObject.containerName = cell.containerName;
 
                 // let newObjectID = `section-${cell.sectionID}-teacher-${newCardData.teacherID}-subject-${cell.subjectID}-day-${cell.day}-type-teacher`;
                 let newObjectID = `${cell.sectionID ?? 'n'}-${newCardData.teacherID ?? 'n'}-${cell.subjectID ?? 'n'}-${

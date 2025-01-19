@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import DragDrop from './DragDrop';
+import DragDrop from './DragDrop(FOR DELETE)';
 import { generateTimeSlots } from './utils';
 import { produce } from 'immer';
 import { PiConfetti } from 'react-icons/pi';
@@ -8,7 +8,6 @@ import { PiConfetti } from 'react-icons/pi';
 import { addSched, fetchScheds } from '@features/schedulesSlice';
 
 const ForTest = ({ hashMap }) => {
-
     const dispatch = useDispatch();
     const inputNameRef = useRef();
 
@@ -119,15 +118,11 @@ const ForTest = ({ hashMap }) => {
         }
     };
 
-
     const save = () => {
-
         function mapToObject(map) {
             if (!(map instanceof Map)) return map;
-            
-            return Object.fromEntries(
-                Array.from(map.entries()).map(([key, value]) => [key, mapToObject(value)])
-            );
+
+            return Object.fromEntries(Array.from(map.entries()).map(([key, value]) => [key, mapToObject(value)]));
         }
 
         console.log('saved');
@@ -139,16 +134,13 @@ const ForTest = ({ hashMap }) => {
         }
 
         const duplicateScheduleName = Object.values(schedules).find(
-            (schedule) => 
-                schedule.name.trim().toLowerCase() === 
-                scheduleVerName.trim().toLowerCase()
-        )
+            (schedule) => schedule.name.trim().toLowerCase() === scheduleVerName.trim().toLowerCase()
+        );
 
         if (duplicateScheduleName) {
             alert('A schedule with this name already exists');
             return;
         } else {
-
             const schedObject = mapToObject(valueMap);
 
             dispatch(
@@ -156,10 +148,9 @@ const ForTest = ({ hashMap }) => {
                     name: scheduleVerName,
                     data: schedObject,
                 })
-            )
+            );
 
-            document.getElementById('confirm_schedule_save_modal').close()
-
+            document.getElementById('confirm_schedule_save_modal').close();
         }
     };
 
@@ -635,8 +626,8 @@ const ForTest = ({ hashMap }) => {
                         >
                             Redo
                         </button>
-                        <button 
-                            className='btn btn-secondary' 
+                        <button
+                            className='btn btn-secondary'
                             disabled={errorCount > 0}
                             onClick={() => document.getElementById('confirm_schedule_save_modal').showModal()}
                         >
@@ -725,34 +716,30 @@ const ForTest = ({ hashMap }) => {
                 <dialog id='confirm_schedule_save_modal' className='modal'>
                     <div className='modal-box'>
                         <div className='modal-action'>
-                            <div className="w-full">
-                                <label className="block text-sm font-medium mb-2 w-full">
+                            <div className='w-full'>
+                                <label className='block text-sm font-medium mb-2 w-full'>
                                     Provide a name for this set of schedules:
                                 </label>
                                 <input
-                                    type="text"
+                                    type='text'
                                     // className={`input input-bordered w-full ${
                                     //     errorField === 'name' ? 'border-red-500' : ''
                                     // }`}
                                     className={`input input-bordered w-full mb-4`}
                                     value={scheduleVerName}
                                     onChange={(e) => setScheduleVerName(e.target.value)}
-                                    placeholder="Enter name"
+                                    placeholder='Enter name'
                                     ref={inputNameRef}
                                 />
-                                <div className="flex justify-center gap-2">
-                                    <button className="btn btn-primary" onClick={save}>
+                                <div className='flex justify-center gap-2'>
+                                    <button className='btn btn-primary' onClick={save}>
                                         Confirm
                                     </button>
-                                    <button
-                                        className="btn btn-error border-0"
-                                        onClick={() => setScheduleVerName('')}
-                                    >
+                                    <button className='btn btn-error border-0' onClick={() => setScheduleVerName('')}>
                                         Reset
                                     </button>
                                 </div>
                             </div>
-                            
 
                             <button
                                 className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2'

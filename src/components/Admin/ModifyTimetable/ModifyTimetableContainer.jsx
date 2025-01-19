@@ -1,12 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import DragDrop from './DragDrop';
 import { generateTimeSlots } from '../utils';
 import { produce } from 'immer';
 import { PiConfetti } from 'react-icons/pi';
+import { addSched, fetchScheds } from '@features/schedulesSlice';
+import { convertStringDataToMap } from './utils';
 
 const ModifyTimetableContainer = ({ hashMap }) => {
-    console.log('hashMap: ', hashMap);
-    console.log('valueOF: ', typeof hashMap);
+    const dispatch = useDispatch();
+    const inputNameRef = useRef();
+    const { schedules, status: schedStatus } = useSelector((state) => state.schedule);
+    const [scheduleVerName, setScheduleVerName] = useState('');
+    useEffect(() => {
+        if (schedStatus === 'idle') {
+            dispatch(fetchScheds());
+        }
+    }, [schedStatus, dispatch]);
 
     const [selectedModeValue, setSelectedModeValue] = useState('5m');
     const [valueMap, setValueMap] = useState(hashMap);
@@ -103,7 +113,133 @@ const ModifyTimetableContainer = ({ hashMap }) => {
     };
 
     const save = () => {
-        console.log('saved');
+        function mapToObject(map) {
+            if (!(map instanceof Map)) return map;
+
+            return Object.fromEntries(Array.from(map.entries()).map(([key, value]) => [key, mapToObject(value)]));
+        }
+
+        function mapToArray(map) {
+            if (!(map instanceof Map)) return map;
+
+            let tableArray = [];
+            Array.from(map.entries()).forEach(([keyTable, table]) => {
+                let tableValue = [];
+                let containerName = '';
+                for (const row of table) {
+                    if (row[1].containerName) {
+                        containerName = row[1].containerName;
+                        break; // Exit the loop early
+                    }
+                }
+
+                tableValue.push(containerName);
+                let rowArray = [];
+                Array.from(table.entries()).forEach(([keyCell, cellBlocks]) => {
+                    let cellArray = [];
+                    cellArray.push(cellBlocks.type);
+                    cellArray.push(cellBlocks.teacherID);
+                    cellArray.push(cellBlocks.teacher);
+                    cellArray.push(cellBlocks.sectionID);
+                    cellArray.push(cellBlocks.section);
+                    cellArray.push(cellBlocks.subjectID);
+                    cellArray.push(cellBlocks.subject);
+                    const timeString = `${cellBlocks.start}-${cellBlocks.end}`;
+                    cellArray.push(timeString);
+                    cellArray.push(cellBlocks.day);
+                    rowArray.push(cellArray);
+                });
+                tableValue.push(rowArray);
+                tableArray.push(tableValue);
+            });
+
+            return tableArray;
+        }
+
+        function processRows(data, n) {
+            // Generate a key from each row ignoring the last element
+            function generateKey(row) {
+                return JSON.stringify(row.slice(0, -1));
+            }
+
+            // Count occurrences of each unique key
+            const keyCounts = {};
+            data.forEach((row) => {
+                const key = generateKey(row);
+                keyCounts[key] = (keyCounts[key] || 0) + 1;
+            });
+
+            // Identify keys that appear at least `n` times
+            const keysToOverwrite = Object.keys(keyCounts).filter((key) => keyCounts[key] >= n);
+
+            // Create the new data set
+            const newData = [];
+            const overwrittenKeys = new Set(keysToOverwrite);
+
+            keysToOverwrite.forEach((key) => {
+                const parsedKey = JSON.parse(key);
+                newData.push([...parsedKey, 0]);
+            });
+
+            // Add rows that don't meet the condition unchanged
+            data.forEach((row) => {
+                const key = generateKey(row);
+                if (!overwrittenKeys.has(key)) {
+                    newData.push(row);
+                }
+            });
+
+            return newData;
+        }
+
+        const array = mapToArray(valueMap);
+
+        //n is for number of days
+        const n = 5;
+        let resultarray = [];
+        array.forEach((row) => {
+            let tableArray = [];
+            let result = processRows(row[1], n);
+            tableArray.push(row[0]);
+            tableArray.push(result);
+            resultarray.push(tableArray);
+        });
+
+        const stringifiedTimeTable = JSON.stringify(resultarray);
+
+        console.log('stringified table: ', stringifiedTimeTable);
+
+        //calculate size
+        function getStringSizeInKB(string) {
+            const sizeInBytes = new Blob([string]).size;
+            return sizeInBytes / 1024;
+        }
+        const sizeStringified = getStringSizeInKB(stringifiedTimeTable);
+
+        console.log(`Output size: ${sizeStringified.toFixed(2)} KB`);
+
+        const dataMap = convertStringDataToMap(stringifiedTimeTable);
+        console.log('dataMap: ', dataMap);
+        // if (!scheduleVerName.trim()) {
+        //     alert('Please enter a version name');
+        //     return;
+        // }
+        // const duplicateScheduleName = Object.values(schedules).find(
+        //     (schedule) => schedule.name.trim().toLowerCase() === scheduleVerName.trim().toLowerCase()
+        // );
+        // if (duplicateScheduleName) {
+        //     alert('A schedule with this name already exists');
+        //     return;
+        // } else {
+        //     const schedObject = mapToObject(valueMap);
+        //     dispatch(
+        //         addSched({
+        //             name: scheduleVerName,
+        //             data: schedObject,
+        //         })
+        //     );
+        //     document.getElementById('confirm_schedule_save_modal').close();
+        // }
     };
 
     const clear = () => {
@@ -582,7 +718,11 @@ const ModifyTimetableContainer = ({ hashMap }) => {
                         >
                             Redo
                         </button>
-                        <button onClick={save} className='btn btn-secondary' disabled={errorCount > 0}>
+                        <button
+                            className='btn btn-secondary'
+                            disabled={errorCount > 0}
+                            onClick={() => document.getElementById('confirm_schedule_save_modal').showModal()}
+                        >
                             Save
                         </button>
                     </div>
@@ -664,6 +804,43 @@ const ModifyTimetableContainer = ({ hashMap }) => {
                         );
                     })
                 )}
+                <dialog id='confirm_schedule_save_modal' className='modal'>
+                    <div className='modal-box'>
+                        <div className='modal-action'>
+                            <div className='w-full'>
+                                <label className='block text-sm font-medium mb-2 w-full'>
+                                    Provide a name for this set of schedules:
+                                </label>
+                                <input
+                                    type='text'
+                                    // className={`input input-bordered w-full ${
+                                    //     errorField === 'name' ? 'border-red-500' : ''
+                                    // }`}
+                                    className={`input input-bordered w-full mb-4`}
+                                    value={scheduleVerName}
+                                    onChange={(e) => setScheduleVerName(e.target.value)}
+                                    placeholder='Enter name'
+                                    ref={inputNameRef}
+                                />
+                                <div className='flex justify-center gap-2'>
+                                    <button className='btn btn-primary' onClick={save}>
+                                        Confirm
+                                    </button>
+                                    <button className='btn btn-error border-0' onClick={() => setScheduleVerName('')}>
+                                        Reset
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button
+                                className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2'
+                                onClick={() => document.getElementById('confirm_schedule_save_modal').close()}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+                </dialog>
             </div>
         )
     );

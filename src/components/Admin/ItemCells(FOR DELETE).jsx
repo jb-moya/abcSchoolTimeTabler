@@ -7,7 +7,7 @@ import { convertToTime } from '../../utils/convertToTime';
 
 import { fetchSubjects } from '@features/subjectSlice';
 import { fetchTeachers } from '@features/teacherSlice';
-import ScheduleDialog from './ScheduleDialog';
+import ScheduleDialog from './ScheduleDialog(FOR DELETE)';
 
 const ItemCells = ({
     containerRef,
@@ -285,9 +285,7 @@ const ItemCells = ({
                         initial={{ opacity: 1 }}
                         animate={{ opacity: editMode && hovering ? 0 : 1 }}
                     >
-                        <div className='font-medium overflow-hidden text-center'>
-                            {cellVal}
-                        </div>
+                        <div className='font-medium overflow-hidden text-center'>{cellVal}</div>
                         <div className='text-center overflow-hidden'>{cell.subject}</div>
                         <div className='text-center text-[80%] overflow-hidden pt-0.5'>
                             {startTime} {endTime}
