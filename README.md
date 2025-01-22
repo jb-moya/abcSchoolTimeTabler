@@ -20,7 +20,7 @@ National High School, streamlining and replacing their manual scheduling process
 3. Manual Timettable editing:
    -  Provides an editing feature that detects overlapping classes after timetable generation, allowing school administrators to seamlessly apply last-minute changes.
 
-## Planned Future
+## Planned Features
 1. Enhanced Search Page
    -  Fetch timetables directly from Firebase for real-time updates.
 2. Timetable Download Option
