@@ -12,21 +12,22 @@ function InternalPage() {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        dispatch(setPageTitle({ title: 'Modify TimeTable' }));
+        dispatch(setPageTitle({ title: 'Modify Timetable' }));
     }, []);
 
-    const location = useLocation();
+    // const location = useLocation();
 
-    // fetch string
+    // // fetch string
 
-    // use convertStringDataToMap to convert it to Map
+    // // use convertStringDataToMap to convert it to Map
 
-    // pass the converted map here (just remove the location state etc)
-    const generatedMap = location.state?.generatedMap ?? new Map();
+    // // pass the converted map here (just remove the location state etc)
+    // const generatedMap = location.state?.generatedMap ?? new Map();
 
-    console.log('generatedTableMap: ', generatedMap);
+    // console.log('generatedTableMap: ', generatedMap);
 
-    return <ModifyTimetable table={generatedMap} />;
+    // return <ModifyTimetable table={generatedMap} />;
+    return <ModifyTimetable />;
 }
 
 export default InternalPage;

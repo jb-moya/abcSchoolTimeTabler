@@ -53,8 +53,8 @@ export function convertStringDataToMap(stringData) {
                     let keyToFind = scheduleKey.replace(/[^-]+$/, partnerType ?? 'n');
 
                     scheduleMap.set(scheduleKey, {
-                        start: start - 72,
-                        end: end - 72,
+                        start: start,
+                        end: end,
                         sectionID: sectionID,
                         subject: subject,
                         subjectID: subjectID,
@@ -83,8 +83,8 @@ export function convertStringDataToMap(stringData) {
                 let keyToFind = scheduleKey.replace(/[^-]+$/, partnerType ?? 'n');
 
                 scheduleMap.set(scheduleKey, {
-                    start: start - 72,
-                    end: end - 72,
+                    start: start,
+                    end: end,
                     sectionID: section,
                     subject: subject,
                     subjectID: subjectID,
