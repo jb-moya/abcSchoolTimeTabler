@@ -306,7 +306,7 @@ const ItemCells = ({
             </div>
             {/* Hover State Management */}
             <div
-                className={`absolute inset-0 ${isDragging ? 'cursor-grabbing' : hovering ? 'cursor-grab' : ''}`}
+                className={`absolute inset-0 ${isDragging ? 'cursor-grabbing' : hovering && !editMode ? 'cursor-grab' : ''}`}
                 onMouseEnter={() => {
                     console.log('cells: ', cell);
                     setHovering(true);
