@@ -3,6 +3,7 @@ import DragDrop from './DragDrop';
 import { generateTimeSlots } from './utils';
 import { produce } from 'immer';
 import { PiConfetti } from 'react-icons/pi';
+import { deployTimetable } from '../../features/deployTimetable';
 
 const ForTest = ({ hashMap }) => {
     const [selectedModeValue, setSelectedModeValue] = useState('5m');
@@ -101,6 +102,10 @@ const ForTest = ({ hashMap }) => {
 
     const save = () => {
         console.log('saved');
+    };
+
+    const deploy = async () => {
+        deployTimetable(valueMap);
     };
 
     const clear = () => {
@@ -575,6 +580,9 @@ const ForTest = ({ hashMap }) => {
                         </button>
                         <button onClick={save} className='btn btn-secondary' disabled={errorCount > 0}>
                             Save
+                        </button>
+                        <button onClick={deploy} className='btn btn-primary' disabled={errorCount > 0}>
+                            Deploy
                         </button>
                     </div>
                 </div>
