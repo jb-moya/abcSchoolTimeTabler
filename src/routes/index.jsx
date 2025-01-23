@@ -22,10 +22,10 @@ const ModifySubjects = lazy(() => import('../pages/protected/admin/ModifySubject
 const ModifySections = lazy(() => import('../pages/protected/admin/ModifySections'));
 const ModifyDepartments = lazy(() => import('../pages/protected/admin/ModifyDepartments'));
 const RoomMapping = lazy(() => import('../pages/protected/admin/RoomMapping'));
+const ModifyTimetable = lazy(() => import('../pages/protected/admin/ModifyTimeTable'));
 const DisplaySectionSchedule = lazy(() => import('../pages/protected/reports/SectionSchedules'));
 const DisplaySubjectSchedule = lazy(() => import('../pages/protected/reports/SubjectSchedules'));
 const DisplayTeacherSchedule = lazy(() => import('../pages/protected/reports/TeacherSchedules'));
-
 const routes = [
     {
         path: '/dashboard', // the url
@@ -54,6 +54,10 @@ const routes = [
     {
         path: '/admin/room-mapping', // the url
         component: RoomMapping, // view rendered
+    },
+    {
+        path: '/admin/modify-timetable', // the url
+        component: ModifyTimetable, // view rendered
     },
     {
         path: '/reports/display-teachers-schedule', // the url

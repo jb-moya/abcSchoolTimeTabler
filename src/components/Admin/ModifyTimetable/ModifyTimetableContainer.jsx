@@ -1,16 +1,56 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import DragDrop from './DragDrop';
-import { generateTimeSlots } from './utils';
+import { generateTimeSlots } from '../utils';
 import { produce } from 'immer';
 import { PiConfetti } from 'react-icons/pi';
-import { deployTimetable } from '../../features/deployTimetable';
+import { addSched, editSched, fetchScheds } from '@features/schedulesSlice';
+import { convertStringDataToMap } from './utils';
 
-const ForTest = ({ hashMap }) => {
+const ModifyTimetableContainer = ({ 
+    hashMap = new Map(),
+    timetableName = '',
+    timetableId = null,
+
+    errorMessage,
+    setErrorMessage,
+    errorField,
+    setErrorField,
+}) => {
+    
+    const dispatch = useDispatch();
+    const inputNameRef = useRef();
+
+// ================================================================================================================
+    
+    const { schedules, status: schedStatus } = useSelector((state) => state.schedule);
+
+    const [scheduleVerId, setScheduleVerId] = useState(timetableId);
+    const [scheduleVerName, setScheduleVerName] = useState(timetableName);
+
+    useEffect(() => {
+        if (schedStatus === 'idle') {
+            dispatch(fetchScheds());
+        }
+    }, [schedStatus, dispatch]);
+
+    const handleReset = () => {
+        setScheduleVerName(timetableName ? timetableName : '');
+        setErrorMessage('');
+        setErrorField('');
+    };
+
+// ================================================================================================================
+
     const [selectedModeValue, setSelectedModeValue] = useState('5m');
     const [valueMap, setValueMap] = useState(hashMap);
+
     const handleSelectChange = (event) => {
         setSelectedModeValue(event.target.value);
     };
+
+// ================================================================================================================
+
     const tableRefs = useRef({}); // Make sure this initializes as an object
     const [history, setHistory] = useState([new Map()]); // history stack (array of Maps)
     const [historyIndex, setHistoryIndex] = useState(0); // current position in history
@@ -29,7 +69,7 @@ const ForTest = ({ hashMap }) => {
     const [tableWidth, setTableWidth] = useState(0);
     const [currentPage, setCurrentPage] = useState(1); // State to track the current page
     const [itemsPerPage, setItemsPerPage] = useState(1); // Default items per page
-    const totalPages = Math.ceil(valueMap.size / itemsPerPage);
+    const totalPages = Math.ceil(valueMap?.size / itemsPerPage);
     const [pageNumbers, setPageNumbers] = useState([]); // State for page numbers
     const [editMode, setEditMode] = useState(false); // State for page numbers
 
@@ -84,6 +124,8 @@ const ForTest = ({ hashMap }) => {
         setCurrentPage(page);
     };
 
+// ===============================================================================================================
+
     const undo = () => {
         if (historyIndex > 1) {
             isUndoRedo.current = true; // Indicate this is an undo action
@@ -101,11 +143,148 @@ const ForTest = ({ hashMap }) => {
     };
 
     const save = () => {
-        console.log('saved');
-    };
 
-    const deploy = async () => {
-        deployTimetable(valueMap);
+        function mapToArray(map) {
+            if (!(map instanceof Map)) return map;
+
+            let tableArray = [];
+            Array.from(map.entries()).forEach(([keyTable, table]) => {
+                let tableValue = [];
+                let containerName = '';
+                for (const row of table) {
+                    if (row[1].containerName) {
+                        containerName = row[1].containerName;
+                        break; // Exit the loop early
+                    }
+                }
+
+                tableValue.push(containerName);
+                let rowArray = [];
+                Array.from(table.entries()).forEach(([keyCell, cellBlocks]) => {
+                    let cellArray = [];
+                    cellArray.push(cellBlocks.type);
+                    cellArray.push(cellBlocks.teacherID);
+                    cellArray.push(cellBlocks.teacher);
+                    cellArray.push(cellBlocks.sectionID);
+                    cellArray.push(cellBlocks.section);
+                    cellArray.push(cellBlocks.subjectID);
+                    cellArray.push(cellBlocks.subject);
+                    const timeString = `${cellBlocks.start}-${cellBlocks.end}`;
+                    cellArray.push(timeString);
+                    cellArray.push(cellBlocks.day);
+                    rowArray.push(cellArray);
+                });
+                tableValue.push(rowArray);
+                tableArray.push(tableValue);
+            });
+
+            return tableArray;
+        }
+
+        function processRows(data, n) {
+            // Generate a key from each row ignoring the last element
+            function generateKey(row) {
+                return JSON.stringify(row.slice(0, -1));
+            }
+
+            // Count occurrences of each unique key
+            const keyCounts = {};
+            data.forEach((row) => {
+                const key = generateKey(row);
+                keyCounts[key] = (keyCounts[key] || 0) + 1;
+            });
+
+            // Identify keys that appear at least `n` times
+            const keysToOverwrite = Object.keys(keyCounts).filter((key) => keyCounts[key] >= n);
+
+            // Create the new data set
+            const newData = [];
+            const overwrittenKeys = new Set(keysToOverwrite);
+
+            keysToOverwrite.forEach((key) => {
+                const parsedKey = JSON.parse(key);
+                newData.push([...parsedKey, 0]);
+            });
+
+            // Add rows that don't meet the condition unchanged
+            data.forEach((row) => {
+                const key = generateKey(row);
+                if (!overwrittenKeys.has(key)) {
+                    newData.push(row);
+                }
+            });
+
+            return newData;
+        }
+
+        const array = mapToArray(valueMap);
+
+        //n is for number of days
+        const n = 5;
+        let resultarray = [];
+        array.forEach((row) => {
+            let tableArray = [];
+            let result = processRows(row[1], n);
+            tableArray.push(row[0]);
+            tableArray.push(result);
+            resultarray.push(tableArray);
+        });
+
+        const stringifiedTimeTable = JSON.stringify(resultarray);
+
+        console.log('stringified table: ', stringifiedTimeTable);
+
+        //calculate size
+        function getStringSizeInKB(string) {
+            const sizeInBytes = new Blob([string]).size;
+            return sizeInBytes / 1024;
+        }
+
+        const sizeStringified = getStringSizeInKB(stringifiedTimeTable);
+
+        console.log(`Output size: ${sizeStringified.toFixed(2)} KB`);
+
+        // const dataMap = convertStringDataToMap(stringifiedTimeTable);
+        // console.log('dataMap: ', dataMap);
+
+        if (!scheduleVerName.trim()) {
+            setErrorField('timetable_name');
+            setErrorMessage('Timetable name cannot be empty.');
+            return;
+        }
+
+        const duplicateScheduleName = Object.values(schedules).find(
+            (schedule) => 
+                schedule.name.trim().toLowerCase() === scheduleVerName.trim().toLowerCase() &&
+                schedule.id !== timetableId
+        );
+
+        if (duplicateScheduleName) {
+            setErrorField('timetable_name');
+            setErrorMessage(`Timetable with name '${scheduleVerName}' already exists.`);
+            return;
+        } else {   
+            if (timetableId === null) {
+                dispatch(
+                    addSched({
+                        name: scheduleVerName,
+                        data: stringifiedTimeTable,
+                    })
+                );
+            } else {
+                dispatch(
+                    editSched({
+                        schedId: timetableId,
+                        updatedSched: {
+                            name: scheduleVerName,
+                            data: stringifiedTimeTable,
+                        },
+                    })
+                )
+            }
+            
+            document.getElementById('confirm_schedule_save_modal').close();
+        }
     };
 
     const clear = () => {
@@ -116,8 +295,11 @@ const ForTest = ({ hashMap }) => {
     };
 
     const add = () => {
+        setAddClicked(true);
         console.log('add');
     };
+
+// ===============================================================================================================
 
     useEffect(() => {
         const overlaps = detectOverlaps(valueMap);
@@ -125,7 +307,10 @@ const ForTest = ({ hashMap }) => {
         setOverlapsDisplay(overlaps);
         const resolvedMap = updateOverlapFields(overlaps);
         // console.log('resolvedmap: ', resolvedMap);
-        setValueMap(resolvedMap);
+        if (overlaps.length > 1) {
+            console.log('setting');
+            setValueMap(resolvedMap);
+        }
 
         if (!deepEqualMaps(history[historyIndex], valueMap)) {
             const newHistory = history.slice(0, historyIndex + 1); // Remove future history if undo/redo happened
@@ -310,6 +495,8 @@ const ForTest = ({ hashMap }) => {
         }
     };
 
+// ===============================================================================================================
+
     const Column = () => {
         const days = ['Mon', 'Tue', 'Wed', 'Thur', 'Fri'];
         return (
@@ -412,6 +599,18 @@ const ForTest = ({ hashMap }) => {
         setSearch(error);
         setSearchField(error);
     };
+
+    const optimizeTable = () => {};
+
+// ==============================================================================================================
+// For debugging (console.log())
+
+    useEffect(() => {
+        console.log('valueMap', valueMap);
+    }, [valueMap]);
+
+// ==============================================================================================================
+
     return (
         Array.from(paginatedValueMap.entries()).length > 0 && (
             <div className='overflow-hidden select-none'>
@@ -538,7 +737,7 @@ const ForTest = ({ hashMap }) => {
                     </button>
 
                     <div className='flex flex-row items-center space-x-2 ml-auto'>
-                        <button onClick={add} disabled className='btn btn-secondary'>
+                        <button onClick={add} className='btn btn-secondary'>
                             Add
                         </button>
                         <div className='form-control'>
@@ -578,11 +777,12 @@ const ForTest = ({ hashMap }) => {
                         >
                             Redo
                         </button>
-                        <button onClick={save} className='btn btn-secondary' disabled={errorCount > 0}>
+                        <button
+                            className='btn btn-secondary'
+                            disabled={errorCount > 0}
+                            onClick={() => document.getElementById('confirm_schedule_save_modal').showModal()}
+                        >
                             Save
-                        </button>
-                        <button onClick={deploy} className='btn btn-primary' disabled={errorCount > 0}>
-                            Deploy
                         </button>
                     </div>
                 </div>
@@ -608,6 +808,27 @@ const ForTest = ({ hashMap }) => {
                             >
                                 {/* Card for each section */}
                                 <div className='card bg-base-100 w-full shadow-xl pt-5'>
+                                    {
+                                        timetableId !== null &&
+                                        (   
+                                            <div className="flex items-center">
+                                                <label className="mr-4 w-1/6 text-center">
+                                                    Schedule Name: 
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    className={`input input-bordered w-1/3 ${errorField === 'timetable_name' ? 'border-red-500' : ''}`}
+                                                    value={scheduleVerName}
+                                                    onChange={(e) => setScheduleVerName(e.target.value)}
+                                                    placeholder="Enter name"
+                                                    ref={inputNameRef}
+                                                />
+                                            </div>
+
+                                            
+
+                                        )
+                                    }
                                     <div className='card-body'>
                                         {/* Dynamically render section name */}
                                         <h2 className='card-title capitalize'>{key}</h2>
@@ -663,9 +884,58 @@ const ForTest = ({ hashMap }) => {
                         );
                     })
                 )}
+
+                {/*  */}
+                <dialog id='confirm_schedule_save_modal' className='modal'>
+                    <div className='modal-box'>
+                        <div className='modal-action'>
+                            <div className='w-full'>
+                                <label className='block text-sm font-medium mb-2 w-full'>
+                                    {
+                                        timetableId === null 
+                                            ? 'Provide a name for this set of schedules:' 
+                                            : `Are you sure you want to save the changes?`
+                                    }
+                                </label>
+                                {
+                                    timetableId === null &&
+                                    (<input
+                                        type='text'
+                                        className={`input input-bordered w-full mb-4 ${errorField === 'timetable_name' ? 'border-red-500' : ''}`}
+                                        value={scheduleVerName}
+                                        onChange={(e) => setScheduleVerName(e.target.value)}
+                                        placeholder='Enter name'
+                                        ref={inputNameRef}
+                                    />)
+                                }
+
+                                {errorMessage && <p className='text-red-500 text-sm my-4 font-medium select-none '>{errorMessage}</p>}
+
+                                <div className='flex justify-center gap-2'>
+                                    <button className='btn btn-primary' onClick={save}>
+                                        Confirm
+                                    </button>
+                                    <button className='btn btn-error border-0' onClick={handleReset}>
+                                        Reset
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button
+                                className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2'
+                                onClick={() => {
+                                    handleReset();
+                                    document.getElementById('confirm_schedule_save_modal').close();
+                                }}                                
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+                </dialog>
             </div>
         )
     );
 };
 
-export default ForTest;
+export default ModifyTimetableContainer;

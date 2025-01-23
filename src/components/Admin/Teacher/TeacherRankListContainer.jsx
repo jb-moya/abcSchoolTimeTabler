@@ -458,14 +458,8 @@ const TeacherRankListContainer = ({ editable = false }) => {
                                         {editable && (
                                             <td className='w-28'>
                                                 <>
-                                                    {/* <button
-													className="btn btn-xs btn-ghost text-blue-500"
-													onClick={() => handleEditRankClick(rank)}
-												>
-													<RiEdit2Fill size={20} />
-												</button> */}
-
-                                                    <TeacherRankEdit
+                                                <div className='flex'>
+                                                <TeacherRankEdit
                                                         rank={rank}
                                                         reduxFunction={editRank}
                                                         errorMessage={errorMessage}
@@ -475,6 +469,9 @@ const TeacherRankListContainer = ({ editable = false }) => {
                                                         numOfSchoolDays={numOfSchoolDays}
                                                     />
                                                     <DeleteData id={rank.id} store={'rank'} reduxFunction={removeRank} />
+
+                                                </div>
+                                                    
                                                 </>
                                             </td>
                                         )}

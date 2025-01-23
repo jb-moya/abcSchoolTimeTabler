@@ -53,6 +53,11 @@ const routes = [
                 icon: <MdOutlineMeetingRoom className={submenuIconClasses} />,
                 name: 'Room Utilization',
             },
+            {
+                path: '/app/admin/modify-timetable',
+                icon: <MdOutlineMeetingRoom className={submenuIconClasses} />,
+                name: 'Modify TimeTable',
+            },
         ],
     },
     {

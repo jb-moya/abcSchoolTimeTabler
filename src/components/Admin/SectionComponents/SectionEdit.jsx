@@ -147,7 +147,7 @@ const SectionEdit = ({
         }
     }, [editSectionYear, editSectionProg, programs]);
 
-// ===============================================================================================
+    // ===============================================================================================
 
     const handleSaveSectionEditClick = (sectionId) => {
         if (
@@ -210,9 +210,7 @@ const SectionEdit = ({
             );
 
             const duplicateAdviser = Object.values(sections).find(
-                (section) => 
-                    section.teacher === editSectionAdviser &&
-                    section.id !== sectionId
+                (section) => section.teacher === editSectionAdviser && section.id !== sectionId
             );
 
             console.log('editSectionEndTime: ', editSectionEndTime);
@@ -297,60 +295,60 @@ const SectionEdit = ({
         closeModal();
     };
 
-// =============================================================================================
+    // =============================================================================================
 
     // End Times
-        const handleEndTimeChange = () => {
-            if (editSectionSubjects.length === 0) return;
+    const handleEndTimeChange = () => {
+        if (editSectionSubjects.length === 0) return;
 
-            const startTimeIdx = getTimeSlotIndex(editSectionStartTime);
-            const breakTimeCount = editSectionSubjects.length > 10 ? 2 : 1;
+        const startTimeIdx = getTimeSlotIndex(editSectionStartTime);
+        const breakTimeCount = editSectionSubjects.length > 10 ? 2 : 1;
 
-            let totalDuration = breakTimeCount * breakTimeDuration;
+        let totalDuration = breakTimeCount * breakTimeDuration;
 
-            editSectionSubjects.forEach((subId) => {
-                totalDuration += subjects[subId].classDuration;
-            });
+        editSectionSubjects.forEach((subId) => {
+            totalDuration += subjects[subId].classDuration;
+        });
 
-            const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
+        const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
 
-            if (!getTimeSlotString(endTimeIdx)) {
-                setIsEndTimeValid(false);
-                return;
-            }
-            
-            // console.log('getTimeSlotString(endTimeIdx): ', getTimeSlotString(endTimeIdx));
+        if (!getTimeSlotString(endTimeIdx)) {
+            setIsEndTimeValid(false);
+            return;
+        }
 
-            setIsEndTimeValid(true);
+        // console.log('getTimeSlotString(endTimeIdx): ', getTimeSlotString(endTimeIdx));
 
-            setEditSectionEndTime(endTimeIdx);
-        };
-    
-        useEffect(() => {
-            if (editSectionSubjects.length === 0) return;
-    
-            handleEndTimeChange();
-        }, [editSectionSubjects, editSectionStartTime, breakTimeDuration]);
+        setIsEndTimeValid(true);
+
+        setEditSectionEndTime(endTimeIdx);
+    };
+
+    useEffect(() => {
+        if (editSectionSubjects.length === 0) return;
+
+        handleEndTimeChange();
+    }, [editSectionSubjects, editSectionStartTime, breakTimeDuration]);
 
     // Additional Schedules
-        const handleAddAdditionalSchedule = () => {
-            setEditAdditionalScheds((prevScheds) => [
-                ...prevScheds,
-                {
-                    name: '',
-                    subject: -1,
-                    duration: 60,
-                    frequency: 1,
-                    shown: true,
-                },
-            ]);
-        };
+    const handleAddAdditionalSchedule = () => {
+        setEditAdditionalScheds((prevScheds) => [
+            ...prevScheds,
+            {
+                name: '',
+                subject: -1,
+                duration: 60,
+                frequency: 1,
+                shown: true,
+            },
+        ]);
+    };
 
     const handleDeleteAdditionalSchedule = (index) => {
         setEditAdditionalScheds((prevScheds) => prevScheds.filter((_, i) => i !== index));
     };
 
-// =============================================================================================
+    // =============================================================================================
 
     useEffect(() => {
         if (buildingStatus === 'idle') {
@@ -382,7 +380,7 @@ const SectionEdit = ({
         }
     }, [teacherStatus, dispatch]);
 
-// ===============================================================================================
+    // ===============================================================================================
 
     const resetStates = () => {
         // Reset the editing state
@@ -419,7 +417,7 @@ const SectionEdit = ({
     // ===============================================================================================
 
     return (
-        <div className='flex items-center justify-center'>
+        <div className=''>
             {/* Trigger Button */}
             <label htmlFor={`sectionEdit_modal_${section.id}`} className='btn btn-xs btn-ghost text-blue-500'>
                 <RiEdit2Fill size={20} />
@@ -428,406 +426,457 @@ const SectionEdit = ({
             {/* Modal */}
             <input type='checkbox' id={`sectionEdit_modal_${section.id}`} className='modal-toggle' />
             <div className='modal'>
-                <div className='modal-box relative' style={{ width: '50%', maxWidth: 'none' }}>
+                <div className='modal-box relative' style={{ width: '40%', maxWidth: 'none' }}>
                     <label onClick={closeModal} className='btn btn-sm btn-circle absolute right-2 top-2'>
                         ✕
                     </label>
-                    <h3 className='flex justify-center text-lg font-bold mb-4'>Edit Section</h3>
-                    <hr className='mb-4' />
-                    <div className='p-6'>
 
-                        {/* Section Name */}
-                        <div className='flex items-center mb-2'>
-                            <label htmlFor='section-name' className='mr-2'>
-                                Name:
-                            </label>
-                            <input
-                                type='text'
-                                id='section-name'
-                                value={editSectionValue}
-                                onChange={(e) => setEditSectionValue(e.target.value)}
-                                className='input input-bordered input-sm w-full'
-                            />
+                    <div>
+                        <div className='flex justify-center'>
+                            <h3 className='text-lg font-bold mb-4'>Edit Section</h3>
                         </div>
 
-                        {/* Section Program */}
-                        <div className='flex items-center mb-2'>
-                            <label htmlFor='section-name' className='mr-2'>
-                                Program:
-                            </label>
-                            <select
-                                value={editSectionProg}
-                                onChange={(e) => {
-                                    const newProgram = parseInt(e.target.value, 10);
-                                    setEditSectionProg(newProgram);
-                                }}
-                                className='select select-bordered'
-                            >
-                                {Object.entries(programs).map(([key, program]) => (
-                                    <option key={key} value={key}>
-                                        {program.program}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        <hr className='mb-4'></hr>
 
-                        {/* Section Year */}
-                        <div className='flex items-center mb-2'>
-                            <label htmlFor='section-name' className='mr-2'>
-                                Year:
-                            </label>
-                            <select
-                                value={editSectionYear}
-                                onChange={(e) => {
-                                    const newYear = parseInt(e.target.value, 10);
-                                    setEditSectionYear(newYear);
-                                }}
-                                className='select select-bordered'
-                            >
-                                {[7, 8, 9, 10].map((year) => (
-                                    <option key={year} value={year}>
-                                        {year}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* Section Shift */}
-                        <div className='mt-2'>
-                            <label className='mr-2'>Shift:</label>
-                            <label className='mr-2'>
+                        <div className='p-4 border rounded-lg shadow-md mb-4'>
+                            {/* Section Name */}
+                            <div className='mb-4'>
+                                <label className='label'>
+                                    <span className='label-text'>Section Name</span>
+                                </label>
                                 <input
-                                    type='radio'
-                                    value={editSectionShift}
-                                    checked={editSectionShift === 0}
-                                    onChange={() => {
-                                        setEditSectionShift(0); // PM shift
-                                        setEditSectionStartTime('06:00 AM'); // Reset to default AM start time
-                                    }}
-                                />
-                                AM
-                            </label>
-                            <label>
-                                <input
-                                    type='radio'
-                                    value={editSectionShift}
-                                    checked={editSectionShift === 1}
-                                    onChange={() => {
-                                        setEditSectionShift(1); // PM shift
-                                        setEditSectionStartTime('01:00 PM'); // Reset to default PM start time
-                                    }}
-                                />
-                                PM
-                            </label>
-                        </div>
-
-                        {/* Section Start Time (AM or PM) */}
-                        <div className="mt-2 flex flex-wrap">
-                            <label className="w-1/4 mr-2 p-2 text-sm flex items-center justify-end font-bold">
-                                START TIME  
-                            </label>
-                            <div className='w-2/3 pl-2'>
-                                <TimeSelector 
-                                    key={`start-time-section(${editSectionId})`}
-                                    interval={5}
-                                    time={editSectionStartTime}
-                                    setTime={setEditSectionStartTime}
-                                    am={editSectionShift === 0 ? 1 : 0}
-                                    pm={editSectionShift === 1 ? 1 : 0}
+                                    type='text'
+                                    id='section-name'
+                                    value={editSectionValue}
+                                    onChange={(e) => setEditSectionValue(e.target.value)}
+                                    className='input input-bordered text-sm w-full'
                                 />
                             </div>
-                            {!isEndTimeValid && (
-                                <div
-                                    className='w-auto flex ml-2 items-center tooltip text-red-500'
-                                    data-tip='Total class time exceeds the day, consider adjusting the start time.'
+
+                            {/* Section Adviser */}
+                            <div className='mt-3'>
+                                <label className='label'>
+                                    <span className='label-text'>Assign Adviser</span>
+                                </label>
+                                <select
+                                    className={`select select-bordered w-full ${
+                                        errorField.includes('adviser') ? 'border-red-500' : ''
+                                    }`}
+                                    value={editSectionAdviser}
+                                    onChange={(e) => setEditSectionAdviser(parseInt(e.target.value, 10))}
                                 >
-                                    <IoWarningSharp size={35} />
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Section Adviser */}
-                        <div className='flex flex-wrap mt-2'>
-                            <div className='w-1/4 p-2 font-bold flex items-center justify-center'>Adviser:</div>
-                            <select
-                                className='w-3/4 select select-bordered'
-                                value={editSectionAdviser}
-                                onChange={(e) => setEditSectionAdviser(parseInt(e.target.value, 10))}
-                            >
-                                <option value='' disabled>
-                                    Assign an adviser
-                                </option>
-                                {Object.keys(teachers).map((key) => (
-                                    <option key={teachers[key].id} value={teachers[key].id}>
-                                        {teachers[key].teacher}
+                                    <option value='' disabled>
+                                        Assign an adviser
                                     </option>
-                                ))}
-                            </select>
+                                    {Object.keys(teachers).map((key) => (
+                                        <option key={teachers[key].id} value={teachers[key].id}>
+                                            {teachers[key].teacher}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Program */}
+                            <div className='mt-3'>
+                                <label className='label'>
+                                    <span className='label-text'>Select Program</span>
+                                </label>
+                                <select
+                                    value={editSectionProg}
+                                    onChange={(e) => {
+                                        const newProgram = parseInt(e.target.value, 10);
+                                        setEditSectionProg(newProgram);
+                                    }}
+                                    className='select select-bordered w-full'
+                                >
+                                    {Object.entries(programs).map(([key, program]) => (
+                                        <option key={key} value={key}>
+                                            {program.program}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Year Level */}
+                            <div className='mt-3'>
+                                <label className='label'>
+                                    <span className='label-text'>Select Year Level</span>
+                                </label>
+                                <select
+                                    value={editSectionYear}
+                                    onChange={(e) => {
+                                        const newYear = parseInt(e.target.value, 10);
+                                        setEditSectionYear(newYear);
+                                    }}
+                                    className='select select-bordered w-full'
+                                >
+                                    {[7, 8, 9, 10].map((year) => (
+                                        <option key={year} value={year}>
+                                            {year}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
 
-                        {/* Room Details */}
-                        <div>
-                            {/* Building */}
-                            <div className='mb-5 flex flex-col justify-start'>
-                                <label className='h-1/2'>
-                                    <span className='label-text'>Building</span>
+                        <div className='p-4 border rounded-lg shadow-md mb-4'>
+                            <div className='text-lg font-semibold rounded-lg flex justify-center items-center'>Schedule Details</div>
+                            <hr className='my-2'></hr>
+
+                            {/* Section Shift */}
+                            <div className='flex mt-5'>
+                                <label className='w-1/4 font-semibold text-base text-center mr-4'>SHIFT:</label>
+                                <label className='flex items-center space-x-6 text-base mr-2'>
+                                    <input
+                                        type='radio'
+                                          className='mr-2'
+                                        value={editSectionShift}
+                                        checked={editSectionShift === 0}
+                                        onChange={() => {
+                                            setEditSectionShift(0); // PM shift
+                                            setEditSectionStartTime('06:00 AM'); // Reset to default AM start time
+                                        }}
+                                    />
+                                    AM
                                 </label>
-                                <div className='h-1/2 input input-bordered'>
-                                    {buildings[
-                                        editSectionId === section.id ? editRoomDetails.buildingId : section.roomDetails.buildingId
-                                    ]?.name || 'Unknown Building'}
-                                </div>
+                                <label className='flex items-center space-x-6 text-base mr-2'>
+                                    <input
+                                        type='radio'
+                                        className='mr-2'
+                                        value={editSectionShift}
+                                        checked={editSectionShift === 1}
+                                        onChange={() => {
+                                            setEditSectionShift(1); // PM shift
+                                            setEditSectionStartTime('01:00 PM'); // Reset to default PM start time
+                                        }}
+                                    />
+                                    PM
+                                </label>
                             </div>
 
-                            {/* Floor */}
-                            <div className='mb-5 flex flex-col justify-start'>
-                                <label className='h-1/2'>
-                                    <span className='label-text'>Floor</span>
+                            {/* Section Start Time (AM or PM) */}
+                            <div className='mt-2 flex flex-wrap'>
+                                <label className='w-1/4 mr-2 p-2 text-sm flex items-center justify-end font-bold'>
+                                    START TIME
                                 </label>
-                                <div className='h-1/2 input input-bordered'>
-                                    {(editSectionId === section.id
-                                        ? editRoomDetails.floorIdx + 1
-                                        : section.roomDetails.floorIdx + 1) || 'Unknown Floor'}
-                                </div>
-                            </div>
-
-                            {/* Room */}
-                            <div className='mb-5 flex flex-col justify-start'>
-                                <label className='h-1/2'>
-                                    <span className='label-text'>Room</span>
-                                </label>
-                                <div className='h-1/2 input input-bordered'>
-                                    {editSectionId === section.id
-                                        ? buildings[editRoomDetails.buildingId]?.rooms[editRoomDetails.floorIdx][
-                                              editRoomDetails.roomIdx
-                                          ]?.roomName
-                                        : buildings[section.roomDetails.buildingId]?.rooms[section.roomDetails.floorIdx][
-                                              section.roomDetails.roomIdx
-                                          ]?.roomName || 'Unknown Room'}
-                                </div>
-                            </div>
-
-                            {editSectionId === section.id && (
-                                <div>
-                                    <div className='w-1/4 flex justify-start items-end'>
-                                        <button
-                                            className='btn btn-primary btn-sm'
-                                            onClick={() =>
-                                                document
-                                                    .getElementById(
-                                                        `view_rooms_modal_viewMode(0)_section(${section.id})_building(0)`
-                                                    )
-                                                    .showModal()
-                                            }
-                                        >
-                                            Change Room
-                                        </button>
-                                    </div>
-
-                                    <ViewRooms
-                                        viewMode={0}
-                                        sectionId={section.id}
-                                        roomDetails={editRoomDetails}
-                                        setRoomDetails={setEditRoomDetails}
-                                        startTime={getTimeSlotIndex(editSectionStartTime)}
-                                        endTime={editSectionEndTime}
+                                <div className='w-2/3 pl-2'>
+                                    <TimeSelector
+                                        key={`start-time-section(${editSectionId})`}
+                                        interval={5}
+                                        time={editSectionStartTime}
+                                        setTime={setEditSectionStartTime}
+                                        am={editSectionShift === 0 ? 1 : 0}
+                                        pm={editSectionShift === 1 ? 1 : 0}
                                     />
                                 </div>
-                            )}
-                        </div>
-
-                        {/* Subject Details */}
-                        <div className='overflow-x-auto mt-2'>
-                            <table className='min-w-full border border-base-content border-opacity-20'>
-                                <thead>
-                                    <tr className='border-b border-base-content border-opacity-20'>
-                                        <th className='py-2 px-4 font-normal text-left'>Subject</th>
-                                        <th className='py-2 px-4 font-normal text-left'>Duration (min)</th>
-                                        <th className='py-2 px-4 font-normal text-left'>Weekly Minutes</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {Array.isArray(section.subjects) && section.subjects.length > 0 ? (
-                                        section.subjects.map((subjectID, index) => (
-                                            <tr key={index} className='border-b border-base-content border-opacity-20'>
-                                                {/* Subject Name */}
-                                                <td className='py-2 px-4'>
-                                                    {subjects[subjectID]?.subject || 'Unknown Subject, ID: ' + subjectID}
-                                                </td>
-
-                                                {/* Duration */}
-                                                <td className='py-2 px-4'>{subjects[subjectID]?.classDuration || ''}</td>
-
-                                                {/* Weekly Minutes */}
-                                                <td className='py-2 px-4'>{subjects[subjectID]?.weeklyMinutes || ''}</td>
-                                            </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td
-                                                colSpan='4'
-                                                className='py-2 px-4 text-center border-b border-base-content border-opacity-20'
-                                            >
-                                                No subjects selected
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-
-                            <div className='p-2 flex justify-center'>
-                                <button
-                                    className='btn'
-                                    onClick={() =>
-                                        document
-                                            .getElementById(
-                                                `assign_fixed_sched_modal_section(${section.id})-grade(${editSectionYear})-view(0)`
-                                            )
-                                            .showModal()
-                                    }
-                                >
-                                    View Fixed Schedules
-                                </button>
-
-                                <FixedScheduleMaker
-                                    key={editSectionYear}
-                                    viewingMode={0}
-                                    isForSection={true}
-                                    pvs={1}
-                                    section={section.id}
-                                    grade={editSectionYear}
-                                    selectedSubjects={editSectionSubjects}
-                                    fixedDays={editSectionFixedDays}
-                                    additionalSchedules={editAdditionalScheds || []}
-                                    // totalTimeslot={
-                                    //     sectionTotalTimeslot[
-                                    //         section.id
-                                    //     ]
-                                    // }
-                                    setFixedDays={setEditSectionFixedDays}
-                                    fixedPositions={editSectionFixedPositions}
-                                    setFixedPositions={setEditSectionFixedPositions}
-                                    numOfSchoolDays={numOfSchoolDays}
-                                />
+                                {!isEndTimeValid && (
+                                    <div
+                                        className='w-auto flex ml-2 items-center tooltip text-red-500'
+                                        data-tip='Total class time exceeds the day, consider adjusting the start time.'
+                                    >
+                                        <IoWarningSharp size={35} />
+                                    </div>
+                                )}
                             </div>
                         </div>
 
-                        {/* Additional Schedules */}
-                        <div
-                            key={`edit-add-sched-edit-section(${editSectionId})`}
-                            className='mt-2 overflow-y-auto h-36 max-h-36 border bg-base-100 border-opacity-20 rounded-lg'
-                            style={{
-                                scrollbarWidth: 'thin',
-                                scrollbarColor: '#a0aec0 #edf2f7',
-                            }} // Optional for styled scrollbars
-                        >
-                            <div
-                                className='flex flex-wrap bg-base-200 border-b border-opacity-20'
-                                style={{
-                                    position: 'sticky',
-                                    top: 0,
-                                    zIndex: 1,
-                                    // backgroundColor: 'white',
-                                }}
-                            >
-                                <div className='w-9/12 font-bold p-2'>Grade {editSectionYear}</div>
-                                <div className='w-3/12 flex justify-center items-center'>
-                                    <button
-                                        className='w-3/4 bg-green-700 m-2 font-bold  rounded-lg'
-                                        onClick={handleAddAdditionalSchedule}
-                                    >
-                                        +
-                                    </button>
+                        <div className='p-4 border rounded-lg shadow-md mb-4'>
+                            {/* Room Details */}
+                            <div className=''>
+                                <div className='text-lg font-semibold rounded-lg flex items-center justify-center'>Room Details</div>
+                                <hr className='my-2'></hr>
+
+                                <div className='flex flex-wrap'>
+                                    {/* Building */}
+                                    <div className='w-1/4 flex flex-col justify-start'>
+                                        <label className='label'>
+                                            <span className='label-text'>Building</span>
+                                        </label>
+                                        <input
+                                            type='text'
+                                            value={
+                                                buildings[
+                                                    editSectionId === section.id
+                                                        ? editRoomDetails.buildingId
+                                                        : section.roomDetails.buildingId
+                                                ]?.name || 'Unknown Building'
+                                            }
+                                            className='input input-bordered input-sm w-5/6'
+                                            readOnly
+                                        />
+                                    </div>
+
+                                    {/* Floor */}
+                                    <div className='w-1/4 flex flex-col justify-start'>
+                                        <label className='label'>
+                                            <span className='label-text'>Floor</span>
+                                        </label>
+                                        <input
+                                            type='text'
+                                            value={
+                                                (editSectionId === section.id
+                                                    ? editRoomDetails.floorIdx + 1
+                                                    : section.roomDetails.floorIdx + 1) || 'Unknown Floor'
+                                            }
+                                            className='input input-bordered input-sm w-5/6'
+                                            readOnly
+                                        />
+                                    </div>
+
+                                    {/* Room */}
+                                    <div className='w-1/4 flex flex-col justify-start'>
+                                        <label className='label'>
+                                            <span className='label-text'>Room</span>
+                                        </label>
+                                        <input
+                                            type='text'
+                                            value={
+                                                editSectionId === section.id
+                                                    ? buildings[editRoomDetails.buildingId]?.rooms[editRoomDetails.floorIdx][
+                                                          editRoomDetails.roomIdx
+                                                      ]?.roomName
+                                                    : buildings[section.roomDetails.buildingId]?.rooms[
+                                                          section.roomDetails.floorIdx
+                                                      ][section.roomDetails.roomIdx]?.roomName || 'Unknown Room'
+                                            }
+                                            className='input input-bordered input-sm w-5/6'
+                                            readOnly
+                                        />
+                                    </div>
+
+                                    {editSectionId === section.id && (
+                                        <div>
+    
+                                            <div className='w-1/4 flex justify-start items-start mt-9 '>
+                                                <button
+                                                    className='btn btn-primary btn-sm'
+                                                    onClick={() =>
+                                                        document
+                                                            .getElementById(
+                                                                `view_rooms_modal_viewMode(0)_section(${section.id})_building(0)`
+                                                            )
+                                                            .showModal()
+                                                    }
+                                                >
+                                                    Change Room
+                                                </button>
+                                            </div>
+
+                                            <ViewRooms
+                                                viewMode={0}
+                                                sectionId={section.id}
+                                                roomDetails={editRoomDetails}
+                                                setRoomDetails={setEditRoomDetails}
+                                                startTime={getTimeSlotIndex(editSectionStartTime)}
+                                                endTime={editSectionEndTime}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
-                            {editAdditionalScheds.map(
-                                (sched, index) => (
-                                    <div
-                                        key={`edit-add-sched-${editSectionId}-${index}`}
+                        </div>
+
+                        {/* Subjects and Fixed Schedules */}
+                        {section.subjects.length > 0 && (
+                            <div className='p-4 border rounded-lg shadow-md mb-4 '>
+                                <>
+                                    <div className='text-lg  font-semibold rounded-lg  flex items-center justify-center'>Fixed Schedules</div>
+                                    <hr className='my-2'></hr>
+                                    <div className='mt-4 text-sm'>
+                                        <table className='min-w-full bg-white font-normal border border-gray-300'>
+                                            <thead>
+                                                <tr>
+                                                    <th className='py-2 px-4 border-b border-gray-200 font-normal text-left'>
+                                                        Subject
+                                                    </th>
+                                                    <th className='py-2 px-4 border-b border-gray-200 font-normal text-left'>
+                                                        Duration (min)
+                                                    </th>
+                                                    <th className='py-2 px-4 border-b border-gray-200 font-normal text-left'>
+                                                        Weekly Minutes
+                                                    </th>
+                                                    <th className='py-2 px-4 border-b border-gray-200 font-normal text-left'>
+                                                        # of Classes
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {section.subjects.map((subjectID) => (
+                                                    <tr key={subjectID}>
+                                                        <td className='p-2'>
+                                                            {subjects[subjectID]?.subject || 'Unknown Subject, ID: ' + subjectID}
+                                                        </td>
+                                                        <td className='p-2'>{subjects[subjectID]?.classDuration || 'N/A'}</td>
+                                                        <td className='p-2'>{subjects[subjectID]?.weeklyMinutes || 'N/A'}</td>
+                                                        <td>
+                                                            {Math.min(
+                                                                Math.ceil(
+                                                                    subjects[subjectID]?.weeklyMinutes /
+                                                                        subjects[subjectID]?.classDuration
+                                                                ),
+                                                                numOfSchoolDays
+                                                            ) || 'N/A'}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div className='flex items-center justify-center'>
+                                    <button
+                                        className='btn mt-4 '
+                                        onClick={() =>
+                                            document
+                                                .getElementById(
+                                                    `assign_fixed_sched_modal_section(${section.id})-grade(${editSectionYear})-view(0)`
+                                                )
+                                                .showModal()
+                                        }
                                     >
-                                        <div className="flex flex-wrap">
+                                        Edit Section Fixed Schedule(s)
+                                    </button>
+                                        
+
+                                    </div>
+                                    <FixedScheduleMaker
+                                        key={editSectionYear}
+                                        viewingMode={0}
+                                        isForSection={true}
+                                        pvs={1}
+                                        section={section.id}
+                                        grade={editSectionYear}
+                                        selectedSubjects={editSectionSubjects}
+                                        fixedDays={editSectionFixedDays}
+                                        additionalSchedules={editAdditionalScheds || []}
+                                    // totalTimeslot={
+                                        //     sectionTotalTimeslot[
+                                        //         section.id
+                                        //     ]
+                                        // }
+                                        setFixedDays={setEditSectionFixedDays}
+                                        fixedPositions={editSectionFixedPositions}
+                                        setFixedPositions={setEditSectionFixedPositions}
+                                        numOfSchoolDays={numOfSchoolDays}
+                                    />
+                                </>
+                            </div>
+                        )}
+
+                        {/* Additional Schedules */}
+                        {editAdditionalScheds.length > 0 && (
+                            <div className='p-4 rounded-lg shadow-md border'>
+                                <div className='text-center font-semibold text-lg'>Additional Schedules</div>
+                                <hr className='my-2'></hr>
+
+                                {/* Button to add schedules */}
+                                <button
+                                    onClick={handleAddAdditionalSchedule}
+                                    className='flex flex-wrap items-right text-sm mt-2 bg-primary p-4 text-white px-2 py-1 rounded-lg hover:bg-blue-600'
+                                >
+                                    Add Schedule
+                                </button>
+
+                                {/* Render the ScheduleComponent as many times as specified */}
+                                <div
+                                    className='mt-2 overflow-y-auto max-h-36 border border-gray-300 rounded-lg'
+                                    style={{
+                                        scrollbarWidth: 'thin',
+                                        scrollbarColor: '#a0aec0 #edf2f7',
+                                    }} // Optional for styled scrollbars
+                                >
+                                    {editAdditionalScheds.map((sched, index) => (
+                                        <div key={index} className='flex flex-wrap'>
                                             <button
-                                                className="w-1/12 border rounded-bl-lg hover:bg-gray-200 flex items-center justify-center"
+                                                className='w-1/12 border rounded-l-lg hover:bg-gray-200 flex items-center justify-center'
                                                 onClick={() => handleDeleteAdditionalSchedule(index)}
                                             >
                                                 <RiDeleteBin7Line size={15} />
                                             </button>
-                                            <button
-                                                className='w-full text-xs  p-2 shadow-sm '
-                                                onClick={() =>
-                                                    document
-                                                        .getElementById(
-                                                            `add_additional_sched_modal_1_grade-${editSectionYear}_sec-${editSectionId}_idx-${index}`
-                                                        )
-                                                        .showModal()
-                                                }
-                                            >
-                                                {sched.name ? (
-                                                    // Content to show when both are not empty
-                                                    <>
-                                                        <p>Name: {sched.name}</p>
-                                                        <p>
-                                                            Subject: {sched.subject === -1 ? 'N/A' : subjects[sched.subject].subject}
-                                                        </p>
-                                                    </>
-                                                ) : (
-                                                    // Content to show when either is empty
-                                                    <p>Untitled Schedule {index + 1}</p>
-                                                )}
-                                            </button>
-                                            <AdditionalScheduleForSection
-                                                viewingMode={1}
-                                                sectionID={editSectionId}
-                                                grade={editSectionYear}
-                                                arrayIndex={index}
-                                                additionalSchedsOfSection={sched}
-                                            />
+                                            <div className='w-10/12'>
+                                                <button
+                                                    className='w-full bg-gray-100 p-2 border shadow-sm hover:bg-gray-200'
+                                                    onClick={() =>
+                                                        document
+                                                            .getElementById(
+                                                                `add_additional_sched_modal_1_grade-${editSectionYear}_sec-${editSectionId}_idx-${index}`
+                                                            )
+                                                            .showModal()
+                                                    }
+                                                >
+                                                    {sched.name ? (
+                                                        // Content to show when both are not empty
+                                                        <>
+                                                            <p>Name: {sched.name}</p>
+                                                            <p>
+                                                                Subject:{' '}
+                                                                {sched.subject === -1 ? 'N/A' : subjects[sched.subject].subject}
+                                                            </p>
+                                                        </>
+                                                    ) : (
+                                                        // Content to show when either is empty
+                                                        <p>Untitled Schedule {index + 1}</p>
+                                                    )}
+                                                </button>
+                                                <AdditionalScheduleForSection
+                                                     viewingMode={0}
+                                                     sectionID={editSectionId}
+                                                     grade={editSectionYear}
+                                                     arrayIndex={index}
+                                                     numOfSchoolDays={numOfSchoolDays}
+                                                     sectionSubjects={editSectionSubjects}
+                                                     additionalSchedsOfSection={sched}
+                                                     setAdditionalScheds={setEditAdditionalScheds}
+                                                />
+                                            </div>
+                                            <div className='w-1/12 flex items-center justify-center border rounded-r-lg hover:bg-gray-200'>
+                                                <button
+                                                    onClick={() =>
+                                                        document
+                                                            .getElementById(
+                                                                `add_additional_sched_modal_0_grade-${editSectionYear}_sec-${editSectionId}_idx-${index}`
+                                                            )
+                                                            .showModal()
+                                                    }
+                                                >
+                                                    <RiEdit2Fill size={15} />
+                                                </button>
+                                                <AdditionalScheduleForSection
+                                                    viewingMode={0}
+                                                    sectionID={editSectionId}
+                                                    grade={editSectionYear}
+                                                    arrayIndex={index}
+                                                    numOfSchoolDays={numOfSchoolDays}
+                                                    sectionSubjects={editSectionSubjects}
+                                                    additionalSchedsOfSection={sched}
+                                                    setAdditionalScheds={setEditAdditionalScheds}
+                                                />
+                                            </div>
                                         </div>
-                                        <div className='w-1/12 text-xs font-bold rounded-r-lg   flex text-center justify-center items-center p-2 cursor-pointer'>
-                                            <button
-                                                className='hover:text-primary'
-                                                onClick={() =>
-                                                    document
-                                                        .getElementById(
-                                                            `add_additional_sched_modal_0_grade-${editSectionYear}_sec-${editSectionId}_idx-${index}`
-                                                        )
-                                                        .showModal()
-                                                }
-                                            >
-                                                <RiEdit2Fill size={15} />
-                                            </button>
-                                            <AdditionalScheduleForSection
-                                                viewingMode={0}
-                                                sectionID={editSectionId}
-                                                grade={editSectionYear}
-                                                arrayIndex={index}
-                                                numOfSchoolDays={numOfSchoolDays}
-                                                sectionSubjects={editSectionSubjects}
-                                                additionalSchedsOfSection={sched}
-                                                setAdditionalScheds={setEditAdditionalScheds}
-                                            />
-                                        </div>
-                                    </div>
-                            ))}
-                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
-                        {/* Error Message */}
-                        {errorMessage && <p className='text-red-500 text-sm my-4 font-medium'>{errorMessage}</p>}
+                        {errorMessage && <p className='text-red-500 text-sm my-4 font-medium select-none '>{errorMessage}</p>}
 
-                        {/* Action Buttons */}
-                        <div className="flex justify-center gap-2 mt-4">
-                            <button
-                                className="btn btn-primary"
-                                onClick={() => handleSaveSectionEditClick(section.id)}
-                                disabled={!isEndTimeValid}
-                            >
-                                Update Section
-                            </button>
+                        {/* Add button centered at the bottom */}
+                        <div className='flex mt-6 justify-center gap-2'>
+                            <div className='flex justify-end space-x-2'>
+                                <button
+                                    className='btn btn-primary'
+                                    onClick={() => handleSaveSectionEditClick(section.id)}
+                                    disabled={!isEndTimeValid}
+                                >
+                                    <div>Update Section</div>
+                                </button>
+                            </div>
                             <button className='btn btn-error' onClick={() => resetStates()}>
                                 Reset
                             </button>
                         </div>
                     </div>
+                  
                 </div>
             </div>
         </div>
