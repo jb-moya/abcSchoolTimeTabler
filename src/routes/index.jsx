@@ -4,7 +4,7 @@ import { lazy } from 'react';
 
 const Dashboard = lazy(() => import('../pages/protected/Dashboard'));
 const Welcome = lazy(() => import('../pages/protected/Welcome'));
-const Page404 = lazy(() => import('../pages/protected/404'));
+const Page404 = lazy(() => import('../pages/404'));
 const Blank = lazy(() => import('../pages/protected/Blank'));
 const Leads = lazy(() => import('../pages/protected/Leads'));
 const Integration = lazy(() => import('../pages/protected/Integration'));

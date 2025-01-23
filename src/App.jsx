@@ -16,6 +16,7 @@ const Documentation = lazy(() => import('./pages/Documentation'));
 const GuestPage = lazy(() => import('./pages/Guest.jsx'));
 const SuspenseContent = lazy(() => import('./containers/SuspenseContent'));
 const Authentication = lazy(() => import('./pages/Authentication'));
+const Page404 = lazy(() => import('./pages/404'));
 // Initializing different libraries
 // initializeApp()
 
@@ -40,9 +41,10 @@ function App() {
             <Suspense fallback={<SuspenseContent />}>
                 <Router>
                     <Routes>
-                        <Route path='/search' element={<GuestPage />} />
+                        <Route path='/search/:uid' element={<GuestPage />} />
                         <Route path='/auth/login' element={user ? <Navigate to='/app/dashboard' /> : <Login />} />
                         <Route path='/auth/register' element={user ? <Navigate to='/app/dashboard' /> : <Register />} />
+                        <Route path='/404' element={<Page404 />} />
                         {/* <Route path='/auth/login' element={<Login />} /> */}
                         {/* <Route path='/auth/register' element={<Register />} /> */}
                         <Route path='/auth/:mode' element={<Authentication />} />
@@ -52,7 +54,7 @@ function App() {
                         {/* Place new routes over this */}
                         <Route path='/app/*' element={<ProtectedRoute element={<Layout />} />} />
                         {/* <Route path='*' element={<Navigate to={token ? '/app/welcome' : '/search'} replace />} /> */}
-                        <Route path='*' element={<Navigate to={user ? '/app/welcome' : '/search'} replace />} />
+                        {/* <Route path='*' element={<Navigate to={user ? '/app/welcome' : '/search'} replace />} /> */}
                     </Routes>
                 </Router>
             </Suspense>

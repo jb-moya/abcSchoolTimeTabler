@@ -8,8 +8,7 @@ import { startTransition } from 'react';
 import routes from '../routes';
 const SuspenseContent = lazy(() => import('./SuspenseContent'));
 
-const Page404 = lazy(() => import('../pages/protected/404'));
-
+const Page404 = lazy(() => import('../pages/404'));
 
 function PageContent() {
     const mainContentRef = useRef(null);
