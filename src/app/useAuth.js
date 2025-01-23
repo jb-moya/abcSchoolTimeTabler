@@ -1,6 +1,7 @@
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
 import { useState, useEffect } from 'react';
+import { setAuthUserUid, clearAuthUserUid } from '../utils/localStorageUtils';
 
 const useAuth = () => {
     const [user, setUser] = useState(null);
@@ -19,8 +20,17 @@ const useAuth = () => {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
-            setUser(user);
+            if (user) {
+                const uid = user.uid;
+                // ...
+                setAuthUserUid(uid);
+            } else {
+                // Clear UID from localStorage on sign-out
+                clearAuthUserUid();
+                // console.log('Cleared UID from localStorage.');
+            }
 
+            setUser(user);
             setLoading(false);
         });
 
