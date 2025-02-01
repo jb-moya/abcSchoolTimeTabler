@@ -31,9 +31,10 @@ const SectionEdit = ({
     numOfSchoolDays,
     breakTimeDuration,
 }) => {
+
     const dispatch = useDispatch();
 
-    // ===============================================================
+// ===============================================================
 
     const { buildings, status: buildingStatus } = useSelector((state) => state.building);
 
@@ -45,7 +46,7 @@ const SectionEdit = ({
 
     const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
 
-    // ===============================================================================================
+// ===============================================================================================
 
     const [editSectionAdviser, setEditSectionAdviser] = useState('');
 
@@ -70,6 +71,8 @@ const SectionEdit = ({
     const [editSectionFixedDays, setEditSectionFixedDays] = useState({});
 
     const [editSectionFixedPositions, setEditSectionFixedPositions] = useState({});
+
+    const [editSectionClassModality, setEditSectionClassModality] = useState(new Array(numOfSchoolDays).fill(1));
 
     const [editAdditionalScheds, setEditAdditionalScheds] = useState([]);
 
@@ -98,6 +101,7 @@ const SectionEdit = ({
             setEditSectionEndTime(getTimeSlotString(section.endTime) || '');
             setEditSectionFixedDays(section.fixedDays || {});
             setEditSectionFixedPositions(section.fixedPositions || {});
+            setEditSectionClassModality(section.modality || new Array(numOfSchoolDays).fill(1));
             setEditAdditionalScheds(section.additionalScheds || []);
 
             setCurrEditProgram(section.program || '');
@@ -142,12 +146,14 @@ const SectionEdit = ({
 
                 setEditSectionFixedPositions(program[editSectionYear]?.fixedPositions || {});
 
+                setEditSectionClassModality(program[editSectionYear]?.modality || new Array(numOfSchoolDays).fill(1));
+
                 setEditAdditionalScheds(program[editSectionYear]?.additionalScheds || []);
             }
         }
     }, [editSectionYear, editSectionProg, programs]);
 
-    // ===============================================================================================
+// ===============================================================================================
 
     const handleSaveSectionEditClick = (sectionId) => {
         if (
@@ -186,6 +192,7 @@ const SectionEdit = ({
                         shift: editSectionShift,
                         startTime: getTimeSlotIndex(editSectionStartTime),
                         endTime: editSectionEndTime,
+                        modality: editSectionClassModality,
                         additionalScheds: editAdditionalScheds,
                         roomDetails: editRoomDetails,
                     },
@@ -281,6 +288,7 @@ const SectionEdit = ({
                             shift: editSectionShift,
                             startTime: getTimeSlotIndex(editSectionStartTime),
                             endTime: editSectionEndTime,
+                            modality: editSectionClassModality,
                             additionalScheds: editAdditionalScheds,
                             roomDetails: editRoomDetails,
                         },
@@ -295,7 +303,7 @@ const SectionEdit = ({
         closeModal();
     };
 
-    // =============================================================================================
+// =============================================================================================
 
     // End Times
     const handleEndTimeChange = () => {
@@ -330,6 +338,15 @@ const SectionEdit = ({
         handleEndTimeChange();
     }, [editSectionSubjects, editSectionStartTime, breakTimeDuration]);
 
+    // Modality
+    const handleModalityChange = (index) => {
+        setEditSectionClassModality(prevState => 
+            prevState.map((value, i) => 
+                i === index ? (value === 1 ? 0 : 1) : value
+            )
+        );
+    };
+
     // Additional Schedules
     const handleAddAdditionalSchedule = () => {
         setEditAdditionalScheds((prevScheds) => [
@@ -348,7 +365,7 @@ const SectionEdit = ({
         setEditAdditionalScheds((prevScheds) => prevScheds.filter((_, i) => i !== index));
     };
 
-    // =============================================================================================
+// =============================================================================================
 
     useEffect(() => {
         if (buildingStatus === 'idle') {
@@ -380,7 +397,7 @@ const SectionEdit = ({
         }
     }, [teacherStatus, dispatch]);
 
-    // ===============================================================================================
+// ===============================================================================================
 
     const resetStates = () => {
         // Reset the editing state
@@ -394,6 +411,7 @@ const SectionEdit = ({
         setEditSectionStartTime(getTimeSlotString(section.startTime) || '');
         setEditSectionFixedDays(section.fixedDays || {});
         setEditSectionFixedPositions(section.fixedPositions || {});
+        setEditSectionClassModality(section.classModality || {});
         setEditAdditionalScheds(section.additionalScheds || []);
 
         setCurrEditProgram(section.program || '');
@@ -414,7 +432,11 @@ const SectionEdit = ({
         // handleReset();
     };
 
-    // ===============================================================================================
+// ===============================================================================================
+
+    const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+
+// ===============================================================================================
 
     return (
         <div className=''>
@@ -438,7 +460,9 @@ const SectionEdit = ({
 
                         <hr className='mb-4'></hr>
 
+                        {/* Section Details */}
                         <div className='p-4 border rounded-lg shadow-md mb-4'>
+
                             {/* Section Name */}
                             <div className='mb-4'>
                                 <label className='label'>
@@ -519,6 +543,7 @@ const SectionEdit = ({
                             </div>
                         </div>
 
+                        {/* Shift and Time */}
                         <div className='p-4 border rounded-lg shadow-md mb-4'>
                             <div className='text-lg font-semibold rounded-lg flex justify-center items-center'>Schedule Details</div>
                             <hr className='my-2'></hr>
@@ -580,8 +605,8 @@ const SectionEdit = ({
                             </div>
                         </div>
 
+                        {/* Room Details */}
                         <div className='p-4 border rounded-lg shadow-md mb-4'>
-                            {/* Room Details */}
                             <div className=''>
                                 <div className='text-lg font-semibold rounded-lg flex items-center justify-center'>Room Details</div>
                                 <hr className='my-2'></hr>
@@ -592,18 +617,13 @@ const SectionEdit = ({
                                         <label className='label'>
                                             <span className='label-text'>Building</span>
                                         </label>
-                                        <input
-                                            type='text'
-                                            value={
-                                                buildings[
-                                                    editSectionId === section.id
-                                                        ? editRoomDetails.buildingId
-                                                        : section.roomDetails.buildingId
-                                                ]?.name || 'Unknown Building'
-                                            }
-                                            className='input input-bordered input-sm w-5/6'
-                                            readOnly
-                                        />
+                                        <span className="input input-bordered text-sm w-5/6">
+                                            {buildings[
+                                                editSectionId === section.id
+                                                    ? editRoomDetails.buildingId
+                                                    : section.roomDetails.buildingId
+                                            ]?.name || ''}
+                                        </span>
                                     </div>
 
                                     {/* Floor */}
@@ -611,16 +631,13 @@ const SectionEdit = ({
                                         <label className='label'>
                                             <span className='label-text'>Floor</span>
                                         </label>
-                                        <input
-                                            type='text'
-                                            value={
+                                        <span className="input input-bordered text-sm w-5/6">
+                                            {
                                                 (editSectionId === section.id
                                                     ? editRoomDetails.floorIdx + 1
-                                                    : section.roomDetails.floorIdx + 1) || 'Unknown Floor'
+                                                    : section.roomDetails.floorIdx + 1) || ''
                                             }
-                                            className='input input-bordered input-sm w-5/6'
-                                            readOnly
-                                        />
+                                        </span>
                                     </div>
 
                                     {/* Room */}
@@ -628,25 +645,21 @@ const SectionEdit = ({
                                         <label className='label'>
                                             <span className='label-text'>Room</span>
                                         </label>
-                                        <input
-                                            type='text'
-                                            value={
+                                        <span className="input input-bordered text-sm w-5/6">
+                                            {
                                                 editSectionId === section.id
-                                                    ? buildings[editRoomDetails.buildingId]?.rooms[editRoomDetails.floorIdx][
-                                                          editRoomDetails.roomIdx
-                                                      ]?.roomName
-                                                    : buildings[section.roomDetails.buildingId]?.rooms[
-                                                          section.roomDetails.floorIdx
-                                                      ][section.roomDetails.roomIdx]?.roomName || 'Unknown Room'
+                                                ? buildings[editRoomDetails.buildingId]?.rooms[editRoomDetails.floorIdx][
+                                                      editRoomDetails.roomIdx
+                                                  ]?.roomName
+                                                : buildings[section.roomDetails.buildingId]?.rooms[
+                                                      section.roomDetails.floorIdx
+                                                  ][section.roomDetails.roomIdx]?.roomName || ''
                                             }
-                                            className='input input-bordered input-sm w-5/6'
-                                            readOnly
-                                        />
+                                        </span>
                                     </div>
 
                                     {editSectionId === section.id && (
                                         <div>
-    
                                             <div className='w-1/4 flex justify-start items-start mt-9 '>
                                                 <button
                                                     className='btn btn-primary btn-sm'
@@ -762,6 +775,47 @@ const SectionEdit = ({
                                 </>
                             </div>
                         )}
+
+                        {/* Class Modality */}
+                        <div className='rounded-lg shadow-md border space-y-2 p-4 mb-4'>
+                            <div className='font-semibold text-lg text-center'>Class Modality</div>
+                            <hr className='my-2'></hr>
+
+                            <table className='table'>
+                                <thead>
+                                    <tr>
+                                        {Array.from({ length: numOfSchoolDays }, (_, index) => (
+                                            <th 
+                                                key={index}
+                                                className='text-center border border-gray-300'
+                                                style={{ width: `${100 / numOfSchoolDays}%` }} // Ensures equal width for all days
+                                            >
+                                                {days[index]}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody> 
+                                    <tr>
+                                        {Array.from({ length: numOfSchoolDays }, (_, index) => (
+                                            <td 
+                                                key={index}
+                                                className='text-center border border-gray-300'
+                                                style={{ width: `${100 / numOfSchoolDays}%` }} // Ensures equal width for all days
+                                            >
+                                                <button
+                                                    key={`day-${index}`}
+                                                    className={`btn w-full h-full flex items-center justify-center ${editSectionClassModality[index] === 1 ? 'bg-green-500' : 'bg-red-500'}`}
+                                                    onClick={() => handleModalityChange(index)}
+                                                >
+                                                    {editSectionClassModality[index] === 1 ? 'ONSITE' : 'OFFSITE'}
+                                                </button>
+                                            </td>
+                                        ))}
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
 
                         {/* Additional Schedules */}
                         {editAdditionalScheds.length > 0 && (

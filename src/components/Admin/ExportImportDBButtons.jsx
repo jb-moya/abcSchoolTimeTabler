@@ -1193,6 +1193,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                                 endTime: endTime7Idx,
                                 fixedDays: fixedDays7,
                                 fixedPositions: fixedPositions7,
+                                modality: new Array(Number(numOfSchoolDays)).fill(1),
                                 additionalScheds: [],
                             },
                             8: {
@@ -1202,6 +1203,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                                 endTime: endTime8Idx,
                                 fixedDays: fixedDays8,
                                 fixedPositions: fixedPositions8,
+                                modality: new Array(Number(numOfSchoolDays)).fill(1),
                                 additionalScheds: [],
                             },
                             9: {
@@ -1211,6 +1213,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                                 endTime: endTime9Idx,
                                 fixedDays: fixedDays9,
                                 fixedPositions: fixedPositions9,
+                                modality: new Array(Number(numOfSchoolDays)).fill(1),
                                 additionalScheds: [],
                             },
                             10: {
@@ -1220,6 +1223,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                                 endTime: endTime10Idx,
                                 fixedDays: fixedDays10,
                                 fixedPositions: fixedPositions10,
+                                modality: new Array(Number(numOfSchoolDays)).fill(1),
                                 additionalScheds: [],
                             },
                         });
@@ -1265,6 +1269,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                 const isDuplicateSection = addedSections.find(
                     (s) => s['sectionname'].trim().toLowerCase() === section.sectionname.trim().toLowerCase()
                 );
+
                 if (isDuplicateSection) {
                     unaddedSections.push([1, section]);
                     return;
@@ -1409,6 +1414,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                             startTime: startTimeIdx,
                             endTime: endTimeIdx,
                             roomDetails: roomDetails,
+                            modality: new Array(Number(numOfSchoolDays)).fill(1),
                             additionalScheds: [],
                         });
                         assignedAdviser.push(advID);
