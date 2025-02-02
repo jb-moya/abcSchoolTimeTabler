@@ -9,7 +9,7 @@ import { addSubject, fetchSubjects } from '@features/subjectSlice';
 import { addSection, fetchSections } from '@features/sectionSlice';
 import { addTeacher, fetchTeachers } from '@features/teacherSlice';
 import { addProgram, fetchPrograms } from '@features/programSlice';
-import { addDepartment, fetchDepartments } from '../../features/departmentSlice';
+import { addDepartment, fetchDepartments } from '@features/departmentSlice';
 import { addBuilding, fetchBuildings } from '@features/buildingSlice';
 
 import { addRank, fetchRanks } from '@features/rankSlice';

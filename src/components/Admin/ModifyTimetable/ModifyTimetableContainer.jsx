@@ -7,6 +7,8 @@ import { PiConfetti } from 'react-icons/pi';
 import { addSched, editSched, fetchScheds } from '@features/schedulesSlice';
 import { convertStringDataToMap } from './utils';
 
+import ExportSchedules from './ExportSchedules';
+
 const ModifyTimetableContainer = ({
     hashMap = new Map(),
     timetableName = '',
@@ -61,6 +63,10 @@ const ModifyTimetableContainer = ({
         setErrorMessage('');
         setErrorField('');
     };
+
+    // ================================================================================================================
+
+    const [showExport, setShowExport] = useState(false);
 
     // ================================================================================================================
 
@@ -325,7 +331,7 @@ const ModifyTimetableContainer = ({
 
     useEffect(() => {
         const overlaps = detectOverlaps(valueMap);
-        console.log('overlaps', overlaps);
+        // console.log('overlaps', overlaps);
         setOverlapsDisplay(overlaps);
         const resolvedMap = updateOverlapFields(overlaps);
         // console.log('resolvedmap: ', resolvedMap);
@@ -754,6 +760,19 @@ const ModifyTimetableContainer = ({
                             {errorCount === 0 ? 'Verified' : `Error ${errorCount}`}
                         </div>
                     </button>
+
+                    {/* EXPORT */}
+                    <button
+                        className='btn btn-primary btn-outline flex-row items-center justify-center cursor-pointer'
+                        onClick={() => setShowExport(true)}
+                    >
+                        EXPORT
+                    </button>
+
+                    {showExport && valueMap.size > 0 && (
+                        <ExportSchedules schedule={valueMap} close={() => setShowExport(false)} />
+                    )}
+                    {/* EXPORT */}
 
                     <div className='flex flex-row items-center space-x-2 ml-auto'>
                         <button onClick={add} className='btn btn-secondary'>
