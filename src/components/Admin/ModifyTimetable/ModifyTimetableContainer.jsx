@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import DragDrop from './DragDrop';
 import { generateTimeSlots } from '../utils';
@@ -11,27 +11,50 @@ const ModifyTimetableContainer = ({
     hashMap = new Map(),
     timetableName = '',
     timetableId = null,
-
     errorMessage,
     setErrorMessage,
     errorField,
     setErrorField,
+    teachers,
+    subjects,
+    sections,
 }) => {
     const dispatch = useDispatch();
     const inputNameRef = useRef();
-
     // ================================================================================================================
 
     const { schedules, status: schedStatus } = useSelector((state) => state.schedule);
+    // const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
+    // const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
+    // const { sections, status: sectionStatus } = useSelector((state) => state.section);
 
     const [scheduleVerId, setScheduleVerId] = useState(timetableId);
     const [scheduleVerName, setScheduleVerName] = useState(timetableName);
+    console.log('rendering');
 
     useEffect(() => {
         if (schedStatus === 'idle') {
             dispatch(fetchScheds());
         }
     }, [schedStatus, dispatch]);
+
+    // useEffect(() => {
+    //     if (teacherStatus === 'idle') {
+    //         dispatch(fetchTeachers());
+    //     }
+    // }, [teacherStatus, dispatch]);
+
+    // useEffect(() => {
+    //     if (subjectStatus === 'idle') {
+    //         dispatch(fetchSubjects());
+    //     }
+    // }, [subjectStatus, dispatch]);
+
+    // useEffect(() => {
+    //     if (sectionStatus === 'idle') {
+    //         dispatch(fetchSections());
+    //     }
+    // }, [sectionStatus, dispatch]);
 
     const handleReset = () => {
         setScheduleVerName(timetableName ? timetableName : '');
@@ -71,6 +94,8 @@ const ModifyTimetableContainer = ({
     const totalPages = Math.ceil(valueMap?.size / itemsPerPage);
     const [pageNumbers, setPageNumbers] = useState([]); // State for page numbers
     const [editMode, setEditMode] = useState(false); // State for page numbers
+
+    // const updateState = useCallback(setValueMap, []);
 
     const generatePageNumbers = (filtered) => {
         const pages = [];
@@ -793,7 +818,6 @@ const ModifyTimetableContainer = ({
                                 break; // Exit the loop when .type is found
                             }
                         }
-
                         return (
                             <div
                                 key={index}
@@ -864,6 +888,10 @@ const ModifyTimetableContainer = ({
                                                 loading={loading}
                                                 addClicked={addClicked}
                                                 setAddClicked={setAddClicked}
+                                                containerType={containerType}
+                                                teachers={teachers}
+                                                subjects={subjects}
+                                                sections={sections}
                                             />
                                         </div>
                                     </div>

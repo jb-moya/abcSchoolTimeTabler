@@ -1776,11 +1776,7 @@ function Timetable() {
                 }
             }
 
-            if (!containerName || !timetable) {
-                console.warn(`Missing containerName or timetable for tableKey: ${tableKey}`);
-                continue;
-            }
-            let setTableKey = `${type}: ${containerName} - ${tableKey}`;
+            let setTableKey = `${type}: ${containerName}`;
             // console.log('sectionData: ', sectionData);
             // console.log('setTableKey: ', setTableKey);
 
