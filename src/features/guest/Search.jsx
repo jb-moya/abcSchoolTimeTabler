@@ -6,8 +6,10 @@ const Search = () => {
     const [query, setQuery] = useState('');
     const [suggestions, setSuggestions] = useState([]); // Start with empty suggestions
     const [searchHistory, setSearchHistory] = useState([]);
+    const [role, setRole] = useState("Students");
     const dropdownRef = useRef(null);
     const inputRef = useRef(null);
+    
 
     useEffect(() => {
         const storedHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
@@ -68,62 +70,53 @@ const Search = () => {
     }, []);
 
     return (
-        <div className='space-y-8 w-full h-full flex flex-col items-center justify-center px-4 lg:px-12 mt-[-100px] select-none'>
-            {/* Heading */}
-            <div className='text-center w-full max-w-9xl space-y-4'>
-                <h1 className='font-bold text-3xl lg:text-6xl'>How can we help?</h1>
-                <p className='font-light text-base lg:text-lg'>Easily Find and Access Your Personalized Schedule by Searching</p>
-            </div>
-
-            {/* Search Bar */}
-            <div className='w-full max-w-4xl relative' ref={dropdownRef}>
-                <div className={`flex flex-col shadow-lg text-black ${suggestions.length > 0 ? 'rounded-t-3xl' : 'rounded-3xl'}`}>
-                    {/* Search Input */}
-                    <div className='flex items-center gap-2 w-full px-4 py-3 md:px-6 md:py-4 lg:px-8 lg:py-5'>
-                        <input
-                            ref={inputRef}
-                            type='text'
-                            className='grow text-sm md:text-base w-full bg-transparent outline-none placeholder-gray-400'
-                            placeholder='Search your schedules'
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') handleSearch();
-                            }}
-                            onFocus={handleFocus}
-                        />
-                        <IoSearch className='text-xl md:text-2xl text-gray-500 cursor-pointer' onClick={handleSearch} />
-                    </div>
-
-                    {/* Suggestions */}
-                    {suggestions.length > 0 && (
-                        <div className='absolute left-0 top-full w-full rounded-b-3xl shadow-md z-10'>
-                            <ul className=''>
-                                {suggestions.slice(0, 5).map((suggestion, index) => (
-                                    <li
-                                        key={index}
-                                        className='flex items-center justify-between px-4 py-3  cursor-pointer rounded-3xl'
-                                        onClick={() => handleSuggestionClick(suggestion)}
-                                    >
-                                        <div className='flex items-center gap-4'>
-                                            <MdHistory className='text-xl text-gray-500' />
-                                            <span className='text-sm md:text-base text-gray-700'>{suggestion}</span>
-                                        </div>
-                                        <MdOutlineCancel
-                                            className='text-xl text-gray-500 cursor-pointer mx-4'
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleDeleteSuggestion(suggestion);
-                                            }}
-                                        />
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
-                </div>
-            </div>
+        <div className="w-full h-full flex flex-col items-center justify-center px-4 lg:px-12 mt-[-100px] select-none space-y-8">
+        {/* Heading */}
+        <div className="text-center w-full max-w-4xl space-y-2">
+          <h1 className="font-bold text-2xl lg:text-5xl">How can we help?</h1>
+          <p className="font-light text-sm lg:text-base">
+            Easily Find and Access Your Personalized Schedule by Searching
+          </p>
         </div>
+  
+        {/* Search Bar */}
+        <div className="w-full max-w-3xl flex items-center shadow-md bg-white rounded-full border border-gray-300 px-4 py-2">
+          {/* Dropdown */}
+          <select
+            className="bg-transparent text-center outline-none  text-gray-700 font-medium text-sm lg:text-base cursor-pointer"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+          >
+            <option value="Students">Students</option>
+            <option value="Teachers">Teachers</option>
+          </select>
+  
+          {/* Divider */}
+          <div className="h-6 w-px bg-gray-300 mx-4"></div>
+  
+          {/* Input */}
+          <input
+            type="text"
+            className="grow text-sm lg:text-base bg-transparent outline-none text-black placeholder-gray-400 mr-4"
+            placeholder={`Search ${role.toLowerCase()} schedules`}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleSearch();
+            }}
+          />
+  
+          {/* Search Button */}
+          <button
+            className="flex items-center justify-center text-white bg-black rounded-full px-6 py-2 text-sm lg:text-base hover:bg-gray-800"
+            onClick={handleSearch}
+          >
+            <IoSearch className="mr-2" />
+            Search
+          </button>
+        </div>
+      </div>
+      
     );
 };
 
