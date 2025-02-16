@@ -5,7 +5,6 @@ import { generateTimeSlots } from '../utils';
 import { produce } from 'immer';
 import { PiConfetti } from 'react-icons/pi';
 import { addSched, editSched, fetchScheds } from '@features/schedulesSlice';
-import { convertStringDataToMap } from './utils';
 
 import ExportSchedules from './ExportSchedules';
 

@@ -83,7 +83,7 @@ const TimetableListContainer = ({}) => {
 
     const handleEditClick = (scheduleId) => {
         const newTimetable = convertStringDataToMap(schedules[scheduleId].data);
-
+        // console.log('newTimetable: ', newTimetable);
         setEditSchedId(scheduleId);
         setEditSchedName(schedules[scheduleId].name);
         setTimetable(newTimetable);
