@@ -79,10 +79,10 @@ const AddProgramContainer = ({
     });
 
     const [endTimes, setEndTimes] = useState({
-        7: afternoonStartTime,
-        8: afternoonStartTime,
-        9: afternoonStartTime,
-        10: afternoonStartTime,
+        7: morningStartTime,
+        8: morningStartTime,
+        9: morningStartTime,
+        10: morningStartTime,
     });
 
     const [classModality, setClassModality] = useState({
@@ -126,11 +126,25 @@ const AddProgramContainer = ({
             const startTimeIdx = getTimeSlotIndex(startTimes[grade]);
             const breakTimeCount = selectedSubjects[grade].length > 10 ? 2 : 1;
 
-            let totalDuration = breakTimeCount * breakTimeDuration;
+            let noOfClassBlocks = 0;
+            const classDurations = [];
 
             selectedSubjects[grade].forEach((subId) => {
-                totalDuration += subjects[subId].classDuration;
+                const duration = subjects[subId].classDuration;
+                classDurations.push(duration);
+                noOfClassBlocks += Math.ceil(subjects[subId].weeklyMinutes / subjects[subId].classDuration);
             });
+
+            let noOfRows = breakTimeCount + Math.ceil(noOfClassBlocks / numOfSchoolDays);
+
+            const topDurations = classDurations.sort((a, b) => b - a).slice(0, noOfRows);
+
+            let totalDuration = (breakTimeCount * breakTimeDuration) + topDurations.reduce((sum, duration) => sum + duration, 0);
+
+            console.log('noOfClassBlocks', noOfClassBlocks);
+            console.log('noOfRows', noOfRows);
+            console.log('topDurations', topDurations);
+            console.log('totalDuration', totalDuration);
 
             const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
 
@@ -415,6 +429,12 @@ const AddProgramContainer = ({
             9: morningStartTime,
             10: morningStartTime,
         });
+        setEndTimes({
+            7: morningEndTime,
+            8: morningEndTime,
+            9: morningEndTime,
+            10: morningEndTime,
+        })
         setClassModality({
             7: new Array(numOfSchoolDays).fill(1),
             8: new Array(numOfSchoolDays).fill(1),

@@ -68,10 +68,10 @@ const ProgramEdit = ({
     });
 
     const [editEndTimes, setEditEndTimes] = useState({
-        7: afternoonStartTime,
-        8: afternoonStartTime,
-        9: afternoonStartTime,
-        10: afternoonStartTime,
+        7: morningStartTime,
+        8: morningStartTime,
+        9: morningStartTime,
+        10: morningStartTime,
     });
 
     const [editFixedDays, setEditFixedDays] = useState({
@@ -115,7 +115,7 @@ const ProgramEdit = ({
     //     console.log('editAdditionalScheds', editAdditionalScheds);
     // }, [editAdditionalScheds]);
 
-    // ==========================================================================
+// ==========================================================================
 
     const initializeStates = () => {
         if (!program) return;
@@ -250,21 +250,32 @@ const ProgramEdit = ({
 
     // End Time
     const handleEndTimeChange = () => {
+
         [7, 8, 9, 10].forEach((grade) => {
             if (editProgramCurr[grade].length === 0) return;
 
             const startTimeIdx = getTimeSlotIndex(editStartTimes[grade]);
             const breakTimeCount = editProgramCurr[grade].length > 10 ? 2 : 1;
 
-            let totalDuration = breakTimeCount * breakTimeDuration;
-
-            console.log('🚀 ~ editProgramCurr[grade].forEach ~ subjects:', subjects);
+            let noOfClassBlocks = 0;
+            const classDurations = [];
 
             editProgramCurr[grade].forEach((subId) => {
-                console.log('🚀 ~ editProgramCurr[grade].forEach ~ subId:', subId);
-                console.log('🚀 ~ editProgramCurr[grade].forEach ~ subjects[subId]:', subjects[subId]);
-                totalDuration += subjects[subId].classDuration;
+                const duration = subjects[subId].classDuration;
+                classDurations.push(duration);
+                noOfClassBlocks += Math.ceil(subjects[subId].weeklyMinutes / subjects[subId].classDuration);
             });
+
+            let noOfRows = breakTimeCount + Math.ceil(noOfClassBlocks / numOfSchoolDays);
+
+            const topDurations = classDurations.sort((a, b) => b - a).slice(0, noOfRows);
+
+            let totalDuration = (breakTimeCount * breakTimeDuration) + topDurations.reduce((sum, duration) => sum + duration, 0);
+
+            console.log('noOfClassBlocks', noOfClassBlocks);
+            console.log('noOfRows', noOfRows);
+            console.log('topDurations', topDurations);
+            console.log('totalDuration', totalDuration);
 
             const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
 

@@ -312,11 +312,20 @@ const SectionEdit = ({
         const startTimeIdx = getTimeSlotIndex(editSectionStartTime);
         const breakTimeCount = editSectionSubjects.length > 10 ? 2 : 1;
 
-        let totalDuration = breakTimeCount * breakTimeDuration;
+        let noOfClassBlocks = 0;
+        const classDurations = [];
 
         editSectionSubjects.forEach((subId) => {
-            totalDuration += subjects[subId].classDuration;
+            const duration = subjects[subId].classDuration;
+            classDurations.push(duration);
+            noOfClassBlocks += Math.ceil(subjects[subId].weeklyMinutes / subjects[subId].classDuration);
         });
+
+        let noOfRows = breakTimeCount + Math.ceil(noOfClassBlocks / numOfSchoolDays);
+
+        const topDurations = classDurations.sort((a, b) => b - a).slice(0, noOfRows);
+
+        let totalDuration = (breakTimeCount * breakTimeDuration) + topDurations.reduce((sum, duration) => sum + duration, 0);
 
         const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
 

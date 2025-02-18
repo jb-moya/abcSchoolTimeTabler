@@ -292,7 +292,7 @@ const ViewRooms = ({
                                     {floors[reversedFloorIndex].map((room, roomIndex) => (
                                         <button
                                             key={`${building}-${sectionId}-${reversedFloorIndex}-${roomIndex}`}
-                                            className={`w-1/12 h-20 max-h-20 px-4 py-2 border rounded text-sm`}
+                                            className={`w-1/12 h-20 max-h-20 px-4 py-2 border rounded text-sm ${ floorIdx === reversedFloorIndex && roomIdx === roomIndex ? 'bg-yellow-500 text-black' : 'bg-green-600 text-white'}`}
                                             onClick={() => handleRoomSelect(reversedFloorIndex, roomIndex)}
                                             disabled={viewMode === 1}
                                         >
