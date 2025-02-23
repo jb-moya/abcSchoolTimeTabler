@@ -15,7 +15,7 @@ const useAuth = () => {
     // const isPublicPage = PUBLIC_ROUTES.some((r) => window.location.href.includes(r));
 
     useEffect(() => {
-        console.log('B O B O user', user);
+        console.log('user', user);
     }, [user]);
 
     useEffect(() => {

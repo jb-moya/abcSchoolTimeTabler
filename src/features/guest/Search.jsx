@@ -1,21 +1,21 @@
-import clsx from 'clsx';
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { IoSearch } from 'react-icons/io5';
 import { MdHistory, MdOutlineCancel } from 'react-icons/md';
+import debounce from 'debounce';
+import clsx from 'clsx';
 import useSearchTimetable from '../../hooks/useSearchTimetable';
 
 const Search = () => {
     const [query, setQuery] = useState('');
     const [suggestions, setSuggestions] = useState([]);
     const [searchHistory, setSearchHistory] = useState([]);
+    const [isSearchClicked, setIsSearchClicked] = useState(false);
     const [isSuggestionsVisible, setIsSuggestionsVisible] = useState(false);
     const [role, setRole] = useState('Sections');
     const dropdownRef = useRef(null);
     const inputRef = useRef(null);
 
     const { search, results, loading, error } = useSearchTimetable();
-
-    // console.log('rendered');
 
     useEffect(() => {
         const storedHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
@@ -31,17 +31,79 @@ const Search = () => {
         }
     }, [query, searchHistory]);
 
-    const handleSearch = () => {
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
+    const exampleTimetable = [
+        ['t', 86, null, 9, 'REG-7-SEC-3', 4, 'English 7', '8-16', 1],
+        ['t', 86, null, 9, 'REG-7-SEC-3', 4, 'English 7', '8-16', 2],
+        ['t', 86, null, 9, 'REG-7-SEC-3', 4, 'English 7', '8-16', 3],
+        ['t', 86, null, 9, 'REG-7-SEC-3', 4, 'English 7', '8-16', 4],
+        ['t', 86, null, 9, 'REG-7-SEC-3', 4, 'English 7', '8-16', 5],
+        ['t', 86, null, 6, 'STAR-7', 4, 'English 7', '16-24', 1],
+        ['t', 86, null, 6, 'STAR-7', 4, 'English 7', '16-24', 2],
+        ['t', 86, null, 6, 'STAR-7', 4, 'English 7', '16-24', 3],
+        ['t', 86, null, 6, 'STAR-7', 4, 'English 7', '16-24', 4],
+        ['t', 86, null, 6, 'STAR-7', 4, 'English 7', '16-24', 5],
+        ['t', 86, null, 13, 'REG-7-SEC-7', 4, 'English 7', '24-32', 1],
+        ['t', 86, null, 13, 'REG-7-SEC-7', 4, 'English 7', '24-32', 2],
+        ['t', 86, null, 13, 'REG-7-SEC-7', 4, 'English 7', '24-32', 3],
+        ['t', 86, null, 13, 'REG-7-SEC-7', 4, 'English 7', '24-32', 4],
+        ['t', 86, null, 13, 'REG-7-SEC-7', 4, 'English 7', '24-32', 5],
+        ['t', 86, null, 15, 'REG-7-SEC-9', 4, 'English 7', '38-46', 1],
+        ['t', 86, null, 15, 'REG-7-SEC-9', 4, 'English 7', '38-46', 2],
+        ['t', 86, null, 15, 'REG-7-SEC-9', 4, 'English 7', '38-46', 3],
+        ['t', 86, null, 15, 'REG-7-SEC-9', 4, 'English 7', '38-46', 4],
+        ['t', 86, null, 15, 'REG-7-SEC-9', 4, 'English 7', '38-46', 5],
+        ['t', 86, null, 14, 'REG-7-SEC-8', 4, 'English 7', '46-54', 1],
+        ['t', 86, null, 14, 'REG-7-SEC-8', 4, 'English 7', '46-54', 2],
+        ['t', 86, null, 14, 'REG-7-SEC-8', 4, 'English 7', '46-54', 3],
+        ['t', 86, null, 14, 'REG-7-SEC-8', 4, 'English 7', '46-54', 4],
+        ['t', 86, null, 14, 'REG-7-SEC-8', 4, 'English 7', '46-54', 5],
+        ['t', 86, null, 12, 'REG-7-SEC-6', 4, 'English 7', '54-62', 1],
+        ['t', 86, null, 12, 'REG-7-SEC-6', 4, 'English 7', '54-62', 2],
+        ['t', 86, null, 12, 'REG-7-SEC-6', 4, 'English 7', '54-62', 3],
+        ['t', 86, null, 12, 'REG-7-SEC-6', 4, 'English 7', '54-62', 4],
+        ['t', 86, null, 12, 'REG-7-SEC-6', 4, 'English 7', '54-62', 5],
+        ['t', 86, null, 5, 'TECHVOC-7', 4, 'English 7', '62-70', 1],
+        ['t', 86, null, 5, 'TECHVOC-7', 4, 'English 7', '62-70', 2],
+        ['t', 86, null, 5, 'TECHVOC-7', 4, 'English 7', '62-70', 3],
+        ['t', 86, null, 5, 'TECHVOC-7', 4, 'English 7', '62-70', 4],
+        ['t', 86, null, 5, 'TECHVOC-7', 4, 'English 7', '62-70', 5],
+        ['t', 86, null, 2, 'STE-7-2', 4, 'English 7', '84-92', 1],
+        ['t', 86, null, 2, 'STE-7-2', 4, 'English 7', '84-92', 2],
+        ['t', 86, null, 2, 'STE-7-2', 4, 'English 7', '84-92', 3],
+        ['t', 86, null, 2, 'STE-7-2', 4, 'English 7', '84-92', 4],
+        ['t', 86, null, 2, 'STE-7-2', 4, 'English 7', '84-92', 5],
+    ];
+
+    useEffect(() => {
+        setIsSearchClicked(false);
+    }, [query]);
+
+    const handleSearch = async () => {
         if (!query.trim()) return;
+
+        setIsSearchClicked(true);
 
         const updatedHistory = [query, ...searchHistory.filter((item) => item !== query)];
         setSearchHistory(updatedHistory);
         localStorage.setItem('searchHistory', JSON.stringify(updatedHistory));
 
-        // setQuery('');
         const cleanedQuery = query.replace(/\s+/g, ' ').trim();
-        search(cleanedQuery.split(' '));
+        await search(cleanedQuery.split(' '), role == 'Sections' ? 's' : 't');
+
         setSuggestions([]);
+        setIsSuggestionsVisible(true);
+
+        inputRef.current.focus();
+        console.log('result', results);
     };
 
     const handleDeleteSuggestion = (itemToDelete) => {
@@ -67,7 +129,7 @@ const Search = () => {
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target) && !inputRef.current.contains(event.target)) {
-                console.log("JHAHAHHAHAAHAHH")
+                console.log('JHAHAHHAHAAHAHH');
                 setIsSuggestionsVisible(false);
             }
         };
@@ -82,17 +144,15 @@ const Search = () => {
     return (
         <div className='w-full h-full flex flex-col items-center px-4 lg:px-12 mt-[50px] select-none space-y-8'>
             <div className='text-center w-full max-w-4xl space-y-2'>
-                <h1 className='font-bold text-2xl lg:text-5xl'>How can we help?</h1>
-                <p className='font-light text-sm lg:text-base'>Easily Find and Access Your Personalized Schedule by Searching</p>
+                <h1 className='font-bold text-2xl lg:text-5xl'>Timetable Search</h1>
+                <p className='font-light text-sm lg:text-base'>Easily Find and Access Your Schedule by Searching</p>
             </div>
 
             <div
                 ref={dropdownRef}
-                className={clsx(
-                    'w-full max-w-3xl flex items-center shadow-md bg-white relative  px-4 py-2',
-                    { 'rounded-3xl rounded-b-none': isSuggestionsVisible },
-                    { 'rounded-3xl': !isSuggestionsVisible }
-                )}
+                className={clsx('rounded-3xl w-full max-w-3xl flex items-center shadow-md bg-white relative  px-4 py-2', {
+                    'rounded-b-none': isSuggestionsVisible && suggestions.length > 0,
+                })}
             >
                 <select
                     className='bg-transparent text-center outline-none  text-gray-700 font-medium text-sm lg:text-base cursor-pointer'
@@ -115,7 +175,9 @@ const Search = () => {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleSearch();
+                        if (e.key === 'Enter') {
+                            handleSearch();
+                        }
                     }}
                     onFocus={handleFocus}
                     onBlur={() => console.log('onBlur')}
@@ -123,7 +185,33 @@ const Search = () => {
 
                 {suggestions.length > 0 && isSuggestionsVisible && (
                     <div className='absolute left-0 top-full w-full rounded-b-3xl bg-white shadow-md z-10 border-t'>
+                        {results.length == 0 && isSearchClicked && (
+                            <p className='text-center text-gray-500 py-20 border border-b'>
+                                No results found for <b>{query}</b> in {role.toLowerCase()} timetables
+                            </p>
+                        )}
+
                         <ul className=''>
+                            {results.map((result) => (
+                                <li
+                                    key={result.id}
+                                    className='group flex items-center justify-between px-4 py-2 hover:bg-gray-300 cursor-pointer last:rounded-b-3xl'
+                                    onClick={() => {
+                                        console.log('fff');
+                                        inputRef.current.blur();
+                                        setIsSuggestionsVisible(false);
+                                        handleSuggestionClick(result.id);
+                                    }}
+                                >
+                                    <div className='flex items-center gap-4'>
+                                        <span className='text-xs w-10 border text-accent border-accent text-opacity-75 border-opacity-75'>
+                                            result
+                                        </span>
+                                        <span className='text-sm md:text-base text-gray-700'>{result.n.join(' ')}</span>
+                                    </div>
+                                </li>
+                            ))}
+
                             {suggestions.slice(0, 5).map((suggestion, index) => (
                                 <li
                                     key={index}
@@ -133,11 +221,10 @@ const Search = () => {
                                         inputRef.current.blur();
                                         setIsSuggestionsVisible(false);
                                         handleSuggestionClick(suggestion);
-                                        handleSearch();
                                     }}
                                 >
                                     <div className='flex items-center gap-4'>
-                                        <MdHistory className='text-xl text-gray-500' />
+                                        <MdHistory className='text-xl text-gray-500 w-10' />
                                         <span className='text-sm md:text-base text-gray-700'>{suggestion}</span>
                                     </div>
 
@@ -158,11 +245,19 @@ const Search = () => {
                 )}
 
                 <button
-                    className='flex items-center justify-center text-white bg-black rounded-full px-6 py-2 text-sm lg:text-base hover:bg-gray-800'
+                    className='btn btn-sm flex items-center justify-center text-white bg-black rounded-full px-4 text-sm lg:text-base hover:bg-gray-800'
                     onClick={handleSearch}
+                    disabled={loading || query.trim() === ''}
                 >
-                    <IoSearch className='mr-2' />
-                    Search
+                    {loading ? (
+                        <div className='animate-none md:animate-spin mr-2'>
+                            <IoSearch className='' />
+                        </div>
+                    ) : (
+                        <IoSearch className='mr-2' />
+                    )}
+
+                    {loading ? 'Searching...' : 'Search'}
                 </button>
             </div>
         </div>

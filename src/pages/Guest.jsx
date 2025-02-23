@@ -74,7 +74,7 @@ function ExternalPage() {
                     <NavBar />
 
                     {/* Main Content */}
-                    <div className='flex flex-col items-center justify-center flex-grow mx-auto px-4 w-full max-w-screen-xl text-center'>
+                    <div className='flex flex-col items-center mt-10 flex-grow mx-auto px-4 w-full max-w-screen-xl text-center'>
                         {/* Search Component */}
                         <Search />
                     </div>

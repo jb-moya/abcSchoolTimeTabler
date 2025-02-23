@@ -631,15 +631,15 @@ const ForTest = ({ hashMap }) => {
                         >
                             Redo
                         </button>
+                        <button onClick={deploy} className='btn btn-primary' disabled={errorCount > 0}>
+                            Deploy
+                        </button>
                         <button
                             className='btn btn-secondary'
                             disabled={errorCount > 0}
                             onClick={() => document.getElementById('confirm_schedule_save_modal').showModal()}
                         >
                             Save
-                        </button>
-                        <button onClick={deploy} className='btn btn-primary' disabled={errorCount > 0}>
-                            Deploy
                         </button>
                     </div>
                 </div>
