@@ -558,7 +558,8 @@ const SectionListContainer = ({
                                 Add Section <IoAdd size={20} className='ml-2' />
                             </button>
 
-                            <dialog id='add_section_modal' className='modal modal-bottom sm:modal-middle'>
+                            {/* // modal-bottom sm:modal-middle */}
+                            <dialog id='add_section_modal' className='modal '>
                                 <div className='modal-box' style={{ width: '40%', maxWidth: 'none' }}>
                                     <AddSectionContainer
                                         close={handleClose}
@@ -636,10 +637,10 @@ const SectionListContainer = ({
 
                                             {/* Section Adviser */}
                                             <div className='flex flex-wrap mt-2'>
-                                                <div className='w-1/4 p-2 font-bold flex items-center justify-center'>
+                                                <div className='w-1/4 p-2 mr-2 font-bold flex items-center justify-center'>
                                                     Adviser:
                                                 </div>
-                                                <div className='w-2/3 flex items-center justify-center border border-base-content border-opacity-20 rounded-lg m-1'>
+                                                <div className='w-2/3 flex  items-center justify-start m-1'>
                                                     {teachers[section.teacher]?.teacher || 'Unknown Teacher'}
                                                 </div>
                                             </div>
@@ -649,11 +650,8 @@ const SectionListContainer = ({
                                         <td>
                                             <div>
                                                 {/* Building */}
-                                                <div className='mb-5 flex flex-col justify-start'>
-                                                    <label className='h-1/2'>
-                                                        <span className='label-text'>Building</span>
-                                                    </label>
-                                                    <div className='h-1/2 input input-bordered'>
+                                                <div className='mb-5 flex flex-col justify-start font-semibold'>
+                                                    <div>
                                                         {buildings[
                                                             editSectionId === section.id
                                                                 ? editRoomDetails.buildingId
@@ -662,24 +660,19 @@ const SectionListContainer = ({
                                                     </div>
                                                 </div>
 
-                                                {/* Floor */}
-                                                <div className='mb-5 flex flex-col justify-start'>
-                                                    <label className='h-1/2'>
-                                                        <span className='label-text'>Floor</span>
-                                                    </label>
-                                                    <div className='h-1/2 input input-bordered'>
-                                                        {(editSectionId === section.id
-                                                            ? editRoomDetails.floorIdx + 1
-                                                            : section.roomDetails.floorIdx + 1) || 'Unknown Floor'}
+                                                {/* Number of Floors */}
+                                                <div className='mb-5 flex flex-col justify-start text-zinc-600'>
+                                                    <div>
+                                                        {editSectionId === section.id
+                                                            ? editRoomDetails.floorIdx + 1 || 'Unknown Floor'
+                                                            : section.roomDetails.floorIdx + 1 || 'Unknown Floor'}{' '}
+                                                        Floor(s)
                                                     </div>
                                                 </div>
 
                                                 {/* Room */}
-                                                <div className='mb-5 flex flex-col justify-start'>
-                                                    <label className='h-1/2'>
-                                                        <span className='label-text'>Room</span>
-                                                    </label>
-                                                    <div className='h-1/2 input input-bordered'>
+                                                <div className='mb-5 flex flex-col justify-start text-zinc-600'>
+                                                    <div>
                                                         {editSectionId === section.id
                                                             ? buildings[editRoomDetails.buildingId]?.rooms[
                                                                   editRoomDetails.floorIdx
@@ -689,92 +682,37 @@ const SectionListContainer = ({
                                                               ][section.roomDetails.roomIdx]?.roomName || 'Unknown Room'}
                                                     </div>
                                                 </div>
-
-                                                {/* {editSectionId === section.id && (
-                                                    <div>
-                                                        <div className='w-1/4 flex justify-start items-end'>
-                                                            <button
-                                                                className='btn btn-primary btn-sm'
-                                                                onClick={() =>
-                                                                    document
-                                                                        .getElementById(
-                                                                            `view_rooms_modal_viewMode(0)_section(${section.id})_building(0)`
-                                                                        )
-                                                                        .showModal()
-                                                                }
-                                                            >
-                                                                Change Room
-                                                            </button>
-                                                        </div>
-
-                                                        <ViewRooms
-                                                            viewMode={0}
-                                                            sectionId={section.id}
-                                                            roomDetails={editRoomDetails}
-                                                            setRoomDetails={setEditRoomDetails}
-                                                        />
-                                                    </div>
-                                                )} */}
                                             </div>
                                         </td>
 
                                         {/* Subject Details */}
-                                        <td className='flex gap-1 flex-wrap'>
-                                            <div className='overflow-x-auto mt-2'>
-                                                <table className='min-w-full border border-base-content border-opacity-20'>
-                                                    <thead>
-                                                        <tr>
-                                                            <th className='py-2 px-4 border-b border-base-content border-opacity-20 font-normal text-left'>
-                                                                Subject
-                                                            </th>
-                                                            <th className='py-2 px-4 border-b border-base-content border-opacity-20 font-normal text-left'>
-                                                                Duration (min)
-                                                            </th>
-                                                            <th className='py-2 px-4 border-b border-base-content border-opacity-20 font-normal text-left'>
-                                                                Weekly Minutes
-                                                            </th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {Array.isArray(section.subjects) && section.subjects.length > 0 ? (
-                                                            section.subjects.map((subjectID, index) => (
-                                                                <tr
-                                                                    key={index}
-                                                                    className='border-b border-base-content border-opacity-20'
-                                                                >
-                                                                    {/* Subject Name */}
-                                                                    <td className='py-2 px-4 border-b border-base-content border-opacity-20'>
-                                                                        {subjects[subjectID]?.subject ||
-                                                                            'Unknown Subject, ID: ' + subjectID}
-                                                                    </td>
+                                        <td className='w-full'>
+                                            <div className='flex flex-col gap-4 mt-4 overflow-y-auto h-96 max-h-96 px-4'>
+                                                {Array.isArray(section.subjects) && section.subjects.length > 0 ? (
+                                                    section.subjects.map((subjectID, index) => (
+                                                        <div key={index} className='mb-4'>
+                                                            {/* Subject Name */}
+                                                            <div className='font-semibold'>
+                                                                {subjects[subjectID]?.subject ||
+                                                                    `Unknown Subject, ID: ${subjectID}`}
+                                                            </div>
 
-                                                                    {/* Duration */}
-                                                                    <td className='py-2 px-4 border-b border-base-content border-opacity-20'>
-                                                                        {subjects[subjectID]?.classDuration || ''}
-                                                                    </td>
+                                                            {/* Duration and Weekly Minutes */}
+                                                            <div className='text-zinc-600'>
+                                                                {subjects[subjectID]?.classDuration || 'Unknown Duration'} min /{' '}
+                                                                {subjects[subjectID]?.weeklyMinutes || 'Unknown Weekly Minutes'}{' '}
+                                                                Weekly
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className='text-center text-gray-500'>No subjects selected</div>
+                                                )}
 
-                                                                    {/* Weekly Minutes */}
-                                                                    <td className='py-2 px-4 border-b border-base-content border-opacity-20'>
-                                                                        {subjects[subjectID]?.weeklyMinutes || ''}
-                                                                    </td>
-                                                                </tr>
-                                                            ))
-                                                        ) : (
-                                                            <tr>
-                                                                <td
-                                                                    colSpan='4'
-                                                                    className='py-2 px-4 text-center border-b border-gray-200'
-                                                                >
-                                                                    No subjects selected
-                                                                </td>
-                                                            </tr>
-                                                        )}
-                                                    </tbody>
-                                                </table>
-
-                                                <div className='p-2 flex justify-center'>
+                                                {/* View Fixed Schedules Button */}
+                                                <div className='flex justify-center '>
                                                     <button
-                                                        className='btn'
+                                                        className='btn btn-primary'
                                                         onClick={() =>
                                                             document
                                                                 .getElementById(
@@ -785,21 +723,22 @@ const SectionListContainer = ({
                                                     >
                                                         View Fixed Schedules
                                                     </button>
-
-                                                    <FixedScheduleMaker
-                                                        key={section.year}
-                                                        viewingMode={1}
-                                                        isForSection={true}
-                                                        pvs={1}
-                                                        section={section.id}
-                                                        grade={section.year}
-                                                        selectedSubjects={section.subjects || []}
-                                                        fixedDays={section.fixedDays || {}}
-                                                        additionalSchedules={section.additionalScheds || []}
-                                                        fixedPositions={section.fixedPositions || {}}
-                                                        numOfSchoolDays={numOfSchoolDays}
-                                                    />
                                                 </div>
+
+                                                {/* FixedScheduleMaker Component */}
+                                                <FixedScheduleMaker
+                                                    key={section.year}
+                                                    viewingMode={1}
+                                                    isForSection={true}
+                                                    pvs={1}
+                                                    section={section.id}
+                                                    grade={section.year}
+                                                    selectedSubjects={section.subjects || []}
+                                                    fixedDays={section.fixedDays || {}}
+                                                    additionalSchedules={section.additionalScheds || []}
+                                                    fixedPositions={section.fixedPositions || {}}
+                                                    numOfSchoolDays={numOfSchoolDays}
+                                                />
                                             </div>
                                         </td>
 

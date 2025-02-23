@@ -213,6 +213,7 @@ const ProgramListContainer = ({
                             >
                                 Add Program <IoAdd size={20} className='ml-2' />
                             </button>
+
                             <AddProgramContainer
                                 close={handleClose}
                                 reduxField={['program', 'subjects']}
@@ -397,6 +398,7 @@ const ProgramListContainer = ({
                                             {editable && (
                                                 <td>
                                                     <div className='flex justify-center items-center'>
+                                                        
                                                         <ProgramEdit
                                                             className='btn btn-xs btn-ghost text-blue-500'
                                                             program={program}

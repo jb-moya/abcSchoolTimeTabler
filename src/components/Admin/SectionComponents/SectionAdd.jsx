@@ -358,305 +358,318 @@ const AddSectionContainer = ({
                 <h3 className='text-lg font-bold mb-4'>Add New Section</h3>
             </div>
 
-            {/* Section Name */}
-            <div className='mb-4'>
-                <label className='label'>
-                    <span className='label-text'>Section Name</span>
-                </label>
-                <input
-                    type='text'
-                    ref={inputNameRef}
-                    placeholder={`${reduxField[0]} Name`}
-                    required
-                    className='input input-bordered input-sm w-full '
-                    value={inputValue}
-                    onChange={handleInputChange}
-                />
-            </div>
+            <hr className='mb-4'></hr>
 
-            {/* Section Adviser */}
-            <div className='mt-3'>
-                <label className='label'>
-                    <span className='label-text'>Assign Adviser</span>
-                </label>
-                <select
-                    className={`select select-bordered w-full ${errorField.includes('adviser') ? 'border-red-500' : ''}`}
-                    value={selectedAdviser}
-                    onChange={(e) => setSelectedAdviser(parseInt(e.target.value, 10))}
-                >
-                    <option value='' disabled>
-                        Assign an adviser
-                    </option>
-                    {Object.keys(teachers).map((key) => (
-                        <option key={teachers[key].id} value={teachers[key].id}>
-                            {teachers[key].teacher}
-                        </option>
-                    ))}
-                </select>
-            </div>
-
-            {/* Program */}
-            <div className='mt-3'>
-                <label className='label'>
-                    <span className='label-text'>Select Program</span>
-                </label>
-                <select
-                    className={`select select-bordered w-full ${errorField.includes('program') ? 'border-red-500' : ''}`}
-                    value={selectedProgram}
-                    onChange={(e) => setSelectedProgram(parseInt(e.target.value, 10))}
-                >
-                    <option value='' disabled>
-                        Select a program
-                    </option>
-                    {Object.keys(programs).map((key) => (
-                        <option key={programs[key].id} value={programs[key].id}>
-                            {programs[key].program}
-                        </option>
-                    ))}
-                </select>
-            </div>
-
-            {/* Year Level */}
-            <div className='mt-3'>
-                <label className='label'>
-                    <span className='label-text'>Select Year Level</span>
-                </label>
-                <select
-                    className={`select select-bordered w-full ${errorField.includes('yearLevel') ? 'border-red-500' : ''}`}
-                    value={selectedYearLevel}
-                    onChange={(e) => setSelectedYearLevel(parseInt(e.target.value, 10))}
-                >
-                    <option value='' disabled>
-                        Select a year level
-                    </option>
-                    {[7, 8, 9, 10].map((level) => (
-                        <option key={level} value={level}>
-                            Grade {level}
-                        </option>
-                    ))}
-                </select>
-            </div>
-
-            {/* Section Shift */}
-            <div className='mt-5'>
-                <label className='mr-2'>Shift:</label>
-                <label className='mr-2'>
+            <div className='p-4 border rounded-lg shadow-md mb-4'>
+                {/* Section Name */}
+                <div className='mb-4'>
+                    <label className='label'>
+                        <span className='label-text'>Section Name</span>
+                    </label>
                     <input
-                        type='radio'
-                        value={selectedShift}
-                        checked={selectedShift === 0}
-                        onChange={() => {
-                            setSelectedShift(0); // PM shift
-                            setSelectedStartTime('06:00 AM'); // Reset to default AM start time
-                        }}
-                    />
-                    AM
-                </label>
-                <label>
-                    <input
-                        type='radio'
-                        value={selectedShift}
-                        checked={selectedShift === 1}
-                        onChange={() => {
-                            setSelectedShift(1); // PM shift
-                            setSelectedStartTime('01:00 PM'); // Reset to default PM start time
-                        }}
-                    />
-                    PM
-                </label>
-            </div>
-
-            {/* Section Start Time (AM or PM) */}
-            <div className='mt-2 flex flex-wrap'>
-                <label className='w-1/4 mr-2 p-2 text-sm flex items-center justify-end font-bold'>START TIME</label>
-                <div className='w-2/3 pl-2'>
-                    <TimeSelector
-                        key={`start-time-section(0)`}
-                        interval={5}
-                        time={selectedStartTime}
-                        setTime={setSelectedStartTime}
-                        am={selectedShift === 0 ? 1 : 0}
-                        pm={selectedShift === 1 ? 1 : 0}
+                        type='text'
+                        ref={inputNameRef}
+                        placeholder='Section Name'
+                        required
+                        className='input input-bordered w-full text-sm'
+                        value={inputValue}
+                        onChange={handleInputChange}
                     />
                 </div>
-                {!isEndTimeValid && (
-                    <div
-                        className='w-auto flex ml-2 items-center tooltip text-red-500'
-                        data-tip='Total class time exceeds the day, consider adjusting the start time.'
+
+                {/* Section Adviser */}
+                <div className='mt-3'>
+                    <label className='label'>
+                        <span className='label-text'>Assign Adviser</span>
+                    </label>
+                    <select
+                        className={`select select-bordered w-full ${errorField.includes('adviser') ? 'border-red-500' : ''}`}
+                        value={selectedAdviser}
+                        onChange={(e) => setSelectedAdviser(parseInt(e.target.value, 10))}
                     >
-                        <IoWarningSharp size={35} />
-                    </div>
-                )}
+                        <option value='' disabled>
+                            Assign an adviser
+                        </option>
+                        {Object.keys(teachers).map((key) => (
+                            <option key={teachers[key].id} value={teachers[key].id}>
+                                {teachers[key].teacher}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Program */}
+                <div className='mt-3'>
+                    <label className='label'>
+                        <span className='label-text'>Select Program</span>
+                    </label>
+                    <select
+                        className={`select select-bordered w-full ${errorField.includes('program') ? 'border-red-500' : ''}`}
+                        value={selectedProgram}
+                        onChange={(e) => setSelectedProgram(parseInt(e.target.value, 10))}
+                    >
+                        <option value='' disabled>
+                            Select a program
+                        </option>
+                        {Object.keys(programs).map((key) => (
+                            <option key={programs[key].id} value={programs[key].id}>
+                                {programs[key].program}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Year Level */}
+                <div className='mt-3'>
+                    <label className='label'>
+                        <span className='label-text'>Select Year Level</span>
+                    </label>
+                    <select
+                        className={`select select-bordered w-full ${errorField.includes('yearLevel') ? 'border-red-500' : ''}`}
+                        value={selectedYearLevel}
+                        onChange={(e) => setSelectedYearLevel(parseInt(e.target.value, 10))}
+                    >
+                        <option value='' disabled>
+                            Select a year level
+                        </option>
+                        {[7, 8, 9, 10].map((level) => (
+                            <option key={level} value={level}>
+                                Grade {level}
+                            </option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
-            {/* Room Details */}
-            <div className='mt-3'>
-                <label className='label'>
-                    <span className='label-text'>Room Details</span>
-                </label>
+            <div className='p-4 border rounded-lg shadow-md mb-4'>
+                <div className='text-lg font-semibold rounded-lg'>Schedule Details</div>
+                <hr className='my-2'></hr>
 
-                <div className='flex flex-wrap'>
-                    {/* Building */}
-                    <div className='w-1/4 flex flex-col justify-start'>
-                        <label className='label'>
-                            <span className='label-text'>Building</span>
-                        </label>
+                {/* Section Shift */}
+                <div className='flex mt-5'>
+                    <label className='w-1/4 font-semibold text-base text-center mr-4'>SHIFT:</label>
+                    <label className='flex space-x-6 text-base mr-2'>
                         <input
-                            type='text'
-                            value={buildings[roomDetails.buildingId]?.name || ''}
-                            className='input input-bordered input-sm w-5/6'
-                            readOnly
+                            type='radio'
+                            className='mr-2'
+                            value={selectedShift}
+                            checked={selectedShift === 0}
+                            onChange={() => {
+                                setSelectedShift(0); // PM shift
+                                setSelectedStartTime('06:00 AM'); // Reset to default AM start time
+                            }}
+                        />
+                        AM
+                    </label>
+                    <label>
+                        <input
+                            type='radio'
+                            value={selectedShift}
+                            className='mr-2'
+                            checked={selectedShift === 1}
+                            onChange={() => {
+                                setSelectedShift(1); // PM shift
+                                setSelectedStartTime('01:00 PM'); // Reset to default PM start time
+                            }}
+                        />
+                        PM
+                    </label>
+                </div>
+
+                {/* Section Start Time (AM or PM) */}
+                <div className='mt-2 flex flex-wrap'>
+                    <label className='w-1/4 mr-2 p-2 text-sm flex items-center justify-end font-bold'>START TIME</label>
+                    <div className='w-2/3 pl-2'>
+                        <TimeSelector
+                            key={`start-time-section(0)`}
+                            interval={5}
+                            time={selectedStartTime}
+                            setTime={setSelectedStartTime}
+                            am={selectedShift === 0 ? 1 : 0}
+                            pm={selectedShift === 1 ? 1 : 0}
                         />
                     </div>
-
-                    {/* Floor */}
-                    <div className='w-1/4 flex flex-col justify-start'>
-                        <label className='label'>
-                            <span className='label-text'>Floor</span>
-                        </label>
-                        <input
-                            type='text'
-                            value={roomDetails.floorIdx !== -1 ? roomDetails.floorIdx + 1 : ''}
-                            className='input input-bordered input-sm w-5/6'
-                            readOnly
-                        />
-                    </div>
-
-                    {/* Room */}
-                    <div className='w-1/4 flex flex-col justify-start'>
-                        <label className='label'>
-                            <span className='label-text'>Room</span>
-                        </label>
-                        <input
-                            type='text'
-                            value={
-                                buildings[roomDetails.buildingId]?.rooms[roomDetails.floorIdx][roomDetails.roomIdx].roomName || ''
-                            }
-                            className='input input-bordered input-sm w-5/6'
-                            readOnly
-                        />
-                    </div>
-
-                    <div className='w-1/4 flex justify-start items-end'>
-                        <button
-                            className={`btn btn-primary btn-sm}`}
-                            onClick={() =>
-                                document.getElementById(`view_rooms_modal_viewMode(0)_section(0)_building(0)`).showModal()
-                            }
-                            data-tip='Select a room'
-                            disabled={isRoomSelectionDisabled}
+                    {!isEndTimeValid && (
+                        <div
+                            className='w-auto flex ml-2 items-center tooltip text-red-500'
+                            data-tip='Total class time exceeds the day, consider adjusting the start time.'
                         >
-                            Select Room
-                        </button>
-                        {isRoomSelectionDisabled && (
-                            <div
-                                className='w-auto flex ml-2 items-center tooltip text-yellow-500'
-                                data-tip='Select program and year level first'
-                            >
-                                <IoWarningSharp size={35} />
-                            </div>
-                        )}
-                    </div>
+                            <IoWarningSharp size={35} />
+                        </div>
+                    )}
+                </div>
+            </div>
 
-                    <ViewRooms
-                        viewMode={0}
-                        roomDetails={roomDetails}
-                        setRoomDetails={setRoomDetails}
-                        startTime={getTimeSlotIndex(selectedStartTime)}
-                        endTime={selectedEndTime}
-                    />
+            <div className='p-4 border rounded-lg shadow-md mb-4'>
+                {/* Room Details */}
+                <div className=''>
+                    <div className='text-lg font-semibold rounded-lg'>Room Details</div>
+                    <hr className='my-2'></hr>
+
+                    <div className='flex flex-wrap'>
+                        {/* Building */}
+                        <div className='w-1/4 flex flex-col justify-start'>
+                            <label className='label'>
+                                <span className='label-text'>Building</span>
+                            </label>
+                            <input
+                                type='text'
+                                value={buildings[roomDetails.buildingId]?.name || ''}
+                                className='input input-bordered input-sm w-5/6'
+                                readOnly
+                            />
+                        </div>
+
+                        {/* Floor */}
+                        <div className='w-1/4 flex flex-col justify-start'>
+                            <label className='label'>
+                                <span className='label-text'>Floor</span>
+                            </label>
+                            <input
+                                type='text'
+                                value={roomDetails.floorIdx !== -1 ? roomDetails.floorIdx + 1 : ''}
+                                className='input input-bordered input-sm w-5/6'
+                                readOnly
+                            />
+                        </div>
+
+                        {/* Room */}
+                        <div className='w-1/4 flex flex-col justify-start'>
+                            <label className='label'>
+                                <span className='label-text'>Room</span>
+                            </label>
+                            <input
+                                type='text'
+                                value={
+                                    buildings[roomDetails.buildingId]?.rooms[roomDetails.floorIdx][roomDetails.roomIdx]
+                                        .roomName || ''
+                                }
+                                className='input input-bordered input-sm w-5/6'
+                                readOnly
+                            />
+                        </div>
+
+                        <div className='w-1/4 flex justify-start items-end'>
+                            <button
+                                className={`btn btn-primary btn-sm}`}
+                                onClick={() =>
+                                    document.getElementById(`view_rooms_modal_viewMode(0)_section(0)_building(0)`).showModal()
+                                }
+                                data-tip='Select a room'
+                                disabled={isRoomSelectionDisabled}
+                            >
+                                Select Room
+                            </button>
+                            {isRoomSelectionDisabled && (
+                                <div
+                                    className='w-auto flex ml-2 items-center tooltip text-yellow-500'
+                                    data-tip='Select program and year level first'
+                                >
+                                    <IoWarningSharp size={35} />
+                                </div>
+                            )}
+                        </div>
+
+                        <ViewRooms
+                            viewMode={0}
+                            roomDetails={roomDetails}
+                            setRoomDetails={setRoomDetails}
+                            startTime={getTimeSlotIndex(selectedStartTime)}
+                            endTime={selectedEndTime}
+                        />
+                    </div>
                 </div>
             </div>
 
             {/* Subjects and Fixed Schedules */}
             {selectedSubjects.length > 0 && (
-                <>
-                    <div className='mt-4 text-sm'>
-                        <table className='min-w-full font-normal border border-base-content border-opacity-20'>
-                            <thead className=''>
-                                <tr className=''>
-                                    {['Subject', 'Duration (min)', 'Weekly Minutes', '# of Classes'].map((header) => (
-                                        <th key={header} className='p-3 font-normal'>
-                                            {header}
+                <div className='p-4 border rounded-lg shadow-md mb-4'>
+                    <>
+                        <div className='text-lg font-semibold rounded-lg'>Fixed Schedules</div>
+                        <hr className='my-2'></hr>
+                        <div className='mt-4 text-sm'>
+                            <table className='min-w-full border-base-content border-opacity-20 font-normal border border-gray-300'>
+                                <thead>
+                                    <tr>
+                                        <th className='py-2 px-4 border-b border-gray-200 font-normal text-left'>Subject</th>
+                                        <th className='py-2 px-4 border-b border-gray-200 font-normal text-left'>
+                                            Duration (min)
                                         </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {selectedSubjects.map((subjectID) => (
-                                    <tr key={subjectID}>
-                                        <td className='p-2'>
-                                            {subjects[subjectID]?.subject || 'Unknown Subject, ID: ' + subjectID}
-                                        </td>
-                                        <td className='p-2'>{subjects[subjectID]?.classDuration || 'N/A'}</td>
-                                        <td className='p-2'>{subjects[subjectID]?.weeklyMinutes || 'N/A'}</td>
-                                        <td>
-                                            {Math.min(
-                                                Math.ceil(
-                                                    subjects[subjectID]?.weeklyMinutes / subjects[subjectID]?.classDuration
-                                                ),
-                                                numOfSchoolDays
-                                            ) || 'N/A'}
-                                        </td>
+                                        <th className='py-2 px-4 border-b border-gray-200 font-normal text-left'>
+                                            Weekly Minutes
+                                        </th>
+                                        <th className='py-2 px-4 border-b border-gray-200 font-normal text-left'># of Classes</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody>
+                                    {selectedSubjects.map((subjectID) => (
+                                        <tr key={subjectID}>
+                                            <td className='p-2'>
+                                                {subjects[subjectID]?.subject || 'Unknown Subject, ID: ' + subjectID}
+                                            </td>
+                                            <td className='p-2'>{subjects[subjectID]?.classDuration || 'N/A'}</td>
+                                            <td className='p-2'>{subjects[subjectID]?.weeklyMinutes || 'N/A'}</td>
+                                            <td>
+                                                {Math.min(
+                                                    Math.ceil(
+                                                        subjects[subjectID]?.weeklyMinutes / subjects[subjectID]?.classDuration
+                                                    ),
+                                                    numOfSchoolDays
+                                                ) || 'N/A'}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
 
-                    <button
-                        className='btn'
-                        onClick={() =>
-                            document
-                                .getElementById(`assign_fixed_sched_modal_section(0)-grade(${selectedYearLevel})-view(0)`)
-                                .showModal()
-                        }
-                    >
-                        Edit Section Fixed Schedule(s)
-                    </button>
+                        <button
+                            className='btn mt-4'
+                            onClick={() =>
+                                document
+                                    .getElementById(`assign_fixed_sched_modal_section(0)-grade(${selectedYearLevel})-view(0)`)
+                                    .showModal()
+                            }
+                        >
+                            Edit Section Fixed Schedule(s)
+                        </button>
 
-                    <FixedScheduleMaker
-                        key={selectedYearLevel}
-                        viewingMode={0}
-                        isForSection={true}
-                        pvs={1}
-                        section={0}
-                        grade={selectedYearLevel}
-                        // totalTimeslot={totalTimeslot}
-                        selectedSubjects={selectedSubjects}
-                        fixedDays={fixedDays}
-                        setFixedDays={setFixedDays}
-                        fixedPositions={fixedPositions}
-                        setFixedPositions={setFixedPositions}
-                        numOfSchoolDays={numOfSchoolDays}
-                    />
-                </>
+                        <FixedScheduleMaker
+                            key={selectedYearLevel}
+                            viewingMode={0}
+                            isForSection={true}
+                            pvs={1}
+                            section={0}
+                            grade={selectedYearLevel}
+                            // totalTimeslot={totalTimeslot}
+                            selectedSubjects={selectedSubjects}
+                            fixedDays={fixedDays}
+                            setFixedDays={setFixedDays}
+                            fixedPositions={fixedPositions}
+                            setFixedPositions={setFixedPositions}
+                            numOfSchoolDays={numOfSchoolDays}
+                        />
+                    </>
+                </div>
             )}
 
             {/* Additional Schedules */}
             {additionalScheds.length > 0 && (
-                <div className='mt-4 flex flex-col justify-center items-center'>
-                    <div
-                        className='w-1/2 flex flex-wrap'
-                        style={{
-                            position: 'sticky',
-                            top: 0,
-                            zIndex: 1,
-                            backgroundColor: 'white',
-                        }}
+                <div className='p-4 rounded-lg shadow-md border'>
+                    <div className='text-center font-semibold text-lg'>Additional Schedules</div>
+                    <hr className='my-2'></hr>
+
+                    {/* Button to add schedules */}
+                    <button
+                        onClick={handleAddAdditionalSchedule}
+                        className='flex flex-wrap items-right text-sm mt-2 bg-primary p-4 text-white px-2 py-1 rounded-lg hover:bg-blue-600'
                     >
-                        <div className='w-9/12 font-bold p-2 border-b border-gray-300 rounded-tl-lg'>Additional Schedules</div>
-                        <div className='w-3/12 flex justify-center items-center border-b border-gray-300 rounded-tr-lg'>
-                            <button
-                                className='w-3/4 bg-green-700 m-2 font-bold text-white rounded-lg hover:bg-green-500'
-                                onClick={handleAddAdditionalSchedule}
-                            >
-                                +
-                            </button>
-                        </div>
-                    </div>
+                        Add Schedule
+                    </button>
+
+                    {/* Render the ScheduleComponent as many times as specified */}
                     <div
-                        className='w-1/2 overflow-y-auto max-h-36 border border-gray-300 rounded-b-lg'
+                        className='mt-2 overflow-y-auto max-h-36 border border-gray-300 rounded-lg'
                         style={{
                             scrollbarWidth: 'thin',
                             scrollbarColor: '#a0aec0 #edf2f7',
@@ -665,7 +678,7 @@ const AddSectionContainer = ({
                         {additionalScheds.map((sched, index) => (
                             <div key={index} className='flex flex-wrap'>
                                 <button
-                                    className='w-1/12 border rounded-bl-lg hover:bg-gray-200 flex items-center justify-center'
+                                    className='w-1/12 border rounded-l-lg hover:bg-gray-200 flex items-center justify-center'
                                     onClick={() => handleDeleteAdditionalSchedule(index)}
                                 >
                                     <RiDeleteBin7Line size={15} />
@@ -700,7 +713,7 @@ const AddSectionContainer = ({
                                         additionalSchedsOfSection={sched}
                                     />
                                 </div>
-                                <div className='w-1/12  flex items-center justify-center border rounded-br-lg hover:bg-gray-200'>
+                                <div className='w-1/12 flex items-center justify-center border rounded-r-lg hover:bg-gray-200'>
                                     <button
                                         onClick={() =>
                                             document
@@ -731,12 +744,24 @@ const AddSectionContainer = ({
 
             {errorMessage && <p className='text-red-500 text-sm my-4 font-medium select-none '>{errorMessage}</p>}
 
-            <div className='flex justify-center gap-4 mt-4'>
+            {/* <div className='flex justify-center gap-4 mt-4'>
                 <button className='btn btn-secondary' onClick={handleReset}>
                     Reset
                 </button>
                 <button className='btn btn-primary' onClick={handleAddEntry} disabled={!isEndTimeValid}>
                     Add Section
+                </button>
+            </div> */}
+
+            {/* Add button centered at the bottom */}
+            <div className='flex mt-6 justify-center gap-2'>
+                <div className='flex justify-end space-x-2'>
+                    <button className='btn btn-primary flex items-center' onClick={handleAddEntry} disabled={!isEndTimeValid}>
+                        <div>Add {reduxField[0]}</div>
+                    </button>
+                </div>
+                <button className='btn btn-error border-0' onClick={handleReset}>
+                    Reset
                 </button>
             </div>
         </div>

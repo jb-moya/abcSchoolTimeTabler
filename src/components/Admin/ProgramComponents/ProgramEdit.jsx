@@ -785,7 +785,7 @@ const ProgramEdit = ({
     const grades = [7, 8, 9, 10];
 
     return (
-        <div className='flex items-center justify-center'>
+        <div className=''>
             {/* Trigger Button */}
             <label htmlFor={`programEdit_modal_${program.id}`} className='btn btn-xs btn-ghost text-blue-500'>
                 <RiEdit2Fill size={20} />
@@ -971,7 +971,7 @@ const ProgramEdit = ({
                                             {/* Button to add schedules */}
                                             <button
                                                 onClick={() => handleAddAdditionalSchedule(grade)}
-                                                className='flex flex-wrap items-right text-sm mt-2 bg-primary p-4 px-2 py-1 rounded-lg hover:bg-blue-600'
+                                                className='flex flex-wrap items-right text-sm mt-2 bg-primary text-white p-4 px-2 py-1 rounded-lg hover:bg-blue-600'
                                             >
                                                 Add Schedule
                                             </button>

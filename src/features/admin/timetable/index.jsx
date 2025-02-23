@@ -10,7 +10,8 @@ import Configuration from '@components/Admin/Configuration';
 import clsx from 'clsx';
 import * as XLSX from 'xlsx';
 import GeneratedTimetable from '@components/Admin/TimeTable';
-import ForTest from '@components/Admin/ForTest';
+// import ForTest from '@components/Admin/ForTest';
+import { useNavigate } from 'react-router-dom';
 
 import validateTimetableVariables from '@validation/validateTimetableVariables';
 import { toast } from 'sonner';
@@ -91,6 +92,7 @@ function getVacantSlots(totalTimeslot, numOfSchoolDays, fixedPositions, fixedDay
 
 function Timetable() {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     const links = [
         { name: 'Home', href: '/' },
@@ -129,7 +131,7 @@ function Timetable() {
 
     const [defaultBreakTimeDuration, setDefaultBreakTimeDuration] = useState(() => {
         return parseInt(localStorage.getItem('breakTimeDuration'), 10) || 30;
-    })
+    });
 
     const [prevNumOfSchoolDays, setPrevNumOfSchoolDays] = useState(numOfSchoolDays);
 
@@ -1187,14 +1189,17 @@ function Timetable() {
 
         // const combined = combineMaps(sectionTimetable, teacherTimetable);
         // console.log('combined: ', combined);
+        console.log('sectionTimetable: ', sectionTimetable);
+        console.log('teacherTimetable: ', teacherTimetable);
         const sectionEdited = convertToHashMap(sectionTimetable, 'Section');
         const teacherEdited = convertToHashMap(teacherTimetable, 'Teacher');
         // console.log('sectionEdited: ', sectionEdited);
         // console.log('teacherEdited: ', teacherEdited);
-        const combined = combineMaps(sectionEdited, teacherEdited);
-        console.log('DATA SA DRAGDROP: ', combined);
+        const generatedMap = combineMaps(sectionEdited, teacherEdited);
+        console.log('DATA SA DRAGDROP: ', generatedMap);
+        navigate('/app/admin/modify-timetable', { state: { generatedMap } });
 
-        setMapVal(combined);
+        // setMapVal(combined);
     };
 
     const handleSchedExport = () => {
@@ -1798,24 +1803,33 @@ function Timetable() {
                 // console.log('value in timetable: ', schedule);
 
                 // console.log('day in timetable: ', schedule.day);
-                const type = schedule.type;
-                const partnerType = type === 'teacher' ? 'section' : 'teacher';
+                const type = schedule.type[0];
+
+                const partnerType = type === 't' ? 's' : 't';
                 if (schedule.day === 0) {
                     for (let i = 1; i <= 5; i++) {
-                        let scheduleKey = `section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${i}-type-${type}`;
+                        // let scheduleKey = `section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${i}-type-${type}`;
+                        let scheduleKey = `${schedule.section ?? 'n'}-${schedule.teacher ?? 'n'}-${schedule.subject ?? 'n'}-${
+                            i ?? 'n'
+                        }-${type ?? 'n'}`;
 
                         let duplicate = false;
                         if (scheduleMap.has(scheduleKey)) {
                             duplicate = true;
-                            scheduleKey = `additional-section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${i}-type-${type}`;
+                            // scheduleKey = `additional-section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${i}-type-${type}`;
+
+                            scheduleKey = `a-${schedule.section ?? 'n'}-${schedule.teacher ?? 'n'}-${schedule.subject ?? 'n'}-${
+                                i ?? 'n'
+                            }-${type ?? 'n'}`;
                         }
-                        const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
+                        // const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
+                        let keyToFind = scheduleKey.replace(/[^-]+$/, partnerType[0] ?? 'n');
 
                         scheduleMap.set(scheduleKey, {
                             start: schedule.start - 72,
                             end: schedule.end - 72,
                             sectionID: schedule.section,
-                            subject: type === 'section' ? schedule.fieldName1 : schedule.fieldName2,
+                            subject: type === 's' ? schedule.fieldName1 : schedule.fieldName2,
                             subjectID: schedule.subject,
                             teacherID: schedule.teacher,
                             tableKey: setTableKey,
@@ -1826,26 +1840,34 @@ function Timetable() {
                             overlap: false,
                             type: type,
                             additional: duplicate ? true : false,
-                            ...(type === 'teacher' && { section: schedule.fieldName1 }),
-                            ...(type === 'section' && { teacher: schedule.fieldName2 }),
+                            containerName: containerName,
+                            ...(type === 't' && { section: schedule.fieldName1 }),
+                            ...(type === 's' && { teacher: schedule.fieldName2 }),
                         });
                     }
                 } else {
                     // Use sectionID, subjectID, and start time to create a unique key for the schedule
-                    let scheduleKey = `section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${schedule.day}-type-${type}`;
+                    // let scheduleKey = `section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${schedule.day}-type-${type}`;
+                    let scheduleKey = `${schedule.section ?? 'n'}-${schedule.teacher ?? 'n'}-${schedule.subject ?? 'n'}-${
+                        schedule.day ?? 'n'
+                    }-${type[0] ?? 'n'}`;
 
                     let duplicate = false;
                     if (scheduleMap.has(scheduleKey)) {
                         duplicate = true;
-                        scheduleKey = `additional-section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${schedule.day}-type-${type}`;
+                        // scheduleKey = `additional-section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${schedule.day}-type-${type}`;
+                        scheduleKey = `a-${schedule.section ?? 'n'}-${schedule.teacher ?? 'n'}-${schedule.subject ?? 'n'}-${
+                            schedule.day ?? 'n'
+                        }-${type[0] ?? 'n'}`;
                     }
-                    let keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
+                    // let keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
+                    let keyToFind = scheduleKey.replace(/[^-]+$/, partnerType[0] ?? 'n');
 
                     scheduleMap.set(scheduleKey, {
                         start: schedule.start - 72,
                         end: schedule.end - 72,
                         sectionID: schedule.section,
-                        subject: type === 'section' ? schedule.fieldName1 : schedule.fieldName2,
+                        subject: type === 's' ? schedule.fieldName1 : schedule.fieldName2,
                         subjectID: schedule.subject,
                         teacherID: schedule.teacher,
                         tableKey: setTableKey,
@@ -1856,8 +1878,9 @@ function Timetable() {
                         overlap: false,
                         day: schedule.day,
                         additional: duplicate ? true : false,
-                        ...(type === 'teacher' && { section: schedule.fieldName1 }),
-                        ...(type === 'section' && { teacher: schedule.fieldName2 }),
+                        containerName: containerName,
+                        ...(type === 't' && { section: schedule.fieldName1 }),
+                        ...(type === 's' && { teacher: schedule.fieldName2 }),
                     });
                 }
             }
@@ -2019,12 +2042,11 @@ function Timetable() {
                     EXPORT SCHEDULES
                 </button>
             )}
-            {mapVal && mapVal.size > 0 && (
+            {/* {mapVal && mapVal.size > 0 && (
                 <>
-                    {/* {console.log('Rendering ForTest with mapVal:', mapVal)} */}
                     <ForTest hashMap={mapVal} />
                 </>
-            )}
+            )} */}
 
             {/* pag section need Container section + sectionid + teacherid for error */}
             {/* <GeneratedTimetable
