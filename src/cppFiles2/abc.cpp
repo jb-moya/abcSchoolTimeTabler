@@ -422,6 +422,8 @@ void ABC::getResult(int64_t* result, int64_t* result_2, TimePoint offset_duratio
 				TimePoint start = section.getTimeslotStart(timeslot) + (offset_duration)*timeslot;
 				TimePoint end = section.getTimeslotEnd(timeslot) + (offset_duration) * (timeslot + 1);
 
+				SubjectConfigurationID subject_configuration_id = schoolClass.subject_configuration_id;
+
 				// TimePoint start = section.getTimeslotStart(timeslot) + (1)*timeslot;
 				// TimePoint end = section.getTimeslotEnd(timeslot) + (1) * (timeslot + 1);
 
@@ -434,7 +436,7 @@ void ABC::getResult(int64_t* result, int64_t* result_2, TimePoint offset_duratio
 				// end += offset;
 
 				result[iter] = packed;
-				result_2[iter] = pack5IntToInt64(start, end, 0, 0, 0);
+				result_2[iter] = pack5IntToInt64(start, end, subject_configuration_id, 0, 0);
 
 				iter++;
 			}

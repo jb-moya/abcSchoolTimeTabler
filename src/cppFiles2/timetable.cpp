@@ -653,6 +653,7 @@ void Timetable::initializeClassBlock(Section& section,
 	int offset_duration = Timetable::getOffsetDuration();
 
 	for (const auto& subject_configuration : subject_configurations) {
+		SubjectConfigurationID subject_configuration_id = subject_configuration->getSubjectConfigurationId();
 		SubjectID subject_id = subject_configuration->getSubjectId();
 		TimeDuration duration = subject_configuration->getDuration();
 		bool is_consistent_everyday = subject_configuration->isConsistentEveryday();
@@ -667,7 +668,7 @@ void Timetable::initializeClassBlock(Section& section,
 			teacher_id = Timetable::getRandomTeacher(subject_id);
 		}
 
-		SchoolClass school_class = SchoolClass{subject_id, teacher_id, duration, is_consistent_everyday, fixed_timeslot, fixed_days, is_overlappable};
+		SchoolClass school_class = SchoolClass{subject_configuration_id, subject_id, teacher_id, duration, is_consistent_everyday, fixed_timeslot, fixed_days, is_overlappable};
 
 		if (is_consistent_everyday == 1) {
 			if (fixed_timeslot == 0) {

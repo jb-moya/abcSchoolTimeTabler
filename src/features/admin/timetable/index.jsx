@@ -260,7 +260,7 @@ function Timetable() {
         let subjectConfigurationIDIncrementer = 0;
 
         Object.entries(sectionData).forEach(([key, section]) => {
-            console.log('GUGU', key, section);
+            // console.log('GUGU', key, section);
 
             const fixedDays = section.fixedDays;
             const fixedPositions = section.fixedPositions;
@@ -314,6 +314,7 @@ function Timetable() {
 
             subjectsEveryDay.forEach((subjectID) => {
                 const subjectConfiguration = {
+                    name: "",
                     subject: subjectMapReverse[subjectID].id,
                     is_consistent_everyday: emptyEveryDayTimeslot.size >= subjectsEveryDay.length,
                     classDuration: subjectMapReverse[subjectID].classDuration,
@@ -339,6 +340,7 @@ function Timetable() {
 
                     classBlock.forEach((timeslot, index) => {
                         const subjectConfiguration = {
+                            name: "",
                             subject: subjectMapReverse[subjectID].id,
                             is_consistent_everyday: false,
                             classDuration: subjectMapReverse[subjectID].classDuration,
@@ -374,10 +376,11 @@ function Timetable() {
                     const firstDay = vacant.at(vacant_iterator).values().next().value;
                     vacant.at(vacant_iterator).delete(firstDay);
 
-                    console.log('PP', section.shift == 0 ? totalTimeslot + 1 + vacant_iterator : vacant_iterator + 1);
-                    // console.log('🚀 ~ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', additionalSchedule?.duration || 0);
+                    // console.log('PP', section.shift == 0 ? totalTimeslot + 1 + vacant_iterator : vacant_iterator + 1);
+                    // console.log('🚀 ~ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', additionalSchedule);
 
                     const subjectConfiguration = {
+                        name: additionalSchedule.name,
                         subject: subjectMapReverse[additionalSchedule.subject]?.id ?? -1,
                         is_consistent_everyday: false,
                         classDuration: additionalSchedule?.duration || 0,
@@ -556,6 +559,7 @@ function Timetable() {
                     positionArray.every((element) => element === positionArray[0])
                 ) {
                     const subjectConfiguration = {
+                        name: "",
                         subject: subjectMapReverse[subjectID].id,
                         is_consistent_everyday: true,
                         classDuration: subjectMapReverse[subjectID].classDuration / timeDivision - offset,
@@ -574,6 +578,7 @@ function Timetable() {
 
                 positionArray.forEach((timeslot, index) => {
                     const subjectConfiguration = {
+                        name: "",
                         subject: subjectMapReverse[subjectID].id,
                         is_consistent_everyday: false,
                         classDuration: subjectMapReverse[subjectID].classDuration / timeDivision - offset,
@@ -601,6 +606,7 @@ function Timetable() {
                     vacant.at(vacant_iterator).delete(firstDay);
 
                     subjectConfigurationArray.push({
+                        name: additionalSchedule.name,
                         subject: subjectMapReverse[additionalSchedule.subject]?.id ?? -1,
                         is_consistent_everyday: false,
                         classDuration: additionalSchedule?.duration / timeDivision - offset || 0,
@@ -1017,8 +1023,39 @@ function Timetable() {
 
             const start = Number(entry[5]);
             const end = Number(entry[6]);
+            
+            const subjectConfigurationID = Number(entry[7]);
+
+            // console.log(section_id, 'ETONG d', subjectConfigurationID, subject_id, subjectConfigurationMap.get(subjectMapReverse[subject_id]?.id));
+            // console.log(
+            //     section_id,
+            //     'ETONG SAYO',
+            //     subjectConfigurationID,
+            //     subject_id,
+            //     subjectConfigurationMap.get(subjectMapReverse[entry[1]]?.id)
+            // );
+
+            const subjectConfigurationData = subjectConfigurationMap.get(subjectMapReverse[subject_id]?.id);
+
+            let name = '';
+            if (subjectConfigurationData) {
+                subjectConfigurationData.forEach((value, key) => {
+                    // console.log("value", value)
+
+                    if (value.subjectConfigurationID === subjectConfigurationID) {
+                        // console.log("QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ");
+                        name = value.name;
+                    }
+                });
+            } else {
+                // console.warn('No subject data found for subject_id:', subject_id);
+            }
+
+            // console.log('🚀 ~ handleButtonClick ~ name:', name);
+
+
             const sectionType = 'section';
-            addTimeslotToTimetable(
+            addTimeslotToTimetable( //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// fasdf
                 section_id,
                 sectionTimetable,
                 section_id,
@@ -1027,7 +1064,7 @@ function Timetable() {
                 start,
                 end,
                 day,
-                subjectData[subject_id]?.subject || null,
+                name ? name + " " + subjectData[subject_id]?.subject : subjectData[subject_id]?.subject || null,
                 teacherData[teacher_id]?.teacher || null,
                 sectionData[section_id]?.section,
                 sectionType
@@ -1062,7 +1099,7 @@ function Timetable() {
                 end,
                 day,
                 sectionData[section_id]?.section,
-                subjectData[subject_id]?.subject,
+                name ? name + " " + subjectData[subject_id]?.subject : subjectData[subject_id]?.subject || null,
                 teacherData[teacher_id]?.teacher,
                 teacherType
             );

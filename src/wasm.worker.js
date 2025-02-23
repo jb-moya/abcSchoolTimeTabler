@@ -195,7 +195,7 @@ const getTimetable = async (params) =>
                 let resultArray_2 = unpackIntegers(result_2);
 
                 // -1 is the sentinel value for the end of the result array
-                if (resultArray_2[2] == -1 && resultArray_2[3] == -1 && resultArray_2[4] == -1) {
+                if (resultArray_2[3] == -1 && resultArray_2[4] == -1) {
                     break;
                 }
 
@@ -224,7 +224,7 @@ const getTimetable = async (params) =>
                 const field = resultArray[1];
                 const violation_count = resultArray[2];
 
-                console.log('vio', violation_type, field, violation_count);
+                // console.log('vio', violation_type, field, violation_count);
             }
 
             console.log('timetable result', timetable);
