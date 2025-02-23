@@ -102,7 +102,7 @@ const NavBar = () => {
                         <a>ABOUT</a>
                     </li>
                 </ul>
-                <a onClick={goToLoginPage} className='btn btn-outline rounded-3xl'>
+                {/* <a onClick={goToLoginPage} className='btn btn-outline rounded-3xl'>
                     Log In
                 </a>
             </div>
