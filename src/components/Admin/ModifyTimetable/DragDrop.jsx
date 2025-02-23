@@ -16,7 +16,7 @@ const DragDrop = ({
     addClicked,
     setAddClicked,
 }) => {
-    // console.log('value: ', value);
+    console.log('value: ', value);
     const containerRef = React.useRef(null);
     const [lineRowPositions, setRowPositions] = useState([]);
     const [lineColPositions, setColPositions] = useState([]);

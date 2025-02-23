@@ -280,6 +280,8 @@ void ABC::getViolation(int64_t* result_violation) {
 		if (total_week_workload < min_teacher_work_load) {
 			teacher_violations[BELOW_MIN_WORKLOAD_INT][teacher_id]++;
 		}
+
+		// print("total_week_workload", total_week_workload, max_teacher_work_load, min_teacher_work_load, teacher_id);
 	}
 
 	const auto& section_set = Timetable::getSectionsSet();
@@ -294,11 +296,21 @@ void ABC::getViolation(int64_t* result_violation) {
 
 		Section section = best_solution.timetable.getSectionById(section_id);
 
+		int end_gap_increment = section.getNumberOfBreak() == 1 ? 1 : 0;
+
 		TimePoint early_not_allowed_break_duration_gap = section.getNotAllowedBreakslotGap() * best_solution.timetable.getDefaultClassDuration();
-		TimePoint late_not_allowed_break_duration_gap = (section.getNotAllowedBreakslotGap() + 1) * best_solution.timetable.getDefaultClassDuration();
+
+		TimePoint late_not_allowed_break_duration_gap = (section.getNotAllowedBreakslotGap() + end_gap_increment) * best_solution.timetable.getDefaultClassDuration();
+
+		// print("late_not_allowed_break_duration_gap", late_not_allowed_break_duration_gap);
 
 		// int max_time = Timetable::s_section_start[section_id] + Timetable::s_section_total_duration[section_id];
 		TimePoint max_time = section.getStartTime() + section.getTotalDuration();
+
+		// ASK: what if the section have additional schedules, it should not take into account on the calculation of break viability
+
+		// print("max time ", max_time);
+
 		const auto& break_slots = section.getBreakSlots();
 
 		if (section.getNumberOfBreak() == 1) {
@@ -320,12 +332,20 @@ void ABC::getViolation(int64_t* result_violation) {
 				// this always assumes that there's only 2 break slots
 
 				auto it = break_slots.begin();
-				Timeslot first_break_time = *it;
+				Timeslot break_time_1 = *it;
 				++it;
-				Timeslot last_break_time = *it;
+				Timeslot break_time_2 = *it;
 
-				TimePoint first_start = section.getTimeslotStart(first_break_time);
-				TimePoint last_end = section.getTimeslotEnd(last_break_time);
+				TimePoint break_time_1_start = section.getTimeslotStart(break_time_1);
+				TimePoint break_time_2_start = section.getTimeslotStart(break_time_2);
+
+				TimePoint break_time_1_end = section.getTimeslotEnd(break_time_1);
+				TimePoint break_time_2_end = section.getTimeslotEnd(break_time_2);
+
+				TimePoint first_start = std::min(break_time_1_start, break_time_2_start);
+				TimePoint last_end = std::max(break_time_1_end, break_time_2_end);
+
+				// print("first_start", first_start, "last_end", last_end);
 
 				if (last_end > max_time - late_not_allowed_break_duration_gap) {
 					section_violations[LATE_BREAK_INT][section_id]++;
@@ -402,6 +422,8 @@ void ABC::getResult(int64_t* result, int64_t* result_2, TimePoint offset_duratio
 				TimePoint start = section.getTimeslotStart(timeslot) + (offset_duration)*timeslot;
 				TimePoint end = section.getTimeslotEnd(timeslot) + (offset_duration) * (timeslot + 1);
 
+				SubjectConfigurationID subject_configuration_id = schoolClass.subject_configuration_id;
+
 				// TimePoint start = section.getTimeslotStart(timeslot) + (1)*timeslot;
 				// TimePoint end = section.getTimeslotEnd(timeslot) + (1) * (timeslot + 1);
 
@@ -414,7 +436,7 @@ void ABC::getResult(int64_t* result, int64_t* result_2, TimePoint offset_duratio
 				// end += offset;
 
 				result[iter] = packed;
-				result_2[iter] = pack5IntToInt64(start, end, 0, 0, 0);
+				result_2[iter] = pack5IntToInt64(start, end, subject_configuration_id, 0, 0);
 
 				iter++;
 			}

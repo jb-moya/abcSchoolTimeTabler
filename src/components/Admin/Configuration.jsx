@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import TimeSelector from '@utils/timeSelector';
+import { setMaxTeacherLoad, setMinTeacherLoad } from '@features/configurationSlice';
+import { useDispatch } from 'react-redux';
 
 function Configuration({ numOfSchoolDays, setNumOfSchoolDays, breakTimeDuration, setBreakTimeDuration }) {
+    const dispatch = useDispatch();
+
     const [defaultSubjectClassDuration, setDefaultSubjectClassDuration] = useState(() => {
         return localStorage.getItem('defaultSubjectClassDuration') || 10;
     });
@@ -61,18 +65,23 @@ function Configuration({ numOfSchoolDays, setNumOfSchoolDays, breakTimeDuration,
     };
 
     const handleChangeMinTeachingLoad = (e) => {
-        const value = parseInt(e.target.value, 10);
-        if (value >= 100 && value <= maxTeachingLoad) {
-            setMinTeachingLoad(value);
-        } else if (value < 100) {
-            setMinTeachingLoad(100);
-        }
+        let value = parseInt(e.target.value, 10);
+
+        if (value < 100) {
+            value = 100;
+        } else if (value > maxTeachingLoad) {
+            value = maxTeachingLoad;
+        } 
+
+        setMinTeachingLoad(value);
+        dispatch(setMinTeacherLoad(value));
     };
 
     const handleChangeMaxTeachingLoad = (e) => {
         const value = parseInt(e.target.value, 10);
         if (value >= minTeachingLoad) {
             setMaxTeachingLoad(value);
+            dispatch(setMaxTeacherLoad(value));
         }
     };
 

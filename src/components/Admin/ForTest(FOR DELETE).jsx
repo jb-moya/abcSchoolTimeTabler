@@ -4,6 +4,7 @@ import DragDrop from './DragDrop(FOR DELETE)';
 import { generateTimeSlots } from './utils';
 import { produce } from 'immer';
 import { PiConfetti } from 'react-icons/pi';
+import { deployTimetable } from '../../features/deployTimetable';
 
 import { addSched, fetchScheds } from '@features/schedulesSlice';
 
@@ -152,6 +153,10 @@ const ForTest = ({ hashMap }) => {
 
             document.getElementById('confirm_schedule_save_modal').close();
         }
+    };
+
+    const deploy = async () => {
+        deployTimetable(valueMap);
     };
 
     const clear = () => {
@@ -625,6 +630,9 @@ const ForTest = ({ hashMap }) => {
                             disabled={historyIndex === history.length - 1} // Disable if at the start of history
                         >
                             Redo
+                        </button>
+                        <button onClick={deploy} className='btn btn-primary' disabled={errorCount > 0}>
+                            Deploy
                         </button>
                         <button
                             className='btn btn-secondary'
