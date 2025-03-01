@@ -6,10 +6,15 @@ import { produce } from 'immer';
 import { PiConfetti } from 'react-icons/pi';
 import { addSched, editSched, fetchScheds } from '@features/schedulesSlice';
 import { convertStringDataToMap } from './utils';
+// import { deployTimetable } from '../../../features/deployTimetable';
+import useDeployTimetables from '../../../hooks/useDeployTimetables';
+import useDeleteAllFirebaseTimetables from '../../../hooks/useDeleteAllFirebaseTimetables';
+import mapToArray from './mapToArray';
+import clsx from 'clsx';
+import { IoIosAdd, IoIosWarning } from 'react-icons/io';
+import { FiMinus } from 'react-icons/fi';
 
-import ExportSchedules from './ExportSchedules';
-
-const ModifyTimetableContainer = ({ 
+const ModifyTimetableContainer = ({
     hashMap = new Map(),
     timetableName = '',
     timetableId = null,
@@ -19,12 +24,18 @@ const ModifyTimetableContainer = ({
     errorField,
     setErrorField,
 }) => {
-    
     const dispatch = useDispatch();
     const inputNameRef = useRef();
 
-// ================================================================================================================
-    
+    const { handleDeployTimetables, isLoading: deployLoading, remaining: deployRemaining } = useDeployTimetables();
+    const {
+        handleDeleteAllFirebaseTimetables,
+        isLoading: deletingLoading,
+        remaining: deleteRemaining,
+    } = useDeleteAllFirebaseTimetables();
+
+    // ================================================================================================================
+
     const { schedules, status: schedStatus } = useSelector((state) => state.schedule);
 
     const [scheduleVerId, setScheduleVerId] = useState(timetableId);
@@ -55,7 +66,15 @@ const ModifyTimetableContainer = ({
         setSelectedModeValue(event.target.value);
     };
 
-// ================================================================================================================
+    const deploy = async () => {
+        console.log('deploying', valueMap);
+        const array = mapToArray(valueMap);
+        console.log('array ffasdf: ', array);
+
+        handleDeployTimetables(array);
+    };
+
+    // ================================================================================================================
 
     const tableRefs = useRef({}); // Make sure this initializes as an object
     const [history, setHistory] = useState([new Map()]); // history stack (array of Maps)
@@ -130,7 +149,7 @@ const ModifyTimetableContainer = ({
         setCurrentPage(page);
     };
 
-// ===============================================================================================================
+    // ===============================================================================================================
 
     const undo = () => {
         if (historyIndex > 1) {
@@ -149,44 +168,6 @@ const ModifyTimetableContainer = ({
     };
 
     const save = () => {
-
-        function mapToArray(map) {
-            if (!(map instanceof Map)) return map;
-
-            let tableArray = [];
-            Array.from(map.entries()).forEach(([keyTable, table]) => {
-                let tableValue = [];
-                let containerName = '';
-                for (const row of table) {
-                    if (row[1].containerName) {
-                        containerName = row[1].containerName;
-                        break; // Exit the loop early
-                    }
-                }
-
-                tableValue.push(containerName);
-                let rowArray = [];
-                Array.from(table.entries()).forEach(([keyCell, cellBlocks]) => {
-                    let cellArray = [];
-                    cellArray.push(cellBlocks.type);
-                    cellArray.push(cellBlocks.teacherID);
-                    cellArray.push(cellBlocks.teacher);
-                    cellArray.push(cellBlocks.sectionID);
-                    cellArray.push(cellBlocks.section);
-                    cellArray.push(cellBlocks.subjectID);
-                    cellArray.push(cellBlocks.subject);
-                    const timeString = `${cellBlocks.start}-${cellBlocks.end}`;
-                    cellArray.push(timeString);
-                    cellArray.push(cellBlocks.day);
-                    rowArray.push(cellArray);
-                });
-                tableValue.push(rowArray);
-                tableArray.push(tableValue);
-            });
-
-            return tableArray;
-        }
-
         function processRows(data, n) {
             // Generate a key from each row ignoring the last element
             function generateKey(row) {
@@ -225,6 +206,10 @@ const ModifyTimetableContainer = ({
 
         const array = mapToArray(valueMap);
 
+        console.log('🚀 ~ save ~ valueMap:', valueMap);
+
+        console.log('array          dddddddddd: ', array);
+
         //n is for number of days
         const n = 5;
         let resultarray = [];
@@ -260,16 +245,15 @@ const ModifyTimetableContainer = ({
         }
 
         const duplicateScheduleName = Object.values(schedules).find(
-            (schedule) => 
-                schedule.name.trim().toLowerCase() === scheduleVerName.trim().toLowerCase() &&
-                schedule.id !== timetableId
+            (schedule) =>
+                schedule.name.trim().toLowerCase() === scheduleVerName.trim().toLowerCase() && schedule.id !== timetableId
         );
 
         if (duplicateScheduleName) {
             setErrorField('timetable_name');
             setErrorMessage(`Timetable with name '${scheduleVerName}' already exists.`);
             return;
-        } else {   
+        } else {
             if (timetableId === null) {
                 dispatch(
                     addSched({
@@ -286,9 +270,9 @@ const ModifyTimetableContainer = ({
                             data: stringifiedTimeTable,
                         },
                     })
-                )
+                );
             }
-            
+
             document.getElementById('confirm_schedule_save_modal').close();
         }
     };
@@ -305,7 +289,7 @@ const ModifyTimetableContainer = ({
         console.log('add');
     };
 
-// ===============================================================================================================
+    // ===============================================================================================================
 
     useEffect(() => {
         const overlaps = detectOverlaps(valueMap);
@@ -501,7 +485,7 @@ const ModifyTimetableContainer = ({
         }
     };
 
-// ===============================================================================================================
+    // ===============================================================================================================
 
     const Column = () => {
         const days = ['Mon', 'Tue', 'Wed', 'Thur', 'Fri'];
@@ -608,14 +592,14 @@ const ModifyTimetableContainer = ({
 
     const optimizeTable = () => {};
 
-// ==============================================================================================================
-// For debugging (console.log())
+    // ==============================================================================================================
+    // For debugging (console.log())
 
     useEffect(() => {
         console.log('valueMap', valueMap);
     }, [valueMap]);
 
-// ==============================================================================================================
+    // ==============================================================================================================
 
     return (
         Array.from(paginatedValueMap.entries()).length > 0 && (
@@ -730,7 +714,7 @@ const ModifyTimetableContainer = ({
                     </div>
                 </dialog>
 
-                <div className='flex flex-row items-center justify-between pt-10 px-5'>
+                <div className='flex flex-row space-x-2 items-end justify-between pt-10 px-5'>
                     <button
                         className='btn btn-outline flex-row items-center justify-center cursor-pointer'
                         onClick={handleErrorClick}
@@ -758,7 +742,7 @@ const ModifyTimetableContainer = ({
                     )}
                     {/* EXPORT */}
 
-                    <div className='flex flex-row items-center space-x-2 ml-auto'>
+                    <div className='flex flex-row flex-wrap items-center gap-2 justify-between'>
                         <button onClick={add} className='btn btn-secondary'>
                             Add
                         </button>
@@ -800,11 +784,29 @@ const ModifyTimetableContainer = ({
                             Redo
                         </button>
                         <button
-                            className='btn btn-secondary'
+                            className='btn btn-secondary flex-1'
                             disabled={errorCount > 0}
                             onClick={() => document.getElementById('confirm_schedule_save_modal').showModal()}
                         >
                             Save
+                        </button>
+
+                        <button
+                            className={clsx('btn btn-primary flex-1', {
+                                'btn-disabled': deletingLoading || deployLoading,
+                            })}
+                            disabled={deletingLoading || deployLoading}
+                            onClick={() => document.getElementById('deploy_confirmation').showModal()}
+                        >
+                            {(deletingLoading || deployLoading) && <span className='loading loading-spinner'></span>}
+                            {/* {deletingLoading || deployLoading ? ( */}
+                            {deletingLoading || deployLoading ? (
+                                <div className='mt-4 min-h-12 text-start'>
+                                    <p>Deploying</p>
+                                </div>
+                            ) : (
+                                'Deploy'
+                            )}
                         </button>
                     </div>
                 </div>
@@ -830,27 +832,38 @@ const ModifyTimetableContainer = ({
                             >
                                 {/* Card for each section */}
                                 <div className='card bg-base-100 w-full shadow-xl pt-5'>
-                                    {
-                                        timetableId !== null &&
-                                        (   
-                                            <div className="flex items-center">
-                                                <label className="mr-4 w-1/6 text-center">
-                                                    Schedule Name: 
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    className={`input input-bordered w-1/3 ${errorField === 'timetable_name' ? 'border-red-500' : ''}`}
-                                                    value={scheduleVerName}
-                                                    onChange={(e) => setScheduleVerName(e.target.value)}
-                                                    placeholder="Enter name"
-                                                    ref={inputNameRef}
-                                                />
+                                    {timetableId !== null && (
+                                        <div className='flex items-center px-8'>
+                                            <label className='mr-4 text-center'>Schedule Name:</label>
+                                            <input
+                                                type='text'
+                                                className={`input input-bordered w-1/3 ${
+                                                    errorField === 'timetable_name' ? 'border-red-500' : ''
+                                                }`}
+                                                value={scheduleVerName}
+                                                onChange={(e) => setScheduleVerName(e.target.value)}
+                                                placeholder='Enter name'
+                                                ref={inputNameRef}
+                                            />
+                                            <div className='ml-auto justify-end flex flex-col w-40 items-end'>
+                                                {deployLoading && deployRemaining > 0 && (
+                                                // {1 > 0 && (
+                                                    <span className='flex items-center gap-2 text-green-500'>
+                                                        <IoIosAdd />
+                                                        <span>{deployRemaining} to overwrite</span>
+                                                    </span>
+                                                )}
+
+                                                {deletingLoading && deleteRemaining > 0 && (
+                                                // {1 > 0 && (
+                                                    <span className='flex items-center gap-2 text-red-500'>
+                                                        <FiMinus />
+                                                        <span>{deleteRemaining} to delete</span>
+                                                    </span>
+                                                )}
                                             </div>
-
-                                            
-
-                                        )
-                                    }
+                                        </div>
+                                    )}
                                     <div className='card-body'>
                                         {/* Dynamically render section name */}
                                         <h2 className='card-title capitalize'>{key}</h2>
@@ -913,25 +926,26 @@ const ModifyTimetableContainer = ({
                         <div className='modal-action'>
                             <div className='w-full'>
                                 <label className='block text-sm font-medium mb-2 w-full'>
-                                    {
-                                        timetableId === null 
-                                            ? 'Provide a name for this set of schedules:' 
-                                            : `Are you sure you want to save the changes?`
-                                    }
+                                    {timetableId === null
+                                        ? 'Provide a name for this set of schedules:'
+                                        : `Are you sure you want to save the changes?`}
                                 </label>
-                                {
-                                    timetableId === null &&
-                                    (<input
+                                {timetableId === null && (
+                                    <input
                                         type='text'
-                                        className={`input input-bordered w-full mb-4 ${errorField === 'timetable_name' ? 'border-red-500' : ''}`}
+                                        className={`input input-bordered w-full mb-4 ${
+                                            errorField === 'timetable_name' ? 'border-red-500' : ''
+                                        }`}
                                         value={scheduleVerName}
                                         onChange={(e) => setScheduleVerName(e.target.value)}
                                         placeholder='Enter name'
                                         ref={inputNameRef}
-                                    />)
-                                }
+                                    />
+                                )}
 
-                                {errorMessage && <p className='text-red-500 text-sm my-4 font-medium select-none '>{errorMessage}</p>}
+                                {errorMessage && (
+                                    <p className='text-red-500 text-sm my-4 font-medium select-none '>{errorMessage}</p>
+                                )}
 
                                 <div className='flex justify-center gap-2'>
                                     <button className='btn btn-primary' onClick={save}>
@@ -948,9 +962,57 @@ const ModifyTimetableContainer = ({
                                 onClick={() => {
                                     handleReset();
                                     document.getElementById('confirm_schedule_save_modal').close();
-                                }}                                
+                                }}
                             >
                                 ✕
+                            </button>
+                        </div>
+                    </div>
+                </dialog>
+
+                <dialog id='deploy_confirmation' className='modal'>
+                    <div className='modal-box'>
+                        <form method='dialog'>
+                            <button className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2'>✕</button>
+                        </form>
+
+                        <div className='flex items-center gap-2'>
+                            <IoIosWarning className='text-4xl text-red-500' />
+                            <h1 className='font-bold text-2xl'>Are you sure?</h1>
+                        </div>
+                        <div className='py-4'>
+                            <p className='text-start'>
+                                This will <b>overwrite</b> all existing timetables currently deployed. Are you sure you want to
+                                deploy all these timetables?
+                            </p>
+                            <div className='mt-4 min-h-7 text-start'>
+                                {deployLoading && deployRemaining > 0 && <p>{deployRemaining} to overwrite</p>}
+                                {deletingLoading && deleteRemaining > 0 && <p>{deleteRemaining} to delete</p>}
+                            </div>
+                        </div>
+                        <div className='flex justify-end gap-2'>
+                            <button
+                                className='btn btn-primary flex-1'
+                                onClick={async () => {
+                                    await handleDeleteAllFirebaseTimetables();
+                                    await deploy();
+                                    
+                                    handleReset();
+                                    document.getElementById('confirm_schedule_save_modal').close();
+                                }}
+                                disabled={deletingLoading || deployLoading}
+                            >
+                                {deletingLoading || deployLoading ? (
+                                    <>
+                                        <span className='loading loading-spinner'></span>
+                                        <span>Deploying... This may take a while</span>
+                                    </>
+                                ) : (
+                                    'Yes, Deploy timetables'
+                                )}
+                            </button>
+                            <button className='btn btn-error' disabled={deletingLoading || deployLoading}>
+                                Cancel
                             </button>
                         </div>
                     </div>

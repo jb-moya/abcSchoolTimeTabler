@@ -100,12 +100,11 @@ function Timetable() {
     ];
 
     const { subjects: subjectsStore, status: subjectStatus } = useSelector((state) => state.subject);
-    const { buildings: buildingsStore, status: buildingStatus } = useSelector((state) => {
-        return state.building;
-    });
+    const { buildings: buildingsStore, status: buildingStatus } = useSelector((state) => state.building);
     const { teachers: teachersStore } = useSelector((state) => state.teacher);
     const { sections: sectionsStore, status: sectionStatus } = useSelector((state) => state.section);
     const { programs: programsStore, status: programStatus } = useSelector((state) => state.program);
+    const { minTeacherLoad: minTeachingLoad, maxTeacherLoad: maxTeachingLoad } = useSelector((state) => state.configuration);
 
     // ========================================================================
 
@@ -115,14 +114,6 @@ function Timetable() {
 
     const [breakTimeDuration, setBreakTimeDuration] = useState(() => {
         return localStorage.getItem('breakTimeDuration') || 30;
-    });
-
-    const [minTeachingLoad, setMinTeachingLoad] = useState(() => {
-        return parseInt(localStorage.getItem('minTeachingLoad'), 10) || 1300;
-    });
-
-    const [maxTeachingLoad, setMaxTeachingLoad] = useState(() => {
-        return parseInt(localStorage.getItem('maxTeachingLoad'), 10) || 1500;
     });
 
     const [defaultSubjectClassDuration, setDefaultSubjectClassDuration] = useState(() => {
@@ -176,22 +167,22 @@ function Timetable() {
         return true;
     };
 
-    const handleButtonClick = async () => {
-        const subjectMap = Object.entries(subjectsStore).reduce((acc, [, value], index) => {
+    const handleButtonClick = async (subjectData, buildingData, teacherData, sectionData) => {
+        const subjectMap = Object.entries(subjectData).reduce((acc, [, value], index) => {
             acc[index] = value.id;
             return acc;
         }, {});
 
-        const buildingMapReverse = Object.entries(buildingsStore).reduce((acc, [, value], index) => {
+        const buildingMapReverse = Object.entries(buildingData).reduce((acc, [, value], index) => {
             acc[value.id] = index;
             return acc;
         }, {});
 
-        // console.log('🚀 ~ handleButtonClick ~ buildingsStore:', typeof buildingsStore, buildingsStore);
+        // console.log('🚀 ~ handleButtonClick ~ buildingData:', typeof buildingData, buildingData);
         // console.log('🚀 ~ handleButtonClick ~ buildingMapReverse:', buildingMapReverse);
 
-        const buildingMap = Object.entries(buildingsStore).reduce((acc, [, building], index) => {
-            console.log('🚀 ~ handleButtonClick ~ building:', building);
+        const buildingMap = Object.entries(buildingData).reduce((acc, [, building], index) => {
+            // console.log('🚀 ~ handleButtonClick ~ building:', building);
 
             acc[buildingMapReverse[building.id]] = {
                 id: buildingMapReverse[building.id],
@@ -213,7 +204,7 @@ function Timetable() {
         const buildingAdjacencyArray = [];
 
         Object.entries(buildingMap).forEach(([buildingID, building]) => {
-            console.log('🚀 ~ Object.entries ~ building:', building);
+            // console.log('🚀 ~ Object.entries ~ building:', building);
 
             // console.log('🚀 ~ Object.entries ~ buildingID:', buildingID);
             building.adjacency.forEach((adjacentBuildingID) => {
@@ -242,7 +233,7 @@ function Timetable() {
 
         // console.log('🚀 ~ handleButtonClick ~ buildingAdjacencyArray:', buildingAdjacencyArray);
 
-        const subjectMapReverse = Object.entries(subjectsStore).reduce((acc, [, subject], index) => {
+        const subjectMapReverse = Object.entries(subjectData).reduce((acc, [, subject], index) => {
             acc[subject.id] = {
                 id: index,
                 numOfClasses: Math.min(Math.ceil(subject?.weeklyMinutes / subject.classDuration), numOfSchoolDays),
@@ -251,7 +242,7 @@ function Timetable() {
             return acc;
         }, {});
 
-        const teacherMap = Object.entries(teachersStore).reduce((acc, [, teacher], index) => {
+        const teacherMap = Object.entries(teacherData).reduce((acc, [, teacher], index) => {
             acc[index] = {
                 subjects: teacher.subjects.map((subjectID) => subjectMapReverse[subjectID].id),
                 id: teacher.id,
@@ -260,28 +251,28 @@ function Timetable() {
             return acc;
         }, {});
 
-        Object.entries(teachersStore).forEach(([key, section]) => {
-            // console.log('🚀 ~ Object.entries ~ teachersStore:', teachersStore);
+        Object.entries(teacherData).forEach(([key, section]) => {
+            // console.log('🚀 ~ Object.entries ~ teacherData:', teacherData);
             // ...
         });
 
         const subjectConfigurationMap = new Map();
         let subjectConfigurationIDIncrementer = 0;
 
-        Object.entries(sectionsStore).forEach(([key, section]) => {
-            console.log('GUGU', key, section);
+        Object.entries(sectionData).forEach(([key, section]) => {
+            // console.log('GUGU', key, section);
 
             const fixedDays = section.fixedDays;
             const fixedPositions = section.fixedPositions;
             const additionalScheds = section.additionalScheds;
 
-            let totalNumOfClasses = calculateTotalClass(subjectsStore, section.subjects, numOfSchoolDays);
+            let totalNumOfClasses = calculateTotalClass(subjectData, section.subjects, numOfSchoolDays);
 
             let totalAdditionalScheduleNumOfClass = additionalScheds.reduce((total, additionalScheduleNumOfClass) => {
                 return total + additionalScheduleNumOfClass.frequency;
             }, 0);
 
-            console.log('🚀 ~ handleButtonClick ~ totalAdditionalScheduleNumOfClass:', totalAdditionalScheduleNumOfClass);
+            // console.log('🚀 ~ handleButtonClick ~ totalAdditionalScheduleNumOfClass:', totalAdditionalScheduleNumOfClass);
 
             let totalTimeslot = Math.ceil((totalNumOfClasses + totalAdditionalScheduleNumOfClass) / numOfSchoolDays);
 
@@ -291,7 +282,7 @@ function Timetable() {
 
             let vacant = getVacantSlots(totalTimeslot, numOfSchoolDays, fixedPositions, fixedDays);
 
-            console.log('🚀 ~ Object.entries ~ vacant:', vacant);
+            // console.log('🚀 ~ Object.entries ~ vacant:', vacant);
 
             Object.keys(fixedPositions).forEach((subjectID) => {
                 if (fixedPositions[subjectID].every((element) => element === fixedPositions[subjectID][0])) {
@@ -303,7 +294,7 @@ function Timetable() {
                 });
             });
 
-            console.log('::🚀::::: ~ Object.entries ~ emptyEveryDayTimeslot:', emptyEveryDayTimeslot);
+            // console.log('::🚀::::: ~ Object.entries ~ emptyEveryDayTimeslot:', emptyEveryDayTimeslot);
 
             let subjectsEveryDay = [];
 
@@ -317,12 +308,13 @@ function Timetable() {
                 }
             });
 
-            console.log('🚀🚀🚀🚀 ~ Object.entries ~ subjectsEveryDay:', subjectsEveryDay);
+            // console.log('🚀🚀🚀🚀 ~ Object.entries ~ subjectsEveryDay:', subjectsEveryDay);
 
             // TODO:
 
             subjectsEveryDay.forEach((subjectID) => {
                 const subjectConfiguration = {
+                    name: "",
                     subject: subjectMapReverse[subjectID].id,
                     is_consistent_everyday: emptyEveryDayTimeslot.size >= subjectsEveryDay.length,
                     classDuration: subjectMapReverse[subjectID].classDuration,
@@ -348,6 +340,7 @@ function Timetable() {
 
                     classBlock.forEach((timeslot, index) => {
                         const subjectConfiguration = {
+                            name: "",
                             subject: subjectMapReverse[subjectID].id,
                             is_consistent_everyday: false,
                             classDuration: subjectMapReverse[subjectID].classDuration,
@@ -368,7 +361,7 @@ function Timetable() {
                 });
 
             let vacant_iterator = section.shift == 0 ? -1 : 0;
-            console.log('🚀 ~ Object.entries ~ vacant_iterator:', vacant_iterator);
+            // console.log('🚀 ~ Object.entries ~ vacant_iterator:', vacant_iterator);
 
             section.additionalScheds.forEach((additionalSchedule) => {
                 for (let i = 0; i < additionalSchedule.frequency; i++) {
@@ -383,10 +376,11 @@ function Timetable() {
                     const firstDay = vacant.at(vacant_iterator).values().next().value;
                     vacant.at(vacant_iterator).delete(firstDay);
 
-                    console.log('PP', section.shift == 0 ? totalTimeslot + 1 + vacant_iterator : vacant_iterator + 1);
-                    console.log('🚀 ~ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', additionalSchedule?.duration || 0);
+                    // console.log('PP', section.shift == 0 ? totalTimeslot + 1 + vacant_iterator : vacant_iterator + 1);
+                    // console.log('🚀 ~ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', additionalSchedule);
 
                     const subjectConfiguration = {
+                        name: additionalSchedule.name,
                         subject: subjectMapReverse[additionalSchedule.subject]?.id ?? -1,
                         is_consistent_everyday: false,
                         classDuration: additionalSchedule?.duration || 0,
@@ -494,7 +488,7 @@ function Timetable() {
 
         let totalSectionSubjects = 0;
 
-        const sectionMap = Object.entries(sectionsStore).reduce((acc, [, section], index) => {
+        const sectionMap = Object.entries(sectionData).reduce((acc, [, section], index) => {
             console.log('sectionMap ~ section:', section);
 
             // Assuming section.subjects is an object with subject IDs as keys
@@ -504,7 +498,7 @@ function Timetable() {
             const fixedPositions = section.fixedPositions;
             const additionalScheds = section.additionalScheds;
 
-            let totalNumOfClasses = calculateTotalClass(subjectsStore, section.subjects, numOfSchoolDays);
+            let totalNumOfClasses = calculateTotalClass(subjectData, section.subjects, numOfSchoolDays);
 
             console.log('🚀hheee ~ handleButtonClick ~ section.additionalScheds:', section.additionalScheds);
 
@@ -565,6 +559,7 @@ function Timetable() {
                     positionArray.every((element) => element === positionArray[0])
                 ) {
                     const subjectConfiguration = {
+                        name: "",
                         subject: subjectMapReverse[subjectID].id,
                         is_consistent_everyday: true,
                         classDuration: subjectMapReverse[subjectID].classDuration / timeDivision - offset,
@@ -583,6 +578,7 @@ function Timetable() {
 
                 positionArray.forEach((timeslot, index) => {
                     const subjectConfiguration = {
+                        name: "",
                         subject: subjectMapReverse[subjectID].id,
                         is_consistent_everyday: false,
                         classDuration: subjectMapReverse[subjectID].classDuration / timeDivision - offset,
@@ -610,6 +606,7 @@ function Timetable() {
                     vacant.at(vacant_iterator).delete(firstDay);
 
                     subjectConfigurationArray.push({
+                        name: additionalSchedule.name,
                         subject: subjectMapReverse[additionalSchedule.subject]?.id ?? -1,
                         is_consistent_everyday: false,
                         classDuration: additionalSchedule?.duration / timeDivision - offset || 0,
@@ -692,7 +689,7 @@ function Timetable() {
         const sectionSubjectConfigurationArray = [];
         const sectionLocationArray = [];
 
-        Object.entries(subjectsStore).forEach(([key, value]) => {
+        Object.entries(subjectData).forEach(([key, value]) => {
             // console.log(`Key: ${key}, Value: ${value}`);
 
             if (value.classDuration < lowestSubjectDuration) {
@@ -714,7 +711,7 @@ function Timetable() {
         for (const [sectionKey, section] of Object.entries(sectionMap)) {
             sectionStartArray[sectionKey] = section.startTime;
 
-            let totalNumOfClasses = calculateTotalClass(subjectsStore, section.subjects, numOfSchoolDays);
+            let totalNumOfClasses = calculateTotalClass(subjectData, section.subjects, numOfSchoolDays);
 
             let additionalScheduleTotalNumOfClasses = section.additionalScheds.reduce((acc, schedule) => {
                 // console.log('schedule', schedule);
@@ -734,12 +731,12 @@ function Timetable() {
             // const notAllowedBreakslotGap = totalTimeslot >= 7 ? 2 : 1;
 
             let notAllowedBreakslotGap = 0;
-            if (totalTimeslot >= 5 && totalTimeslot < 7) {
+            if (totalTimeslot >= 3 && totalTimeslot < 7) {
                 notAllowedBreakslotGap = 1;
-            } else if (totalTimeslot >= 7) {
+            } else if (totalTimeslot == 7) {
                 notAllowedBreakslotGap = 2;
-            } else if (totalTimeslot >= 10) {
-                notAllowedBreakslotGap = 3;
+            } else if (totalTimeslot >= 8) {
+                notAllowedBreakslotGap = 3; // BE CAREFUL WITH THIS, ANYTHING HIGHER WILL CAUSE ERRORS IF BREAK SLOT IS TWO
             }
 
             // TODO: include teacher additional scheulde
@@ -887,12 +884,12 @@ function Timetable() {
 
         const numOfViolationType = 7;
 
-        const resultTimetableLength = totalSections * Object.entries(subjectsStore).length * numOfSchoolDays;
+        const resultTimetableLength = totalSections * Object.entries(subjectData).length * numOfSchoolDays;
 
         const resultViolationLength = numOfViolationType * totalSections + numOfViolationType * totalTeachers;
 
         // TEMPORARY
-        const teacherMiddleTimePointGrowAllowanceForBreakTimeslot = 8;
+        const teacherMiddleTimePointGrowAllowanceForBreakTimeslot = 12;
 
         const params2 = {
             maxIterations: maxIterations,
@@ -1026,8 +1023,39 @@ function Timetable() {
 
             const start = Number(entry[5]);
             const end = Number(entry[6]);
+            
+            const subjectConfigurationID = Number(entry[7]);
+
+            // console.log(section_id, 'ETONG d', subjectConfigurationID, subject_id, subjectConfigurationMap.get(subjectMapReverse[subject_id]?.id));
+            // console.log(
+            //     section_id,
+            //     'ETONG SAYO',
+            //     subjectConfigurationID,
+            //     subject_id,
+            //     subjectConfigurationMap.get(subjectMapReverse[entry[1]]?.id)
+            // );
+
+            const subjectConfigurationData = subjectConfigurationMap.get(subjectMapReverse[subject_id]?.id);
+
+            let name = '';
+            if (subjectConfigurationData) {
+                subjectConfigurationData.forEach((value, key) => {
+                    // console.log("value", value)
+
+                    if (value.subjectConfigurationID === subjectConfigurationID) {
+                        // console.log("QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ");
+                        name = value.name;
+                    }
+                });
+            } else {
+                // console.warn('No subject data found for subject_id:', subject_id);
+            }
+
+            // console.log('🚀 ~ handleButtonClick ~ name:', name);
+
+
             const sectionType = 'section';
-            addTimeslotToTimetable(
+            addTimeslotToTimetable( //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// fasdf
                 section_id,
                 sectionTimetable,
                 section_id,
@@ -1036,9 +1064,9 @@ function Timetable() {
                 start,
                 end,
                 day,
-                subjectsStore[subject_id]?.subject || null,
-                teachersStore[teacher_id]?.teacher || null,
-                sectionsStore[section_id]?.section,
+                name ? name + " " + subjectData[subject_id]?.subject : subjectData[subject_id]?.subject || null,
+                teacherData[teacher_id]?.teacher || null,
+                sectionData[section_id]?.section,
                 sectionType
             );
 
@@ -1070,9 +1098,9 @@ function Timetable() {
                 start,
                 end,
                 day,
-                sectionsStore[section_id]?.section,
-                subjectsStore[subject_id]?.subject,
-                teachersStore[teacher_id]?.teacher,
+                sectionData[section_id]?.section,
+                name ? name + " " + subjectData[subject_id]?.subject : subjectData[subject_id]?.subject || null,
+                teacherData[teacher_id]?.teacher,
                 teacherType
             );
         }
@@ -1134,8 +1162,8 @@ function Timetable() {
 
             console.log('🚀 ~ teacherTimetable.forEach ~ timetable:', timetable);
 
-            console.log('🚀 ~ teacherTimetable.forEach ~  teacherMap[key]:', teachersStore[key]);
-            const additionalTeacherScheds = teachersStore[key]?.additionalTeacherScheds || [];
+            console.log('🚀 ~ teacherTimetable.forEach ~  teacherMap[key]:', teacherData[key]);
+            const additionalTeacherScheds = teacherData[key]?.additionalTeacherScheds || [];
             console.log('🚀 ~ teacherTimetable.forEach ~ additionalTeacherScheds:', additionalTeacherScheds);
             for (let i = 0; i < additionalTeacherScheds.length; i++) {
                 const sched = additionalTeacherScheds[i];
@@ -1159,7 +1187,7 @@ function Timetable() {
                             fieldName2: sched.name,
                             section: null,
                             subject: sched.subject || null,
-                            teacher: teachersStore[key].id,
+                            teacher: teacherData[key].id,
                             type: 'teacher',
                         },
                     ]);
@@ -1993,7 +2021,7 @@ function Timetable() {
                         })}
                         onClick={() => {
                             // if (validate()) {
-                            handleButtonClick();
+                            handleButtonClick(subjectsStore, buildingsStore, teachersStore, sectionsStore);
                             // }
                         }}
                         disabled={timetableGenerationStatus === 'running'}
