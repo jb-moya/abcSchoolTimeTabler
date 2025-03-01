@@ -28,10 +28,11 @@ const ProgramEdit = ({
     numOfSchoolDays,
     breakTimeDuration,
 }) => {
+
     const inputNameRef = useRef();
     const dispatch = useDispatch();
 
-    // ==========================================================================
+// ==========================================================================
 
     const { programs, status: programStatus } = useSelector((state) => state.program);
 
@@ -39,7 +40,7 @@ const ProgramEdit = ({
 
     const { sections, status: sectionStatus } = useSelector((state) => state.section);
 
-    // ==========================================================================
+// ==========================================================================
 
     const [editProgramId, setEditProgramId] = useState('');
 
@@ -67,10 +68,10 @@ const ProgramEdit = ({
     });
 
     const [editEndTimes, setEditEndTimes] = useState({
-        7: afternoonStartTime,
-        8: afternoonStartTime,
-        9: afternoonStartTime,
-        10: afternoonStartTime,
+        7: morningStartTime,
+        8: morningStartTime,
+        9: morningStartTime,
+        10: morningStartTime,
     });
 
     const [editFixedDays, setEditFixedDays] = useState({
@@ -85,6 +86,13 @@ const ProgramEdit = ({
         8: {},
         9: {},
         10: {},
+    });
+
+    const [editClassModality, setEditClassModality] = useState({
+        7: new Array(numOfSchoolDays).fill(1),
+        8: new Array(numOfSchoolDays).fill(1),
+        9: new Array(numOfSchoolDays).fill(1),
+        10: new Array(numOfSchoolDays).fill(1),
     });
 
     const [editAdditionalScheds, setEditAdditionalScheds] = useState({
@@ -103,11 +111,11 @@ const ProgramEdit = ({
 
     const isAddButtonDisabled = Object.values(validEndTimes).some((value) => !value);
 
-    useEffect(() => {
-        console.log('editAdditionalScheds', editAdditionalScheds);
-    }, [editAdditionalScheds]);
+    // useEffect(() => {
+    //     console.log('editAdditionalScheds', editAdditionalScheds);
+    // }, [editAdditionalScheds]);
 
-    // ==========================================================================
+// ==========================================================================
 
     const initializeStates = () => {
         if (!program) return;
@@ -127,6 +135,7 @@ const ProgramEdit = ({
             editEndTimes[level] = getTimeSlotString(program[level]?.endTime || 0);
             editFixedDays[level] = program[level]?.fixedDays || {};
             editFixedPositions[level] = program[level]?.fixedPositions || {};
+            editClassModality[level] = program[level]?.modality || new Array(numOfSchoolDays).fill(1);
             editAdditionalScheds[level] = program[level]?.additionalScheds || [];
         });
 
@@ -138,6 +147,7 @@ const ProgramEdit = ({
         setEditEndTimes(editEndTimes);
         setEditFixedDays(editFixedDays);
         setEditFixedPositions(editFixedPositions);
+        setEditClassModality(editClassModality);
         setEditAdditionalScheds(editAdditionalScheds);
     };
 
@@ -147,15 +157,16 @@ const ProgramEdit = ({
         }
     }, [program]);
 
-    // ==========================================================================
+// ==========================================================================
 
     const [sectionDetailsToUpdate, setSectionDetailsToUpdate] = useState({
         shiftAndStartTime: false,
         fixedScheds: false,
         additionalScheds: false,
+        modality: false,
     });
 
-    // ==========================================================================
+// ==========================================================================
 
     // Subjects
     const handleSubjectSelection = (grade, selectedList) => {
@@ -239,21 +250,32 @@ const ProgramEdit = ({
 
     // End Time
     const handleEndTimeChange = () => {
+
         [7, 8, 9, 10].forEach((grade) => {
             if (editProgramCurr[grade].length === 0) return;
 
             const startTimeIdx = getTimeSlotIndex(editStartTimes[grade]);
             const breakTimeCount = editProgramCurr[grade].length > 10 ? 2 : 1;
 
-            let totalDuration = breakTimeCount * breakTimeDuration;
-
-            console.log('🚀 ~ editProgramCurr[grade].forEach ~ subjects:', subjects);
+            let noOfClassBlocks = 0;
+            const classDurations = [];
 
             editProgramCurr[grade].forEach((subId) => {
-                console.log('🚀 ~ editProgramCurr[grade].forEach ~ subId:', subId);
-                console.log('🚀 ~ editProgramCurr[grade].forEach ~ subjects[subId]:', subjects[subId]);
-                totalDuration += subjects[subId].classDuration;
+                const duration = subjects[subId].classDuration;
+                classDurations.push(duration);
+                noOfClassBlocks += Math.ceil(subjects[subId].weeklyMinutes / subjects[subId].classDuration);
             });
+
+            let noOfRows = breakTimeCount + Math.ceil(noOfClassBlocks / numOfSchoolDays);
+
+            const topDurations = classDurations.sort((a, b) => b - a).slice(0, noOfRows);
+
+            let totalDuration = (breakTimeCount * breakTimeDuration) + topDurations.reduce((sum, duration) => sum + duration, 0);
+
+            console.log('noOfClassBlocks', noOfClassBlocks);
+            console.log('noOfRows', noOfRows);
+            console.log('topDurations', topDurations);
+            console.log('totalDuration', totalDuration);
 
             const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
 
@@ -314,6 +336,15 @@ const ProgramEdit = ({
         }));
     };
 
+    const handleModalityChange = (grade, index) => {
+        setEditClassModality(prevState => ({
+            ...prevState,
+            [grade]: prevState[grade].map((value, i) => 
+                i === index ? (value === 1 ? 0 : 1) : value
+            )
+        }));
+    };
+
     const handleDeleteAdditionalSchedule = (grade, index) => {
         setEditAdditionalScheds((prevScheds) => ({
             ...prevScheds,
@@ -321,7 +352,7 @@ const ProgramEdit = ({
         }));
     };
 
-    // ==========================================================================
+// ==========================================================================
 
     const updateProgramDependencies = () => {
         // Update program dependencies in SECTIONS
@@ -344,6 +375,10 @@ const ProgramEdit = ({
 
                 console.log('newSection.endTime:', newSection.endTime);
             }
+
+            // Update modality (if true)
+            if (sectionDetailsToUpdate.modality === true)
+                newSection.modality = editClassModality[newSection.year];
 
             // Update additional schedules (if true)
             if (sectionDetailsToUpdate.additionalScheds === true)
@@ -573,6 +608,7 @@ const ProgramEdit = ({
                             startTime: getTimeSlotIndex(editStartTimes[7] || '06:00 AM'),
                             endTime: editEndTimes[7],
                             additionalScheds: editAdditionalScheds[7],
+                            modality: editClassModality[7],
                         },
                         8: {
                             subjects: editProgramCurr[8],
@@ -582,6 +618,7 @@ const ProgramEdit = ({
                             startTime: getTimeSlotIndex(editStartTimes[8] || '06:00 AM'),
                             endTime: editEndTimes[8],
                             additionalScheds: editAdditionalScheds[8],
+                            modality: editClassModality[8],
                         },
                         9: {
                             subjects: editProgramCurr[9],
@@ -591,6 +628,7 @@ const ProgramEdit = ({
                             startTime: getTimeSlotIndex(editStartTimes[9] || '06:00 AM'),
                             endTime: editEndTimes[9],
                             additionalScheds: editAdditionalScheds[9],
+                            modality: editClassModality[9],
                         },
                         10: {
                             subjects: editProgramCurr[10],
@@ -600,6 +638,7 @@ const ProgramEdit = ({
                             startTime: getTimeSlotIndex(editStartTimes[10] || '06:00 AM'),
                             endTime: editEndTimes[10],
                             additionalScheds: editAdditionalScheds[10],
+                            modality: editClassModality[10],
                         },
                     },
                 })
@@ -644,6 +683,7 @@ const ProgramEdit = ({
                                 startTime: getTimeSlotIndex(editStartTimes[7] || '06:00 AM'),
                                 endTime: editEndTimes[7],
                                 additionalScheds: editAdditionalScheds[7],
+                                modality: editClassModality[7],
                             },
                             8: {
                                 subjects: editProgramCurr[8],
@@ -653,6 +693,7 @@ const ProgramEdit = ({
                                 startTime: getTimeSlotIndex(editStartTimes[8] || '06:00 AM'),
                                 endTime: editEndTimes[8],
                                 additionalScheds: editAdditionalScheds[8],
+                                modality: editClassModality[8],
                             },
                             9: {
                                 subjects: editProgramCurr[9],
@@ -662,6 +703,7 @@ const ProgramEdit = ({
                                 startTime: getTimeSlotIndex(editStartTimes[9] || '06:00 AM'),
                                 endTime: editEndTimes[9],
                                 additionalScheds: editAdditionalScheds[9],
+                                modality: editClassModality[9],
                             },
                             10: {
                                 subjects: editProgramCurr[10],
@@ -671,6 +713,7 @@ const ProgramEdit = ({
                                 startTime: getTimeSlotIndex(editStartTimes[10] || '06:00 AM'),
                                 endTime: editEndTimes[10],
                                 additionalScheds: editAdditionalScheds[10],
+                                modality: editClassModality[10],
                             },
                         },
                     })
@@ -693,7 +736,7 @@ const ProgramEdit = ({
         }
     };
 
-    // ===========================================================================
+// ===========================================================================
 
     const resetStates = () => {
         setEditProgramId(null);
@@ -717,7 +760,6 @@ const ProgramEdit = ({
             9: 0,
             10: 0,
         });
-
         setEditFixedDays({
             7: program[7]?.fixedDays || {},
             8: program[8]?.fixedDays || {},
@@ -730,6 +772,12 @@ const ProgramEdit = ({
             9: program[9]?.fixedPositions || {},
             10: program[10]?.fixedPositions || {},
         });
+        setEditClassModality({
+            7: program[7]?.modality || new Array(numOfSchoolDays).fill(1),
+            8: program[8]?.modality || new Array(numOfSchoolDays).fill(1),
+            9: program[9]?.modality || new Array(numOfSchoolDays).fill(1),
+            10: program[10]?.modality || new Array(numOfSchoolDays).fill(1),
+        })
         setEditAdditionalScheds({
             7: program[7]?.additionalScheds || [],
             8: program[8]?.additionalScheds || [],
@@ -738,7 +786,7 @@ const ProgramEdit = ({
         });
     };
 
-    // ==========================================================================
+// ==========================================================================
 
     const handleConfirmationModalClose = () => {
         setSectionDetailsToUpdate({
@@ -758,7 +806,7 @@ const ProgramEdit = ({
         // handleReset();
     };
 
-    // ==========================================================================
+// ==========================================================================
 
     useEffect(() => {
         if (sectionStatus === 'idle') {
@@ -778,9 +826,11 @@ const ProgramEdit = ({
         }
     }, [subjectStatus, dispatch]);
 
-    // ==========================================================================
+// ==========================================================================
 
     const [activeTab, setActiveTab] = useState(7);
+
+    const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 
     const grades = [7, 8, 9, 10];
 
@@ -962,8 +1012,49 @@ const ProgramEdit = ({
                                             </div>
                                         </div>
 
-                                        {/* Additional Schedules */}
+                                        {/* Class Modality */}
+                                        <div className='rounded-lg shadow-md border space-y-2 p-4 mb-4'>
+                                            <div className='font-semibold text-lg text-center'>Class Modality</div>
+                                            <hr className='my-2'></hr>
 
+                                            <table className='table'>
+                                                <thead>
+                                                    <tr>
+                                                        {Array.from({ length: numOfSchoolDays }, (_, index) => (
+                                                            <th 
+                                                                key={index}
+                                                                className='text-center border border-gray-300'
+                                                                style={{ width: `${100 / numOfSchoolDays}%` }} // Ensures equal width for all days
+                                                            >
+                                                                {days[index]}
+                                                            </th>
+                                                        ))}
+                                                    </tr>
+                                                </thead>
+                                                <tbody> 
+                                                    <tr>
+                                                        {Array.from({ length: numOfSchoolDays }, (_, index) => (
+                                                            <td 
+                                                                key={index}
+                                                                className='text-center border border-gray-300'
+                                                                style={{ width: `${100 / numOfSchoolDays}%` }} // Ensures equal width for all days
+                                                            >
+                                                                <button
+                                                                    key={`${grade}-${index}`}
+                                                                    className={`btn w-full h-full flex items-center justify-center ${editClassModality[grade][index] === 1 ? 'bg-green-500' : 'bg-red-500'}`}
+                                                                    onClick={() => handleModalityChange(grade, index)}
+                                                                >
+                                                                    {editClassModality[grade][index] === 1 ? 'ONSITE' : 'OFFSITE'}
+                                                                </button>
+                                                            </td>
+                                                        ))}
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+
+                                        {/* Additional Schedules */}
                                         <div className='p-4 rounded-lg shadow-md border border-base-content border-opacity-20'>
                                             <div className='text-center font-semibold text-lg'>Additional Schedules</div>
                                             <hr className='my-2'></hr>
@@ -1056,6 +1147,7 @@ const ProgramEdit = ({
                                                 ))}
                                             </div>
                                         </div>
+
                                     </div>
                                 </div>
                             ))}
@@ -1135,6 +1227,7 @@ const ProgramEdit = ({
                                     Update Fixed Schedules
                                 </label>
                                 <br />
+
                                 <label>
                                     <input
                                         type='checkbox'
@@ -1145,6 +1238,23 @@ const ProgramEdit = ({
                                             setSectionDetailsToUpdate((prev) => ({
                                                 ...prev,
                                                 additionalScheds: e.target.checked,
+                                            }))
+                                        }
+                                    />
+                                    Update Additional Schedules
+                                </label>
+                                <br />
+
+                                <label>
+                                    <input
+                                        type='checkbox'
+                                        name='modality'
+                                        className='mr-2'
+                                        checked={sectionDetailsToUpdate.modality}
+                                        onChange={(e) =>
+                                            setSectionDetailsToUpdate((prev) => ({
+                                                ...prev,
+                                                modality: e.target.checked,
                                             }))
                                         }
                                     />

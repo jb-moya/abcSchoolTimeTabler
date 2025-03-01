@@ -560,7 +560,7 @@ const SectionListContainer = ({
 
                             {/* // modal-bottom sm:modal-middle */}
                             <dialog id='add_section_modal' className='modal '>
-                                <div className='modal-box' style={{ width: '40%', maxWidth: 'none' }}>
+                                <div className='modal-box' style={{ width: '48%', maxWidth: 'none' }}>
                                     <AddSectionContainer
                                         close={handleClose}
                                         reduxField={['section', 'subjects', 'units']}
@@ -656,7 +656,7 @@ const SectionListContainer = ({
                                                             editSectionId === section.id
                                                                 ? editRoomDetails.buildingId
                                                                 : section.roomDetails.buildingId
-                                                        ]?.name || 'Unknown Building'}
+                                                        ]?.name || 'UNASSIGNED BUILDING'}
                                                     </div>
                                                 </div>
 
@@ -664,9 +664,8 @@ const SectionListContainer = ({
                                                 <div className='mb-5 flex flex-col justify-start text-zinc-600'>
                                                     <div>
                                                         {editSectionId === section.id
-                                                            ? editRoomDetails.floorIdx + 1 || 'Unknown Floor'
-                                                            : section.roomDetails.floorIdx + 1 || 'Unknown Floor'}{' '}
-                                                        Floor(s)
+                                                            ? editRoomDetails.floorIdx + 1 || 'UNASSIGNED FLOOR'
+                                                            : section.roomDetails.floorIdx + 1 || 'UNASSIGNED FLOOR'}
                                                     </div>
                                                 </div>
 
@@ -679,7 +678,7 @@ const SectionListContainer = ({
                                                               ][editRoomDetails.roomIdx]?.roomName
                                                             : buildings[section.roomDetails.buildingId]?.rooms[
                                                                   section.roomDetails.floorIdx
-                                                              ][section.roomDetails.roomIdx]?.roomName || 'Unknown Room'}
+                                                              ][section.roomDetails.roomIdx]?.roomName || 'UNASSIGNED ROOM'}
                                                     </div>
                                                 </div>
                                             </div>

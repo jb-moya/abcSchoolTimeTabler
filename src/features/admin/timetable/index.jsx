@@ -1472,6 +1472,16 @@ function Timetable() {
                     newProgram[grade].fixedDays[subId] = result.map(([day]) => day);
                     newProgram[grade].fixedPositions[subId] = result.map(([_, pos]) => pos);
                 });
+
+                if (newProgram[grade].modality.length === 0 ||
+                    newProgram[grade].modality.length === numOfSchoolDays
+                ) return;
+
+                if (newProgram[grade].modality.length > numOfSchoolDays) {
+                    newProgram[grade].modality = newProgram[grade].modality.slice(0, numOfSchoolDays);
+                } else {
+                    newProgram[grade].modality.push(1);
+                }
             });
 
             console.log('originalProgram:', originalProgram);
@@ -1544,6 +1554,16 @@ function Timetable() {
                 newSection.fixedPositions[subId] = result.map(([_, pos]) => pos);
             });
 
+            if (newSection.modality.length === 0 ||
+                newSection.modality.length === numOfSchoolDays
+            ) return;
+
+            if (newSection.modality.length > numOfSchoolDays) {
+                newSection.modality = newSection.modality.slice(0, numOfSchoolDays);
+            } else {
+                newSection.modality.push(1);
+            }
+
             if (originalSection !== newSection) {
                 dispatch(
                     editSection({
@@ -1556,6 +1576,7 @@ function Timetable() {
                             subjects: newSection.subjects,
                             fixedDays: newSection.fixedDays,
                             fixedPositions: newSection.fixedPositions,
+                            modality: newSection.modality,
                             year: newSection.year,
                             shift: newSection.shift,
                             startTime: getTimeSlotIndex(newSection.startTime || '06:00 AM'),
