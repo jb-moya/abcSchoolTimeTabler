@@ -13,6 +13,7 @@ import mapToArray from './mapToArray';
 import clsx from 'clsx';
 import { IoIosAdd, IoIosWarning } from 'react-icons/io';
 import { FiMinus } from 'react-icons/fi';
+import ExportSchedules from './ExportSchedules';
 
 const ModifyTimetableContainer = ({
     hashMap = new Map(),
