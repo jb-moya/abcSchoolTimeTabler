@@ -94,6 +94,10 @@ function Timetable() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
+    const [morningStartTime, setMorningStartTime] = useState(() => {
+        return localStorage.getItem('morningStartTime') || 'Cannot find';
+    });
+
     const links = [
         { name: 'Home', href: '/' },
         // { name: 'Modify Subjects', href: '/modify-subjects' },
@@ -1763,6 +1767,9 @@ function Timetable() {
 
     const convertToHashMap = (inputMap, type) => {
         const resultMap = new Map(); // Initialize the outer Map
+        console.log('morningStartTime: ', morningStartTime);
+        const timeslotindex = getTimeSlotIndex(morningStartTime);
+        console.log('timeslotindex: ', timeslotindex);
 
         // Iterate through each entry in the input HashMap
         for (let [tableKey, sectionData] of inputMap.entries()) {
@@ -1822,8 +1829,8 @@ function Timetable() {
                         let keyToFind = scheduleKey.replace(/[^-]+$/, partnerType[0] ?? 'n');
 
                         scheduleMap.set(scheduleKey, {
-                            start: schedule.start - 72,
-                            end: schedule.end - 72,
+                            start: schedule.start - timeslotindex,
+                            end: schedule.end - timeslotindex,
                             sectionID: schedule.section,
                             subject: type === 's' ? schedule.fieldName1 : schedule.fieldName2,
                             subjectID: schedule.subject,
@@ -1860,8 +1867,8 @@ function Timetable() {
                     let keyToFind = scheduleKey.replace(/[^-]+$/, partnerType[0] ?? 'n');
 
                     scheduleMap.set(scheduleKey, {
-                        start: schedule.start - 72,
-                        end: schedule.end - 72,
+                        start: schedule.start - timeslotindex,
+                        end: schedule.end - timeslotindex,
                         sectionID: schedule.section,
                         subject: type === 's' ? schedule.fieldName1 : schedule.fieldName2,
                         subjectID: schedule.subject,
