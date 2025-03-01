@@ -653,6 +653,7 @@ void Timetable::initializeClassBlock(Section& section,
 	int offset_duration = Timetable::getOffsetDuration();
 
 	for (const auto& subject_configuration : subject_configurations) {
+		SubjectConfigurationID subject_configuration_id = subject_configuration->getSubjectConfigurationId();
 		SubjectID subject_id = subject_configuration->getSubjectId();
 		TimeDuration duration = subject_configuration->getDuration();
 		bool is_consistent_everyday = subject_configuration->isConsistentEveryday();
@@ -667,7 +668,7 @@ void Timetable::initializeClassBlock(Section& section,
 			teacher_id = Timetable::getRandomTeacher(subject_id);
 		}
 
-		SchoolClass school_class = SchoolClass{subject_id, teacher_id, duration, is_consistent_everyday, fixed_timeslot, fixed_days, is_overlappable};
+		SchoolClass school_class = SchoolClass{subject_configuration_id, subject_id, teacher_id, duration, is_consistent_everyday, fixed_timeslot, fixed_days, is_overlappable};
 
 		if (is_consistent_everyday == 1) {
 			if (fixed_timeslot == 0) {
@@ -935,7 +936,7 @@ std::pair<Timeslot, Timeslot> Timetable::pickRandomTimeslots(Section& selected_s
 
 		bool ignore_break_slots = false;
 
-		bool is_consistent_duration = selected_section.isDynamicSubjectConsistentDuration();
+		// bool is_consistent_duration = selected_section.isDynamicSubjectConsistentDuration();
 
 		do {
 			selected_timeslot_1 = selected_section.getRandomDynamicTimeslot();
@@ -947,7 +948,8 @@ std::pair<Timeslot, Timeslot> Timetable::pickRandomTimeslots(Section& selected_s
 			is_timeslot_1_break = section_break_slots.find(selected_timeslot_1) != section_break_slots.end();
 			is_timeslot_2_break = section_break_slots.find(selected_timeslot_2) != section_break_slots.end();
 
-			if (is_consistent_duration && (is_timeslot_1_break || is_timeslot_2_break)) {
+			// if (is_consistent_duration && (is_timeslot_1_break || is_timeslot_2_break)) {
+			if ((is_timeslot_1_break || is_timeslot_2_break)) {
 				ignore_break_slots = true;
 			} else {
 				ignore_break_slots = false;

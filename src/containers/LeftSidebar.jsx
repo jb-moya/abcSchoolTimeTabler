@@ -1,16 +1,29 @@
 import routes from '../routes/sidebar';
-import { NavLink, Routes, Link, useLocation } from 'react-router-dom';
+import { NavLink, Routes, Link, useLocation, useNavigate } from 'react-router-dom';
 import SidebarSubmenu from './SidebarSubmenu';
 import XMarkIcon from '@heroicons/react/24/outline/XMarkIcon';
 import { useDispatch } from 'react-redux';
+import { getAuthUserUid } from '../utils/localStorageUtils';
+import { GoCopy } from 'react-icons/go';
 
 function LeftSidebar() {
     const location = useLocation();
+    const uid = getAuthUserUid();
+    const navigate = useNavigate();
 
     const dispatch = useDispatch();
 
     const close = (e) => {
         document.getElementById('left-sidebar-drawer').click();
+    };
+
+    const openInNewTab = (path) => {
+        const baseURL = window.location.origin;
+        window.open(`${baseURL}${path}`, '_blank');
+    };
+
+    const handleOpenSearch = () => {
+        openInNewTab('/search/' + uid);
     };
 
     return (
@@ -24,12 +37,29 @@ function LeftSidebar() {
                     <XMarkIcon className='h-5 inline-block w-5' />
                 </button>
 
-                <li className='mb-2 font-semibold text-xl'>
-                    <Link to={'/app/dashboard'}>
-                        <img className='mask mask-squircle w-10' src='/Batasan Logo.png' alt='DashWind Logo' />
-                        BHS Timetabling
-                    </Link>{' '}
-                </li>
+                <div className='mb-3'>
+                    <div className='flex items-center gap-2'>
+                        <div>
+                            <button
+                                className='text-xl flex items-center font-semibold'
+                                onClick={() => navigate('/app/dashboard')}
+                            >
+                                <img className='mask self-start mask-squircle w-10' src='/Batasan Logo.png' alt='DashWind Logo' />
+                                BHS Timetabling
+                            </button>
+                            <div className='pl-10 flex gap-2'>
+                                <div className='tooltip tooltip-bottom' data-tip={`redirect`}>
+                                    <button onClick={handleOpenSearch}>link to search</button>
+                                </div>
+                                <div className='tooltip tooltip-bottom' data-tip='copy link'>
+                                    <button className=''>
+                                        <GoCopy />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 {routes.map((route, k) => {
                     return (
                         <li className='' key={k}>

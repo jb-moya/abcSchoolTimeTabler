@@ -7,15 +7,15 @@ import MoonIcon from '@heroicons/react/24/outline/MoonIcon';
 import SunIcon from '@heroicons/react/24/outline/SunIcon';
 import { openRightDrawer } from '@features/common/rightDrawerSlice';
 import { RIGHT_DRAWER_TYPES } from '@utils/globalConstantUtil';
-import { NavLink, Routes, Link, useLocation } from 'react-router-dom';
+import { NavLink, Routes, Link, useLocation, useParams, Navigate } from 'react-router-dom';
 import NavBar from '../features/guest/NavBar';
 import Search from '../features/guest/Search';
 
 function ExternalPage() {
+    const { uid } = useParams();
+
     const dispatch = useDispatch();
-    const { noOfNotifications, pageTitle } = useSelector(
-        (state) => state.header
-    );
+    const { noOfNotifications, pageTitle } = useSelector((state) => state.header);
     const [currentTheme, setCurrentTheme] = useState(
         localStorage.getItem('theme') || 'dark' // Default to light mode
     );
@@ -61,15 +61,20 @@ function ExternalPage() {
         window.location.href = '/login';
     }
 
+    if (!uid) {
+        console.log('no uid');
+        return <Navigate to='/404' replace />;
+    }
+
     return (
-        <div data-theme="dark" className="h-screen">
-            <div className="bg-[#fdf0d5] h-full">
-                <div className="bg-[#003049] h-full flex flex-col">
+        <div data-theme='dark' className='h-screen'>
+            <div className='bg-[#fdf0d5] h-full'>
+                <div className='bg-[#003049] h-full flex flex-col'>
                     {/* Navigation Bar */}
                     <NavBar />
 
                     {/* Main Content */}
-                    <div className="flex flex-col items-center justify-center flex-grow mx-auto px-4 w-full max-w-screen-xl text-center">
+                    <div className='flex flex-col items-center mt-10 flex-grow mx-auto px-4 w-full max-w-screen-xl text-center'>
                         {/* Search Component */}
                         <Search />
                     </div>

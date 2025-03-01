@@ -28,10 +28,11 @@ const AddSectionContainer = ({
     numOfSchoolDays,
     breakTimeDuration,
 }) => {
+
     const inputNameRef = useRef();
     const dispatch = useDispatch();
 
-    // ===================================================================================================
+// ===================================================================================================
 
     const { buildings, status: buildingStatus } = useSelector((state) => state.building);
 
@@ -43,19 +44,32 @@ const AddSectionContainer = ({
 
     const { sections, status: sectionStatus } = useSelector((state) => state.section);
 
-    // ===================================================================================================
+// ===================================================================================================
 
     const [inputValue, setInputValue] = useState('');
+
     const [selectedAdviser, setSelectedAdviser] = useState('');
+
     const [selectedProgram, setSelectedProgram] = useState('');
+
     const [selectedYearLevel, setSelectedYearLevel] = useState('');
+
     const [selectedSubjects, setSelectedSubjects] = useState([]);
+
     const [selectedShift, setSelectedShift] = useState('');
+
     const [selectedStartTime, setSelectedStartTime] = useState('');
+
     const [selectedEndTime, setSelectedEndTime] = useState('');
+
     const [fixedDays, setFixedDays] = useState({});
+
     const [fixedPositions, setFixedPositions] = useState({});
+
+    const [classModality, setClassModality] = useState(new Array(numOfSchoolDays).fill(1));
+
     const [additionalScheds, setAdditionalScheds] = useState([]);
+
     const [roomDetails, setRoomDetails] = useState({
         buildingId: -1,
         floorIdx: -1,
@@ -74,6 +88,7 @@ const AddSectionContainer = ({
                 setSelectedSubjects(program[selectedYearLevel].subjects || []);
                 setFixedDays(program[selectedYearLevel].fixedDays || {});
                 setFixedPositions(program[selectedYearLevel].fixedPositions || {});
+                setClassModality(program[selectedYearLevel].modality || new Array(numOfSchoolDays).fill(1));
                 setAdditionalScheds(program[selectedYearLevel].additionalScheds || []);
                 setSelectedShift(program[selectedYearLevel].shift || 0);
                 setSelectedStartTime(getTimeSlotString(program[selectedYearLevel].startTime) || '06:00 AM');
@@ -82,12 +97,12 @@ const AddSectionContainer = ({
         }
     }, [selectedProgram, selectedYearLevel, programs]);
 
-    useEffect(() => {
-        console.log('selectedShift: ', selectedShift);
-        console.log('selectedStartTime: ', selectedStartTime);
-    }, [selectedShift, selectedStartTime]);
+    // useEffect(() => {
+    //     console.log('selectedShift: ', selectedShift);
+    //     console.log('selectedStartTime: ', selectedStartTime);
+    // }, [selectedShift, selectedStartTime]);
 
-    // ===================================================================================================
+// ===================================================================================================
 
     const [totalTimeslot, setTotalTimeslot] = useState(null);
 
@@ -135,7 +150,7 @@ const AddSectionContainer = ({
         selectedYearLevel,
     ]);
 
-    // ===================================================================================================
+// ===================================================================================================
 
     const handleInputChange = (e) => {
         setInputValue(e.target.value);
@@ -158,8 +173,9 @@ const AddSectionContainer = ({
             if (selectedProgram === '') errorFields.push('program');
             if (selectedYearLevel === '') errorFields.push('yearLevel');
             if (selectedSubjects.length === 0) errorFields.push('subjects');
-            if (roomDetails.buildingId === -1 || roomDetails.floorIdx === -1 || roomDetails.roomIdx === -1)
-                errorFields.push('room');
+
+            // if (roomDetails.buildingId === -1 || roomDetails.floorIdx === -1 || roomDetails.roomIdx === -1)
+            //     errorFields.push('room');
 
             if (errorFields.length > 0) {
                 setErrorMessage('All fields are required.');
@@ -184,44 +200,49 @@ const AddSectionContainer = ({
             // alert(`Teacher is already assigned as adviser of section '${duplicateAdviser.section}'`);
             return;
         } else {
-            // Add advisory load to teacher
-            const advisoryLoad = {
-                name: 'Advisory Load',
-                subject: -1,
-                duration: 60,
-                frequency: numOfSchoolDays,
-                shown: false,
-                time: 96,
-            };
+            
+            // ============== ADVISORY LOAD ==============
+                const advisoryLoad = {
+                    name: 'Advisory Load',
+                    subject: -1,
+                    duration: 60,
+                    frequency: numOfSchoolDays,
+                    shown: false,
+                    time: 96,
+                };
 
-            const teacher = structuredClone(teachers[selectedAdviser]);
-            teacher.additionalTeacherScheds = teacher.additionalTeacherScheds || [];
-            teacher.additionalTeacherScheds.push(advisoryLoad);
+                const teacher = structuredClone(teachers[selectedAdviser]);
+                teacher.additionalTeacherScheds = teacher.additionalTeacherScheds || [];
+                teacher.additionalTeacherScheds.push(advisoryLoad);
 
-            dispatch(
-                editTeacher({
-                    teacherId: selectedAdviser,
-                    updatedTeacher: teacher,
-                })
-            );
+                dispatch(
+                    editTeacher({
+                        teacherId: selectedAdviser,
+                        updatedTeacher: teacher,
+                    })
+                );
+            // ============== ADVISORY LOAD ==============
 
-            // Add section
-            dispatch(
-                reduxFunction({
-                    [reduxField[0]]: inputValue,
-                    teacher: selectedAdviser,
-                    program: selectedProgram,
-                    year: selectedYearLevel,
-                    subjects: selectedSubjects,
-                    fixedDays: fixedDays,
-                    fixedPositions: fixedPositions,
-                    shift: selectedShift,
-                    startTime: getTimeSlotIndex(selectedStartTime || '06:00 AM'),
-                    endTime: selectedEndTime,
-                    additionalScheds: additionalScheds,
-                    roomDetails: roomDetails,
-                })
-            );
+            // ============== SECTION ==============
+                dispatch(
+                    reduxFunction({
+                        [reduxField[0]]: inputValue,
+                        teacher: selectedAdviser,
+                        program: selectedProgram,
+                        year: selectedYearLevel,
+                        subjects: selectedSubjects,
+                        fixedDays: fixedDays,
+                        fixedPositions: fixedPositions,
+                        modality: classModality,
+                        shift: selectedShift,
+                        startTime: getTimeSlotIndex(selectedStartTime || '06:00 AM'),
+                        endTime: selectedEndTime,
+                        additionalScheds: additionalScheds,
+                        roomDetails: roomDetails,
+                    })
+                );
+            // ============== SECTION ==============
+
             handleReset();
         }
 
@@ -242,7 +263,7 @@ const AddSectionContainer = ({
         }
     };
 
-    // ===================================================================================================
+// ===================================================================================================
 
     // End Times
     const handleEndTimeChange = () => {
@@ -251,11 +272,20 @@ const AddSectionContainer = ({
         const startTimeIdx = getTimeSlotIndex(selectedStartTime);
         const breakTimeCount = selectedSubjects.length > 10 ? 2 : 1;
 
-        let totalDuration = breakTimeCount * breakTimeDuration;
+        let noOfClassBlocks = 0;
+        const classDurations = [];
 
         selectedSubjects.forEach((subId) => {
-            totalDuration += subjects[subId].classDuration;
+            const duration = subjects[subId].classDuration;
+            classDurations.push(duration);
+            noOfClassBlocks += Math.ceil(subjects[subId].weeklyMinutes / subjects[subId].classDuration);
         });
+
+        let noOfRows = breakTimeCount + Math.ceil(noOfClassBlocks / numOfSchoolDays);
+
+        const topDurations = classDurations.sort((a, b) => b - a).slice(0, noOfRows);
+
+        let totalDuration = (breakTimeCount * breakTimeDuration) + topDurations.reduce((sum, duration) => sum + duration, 0);
 
         const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
 
@@ -275,6 +305,15 @@ const AddSectionContainer = ({
         handleEndTimeChange();
     }, [selectedSubjects, selectedStartTime, breakTimeDuration]);
 
+    // Modality
+    const handleModalityChange = (index) => {
+        setClassModality(prevState => 
+            prevState.map((value, i) => 
+                i === index ? (value === 1 ? 0 : 1) : value
+            )
+        );
+    };    
+
     // Additional Schedules
     const handleAddAdditionalSchedule = () => {
         setAdditionalScheds((prevScheds) => [
@@ -293,7 +332,7 @@ const AddSectionContainer = ({
         setAdditionalScheds((prevScheds) => prevScheds.filter((_, i) => i !== index));
     };
 
-    // ===================================================================================================
+// ===================================================================================================
 
     const handleReset = () => {
         setErrorMessage('');
@@ -308,11 +347,12 @@ const AddSectionContainer = ({
         setSelectedEndTime('');
         setFixedDays({});
         setFixedPositions({});
+        setClassModality(new Array(numOfSchoolDays).fill(1));
         setAdditionalScheds([]);
         setRoomDetails({ buildingId: -1, floorIdx: -1, roomIdx: -1 });
     };
 
-    // ===================================================================================================
+// ===================================================================================================
 
     useEffect(() => {
         if (buildingStatus === 'idle') {
@@ -338,7 +378,7 @@ const AddSectionContainer = ({
         }
     }, [teacherStatus, dispatch]);
 
-    // ===================================================================================================
+// ===================================================================================================
 
     useEffect(() => {
         if (inputNameRef.current) {
@@ -350,7 +390,11 @@ const AddSectionContainer = ({
         console.log('additionalScheds:', additionalScheds);
     }, [additionalScheds]);
 
-    // ===================================================================================================
+// ===================================================================================================
+
+    const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+
+// ==================================================================================================
 
     return (
         <div>
@@ -572,6 +616,8 @@ const AddSectionContainer = ({
 
                         <ViewRooms
                             viewMode={0}
+                            sectionId={0}
+                            sectionModality={classModality}
                             roomDetails={roomDetails}
                             setRoomDetails={setRoomDetails}
                             startTime={getTimeSlotIndex(selectedStartTime)}
@@ -653,94 +699,133 @@ const AddSectionContainer = ({
                 </div>
             )}
 
-            {/* Additional Schedules */}
-            {additionalScheds.length > 0 && (
-                <div className='p-4 rounded-lg shadow-md border'>
-                    <div className='text-center font-semibold text-lg'>Additional Schedules</div>
-                    <hr className='my-2'></hr>
+            {/* Class Modality */}
+            <div className='rounded-lg shadow-md border space-y-2 p-4 mb-4'>
+                <div className='font-semibold text-lg text-center'>Class Modality</div>
+                <hr className='my-2'></hr>
 
-                    {/* Button to add schedules */}
-                    <button
-                        onClick={handleAddAdditionalSchedule}
-                        className='flex flex-wrap items-right text-sm mt-2 bg-primary p-4 text-white px-2 py-1 rounded-lg hover:bg-blue-600'
-                    >
-                        Add Schedule
-                    </button>
-
-                    {/* Render the ScheduleComponent as many times as specified */}
-                    <div
-                        className='mt-2 overflow-y-auto max-h-36 border border-gray-300 rounded-lg'
-                        style={{
-                            scrollbarWidth: 'thin',
-                            scrollbarColor: '#a0aec0 #edf2f7',
-                        }} // Optional for styled scrollbars
-                    >
-                        {additionalScheds.map((sched, index) => (
-                            <div key={index} className='flex flex-wrap'>
-                                <button
-                                    className='w-1/12 border rounded-l-lg hover:bg-gray-200 flex items-center justify-center'
-                                    onClick={() => handleDeleteAdditionalSchedule(index)}
+                <table className='table'>
+                    <thead>
+                        <tr>
+                            {Array.from({ length: numOfSchoolDays }, (_, index) => (
+                                <th 
+                                    key={index}
+                                    className='text-center border border-gray-300'
+                                    style={{ width: `${100 / numOfSchoolDays}%` }} // Ensures equal width for all days
                                 >
-                                    <RiDeleteBin7Line size={15} />
+                                    {days[index]}
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody> 
+                        <tr>
+                            {Array.from({ length: numOfSchoolDays }, (_, index) => (
+                                <td 
+                                    key={index}
+                                    className='text-center border border-gray-300'
+                                    style={{ width: `${100 / numOfSchoolDays}%` }} // Ensures equal width for all days
+                                >
+                                    <button
+                                        key={`day-${index}`}
+                                        className={`btn w-full h-full flex items-center justify-center ${classModality[index] === 1 ? 'bg-green-500' : 'bg-red-500'}`}
+                                        onClick={() => handleModalityChange(index)}
+                                    >
+                                        {classModality[index] === 1 ? 'ONSITE' : 'OFFSITE'}
+                                    </button>
+                                </td>
+                            ))}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Additional Schedules */}
+            <div className='p-4 rounded-lg shadow-md border'>
+                <div className='text-center font-semibold text-lg'>Additional Schedules</div>
+                <hr className='my-2'></hr>
+
+                {/* Button to add schedules */}
+                <button
+                    onClick={handleAddAdditionalSchedule}
+                    className='flex flex-wrap items-right text-sm mt-2 bg-primary p-4 text-white px-2 py-1 rounded-lg hover:bg-blue-600'
+                >
+                    Add Schedule
+                </button>
+
+                {/* Render the ScheduleComponent as many times as specified */}
+                <div
+                    className='mt-2 overflow-y-auto max-h-36 border border-gray-300 rounded-lg'
+                    style={{
+                        scrollbarWidth: 'thin',
+                        scrollbarColor: '#a0aec0 #edf2f7',
+                    }} // Optional for styled scrollbars
+                >
+                    {additionalScheds.map((sched, index) => (
+                        <div key={index} className='flex flex-wrap'>
+                            <button
+                                className='w-1/12 border rounded-l-lg hover:bg-gray-200 flex items-center justify-center'
+                                onClick={() => handleDeleteAdditionalSchedule(index)}
+                            >
+                                <RiDeleteBin7Line size={15} />
+                            </button>
+                            <div className='w-10/12'>
+                                <button
+                                    className='w-full bg-gray-100 p-2 border shadow-sm hover:bg-gray-200'
+                                    onClick={() =>
+                                        document
+                                            .getElementById(
+                                                `add_additional_sched_modal_1_grade-${selectedYearLevel}_sec-0_idx-${index}`
+                                            )
+                                            .showModal()
+                                    }
+                                >
+                                    {sched.name ? (
+                                        // Content to show when both are not empty
+                                        <>
+                                            <p>Name: {sched.name}</p>
+                                            <p>Subject: {sched.subject === -1 ? 'N/A' : subjects[sched.subject].subject}</p>
+                                        </>
+                                    ) : (
+                                        // Content to show when either is empty
+                                        <p>Untitled Schedule {index + 1}</p>
+                                    )}
                                 </button>
-                                <div className='w-10/12'>
-                                    <button
-                                        className='w-full bg-gray-100 p-2 border shadow-sm hover:bg-gray-200'
-                                        onClick={() =>
-                                            document
-                                                .getElementById(
-                                                    `add_additional_sched_modal_1_grade-${selectedYearLevel}_sec-0_idx-${index}`
-                                                )
-                                                .showModal()
-                                        }
-                                    >
-                                        {sched.name ? (
-                                            // Content to show when both are not empty
-                                            <>
-                                                <p>Name: {sched.name}</p>
-                                                <p>Subject: {sched.subject === -1 ? 'N/A' : subjects[sched.subject].subject}</p>
-                                            </>
-                                        ) : (
-                                            // Content to show when either is empty
-                                            <p>Untitled Schedule {index + 1}</p>
-                                        )}
-                                    </button>
-                                    <AdditionalScheduleForSection
-                                        viewingMode={1}
-                                        sectionID={0}
-                                        grade={selectedYearLevel}
-                                        arrayIndex={index}
-                                        additionalSchedsOfSection={sched}
-                                    />
-                                </div>
-                                <div className='w-1/12 flex items-center justify-center border rounded-r-lg hover:bg-gray-200'>
-                                    <button
-                                        onClick={() =>
-                                            document
-                                                .getElementById(
-                                                    `add_additional_sched_modal_0_grade-${selectedYearLevel}_sec-0_idx-${index}`
-                                                )
-                                                .showModal()
-                                        }
-                                    >
-                                        <RiEdit2Fill size={15} />
-                                    </button>
-                                    <AdditionalScheduleForSection
-                                        viewingMode={0}
-                                        sectionID={0}
-                                        grade={selectedYearLevel}
-                                        arrayIndex={index}
-                                        numOfSchoolDays={numOfSchoolDays}
-                                        sectionSubjects={selectedSubjects}
-                                        additionalSchedsOfSection={sched}
-                                        setAdditionalScheds={setAdditionalScheds}
-                                    />
-                                </div>
+                                <AdditionalScheduleForSection
+                                    viewingMode={1}
+                                    sectionID={0}
+                                    grade={selectedYearLevel}
+                                    arrayIndex={index}
+                                    additionalSchedsOfSection={sched}
+                                />
                             </div>
-                        ))}
-                    </div>
+                            <div className='w-1/12 flex items-center justify-center border rounded-r-lg hover:bg-gray-200'>
+                                <button
+                                    onClick={() =>
+                                        document
+                                            .getElementById(
+                                                `add_additional_sched_modal_0_grade-${selectedYearLevel}_sec-0_idx-${index}`
+                                            )
+                                            .showModal()
+                                    }
+                                >
+                                    <RiEdit2Fill size={15} />
+                                </button>
+                                <AdditionalScheduleForSection
+                                    viewingMode={0}
+                                    sectionID={0}
+                                    grade={selectedYearLevel}
+                                    arrayIndex={index}
+                                    numOfSchoolDays={numOfSchoolDays}
+                                    sectionSubjects={selectedSubjects}
+                                    additionalSchedsOfSection={sched}
+                                    setAdditionalScheds={setAdditionalScheds}
+                                />
+                            </div>
+                        </div>
+                    ))}
                 </div>
-            )}
+            </div>
 
             {errorMessage && <p className='text-red-500 text-sm my-4 font-medium select-none '>{errorMessage}</p>}
 
