@@ -59,7 +59,6 @@ const AddBuildingContainer = ({ close, setErrorMessage, setErrorField, errorMess
         updatedRoomNames[floorIndex] = Array.from({ length: roomsCount }, (_, i) => ({
             roomName:
                 updatedRoomNames[floorIndex]?.[i]?.roomName || `${buildingName || 'room'} - ${(floorIndex + 1) * 100 + i + 1}`,
-            assignedSections: [],
         }));
         setRoomNames(updatedRoomNames);
     };
@@ -68,7 +67,7 @@ const AddBuildingContainer = ({ close, setErrorMessage, setErrorField, errorMess
         const updatedRoomNames = [...roomNames];
         if (!updatedRoomNames[floorIndex]) updatedRoomNames[floorIndex] = [];
         if (!updatedRoomNames[floorIndex][roomIndex]) {
-            updatedRoomNames[floorIndex][roomIndex] = { roomName: '', assignedSections: [] };
+            updatedRoomNames[floorIndex][roomIndex] = { roomName: '' };
         }
 
         updatedRoomNames[floorIndex][roomIndex] = {
@@ -480,7 +479,7 @@ const RoomListContainer = ({ editable = false }) => {
     
         if (!updatedRoomNames[floorIndex]) updatedRoomNames[floorIndex] = [];
         if (!updatedRoomNames[floorIndex][roomIndex]) {
-            updatedRoomNames[floorIndex][roomIndex] = { roomName: '', assignedSections: [] };
+            updatedRoomNames[floorIndex][roomIndex] = { roomName: '' };
         }
     
         updatedRoomNames[floorIndex][roomIndex] = {
@@ -503,7 +502,6 @@ const RoomListContainer = ({ editable = false }) => {
             roomName:
                 updatedRoomNames[floorIndex]?.[i]?.roomName ||
                 `${editBuildingName || 'room'} - ${(floorIndex + 1) * 100 + i + 1}`,
-            assignedSections: updatedRoomNames[floorIndex]?.[i]?.assignedSections || [],
         }));
 
         setEditRoomNames(updatedRoomNames);

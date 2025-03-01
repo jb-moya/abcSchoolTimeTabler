@@ -200,45 +200,49 @@ const AddSectionContainer = ({
             // alert(`Teacher is already assigned as adviser of section '${duplicateAdviser.section}'`);
             return;
         } else {
-            // Add advisory load to teacher
-            const advisoryLoad = {
-                name: 'Advisory Load',
-                subject: -1,
-                duration: 60,
-                frequency: numOfSchoolDays,
-                shown: false,
-                time: 96,
-            };
+            
+            // ============== ADVISORY LOAD ==============
+                const advisoryLoad = {
+                    name: 'Advisory Load',
+                    subject: -1,
+                    duration: 60,
+                    frequency: numOfSchoolDays,
+                    shown: false,
+                    time: 96,
+                };
 
-            const teacher = structuredClone(teachers[selectedAdviser]);
-            teacher.additionalTeacherScheds = teacher.additionalTeacherScheds || [];
-            teacher.additionalTeacherScheds.push(advisoryLoad);
+                const teacher = structuredClone(teachers[selectedAdviser]);
+                teacher.additionalTeacherScheds = teacher.additionalTeacherScheds || [];
+                teacher.additionalTeacherScheds.push(advisoryLoad);
 
-            dispatch(
-                editTeacher({
-                    teacherId: selectedAdviser,
-                    updatedTeacher: teacher,
-                })
-            );
+                dispatch(
+                    editTeacher({
+                        teacherId: selectedAdviser,
+                        updatedTeacher: teacher,
+                    })
+                );
+            // ============== ADVISORY LOAD ==============
 
-            // Add section
-            dispatch(
-                reduxFunction({
-                    [reduxField[0]]: inputValue,
-                    teacher: selectedAdviser,
-                    program: selectedProgram,
-                    year: selectedYearLevel,
-                    subjects: selectedSubjects,
-                    fixedDays: fixedDays,
-                    fixedPositions: fixedPositions,
-                    modality: classModality,
-                    shift: selectedShift,
-                    startTime: getTimeSlotIndex(selectedStartTime || '06:00 AM'),
-                    endTime: selectedEndTime,
-                    additionalScheds: additionalScheds,
-                    roomDetails: roomDetails,
-                })
-            );
+            // ============== SECTION ==============
+                dispatch(
+                    reduxFunction({
+                        [reduxField[0]]: inputValue,
+                        teacher: selectedAdviser,
+                        program: selectedProgram,
+                        year: selectedYearLevel,
+                        subjects: selectedSubjects,
+                        fixedDays: fixedDays,
+                        fixedPositions: fixedPositions,
+                        modality: classModality,
+                        shift: selectedShift,
+                        startTime: getTimeSlotIndex(selectedStartTime || '06:00 AM'),
+                        endTime: selectedEndTime,
+                        additionalScheds: additionalScheds,
+                        roomDetails: roomDetails,
+                    })
+                );
+            // ============== SECTION ==============
+
             handleReset();
         }
 
@@ -612,6 +616,8 @@ const AddSectionContainer = ({
 
                         <ViewRooms
                             viewMode={0}
+                            sectionId={0}
+                            sectionModality={classModality}
                             roomDetails={roomDetails}
                             setRoomDetails={setRoomDetails}
                             startTime={getTimeSlotIndex(selectedStartTime)}

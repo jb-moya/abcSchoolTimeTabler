@@ -1378,6 +1378,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                         const sectionSubjects = program[year].subjects;
                         const sectionFixedDays = program[year].fixedDays;
                         const sectionFixedPositions = program[year].fixedPositions;
+                        const sectionModality = program[year].modality;
                         const sectionShift = program[year].shift;
                         const startTimeIdx = program[year].startTime;
                         const endTimeIdx = program[year].endTime;
@@ -1389,10 +1390,17 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                                 section.roomDetails.floorIdx === roomDetails.floorIdx &&
                                 section.roomDetails.roomIdx === roomDetails.roomIdx
                             ) {
-                                if (section.endTime > startTimeIdx && section.startTime < endTimeIdx) {
-                                    isOverlap = true;
-                                    return;
+
+                                const secMod = section.modality;
+                                for (let i = 0; i < secMod.length; i++) {
+                                    if (secMod[i] === 1) {
+                                        if (section.startTime <= startTimeIdx && section.endTime >= endTimeIdx) {
+                                            isOverlap = true;
+                                            return;
+                                        }
+                                    }
                                 }
+
                             }
                         });
 
@@ -1414,7 +1422,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                             startTime: startTimeIdx,
                             endTime: endTimeIdx,
                             roomDetails: roomDetails,
-                            modality: new Array(Number(numOfSchoolDays)).fill(1),
+                            modality: sectionModality,
                             additionalScheds: [],
                         });
                         assignedAdviser.push(advID);

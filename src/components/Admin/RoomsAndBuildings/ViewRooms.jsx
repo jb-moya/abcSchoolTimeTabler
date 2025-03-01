@@ -7,6 +7,7 @@ import { fetchSections } from '@features/sectionSlice';
 const ViewRooms = ({
     viewMode = 1,
     sectionId = 0,
+    sectionModality = [],
     building = 0,
     roomDetails = {},
     setRoomDetails = () => {},
@@ -83,25 +84,19 @@ const ViewRooms = ({
 
     const handleConfirm = () => {
 
-        let hasConflict = false;
-
-        Object.entries(sections).forEach(([sectionId, section]) => {
-            if (section.roomDetails.buildingId === buildingId && section.roomDetails.floorIdx === floorIdx && section.roomDetails.roomIdx === roomIdx) {
-                const sectionStartTime = section.startTime;
-                const sectionEndTime = section.endTime;
-
-                console.log('sectionStartTime: ', sectionStartTime, 'sectionEndTime: ', sectionEndTime);
-                console.log('selectedStartTime: ', selectedStartTime, 'selectedEndTime: ', selectedEndTime);
-
-                if (selectedEndTime > sectionStartTime && selectedStartTime < sectionEndTime) {
-                    alert(`Overlapping schedules with Section ${section.section}. Consider adjusting start time.`);
-                    hasConflict = true;
-                    return;
-                }
-            }
-        })
-
-        if (hasConflict) return;
+        let hasConflict = Object.values(sections).some(section => 
+            section.roomDetails.buildingId === buildingId &&
+            section.roomDetails.floorIdx === floorIdx &&
+            section.roomDetails.roomIdx === roomIdx &&
+            section.modality.some((mod, i) => 
+                mod === 1 && sectionModality[i] === 1 &&
+                selectedEndTime > section.startTime &&
+                selectedStartTime < section.endTime &&
+                (alert(`[ERR] Overlapping schedules with Section ${section.section}.`), true)
+            )
+        );
+        
+        if (hasConflict) return;        
         
         setRoomDetails((prevDetails) => ({
             ...prevDetails,

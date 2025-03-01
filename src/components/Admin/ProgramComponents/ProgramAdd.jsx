@@ -430,10 +430,10 @@ const AddProgramContainer = ({
             10: morningStartTime,
         });
         setEndTimes({
-            7: morningEndTime,
-            8: morningEndTime,
-            9: morningEndTime,
-            10: morningEndTime,
+            7: afternoonStartTime,
+            8: afternoonStartTime,
+            9: afternoonStartTime,
+            10: afternoonStartTime,
         })
         setClassModality({
             7: new Array(numOfSchoolDays).fill(1),
