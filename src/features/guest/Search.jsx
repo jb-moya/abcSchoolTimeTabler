@@ -4,6 +4,7 @@ import { MdHistory, MdOutlineCancel } from 'react-icons/md';
 import debounce from 'debounce';
 import clsx from 'clsx';
 import useSearchTimetable from '../../hooks/useSearchTimetable';
+import { convertStringDataToMap } from '../../components/Admin/ModifyTimetable/utils';
 
 const Search = () => {
     const [query, setQuery] = useState('');
@@ -31,15 +32,15 @@ const Search = () => {
         }
     }, [query, searchHistory]);
 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh
     const exampleTimetable = [
         ['t', 86, null, 9, 'REG-7-SEC-3', 4, 'English 7', '8-16', 1],
         ['t', 86, null, 9, 'REG-7-SEC-3', 4, 'English 7', '8-16', 2],
@@ -104,6 +105,9 @@ const Search = () => {
 
         inputRef.current.focus();
         console.log('result', results);
+        console.log('result data', results[0].a);
+        const convertedData = convertStringDataToMap(results[0].a);
+        console.log('convertedData', convertedData);
     };
 
     const handleDeleteSuggestion = (itemToDelete) => {
@@ -261,7 +265,6 @@ const Search = () => {
                 </button>
             </div>
         </div>
-      
     );
 };
 
