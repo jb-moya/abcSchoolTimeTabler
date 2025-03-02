@@ -10,13 +10,14 @@ const Search = () => {
     const [query, setQuery] = useState('');
     const [suggestions, setSuggestions] = useState([]);
     const [searchHistory, setSearchHistory] = useState([]);
+    const [results, setResults] = useState([]);
     const [isSearchClicked, setIsSearchClicked] = useState(false);
     const [isSuggestionsVisible, setIsSuggestionsVisible] = useState(false);
     const [role, setRole] = useState('Sections');
     const dropdownRef = useRef(null);
     const inputRef = useRef(null);
 
-    const { search, results, loading, error } = useSearchTimetable();
+    const { search, loading, error } = useSearchTimetable();
 
     useEffect(() => {
         const storedHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
@@ -98,7 +99,8 @@ const Search = () => {
         localStorage.setItem('searchHistory', JSON.stringify(updatedHistory));
 
         const cleanedQuery = query.replace(/\s+/g, ' ').trim();
-        await search(cleanedQuery.split(' '), role == 'Sections' ? 's' : 't');
+
+        setResults(await search(cleanedQuery.split(' '), role == 'Sections' ? 's' : 't'));
 
         setSuggestions([]);
         setIsSuggestionsVisible(true);
@@ -109,6 +111,10 @@ const Search = () => {
         const convertedData = convertStringDataToMap(results[0].a);
         console.log('convertedData', convertedData);
     };
+
+    useEffect(() => {
+        console.log("potanginang results", results);
+    }, [results]);
 
     const handleDeleteSuggestion = (itemToDelete) => {
         setSearchHistory((prevHistory) => prevHistory.filter((item) => item !== itemToDelete));

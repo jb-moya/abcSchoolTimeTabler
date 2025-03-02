@@ -13,6 +13,43 @@ import mapToArray from './mapToArray';
 import clsx from 'clsx';
 import { IoIosAdd, IoIosWarning } from 'react-icons/io';
 import { FiMinus } from 'react-icons/fi';
+import ExportSchedules from './ExportSchedules';
+
+function processRows(data, n) {
+    // Generate a key from each row ignoring the last element
+    function generateKey(row) {
+        return JSON.stringify(row.slice(0, -1));
+    }
+
+    // Count occurrences of each unique key
+    const keyCounts = {};
+    data.forEach((row) => {
+        const key = generateKey(row);
+        keyCounts[key] = (keyCounts[key] || 0) + 1;
+    });
+
+    // Identify keys that appear at least `n` times
+    const keysToOverwrite = Object.keys(keyCounts).filter((key) => keyCounts[key] >= n);
+
+    // Create the new data set
+    const newData = [];
+    const overwrittenKeys = new Set(keysToOverwrite);
+
+    keysToOverwrite.forEach((key) => {
+        const parsedKey = JSON.parse(key);
+        newData.push([...parsedKey, 0]);
+    });
+
+    // Add rows that don't meet the condition unchanged
+    data.forEach((row) => {
+        const key = generateKey(row);
+        if (!overwrittenKeys.has(key)) {
+            newData.push(row);
+        }
+    });
+
+    return newData;
+}
 
 const ModifyTimetableContainer = ({
     hashMap = new Map(),
@@ -93,9 +130,23 @@ const ModifyTimetableContainer = ({
     const deploy = async () => {
         console.log('deploying', valueMap);
         const array = mapToArray(valueMap);
-        console.log('array ffasdf: ', array);
+        // console.log('array ffasdf: ', array);
 
-        handleDeployTimetables(array);
+        const n = 5;
+        let resultarray = [];
+        array.forEach((row) => {
+            let tableArray = [];
+            let result = processRows(row[1], n);
+            tableArray.push(row[0]);
+            tableArray.push(result);
+            tableArray.push(row[2]);
+            resultarray.push(tableArray);
+        });
+
+        // console.log('array: ', array.slice(0, 3));
+        console.log('resultarray: ', resultarray.slice(0, 3));
+
+        handleDeployTimetables(resultarray);
     };
 
     // ================================================================================================================
@@ -194,42 +245,6 @@ const ModifyTimetableContainer = ({
     };
 
     const save = () => {
-        function processRows(data, n) {
-            // Generate a key from each row ignoring the last element
-            function generateKey(row) {
-                return JSON.stringify(row.slice(0, -1));
-            }
-
-            // Count occurrences of each unique key
-            const keyCounts = {};
-            data.forEach((row) => {
-                const key = generateKey(row);
-                keyCounts[key] = (keyCounts[key] || 0) + 1;
-            });
-
-            // Identify keys that appear at least `n` times
-            const keysToOverwrite = Object.keys(keyCounts).filter((key) => keyCounts[key] >= n);
-
-            // Create the new data set
-            const newData = [];
-            const overwrittenKeys = new Set(keysToOverwrite);
-
-            keysToOverwrite.forEach((key) => {
-                const parsedKey = JSON.parse(key);
-                newData.push([...parsedKey, 0]);
-            });
-
-            // Add rows that don't meet the condition unchanged
-            data.forEach((row) => {
-                const key = generateKey(row);
-                if (!overwrittenKeys.has(key)) {
-                    newData.push(row);
-                }
-            });
-
-            return newData;
-        }
-
         const array = mapToArray(valueMap);
 
         console.log('🚀 ~ save ~ valueMap:', valueMap);
@@ -1020,8 +1035,8 @@ const ModifyTimetableContainer = ({
                                     await handleDeleteAllFirebaseTimetables();
                                     await deploy();
 
-                                    handleReset();
                                     document.getElementById('confirm_schedule_save_modal').close();
+                                    handleReset();
                                 }}
                                 disabled={deletingLoading || deployLoading}
                             >
@@ -1034,7 +1049,11 @@ const ModifyTimetableContainer = ({
                                     'Yes, Deploy timetables'
                                 )}
                             </button>
-                            <button className='btn btn-error' disabled={deletingLoading || deployLoading}>
+                            <button
+                                className='btn btn-error'
+                                disabled={deletingLoading || deployLoading}
+                                onClick={() => document.getElementById('deploy_confirmation').close()}
+                            >
                                 Cancel
                             </button>
                         </div>

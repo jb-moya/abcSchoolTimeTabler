@@ -3,13 +3,11 @@ import { firestore } from '../firebase/firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 
 const useSearchTimetable = () => {
-    const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     const search = async (searchTerms = [], searchType) => {
         if (searchTerms.length === 0) {
-            setResults([]); // Clear results if no search terms are provided
             return;
         }
 
@@ -17,7 +15,7 @@ const useSearchTimetable = () => {
         setError(null);
 
         try {
-            console.log('🚀 ~ search ~ searchTerms:', searchTerms);
+            console.log('🚀 ~ CALLING search ~ searchTerms:', searchTerms);
 
             const timetablesRef = collection(firestore, 'timetables');
             const q = query(timetablesRef, where('n', 'array-contains-any', searchTerms), where('t', '==', searchType));
@@ -33,12 +31,9 @@ const useSearchTimetable = () => {
                 querySnapshot.docs.map((doc) => doc.data())
             );
 
-            // setResults([{}, {}, {}, {}, {}]);
-            setResults(
-                querySnapshot.docs.map((doc) => {
-                    return { id: doc.id, ...doc.data() };
-                })
-            );
+            return querySnapshot.docs.map((doc) => {
+                return { id: doc.id, ...doc.data() };
+            });
         } catch (err) {
             setError(err);
             console.error('Error fetching documents:', err);
@@ -47,7 +42,7 @@ const useSearchTimetable = () => {
         }
     };
 
-    return { search, results, loading, error };
+    return { search, loading, error };
 };
 
 export default useSearchTimetable;
