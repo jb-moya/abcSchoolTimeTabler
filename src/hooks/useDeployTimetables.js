@@ -27,7 +27,7 @@ function useDeployTimetables() {
 
                 const obj = {
                     n: value[0].split(' '),
-                    a: JSON.stringify(value[1]),
+                    a: JSON.stringify([value.slice(0, 2)]),
                     t: value[2],
                     u: user.uid,
                 };
