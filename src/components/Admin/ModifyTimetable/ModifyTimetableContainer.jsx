@@ -395,21 +395,28 @@ const ModifyTimetableContainer = ({
                     const currentCell = cells[i];
                     const nextCell = cells[i + 1];
 
-                    if (currentCell.end > nextCell.start) {
-                        // console.log('overlap1 : ', currentCell);
-                        // console.log('overlap2 : ', nextCell);
+                    if (currentCell.additional && nextCell.additional) {
+                        // console.log('TRUE ETO: ');
+                        // console.log('current cell: ', currentCell);
+                        // console.log('next cell', nextCell);
+                        //skips
+                    } else {
+                        if (currentCell.end > nextCell.start) {
+                            // console.log('overlap1 : ', currentCell);
+                            // console.log('overlap2 : ', nextCell);
 
-                        currentCell.overlap = true;
-                        nextCell.overlap = true;
+                            currentCell.overlap = true;
+                            nextCell.overlap = true;
 
-                        const currentKey = [tableKey, currentCell.cellKey, currentCell.type];
-                        const nextKey = [tableKey, nextCell.cellKey, nextCell.type];
+                            const currentKey = [tableKey, currentCell.cellKey, currentCell.type];
+                            const nextKey = [tableKey, nextCell.cellKey, nextCell.type];
 
-                        if (!overlappingCells.some(([t, c]) => t === tableKey && c === currentCell.cellKey)) {
-                            overlappingCells.push(currentKey);
-                        }
-                        if (!overlappingCells.some(([t, c]) => t === tableKey && c === nextCell.cellKey)) {
-                            overlappingCells.push(nextKey);
+                            if (!overlappingCells.some(([t, c]) => t === tableKey && c === currentCell.cellKey)) {
+                                overlappingCells.push(currentKey);
+                            }
+                            if (!overlappingCells.some(([t, c]) => t === tableKey && c === nextCell.cellKey)) {
+                                overlappingCells.push(nextKey);
+                            }
                         }
                     }
                 }

@@ -318,7 +318,7 @@ function Timetable() {
 
             subjectsEveryDay.forEach((subjectID) => {
                 const subjectConfiguration = {
-                    name: "",
+                    name: '',
                     subject: subjectMapReverse[subjectID].id,
                     is_consistent_everyday: emptyEveryDayTimeslot.size >= subjectsEveryDay.length,
                     classDuration: subjectMapReverse[subjectID].classDuration,
@@ -344,7 +344,7 @@ function Timetable() {
 
                     classBlock.forEach((timeslot, index) => {
                         const subjectConfiguration = {
-                            name: "",
+                            name: '',
                             subject: subjectMapReverse[subjectID].id,
                             is_consistent_everyday: false,
                             classDuration: subjectMapReverse[subjectID].classDuration,
@@ -563,7 +563,7 @@ function Timetable() {
                     positionArray.every((element) => element === positionArray[0])
                 ) {
                     const subjectConfiguration = {
-                        name: "",
+                        name: '',
                         subject: subjectMapReverse[subjectID].id,
                         is_consistent_everyday: true,
                         classDuration: subjectMapReverse[subjectID].classDuration / timeDivision - offset,
@@ -582,7 +582,7 @@ function Timetable() {
 
                 positionArray.forEach((timeslot, index) => {
                     const subjectConfiguration = {
-                        name: "",
+                        name: '',
                         subject: subjectMapReverse[subjectID].id,
                         is_consistent_everyday: false,
                         classDuration: subjectMapReverse[subjectID].classDuration / timeDivision - offset,
@@ -988,7 +988,8 @@ function Timetable() {
             fieldName1,
             fieldName2,
             containerName,
-            type
+            type,
+            additional
         ) => {
             const timeslotData = {
                 section: section_id,
@@ -1000,6 +1001,7 @@ function Timetable() {
                 end: end,
                 start: start,
                 type: type,
+                additional: additional,
             };
 
             if (timetableMap.has(IDAttribute)) {
@@ -1018,7 +1020,7 @@ function Timetable() {
             // console.log('🚀 ~ handleButtonClick ~ entry of timetable:', entry);
 
             // console.log('x', teacher_id, start, end);
-
+            // console.log('sectionMap: ', sectionMap);
             const section_id = sectionMap[entry[0]].id;
             const subject_id = subjectMap[entry[1]] || null;
             const teacher_id = (teacherMap[entry[2]] || { id: null }).id;
@@ -1027,7 +1029,7 @@ function Timetable() {
 
             const start = Number(entry[5]);
             const end = Number(entry[6]);
-            
+
             const subjectConfigurationID = Number(entry[7]);
 
             // console.log(section_id, 'ETONG d', subjectConfigurationID, subject_id, subjectConfigurationMap.get(subjectMapReverse[subject_id]?.id));
@@ -1057,9 +1059,14 @@ function Timetable() {
 
             // console.log('🚀 ~ handleButtonClick ~ name:', name);
 
-
             const sectionType = 'section';
-            addTimeslotToTimetable( //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// fasdf
+            let additional = true;
+            if (name === '') {
+                additional = false;
+            }
+
+            addTimeslotToTimetable(
+                //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// fasdf
                 section_id,
                 sectionTimetable,
                 section_id,
@@ -1068,10 +1075,11 @@ function Timetable() {
                 start,
                 end,
                 day,
-                name ? name + " " + subjectData[subject_id]?.subject : subjectData[subject_id]?.subject || null,
+                name ? name + ' ' + subjectData[subject_id]?.subject : subjectData[subject_id]?.subject || null,
                 teacherData[teacher_id]?.teacher || null,
                 sectionData[section_id]?.section,
-                sectionType
+                sectionType,
+                additional
             );
 
             if (teacher_id == null) {
@@ -1103,9 +1111,10 @@ function Timetable() {
                 end,
                 day,
                 sectionData[section_id]?.section,
-                name ? name + " " + subjectData[subject_id]?.subject : subjectData[subject_id]?.subject || null,
+                name ? name + ' ' + subjectData[subject_id]?.subject : subjectData[subject_id]?.subject || null,
                 teacherData[teacher_id]?.teacher,
-                teacherType
+                teacherType,
+                additional
             );
         }
 
@@ -1193,6 +1202,7 @@ function Timetable() {
                             subject: sched.subject || null,
                             teacher: teacherData[key].id,
                             type: 'teacher',
+                            additional: true,
                         },
                     ]);
                 }
@@ -1505,9 +1515,7 @@ function Timetable() {
                     newProgram[grade].fixedPositions[subId] = result.map(([_, pos]) => pos);
                 });
 
-                if (newProgram[grade].modality.length === 0 ||
-                    newProgram[grade].modality.length === numOfSchoolDays
-                ) return;
+                if (newProgram[grade].modality.length === 0 || newProgram[grade].modality.length === numOfSchoolDays) return;
 
                 if (newProgram[grade].modality.length > numOfSchoolDays) {
                     newProgram[grade].modality = newProgram[grade].modality.slice(0, numOfSchoolDays);
@@ -1586,9 +1594,7 @@ function Timetable() {
                 newSection.fixedPositions[subId] = result.map(([_, pos]) => pos);
             });
 
-            if (newSection.modality.length === 0 ||
-                newSection.modality.length === numOfSchoolDays
-            ) return;
+            if (newSection.modality.length === 0 || newSection.modality.length === numOfSchoolDays) return;
 
             if (newSection.modality.length > numOfSchoolDays) {
                 newSection.modality = newSection.modality.slice(0, numOfSchoolDays);
@@ -1816,10 +1822,10 @@ function Timetable() {
 
     const convertToHashMap = (inputMap, type) => {
         const resultMap = new Map(); // Initialize the outer Map
-        console.log('morningStartTime: ', morningStartTime);
+        // console.log('morningStartTime: ', morningStartTime);
         const timeslotindex = getTimeSlotIndex(morningStartTime);
-        console.log('timeslotindex: ', timeslotindex);
-
+        // console.log('timeslotindex: ', timeslotindex);
+        console.log('inputMap: ', inputMap);
         // Iterate through each entry in the input HashMap
         for (let [tableKey, sectionData] of inputMap.entries()) {
             // Each section has a container name
@@ -1891,7 +1897,7 @@ function Timetable() {
                             day: i,
                             overlap: false,
                             type: type,
-                            additional: duplicate ? true : false,
+                            additional: schedule.additional, // Ensures 'additional' is false if not set
                             containerName: containerName,
                             ...(type === 't' && { section: schedule.fieldName1 }),
                             ...(type === 's' && { teacher: schedule.fieldName2 }),
@@ -1929,7 +1935,7 @@ function Timetable() {
                         dynamicID: scheduleKey,
                         overlap: false,
                         day: schedule.day,
-                        additional: duplicate ? true : false,
+                        additional: schedule.additional, // Ensures 'additional' is false if not set
                         containerName: containerName,
                         ...(type === 't' && { section: schedule.fieldName1 }),
                         ...(type === 's' && { teacher: schedule.fieldName2 }),
