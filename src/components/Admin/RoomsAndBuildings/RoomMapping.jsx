@@ -796,7 +796,7 @@ const RoomListContainer = ({ editable = false }) => {
             </div>
 
             {/* Edit Building Modal */}
-            <dialog id='edit_building_modal' className='modal relative'>
+             <dialog id='edit_building_modal' className='modal'>
                 <div
                     className='modal-box flex flex-col h-screen w-8/12 overflow-hidden'
                     style={{
