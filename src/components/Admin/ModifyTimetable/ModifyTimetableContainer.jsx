@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import DragDrop from './DragDrop';
 import { generateTimeSlots } from '../utils';
@@ -55,11 +55,13 @@ const ModifyTimetableContainer = ({
     hashMap = new Map(),
     timetableName = '',
     timetableId = null,
-
     errorMessage,
     setErrorMessage,
     errorField,
     setErrorField,
+    teachers,
+    subjects,
+    sections,
 }) => {
     const dispatch = useDispatch();
     const inputNameRef = useRef();
@@ -74,9 +76,13 @@ const ModifyTimetableContainer = ({
     // ================================================================================================================
 
     const { schedules, status: schedStatus } = useSelector((state) => state.schedule);
+    // const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
+    // const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
+    // const { sections, status: sectionStatus } = useSelector((state) => state.section);
 
     const [scheduleVerId, setScheduleVerId] = useState(timetableId);
     const [scheduleVerName, setScheduleVerName] = useState(timetableName);
+    console.log('rendering');
 
     useEffect(() => {
         if (schedStatus === 'idle') {
@@ -84,17 +90,35 @@ const ModifyTimetableContainer = ({
         }
     }, [schedStatus, dispatch]);
 
+    // useEffect(() => {
+    //     if (teacherStatus === 'idle') {
+    //         dispatch(fetchTeachers());
+    //     }
+    // }, [teacherStatus, dispatch]);
+
+    // useEffect(() => {
+    //     if (subjectStatus === 'idle') {
+    //         dispatch(fetchSubjects());
+    //     }
+    // }, [subjectStatus, dispatch]);
+
+    // useEffect(() => {
+    //     if (sectionStatus === 'idle') {
+    //         dispatch(fetchSections());
+    //     }
+    // }, [sectionStatus, dispatch]);
+
     const handleReset = () => {
         setScheduleVerName(timetableName ? timetableName : '');
         setErrorMessage('');
         setErrorField('');
     };
 
-// ================================================================================================================
+    // ================================================================================================================
 
     const [showExport, setShowExport] = useState(false);
 
-// ================================================================================================================
+    // ================================================================================================================
 
     const [selectedModeValue, setSelectedModeValue] = useState('5m');
     const [valueMap, setValueMap] = useState(hashMap);
@@ -122,7 +146,6 @@ const ModifyTimetableContainer = ({
         // console.log('array: ', array.slice(0, 3));
         console.log('resultarray: ', resultarray.slice(0, 3));
 
-
         handleDeployTimetables(resultarray);
     };
 
@@ -149,6 +172,8 @@ const ModifyTimetableContainer = ({
     const totalPages = Math.ceil(valueMap?.size / itemsPerPage);
     const [pageNumbers, setPageNumbers] = useState([]); // State for page numbers
     const [editMode, setEditMode] = useState(false); // State for page numbers
+
+    // const updateState = useCallback(setValueMap, []);
 
     const generatePageNumbers = (filtered) => {
         const pages = [];
@@ -313,10 +338,7 @@ const ModifyTimetableContainer = ({
         setOverlapsDisplay(overlaps);
         const resolvedMap = updateOverlapFields(overlaps);
         // console.log('resolvedmap: ', resolvedMap);
-        if (overlaps.length > 1) {
-            // console.log('setting');
-            setValueMap(resolvedMap);
-        }
+        setValueMap(resolvedMap);
 
         if (!deepEqualMaps(history[historyIndex], valueMap)) {
             const newHistory = history.slice(0, historyIndex + 1); // Remove future history if undo/redo happened
@@ -373,21 +395,28 @@ const ModifyTimetableContainer = ({
                     const currentCell = cells[i];
                     const nextCell = cells[i + 1];
 
-                    if (currentCell.end > nextCell.start) {
-                        // console.log('overlap1 : ', currentCell);
-                        // console.log('overlap2 : ', nextCell);
+                    if (currentCell.additional && nextCell.additional) {
+                        // console.log('TRUE ETO: ');
+                        // console.log('current cell: ', currentCell);
+                        // console.log('next cell', nextCell);
+                        //skips
+                    } else {
+                        if (currentCell.end > nextCell.start) {
+                            // console.log('overlap1 : ', currentCell);
+                            // console.log('overlap2 : ', nextCell);
 
-                        currentCell.overlap = true;
-                        nextCell.overlap = true;
+                            currentCell.overlap = true;
+                            nextCell.overlap = true;
 
-                        const currentKey = [tableKey, currentCell.cellKey, currentCell.type];
-                        const nextKey = [tableKey, nextCell.cellKey, nextCell.type];
+                            const currentKey = [tableKey, currentCell.cellKey, currentCell.type];
+                            const nextKey = [tableKey, nextCell.cellKey, nextCell.type];
 
-                        if (!overlappingCells.some(([t, c]) => t === tableKey && c === currentCell.cellKey)) {
-                            overlappingCells.push(currentKey);
-                        }
-                        if (!overlappingCells.some(([t, c]) => t === tableKey && c === nextCell.cellKey)) {
-                            overlappingCells.push(nextKey);
+                            if (!overlappingCells.some(([t, c]) => t === tableKey && c === currentCell.cellKey)) {
+                                overlappingCells.push(currentKey);
+                            }
+                            if (!overlappingCells.some(([t, c]) => t === tableKey && c === nextCell.cellKey)) {
+                                overlappingCells.push(nextKey);
+                            }
                         }
                     }
                 }
@@ -744,17 +773,14 @@ const ModifyTimetableContainer = ({
 
                     {/* EXPORT */}
                     <button
-                        className="btn btn-primary btn-outline flex-row items-center justify-center cursor-pointer"
+                        className='btn btn-primary btn-outline flex-row items-center justify-center cursor-pointer'
                         onClick={() => setShowExport(true)}
                     >
                         EXPORT
                     </button>
 
                     {showExport && valueMap.size > 0 && (
-                        <ExportSchedules 
-                            schedule={valueMap}
-                            close={() => setShowExport(false)}
-                        />
+                        <ExportSchedules schedule={valueMap} close={() => setShowExport(false)} />
                     )}
                     {/* EXPORT */}
 
@@ -839,7 +865,6 @@ const ModifyTimetableContainer = ({
                                 break; // Exit the loop when .type is found
                             }
                         }
-
                         return (
                             <div
                                 key={index}
@@ -863,7 +888,7 @@ const ModifyTimetableContainer = ({
                                             />
                                             <div className='ml-auto justify-end flex flex-col w-40 items-end'>
                                                 {deployLoading && deployRemaining > 0 && (
-                                                // {1 > 0 && (
+                                                    // {1 > 0 && (
                                                     <span className='flex items-center gap-2 text-green-500'>
                                                         <IoIosAdd />
                                                         <span>{deployRemaining} to overwrite</span>
@@ -871,7 +896,7 @@ const ModifyTimetableContainer = ({
                                                 )}
 
                                                 {deletingLoading && deleteRemaining > 0 && (
-                                                // {1 > 0 && (
+                                                    // {1 > 0 && (
                                                     <span className='flex items-center gap-2 text-red-500'>
                                                         <FiMinus />
                                                         <span>{deleteRemaining} to delete</span>
@@ -927,6 +952,10 @@ const ModifyTimetableContainer = ({
                                                 loading={loading}
                                                 addClicked={addClicked}
                                                 setAddClicked={setAddClicked}
+                                                containerType={containerType}
+                                                teachers={teachers}
+                                                subjects={subjects}
+                                                sections={sections}
                                             />
                                         </div>
                                     </div>
@@ -1012,7 +1041,7 @@ const ModifyTimetableContainer = ({
                                 onClick={async () => {
                                     await handleDeleteAllFirebaseTimetables();
                                     await deploy();
-                                    
+
                                     document.getElementById('confirm_schedule_save_modal').close();
                                     handleReset();
                                 }}
@@ -1027,7 +1056,11 @@ const ModifyTimetableContainer = ({
                                     'Yes, Deploy timetables'
                                 )}
                             </button>
-                            <button className='btn btn-error' disabled={deletingLoading || deployLoading} onClick={() => document.getElementById('deploy_confirmation').close()}>
+                            <button
+                                className='btn btn-error'
+                                disabled={deletingLoading || deployLoading}
+                                onClick={() => document.getElementById('deploy_confirmation').close()}
+                            >
                                 Cancel
                             </button>
                         </div>
