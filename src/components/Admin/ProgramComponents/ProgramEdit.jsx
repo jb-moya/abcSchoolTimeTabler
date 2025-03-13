@@ -1258,7 +1258,7 @@ const ProgramEdit = ({
                                             }))
                                         }
                                     />
-                                    Update Additional Schedules
+                                    Update Class Modality
                                 </label>
                             </div>
                         </div>
