@@ -83,7 +83,9 @@ const TimetableListContainer = ({}) => {
 
     const handleEditClick = (scheduleId) => {
         const newTimetable = convertStringDataToMap(schedules[scheduleId].data);
-        // console.log('newTimetable: ', newTimetable);
+        console.log('newTimetable: ', newTimetable);
+        console.log('scheduleID: ', scheduleId);
+        console.log('schedules[scheduleId].name: ', schedules[scheduleId].name);
         setEditSchedId(scheduleId);
         setEditSchedName(schedules[scheduleId].name);
         setTimetable(newTimetable);
@@ -95,7 +97,6 @@ const TimetableListContainer = ({}) => {
         setEditSchedId(null);
         setEditSchedName('');
         setTimetable(new Map());
-
         resetURLState();
     };
 
@@ -122,6 +123,9 @@ const TimetableListContainer = ({}) => {
         }, 200),
         []
     );
+    useEffect(() => {
+        console.log('editSchedName', editSchedName);
+    }, [editSchedName]);
 
     useEffect(() => {
         debouncedSearch(searchSchedValue, schedules);

@@ -6,7 +6,7 @@ export function convertStringDataToMap(stringData) {
     parsedData.forEach((value, index) => {
         const containerName = value[0];
         const tableValue = value[1];
-
+        // const modality = value[2];
         let type = '';
         for (const row of tableValue) {
             if (row[0]) {
@@ -69,6 +69,7 @@ export function convertStringDataToMap(stringData) {
                         type: type,
                         additional: duplicate ? true : false,
                         containerName: containerName,
+                        // modality: modality,
                         ...(type === 't' && { section: section }),
                         ...(type === 's' && { teacher: teacher }),
                     });
@@ -99,6 +100,7 @@ export function convertStringDataToMap(stringData) {
                     day: day,
                     additional: duplicate ? true : false,
                     containerName: containerName,
+                    // modality: modality,
                     ...(type === 't' && { section: section }),
                     ...(type === 's' && { teacher: teacher }),
                 });

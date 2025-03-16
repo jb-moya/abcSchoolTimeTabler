@@ -20,7 +20,6 @@ function processRows(data, n) {
     function generateKey(row) {
         return JSON.stringify(row.slice(0, -1));
     }
-
     // Count occurrences of each unique key
     const keyCounts = {};
     data.forEach((row) => {
@@ -63,6 +62,7 @@ const ModifyTimetableContainer = ({
     subjects,
     sections,
 }) => {
+    console.log('timetableName sa loob: ', timetableName);
     const dispatch = useDispatch();
     const inputNameRef = useRef();
 
@@ -89,6 +89,10 @@ const ModifyTimetableContainer = ({
             dispatch(fetchScheds());
         }
     }, [schedStatus, dispatch]);
+
+    useEffect(() => {
+        setScheduleVerName(timetableName);
+    }, [timetableName]);
 
     // useEffect(() => {
     //     if (teacherStatus === 'idle') {
@@ -137,9 +141,19 @@ const ModifyTimetableContainer = ({
         array.forEach((row) => {
             let tableArray = [];
             let result = processRows(row[1], n);
+            // let section_id = null;
+            // section_id = row[1][0][3];
             tableArray.push(row[0]);
             tableArray.push(result);
-            tableArray.push(row[2]);
+            // tableArray.push(row[2]);
+
+            // let modality = [];
+
+            // if (row[2] === 's') {
+            //     modality = sections[section_id].modality;
+            // }
+            // console.log('modality: ', modality);
+            // tableArray.push(modality);
             resultarray.push(tableArray);
         });
 
@@ -257,8 +271,18 @@ const ModifyTimetableContainer = ({
         array.forEach((row) => {
             let tableArray = [];
             let result = processRows(row[1], n);
+            // let section_id = null;
+            // section_id = row[1][0][3];
+            console.log('ROW LOG: ', row);
             tableArray.push(row[0]);
             tableArray.push(result);
+            // let modality = [];
+
+            // if (row[2] === 's') {
+            //     modality = sections[section_id].modality;
+            // }
+            // console.log('modality: ', modality);
+            // tableArray.push(modality);
             resultarray.push(tableArray);
         });
 
@@ -532,22 +556,61 @@ const ModifyTimetableContainer = ({
 
     // ===============================================================================================================
 
-    const Column = () => {
+    const Column = ({ section_id, type }) => {
+        console.log('section_id: ', section_id);
+        console.log('type: ', type);
+        let modality_Array = [];
+        if (type === 's') {
+            modality_Array = sections[section_id]?.modality;
+            console.log('modality array: ', modality_Array);
+            console.log('sections: ', sections[section_id]);
+        }
+
+        // const Column = () => {
+        // console.log('section_id: ', section_id);
+        // console.log('type: ', type);
+        // let modality_Array = [];
+        // if (type === 's') {
+        //     modality_Array = sections[section_id]?.modality;
+        //     console.log('modality array: ', modality_Array);
+        //     console.log('sections: ', sections[section_id]);
+        // }
+
         const days = ['Mon', 'Tue', 'Wed', 'Thur', 'Fri'];
         return (
-            <div className='flex'>
-                <div className='min-w-[105px] max-w-[105px] border border-base-content border-opacity-20 text-center font-bold'>
-                    Time
-                </div>
-                <div className='w-full flex border border-base-content border-opacity-20'>
-                    {days.map((day, index) => (
-                        <div
-                            key={`header-${index}`}
-                            className='border-r border-base-content border-opacity-20 flex-1 text-center font-bold'
-                        >
-                            {day}
+            <div>
+                {type === 's' && (
+                    <div className='flex pb-5'>
+                        <div className='min-w-[105px] max-w-[105px] border border-base-content border-opacity-20 text-center font-bold'></div>
+                        <div className='w-full flex border border-base-content border-opacity-20'>
+                            {modality_Array.map((modality, index) => (
+                                <div
+                                    key={`header-${index}`}
+                                    className={`border-r border-base-content border-opacity-20 flex-1 text-center font-bold 
+                        ${modality === 1 ? 'bg-green-500 ' : 'bg-red-500'}`}
+                                >
+                                    {modality === 1 ? 'ON SITE' : 'OFF SITE'}
+                                </div>
+                            ))}
                         </div>
-                    ))}
+                    </div>
+                )}
+
+                <div className='flex'>
+                    <div className='min-w-[105px] max-w-[105px] border border-base-content border-opacity-20 text-center font-bold'>
+                        Time
+                    </div>
+
+                    <div className='w-full flex border border-base-content border-opacity-20'>
+                        {days.map((day, index) => (
+                            <div
+                                key={`header-${index}`}
+                                className='border-r border-base-content border-opacity-20 flex-1 text-center font-bold'
+                            >
+                                {day}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         );
@@ -859,9 +922,13 @@ const ModifyTimetableContainer = ({
                 ) : (
                     Array.from(paginatedValueMap.entries()).map(([key, value], index) => {
                         let containerType = null;
+                        let section_id = null;
                         for (const [key, cell] of value.entries()) {
                             if (cell.type) {
                                 containerType = cell.type;
+                                if (containerType === 's') {
+                                    section_id = cell.sectionID;
+                                }
                                 break; // Exit the loop when .type is found
                             }
                         }
@@ -908,7 +975,8 @@ const ModifyTimetableContainer = ({
                                     <div className='card-body'>
                                         {/* Dynamically render section name */}
                                         <h2 className='card-title capitalize'>{key}</h2>
-                                        <Column />
+                                        <Column section_id={section_id} type={containerType} />
+                                        {/* <Column /> */}
                                         <div
                                             className='flex flex-row'
                                             style={{

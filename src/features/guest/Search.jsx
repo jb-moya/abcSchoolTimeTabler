@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { IoSearch } from 'react-icons/io5';
 import { MdHistory, MdOutlineCancel } from 'react-icons/md';
 import debounce from 'debounce';
@@ -6,8 +7,9 @@ import clsx from 'clsx';
 import useSearchTimetable from '../../hooks/useSearchTimetable';
 import { convertStringDataToMap } from '../../components/Admin/ModifyTimetable/utils';
 import { convertToTime } from '@utils/convertToTime';
-
+// import { fetchSections } from '@features/sectionSlice';
 const Search = () => {
+    // const dispatch = useDispatch();
     const [query, setQuery] = useState('');
     const [suggestions, setSuggestions] = useState([]);
     const [searchHistory, setSearchHistory] = useState([]);
@@ -19,6 +21,7 @@ const Search = () => {
     const inputRef = useRef(null);
     const [valueMap, setValueMap] = useState(new Map());
     const { search, loading, error } = useSearchTimetable();
+    // const { sections, status: sectionStatus } = useSelector((state) => state.section);
 
     useEffect(() => {
         const storedHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
@@ -33,6 +36,12 @@ const Search = () => {
             // ...
         }
     }, [query, searchHistory]);
+
+    // useEffect(() => {
+    //     if (sectionStatus === 'idle') {
+    //         dispatch(fetchSections());
+    //     }
+    // }, [sectionStatus, dispatch]);
 
     // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh
     // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh
@@ -154,7 +163,7 @@ const Search = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
-
+    // console.log(sections[1]?.modality);
     return (
         <div className='w-full h-full flex flex-col items-center px-4 lg:px-12 mt-[50px] select-none space-y-8'>
             <div className='text-center w-full max-w-4xl space-y-2'>
@@ -298,7 +307,7 @@ const Search = () => {
                                 }
 
                                 if (!groupedByTime.has(timeSlot)) {
-                                    groupedByTime.set(timeSlot, { time: timeSlot, days: Array(5).fill(null) });
+                                    groupedByTime.set(timeSlot, { time: timeSlot, days: Array(5).fill([]) });
                                     // console.log('Group: ', groupedByTime);
                                 }
                                 groupedByTime.get(timeSlot).days[innerMap.day - 1] = [fieldName1, fieldName2];
@@ -323,7 +332,8 @@ const Search = () => {
                                             <tr key={time}>
                                                 <td>{time}</td>
                                                 {days.map((fields, index) => {
-                                                    // console.log('days: ', days);
+                                                    console.log('days: ', days);
+                                                    console.log('fields: ', fields);
                                                     return (
                                                         <td key={index}>
                                                             <div className='flex flex-col items-center'>
