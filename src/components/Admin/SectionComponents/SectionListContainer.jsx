@@ -12,7 +12,7 @@ import { fetchBuildings, editBuilding } from '@features/buildingSlice';
 import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
 import TimeSelector from '@utils/timeSelector';
 
-import { IoAdd, IoSearch } from 'react-icons/io5';
+import { IoAdd, IoEye, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
@@ -685,8 +685,8 @@ const SectionListContainer = ({
                                         </td>
 
                                         {/* Subject Details */}
-                                        <td className='w-full'>
-                                            <div className='flex flex-col gap-4 mt-4 overflow-y-auto h-96 max-h-96 px-4'>
+                                        <td className=''>
+                                            <div className='flex flex-col gap-4 mt-4 overflow-y-auto h-96 max-h-96 '>
                                                 {Array.isArray(section.subjects) && section.subjects.length > 0 ? (
                                                     section.subjects.map((subjectID, index) => (
                                                         <div key={index} className='mb-4'>
@@ -709,7 +709,7 @@ const SectionListContainer = ({
                                                 )}
 
                                                 {/* View Fixed Schedules Button */}
-                                                <div className='flex justify-center '>
+                                                {/* <div className='flex justify-center '>
                                                     <button
                                                         className='btn btn-primary'
                                                         onClick={() =>
@@ -722,7 +722,7 @@ const SectionListContainer = ({
                                                     >
                                                         View Fixed Schedules
                                                     </button>
-                                                </div>
+                                                </div> */}
 
                                                 {/* FixedScheduleMaker Component */}
                                                 <FixedScheduleMaker
@@ -809,7 +809,7 @@ const SectionListContainer = ({
 
                                         {editable && (
                                             <td className='w-28'>
-                                                <div className='flex'>
+                                                <div className='flex '>
                                                     <SectionEdit
                                                         section={section}
                                                         reduxField={['section', 'subjects', 'units']}
@@ -830,6 +830,23 @@ const SectionListContainer = ({
                                                             handleDelete(section.id);
                                                         }}
                                                     />
+                                                </div>
+
+                                                <div className='sticky top-0 z-10 flex justify-center sm:justify-start py-2'>
+                                                    <button
+                                                        className='btn btn-primary flex items-center gap-2 p-2 w-full sm:w-auto'
+                                                        onClick={() =>
+                                                            document
+                                                                .getElementById(
+                                                                    `assign_fixed_sched_modal_section(${section.id})-grade(${section.year})-view(1)`
+                                                                )
+                                                                .showModal()
+                                                        }
+                                                    >
+                                                        <IoEye className='w-5 h-5' />
+                                                        <span className='hidden sm:inline'>View</span>{' '}
+                                                        {/* Show text on larger screens */}
+                                                    </button>
                                                 </div>
                                             </td>
                                         )}

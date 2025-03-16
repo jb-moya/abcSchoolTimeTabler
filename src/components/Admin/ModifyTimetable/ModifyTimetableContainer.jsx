@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import DragDrop from './DragDrop';
 import { generateTimeSlots } from '../utils';
@@ -20,7 +20,6 @@ function processRows(data, n) {
     function generateKey(row) {
         return JSON.stringify(row.slice(0, -1));
     }
-
     // Count occurrences of each unique key
     const keyCounts = {};
     data.forEach((row) => {
@@ -55,12 +54,15 @@ const ModifyTimetableContainer = ({
     hashMap = new Map(),
     timetableName = '',
     timetableId = null,
-
     errorMessage,
     setErrorMessage,
     errorField,
     setErrorField,
+    teachers,
+    subjects,
+    sections,
 }) => {
+    console.log('timetableName sa loob: ', timetableName);
     const dispatch = useDispatch();
     const inputNameRef = useRef();
 
@@ -74,9 +76,13 @@ const ModifyTimetableContainer = ({
     // ================================================================================================================
 
     const { schedules, status: schedStatus } = useSelector((state) => state.schedule);
+    // const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
+    // const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
+    // const { sections, status: sectionStatus } = useSelector((state) => state.section);
 
     const [scheduleVerId, setScheduleVerId] = useState(timetableId);
     const [scheduleVerName, setScheduleVerName] = useState(timetableName);
+    console.log('rendering');
 
     useEffect(() => {
         if (schedStatus === 'idle') {
@@ -84,17 +90,39 @@ const ModifyTimetableContainer = ({
         }
     }, [schedStatus, dispatch]);
 
+    useEffect(() => {
+        setScheduleVerName(timetableName);
+    }, [timetableName]);
+
+    // useEffect(() => {
+    //     if (teacherStatus === 'idle') {
+    //         dispatch(fetchTeachers());
+    //     }
+    // }, [teacherStatus, dispatch]);
+
+    // useEffect(() => {
+    //     if (subjectStatus === 'idle') {
+    //         dispatch(fetchSubjects());
+    //     }
+    // }, [subjectStatus, dispatch]);
+
+    // useEffect(() => {
+    //     if (sectionStatus === 'idle') {
+    //         dispatch(fetchSections());
+    //     }
+    // }, [sectionStatus, dispatch]);
+
     const handleReset = () => {
         setScheduleVerName(timetableName ? timetableName : '');
         setErrorMessage('');
         setErrorField('');
     };
 
-// ================================================================================================================
+    // ================================================================================================================
 
     const [showExport, setShowExport] = useState(false);
 
-// ================================================================================================================
+    // ================================================================================================================
 
     const [selectedModeValue, setSelectedModeValue] = useState('5m');
     const [valueMap, setValueMap] = useState(hashMap);
@@ -113,15 +141,24 @@ const ModifyTimetableContainer = ({
         array.forEach((row) => {
             let tableArray = [];
             let result = processRows(row[1], n);
+            // let section_id = null;
+            // section_id = row[1][0][3];
             tableArray.push(row[0]);
             tableArray.push(result);
             tableArray.push(row[2]);
+
+            // let modality = [];
+
+            // if (row[2] === 's') {
+            //     modality = sections[section_id].modality;
+            // }
+            // console.log('modality: ', modality);
+            // tableArray.push(modality);
             resultarray.push(tableArray);
         });
 
         // console.log('array: ', array.slice(0, 3));
         console.log('resultarray: ', resultarray.slice(0, 3));
-
 
         handleDeployTimetables(resultarray);
     };
@@ -149,6 +186,8 @@ const ModifyTimetableContainer = ({
     const totalPages = Math.ceil(valueMap?.size / itemsPerPage);
     const [pageNumbers, setPageNumbers] = useState([]); // State for page numbers
     const [editMode, setEditMode] = useState(false); // State for page numbers
+
+    // const updateState = useCallback(setValueMap, []);
 
     const generatePageNumbers = (filtered) => {
         const pages = [];
@@ -232,8 +271,19 @@ const ModifyTimetableContainer = ({
         array.forEach((row) => {
             let tableArray = [];
             let result = processRows(row[1], n);
+            // let section_id = null;
+            // section_id = row[1][0][3];
+            console.log('ROW LOG: ', row);
             tableArray.push(row[0]);
+            tableArray.push(row[2]);
             tableArray.push(result);
+            // let modality = [];
+
+            // if (row[2] === 's') {
+            //     modality = sections[section_id].modality;
+            // }
+            // console.log('modality: ', modality);
+            // tableArray.push(modality);
             resultarray.push(tableArray);
         });
 
@@ -313,10 +363,7 @@ const ModifyTimetableContainer = ({
         setOverlapsDisplay(overlaps);
         const resolvedMap = updateOverlapFields(overlaps);
         // console.log('resolvedmap: ', resolvedMap);
-        if (overlaps.length > 1) {
-            // console.log('setting');
-            setValueMap(resolvedMap);
-        }
+        setValueMap(resolvedMap);
 
         if (!deepEqualMaps(history[historyIndex], valueMap)) {
             const newHistory = history.slice(0, historyIndex + 1); // Remove future history if undo/redo happened
@@ -373,21 +420,28 @@ const ModifyTimetableContainer = ({
                     const currentCell = cells[i];
                     const nextCell = cells[i + 1];
 
-                    if (currentCell.end > nextCell.start) {
-                        // console.log('overlap1 : ', currentCell);
-                        // console.log('overlap2 : ', nextCell);
+                    if (currentCell.additional && nextCell.additional) {
+                        // console.log('TRUE ETO: ');
+                        // console.log('current cell: ', currentCell);
+                        // console.log('next cell', nextCell);
+                        //skips
+                    } else {
+                        if (currentCell.end > nextCell.start) {
+                            // console.log('overlap1 : ', currentCell);
+                            // console.log('overlap2 : ', nextCell);
 
-                        currentCell.overlap = true;
-                        nextCell.overlap = true;
+                            currentCell.overlap = true;
+                            nextCell.overlap = true;
 
-                        const currentKey = [tableKey, currentCell.cellKey, currentCell.type];
-                        const nextKey = [tableKey, nextCell.cellKey, nextCell.type];
+                            const currentKey = [tableKey, currentCell.cellKey, currentCell.type];
+                            const nextKey = [tableKey, nextCell.cellKey, nextCell.type];
 
-                        if (!overlappingCells.some(([t, c]) => t === tableKey && c === currentCell.cellKey)) {
-                            overlappingCells.push(currentKey);
-                        }
-                        if (!overlappingCells.some(([t, c]) => t === tableKey && c === nextCell.cellKey)) {
-                            overlappingCells.push(nextKey);
+                            if (!overlappingCells.some(([t, c]) => t === tableKey && c === currentCell.cellKey)) {
+                                overlappingCells.push(currentKey);
+                            }
+                            if (!overlappingCells.some(([t, c]) => t === tableKey && c === nextCell.cellKey)) {
+                                overlappingCells.push(nextKey);
+                            }
                         }
                     }
                 }
@@ -503,22 +557,61 @@ const ModifyTimetableContainer = ({
 
     // ===============================================================================================================
 
-    const Column = () => {
+    const Column = ({ section_id, type }) => {
+        console.log('section_id: ', section_id);
+        console.log('type: ', type);
+        let modality_Array = [];
+        if (type === 's') {
+            modality_Array = sections[section_id]?.modality;
+            console.log('modality array: ', modality_Array);
+            console.log('sections: ', sections[section_id]);
+        }
+
+        // const Column = () => {
+        // console.log('section_id: ', section_id);
+        // console.log('type: ', type);
+        // let modality_Array = [];
+        // if (type === 's') {
+        //     modality_Array = sections[section_id]?.modality;
+        //     console.log('modality array: ', modality_Array);
+        //     console.log('sections: ', sections[section_id]);
+        // }
+
         const days = ['Mon', 'Tue', 'Wed', 'Thur', 'Fri'];
         return (
-            <div className='flex'>
-                <div className='min-w-[105px] max-w-[105px] border border-base-content border-opacity-20 text-center font-bold'>
-                    Time
-                </div>
-                <div className='w-full flex border border-base-content border-opacity-20'>
-                    {days.map((day, index) => (
-                        <div
-                            key={`header-${index}`}
-                            className='border-r border-base-content border-opacity-20 flex-1 text-center font-bold'
-                        >
-                            {day}
+            <div>
+                {type === 's' && (
+                    <div className='flex pb-5'>
+                        <div className='min-w-[105px] max-w-[105px] border border-base-content border-opacity-20 text-center font-bold'></div>
+                        <div className='w-full flex border border-base-content border-opacity-20'>
+                            {modality_Array.map((modality, index) => (
+                                <div
+                                    key={`header-${index}`}
+                                    className={`border-r border-base-content border-opacity-20 flex-1 text-center font-bold 
+                        ${modality === 1 ? 'bg-green-500 ' : 'bg-red-500'}`}
+                                >
+                                    {modality === 1 ? 'ON SITE' : 'OFF SITE'}
+                                </div>
+                            ))}
                         </div>
-                    ))}
+                    </div>
+                )}
+
+                <div className='flex'>
+                    <div className='min-w-[105px] max-w-[105px] border border-base-content border-opacity-20 text-center font-bold'>
+                        Time
+                    </div>
+
+                    <div className='w-full flex border border-base-content border-opacity-20'>
+                        {days.map((day, index) => (
+                            <div
+                                key={`header-${index}`}
+                                className='border-r border-base-content border-opacity-20 flex-1 text-center font-bold'
+                            >
+                                {day}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         );
@@ -744,17 +837,14 @@ const ModifyTimetableContainer = ({
 
                     {/* EXPORT */}
                     <button
-                        className="btn btn-primary btn-outline flex-row items-center justify-center cursor-pointer"
+                        className='btn btn-primary btn-outline flex-row items-center justify-center cursor-pointer'
                         onClick={() => setShowExport(true)}
                     >
                         EXPORT
                     </button>
 
                     {showExport && valueMap.size > 0 && (
-                        <ExportSchedules 
-                            schedule={valueMap}
-                            close={() => setShowExport(false)}
-                        />
+                        <ExportSchedules schedule={valueMap} close={() => setShowExport(false)} />
                     )}
                     {/* EXPORT */}
 
@@ -833,13 +923,16 @@ const ModifyTimetableContainer = ({
                 ) : (
                     Array.from(paginatedValueMap.entries()).map(([key, value], index) => {
                         let containerType = null;
+                        let section_id = null;
                         for (const [key, cell] of value.entries()) {
                             if (cell.type) {
                                 containerType = cell.type;
+                                if (containerType === 's') {
+                                    section_id = cell.sectionID;
+                                }
                                 break; // Exit the loop when .type is found
                             }
                         }
-
                         return (
                             <div
                                 key={index}
@@ -863,7 +956,7 @@ const ModifyTimetableContainer = ({
                                             />
                                             <div className='ml-auto justify-end flex flex-col w-40 items-end'>
                                                 {deployLoading && deployRemaining > 0 && (
-                                                // {1 > 0 && (
+                                                    // {1 > 0 && (
                                                     <span className='flex items-center gap-2 text-green-500'>
                                                         <IoIosAdd />
                                                         <span>{deployRemaining} to overwrite</span>
@@ -871,7 +964,7 @@ const ModifyTimetableContainer = ({
                                                 )}
 
                                                 {deletingLoading && deleteRemaining > 0 && (
-                                                // {1 > 0 && (
+                                                    // {1 > 0 && (
                                                     <span className='flex items-center gap-2 text-red-500'>
                                                         <FiMinus />
                                                         <span>{deleteRemaining} to delete</span>
@@ -883,7 +976,8 @@ const ModifyTimetableContainer = ({
                                     <div className='card-body'>
                                         {/* Dynamically render section name */}
                                         <h2 className='card-title capitalize'>{key}</h2>
-                                        <Column />
+                                        <Column section_id={section_id} type={containerType} />
+                                        {/* <Column /> */}
                                         <div
                                             className='flex flex-row'
                                             style={{
@@ -927,6 +1021,10 @@ const ModifyTimetableContainer = ({
                                                 loading={loading}
                                                 addClicked={addClicked}
                                                 setAddClicked={setAddClicked}
+                                                containerType={containerType}
+                                                teachers={teachers}
+                                                subjects={subjects}
+                                                sections={sections}
                                             />
                                         </div>
                                     </div>
@@ -1012,7 +1110,7 @@ const ModifyTimetableContainer = ({
                                 onClick={async () => {
                                     await handleDeleteAllFirebaseTimetables();
                                     await deploy();
-                                    
+
                                     document.getElementById('confirm_schedule_save_modal').close();
                                     handleReset();
                                 }}
@@ -1027,7 +1125,11 @@ const ModifyTimetableContainer = ({
                                     'Yes, Deploy timetables'
                                 )}
                             </button>
-                            <button className='btn btn-error' disabled={deletingLoading || deployLoading} onClick={() => document.getElementById('deploy_confirmation').close()}>
+                            <button
+                                className='btn btn-error'
+                                disabled={deletingLoading || deployLoading}
+                                onClick={() => document.getElementById('deploy_confirmation').close()}
+                            >
                                 Cancel
                             </button>
                         </div>
