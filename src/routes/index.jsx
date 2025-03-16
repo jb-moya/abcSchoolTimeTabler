@@ -8,7 +8,7 @@ const Page404 = lazy(() => import('../pages/404'));
 const Blank = lazy(() => import('../pages/protected/Blank'));
 const Leads = lazy(() => import('../pages/protected/Leads'));
 const Integration = lazy(() => import('../pages/protected/Integration'));
-const Calendar = lazy(() => import('../pages/protected/Calendar'));
+//const Calendar = lazy(() => import('../pages/protected/Calendar'));
 const Team = lazy(() => import('../pages/protected/Team'));
 const Transactions = lazy(() => import('../pages/protected/Transactions'));
 const Bills = lazy(() => import('../pages/protected/Bills'));
@@ -83,10 +83,10 @@ const routes = [
         path: '/settings-team',
         component: Team,
     },
-    {
-        path: '/calendar',
-        component: Calendar,
-    },
+    // {
+    //     path: '/calendar',
+    //     component: Calendar,
+    // },
     {
         path: '/transactions',
         component: Transactions,

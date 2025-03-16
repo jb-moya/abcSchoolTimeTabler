@@ -33,11 +33,11 @@ function Calendar(){
 
     return(
         <>
-           <CalendarView 
+           {/* <CalendarView 
                 calendarEvents={events}
                 addNewEvent={addNewEvent}
                 openDayDetail={openDayDetail}
-           />
+           /> */}
         </>
     )
 }
