@@ -797,7 +797,7 @@ function Timetable() {
         const sectionConfiguration = new Int32Array([...sectionConfigurationArray]);
         const sectionSubjectConfiguration = new Int32Array([...sectionSubjectConfigurationArray]);
 
-        const maxIterations = 20000;
+        const maxIterations = 40000;
         const beesPopulations = 4;
         const beesEmployed = 2;
         const beesOnlooker = 2;
