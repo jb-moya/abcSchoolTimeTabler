@@ -275,8 +275,9 @@ const ModifyTimetableContainer = ({
             // section_id = row[1][0][3];
             console.log('ROW LOG: ', row);
             tableArray.push(row[0]);
-            tableArray.push(row[2]);
             tableArray.push(result);
+            tableArray.push(row[2]);
+
             // let modality = [];
 
             // if (row[2] === 's') {
