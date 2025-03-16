@@ -4,6 +4,7 @@
 #include "scheduledDay.h"
 
 struct SchoolClass {
+	SubjectConfigurationID subject_configuration_id;
 	SubjectID subject_id;
 	TeacherID teacher_id;
 	TimeDuration duration;

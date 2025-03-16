@@ -232,7 +232,7 @@ const TeacherRankEdit = ({
 	};
 
 	return (
-        <div className='flex items-center justify-center'>
+        <div className=''>
             {/* Trigger Button */}
             <label htmlFor={`rankEdit_modal_${rank.id}`} className='btn btn-xs btn-ghost text-blue-500'>
                 <RiEdit2Fill size={20} />

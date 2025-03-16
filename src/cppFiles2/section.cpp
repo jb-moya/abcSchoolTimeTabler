@@ -40,7 +40,7 @@ SchoolClass Section::getSchoolClass(Timeslot timeslot, ScheduledDay day) const {
 }
 
 void Section::assignBreak(Timeslot break_slot, TimeDuration break_duration, Timeslot fixed_timeslot, ScheduledDay day) {
-	addClass(break_slot, ScheduledDay::EVERYDAY, SchoolClass{-1, -1, break_duration, true, fixed_timeslot, day});
+	addClass(break_slot, ScheduledDay::EVERYDAY, SchoolClass{-1, -1, -1, break_duration, true, fixed_timeslot, day});
 	timeslot_manager.addBreakSlot(break_slot);
 }
 
