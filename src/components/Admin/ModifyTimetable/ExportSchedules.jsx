@@ -159,6 +159,7 @@ const ExportSchedules = ({ schedule, close }) => {
                     value.sectionID,
                     value.subject,
                     value.subjectID,
+                    value.additional,
                 ];
 
                 classBlocks.push(classBlock);
@@ -210,6 +211,7 @@ const ExportSchedules = ({ schedule, close }) => {
                     const sectionName = classBlocks[i][4];
                     const sectionId = classBlocks[i][5];
                     const subjectName = classBlocks[i][6];
+                    const isAdditional = classBlocks[i][8];
 
                     let roomName;
                     if (sectionId === null) {
@@ -228,6 +230,7 @@ const ExportSchedules = ({ schedule, close }) => {
                         section: sectionName,
                         subject: subjectName,
                         room: roomName,
+                        additional: isAdditional,
                     };
 
                     normalizedTimeslots.set(classBlocks[i][0], currentValue);
@@ -261,15 +264,20 @@ const ExportSchedules = ({ schedule, close }) => {
 
                     totalMinutes += data.minutes;
 
-                    worksheet.getCell(`${column}${row}`).value = data.section === null ? '' : data.section;
+                    if (!data.additional)
+                        worksheet.getCell(`${column}${row}`).value = data.section === null ? '' : data.section.toUpperCase();
+
                     worksheet.getCell(`${column}${row + 1}`).value = data.subject === null ? '' : data.subject;
-                    worksheet.getCell(`${column}${row + 2}`).value = data.room;
+
+                    if (!data.additional) worksheet.getCell(`${column}${row + 2}`).value = data.room;
 
                     const bgColor = colors[sects.get(data.section)];
 
                     worksheet.getCell(`${column}${row}`).alignment = { vertical: 'middle', horizontal: 'center' };
                     worksheet.getCell(`${column}${row + 1}`).alignment = { vertical: 'middle', horizontal: 'center' };
                     worksheet.getCell(`${column}${row + 2}`).alignment = { vertical: 'middle', horizontal: 'center' };
+
+                    worksheet.getCell(`${column}${row}`).font = { bold: true };
 
                     worksheet.getCell(`${column}${row}`).fill = {
                         type: 'pattern',
@@ -376,8 +384,23 @@ const ExportSchedules = ({ schedule, close }) => {
             let column = 'C';
             for (let i = 0; i < numOfSchoolDays; i++) {
                 worksheet.getCell(`${column}4`).value = days[i];
+                worksheet.getCell(`${column}5`).value = section.modality[i] === 1 ? 'ONSITE' : 'OFFSITE';
+
                 worksheet.getCell(`${column}4`).alignment = { horizontal: 'center', vertical: 'middle' };
+                worksheet.getCell(`${column}5`).alignment = { horizontal: 'center', vertical: 'middle' };
+
                 worksheet.getCell(`${column}4`).font = { bold: true };
+                worksheet.getCell(`${column}5`).font = {
+                    color: { argb: 'FFFFFFFF' },
+                    bold: true,
+                };
+
+                worksheet.getCell(`${column}5`).fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: section.modality[i] === 1 ? 'FF006400' : 'FF8B0000' },
+                };
+
                 column = String.fromCharCode(column.charCodeAt(0) + 1);
             }
 
@@ -405,6 +428,7 @@ const ExportSchedules = ({ schedule, close }) => {
                     value.teacherID,
                     value.subject,
                     value.subjectID,
+                    value.additional,
                 ];
 
                 classBlocks.push(classBlock);
@@ -456,6 +480,7 @@ const ExportSchedules = ({ schedule, close }) => {
                     const teacherName = classBlocks[i][4];
                     // const teacherId = classBlocks[i][5];
                     const subjectName = classBlocks[i][6];
+                    const isAdditional = classBlocks[i][8];
 
                     const currentValue = normalizedTimeslots.get(classBlocks[i][0]);
 
@@ -463,6 +488,7 @@ const ExportSchedules = ({ schedule, close }) => {
                         minutes: (end - start) * 5,
                         subject: subjectName,
                         teacher: teacherName,
+                        additional: isAdditional,
                     };
 
                     normalizedTimeslots.set(classBlocks[i][0], currentValue);
@@ -477,8 +503,8 @@ const ExportSchedules = ({ schedule, close }) => {
             for (const [key, value] of normalizedTimeslots.entries()) {
                 const backgroundColor = row % 2 === 0 ? 'FFF0FFFF' : 'FFF0F0F5';
 
-                worksheet.mergeCells(`A${row}:A${row + 2}`);
-                worksheet.mergeCells(`B${row}:B${row + 2}`);
+                worksheet.mergeCells(`A${row}:A${row}`);
+                worksheet.mergeCells(`B${row}:B${row + 1}`);
 
                 worksheet.getCell(`A${row}`).value = key;
                 worksheet.getCell(`A${row}`).alignment = { vertical: 'middle', horizontal: 'center' };
@@ -491,20 +517,48 @@ const ExportSchedules = ({ schedule, close }) => {
 
                 let column = 'C';
                 let minutes = 0;
+
+                let mergedStartCell = null;
+                let mergedEndCell = null;
+
                 for (let i = 0; i < value.length; i++) {
                     const data = value[i];
 
                     minutes = data.minutes >= minutes ? data.minutes : minutes;
 
-                    worksheet.getCell(`${column}${row}`).value = '';
-                    worksheet.getCell(`${column}${row + 1}`).value = data.subject === null ? '' : data.subject;
-                    worksheet.getCell(`${column}${row + 2}`).value = data.teacher;
+                    let bgColor;
+                    let currentColumn = column;
 
-                    const bgColor = colors[sects.get(data.subject)];
+                    if (data.subject === null && data.teacher === null && !data.additional) {
+                        let startCell = `${column}${row}`;
+                        let endCell = `${endColumn}${row + 1}`;
+
+                        if (startCell !== mergedStartCell && endCell !== mergedEndCell) {
+                            worksheet.mergeCells(`${column}${row}:${endColumn}${row + 1}`);
+                            worksheet.getCell(`${column}${row}`).value = 'BREAK';
+
+                            mergedStartCell = startCell;
+                            mergedEndCell = endCell;
+                        }
+
+                        bgColor = 'FFFFFF';
+                    } else {
+                        if (data.additional) {
+                            worksheet.mergeCells(`${column}${row}:${column}${row + 1}`);
+
+                            worksheet.getCell(`${column}${row}`).value = data.subject === null ? '' : data.subject.toUpperCase();
+                        } else {
+                            worksheet.getCell(`${column}${row}`).value = data.subject === null ? '' : data.subject.toUpperCase();
+                            worksheet.getCell(`${column}${row + 1}`).value = data.teacher;
+                        }
+
+                        bgColor = colors[sects.get(data.subject)];
+                    }
+
+                    worksheet.getCell(`${column}${row}`).font = { bold: true };
 
                     worksheet.getCell(`${column}${row}`).alignment = { vertical: 'middle', horizontal: 'center' };
                     worksheet.getCell(`${column}${row + 1}`).alignment = { vertical: 'middle', horizontal: 'center' };
-                    worksheet.getCell(`${column}${row + 2}`).alignment = { vertical: 'middle', horizontal: 'center' };
 
                     worksheet.getCell(`${column}${row}`).fill = {
                         type: 'pattern',
@@ -512,11 +566,6 @@ const ExportSchedules = ({ schedule, close }) => {
                         fgColor: { argb: bgColor },
                     };
                     worksheet.getCell(`${column}${row + 1}`).fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: bgColor },
-                    };
-                    worksheet.getCell(`${column}${row + 2}`).fill = {
                         type: 'pattern',
                         pattern: 'solid',
                         fgColor: { argb: bgColor },
@@ -530,7 +579,7 @@ const ExportSchedules = ({ schedule, close }) => {
                 worksheet.getCell(`B${row}`).font = { bold: true };
 
                 // Move to the next set of rows
-                row += 3;
+                row += 2;
             }
 
             const startCol = 'B';
