@@ -9,7 +9,7 @@ import { addSubject, fetchSubjects } from '@features/subjectSlice';
 import { addSection, fetchSections } from '@features/sectionSlice';
 import { addTeacher, fetchTeachers } from '@features/teacherSlice';
 import { addProgram, fetchPrograms } from '@features/programSlice';
-import { addDepartment, fetchDepartments } from '../../features/departmentSlice';
+import { addDepartment, fetchDepartments } from '@features/departmentSlice';
 import { addBuilding, fetchBuildings } from '@features/buildingSlice';
 
 import { addRank, fetchRanks } from '@features/rankSlice';
@@ -1193,6 +1193,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                                 endTime: endTime7Idx,
                                 fixedDays: fixedDays7,
                                 fixedPositions: fixedPositions7,
+                                modality: new Array(Number(numOfSchoolDays)).fill(1),
                                 additionalScheds: [],
                             },
                             8: {
@@ -1202,6 +1203,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                                 endTime: endTime8Idx,
                                 fixedDays: fixedDays8,
                                 fixedPositions: fixedPositions8,
+                                modality: new Array(Number(numOfSchoolDays)).fill(1),
                                 additionalScheds: [],
                             },
                             9: {
@@ -1211,6 +1213,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                                 endTime: endTime9Idx,
                                 fixedDays: fixedDays9,
                                 fixedPositions: fixedPositions9,
+                                modality: new Array(Number(numOfSchoolDays)).fill(1),
                                 additionalScheds: [],
                             },
                             10: {
@@ -1220,6 +1223,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                                 endTime: endTime10Idx,
                                 fixedDays: fixedDays10,
                                 fixedPositions: fixedPositions10,
+                                modality: new Array(Number(numOfSchoolDays)).fill(1),
                                 additionalScheds: [],
                             },
                         });
@@ -1265,6 +1269,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                 const isDuplicateSection = addedSections.find(
                     (s) => s['sectionname'].trim().toLowerCase() === section.sectionname.trim().toLowerCase()
                 );
+
                 if (isDuplicateSection) {
                     unaddedSections.push([1, section]);
                     return;
@@ -1373,6 +1378,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                         const sectionSubjects = program[year].subjects;
                         const sectionFixedDays = program[year].fixedDays;
                         const sectionFixedPositions = program[year].fixedPositions;
+                        const sectionModality = program[year].modality;
                         const sectionShift = program[year].shift;
                         const startTimeIdx = program[year].startTime;
                         const endTimeIdx = program[year].endTime;
@@ -1384,10 +1390,17 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                                 section.roomDetails.floorIdx === roomDetails.floorIdx &&
                                 section.roomDetails.roomIdx === roomDetails.roomIdx
                             ) {
-                                if (section.endTime > startTimeIdx && section.startTime < endTimeIdx) {
-                                    isOverlap = true;
-                                    return;
+
+                                const secMod = section.modality;
+                                for (let i = 0; i < secMod.length; i++) {
+                                    if (secMod[i] === 1) {
+                                        if (section.startTime <= startTimeIdx && section.endTime >= endTimeIdx) {
+                                            isOverlap = true;
+                                            return;
+                                        }
+                                    }
                                 }
+
                             }
                         });
 
@@ -1409,6 +1422,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                             startTime: startTimeIdx,
                             endTime: endTimeIdx,
                             roomDetails: roomDetails,
+                            modality: sectionModality,
                             additionalScheds: [],
                         });
                         assignedAdviser.push(advID);

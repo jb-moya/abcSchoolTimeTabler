@@ -1,13 +1,22 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { IoSearch } from 'react-icons/io5';
 import { MdHistory, MdOutlineCancel } from 'react-icons/md';
+import debounce from 'debounce';
+import clsx from 'clsx';
+import useSearchTimetable from '../../hooks/useSearchTimetable';
 
 const Search = () => {
     const [query, setQuery] = useState('');
-    const [suggestions, setSuggestions] = useState([]); // Start with empty suggestions
+    const [suggestions, setSuggestions] = useState([]);
     const [searchHistory, setSearchHistory] = useState([]);
+    const [results, setResults] = useState([]);
+    const [isSearchClicked, setIsSearchClicked] = useState(false);
+    const [isSuggestionsVisible, setIsSuggestionsVisible] = useState(false);
+    const [role, setRole] = useState('Sections');
     const dropdownRef = useRef(null);
     const inputRef = useRef(null);
+
+    const { search, loading, error } = useSearchTimetable();
 
     useEffect(() => {
         const storedHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
@@ -19,44 +28,115 @@ const Search = () => {
             const filteredSuggestions = searchHistory.filter((item) => item.toLowerCase().includes(query.toLowerCase()));
             setSuggestions(filteredSuggestions);
         } else {
-            setSuggestions([]); // Hide suggestions if query is empty
+            // ...
         }
     }, [query, searchHistory]);
 
-    const handleSearch = () => {
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
+    const exampleTimetable = [
+        ['t', 86, null, 9, 'REG-7-SEC-3', 4, 'English 7', '8-16', 1],
+        ['t', 86, null, 9, 'REG-7-SEC-3', 4, 'English 7', '8-16', 2],
+        ['t', 86, null, 9, 'REG-7-SEC-3', 4, 'English 7', '8-16', 3],
+        ['t', 86, null, 9, 'REG-7-SEC-3', 4, 'English 7', '8-16', 4],
+        ['t', 86, null, 9, 'REG-7-SEC-3', 4, 'English 7', '8-16', 5],
+        ['t', 86, null, 6, 'STAR-7', 4, 'English 7', '16-24', 1],
+        ['t', 86, null, 6, 'STAR-7', 4, 'English 7', '16-24', 2],
+        ['t', 86, null, 6, 'STAR-7', 4, 'English 7', '16-24', 3],
+        ['t', 86, null, 6, 'STAR-7', 4, 'English 7', '16-24', 4],
+        ['t', 86, null, 6, 'STAR-7', 4, 'English 7', '16-24', 5],
+        ['t', 86, null, 13, 'REG-7-SEC-7', 4, 'English 7', '24-32', 1],
+        ['t', 86, null, 13, 'REG-7-SEC-7', 4, 'English 7', '24-32', 2],
+        ['t', 86, null, 13, 'REG-7-SEC-7', 4, 'English 7', '24-32', 3],
+        ['t', 86, null, 13, 'REG-7-SEC-7', 4, 'English 7', '24-32', 4],
+        ['t', 86, null, 13, 'REG-7-SEC-7', 4, 'English 7', '24-32', 5],
+        ['t', 86, null, 15, 'REG-7-SEC-9', 4, 'English 7', '38-46', 1],
+        ['t', 86, null, 15, 'REG-7-SEC-9', 4, 'English 7', '38-46', 2],
+        ['t', 86, null, 15, 'REG-7-SEC-9', 4, 'English 7', '38-46', 3],
+        ['t', 86, null, 15, 'REG-7-SEC-9', 4, 'English 7', '38-46', 4],
+        ['t', 86, null, 15, 'REG-7-SEC-9', 4, 'English 7', '38-46', 5],
+        ['t', 86, null, 14, 'REG-7-SEC-8', 4, 'English 7', '46-54', 1],
+        ['t', 86, null, 14, 'REG-7-SEC-8', 4, 'English 7', '46-54', 2],
+        ['t', 86, null, 14, 'REG-7-SEC-8', 4, 'English 7', '46-54', 3],
+        ['t', 86, null, 14, 'REG-7-SEC-8', 4, 'English 7', '46-54', 4],
+        ['t', 86, null, 14, 'REG-7-SEC-8', 4, 'English 7', '46-54', 5],
+        ['t', 86, null, 12, 'REG-7-SEC-6', 4, 'English 7', '54-62', 1],
+        ['t', 86, null, 12, 'REG-7-SEC-6', 4, 'English 7', '54-62', 2],
+        ['t', 86, null, 12, 'REG-7-SEC-6', 4, 'English 7', '54-62', 3],
+        ['t', 86, null, 12, 'REG-7-SEC-6', 4, 'English 7', '54-62', 4],
+        ['t', 86, null, 12, 'REG-7-SEC-6', 4, 'English 7', '54-62', 5],
+        ['t', 86, null, 5, 'TECHVOC-7', 4, 'English 7', '62-70', 1],
+        ['t', 86, null, 5, 'TECHVOC-7', 4, 'English 7', '62-70', 2],
+        ['t', 86, null, 5, 'TECHVOC-7', 4, 'English 7', '62-70', 3],
+        ['t', 86, null, 5, 'TECHVOC-7', 4, 'English 7', '62-70', 4],
+        ['t', 86, null, 5, 'TECHVOC-7', 4, 'English 7', '62-70', 5],
+        ['t', 86, null, 2, 'STE-7-2', 4, 'English 7', '84-92', 1],
+        ['t', 86, null, 2, 'STE-7-2', 4, 'English 7', '84-92', 2],
+        ['t', 86, null, 2, 'STE-7-2', 4, 'English 7', '84-92', 3],
+        ['t', 86, null, 2, 'STE-7-2', 4, 'English 7', '84-92', 4],
+        ['t', 86, null, 2, 'STE-7-2', 4, 'English 7', '84-92', 5],
+    ];
+
+    useEffect(() => {
+        setIsSearchClicked(false);
+    }, [query]);
+
+    const handleSearch = async () => {
         if (!query.trim()) return;
+
+        setIsSearchClicked(true);
 
         const updatedHistory = [query, ...searchHistory.filter((item) => item !== query)];
         setSearchHistory(updatedHistory);
         localStorage.setItem('searchHistory', JSON.stringify(updatedHistory));
 
-        setQuery('');
-        setSuggestions([]); // Clear suggestions after search
+        const cleanedQuery = query.replace(/\s+/g, ' ').trim();
+
+        setResults(await search(cleanedQuery.split(' '), role == 'Sections' ? 's' : 't'));
+
+        setSuggestions([]);
+        setIsSuggestionsVisible(true);
+
+        inputRef.current.focus();
+        console.log('result', results);
     };
 
+    useEffect(() => {
+        console.log("potanginang results", results);
+    }, [results]);
+
     const handleDeleteSuggestion = (itemToDelete) => {
-        const updatedHistory = searchHistory.filter((item) => item !== itemToDelete);
-        setSearchHistory(updatedHistory);
-        localStorage.setItem('searchHistory', JSON.stringify(updatedHistory));
+        setSearchHistory((prevHistory) => prevHistory.filter((item) => item !== itemToDelete));
+        setSuggestions(searchHistory.filter((item) => item !== itemToDelete));
+        localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
     };
 
     const handleFocus = () => {
         if (searchHistory.length > 0) {
-            setSuggestions(searchHistory); // Show suggestions when input is focused
+            setSuggestions(searchHistory);
+            setIsSuggestionsVisible(true);
         }
     };
 
     const handleSuggestionClick = (suggestion) => {
+        console.log('🚀 ~ handleSuggestionClick ~ d:', suggestion);
+
         setQuery(suggestion);
-        inputRef.current.focus();
-        setSuggestions([]); // Close suggestions on suggestion click
+        setIsSuggestionsVisible(false);
     };
 
-    // Close suggestions on outside click
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target) && !inputRef.current.contains(event.target)) {
-                setSuggestions([]); // Close suggestions if clicking outside
+                console.log('JHAHAHHAHAAHAHH');
+                setIsSuggestionsVisible(false);
             }
         };
 
@@ -68,62 +148,126 @@ const Search = () => {
     }, []);
 
     return (
-        <div className='space-y-8 w-full h-full flex flex-col items-center justify-center px-4 lg:px-12 mt-[-100px] select-none'>
-            {/* Heading */}
-            <div className='text-center w-full max-w-9xl space-y-4'>
-                <h1 className='font-bold text-3xl lg:text-6xl'>How can we help?</h1>
-                <p className='font-light text-base lg:text-lg'>Easily Find and Access Your Personalized Schedule by Searching</p>
+        <div className='w-full h-full flex flex-col items-center px-4 lg:px-12 mt-[50px] select-none space-y-8'>
+            <div className='text-center w-full max-w-4xl space-y-2'>
+                <h1 className='font-bold text-2xl lg:text-5xl'>Timetable Search</h1>
+                <p className='font-light text-sm lg:text-base'>Easily Find and Access Your Schedule by Searching</p>
             </div>
 
-            {/* Search Bar */}
-            <div className='w-full max-w-4xl relative' ref={dropdownRef}>
-                <div className={`flex flex-col shadow-lg text-black ${suggestions.length > 0 ? 'rounded-t-3xl' : 'rounded-3xl'}`}>
-                    {/* Search Input */}
-                    <div className='flex items-center gap-2 w-full px-4 py-3 md:px-6 md:py-4 lg:px-8 lg:py-5'>
-                        <input
-                            ref={inputRef}
-                            type='text'
-                            className='grow text-sm md:text-base w-full bg-transparent outline-none placeholder-gray-400'
-                            placeholder='Search your schedules'
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') handleSearch();
-                            }}
-                            onFocus={handleFocus}
-                        />
-                        <IoSearch className='text-xl md:text-2xl text-gray-500 cursor-pointer' onClick={handleSearch} />
-                    </div>
+            <div
+                ref={dropdownRef}
+                className={clsx('rounded-3xl w-full max-w-3xl flex items-center shadow-md bg-white relative  px-4 py-2', {
+                    'rounded-b-none': isSuggestionsVisible && suggestions.length > 0,
+                })}
+            >
+                <select
+                    className='bg-transparent text-center outline-none  text-gray-700 font-medium text-sm lg:text-base cursor-pointer'
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                >
+                    <option value='Sections'>Sections</option>
+                    <option value='Teachers'>Teachers</option>
+                </select>
 
-                    {/* Suggestions */}
-                    {suggestions.length > 0 && (
-                        <div className='absolute left-0 top-full w-full rounded-b-3xl shadow-md z-10'>
-                            <ul className=''>
-                                {suggestions.slice(0, 5).map((suggestion, index) => (
-                                    <li
-                                        key={index}
-                                        className='flex items-center justify-between px-4 py-3  cursor-pointer rounded-3xl'
-                                        onClick={() => handleSuggestionClick(suggestion)}
+                <div className='h-6 w-px bg-gray-300 mx-4'></div>
+
+                <input
+                    ref={inputRef}
+                    type='text'
+                    className={
+                        'input input-sm grow text-sm lg:text-base bg-transparent outline-none text-black placeholder-gray-400 mr-4'
+                    }
+                    placeholder={`Search ${role.toLowerCase()} schedules`}
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            handleSearch();
+                        }
+                    }}
+                    onFocus={handleFocus}
+                    onBlur={() => console.log('onBlur')}
+                />
+
+                {suggestions.length > 0 && isSuggestionsVisible && (
+                    <div className='absolute left-0 top-full w-full rounded-b-3xl bg-white shadow-md z-10 border-t'>
+                        {results.length == 0 && isSearchClicked && (
+                            <p className='text-center text-gray-500 py-20 border border-b'>
+                                No results found for <b>{query}</b> in {role.toLowerCase()} timetables
+                            </p>
+                        )}
+
+                        <ul className=''>
+                            {results.map((result) => (
+                                <li
+                                    key={result.id}
+                                    className='group flex items-center justify-between px-4 py-2 hover:bg-gray-300 cursor-pointer last:rounded-b-3xl'
+                                    onClick={() => {
+                                        console.log('fff');
+                                        inputRef.current.blur();
+                                        setIsSuggestionsVisible(false);
+                                        handleSuggestionClick(result.id);
+                                    }}
+                                >
+                                    <div className='flex items-center gap-4'>
+                                        <span className='text-xs w-10 border text-accent border-accent text-opacity-75 border-opacity-75'>
+                                            result
+                                        </span>
+                                        <span className='text-sm md:text-base text-gray-700'>{result.n.join(' ')}</span>
+                                    </div>
+                                </li>
+                            ))}
+
+                            {suggestions.slice(0, 5).map((suggestion, index) => (
+                                <li
+                                    key={index}
+                                    className='group flex items-center justify-between px-4 py-2 hover:bg-gray-300 cursor-pointer last:rounded-b-3xl'
+                                    onClick={() => {
+                                        console.log('fff');
+                                        inputRef.current.blur();
+                                        setIsSuggestionsVisible(false);
+                                        handleSuggestionClick(suggestion);
+                                    }}
+                                >
+                                    <div className='flex items-center gap-4'>
+                                        <MdHistory className='text-xl text-gray-500 w-10' />
+                                        <span className='text-sm md:text-base text-gray-700'>{suggestion}</span>
+                                    </div>
+
+                                    <button
+                                        className='group/hover-icon hidden group-hover:block'
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            // setIsSuggestionsVisible(false);
+                                            handleDeleteSuggestion(suggestion);
+                                        }}
                                     >
-                                        <div className='flex items-center gap-4'>
-                                            <MdHistory className='text-xl text-gray-500' />
-                                            <span className='text-sm md:text-base text-gray-700'>{suggestion}</span>
-                                        </div>
-                                        <MdOutlineCancel
-                                            className='text-xl text-gray-500 cursor-pointer mx-4'
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleDeleteSuggestion(suggestion);
-                                            }}
-                                        />
-                                    </li>
-                                ))}
-                            </ul>
+                                        <MdOutlineCancel className='text-xl group-hover/hover-icon:scale-125 group-hover/hover-icon:text-red-400 text-gray-500 cursor-pointer mx-4' />
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
+                <button
+                    className='btn btn-sm flex items-center justify-center text-white bg-black rounded-full px-4 text-sm lg:text-base hover:bg-gray-800'
+                    onClick={handleSearch}
+                    disabled={loading || query.trim() === ''}
+                >
+                    {loading ? (
+                        <div className='animate-none md:animate-spin mr-2'>
+                            <IoSearch className='' />
                         </div>
+                    ) : (
+                        <IoSearch className='mr-2' />
                     )}
-                </div>
+
+                    {loading ? 'Searching...' : 'Search'}
+                </button>
             </div>
         </div>
+      
     );
 };
 

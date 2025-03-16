@@ -25,16 +25,21 @@ const AddProgramContainer = ({
     numOfSchoolDays,
     breakTimeDuration,
 }) => {
+
     const inputNameRef = useRef();
     const dispatch = useDispatch();
 
-    // ===============================================================================
+// ===============================================================================
 
     const subjects = useSelector((state) => state.subject.subjects);
 
     const programs = useSelector((state) => state.program.programs);
 
-    // ==============================================================================
+// ==============================================================================
+
+    const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+
+// ===============================================================================
 
     const [inputValue, setInputValue] = useState('');
 
@@ -74,10 +79,17 @@ const AddProgramContainer = ({
     });
 
     const [endTimes, setEndTimes] = useState({
-        7: afternoonStartTime,
-        8: afternoonStartTime,
-        9: afternoonStartTime,
-        10: afternoonStartTime,
+        7: morningStartTime,
+        8: morningStartTime,
+        9: morningStartTime,
+        10: morningStartTime,
+    });
+
+    const [classModality, setClassModality] = useState({
+        7: new Array(numOfSchoolDays).fill(1),
+        8: new Array(numOfSchoolDays).fill(1),
+        9: new Array(numOfSchoolDays).fill(1),
+        10: new Array(numOfSchoolDays).fill(1),
     });
 
     const [additionalScheds, setAdditionalScheds] = useState({
@@ -97,7 +109,7 @@ const AddProgramContainer = ({
 
     const isAddButtonDisabled = Object.values(validEndTimes).some((value) => !value);
 
-    // ==============================================================================
+// ==============================================================================
 
     // Input
     const handleInputChange = (e) => {
@@ -114,11 +126,25 @@ const AddProgramContainer = ({
             const startTimeIdx = getTimeSlotIndex(startTimes[grade]);
             const breakTimeCount = selectedSubjects[grade].length > 10 ? 2 : 1;
 
-            let totalDuration = breakTimeCount * breakTimeDuration;
+            let noOfClassBlocks = 0;
+            const classDurations = [];
 
             selectedSubjects[grade].forEach((subId) => {
-                totalDuration += subjects[subId].classDuration;
+                const duration = subjects[subId].classDuration;
+                classDurations.push(duration);
+                noOfClassBlocks += Math.ceil(subjects[subId].weeklyMinutes / subjects[subId].classDuration);
             });
+
+            let noOfRows = breakTimeCount + Math.ceil(noOfClassBlocks / numOfSchoolDays);
+
+            const topDurations = classDurations.sort((a, b) => b - a).slice(0, noOfRows);
+
+            let totalDuration = (breakTimeCount * breakTimeDuration) + topDurations.reduce((sum, duration) => sum + duration, 0);
+
+            console.log('noOfClassBlocks', noOfClassBlocks);
+            console.log('noOfRows', noOfRows);
+            console.log('topDurations', topDurations);
+            console.log('totalDuration', totalDuration);
 
             const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
 
@@ -228,6 +254,16 @@ const AddProgramContainer = ({
         }));
     };
 
+    // Class Modality
+    const handleModalityChange = (grade, index) => {
+        setClassModality(prevState => ({
+            ...prevState,
+            [grade]: prevState[grade].map((value, i) => 
+                i === index ? (value === 1 ? 0 : 1) : value
+            )
+        }));
+    };
+
     // Additional Schedules
     const handleAddAdditionalSchedule = (grade) => {
         setAdditionalScheds((prevScheds) => ({
@@ -252,7 +288,7 @@ const AddProgramContainer = ({
         }));
     };
 
-    // ==============================================================================
+// ==============================================================================
 
     const handleAddEntry = () => {
         if (!inputValue.trim()) {
@@ -312,6 +348,7 @@ const AddProgramContainer = ({
                         startTime: getTimeSlotIndex(startTimes[7]),
                         endTime: endTimes[7],
                         additionalScheds: additionalScheds[7],
+                        modality: classModality[7],
                     },
                     8: {
                         subjects: selectedSubjects[8],
@@ -321,6 +358,7 @@ const AddProgramContainer = ({
                         startTime: getTimeSlotIndex(startTimes[8]),
                         endTime: endTimes[8],
                         additionalScheds: additionalScheds[8],
+                        modality: classModality[8],
                     },
                     9: {
                         subjects: selectedSubjects[9],
@@ -330,6 +368,7 @@ const AddProgramContainer = ({
                         startTime: getTimeSlotIndex(startTimes[9]),
                         endTime: endTimes[9],
                         additionalScheds: additionalScheds[9],
+                        modality: classModality[9],
                     },
                     10: {
                         subjects: selectedSubjects[10],
@@ -339,6 +378,7 @@ const AddProgramContainer = ({
                         startTime: getTimeSlotIndex(startTimes[10]),
                         endTime: endTimes[10],
                         additionalScheds: additionalScheds[10],
+                        modality: classModality[10],
                     },
                 })
             );
@@ -389,6 +429,18 @@ const AddProgramContainer = ({
             9: morningStartTime,
             10: morningStartTime,
         });
+        setEndTimes({
+            7: afternoonStartTime,
+            8: afternoonStartTime,
+            9: afternoonStartTime,
+            10: afternoonStartTime,
+        })
+        setClassModality({
+            7: new Array(numOfSchoolDays).fill(1),
+            8: new Array(numOfSchoolDays).fill(1),
+            9: new Array(numOfSchoolDays).fill(1),
+            10: new Array(numOfSchoolDays).fill(1),
+        });
         setAdditionalScheds({
             7: [],
             8: [],
@@ -435,7 +487,7 @@ const AddProgramContainer = ({
         document.getElementById('add_program_modal').close();
     };
 
-    // ===================================================================================
+// ===================================================================================
 
     useEffect(() => {
         if (inputNameRef.current) {
@@ -443,14 +495,14 @@ const AddProgramContainer = ({
         }
     }, []);
 
-    // ==============================================================================
+// ==============================================================================
 
     const [activeTab, setActiveTab] = useState(7);
 
     const grades = [7, 8, 9, 10];
 
     return (
-        <dialog id='add_program_modal' className='modal modal-bottom sm:modal-middle'>
+        <dialog id='add_program_modal' className='modal'>
             <div className='modal-box' style={{ width: '48%', maxWidth: 'none' }}>
                 <div>
                     {/* Header section with centered "Add {reduxField}" */}
@@ -478,7 +530,7 @@ const AddProgramContainer = ({
                     {/* Subject, shift, and fixed schedules management */}
                     <div className='text-sm flex flex-col space-y-4'>
                         {/* Tabs Navigation */}
-                        <div className='flex justify-between space-x-2 bg-primary-content p-3 rounded-lg border shadow-md'>
+                        <div className='flex justify-between space-x-2 bg-base-300 p-3 rounded-lg overflow-auto border border-base-content border-opacity-20 shadow-md'>
                             {grades.map((grade) => (
                                 <button
                                     key={grade}
@@ -617,8 +669,48 @@ const AddProgramContainer = ({
                                         </div>
                                     </div>
 
-                                    {/* Additional Schedules */}
+                                    {/* Class Modality */}
+                                    <div className='rounded-lg shadow-md border space-y-2 p-4 mb-4'>
+                                        <div className='font-semibold text-lg text-center'>Class Modality</div>
+                                        <hr className='my-2'></hr>
 
+                                        <table className='table'>
+                                            <thead>
+                                                <tr>
+                                                    {Array.from({ length: numOfSchoolDays }, (_, index) => (
+                                                        <th 
+                                                            key={index}
+                                                            className='text-center border border-gray-300'
+                                                            style={{ width: `${100 / numOfSchoolDays}%` }} // Ensures equal width for all days
+                                                        >
+                                                            {days[index]}
+                                                        </th>
+                                                    ))}
+                                                </tr>
+                                            </thead>
+                                            <tbody> 
+                                                <tr>
+                                                    {Array.from({ length: numOfSchoolDays }, (_, index) => (
+                                                        <td 
+                                                            key={index}
+                                                            className='text-center border border-gray-300'
+                                                            style={{ width: `${100 / numOfSchoolDays}%` }} // Ensures equal width for all days
+                                                        >
+                                                            <button
+                                                                key={`${grade}-${index}`}
+                                                                className={`btn w-full h-full flex items-center justify-center ${classModality[grade][index] === 1 ? 'bg-green-500' : 'bg-red-500'}`}
+                                                                onClick={() => handleModalityChange(grade, index)}
+                                                            >
+                                                                {classModality[grade][index] === 1 ? 'ONSITE' : 'OFFSITE'}
+                                                            </button>
+                                                        </td>
+                                                    ))}
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    {/* Additional Schedules */}
                                     <div className='p-4 rounded-lg shadow-md border'>
                                         <div className='text-center font-semibold text-lg'>Additional Schedules</div>
                                         <hr className='my-2'></hr>
@@ -698,8 +790,11 @@ const AddProgramContainer = ({
                                                              viewingMode={0}
                                                              programID={0}
                                                              grade={grade}
+                                                             progYearSubjects={selectedSubjects[grade]}
                                                              arrayIndex={index}
                                                              additionalSchedsOfProgYear={sched}
+                                                             setAdditionalScheds={setAdditionalScheds}
+                                                             numOfSchoolDays={numOfSchoolDays}
                                                         />
                                                     </div>
                                                 </div>

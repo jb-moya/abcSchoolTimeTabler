@@ -12,7 +12,8 @@ function InternalPage(){
 
 
     return(
-        <Calendar />
+        // <Calendar />
+        <></>
     )
 }
 
