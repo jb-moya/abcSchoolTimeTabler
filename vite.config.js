@@ -5,6 +5,7 @@ import path from 'path';
 export default defineConfig({
     plugins: [react()],
     server: { port: 8001 },
+    base: process.env.VITE_BASE_PATH || "abcSchoolTimeTabler",
     resolve: {
         alias: {
             '@components': path.resolve(__dirname, 'src/components'),
