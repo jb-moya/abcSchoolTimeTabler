@@ -69,7 +69,7 @@ function ExternalPage() {
     return (
         <div data-theme='dark' className='h-screen'>
             <div className='bg-[#fdf0d5] h-full'>
-                <div className='bg-[#003049] h-full flex flex-col'>
+                <div className='bg-[#003049] h-full flex flex-col overflow-auto'>
                     {/* Navigation Bar */}
                     <NavBar />
 

@@ -223,7 +223,7 @@ const Search = () => {
                                         console.log('fff');
                                         inputRef.current.blur();
                                         setIsSuggestionsVisible(false);
-                                        handleSuggestionClick(result.id);
+                                        handleSuggestionClick(result.n[0]);
                                     }}
                                 >
                                     <div className='flex items-center gap-4'>
@@ -284,7 +284,7 @@ const Search = () => {
                 </button>
             </div>
             {valueMap.size > 0 && (
-                <div className={`overflow-x-auto w-full ${suggestions.length > 0 && isSuggestionsVisible ? 'pt-72' : ''}`}>
+                <div className={`overflow-x-auto w-full pt-5${suggestions.length > 0 && isSuggestionsVisible ? 'pt-72' : ''}`}>
                     {Array.from(valueMap).map(([outerKey, nestedMap]) => {
                         // console.log('OuterKey: ', outerKey);
 
@@ -307,10 +307,13 @@ const Search = () => {
                                 }
 
                                 if (!groupedByTime.has(timeSlot)) {
-                                    groupedByTime.set(timeSlot, { time: timeSlot, days: Array(5).fill([]) });
+                                    groupedByTime.set(timeSlot, {
+                                        time: timeSlot,
+                                        days: Array(5).fill([]),
+                                    });
                                     // console.log('Group: ', groupedByTime);
                                 }
-                                groupedByTime.get(timeSlot).days[innerMap.day - 1] = [fieldName1, fieldName2];
+                                groupedByTime.get(timeSlot).days[innerMap.day - 1] = [fieldName1 ?? 'Break ', fieldName2];
                             });
 
                         return (
@@ -332,14 +335,14 @@ const Search = () => {
                                             <tr key={time}>
                                                 <td>{time}</td>
                                                 {days.map((fields, index) => {
-                                                    console.log('days: ', days);
-                                                    console.log('fields: ', fields);
+                                                    // console.log('days: ', days);
+                                                    // console.log('fields: ', fields);
                                                     return (
                                                         <td key={index}>
                                                             <div className='flex flex-col items-center'>
-                                                                <div>{fields[0] || 'break'}</div>
+                                                                <div>{fields[0]}</div>
                                                                 <div>{fields[1]}</div>
-                                                                <div>{time}</div>
+                                                                {fields[0] && fields[1] && <div>{time}</div>}
                                                             </div>
                                                         </td>
                                                     );
