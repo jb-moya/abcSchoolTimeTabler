@@ -6,7 +6,7 @@ export function convertStringDataToMap(stringData) {
     parsedData.forEach((value, index) => {
         const containerName = value[0];
         const tableValue = value[1];
-
+        // const modality = value[2];
         let type = '';
         for (const row of tableValue) {
             if (row[0]) {
@@ -20,7 +20,7 @@ export function convertStringDataToMap(stringData) {
             }
         }
 
-        let setTableKey = `${type}: ${containerName} - ${index}`;
+        let setTableKey = `${type}: ${containerName}`;
 
         if (!dataMap.has(setTableKey)) {
             dataMap.set(setTableKey, new Map());
@@ -28,6 +28,7 @@ export function convertStringDataToMap(stringData) {
 
         const scheduleMap = dataMap.get(setTableKey);
         for (const val of tableValue) {
+            // console.log("val: ",val)
             const type = val[0];
             const teacherID = val[1];
             const teacher = val[2];
@@ -68,6 +69,7 @@ export function convertStringDataToMap(stringData) {
                         type: type,
                         additional: duplicate ? true : false,
                         containerName: containerName,
+                        // modality: modality,
                         ...(type === 't' && { section: section }),
                         ...(type === 's' && { teacher: teacher }),
                     });
@@ -98,6 +100,7 @@ export function convertStringDataToMap(stringData) {
                     day: day,
                     additional: duplicate ? true : false,
                     containerName: containerName,
+                    // modality: modality,
                     ...(type === 't' && { section: section }),
                     ...(type === 's' && { teacher: teacher }),
                 });

@@ -457,7 +457,7 @@ const SectionEdit = ({
             {/* Modal */}
             <input type='checkbox' id={`sectionEdit_modal_${section.id}`} className='modal-toggle' />
             <div className='modal'>
-                <div className='modal-box relative' style={{ width: '40%', maxWidth: 'none' }}>
+                <div className='modal-box relative' style={{ width: '60%', maxWidth: 'none' }}>
                     <label onClick={closeModal} className='btn btn-sm btn-circle absolute right-2 top-2'>
                         ✕
                     </label>

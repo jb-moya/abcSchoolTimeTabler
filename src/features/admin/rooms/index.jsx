@@ -13,7 +13,7 @@ function Rooms() {
 
             {/* Main Content */}
             <div className="flex flex-col gap-4">
-                <div className="card w-full bg-base-100 hadow-md">
+                <div className="card w-full bg-base-100 shadow-md">
                     <div className="card-body">
                         {/* <DepartmentListContainer editable={true} />  */}
                         <RoomMapping editable={true} />

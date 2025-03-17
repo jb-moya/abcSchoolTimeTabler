@@ -394,7 +394,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
         // *******************************
         // ------- EXPORT SECTIONS -------
         // *******************************
-        sectionWorksheet.addRow(['Section Name', 'Adviser', 'Program', 'Year', 'Room Details']);
+        sectionWorksheet.addRow(['Section Name', 'Adviser', 'Program', 'Year', 'Room']);
 
         const sectionHeaderRow = sectionWorksheet.getRow(1);
         sectionHeaderRow.font = { bold: true };
@@ -416,7 +416,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                 sectionAdviser.teacher,
                 sectionProgram.program,
                 section.year,
-                `[${building.name}, FLOOR ${section.roomDetails.floorIdx + 1}] ${room.roomName}`,
+                `${room.roomName}`,
             ]);
         });
 
@@ -1184,6 +1184,10 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                         const endTime9Idx = startTime9Idx + totalDuration9;
                         const endTime10Idx = startTime10Idx + totalDuration10;
 
+                        const halfDays = Math.floor(numOfSchoolDays / 2);
+                        const firstHalf = Array(halfDays).fill(1).concat(Array(numOfSchoolDays - halfDays).fill(0));
+                        const secondHalf = Array(halfDays).fill(0).concat(Array(numOfSchoolDays - halfDays).fill(1));
+
                         addedPrograms.push({
                             program: program.program,
                             7: {
@@ -1193,7 +1197,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                                 endTime: endTime7Idx,
                                 fixedDays: fixedDays7,
                                 fixedPositions: fixedPositions7,
-                                modality: new Array(Number(numOfSchoolDays)).fill(1),
+                                modality: firstHalf,
                                 additionalScheds: [],
                             },
                             8: {
@@ -1203,7 +1207,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                                 endTime: endTime8Idx,
                                 fixedDays: fixedDays8,
                                 fixedPositions: fixedPositions8,
-                                modality: new Array(Number(numOfSchoolDays)).fill(1),
+                                modality: firstHalf,
                                 additionalScheds: [],
                             },
                             9: {
@@ -1213,7 +1217,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                                 endTime: endTime9Idx,
                                 fixedDays: fixedDays9,
                                 fixedPositions: fixedPositions9,
-                                modality: new Array(Number(numOfSchoolDays)).fill(1),
+                                modality: secondHalf,
                                 additionalScheds: [],
                             },
                             10: {
@@ -1223,10 +1227,11 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                                 endTime: endTime10Idx,
                                 fixedDays: fixedDays10,
                                 fixedPositions: fixedPositions10,
-                                modality: new Array(Number(numOfSchoolDays)).fill(1),
+                                modality: secondHalf,
                                 additionalScheds: [],
                             },
                         });
+
                     }
                 }
             });
@@ -1258,9 +1263,9 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                     section.year === '' ||
                     section.year === null ||
                     section.year === undefined ||
-                    section.roomdetails === '' ||
-                    section.roomdetails === null ||
-                    section.roomdetails === undefined
+                    section.room === '' ||
+                    section.room === null ||
+                    section.room === undefined
                 ) {
                     unaddedSections.push([0, section]);
                     return;
@@ -1287,80 +1292,30 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                     // Check if year is valid
                     const year = Number(section.year);
 
-                    // Check if building is valid
-                    const roomDetailsMatch = section.roomdetails.match(/\[(.*?), FLOOR (\d+)\] (.*)/);
+                    // Check if room is valid
+                    let roomFound = false;
                     const roomDetails = {
                         buildingId: -1,
                         floorIdx: -1,
                         roomIdx: -1,
                     };
-                    if (roomDetailsMatch) {
-                        const [, bldgName, floorNumber, rmName] = roomDetailsMatch;
-                        const floorNumberDecremented = parseInt(floorNumber, 10) - 1;
 
-                        const normalizedBldgName = bldgName.trim().toLowerCase();
-                        const normalizedRmName = rmName.trim().toLowerCase();
-
-                        let bldgFound = false;
-
-                        addedBuildings.some((building, buildingIdx) => {
-                            if (building.name.trim().toLowerCase() === normalizedBldgName) {
-                                bldgFound = true;
-
-                                const floorData = building.data[floorNumberDecremented];
-
-                                if (floorData) {
-                                    const room = floorData.find(
-                                        (room, idx) => room.roomName.trim().toLowerCase() === normalizedRmName
-                                    );
-
-                                    if (room) {
-                                        const isValid = assignedRoom.filter(
-                                            (room) =>
-                                                room.buildingId === buildingIdx + 1 &&
-                                                room.floorIdx === floorNumberDecremented &&
-                                                room.roomIdx === floorData.indexOf(room)
-                                        );
-
-                                        if (isValid.length > 0) {
-                                            unaddedSections.push([1, section]); // Duplicate room
-                                            roomDetailsIssue = true;
-                                            return;
-                                        }
-
-                                        roomDetails.buildingId = buildingIdx + 1;
-                                        roomDetails.floorIdx = floorNumberDecremented;
-                                        roomDetails.roomIdx = floorData.indexOf(room);
-
-                                        if (section.sectionname === 'Malandi') console.log('roomDetails', roomDetails);
-
-                                        assignedRoom.push(roomDetails);
-
-                                        return true;
-                                    } else {
-                                        unaddedSections.push([2, section]); // Unknown room
-                                        roomDetailsIssue = true;
-                                        return;
-                                    }
-                                } else {
-                                    unaddedSections.push([2, section]); // Unknown floor
-                                    roomDetailsIssue = true;
-                                    return;
+                    addedBuildings.forEach((building, buildingIndex) => {
+                        Object.entries(building.data).forEach(([arrayIndex, roomArray]) => {
+                            roomArray.forEach((room, roomIndex) => {
+                                if (room.roomName.trim().toLowerCase() === section.room.trim().toLowerCase()) {
+                                    roomFound = true;
+                                    roomDetails.buildingId = buildingIndex + 1;
+                                    roomDetails.floorIdx = parseInt(arrayIndex);
+                                    roomDetails.roomIdx = roomIndex;
+                                    assignedRoom.push({ ...roomDetails });
                                 }
-                            }
-                            return false;
+                            });
                         });
+                    });
 
-                        if (roomDetailsIssue) {
-                            return;
-                        }
-
-                        if (!bldgFound) {
-                            unaddedSections.push([2, section]); // Unknown building
-                            return;
-                        }
-                    } else {
-                        unaddedSections.push([-1, section]); // Building format mismatch
+                    if (!roomFound) {
+                        unaddedSections.push([2, section]); // Unknown room
                         return;
                     }
 
@@ -1393,11 +1348,10 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
 
                                 const secMod = section.modality;
                                 for (let i = 0; i < secMod.length; i++) {
-                                    if (secMod[i] === 1) {
-                                        if (section.startTime <= startTimeIdx && section.endTime >= endTimeIdx) {
+                                    if (secMod[i] === 1 && sectionModality [i] === 1 &&
+                                        section.startTime <= startTimeIdx && section.endTime >= endTimeIdx) {
                                             isOverlap = true;
                                             return;
-                                        }
                                     }
                                 }
 
@@ -1569,20 +1523,20 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
             throw error;
         }
 
-        // console.log('Added sections:', addedSections);
-        // console.log('Added subjects:', addedSubjects);
-        // console.log('Added teachers:', addedTeachers);
-        // console.log('Added programs:', addedPrograms);
-        // console.log('Added ranks:', addedRanks);
-        // console.log('Added buildings:', addedBuildings);
-        // console.log('Added departments:', addedDepartments);
+        console.log('Added sections:', addedSections);
+        console.log('Added subjects:', addedSubjects);
+        console.log('Added teachers:', addedTeachers);
+        console.log('Added programs:', addedPrograms);
+        console.log('Added ranks:', addedRanks);
+        console.log('Added buildings:', addedBuildings);
+        console.log('Added departments:', addedDepartments);
 
-        // console.log('Unadded subjects: ', unaddedSubjects);
-        // console.log('Unadded teachers: ', unaddedTeachers);
+        console.log('Unadded subjects: ', unaddedSubjects);
+        console.log('Unadded teachers: ', unaddedTeachers);
         console.log('Unadded programs: ', unaddedPrograms);
         console.log('Unadded sections: ', unaddedSections);
-        // console.log('Unadded ranks: ', unaddedRanks);
-        // console.log('Unadded departments: ', unaddedDepartments);
+        console.log('Unadded ranks: ', unaddedRanks);
+        console.log('Unadded departments: ', unaddedDepartments);
     };
 
     // =======================================================================

@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { IoSearch } from 'react-icons/io5';
 import { MdHistory, MdOutlineCancel } from 'react-icons/md';
 import debounce from 'debounce';
 import clsx from 'clsx';
 import useSearchTimetable from '../../hooks/useSearchTimetable';
-
+import { convertStringDataToMap } from '../../components/Admin/ModifyTimetable/utils';
+import { convertToTime } from '@utils/convertToTime';
+// import { fetchSections } from '@features/sectionSlice';
 const Search = () => {
+    // const dispatch = useDispatch();
     const [query, setQuery] = useState('');
     const [suggestions, setSuggestions] = useState([]);
     const [searchHistory, setSearchHistory] = useState([]);
@@ -15,8 +19,9 @@ const Search = () => {
     const [role, setRole] = useState('Sections');
     const dropdownRef = useRef(null);
     const inputRef = useRef(null);
-
+    const [valueMap, setValueMap] = useState(new Map());
     const { search, loading, error } = useSearchTimetable();
+    // const { sections, status: sectionStatus } = useSelector((state) => state.section);
 
     useEffect(() => {
         const storedHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
@@ -32,15 +37,21 @@ const Search = () => {
         }
     }, [query, searchHistory]);
 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
+    // useEffect(() => {
+    //     if (sectionStatus === 'idle') {
+    //         dispatch(fetchSections());
+    //     }
+    // }, [sectionStatus, dispatch]);
+
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh
+    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh
     const exampleTimetable = [
         ['t', 86, null, 9, 'REG-7-SEC-3', 4, 'English 7', '8-16', 1],
         ['t', 86, null, 9, 'REG-7-SEC-3', 4, 'English 7', '8-16', 2],
@@ -109,7 +120,13 @@ const Search = () => {
     };
 
     useEffect(() => {
-        console.log("potanginang results", results);
+        console.log('potanginang results', results);
+        if (results.length !== 0) {
+            console.log('in');
+            const convertedData = convertStringDataToMap(results[0]?.a);
+            console.log('convertedData', convertedData);
+            setValueMap(convertedData);
+        }
     }, [results]);
 
     const handleDeleteSuggestion = (itemToDelete) => {
@@ -146,7 +163,7 @@ const Search = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
-
+    // console.log(sections[1]?.modality);
     return (
         <div className='w-full h-full flex flex-col items-center px-4 lg:px-12 mt-[50px] select-none space-y-8'>
             <div className='text-center w-full max-w-4xl space-y-2'>
@@ -157,7 +174,7 @@ const Search = () => {
             <div
                 ref={dropdownRef}
                 className={clsx('rounded-3xl w-full max-w-3xl flex items-center shadow-md bg-white relative  px-4 py-2', {
-                    'rounded-b-none': isSuggestionsVisible && suggestions.length > 0,
+                    'rounded-b-none ': isSuggestionsVisible && suggestions.length > 0,
                 })}
             >
                 <select
@@ -190,7 +207,7 @@ const Search = () => {
                 />
 
                 {suggestions.length > 0 && isSuggestionsVisible && (
-                    <div className='absolute left-0 top-full w-full rounded-b-3xl bg-white shadow-md z-10 border-t'>
+                    <div className='absolute left-0 top-full w-full rounded-b-3xl bg-white shadow-md z-10 border-t '>
                         {results.length == 0 && isSearchClicked && (
                             <p className='text-center text-gray-500 py-20 border border-b'>
                                 No results found for <b>{query}</b> in {role.toLowerCase()} timetables
@@ -206,7 +223,7 @@ const Search = () => {
                                         console.log('fff');
                                         inputRef.current.blur();
                                         setIsSuggestionsVisible(false);
-                                        handleSuggestionClick(result.id);
+                                        handleSuggestionClick(result.n[0]);
                                     }}
                                 >
                                     <div className='flex items-center gap-4'>
@@ -266,8 +283,80 @@ const Search = () => {
                     {loading ? 'Searching...' : 'Search'}
                 </button>
             </div>
+            {valueMap.size > 0 && (
+                <div className={`overflow-x-auto w-full pt-5${suggestions.length > 0 && isSuggestionsVisible ? 'pt-72' : ''}`}>
+                    {Array.from(valueMap).map(([outerKey, nestedMap]) => {
+                        // console.log('OuterKey: ', outerKey);
+
+                        // Group by time slots (start-end) after sorting
+                        const groupedByTime = new Map();
+
+                        // Convert to array and sort by start time
+                        Array.from(nestedMap)
+                            .sort((a, b) => a[1].start - b[1].start)
+                            .forEach(([innerKey, innerMap]) => {
+                                // console.log('innerMap: ', innerMap);
+                                const timeSlot = `${convertToTime(innerMap.start)}-${convertToTime(innerMap.end)}`;
+                                let fieldName1 = '';
+                                let fieldName2 = innerMap.subject;
+
+                                if (innerMap.type === 's') {
+                                    fieldName1 = innerMap.teacher;
+                                } else {
+                                    fieldName1 = innerMap.section;
+                                }
+
+                                if (!groupedByTime.has(timeSlot)) {
+                                    groupedByTime.set(timeSlot, {
+                                        time: timeSlot,
+                                        days: Array(5).fill([]),
+                                    });
+                                    // console.log('Group: ', groupedByTime);
+                                }
+                                groupedByTime.get(timeSlot).days[innerMap.day - 1] = [fieldName1 ?? 'Break ', fieldName2];
+                            });
+
+                        return (
+                            <div key={outerKey}>
+                                <div>{outerKey}</div>
+                                <table className='table w-full'>
+                                    <thead>
+                                        <tr>
+                                            <th className='text-center w-2/12'>Time</th>
+                                            <th className='text-center'>Monday</th>
+                                            <th className='text-center'>Tuesday</th>
+                                            <th className='text-center'>Wednesday</th>
+                                            <th className='text-center'>Thursday</th>
+                                            <th className='text-center'>Friday</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {Array.from(groupedByTime.values()).map(({ time, days }) => (
+                                            <tr key={time}>
+                                                <td>{time}</td>
+                                                {days.map((fields, index) => {
+                                                    // console.log('days: ', days);
+                                                    // console.log('fields: ', fields);
+                                                    return (
+                                                        <td key={index}>
+                                                            <div className='flex flex-col items-center'>
+                                                                <div>{fields[0]}</div>
+                                                                <div>{fields[1]}</div>
+                                                                {fields[0] && fields[1] && <div>{time}</div>}
+                                                            </div>
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
         </div>
-      
     );
 };
 
