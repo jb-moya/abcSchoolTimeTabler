@@ -225,7 +225,7 @@ const SubjectListContainer = ({
                         <tr>
                             <th>ID</th>
                             <th>Subject</th>
-                            <th>Duration (min)</th>
+                            <th>Duration HAhah(min)</th>
                             <th>Weekly Requirement (min)</th>
                             <th># of Classes (Max: {numOfSchoolDays})</th>
                             {editable && <th className='text-left'>Actions</th>}
