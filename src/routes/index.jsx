@@ -8,7 +8,7 @@ const Page404 = lazy(() => import('../pages/404'));
 const Blank = lazy(() => import('../pages/protected/Blank'));
 const Leads = lazy(() => import('../pages/protected/Leads'));
 const Integration = lazy(() => import('../pages/protected/Integration'));
-//const Calendar = lazy(() => import('../pages/protected/Calendar'));
+const Users = lazy(() => import('../pages/protected/admin/Users'));
 const Team = lazy(() => import('../pages/protected/Team'));
 const Transactions = lazy(() => import('../pages/protected/Transactions'));
 const Bills = lazy(() => import('../pages/protected/Bills'));
@@ -52,6 +52,10 @@ const routes = [
         component: ModifyDepartments, // view rendered
     },
     {
+        path: '/admin/users',
+        component: Users,
+    },
+    {
         path: '/admin/room-mapping', // the url
         component: RoomMapping, // view rendered
     },
@@ -83,10 +87,6 @@ const routes = [
         path: '/settings-team',
         component: Team,
     },
-    // {
-    //     path: '/calendar',
-    //     component: Calendar,
-    // },
     {
         path: '/transactions',
         component: Transactions,

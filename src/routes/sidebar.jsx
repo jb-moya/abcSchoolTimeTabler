@@ -61,6 +61,11 @@ const routes = [
         ],
     },
     {
+        path: '/app/admin/users',
+        icon: <UsersIcon className={`${iconClasses} inline`} />,
+        name: 'Users',
+    },
+    {
         path: '',
         icon: <GrSchedules className={`${iconClasses} inline`} />,
         name: 'Report Schedules',

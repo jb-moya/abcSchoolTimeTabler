@@ -62,7 +62,10 @@ function LeftSidebar() {
                 </div>
                 {routes.map((route, k) => {
                     return (
-                        <li className='' key={k}>
+                        <li 
+                            className='' 
+                            key={k}
+                        >
                             {route.submenu ? (
                                 <SidebarSubmenu {...route} />
                             ) : (

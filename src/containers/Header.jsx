@@ -220,7 +220,6 @@ function Header() {
                         <Bars3Icon className='h-5 inline-block w-5' />
                     </label>
                     <h1 className='text-2xl font-semibold ml-2'>{pageTitle}</h1>
-                   
                 </div>
 
                 <div className='flex-none'>
