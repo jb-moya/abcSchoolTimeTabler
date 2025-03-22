@@ -8,6 +8,9 @@ import { fetchPrograms, editProgram } from '@features/programSlice';
 import { fetchSections, editSection } from '@features/sectionSlice';
 import { fetchSubjects } from '@features/subjectSlice';
 
+import { fetchDocuments } from '../../hooks/CRUD/retrieveDocuments';
+import { editDocument } from '../../hooks/CRUD/editDocument';
+
 import calculateTotalClass from '../../utils/calculateTotalClass';
 import { getTimeSlotIndex } from '@utils/timeSlotMapper';
 
@@ -29,7 +32,9 @@ const SubjectEdit = ({
 
 // =============================================================================
 
-    const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
+    // const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
+
+    const { documents: subjects, loading, error } = fetchDocuments('subjects');
 
     const { programs, status: programStatus } = useSelector(
         (state) => state.program
@@ -103,29 +108,40 @@ const SubjectEdit = ({
             }
         }
 
-        dispatch(
-            reduxFunction({
-                subjectId: editSubjectId,
-                updatedSubject: {
-                    subject: editSubjectValue,
-                    classDuration: editClassDuration,
-                    weeklyMinutes: editSubjectWeeklyMinutes,
+        // dispatch(
+        //     reduxFunction({
+        //         subjectId: editSubjectId,
+        //         updatedSubject: {
+        //             subject: editSubjectValue,
+        //             classDuration: editClassDuration,
+        //             weeklyMinutes: editSubjectWeeklyMinutes,
+        //         },
+        //     })
+        // );
+
+        try {
+            editDocument('subjects', editSubjectId, {
+                subject: editSubjectValue,
+                classDuration: editClassDuration,
+                weeklyMinutes: editSubjectWeeklyMinutes,
+            });
+
+            // updateSubjectDependencies();
+        } catch {
+            toast.error('Something went wrong. Please try again.');
+            console.error('Something went wrong. Please try again.');
+        } finally {
+            toast.success('Data and dependencies updated successfully!', {
+                style: {
+                    backgroundColor: '#28a745',
+                    color: '#fff',
+                    borderColor: '#28a745',
                 },
-            })
-        );
-
-        updateSubjectDependencies();
-
-        toast.success('Data and dependencies updated successfully!', {
-            style: {
-                backgroundColor: '#28a745',
-                color: '#fff',
-                borderColor: '#28a745',
-            },
-        });
-
-        handleReset();
-        closeModal();
+            });
+    
+            handleReset();
+            closeModal();
+        }
     };
 
     const updateSubjectDependencies = () => {
@@ -476,11 +492,11 @@ const SubjectEdit = ({
 
 // =============================================================================
 
-    useEffect(() => {
-        if (subjectStatus === 'idle') {
-            dispatch(fetchSubjects());
-        }
-    }, [subjectStatus, dispatch]);
+    // useEffect(() => {
+    //     if (subjectStatus === 'idle') {
+    //         dispatch(fetchSubjects());
+    //     }
+    // }, [subjectStatus, dispatch]);
 
     useEffect(() => {
         if (programStatus === 'idle') {

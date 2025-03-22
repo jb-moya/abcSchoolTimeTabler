@@ -17,6 +17,9 @@ import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
 import { toast } from 'sonner';
 
+import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+import { addDocument } from '../../../hooks/CRUD/addDocument';
+
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
 import DeleteData from '../DeleteData';
 import AddProgramContainer from './ProgramAdd';
@@ -34,11 +37,15 @@ const ProgramListContainer = ({
 
     // ==============================================================================
 
-    const { programs, status: programStatus } = useSelector((state) => state.program);
+    // const subjects = useSelector((state) => state.subject.subjects);
 
-    const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
+    const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
 
-    const { sections, status: sectionStatus } = useSelector((state) => state.section);
+    // const programs = useSelector((state) => state.program.programs);
+
+    const { documents: programs, loading2, error2 } = fetchDocuments('programs');
+
+    // const { sections, status: sectionStatus } = useSelector((state) => state.section);
 
     // ==============================================================================
 
@@ -90,23 +97,23 @@ const ProgramListContainer = ({
 
     // ================================================================
 
-    useEffect(() => {
-        if (sectionStatus === 'idle') {
-            dispatch(fetchSections());
-        }
-    }, [sectionStatus, dispatch]);
+    // useEffect(() => {
+    //     if (sectionStatus === 'idle') {
+    //         dispatch(fetchSections());
+    //     }
+    // }, [sectionStatus, dispatch]);
 
-    useEffect(() => {
-        if (programStatus === 'idle') {
-            dispatch(fetchPrograms());
-        }
-    }, [programStatus, dispatch]);
+    // useEffect(() => {
+    //     if (programStatus === 'idle') {
+    //         dispatch(fetchPrograms());
+    //     }
+    // }, [programStatus, dispatch]);
 
-    useEffect(() => {
-        if (subjectStatus === 'idle') {
-            dispatch(fetchSubjects());
-        }
-    }, [subjectStatus, dispatch]);
+    // useEffect(() => {
+    //     if (subjectStatus === 'idle') {
+    //         dispatch(fetchSubjects());
+    //     }
+    // }, [subjectStatus, dispatch]);
 
     // ================================================================================
 
@@ -257,7 +264,8 @@ const ProgramListContainer = ({
                                             <td>{index + 1 + indexOfFirstItem}</td>
 
                                             {/* Program ID */}
-                                            <td>{program.id}</td>
+                                            {/* <td>{program.id}</td> */}
+                                            <td>{program.custom_id}</td>
 
                                             {/* Program Name */}
                                             <td className='w-2/12'>{program.program}</td>
@@ -414,10 +422,9 @@ const ProgramListContainer = ({
                                                             breakTimeDuration={breakTimeDuration}
                                                         />
                                                         <DeleteData
-                                                            className='btn btn-xs btn-ghost text-red-500'
-                                                            store={'program'}
-                                                            id={program.id}
-                                                            reduxFunction={removeProgram}
+                                                            className='btn btn-xs btn-ghost text-red-500' 
+                                                            collection={'programs'}
+                                                            id={program.custom_id}
                                                         />
                                                     </div>
                                                 </td>

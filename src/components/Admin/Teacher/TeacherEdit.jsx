@@ -11,24 +11,38 @@ import { fetchTeachers } from '@features/teacherSlice';
 import AdditionalScheduleForTeacher from './AdditionalScheduleForTeacher';
 import { RiDeleteBin7Line } from 'react-icons/ri';
 
+import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+import { editDocument } from '../../../hooks/CRUD/editDocument';
+
 import { toast } from 'sonner';
 
-const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, errorField, setErrorField, numOfSchoolDays }) => {
+const TeacherEdit = ({ 
+    teacher, 
+    reduxFunction, 
+    errorMessage, 
+    setErrorMessage, 
+    errorField, 
+    setErrorField, 
+    numOfSchoolDays 
+}) => {
+
     const dispatch = useDispatch();
 
-    // ==============================================================================
+// ==============================================================================
 
-    const { departments, status: departmentStatus } = useSelector((state) => state.department);
+    const { documents: teachers, loading1, error1 } = fetchDocuments('teachers');
+    
+    const { documents: subjects, loading2, error2 } = fetchDocuments('subjects');
 
-    const { ranks, status: rankStatus } = useSelector((state) => state.rank);
+    const { documents: ranks, loading3, error3 } = fetchDocuments('ranks');
 
-    const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
+    const { documents: departments, loading4, error4 } = fetchDocuments('departments');
 
-    const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
-
-    // ==============================================================================
+// ==============================================================================
 
     const [editTeacherId, setEditTeacherId] = useState(teacher.id || null);
+
+    const [editTeacherCustomId, setEditTeacherCustomId] = useState(teacher.customId || '');
 
     const [editTeacherRank, setEditTeacherRank] = useState(teacher.rank || 0);
 
@@ -49,6 +63,7 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
     useEffect(() => {
         if (teacher) {
             setEditTeacherId(teacher.id || null);
+            setEditTeacherCustomId(teacher.custom_id || '');
             setEditTeacherValue(teacher.teacher || '');
             setEditTeacherDepartment(teacher.department || 0);
             setEditTeacherRank(teacher.rank || 0);
@@ -63,7 +78,7 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
     // Update additional teacher schedules when rank changes
     useEffect(() => {
         if (editTeacherRank !== tempRank) {
-            const rank = Object.values(ranks).find((rank) => rank.id === editTeacherRank);
+            const rank = Object.values(ranks).find((rank) => rank.custom_id === editTeacherRank);
 
             if (rank) {
                 setEditTeacherAdditionalScheds(rank.additionalRankScheds);
@@ -73,33 +88,7 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
         }
     }, [editTeacherRank]);
 
-    // ==============================================================================
-
-    useEffect(() => {
-        if (departmentStatus === 'idle') {
-            dispatch(fetchDepartments());
-        }
-    }, [departmentStatus, dispatch]);
-
-    useEffect(() => {
-        if (rankStatus === 'idle') {
-            dispatch(fetchRanks());
-        }
-    }, [rankStatus, dispatch]);
-
-    useEffect(() => {
-        if (subjectStatus === 'idle') {
-            dispatch(fetchSubjects());
-        }
-    }, [subjectStatus, dispatch]);
-
-    useEffect(() => {
-        if (teacherStatus === 'idle') {
-            dispatch(fetchTeachers());
-        }
-    }, [teacherStatus, dispatch]);
-
-    // ==============================================================================
+// ==================================================================================
 
     const handleSaveTeacherEditClick = (teacherId) => {
         console.log('editTaecersId', editTeacherId);
@@ -117,30 +106,51 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
             return;
         }
 
-        const currentTeacher = teachers[editTeacherId]?.teacher || '';
+        const currentTeacher = teachers[editTeacherCustomId]?.teacher || '';
 
         if (editTeacherValue.trim().toLowerCase() === currentTeacher.trim().toLowerCase()) {
-            dispatch(
-                reduxFunction({
-                    teacherId,
-                    updatedTeacher: {
-                        teacher: editTeacherValue,
-                        department: editTeacherDepartment,
-                        rank: editTeacherRank,
-                        subjects: editTeacherCurr,
-                        yearLevels: editTeacherYearLevels,
-                        additionalTeacherScheds: editTeacherAdditionalScheds,
+
+            try {
+                editDocument('teachers', teacherId, {
+                    teacher: editTeacherValue,
+                    department: editTeacherDepartment,
+                    rank: editTeacherRank,
+                    subjects: editTeacherCurr,
+                    yearLevels: editTeacherYearLevels,
+                    additionalTeacherScheds: editTeacherAdditionalScheds,
+                });
+            } catch {
+                toast.error('Something went wrong. Please try again.');
+                console.error('Something went wrong. Please try again.');
+            } finally {
+                toast.success('Data updated successfully!', {
+                    style: {
+                        backgroundColor: '#28a745',
+                        color: '#fff',
+                        borderColor: '#28a745',
                     },
-                })
-            );
+                });
+        
+                resetStates();
+                closeModal();
+            }
 
-            toast.success('Data updated successfully', {
-                style: { backgroundColor: 'green', color: 'white', bordercolor: 'green' },
-            });
+            // dispatch(
+            //     reduxFunction({
+            //         teacherId,
+            //         updatedTeacher: {
+            //             teacher: editTeacherValue,
+            //             department: editTeacherDepartment,
+            //             rank: editTeacherRank,
+            //             subjects: editTeacherCurr,
+            //             yearLevels: editTeacherYearLevels,
+            //             additionalTeacherScheds: editTeacherAdditionalScheds,
+            //         },
+            //     })
+            // );
 
-            resetStates();
-            closeModal();
         } else {
+
             const duplicateTeacher = Object.values(teachers).find(
                 (teacher) => teacher.teacher.trim().toLowerCase() === editTeacherValue.trim().toLowerCase()
             );
@@ -151,26 +161,52 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
                 });
                 return;
             } else {
-                dispatch(
-                    reduxFunction({
-                        teacherId,
-                        updatedTeacher: {
-                            teacher: editTeacherValue,
-                            department: editTeacherDepartment,
-                            rank: editTeacherRank,
-                            subjects: editTeacherCurr,
-                            yearLevels: editTeacherYearLevels,
-                            additionalTeacherScheds: editTeacherAdditionalScheds,
+
+                try {
+                    editDocument('teachers', teacherId, {
+                        teacher: editTeacherValue,
+                        department: editTeacherDepartment,
+                        rank: editTeacherRank,
+                        subjects: editTeacherCurr,
+                        yearLevels: editTeacherYearLevels,
+                        additionalTeacherScheds: editTeacherAdditionalScheds,
+                    });
+    
+                } catch {
+                    toast.error('Something went wrong. Please try again.');
+                    console.error('Something went wrong. Please try again.');
+                } finally {
+                    toast.success('Data updated successfully!', {
+                        style: {
+                            backgroundColor: '#28a745',
+                            color: '#fff',
+                            borderColor: '#28a745',
                         },
-                    })
-                );
-                resetStates();
-                closeModal();
+                    });
+            
+                    resetStates();
+                    closeModal();
+                }
+
+                // dispatch(
+                //     reduxFunction({
+                //         teacherId,
+                //         updatedTeacher: {
+                //             teacher: editTeacherValue,
+                //             department: editTeacherDepartment,
+                //             rank: editTeacherRank,
+                //             subjects: editTeacherCurr,
+                //             yearLevels: editTeacherYearLevels,
+                //             additionalTeacherScheds: editTeacherAdditionalScheds,
+                //         },
+                //     })
+                // );
+                
             }
         }
     };
 
-    // ==============================================================================
+// ==================================================================================
 
     // Rank
     const handleRankChange = (event) => {
@@ -210,7 +246,7 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
         }
     };
 
-    // ==============================================================================
+// ==============================================================================
 
     const resetStates = () => {
         setEditTeacherValue(teacher.teacher);
@@ -232,10 +268,12 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
         // handleReset();
     };
 
-    // ==============================================================================
+// ==============================================================================
 
     return (
+
         <div className=''>
+
             {/* Trigger Button */}
             <label htmlFor={`teacherEdit_modal_${teacher.id}`} className='btn btn-xs btn-ghost text-blue-500'>
                 <RiEdit2Fill size={20} />
@@ -243,6 +281,7 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
 
             {/* Modal */}
             <input type='checkbox' id={`teacherEdit_modal_${teacher.id}`} className='modal-toggle' />
+
             <div className='modal'>
                 <div className='modal-box ' style={{ width: '40%', maxWidth: 'none' }}>
                     <label onClick={closeModal} className='btn btn-sm btn-circle absolute right-2 top-2'>
@@ -252,6 +291,7 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
                     <hr className='mb-4' />
 
                     <div className='rounded-lg shadow-md md:shadow-lg sm:shadow-sm space-y-4 mb-4 p-4'>
+
                         {/* Teacher Name */}
                         <div className='mb-4'>
                             <label className='text-sm font-medium mb-1 flex justify-center ' htmlFor='teacherName'>
@@ -285,7 +325,7 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
                                     </option>
                                     {ranks && Object.keys(ranks).length > 0 ? (
                                         Object.values(ranks).map((rank) => (
-                                            <option key={rank.id} value={rank.id}>
+                                            <option key={rank.id} value={rank.custom_id}>
                                                 {rank.rank}
                                             </option>
                                         ))
@@ -313,7 +353,7 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
                                     </option>
                                     {departments && Object.keys(departments).length > 0 ? (
                                         Object.values(departments).map((department) => (
-                                            <option key={department.id} value={department.id}>
+                                            <option key={department.id} value={department.custom_id}>
                                                 {`${department.name || ''}${
                                                     teachers[department.head]?.teacher
                                                         ? ` - ${teachers[department.head]?.teacher}`
@@ -350,7 +390,7 @@ const TeacherEdit = ({ teacher, reduxFunction, errorMessage, setErrorMessage, er
                                                         key={subjectID}
                                                         className='bg-secondary text-white text-sm px-2 py-1 rounded-lg'
                                                     >
-                                                        {subjects[subjectID].subject}
+                                                        {subjects[subjectID]?.subject}
                                                     </span>
                                                 ))}
                                             </div>

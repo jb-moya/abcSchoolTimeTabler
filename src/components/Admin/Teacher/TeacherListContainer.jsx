@@ -19,29 +19,32 @@ import AddTeacherContainer from './TeacherAdd';
 import DeleteData from '../DeleteData';
 import TeacherEdit from './TeacherEdit';
 
-const TeacherListContainer = ({ editable = false }) => {
-    const dispatch = useDispatch();
+import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 
-    // ===================================================================================================
+const TeacherListContainer = ({ 
+    editable = false 
+}) => {
 
-    const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
+// ===================================================================================================
 
-    const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
+    const { documents: teachers, loading1, error1 } = fetchDocuments('teachers');
 
-    const { ranks, status: rankStatus } = useSelector((state) => state.rank);
+    const { documents: subjects, loading2, error2 } = fetchDocuments('subjects');
 
-    const { departments, status: departmentStatus } = useSelector((state) => state.department);
+    const { documents: ranks, loading3, error3 } = fetchDocuments('ranks');
 
-    // ===================================================================================================
+    const { documents: departments, loading4, error4 } = fetchDocuments('departments');
+
+// ===================================================================================================
 
     const numOfSchoolDays = Number(localStorage.getItem('numOfSchoolDays')) || 0;
 
-    // ===================================================================================================
+// ===================================================================================================
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
 
-    // ===================================================================================================
+// ===================================================================================================
 
     // Handle closing of teacher addition modal
     const handleClose = () => {
@@ -55,33 +58,7 @@ const TeacherListContainer = ({ editable = false }) => {
         }
     };
 
-    // ===================================================================================================
-
-    useEffect(() => {
-        if (teacherStatus === 'idle') {
-            dispatch(fetchTeachers());
-        }
-    }, [teacherStatus, dispatch]);
-
-    useEffect(() => {
-        if (subjectStatus === 'idle') {
-            dispatch(fetchSubjects());
-        }
-    }, [subjectStatus, dispatch]);
-
-    useEffect(() => {
-        if (rankStatus === 'idle') {
-            dispatch(fetchRanks());
-        }
-    }, [rankStatus, dispatch]);
-
-    useEffect(() => {
-        if (departmentStatus === 'idle') {
-            dispatch(fetchDepartments());
-        }
-    }, [departmentStatus, dispatch]);
-
-    // ===================================================================================================
+// ===================================================================================================
 
     const [searchTeacherResult, setSearchTeacherResult] = useState(teachers);
     const [searchTeacherValue, setSearcTeacherValue] = useState('');
@@ -120,12 +97,13 @@ const TeacherListContainer = ({ editable = false }) => {
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Object.entries(searchTeacherResult).slice(indexOfFirstItem, indexOfLastItem);
 
-    // ===================================================================================================
+// ===================================================================================================
 
     return (
         <React.Fragment>
             <div className='w-full'>
                 <div className='flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5'>
+
                     {/* Pagination */}
                     {currentItems.length > 0 && (
                         <div className='join flex justify-center mb-4 md:mb-0'>
@@ -211,6 +189,7 @@ const TeacherListContainer = ({ editable = false }) => {
                             </dialog>
                         </div>
                     )}
+
                 </div>
 
                 <div className='overflow-x-auto'>
@@ -238,11 +217,13 @@ const TeacherListContainer = ({ editable = false }) => {
                             ) : (
                                 currentItems.map(([, teacher], index) => (
                                     <tr key={teacher.id} className='group hover'>
+
                                         {/* Index */}
                                         <td>{index + indexOfFirstItem + 1}</td>
 
                                         {/* Teacher ID */}
-                                        <th>{teacher.id}</th>
+                                        {/* <th>{teacher.id}</th> */}
+                                        <td>{teacher.custom_id}</td>
 
                                         {/* Teacher Name */}
                                         <td>{teacher.teacher}</td>
@@ -255,12 +236,11 @@ const TeacherListContainer = ({ editable = false }) => {
 
                                         {/* Teacher Subjects */}
                                         <td className='flex gap-1 flex-wrap'>
-                                            {subjectStatus === 'succeeded' &&
-                                                teacher.subjects.map((subject) => (
-                                                    <div key={subject} className='badge badge-secondary m-1'>
-                                                        {subjects[subject]?.subject || 'Unknown Subject'}
-                                                    </div>
-                                                ))}
+                                            { teacher.subjects.map((subject) => (
+                                                <div key={subject} className='badge badge-secondary m-1'>
+                                                    {subjects[subject]?.subject || 'Unknown Subject'}
+                                                </div>
+                                            ))}
                                         </td>
 
                                         {/* Teacher Year Levels */}
@@ -372,8 +352,11 @@ const TeacherListContainer = ({ editable = false }) => {
                                                         setErrorField={setErrorField}
                                                         numOfSchoolDays={numOfSchoolDays}
                                                     />
-
-                                                    <DeleteData id={teacher.id} store={'teacher'} reduxFunction={removeTeacher} />
+                                                    <DeleteData 
+                                                        className='btn btn-xs btn-ghost text-red-500' 
+                                                        collection={'teachers'}
+                                                        id={teacher.custom_id}
+                                                    />
                                                 </div>
                                             </td>
                                         )}

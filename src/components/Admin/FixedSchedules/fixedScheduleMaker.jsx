@@ -10,6 +10,8 @@ import { spawnColors } from './bgColors';
 import calculateTotalClass from '../../../utils/calculateTotalClass';
 import isEqual from 'lodash.isequal';
 
+import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+
 const hexToRgba = (hex, alpha) => {
     const [r, g, b] = hex
         .replace(/^#/, '')
@@ -79,7 +81,9 @@ const FixedScheduleMaker = ({
     setFixedPositions = () => {},
     numOfSchoolDays = 0,
 }) => {
-    const subjectsStore = useSelector((state) => state.subject.subjects);
+    // const subjectsStore = useSelector((state) => state.subject.subjects);
+
+    const { documents: subjectsStore, loading1, error1 } = fetchDocuments('subjects');
 
     const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 

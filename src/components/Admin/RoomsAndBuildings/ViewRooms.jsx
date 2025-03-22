@@ -4,6 +4,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { fetchBuildings, editBuilding } from '@features/buildingSlice';
 import { fetchSections } from '@features/sectionSlice';
 
+import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+
 const ViewRooms = ({
     viewMode = 1,
     sectionId = 0,
@@ -18,26 +20,14 @@ const ViewRooms = ({
     const dispatch = useDispatch();
 
 // ============================================================================
+
+    const { documents: sections, loading1, error1 } = fetchDocuments('sections');
     
-    const { buildings, status: buildingStatus } = useSelector(
-        (state) => state.building
-    );
-
-    const { sections, status: sectionStatus } = useSelector(
-        (state) => state.section
-    );
+    const { documents: buildings, loading2, error2 } = fetchDocuments('buildings');
 
     useEffect(() => {
-        if (buildingStatus === 'idle') {
-            dispatch(fetchBuildings());
-        }
-    }, [buildingStatus, dispatch]);
-
-    useEffect(() => {
-        if (sectionStatus === 'idle') {
-            dispatch(fetchSections());
-        }
-    }, [sectionStatus, dispatch]);
+        console.log('buildings: ', buildings);
+    }, [buildings]);
 
 // ============================================================================
 
@@ -49,7 +39,19 @@ const ViewRooms = ({
     const [selectedEndTime, setSelectedEndTime] = useState(0);
 
     // For display of floors and rooms
-    const [floors, setFloors] = useState([]);
+    const [floors, setFloors] = useState({});
+
+    useEffect(() => {
+        console.log('floors: ', floors);
+    }, [floors]);
+
+    useEffect(() => {
+        console.log('floorIdx: ', floorIdx);
+    }, [floorIdx]);
+
+    useEffect(() => {
+        console.log('roomIdx: ', roomIdx);
+    }, [roomIdx]);
 
     // For setting the buildingId, floorIdx, and roomIdx
     useEffect(() => {
@@ -209,7 +211,7 @@ const ViewRooms = ({
                                     Select a building
                                 </option>
                                 {Object.keys(buildings).map((key) => (
-                                    <option key={buildings[key].id} value={buildings[key].id}>
+                                    <option key={buildings[key].id} value={buildings[key].custom_id}>
                                         {buildings[key].name}
                                     </option>
                                 ))}
@@ -234,11 +236,14 @@ const ViewRooms = ({
                                                 Select floor
                                             </option>
                                             {buildingId !== -1 
-                                                && buildings[buildingId]?.rooms.map((_, index) => (
-                                                <option key={index} value={index}>
-                                                    {index + 1}
-                                                </option>
-                                            ))}
+                                                && buildings[buildingId]?.rooms 
+                                                && Object.keys(buildings[buildingId].rooms).map((key, index) => (
+                                                    <option key={index} value={key}>
+                                                        {parseInt(key) + 1} {/* Convert key to number and display properly */}
+                                                    </option>
+                                                ))
+                                            }
+
                                         </select>
                                     </div>
 
@@ -252,13 +257,14 @@ const ViewRooms = ({
                                             <option value={-1} disabled>
                                                 Select room
                                             </option>
-                                            {buildingId !== -1 
-                                                && floorIdx !== -1 
-                                                    && buildings[buildingId]?.rooms[floorIdx].map((_, index) => (
-                                                <option key={index} value={index}>
-                                                    {buildings[buildingId]?.rooms[floorIdx][index].roomName}
-                                                </option>
-                                            ))}
+                                            {buildingId !== -1 && floorIdx !== -1 && buildings[buildingId]?.rooms[floorIdx] &&
+                                                Object.entries(buildings[buildingId].rooms[floorIdx]).map(([roomIndex, room]) => (
+                                                    <option key={roomIndex} value={roomIndex}>
+                                                        {room.roomName}
+                                                    </option>
+                                                ))
+                                            }
+
                                         </select>
                                     </div>
                                 </>
@@ -272,32 +278,39 @@ const ViewRooms = ({
                 <div 
                     className="mt-3"
                 >
-                    {floors.map((rooms, floorIndex) => {
-                        const reversedFloorIndex = floors.length - 1 - floorIndex;
+                    {Object.entries(floors)
+                        .sort(([a], [b]) => b - a) // Reverse the order to match the original `reversedFloorIndex`
+                        .map(([floorIndex, rooms]) => {
+                            const reversedFloorIndex = parseInt(floorIndex); // Convert key to an integer
 
-                        return (
-                            <div
-                                key={`${building}-${sectionId}-${reversedFloorIndex}`}
-                                className="mb-1 flex flex-wrap"
-                            >
-                                <h3 className="w-1/6 text-lg font-bold flex items-center justify-center">
-                                    Floor {reversedFloorIndex + 1}
-                                </h3>
-                                <div className="w-5/6 flex flex-wrap gap-2 p-2 items-center justify-center border border-gray-300 rounded-lg">
-                                    {floors[reversedFloorIndex].map((room, roomIndex) => (
-                                        <button
-                                            key={`${building}-${sectionId}-${reversedFloorIndex}-${roomIndex}`}
-                                            className={`w-1/12 h-20 max-h-20 px-4 py-2 border rounded text-sm ${ floorIdx === reversedFloorIndex && roomIdx === roomIndex ? 'bg-yellow-500 text-black' : 'bg-green-600 text-white'}`}
-                                            onClick={() => handleRoomSelect(reversedFloorIndex, roomIndex)}
-                                            disabled={viewMode === 1}
-                                        >
-                                            {room.roomName}
-                                        </button>
-                                    ))}
+                            return (
+                                <div
+                                    key={`${building}-${sectionId}-${reversedFloorIndex}`}
+                                    className="mb-1 flex flex-wrap"
+                                >
+                                    <h3 className="w-1/6 text-lg font-bold flex items-center justify-center">
+                                        Floor {reversedFloorIndex + 1}
+                                    </h3>
+                                    <div className="w-5/6 flex flex-wrap gap-2 p-2 items-center justify-center border border-gray-300 rounded-lg">
+                                        {Object.entries(rooms).map(([roomIndex, room]) => (
+                                            <button
+                                                key={`${building}-${sectionId}-${reversedFloorIndex}-${roomIndex}`}
+                                                className={`w-1/12 h-20 max-h-20 px-4 py-2 border rounded text-sm ${
+                                                    floorIdx === reversedFloorIndex && roomIdx === parseInt(roomIndex)
+                                                        ? 'bg-yellow-500 text-black'
+                                                        : 'bg-green-600 text-white'
+                                                }`}
+                                                onClick={() => handleRoomSelect(reversedFloorIndex, parseInt(roomIndex))}
+                                                disabled={viewMode === 1}
+                                            >
+                                                {room.roomName}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
+
                 </div>
 
                 <div className="mt-4 text-center text-lg font-bold">

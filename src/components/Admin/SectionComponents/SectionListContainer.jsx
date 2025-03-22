@@ -28,26 +28,29 @@ import AddSectionContainer from './SectionAdd';
 import DeleteData from '../DeleteData';
 import SectionEdit from './SectionEdit';
 
+import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+
 const SectionListContainer = ({
     numOfSchoolDays: externalNumOfSchoolDays,
     editable = false,
     breakTimeDuration: externalBreakTimeDuration,
 }) => {
+
     const dispatch = useDispatch();
 
-    //  =======================================================================================
+//  =======================================================================================
 
-    const { buildings, status: buildingStatus } = useSelector((state) => state.building);
+    const { documents: sections, loading1, error1 } = fetchDocuments('sections');
+    
+    const { documents: programs, loading2, error2 } = fetchDocuments('programs');
 
-    const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
+    const { documents: subjects, loading3, error3 } = fetchDocuments('subjects');
 
-    const { sections, status: sectionStatus } = useSelector((state) => state.section);
+    const { documents: teachers, loading4, error4 } = fetchDocuments('teachers');
 
-    const { programs, status: programStatus } = useSelector((state) => state.program);
+    const { documents: buildings, loading5, error5 } = fetchDocuments('buildings');
 
-    const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
-
-    //  =======================================================================================
+//  =======================================================================================
 
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
         return externalNumOfSchoolDays ?? (Number(localStorage.getItem('numOfSchoolDays')) || 0);
@@ -72,264 +75,13 @@ const SectionListContainer = ({
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState([]);
 
-    //  =======================================================================================
-
-    const [editSectionAdviser, setEditSectionAdviser] = useState('');
-    const [editSectionProg, setEditSectionProg] = useState('');
-    const [editSectionYear, setEditSectionYear] = useState('');
-    const [editSectionId, setEditSectionId] = useState('');
-    const [editSectionValue, setEditSectionValue] = useState('');
-    const [editSectionSubjects, setEditSectionSubjects] = useState([]);
-    const [editSectionShift, setEditSectionShift] = useState(0);
-    const [editSectionStartTime, setEditSectionStartTime] = useState('');
-    const [editSectionFixedDays, setEditSectionFixedDays] = useState({});
-    const [editSectionFixedPositions, setEditSectionFixedPositions] = useState({});
-    const [editAdditionalScheds, setEditAdditionalScheds] = useState([]);
-    const [editRoomDetails, setEditRoomDetails] = useState({
-        buildingId: -1,
-        floorIdx: -1,
-        roomIdx: -1,
-    });
-
-    //  =======================================================================================
-
-    const [prevAdviser, setPrevAdviser] = useState('');
-
-    const [currEditProgram, setCurrEditProgram] = useState('');
-    const [currEditYear, setCurrEditYear] = useState('');
-
-    //  =======================================================================================
+//  =======================================================================================
 
     const [searchSectionResult, setSearchSectionResult] = useState(sections);
     const [searchSectionValue, setSearchSectionValue] = useState('');
 
-    //  =======================================================================================
-
-    const handleEditSectionClick = (section) => {
-        setEditSectionId(section.id);
-        setEditSectionValue(section.section);
-
-        setEditSectionAdviser(section.teacher);
-        setPrevAdviser(section.teacher);
-
-        setEditSectionProg(section.program);
-        setEditSectionYear(section.year);
-        setEditSectionShift(section.shift);
-        setEditSectionStartTime(getTimeSlotString(section.startTime));
-        setEditSectionSubjects(section.subjects);
-        setEditSectionFixedDays(section.fixedDays);
-        setEditSectionFixedPositions(section.fixedPositions);
-        setEditAdditionalScheds(section.additionalScheds);
-        setEditRoomDetails({
-            buildingId: section.roomDetails.buildingId,
-            floorIdx: section.roomDetails.floorIdx,
-            roomIdx: section.roomDetails.roomIdx,
-        });
-
-        setCurrEditProgram(section.program);
-        setCurrEditYear(section.year);
-    };
-
-    const handleSaveSectionEditClick = (sectionId) => {
-        if (
-            !editSectionAdviser ||
-            !editSectionValue ||
-            !editSectionProg ||
-            !editSectionYear ||
-            editSectionSubjects.length === 0
-        ) {
-            toast.error('Please fill out all required fields.', {
-                style: { backgroundColor: 'red', color: 'white' },
-            });
-
-            return;
-        }
-
-        const currentSection = sections[sectionId]?.section || '';
-        const currentSectionAdviser = sections[sectionId]?.teacher || '';
-
-        if (
-            editSectionValue.trim().toLowerCase() === currentSection.trim().toLowerCase() &&
-            editSectionAdviser === currentSectionAdviser
-        ) {
-            dispatch(
-                editSection({
-                    sectionId,
-                    updatedSection: {
-                        id: sectionId,
-                        teacher: editSectionAdviser,
-                        program: editSectionProg,
-                        section: editSectionValue,
-                        subjects: editSectionSubjects,
-                        fixedDays: editSectionFixedDays,
-                        fixedPositions: editSectionFixedPositions,
-                        year: editSectionYear,
-                        shift: editSectionShift,
-                        startTime: getTimeSlotIndex(editSectionStartTime),
-                        additionalScheds: editAdditionalScheds,
-                        roomDetails: editRoomDetails,
-                    },
-                })
-            );
-
-            toast.success('Section updated successfully', {
-                style: {
-                    backgroundColor: 'green',
-                    color: 'white',
-                    bordercolor: 'green',
-                },
-            });
-
-            resetStates();
-        } else {
-            const duplicateSection = Object.values(sections).find(
-                (section) =>
-                    section.section.trim().toLowerCase() === editSectionValue.trim().toLowerCase() &&
-                    section.section.trim().toLowerCase() !== currentSection.trim().toLowerCase()
-            );
-
-            const duplicateAdviser = Object.values(sections).find((section) => section.teacher === editSectionAdviser);
-
-            // console.log('duplicateAdviser: ', duplicateAdviser);
-
-            if (duplicateSection) {
-                toast.error('Section name already taken.', {
-                    style: { backgroundColor: 'red', color: 'white' },
-                });
-                return;
-            } else if (duplicateAdviser) {
-                toast.error(`Adviser already assigned to section '${duplicateAdviser.section}'`, {
-                    tyle: { backgroundColor: 'red', color: 'white' },
-                });
-            } else {
-                const advisoryLoad = {
-                    name: 'Advisory Load',
-                    subject: 0,
-                    duration: 60,
-                    frequency: numOfSchoolDays,
-                    shown: false,
-                    time: 96,
-                };
-
-                if (prevAdviser !== editSectionAdviser) {
-                    const prevSectionAdviser = structuredClone(teachers[prevAdviser]);
-
-                    if (prevSectionAdviser.additionalTeacherScheds) {
-                        prevSectionAdviser.additionalTeacherScheds = prevSectionAdviser.additionalTeacherScheds.filter(
-                            (sched) => sched.name !== 'Advisory Load'
-                        );
-                    }
-
-                    dispatch(
-                        editTeacher({
-                            id: prevAdviser,
-                            updatedTeacher: prevSectionAdviser,
-                        })
-                    );
-                }
-
-                const teacher = structuredClone(teachers[editSectionAdviser]);
-                teacher.additionalTeacherScheds = teacher.additionalTeacherScheds || [];
-                teacher.additionalTeacherScheds.push(advisoryLoad);
-
-                dispatch(
-                    editTeacher({
-                        teacherId: editSectionAdviser,
-                        updatedTeacher: teacher,
-                    })
-                );
-
-                dispatch(
-                    editSection({
-                        sectionId,
-                        updatedSection: {
-                            id: sectionId,
-                            teacher: editSectionAdviser,
-                            program: editSectionProg,
-                            section: editSectionValue,
-                            subjects: editSectionSubjects,
-                            fixedDays: editSectionFixedDays,
-                            fixedPositions: editSectionFixedPositions,
-                            year: editSectionYear,
-                            shift: editSectionShift,
-                            startTime: getTimeSlotIndex(editSectionStartTime),
-                            additionalScheds: editAdditionalScheds,
-                            roomDetails: editRoomDetails,
-                        },
-                    })
-                );
-
-                resetStates();
-            }
-        }
-    };
-
-    const handleCancelSectionEditClick = () => {
-        setEditSectionId(null);
-        setEditSectionValue('');
-        setEditSectionAdviser('');
-        setEditSectionProg('');
-        setEditSectionYear('');
-        setEditSectionSubjects([]);
-        setEditSectionFixedDays({});
-        setEditSectionFixedPositions({});
-        setEditAdditionalScheds([]);
-        setEditRoomDetails({
-            buildingId: -1,
-            floorIdx: -1,
-            roomIdx: -1,
-        });
-
-        setCurrEditProgram('');
-        setCurrEditYear('');
-    };
-
-    //  =======================================================================================
-
-    // HANDLING ADDITION AND DELETION OF ADDITIONAL SCHEDULES
-    // const handleAddAdditionalSchedule = () => {
-    //     setEditAdditionalScheds((prevScheds) => [
-    //         ...prevScheds,
-    //         {
-    //             name: '',
-    //             subject: 0,
-    //             duration: 60,
-    //             frequency: 1,
-    //             shown: true,
-    //             time: editSectionShift === 0 ? 192 : 96,
-    //         },
-    //     ]);
-    // };
-
-    // const handleDeleteAdditionalSchedule = (index) => {
-    //     setEditAdditionalScheds((prevScheds) =>
-    //         prevScheds.filter((_, i) => i !== index)
-    //     );
-    // };
-
-    // RENDERING TIME OPTIONS
-    // const renderTimeOptions = () => {
-    //     const times =
-    //         editSectionShift === 0
-    //             ? Array.from({ length: 36 }, (_, i) => {
-    //                   const hours = 6 + Math.floor(i / 6);
-    //                   const minutes = (i % 6) * 10;
-    //                   return `${String(hours).padStart(2, '0')}:${String(
-    //                       minutes
-    //                   ).padStart(2, '0')} AM`;
-    //               })
-    //             : ['01:00 PM']; // Only one option for PM
-
-    //     return times.map((time) => (
-    //         <option key={time} value={time}>
-    //             {time}
-    //         </option>
-    //     ));
-    // };
-
-    //  =======================================================================================
-    //  Handling ADD SECTION MODAL
-
+//  =======================================================================================
+    
     const handleClose = () => {
         const modal = document.getElementById('add_section_modal');
         if (modal) {
@@ -339,18 +91,7 @@ const SectionListContainer = ({
         } else {
             console.error("Modal with ID 'add_section_modal' not found.");
         }
-    };
-
-    //  =======================================================================================
-    //  Handling DELETE SECTION MODAL
-
-    const deleteModal = (id) => {
-        const deleteModalElement = document.getElementById('delete_modal');
-        deleteModalElement.showModal(); // Show the modal
-
-        const deleteButton = document.getElementById('delete_button');
-        deleteButton.onclick = () => handleDelete(id); // Dynamically assign delete logic
-    };
+    }; 
 
     const handleDelete = (id) => {
         // Remove ADVISORY LOAD of teacher assigned as the section's adviser
@@ -372,22 +113,7 @@ const SectionListContainer = ({
         );
     };
 
-    //  =======================================================================================
-
-    const resetStates = () => {
-        // Reset the editing state
-        setEditSectionId('');
-        setEditSectionValue('');
-        setEditSectionProg('');
-        setEditSectionYear('');
-        setEditSectionSubjects([]);
-        setEditSectionFixedDays({});
-        setEditSectionFixedPositions({});
-        setEditAdditionalScheds([]);
-
-        setCurrEditProgram('');
-        setCurrEditYear('');
-    };
+//  =======================================================================================
 
     const debouncedSearch = useCallback(
         debounce((searchValue, sections, subjects) => {
@@ -414,39 +140,7 @@ const SectionListContainer = ({
         []
     );
 
-    //  =======================================================================================
-
-    useEffect(() => {
-        if (buildingStatus === 'idle') {
-            dispatch(fetchBuildings());
-        }
-    }, [buildingStatus, dispatch]);
-
-    useEffect(() => {
-        if (sectionStatus === 'idle') {
-            dispatch(fetchSections());
-        }
-    }, [sectionStatus, dispatch]);
-
-    useEffect(() => {
-        if (programStatus === 'idle') {
-            dispatch(fetchPrograms());
-        }
-    }, [programStatus, dispatch]);
-
-    useEffect(() => {
-        if (subjectStatus === 'idle') {
-            dispatch(fetchSubjects());
-        }
-    }, [subjectStatus, dispatch]);
-
-    useEffect(() => {
-        if (teacherStatus === 'idle') {
-            dispatch(fetchTeachers());
-        }
-    }, [teacherStatus, dispatch]);
-
-    //  =======================================================================================
+//  =======================================================================================
 
     useEffect(() => {
         if (externalNumOfSchoolDays !== undefined) {
@@ -454,28 +148,9 @@ const SectionListContainer = ({
         }
     }, [externalNumOfSchoolDays]);
 
-    // Update fixed days, fixed positions, and additional schedules of sections upon program and/or year level change
-    useEffect(() => {
-        if (
-            editSectionYear !== undefined &&
-            editSectionProg !== undefined &&
-            (currEditYear !== editSectionYear || currEditProgram !== editSectionProg)
-        ) {
-            setCurrEditProgram(editSectionProg);
-            setCurrEditYear(editSectionYear);
 
-            const program = Object.values(programs).find((p) => p.id === editSectionProg);
 
-            if (program) {
-                setEditSectionSubjects(program[editSectionYear]?.subjects || []);
-                setEditSectionFixedDays(program[editSectionYear]?.fixedDays || {});
-                setEditSectionFixedPositions(program[editSectionYear]?.fixedPositions || {});
-                setEditAdditionalScheds(program[editSectionYear]?.additionalTeacherScheds || []);
-            }
-        }
-    }, [editSectionYear, editSectionProg, programs]);
-
-    //  =======================================================================================
+//  =======================================================================================
 
     useEffect(() => {
         debouncedSearch(searchSectionValue, sections, subjects);
@@ -492,12 +167,13 @@ const SectionListContainer = ({
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Object.entries(searchSectionResult).slice(indexOfFirstItem, indexOfLastItem);
 
-    //  =======================================================================================
+//  =======================================================================================
 
     return (
         <React.Fragment>
             <div className='w-full'>
                 <div className='flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5'>
+                    
                     {/* Pagination */}
                     {currentItems.length > 0 && (
                         <div className='join flex justify-center mb-4 md:mb-0'>
@@ -507,7 +183,6 @@ const SectionListContainer = ({
                                     if (currentPage > 1) {
                                         setCurrentPage(currentPage - 1);
                                     }
-                                    handleCancelSectionEditClick();
                                 }}
                                 disabled={currentPage === 1}
                             >
@@ -522,7 +197,6 @@ const SectionListContainer = ({
                                     if (currentPage < totalPages) {
                                         setCurrentPage(currentPage + 1);
                                     }
-                                    handleCancelSectionEditClick();
                                 }}
                                 disabled={currentPage === totalPages}
                             >
@@ -615,7 +289,8 @@ const SectionListContainer = ({
                                         {/* <td>{index + indexOfFirstItem + 1}</td> */}
 
                                         {/* Section ID */}
-                                        <td>{section.id}</td>
+                                        {/* <td>{section.id}</td> */}
+                                        <td>{section.custom_id}</td>
 
                                         {/* Section Name, Shift, and Start Time */}
                                         <td>
@@ -652,33 +327,23 @@ const SectionListContainer = ({
                                                 {/* Building */}
                                                 <div className='mb-5 flex flex-col justify-start font-semibold'>
                                                     <div>
-                                                        {buildings[
-                                                            editSectionId === section.id
-                                                                ? editRoomDetails.buildingId
-                                                                : section.roomDetails.buildingId
-                                                        ]?.name || 'UNASSIGNED BUILDING'}
+                                                        {buildings[section.roomDetails.buildingId]?.name || 'UNASSIGNED BUILDING'}
                                                     </div>
                                                 </div>
 
                                                 {/* Number of Floors */}
                                                 <div className='mb-5 flex flex-col justify-start text-zinc-600'>
                                                     <div>
-                                                        {editSectionId === section.id
-                                                            ? editRoomDetails.floorIdx + 1 || 'UNASSIGNED FLOOR'
-                                                            : section.roomDetails.floorIdx + 1 || 'UNASSIGNED FLOOR'}
+                                                        {section.roomDetails.floorIdx + 1 || 'UNASSIGNED FLOOR'}
                                                     </div>
                                                 </div>
 
                                                 {/* Room */}
                                                 <div className='mb-5 flex flex-col justify-start text-zinc-600'>
                                                     <div>
-                                                        {editSectionId === section.id
-                                                            ? buildings[editRoomDetails.buildingId]?.rooms[
-                                                                  editRoomDetails.floorIdx
-                                                              ][editRoomDetails.roomIdx]?.roomName
-                                                            : buildings[section.roomDetails.buildingId]?.rooms[
-                                                                  section.roomDetails.floorIdx
-                                                              ][section.roomDetails.roomIdx]?.roomName || 'UNASSIGNED ROOM'}
+                                                        {buildings[section.roomDetails.buildingId]?.
+                                                            rooms[section.roomDetails.floorIdx][section.roomDetails.roomIdx]?.
+                                                                roomName || 'UNASSIGNED ROOM'}
                                                     </div>
                                                 </div>
                                             </div>
@@ -823,12 +488,9 @@ const SectionListContainer = ({
                                                     />
 
                                                     <DeleteData
-                                                        id={section.id}
-                                                        store={'section'}
-                                                        reduxFunction={removeSection}
-                                                        callback={() => {
-                                                            handleDelete(section.id);
-                                                        }}
+                                                        className='btn btn-xs btn-ghost text-red-500' 
+                                                        collection={'sections'}
+                                                        id={section.custom_id}
                                                     />
                                                 </div>
 

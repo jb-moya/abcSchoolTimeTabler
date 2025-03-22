@@ -9,6 +9,9 @@ import SearchableDropdownToggler from '../searchableDropdown';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import AdditionalScheduleForTeacher from './AdditionalScheduleForTeacher';
 
+import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+import { addDocument } from '../../../hooks/CRUD/addDocument';
+
 import { toast } from 'sonner';
 
 const AddTeacherContainer = ({
@@ -20,26 +23,39 @@ const AddTeacherContainer = ({
     setErrorField,
     numOfSchoolDays,
 }) => {
+
     const inputNameRef = useRef();
-
-    const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
-
-    const { ranks, status: rankStatus } = useSelector((state) => state.rank);
-
-    const { departments, status: departmentStatus } = useSelector((state) => state.department);
-
-    const { teachers } = useSelector((state) => state.teacher);
 
     const dispatch = useDispatch();
 
+// =============================================================================================================
+
+    const { documents: teachers, loading1, error1 } = fetchDocuments('teachers');
+
+    const { documents: subjects, loading2, error2 } = fetchDocuments('subjects');
+
+    const { documents: ranks, loading3, error3 } = fetchDocuments('ranks');
+
+    const { documents: departments, loading4, error4 } = fetchDocuments('departments');
+
+// =============================================================================================================
+
     const [teacherName, setTeacherName] = useState('');
+
     const [teacherRank, setTeacherRank] = useState(null);
+
     const [teacherDepartment, setTeacherDepartment] = useState(null);
+
     const [selectedSubjects, setSelectedSubjects] = useState([]);
+
     const [assignedYearLevels, setAssignedYearLevels] = useState([]);
+
     const [additionalTeacherScheds, setAdditionalTeacherScheds] = useState([]);
 
+// =============================================================================================================
+
     const handleAddTeacher = () => {
+
         if (!teacherName.trim()) {
             setErrorMessage('Teacher name cannot be empty.');
             setErrorField('name');
@@ -70,34 +86,48 @@ const AddTeacherContainer = ({
             setErrorField('name');
             setErrorMessage('Teacher already exists.');
             return;
-        } else {
-            dispatch(
-                reduxFunction({
-                    teacher: teacherName,
-                    rank: teacherRank,
-                    department: teacherDepartment,
-                    subjects: selectedSubjects,
-                    yearLevels: assignedYearLevels,
-                    additionalTeacherScheds: additionalTeacherScheds,
-                })
-            );
+        } 
+
+        try {
+            addDocument('teachers', {
+                teacher: teacherName,
+                rank: teacherRank,
+                department: teacherDepartment,
+                subjects: selectedSubjects,
+                yearLevels: assignedYearLevels,
+                additionalTeacherScheds: additionalTeacherScheds,
+            });
+        } catch (error) {
+            console.error('Error adding teacher:', error);
+        } finally {
+            toast.success('Teacher added successfully', {
+                style: {
+                    backgroundColor: 'green',
+                    color: 'white',
+                    bordercolor: 'green',
+                },
+            });
+
+            handleReset();
+            close();
+
+            if (inputNameRef.current) {
+                inputNameRef.current.focus();
+                inputNameRef.current.select();
+            }
         }
 
-        toast.success('Teacher added successfully', {
-            style: {
-                backgroundColor: 'green',
-                color: 'white',
-                bordercolor: 'green',
-            },
-        });
+        // dispatch(
+        //     reduxFunction({
+        //         teacher: teacherName,
+        //         rank: teacherRank,
+        //         department: teacherDepartment,
+        //         subjects: selectedSubjects,
+        //         yearLevels: assignedYearLevels,
+        //         additionalTeacherScheds: additionalTeacherScheds,
+        //     })
+        // );
 
-        handleReset();
-        close();
-
-        if (inputNameRef.current) {
-            inputNameRef.current.focus();
-            inputNameRef.current.select();
-        }
     };
 
     const handleRankChange = (event) => {
@@ -136,6 +166,8 @@ const AddTeacherContainer = ({
         setAdditionalTeacherScheds((prevScheds) => prevScheds.filter((_, i) => i !== index));
     };
 
+// ============================================================================================================
+
     const handleReset = () => {
         setErrorField('');
         setErrorMessage('');
@@ -148,7 +180,7 @@ const AddTeacherContainer = ({
 
     useEffect(() => {
         if (teacherRank) {
-            const rank = Object.values(ranks).find((rank) => rank.id === teacherRank);
+            const rank = Object.values(ranks).find((rank) => rank.custom_id === teacherRank);
 
             if (rank) {
                 setAdditionalTeacherScheds(rank.additionalRankScheds);
@@ -156,29 +188,15 @@ const AddTeacherContainer = ({
         }
     }, [teacherRank]);
 
+// =============================================================================================================
+
     useEffect(() => {
         if (inputNameRef.current) {
             inputNameRef.current.focus();
         }
     }, []);
 
-    useEffect(() => {
-        if (subjectStatus === 'idle') {
-            dispatch(fetchSubjects());
-        }
-    }, [dispatch, subjectStatus]);
-
-    useEffect(() => {
-        if (rankStatus === 'idle') {
-            dispatch(fetchRanks());
-        }
-    }, [dispatch, rankStatus]);
-
-    useEffect(() => {
-        if (departmentStatus === 'idle') {
-            dispatch(fetchDepartments());
-        }
-    }, [dispatch, departmentStatus]);
+// ============================================================================================================
 
     return (
         <div className='justify-left'>
@@ -189,6 +207,7 @@ const AddTeacherContainer = ({
             <hr className=''></hr>
 
             <div className='rounded-lg shadow-md md:shadow-lg sm:shadow-sm space-y-4 mb-4 p-4'>
+
                 {/* Teacher Name */}
                 <div className='mb-4'>
                     <label className='block text-sm font-medium mb-1' htmlFor='teacherName'>
@@ -223,7 +242,7 @@ const AddTeacherContainer = ({
                             </option>
                             {ranks && Object.keys(ranks).length > 0 ? (
                                 Object.values(ranks).map((rank) => (
-                                    <option key={rank.id} value={rank.id}>
+                                    <option key={rank.id} value={rank.custom_id}>
                                         {rank.rank}
                                     </option>
                                 ))
@@ -251,7 +270,7 @@ const AddTeacherContainer = ({
                             </option>
                             {departments && Object.keys(departments).length > 0 ? (
                                 Object.values(departments).map((department) => (
-                                    <option key={department.id} value={department.id}>
+                                    <option key={department.id} value={department.custom_id}>
                                         {`${department.name || ''}${
                                             teachers[department.head]?.teacher ? ` - ${teachers[department.head]?.teacher}` : ''
                                         }`}
@@ -318,7 +337,7 @@ const AddTeacherContainer = ({
             </div>
 
             {/* Additional Schedules */}
-             <div className='p-4 border rounded-lg shadow-md'>
+            <div className='p-4 border rounded-lg shadow-md'>
                 <div className='text-lg font-semibold rounded-lg'>Additional Teacher Schedules</div>
                 <hr className='my-2'></hr>
 
@@ -406,6 +425,7 @@ const AddTeacherContainer = ({
             </div>
         </div>
     );
+
 };
 
 export default AddTeacherContainer;

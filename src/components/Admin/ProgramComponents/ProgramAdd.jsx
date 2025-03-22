@@ -8,6 +8,9 @@ import SearchableDropdownToggler from '../searchableDropdown';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { IoWarningSharp } from 'react-icons/io5';
 
+import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+import { addDocument } from '../../../hooks/CRUD/addDocument';
+
 import AdditionalScheduleForProgram from './AdditionalScheduleForProgram';
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
 import TimeSelector from '@utils/timeSelector';
@@ -31,9 +34,13 @@ const AddProgramContainer = ({
 
 // ===============================================================================
 
-    const subjects = useSelector((state) => state.subject.subjects);
+    // const subjects = useSelector((state) => state.subject.subjects);
 
-    const programs = useSelector((state) => state.program.programs);
+    const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
+
+    // const programs = useSelector((state) => state.program.programs);
+
+    const { documents: programs, loading2, error2 } = fetchDocuments('programs');
 
 // ==============================================================================
 
@@ -337,9 +344,55 @@ const AddProgramContainer = ({
             setErrorMessage('A program with this name already exists.');
             setErrorField('program');
         } else {
-            dispatch(
-                reduxFunction({
-                    [reduxField[0]]: inputValue,
+            // dispatch(
+            //     reduxFunction({
+            //         [reduxField[0]]: inputValue,
+            //         7: {
+            //             subjects: selectedSubjects[7],
+            //             fixedDays: fixedDays[7],
+            //             fixedPositions: fixedPositions[7],
+            //             shift: selectedShifts[7],
+            //             startTime: getTimeSlotIndex(startTimes[7]),
+            //             endTime: endTimes[7],
+            //             additionalScheds: additionalScheds[7],
+            //             modality: classModality[7],
+            //         },
+            //         8: {
+            //             subjects: selectedSubjects[8],
+            //             fixedDays: fixedDays[8],
+            //             fixedPositions: fixedPositions[8],
+            //             shift: selectedShifts[8],
+            //             startTime: getTimeSlotIndex(startTimes[8]),
+            //             endTime: endTimes[8],
+            //             additionalScheds: additionalScheds[8],
+            //             modality: classModality[8],
+            //         },
+            //         9: {
+            //             subjects: selectedSubjects[9],
+            //             fixedDays: fixedDays[9],
+            //             fixedPositions: fixedPositions[9],
+            //             shift: selectedShifts[9],
+            //             startTime: getTimeSlotIndex(startTimes[9]),
+            //             endTime: endTimes[9],
+            //             additionalScheds: additionalScheds[9],
+            //             modality: classModality[9],
+            //         },
+            //         10: {
+            //             subjects: selectedSubjects[10],
+            //             fixedDays: fixedDays[10],
+            //             fixedPositions: fixedPositions[10],
+            //             shift: selectedShifts[10],
+            //             startTime: getTimeSlotIndex(startTimes[10]),
+            //             endTime: endTimes[10],
+            //             additionalScheds: additionalScheds[10],
+            //             modality: classModality[10],
+            //         },
+            //     })
+            // );
+
+            try {
+                addDocument('programs', {
+                    program: inputValue,
                     7: {
                         subjects: selectedSubjects[7],
                         fixedDays: fixedDays[7],
@@ -380,18 +433,21 @@ const AddProgramContainer = ({
                         additionalScheds: additionalScheds[10],
                         modality: classModality[10],
                     },
-                })
-            );
+                });
+            } catch (error) {
+                console.error('Error adding program:', error);
+            } finally {
+                toast.success('Program added successfully!', {
+                    style: {
+                        backgroundColor: 'green',
+                        color: 'white',
+                        bordercolor: 'green',
+                    },
+                });
+                handleReset();
+                close();
+            }
 
-            toast.success('Program added successfully!', {
-                style: {
-                    backgroundColor: 'green',
-                    color: 'white',
-                    bordercolor: 'green',
-                },
-            });
-            handleReset();
-            close();
         }
     };
 

@@ -3,6 +3,8 @@ import { useDroppable } from '@dnd-kit/core';
 import { useSelector } from 'react-redux';
 import DraggableSchedules from './draggableSchedules';
 
+import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+
 const DroppableSchedCell = ({
     editMode,
 
@@ -24,7 +26,9 @@ const DroppableSchedCell = ({
         10
     );
 
-    const subjects = useSelector((state) => state.subject.subjects);
+    // const subjects = useSelector((state) => state.subject.subjects);
+
+    const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
 
     const [isFull, setIsFull] = useState(false);
 
