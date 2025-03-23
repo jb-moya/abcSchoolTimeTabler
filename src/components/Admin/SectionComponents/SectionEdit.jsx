@@ -40,44 +40,27 @@ const SectionEdit = ({
 
 // ===============================================================
 
-    const { documents: sections, loading1, error1 } = fetchDocuments('sections');
-    
+    const { documents: sections, loading1, error1 } = fetchDocuments('sections');  
     const { documents: programs, loading2, error2 } = fetchDocuments('programs');
-
     const { documents: subjects, loading3, error3 } = fetchDocuments('subjects');
-
     const { documents: teachers, loading4, error4 } = fetchDocuments('teachers');
-
     const { documents: buildings, loading5, error5 } = fetchDocuments('buildings');
 
 // ===============================================================================================
 
     const [editSectionAdviser, setEditSectionAdviser] = useState('');
-
     const [prevAdviser, setPrevAdviser] = useState('');
-
     const [editSectionProg, setEditSectionProg] = useState('');
-
     const [editSectionYear, setEditSectionYear] = useState('');
-
     const [editSectionId, setEditSectionId] = useState('');
-
     const [editSectionValue, setEditSectionValue] = useState('');
-
     const [editSectionSubjects, setEditSectionSubjects] = useState([]);
-
     const [editSectionShift, setEditSectionShift] = useState(0);
-
     const [editSectionStartTime, setEditSectionStartTime] = useState('');
-
     const [editSectionEndTime, setEditSectionEndTime] = useState('');
-
     const [editSectionFixedDays, setEditSectionFixedDays] = useState({});
-
     const [editSectionFixedPositions, setEditSectionFixedPositions] = useState({});
-
     const [editSectionClassModality, setEditSectionClassModality] = useState(new Array(numOfSchoolDays).fill(1));
-
     const [editAdditionalScheds, setEditAdditionalScheds] = useState([]);
 
     const [editRoomDetails, setEditRoomDetails] = useState({
