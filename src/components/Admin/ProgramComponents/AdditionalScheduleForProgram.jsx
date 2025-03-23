@@ -2,6 +2,8 @@ import { clsx } from 'clsx';
 import { useState, useEffect, useRef} from 'react';
 import { useSelector } from 'react-redux';
 
+import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+
 import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';
 
 const AdditionalScheduleForProgram = ({
@@ -15,7 +17,9 @@ const AdditionalScheduleForProgram = ({
     setAdditionalScheds = () => {},
 }) => {
 
-    const subjects = useSelector((state) => state.subject.subjects);
+    // const subjects = useSelector((state) => state.subject.subjects);
+
+    const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
 
 // ==============================================================================
 

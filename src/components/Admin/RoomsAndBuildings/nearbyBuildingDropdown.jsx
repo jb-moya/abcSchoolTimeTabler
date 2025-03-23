@@ -1,7 +1,9 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { IoChevronDown, IoRemove, IoAdd } from 'react-icons/io5';
 import clsx from 'clsx';
 import escapeRegExp from '@utils/escapeRegExp';
+
+import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 
 const NearbyBuildingDropdown = ({
     availableBuildings,
@@ -9,28 +11,45 @@ const NearbyBuildingDropdown = ({
     setNearbyBuildings,
     currentBuildingId, // Add this prop
 }) => {
+
+    const { documents: buildings, loading1, error1 } = fetchDocuments('buildings');
+
+    // useEffect(() => {
+    //     console.log('buildings: ', buildings);
+    // }, [buildings]);
+
+    // useEffect(() => {
+    //     console.log('nearbyBuildings: ', nearbyBuildings);  
+    // }, [nearbyBuildings]);
+
     const [searchValue, setSearchValue] = useState('');
+
     const searchInputRef = useRef(null);
 
     // Filter out the current building
-    const filteredBuildings = availableBuildings
-        .filter((building) => building.id !== currentBuildingId)
+    const filteredBuildings = Object.values(availableBuildings) // Convert object to array
+        .filter((building) => building.custom_id !== currentBuildingId)
         .filter((building) => {
             const escapedSearchValue = escapeRegExp(searchValue)
                 .split('\\')
-                .join('.');
+                .join('.'); // Escape regex properly
             const pattern = new RegExp(escapedSearchValue, 'i');
             return pattern.test(building.name);
         });
 
-    const handleToggleBuilding = (buildingId) => {
-        const updatedList = nearbyBuildings.some((b) => b.id === buildingId)
-            ? nearbyBuildings.filter((b) => b.id !== buildingId)
-            : [
-                  ...nearbyBuildings,
-                  availableBuildings.find((b) => b.id === buildingId),
-              ];
+    // useEffect(() => {
+    //     console.log('filteredBuildings: ', filteredBuildings);
+    // }, [filteredBuildings]);
 
+    // useEffect(() => {
+    //     console.log('availableBuildings: ', availableBuildings);
+    // }, [availableBuildings]);
+
+    const handleToggleBuilding = (buildingCustomId) => {
+        const updatedList = nearbyBuildings.includes(buildingCustomId)
+            ? nearbyBuildings.filter((id) => id !== buildingCustomId)
+            : [...nearbyBuildings, buildingCustomId];
+    
         setNearbyBuildings(updatedList);
     };
 
@@ -69,18 +88,18 @@ const NearbyBuildingDropdown = ({
                     ) : (
                         filteredBuildings.map((building) => (
                             <li
-                                key={building.id}
+                                key={buildings[building.custom_id].id}
                                 role="button"
                                 onClick={() =>
-                                    handleToggleBuilding(building.id)
+                                    handleToggleBuilding(building.custom_id)
                                 }
                             >
                                 <div className="flex justify-between items-center">
                                     <a className={clsx('w-full')}>
-                                        {building.name}
+                                        {buildings[building.custom_id].name}
                                     </a>
                                     {nearbyBuildings.some(
-                                        (b) => b.id === building.id
+                                        (b) => b.custom_id === building.custom_id
                                     ) ? (
                                         <IoRemove
                                             size={20}
@@ -104,11 +123,13 @@ const NearbyBuildingDropdown = ({
                 <div className="flex flex-wrap gap-2 mt-3">
                     {nearbyBuildings.map((building) => (
                         <span
-                            key={building.id}
+                            key={buildings[building]?.id}
+                            // key={building.custom_id}
                             className="badge badge-primary gap-2 cursor-pointer"
-                            onClick={() => handleToggleBuilding(building.id)}
+                            onClick={() => handleToggleBuilding(building)}
                         >
-                            {building.name}
+                            {buildings[building]?.name}
+                            {/* {buildings.custom_id} */}
                             <IoRemove size={16} className="ml-2" />
                         </span>
                     ))}

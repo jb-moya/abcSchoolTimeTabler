@@ -5,6 +5,8 @@ import { useDroppable } from '@dnd-kit/core';
 import clsx from 'clsx';
 import { spawnColors } from './bgColors';
 
+import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+
 const ContainerSpawn = ({
     editMode,
 
@@ -19,7 +21,9 @@ const ContainerSpawn = ({
     fixedDays,
     fixedPositions,
 }) => {
-    const subjects = useSelector((state) => state.subject.subjects);
+    // const subjects = useSelector((state) => state.subject.subjects);
+
+    const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
 
     // useEffect(() => {
     //     console.log('selectedSubjects', selectedSubjects);
@@ -35,7 +39,7 @@ const ContainerSpawn = ({
 
     return (
         <div ref={setNodeRef} className={'w-full min-h-13 flex flex-col justify-start'}>
-            <div className='px-2 flex max-w-fit text-lg rounded-br-lg rounded-tl-sm'>subjectID</div>
+            {/* <div className='px-2 flex max-w-fit text-lg rounded-br-lg rounded-tl-sm'>subjectID</div> */}
             <div className='flex flex-wrap p-2 gap-2'>
                 {selectedSubjects?.map((subject, index) => {
                     const arrayLength = fixedDays?.[subject]?.length || 0;

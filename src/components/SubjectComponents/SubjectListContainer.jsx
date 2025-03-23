@@ -7,6 +7,8 @@ import { fetchSubjects, addSubject, editSubject, removeSubject } from '@features
 
 // import { getTimeSlotIndex } from '@utils/timeSlotMapper';
 
+import { fetchDocuments } from '../../hooks/CRUD/retrieveDocuments';
+
 import { IoAdd, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
@@ -30,9 +32,15 @@ const SubjectListContainer = ({
 
 // ==============================================================================
 
-    const { subjects, status: subjectStatus } = useSelector(
-        (state) => state.subject
-    );
+    // const { subjects, status: subjectStatus } = useSelector(
+    //     (state) => state.subject
+    // );
+
+    const { documents: subjects, loading, error } = fetchDocuments('subjects');
+
+    useEffect(() => {
+        console.log('subjects:', subjects);
+    }, [subjects]);
 
 // ==============================================================================
 
@@ -90,11 +98,11 @@ const SubjectListContainer = ({
 
 // ==============================================================================
 
-    useEffect(() => {
-        if (subjectStatus === 'idle') {
-            dispatch(fetchSubjects());
-        }
-    }, [subjectStatus, dispatch]);
+    // useEffect(() => {
+    //     if (subjectStatus === 'idle') {
+    //         dispatch(fetchSubjects());
+    //     }
+    // }, [subjectStatus, dispatch]);
 
 // ==============================================================================
 
@@ -225,7 +233,7 @@ const SubjectListContainer = ({
                         <tr>
                             <th>ID</th>
                             <th>Subject</th>
-                            <th>Duration (min)</th>
+                            <th>Duration HAhah(min)</th>
                             <th>Weekly Requirement (min)</th>
                             <th># of Classes (Max: {numOfSchoolDays})</th>
                             {editable && <th className='text-left'>Actions</th>}
@@ -243,7 +251,8 @@ const SubjectListContainer = ({
                                 <tr key={subject.id} className="group hover">
 
                                     {/* Subject ID */}
-                                    <th>{subject.id}</th>
+                                    {/* <th>{subject.id}</th> */}
+                                    <th>{subject.custom_id}</th>
 
                                     {/* Subject Name */}
                                     <td>{subject.subject}</td>
@@ -279,9 +288,8 @@ const SubjectListContainer = ({
                                                 />
                                                 <DeleteData
                                                     className='btn btn-xs btn-ghost text-red-500'
-                                                    store={'subject'}
-                                                    id={subject.id}
-                                                    reduxFunction={removeSubject}
+                                                    collection={'subjects'}
+                                                    id={subject.custom_id}
                                                 />
                                             </div>
                                         </td>

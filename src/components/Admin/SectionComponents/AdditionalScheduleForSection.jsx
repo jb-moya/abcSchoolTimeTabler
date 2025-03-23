@@ -3,8 +3,9 @@ import { useSelector } from 'react-redux';
 import TimeSelector from '@utils/timeSelector';
 import clsx from 'clsx';
 
-import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
+import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 
+import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
 
 const AdditionalScheduleForSection = ({
     viewingMode = 0,
@@ -18,7 +19,9 @@ const AdditionalScheduleForSection = ({
 }) => {
 
 
-    const subjects = useSelector((state) => state.subject.subjects);
+    // const subjects = useSelector((state) => state.subject.subjects);
+
+    const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
 
 // ===================================================================================================
 

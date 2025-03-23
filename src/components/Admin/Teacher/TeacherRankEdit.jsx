@@ -7,6 +7,9 @@ import AdditionalScheduleForTeacherRank from './AdditionalScheduleForTeacherRank
 import { fetchSubjects } from '@features/subjectSlice';
 import { fetchTeachers, editTeacher } from '@features/teacherSlice';
 
+import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+import { editDocument } from '../../../hooks/CRUD/editDocument';
+
 import { toast } from "sonner";
 
 const TeacherRankEdit = ({
@@ -23,17 +26,23 @@ const TeacherRankEdit = ({
 
 // ==============================================================================
 
-    const { ranks, status: rankStatus } = useSelector(
-		(state) => state.rank
-	);
+    // const { ranks, status: rankStatus } = useSelector(
+	// 	(state) => state.rank
+	// );
 
-	const { teachers, status: teacherStatus } = useSelector(
-		(state) => state.teacher
-	);
+    const { documents: ranks, loading1, error1 } = fetchDocuments('ranks');
+
+	// const { teachers, status: teacherStatus } = useSelector(
+	// 	(state) => state.teacher
+	// );
+
+    const { documents: teachers, loading2, error2 } = fetchDocuments('teachers');
 
 // ==============================================================================
 
     const [editRankId, setEditRankId] = useState(rank.id || null);
+
+    const [editRankCustomId, setEditRankCustomId] = useState(rank.customId || '');
 
     const [editRankValue, setEditRankValue] = useState(rank.rank || '');
 
@@ -42,6 +51,7 @@ const TeacherRankEdit = ({
 	useEffect(() => {
 		if (rank) {
 			setEditRankId(rank.id || null);
+            setEditRankCustomId(rank.custom_id || '');
 			setEditRankValue(rank.rank || '');
 			setEditAdditionalRankScheds(rank.additionalRankScheds || []);
 		}
@@ -49,21 +59,8 @@ const TeacherRankEdit = ({
 
 // ==============================================================================
 
-	useEffect(() => {
-		if (rankStatus === 'idle') {
-			dispatch(fetchRanks());
-		}
-	}, [rankStatus, dispatch]);
-
-	useEffect(() => {
-		if (teacherStatus === 'idle') {
-			dispatch(fetchTeachers());
-		}
-	}, [teacherStatus, dispatch]);
-
-// ==============================================================================
-
 	const updateAllTeacherAdditionalSchedules = () => {
+
 		Object.entries(teachers).forEach(([teacherID, teacher]) => {
 			const newTeacher = JSON.parse(JSON.stringify(teacher));
 
@@ -120,10 +117,10 @@ const TeacherRankEdit = ({
 			
 		})
 	};
-
-		
+	
 	const handleSaveRankEditClick = (value) => {
 
+        handleConfirmationModalClose();
 
 		if (!editRankValue.trim()) {
 			toast.error('All fields are required.', {
@@ -132,28 +129,46 @@ const TeacherRankEdit = ({
 			return;
 		}
 
-		const currentRank = ranks[editRankId]?.rank || '';
+		const currentRank = ranks[editRankCustomId]?.rank || '';
 
 		if (editRankValue.trim().toLowerCase() === currentRank.trim().toLowerCase()) {
-			dispatch(
-				reduxFunction({
-					rankId: editRankId,
-					updatedRank: {
-						rank: editRankValue,
+
+            try {
+                editDocument('ranks', editRankId, {
+                    rank: editRankValue,
 						additionalRankScheds: editAdditionalRankScheds,
-					},
-				})
-			);
+                });
 
-			if (value) {
-				updateAllTeacherAdditionalSchedules();
-			}
+                // if (value) {
+                //     updateAllTeacherAdditionalSchedules();
+                // }
 
-			toast.success('Data and dependencies updated successfully', {
-				style: { backgroundColor: 'green', color: 'white', bordercolor: 'green', },
-			});
+            } catch {
+                toast.error('Something went wrong. Please try again.');
+                console.error('Something went wrong. Please try again.');
+            } finally {
+                toast.success('Data and dependencies updated successfully!', {
+                    style: {
+                        backgroundColor: '#28a745',
+                        color: '#fff',
+                        borderColor: '#28a745',
+                    },
+                });
+        
+                resetStates();
+                closeModal();
+            }
 
-			resetStates();
+			// dispatch(
+			// 	reduxFunction({
+			// 		rankId: editRankId,
+			// 		updatedRank: {
+			// 			rank: editRankValue,
+			// 			additionalRankScheds: editAdditionalRankScheds,
+			// 		},
+			// 	})
+			// );
+	
 		} else {
 			const duplicateRank = Object.values(ranks).find((rank) => rank.rank.trim().toLowerCase() === editRankValue.trim().toLowerCase());
 
@@ -163,30 +178,46 @@ const TeacherRankEdit = ({
 				});
 				return;
 			} else {
-				dispatch(
-					reduxFunction({
-						rankId: editRankId,
-						updatedRank: {
-							rank: editRankValue,
-							additionalRankScheds: editAdditionalRankScheds,
-						},
-					})
-				);
 
-				if (value) {
-					updateAllTeacherAdditionalSchedules();
-				}
+                try {
+                    editDocument('ranks', editRankId, {
+                        rank: editRankValue,
+                            additionalRankScheds: editAdditionalRankScheds,
+                    });
+        
+                    // if (value) {
+                    //     updateAllTeacherAdditionalSchedules();
+                    // }
+    
+                } catch {
+                    toast.error('Something went wrong. Please try again.');
+                    console.error('Something went wrong. Please try again.');
+                } finally {
+                    toast.success('Data and dependencies updated successfully!', {
+                        style: {
+                            backgroundColor: '#28a745',
+                            color: '#fff',
+                            borderColor: '#28a745',
+                        },
+                    });
+            
+                    resetStates();
+                    closeModal();
+                }
 
-				toast.success('Data and dependencies updated successfully', {
-					style: { backgroundColor: 'green', color: 'white', bordercolor: 'green', },
-				});
+				// dispatch(
+				// 	reduxFunction({
+				// 		rankId: editRankId,
+				// 		updatedRank: {
+				// 			rank: editRankValue,
+				// 			additionalRankScheds: editAdditionalRankScheds,
+				// 		},
+				// 	})
+				// );
 
-				resetStates();
 			}
 		}
 
-		handleConfirmationModalClose();
-		closeModal();
 	};
 
 // ==============================================================================
@@ -358,6 +389,7 @@ const TeacherRankEdit = ({
                             Reset
                         </button>
                     </div>
+
                 </div>
             </div>
 
@@ -407,4 +439,4 @@ const TeacherRankEdit = ({
     );
 }
 
-export default TeacherRankEdit
+export default TeacherRankEdit;

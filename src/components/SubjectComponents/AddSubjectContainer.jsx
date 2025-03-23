@@ -3,6 +3,8 @@ import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import { toast } from 'sonner';
 
+import { fetchDocuments } from '../../hooks/CRUD/retrieveDocuments';
+import { addDocument } from '../../hooks/CRUD/addDocument';
 
 const AddSubjectContainer = ({
     close,
@@ -19,7 +21,9 @@ const AddSubjectContainer = ({
 
 // ==============================================================================
 
-    const subjects = useSelector((state) => state.subject.subjects);
+    // const subjects = useSelector((state) => state.subject.subjects);
+
+    const { documents: subjects, loading, error } = fetchDocuments('subjects');
 
 // ==============================================================================
 
@@ -58,24 +62,34 @@ const AddSubjectContainer = ({
             setErrorField('name');
         } else {
 
-            dispatch(
-                reduxFunction({
+            // dispatch(
+            //     reduxFunction({
+            //         subject: subjectName,
+            //         classDuration: classDuration,
+            //         weeklyMinutes: weeklyMinutes,
+            //     })
+            // );
+
+            try {
+                addDocument('subjects', {
                     subject: subjectName,
                     classDuration: classDuration,
                     weeklyMinutes: weeklyMinutes,
-                })
-            );
-
-            toast.success('Subject added successfully', {
-                style: {
-                    backgroundColor: 'green',
-                    color: 'white',
-                    bordercolor: 'green',
-                },
-            });
-
-            handleReset();
-            close();
+                });
+            } catch (error) {
+                console.error('Error adding subject:', error);
+            } finally {
+                toast.success('Subject added successfully', {
+                    style: {
+                        backgroundColor: 'green',
+                        color: 'white',
+                        bordercolor: 'green',
+                    },
+                });
+    
+                handleReset();
+                close();
+            }
         }
     };
 

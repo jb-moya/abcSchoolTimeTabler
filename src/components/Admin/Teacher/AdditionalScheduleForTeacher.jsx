@@ -1,10 +1,9 @@
-
 import { useState, useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
 import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';
 import TimeSelector from '@utils/timeSelector';
 import clsx from 'clsx';
 
+import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 
 const AdditionalScheduleForTeacher = ({
 	viewingMode = 0,
@@ -20,25 +19,30 @@ const AdditionalScheduleForTeacher = ({
 
 // =============================================================================
 
-	const subjects = useSelector((state) => state.subject.subjects);
+	const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
 
 // ============================================================================
 
 	const [schedName, setSchedName] = useState(
 		additionalSchedsOfTeacher.name || ''
 	);
+
 	const [schedSubject, setSchedSubject] = useState(
 		additionalSchedsOfTeacher.subject || -1
 	);
+
 	const [schedDuration, setSchedDuration] = useState(
 		additionalSchedsOfTeacher.duration || 0
 	);
+
 	const [schedFrequency, setSchedFrequency] = useState(
 		additionalSchedsOfTeacher.frequency || 0
 	);
+
 	const [schedShown, setSchedShown] = useState(
 		additionalSchedsOfTeacher.shown || false
 	);
+	
 	const [schedTime, setSchedtime] = useState(
         additionalSchedsOfTeacher.time || 0
     );

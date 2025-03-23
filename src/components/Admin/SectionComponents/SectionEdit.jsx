@@ -14,6 +14,10 @@ import { fetchSubjects } from '@features/subjectSlice';
 import { fetchTeachers, editTeacher } from '@features/teacherSlice';
 import { fetchBuildings } from '@features/buildingSlice';
 import { fetchSections } from '@features/sectionSlice';
+
+import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+import { editDocument } from '../../../hooks/CRUD/editDocument';
+
 import ViewRooms from '../RoomsAndBuildings/ViewRooms';
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
 import AdditionalScheduleForSection from './AdditionalScheduleForSection';
@@ -36,44 +40,27 @@ const SectionEdit = ({
 
 // ===============================================================
 
-    const { buildings, status: buildingStatus } = useSelector((state) => state.building);
-
-    const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
-
-    const { sections, status: sectionStatus } = useSelector((state) => state.section);
-
-    const { programs, status: programStatus } = useSelector((state) => state.program);
-
-    const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
+    const { documents: sections, loading1, error1 } = fetchDocuments('sections');  
+    const { documents: programs, loading2, error2 } = fetchDocuments('programs');
+    const { documents: subjects, loading3, error3 } = fetchDocuments('subjects');
+    const { documents: teachers, loading4, error4 } = fetchDocuments('teachers');
+    const { documents: buildings, loading5, error5 } = fetchDocuments('buildings');
 
 // ===============================================================================================
 
     const [editSectionAdviser, setEditSectionAdviser] = useState('');
-
     const [prevAdviser, setPrevAdviser] = useState('');
-
     const [editSectionProg, setEditSectionProg] = useState('');
-
     const [editSectionYear, setEditSectionYear] = useState('');
-
     const [editSectionId, setEditSectionId] = useState('');
-
     const [editSectionValue, setEditSectionValue] = useState('');
-
     const [editSectionSubjects, setEditSectionSubjects] = useState([]);
-
     const [editSectionShift, setEditSectionShift] = useState(0);
-
     const [editSectionStartTime, setEditSectionStartTime] = useState('');
-
     const [editSectionEndTime, setEditSectionEndTime] = useState('');
-
     const [editSectionFixedDays, setEditSectionFixedDays] = useState({});
-
     const [editSectionFixedPositions, setEditSectionFixedPositions] = useState({});
-
     const [editSectionClassModality, setEditSectionClassModality] = useState(new Array(numOfSchoolDays).fill(1));
-
     const [editAdditionalScheds, setEditAdditionalScheds] = useState([]);
 
     const [editRoomDetails, setEditRoomDetails] = useState({
@@ -177,37 +164,67 @@ const SectionEdit = ({
             editSectionValue.trim().toLowerCase() === currentSection.trim().toLowerCase() &&
             editSectionAdviser === currentSectionAdviser
         ) {
-            dispatch(
-                reduxFunction({
-                    sectionId,
-                    updatedSection: {
-                        id: sectionId,
-                        teacher: editSectionAdviser,
-                        program: editSectionProg,
-                        section: editSectionValue,
-                        subjects: editSectionSubjects,
-                        fixedDays: editSectionFixedDays,
-                        fixedPositions: editSectionFixedPositions,
-                        year: editSectionYear,
-                        shift: editSectionShift,
-                        startTime: getTimeSlotIndex(editSectionStartTime),
-                        endTime: editSectionEndTime,
-                        modality: editSectionClassModality,
-                        additionalScheds: editAdditionalScheds,
-                        roomDetails: editRoomDetails,
+            
+
+            try {
+
+                // dispatch(
+                //     reduxFunction({
+                //         sectionId,
+                //         updatedSection: {
+                //             id: sectionId,
+                //             teacher: editSectionAdviser,
+                //             program: editSectionProg,
+                //             section: editSectionValue,
+                //             subjects: editSectionSubjects,
+                //             fixedDays: editSectionFixedDays,
+                //             fixedPositions: editSectionFixedPositions,
+                //             year: editSectionYear,
+                //             shift: editSectionShift,
+                //             startTime: getTimeSlotIndex(editSectionStartTime),
+                //             endTime: editSectionEndTime,
+                //             modality: editSectionClassModality,
+                //             additionalScheds: editAdditionalScheds,
+                //             roomDetails: editRoomDetails,
+                //         },
+                //     })
+                // );
+
+                const entryData = {
+                    teacher: editSectionAdviser,
+                    program: editSectionProg,
+                    section: editSectionValue,
+                    subjects: editSectionSubjects,
+                    fixedDays: editSectionFixedDays,
+                    fixedPositions: editSectionFixedPositions,
+                    year: editSectionYear,
+                    shift: editSectionShift,
+                    startTime: getTimeSlotIndex(editSectionStartTime),
+                    endTime: editSectionEndTime,
+                    modality: editSectionClassModality,
+                    additionalScheds: editAdditionalScheds,
+                    roomDetails: editRoomDetails,
+                }
+
+                editDocument('sections', sectionId, entryData);
+    
+            } catch (error) {
+                console.log(error);
+            } finally {
+
+                toast.success('Section updated successfully', {
+                    style: {
+                        backgroundColor: 'green',
+                        color: 'white',
+                        bordercolor: 'green',
                     },
-                })
-            );
+                });
 
-            toast.success('Section updated successfully', {
-                style: {
-                    backgroundColor: 'green',
-                    color: 'white',
-                    bordercolor: 'green',
-                },
-            });
+                resetStates();
+                closeModal();
 
-            // resetStates();
+            }
+
         } else {
             const duplicateSection = Object.values(sections).find(
                 (section) =>
@@ -234,73 +251,114 @@ const SectionEdit = ({
                     tyle: { backgroundColor: 'red', color: 'white' },
                 });
             } else {
-                const advisoryLoad = {
-                    name: 'Advisory Load',
-                    subject: -1,
-                    duration: 60,
-                    frequency: numOfSchoolDays,
-                    shown: false,
-                    time: 96,
-                };
 
-                if (prevAdviser !== editSectionAdviser) {
-                    const prevSectionAdviser = structuredClone(teachers[prevAdviser]);
+                try {
 
-                    console.log('prevSectionAdviser: ', prevSectionAdviser);
+                    // ===================== ADVISORY LOAD =====================
 
-                    if (prevSectionAdviser.additionalTeacherScheds) {
-                        prevSectionAdviser.additionalTeacherScheds = prevSectionAdviser.additionalTeacherScheds.filter(
-                            (sched) => sched.name !== 'Advisory Load'
-                        );
+                        const advisoryLoad = {
+                            name: 'Advisory Load',
+                            subject: -1,
+                            duration: 60,
+                            frequency: numOfSchoolDays,
+                            shown: false,
+                            time: 96,
+                        };
+        
+                        if (prevAdviser !== editSectionAdviser) {
+                            const prevSectionAdviser = structuredClone(teachers[prevAdviser]);
+                            const prevAdviserID = teachers[prevAdviser].id;
+        
+                            if (prevSectionAdviser.additionalTeacherScheds) {
+                                prevSectionAdviser.additionalTeacherScheds = prevSectionAdviser.additionalTeacherScheds.filter(
+                                    (sched) => sched.name !== 'Advisory Load'
+                                );
+                            }
+        
+                            // dispatch(
+                            //     editTeacher({
+                            //         teacherId: prevAdviser,
+                            //         updatedTeacher: prevSectionAdviser,
+                            //     })
+                            // );
+
+                            editDocument('teachers', prevAdviserID, {
+                                additionalTeacherScheds: teacher.additionalTeacherScheds,
+                            });
+
+                        }
+        
+                        const teacher = structuredClone(teachers[editSectionAdviser]);
+                        const teacher_id = teachers[editSectionAdviser].id;
+                        teacher.additionalTeacherScheds = teacher.additionalTeacherScheds || [];
+                        teacher.additionalTeacherScheds.push(advisoryLoad);
+
+                        editDocument('teachers', teacher_id, {
+                            additionalTeacherScheds: teacher.additionalTeacherScheds,
+                        });
+                        
+                    // ===================== ADVISORY LOAD =====================
+    
+                    // dispatch(
+                    //     reduxFunction({
+                    //         sectionId,
+                    //         updatedSection: {
+                    //             id: sectionId,
+                    //             teacher: editSectionAdviser,
+                    //             program: editSectionProg,
+                    //             section: editSectionValue,
+                    //             subjects: editSectionSubjects,
+                    //             fixedDays: editSectionFixedDays,
+                    //             fixedPositions: editSectionFixedPositions,
+                    //             year: editSectionYear,
+                    //             shift: editSectionShift,
+                    //             startTime: getTimeSlotIndex(editSectionStartTime),
+                    //             endTime: editSectionEndTime,
+                    //             modality: editSectionClassModality,
+                    //             additionalScheds: editAdditionalScheds,
+                    //             roomDetails: editRoomDetails,
+                    //         },
+                    //     })
+                    // );
+    
+                    const entryData = {
+                        teacher: editSectionAdviser,
+                        program: editSectionProg,
+                        section: editSectionValue,
+                        subjects: editSectionSubjects,
+                        fixedDays: editSectionFixedDays,
+                        fixedPositions: editSectionFixedPositions,
+                        year: editSectionYear,
+                        shift: editSectionShift,
+                        startTime: getTimeSlotIndex(editSectionStartTime),
+                        endTime: editSectionEndTime,
+                        modality: editSectionClassModality,
+                        additionalScheds: editAdditionalScheds,
+                        roomDetails: editRoomDetails,
                     }
-
-                    dispatch(
-                        editTeacher({
-                            teacherId: prevAdviser,
-                            updatedTeacher: prevSectionAdviser,
-                        })
-                    );
-                }
-
-                const teacher = structuredClone(teachers[editSectionAdviser]);
-                teacher.additionalTeacherScheds = teacher.additionalTeacherScheds || [];
-                teacher.additionalTeacherScheds.push(advisoryLoad);
-
-                dispatch(
-                    editTeacher({
-                        teacherId: editSectionAdviser,
-                        updatedTeacher: teacher,
-                    })
-                );
-
-                dispatch(
-                    reduxFunction({
-                        sectionId,
-                        updatedSection: {
-                            id: sectionId,
-                            teacher: editSectionAdviser,
-                            program: editSectionProg,
-                            section: editSectionValue,
-                            subjects: editSectionSubjects,
-                            fixedDays: editSectionFixedDays,
-                            fixedPositions: editSectionFixedPositions,
-                            year: editSectionYear,
-                            shift: editSectionShift,
-                            startTime: getTimeSlotIndex(editSectionStartTime),
-                            endTime: editSectionEndTime,
-                            modality: editSectionClassModality,
-                            additionalScheds: editAdditionalScheds,
-                            roomDetails: editRoomDetails,
+    
+                    editDocument('sections', sectionId, entryData);
+        
+                } catch (error) {
+                    console.log(error);
+                } finally {
+    
+                    toast.success('Section updated successfully', {
+                        style: {
+                            backgroundColor: 'green',
+                            color: 'white',
+                            bordercolor: 'green',
                         },
-                    })
-                );
+                    });
 
-                // resetStates();
+                    resetStates();
+                    closeModal();
+    
+                }
+                
             }
         }
 
-        resetStates();
-        closeModal();
     };
 
 // =============================================================================================
@@ -375,38 +433,6 @@ const SectionEdit = ({
     };
 
 // =============================================================================================
-
-    useEffect(() => {
-        if (buildingStatus === 'idle') {
-            dispatch(fetchBuildings());
-        }
-    }, [buildingStatus, dispatch]);
-
-    useEffect(() => {
-        if (sectionStatus === 'idle') {
-            dispatch(fetchSections());
-        }
-    }, [sectionStatus, dispatch]);
-
-    useEffect(() => {
-        if (programStatus === 'idle') {
-            dispatch(fetchPrograms());
-        }
-    }, [programStatus, dispatch]);
-
-    useEffect(() => {
-        if (subjectStatus === 'idle') {
-            dispatch(fetchSubjects());
-        }
-    }, [subjectStatus, dispatch]);
-
-    useEffect(() => {
-        if (teacherStatus === 'idle') {
-            dispatch(fetchTeachers());
-        }
-    }, [teacherStatus, dispatch]);
-
-// ===============================================================================================
 
     const resetStates = () => {
         // Reset the editing state
