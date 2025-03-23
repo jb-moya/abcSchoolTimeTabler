@@ -35,22 +35,39 @@ const SectionListContainer = ({
     editable = false,
     breakTimeDuration: externalBreakTimeDuration,
 }) => {
-
     const dispatch = useDispatch();
 
-//  =======================================================================================
+    //  =======================================================================================
 
     const { documents: sections, loading1, error1 } = fetchDocuments('sections');
-    
+
     const { documents: programs, loading2, error2 } = fetchDocuments('programs');
 
     const { documents: subjects, loading3, error3 } = fetchDocuments('subjects');
 
     const { documents: teachers, loading4, error4 } = fetchDocuments('teachers');
 
-    const { documents: buildings, loading5, error5 } = fetchDocuments('buildings');
+    const { documents: stringfy_buildings, loading5, error5 } = fetchDocuments('buildings');
+    // console.log('stringfy_buildings: ', stringfy_buildings);
 
-//  =======================================================================================
+    useEffect(() => {
+        try {
+            const converted_buildings = Object.values(stringfy_buildings).reduce((acc, { custom_id, data, id }) => {
+                const parsedData = JSON.parse(data);
+                acc[custom_id] = { ...parsedData, id, custom_id }; // Include id and custom_id inside data
+                return acc;
+            }, {});
+            console.log('converted_buildings: ', converted_buildings);
+
+            setBuildings(converted_buildings);
+        } catch (error) {
+            console.error('Failed to parse buildings JSON:', error);
+        }
+    }, [stringfy_buildings]);
+
+    const [buildings, setBuildings] = useState({});
+
+    //  =======================================================================================
 
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
         return externalNumOfSchoolDays ?? (Number(localStorage.getItem('numOfSchoolDays')) || 0);
@@ -75,13 +92,13 @@ const SectionListContainer = ({
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState([]);
 
-//  =======================================================================================
+    //  =======================================================================================
 
     const [searchSectionResult, setSearchSectionResult] = useState(sections);
     const [searchSectionValue, setSearchSectionValue] = useState('');
 
-//  =======================================================================================
-    
+    //  =======================================================================================
+
     const handleClose = () => {
         const modal = document.getElementById('add_section_modal');
         if (modal) {
@@ -91,7 +108,7 @@ const SectionListContainer = ({
         } else {
             console.error("Modal with ID 'add_section_modal' not found.");
         }
-    }; 
+    };
 
     const handleDelete = (id) => {
         // Remove ADVISORY LOAD of teacher assigned as the section's adviser
@@ -113,7 +130,7 @@ const SectionListContainer = ({
         );
     };
 
-//  =======================================================================================
+    //  =======================================================================================
 
     const debouncedSearch = useCallback(
         debounce((searchValue, sections, subjects) => {
@@ -140,7 +157,7 @@ const SectionListContainer = ({
         []
     );
 
-//  =======================================================================================
+    //  =======================================================================================
 
     useEffect(() => {
         if (externalNumOfSchoolDays !== undefined) {
@@ -148,9 +165,7 @@ const SectionListContainer = ({
         }
     }, [externalNumOfSchoolDays]);
 
-
-
-//  =======================================================================================
+    //  =======================================================================================
 
     useEffect(() => {
         debouncedSearch(searchSectionValue, sections, subjects);
@@ -167,13 +182,12 @@ const SectionListContainer = ({
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Object.entries(searchSectionResult).slice(indexOfFirstItem, indexOfLastItem);
 
-//  =======================================================================================
+    //  =======================================================================================
 
     return (
         <React.Fragment>
             <div className='w-full'>
                 <div className='flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5'>
-                    
                     {/* Pagination */}
                     {currentItems.length > 0 && (
                         <div className='join flex justify-center mb-4 md:mb-0'>
@@ -333,17 +347,15 @@ const SectionListContainer = ({
 
                                                 {/* Number of Floors */}
                                                 <div className='mb-5 flex flex-col justify-start text-zinc-600'>
-                                                    <div>
-                                                        {section.roomDetails.floorIdx + 1 || 'UNASSIGNED FLOOR'}
-                                                    </div>
+                                                    <div>{section.roomDetails.floorIdx + 1 || 'UNASSIGNED FLOOR'}</div>
                                                 </div>
 
                                                 {/* Room */}
                                                 <div className='mb-5 flex flex-col justify-start text-zinc-600'>
                                                     <div>
-                                                        {buildings[section.roomDetails.buildingId]?.
-                                                            rooms[section.roomDetails.floorIdx][section.roomDetails.roomIdx]?.
-                                                                roomName || 'UNASSIGNED ROOM'}
+                                                        {buildings[section.roomDetails.buildingId]?.rooms[
+                                                            section.roomDetails.floorIdx
+                                                        ][section.roomDetails.roomIdx]?.roomName || 'UNASSIGNED ROOM'}
                                                     </div>
                                                 </div>
                                             </div>
@@ -488,7 +500,7 @@ const SectionListContainer = ({
                                                     />
 
                                                     <DeleteData
-                                                        className='btn btn-xs btn-ghost text-red-500' 
+                                                        className='btn btn-xs btn-ghost text-red-500'
                                                         collection={'sections'}
                                                         id={section.custom_id}
                                                     />

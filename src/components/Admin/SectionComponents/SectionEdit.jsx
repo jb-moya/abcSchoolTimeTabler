@@ -35,22 +35,41 @@ const SectionEdit = ({
     numOfSchoolDays,
     breakTimeDuration,
 }) => {
-
     const dispatch = useDispatch();
 
-// ===============================================================
+    // ===============================================================
 
     const { documents: sections, loading1, error1 } = fetchDocuments('sections');
-    
+
     const { documents: programs, loading2, error2 } = fetchDocuments('programs');
 
     const { documents: subjects, loading3, error3 } = fetchDocuments('subjects');
 
     const { documents: teachers, loading4, error4 } = fetchDocuments('teachers');
 
-    const { documents: buildings, loading5, error5 } = fetchDocuments('buildings');
+    const { documents: stringfy_buildings, loading5, error5 } = fetchDocuments('buildings');
+    // console.log('stringfy_buildings: ', stringfy_buildings);
 
-// ===============================================================================================
+    useEffect(() => {
+
+            try {
+                const converted_buildings = Object.values(stringfy_buildings).reduce((acc, { custom_id, data ,id}) => {
+                    const parsedData = JSON.parse(data);
+                    acc[custom_id] = { ...parsedData, id, custom_id }; // Include id and custom_id inside data
+                    return acc;
+                }, {});
+                console.log('converted_buildings: ', converted_buildings);
+
+                setBuildings(converted_buildings);
+            } catch (error) {
+                console.error('Failed to parse buildings JSON:', error);
+            }
+        
+    }, [stringfy_buildings]);
+
+    const [buildings, setBuildings] = useState({});
+
+    // ===============================================================================================
 
     const [editSectionAdviser, setEditSectionAdviser] = useState('');
 
@@ -157,7 +176,7 @@ const SectionEdit = ({
         }
     }, [editSectionYear, editSectionProg, programs]);
 
-// ===============================================================================================
+    // ===============================================================================================
 
     const handleSaveSectionEditClick = (sectionId) => {
         if (
@@ -181,10 +200,7 @@ const SectionEdit = ({
             editSectionValue.trim().toLowerCase() === currentSection.trim().toLowerCase() &&
             editSectionAdviser === currentSectionAdviser
         ) {
-            
-
             try {
-
                 // dispatch(
                 //     reduxFunction({
                 //         sectionId,
@@ -221,14 +237,12 @@ const SectionEdit = ({
                     modality: editSectionClassModality,
                     additionalScheds: editAdditionalScheds,
                     roomDetails: editRoomDetails,
-                }
+                };
 
                 editDocument('sections', sectionId, entryData);
-    
             } catch (error) {
                 console.log(error);
             } finally {
-
                 toast.success('Section updated successfully', {
                     style: {
                         backgroundColor: 'green',
@@ -239,9 +253,7 @@ const SectionEdit = ({
 
                 resetStates();
                 closeModal();
-
             }
-
         } else {
             const duplicateSection = Object.values(sections).find(
                 (section) =>
@@ -268,54 +280,51 @@ const SectionEdit = ({
                     tyle: { backgroundColor: 'red', color: 'white' },
                 });
             } else {
-
                 try {
-
                     // ===================== ADVISORY LOAD =====================
 
-                        const advisoryLoad = {
-                            name: 'Advisory Load',
-                            subject: -1,
-                            duration: 60,
-                            frequency: numOfSchoolDays,
-                            shown: false,
-                            time: 96,
-                        };
-        
-                        if (prevAdviser !== editSectionAdviser) {
-                            const prevSectionAdviser = structuredClone(teachers[prevAdviser]);
-                            const prevAdviserID = teachers[prevAdviser].id;
-        
-                            if (prevSectionAdviser.additionalTeacherScheds) {
-                                prevSectionAdviser.additionalTeacherScheds = prevSectionAdviser.additionalTeacherScheds.filter(
-                                    (sched) => sched.name !== 'Advisory Load'
-                                );
-                            }
-        
-                            // dispatch(
-                            //     editTeacher({
-                            //         teacherId: prevAdviser,
-                            //         updatedTeacher: prevSectionAdviser,
-                            //     })
-                            // );
+                    const advisoryLoad = {
+                        name: 'Advisory Load',
+                        subject: -1,
+                        duration: 60,
+                        frequency: numOfSchoolDays,
+                        shown: false,
+                        time: 96,
+                    };
 
-                            editDocument('teachers', prevAdviserID, {
-                                additionalTeacherScheds: teacher.additionalTeacherScheds,
-                            });
+                    if (prevAdviser !== editSectionAdviser) {
+                        const prevSectionAdviser = structuredClone(teachers[prevAdviser]);
+                        const prevAdviserID = teachers[prevAdviser].id;
 
+                        if (prevSectionAdviser.additionalTeacherScheds) {
+                            prevSectionAdviser.additionalTeacherScheds = prevSectionAdviser.additionalTeacherScheds.filter(
+                                (sched) => sched.name !== 'Advisory Load'
+                            );
                         }
-        
-                        const teacher = structuredClone(teachers[editSectionAdviser]);
-                        const teacher_id = teachers[editSectionAdviser].id;
-                        teacher.additionalTeacherScheds = teacher.additionalTeacherScheds || [];
-                        teacher.additionalTeacherScheds.push(advisoryLoad);
 
-                        editDocument('teachers', teacher_id, {
+                        // dispatch(
+                        //     editTeacher({
+                        //         teacherId: prevAdviser,
+                        //         updatedTeacher: prevSectionAdviser,
+                        //     })
+                        // );
+
+                        editDocument('teachers', prevAdviserID, {
                             additionalTeacherScheds: teacher.additionalTeacherScheds,
                         });
-                        
+                    }
+
+                    const teacher = structuredClone(teachers[editSectionAdviser]);
+                    const teacher_id = teachers[editSectionAdviser].id;
+                    teacher.additionalTeacherScheds = teacher.additionalTeacherScheds || [];
+                    teacher.additionalTeacherScheds.push(advisoryLoad);
+
+                    editDocument('teachers', teacher_id, {
+                        additionalTeacherScheds: teacher.additionalTeacherScheds,
+                    });
+
                     // ===================== ADVISORY LOAD =====================
-    
+
                     // dispatch(
                     //     reduxFunction({
                     //         sectionId,
@@ -337,7 +346,7 @@ const SectionEdit = ({
                     //         },
                     //     })
                     // );
-    
+
                     const entryData = {
                         teacher: editSectionAdviser,
                         program: editSectionProg,
@@ -352,14 +361,12 @@ const SectionEdit = ({
                         modality: editSectionClassModality,
                         additionalScheds: editAdditionalScheds,
                         roomDetails: editRoomDetails,
-                    }
-    
+                    };
+
                     editDocument('sections', sectionId, entryData);
-        
                 } catch (error) {
                     console.log(error);
                 } finally {
-    
                     toast.success('Section updated successfully', {
                         style: {
                             backgroundColor: 'green',
@@ -370,15 +377,12 @@ const SectionEdit = ({
 
                     resetStates();
                     closeModal();
-    
                 }
-                
             }
         }
-
     };
 
-// =============================================================================================
+    // =============================================================================================
 
     // End Times
     const handleEndTimeChange = () => {
@@ -400,7 +404,7 @@ const SectionEdit = ({
 
         const topDurations = classDurations.sort((a, b) => b - a).slice(0, noOfRows);
 
-        let totalDuration = (breakTimeCount * breakTimeDuration) + topDurations.reduce((sum, duration) => sum + duration, 0);
+        let totalDuration = breakTimeCount * breakTimeDuration + topDurations.reduce((sum, duration) => sum + duration, 0);
 
         const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
 
@@ -424,11 +428,7 @@ const SectionEdit = ({
 
     // Modality
     const handleModalityChange = (index) => {
-        setEditSectionClassModality(prevState => 
-            prevState.map((value, i) => 
-                i === index ? (value === 1 ? 0 : 1) : value
-            )
-        );
+        setEditSectionClassModality((prevState) => prevState.map((value, i) => (i === index ? (value === 1 ? 0 : 1) : value)));
     };
 
     // Additional Schedules
@@ -449,7 +449,7 @@ const SectionEdit = ({
         setEditAdditionalScheds((prevScheds) => prevScheds.filter((_, i) => i !== index));
     };
 
-// =============================================================================================
+    // =============================================================================================
 
     const resetStates = () => {
         // Reset the editing state
@@ -484,11 +484,11 @@ const SectionEdit = ({
         // handleReset();
     };
 
-// ===============================================================================================
+    // ===============================================================================================
 
     const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 
-// ===============================================================================================
+    // ===============================================================================================
 
     return (
         <div className=''>
@@ -514,7 +514,6 @@ const SectionEdit = ({
 
                         {/* Section Details */}
                         <div className='p-4 border rounded-lg shadow-md mb-4'>
-
                             {/* Section Name */}
                             <div className='mb-4'>
                                 <label className='label'>
@@ -597,7 +596,9 @@ const SectionEdit = ({
 
                         {/* Shift and Time */}
                         <div className='p-4 border rounded-lg shadow-md mb-4'>
-                            <div className='text-lg font-semibold rounded-lg flex justify-center items-center'>Schedule Details</div>
+                            <div className='text-lg font-semibold rounded-lg flex justify-center items-center'>
+                                Schedule Details
+                            </div>
                             <hr className='my-2'></hr>
 
                             {/* Section Shift */}
@@ -606,7 +607,7 @@ const SectionEdit = ({
                                 <label className='flex items-center space-x-6 text-base mr-2'>
                                     <input
                                         type='radio'
-                                          className='mr-2'
+                                        className='mr-2'
                                         value={editSectionShift}
                                         checked={editSectionShift === 0}
                                         onChange={() => {
@@ -660,7 +661,9 @@ const SectionEdit = ({
                         {/* Room Details */}
                         <div className='p-4 border rounded-lg shadow-md mb-4'>
                             <div className=''>
-                                <div className='text-lg font-semibold rounded-lg flex items-center justify-center'>Room Details</div>
+                                <div className='text-lg font-semibold rounded-lg flex items-center justify-center'>
+                                    Room Details
+                                </div>
                                 <hr className='my-2'></hr>
 
                                 <div className='flex flex-wrap'>
@@ -669,7 +672,7 @@ const SectionEdit = ({
                                         <label className='label'>
                                             <span className='label-text'>Building</span>
                                         </label>
-                                        <span className="input input-bordered text-sm w-5/6">
+                                        <span className='input input-bordered text-sm w-5/6'>
                                             {buildings[
                                                 editSectionId === section.id
                                                     ? editRoomDetails.buildingId
@@ -683,12 +686,10 @@ const SectionEdit = ({
                                         <label className='label'>
                                             <span className='label-text'>Floor</span>
                                         </label>
-                                        <span className="input input-bordered text-sm w-5/6">
-                                            {
-                                                (editSectionId === section.id
-                                                    ? editRoomDetails.floorIdx + 1
-                                                    : section.roomDetails.floorIdx + 1) || ''
-                                            }
+                                        <span className='input input-bordered text-sm w-5/6'>
+                                            {(editSectionId === section.id
+                                                ? editRoomDetails.floorIdx + 1
+                                                : section.roomDetails.floorIdx + 1) || ''}
                                         </span>
                                     </div>
 
@@ -697,16 +698,14 @@ const SectionEdit = ({
                                         <label className='label'>
                                             <span className='label-text'>Room</span>
                                         </label>
-                                        <span className="input input-bordered text-sm w-5/6">
-                                            {
-                                                editSectionId === section.id
+                                        <span className='input input-bordered text-sm w-5/6'>
+                                            {editSectionId === section.id
                                                 ? buildings[editRoomDetails.buildingId]?.rooms[editRoomDetails.floorIdx][
                                                       editRoomDetails.roomIdx
                                                   ]?.roomName
-                                                : buildings[section.roomDetails.buildingId]?.rooms[
-                                                      section.roomDetails.floorIdx
-                                                  ][section.roomDetails.roomIdx]?.roomName || ''
-                                            }
+                                                : buildings[section.roomDetails.buildingId]?.rooms[section.roomDetails.floorIdx][
+                                                      section.roomDetails.roomIdx
+                                                  ]?.roomName || ''}
                                         </span>
                                     </div>
 
@@ -745,7 +744,9 @@ const SectionEdit = ({
                         {section.subjects.length > 0 && (
                             <div className='p-4 border rounded-lg shadow-md mb-4 '>
                                 <>
-                                    <div className='text-lg  font-semibold rounded-lg  flex items-center justify-center'>Fixed Schedules</div>
+                                    <div className='text-lg  font-semibold rounded-lg  flex items-center justify-center'>
+                                        Fixed Schedules
+                                    </div>
                                     <hr className='my-2'></hr>
                                     <div className='mt-4 text-sm'>
                                         <table className='min-w-full bg-white font-normal border border-gray-300'>
@@ -789,20 +790,18 @@ const SectionEdit = ({
                                     </div>
 
                                     <div className='flex items-center justify-center'>
-                                    <button
-                                        className='btn mt-4 '
-                                        onClick={() =>
-                                            document
-                                                .getElementById(
-                                                    `assign_fixed_sched_modal_section(${section.id})-grade(${editSectionYear})-view(0)`
-                                                )
-                                                .showModal()
-                                        }
-                                    >
-                                        Edit Section Fixed Schedule(s)
-                                    </button>
-                                        
-
+                                        <button
+                                            className='btn mt-4 '
+                                            onClick={() =>
+                                                document
+                                                    .getElementById(
+                                                        `assign_fixed_sched_modal_section(${section.id})-grade(${editSectionYear})-view(0)`
+                                                    )
+                                                    .showModal()
+                                            }
+                                        >
+                                            Edit Section Fixed Schedule(s)
+                                        </button>
                                     </div>
                                     <FixedScheduleMaker
                                         key={editSectionYear}
@@ -814,7 +813,7 @@ const SectionEdit = ({
                                         selectedSubjects={editSectionSubjects}
                                         fixedDays={editSectionFixedDays}
                                         additionalSchedules={editAdditionalScheds || []}
-                                    // totalTimeslot={
+                                        // totalTimeslot={
                                         //     sectionTotalTimeslot[
                                         //         section.id
                                         //     ]
@@ -837,7 +836,7 @@ const SectionEdit = ({
                                 <thead>
                                     <tr>
                                         {Array.from({ length: numOfSchoolDays }, (_, index) => (
-                                            <th 
+                                            <th
                                                 key={index}
                                                 className='text-center border border-gray-300'
                                                 style={{ width: `${100 / numOfSchoolDays}%` }} // Ensures equal width for all days
@@ -847,17 +846,19 @@ const SectionEdit = ({
                                         ))}
                                     </tr>
                                 </thead>
-                                <tbody> 
+                                <tbody>
                                     <tr>
                                         {Array.from({ length: numOfSchoolDays }, (_, index) => (
-                                            <td 
+                                            <td
                                                 key={index}
                                                 className='text-center border border-gray-300'
                                                 style={{ width: `${100 / numOfSchoolDays}%` }} // Ensures equal width for all days
                                             >
                                                 <button
                                                     key={`day-${index}`}
-                                                    className={`btn w-full h-full flex items-center justify-center ${editSectionClassModality[index] === 1 ? 'bg-green-500' : 'bg-red-500'}`}
+                                                    className={`btn w-full h-full flex items-center justify-center ${
+                                                        editSectionClassModality[index] === 1 ? 'bg-green-500' : 'bg-red-500'
+                                                    }`}
                                                     onClick={() => handleModalityChange(index)}
                                                 >
                                                     {editSectionClassModality[index] === 1 ? 'ONSITE' : 'OFFSITE'}
@@ -925,14 +926,14 @@ const SectionEdit = ({
                                                     )}
                                                 </button>
                                                 <AdditionalScheduleForSection
-                                                     viewingMode={0}
-                                                     sectionID={editSectionId}
-                                                     grade={editSectionYear}
-                                                     arrayIndex={index}
-                                                     numOfSchoolDays={numOfSchoolDays}
-                                                     sectionSubjects={editSectionSubjects}
-                                                     additionalSchedsOfSection={sched}
-                                                     setAdditionalScheds={setEditAdditionalScheds}
+                                                    viewingMode={0}
+                                                    sectionID={editSectionId}
+                                                    grade={editSectionYear}
+                                                    arrayIndex={index}
+                                                    numOfSchoolDays={numOfSchoolDays}
+                                                    sectionSubjects={editSectionSubjects}
+                                                    additionalSchedsOfSection={sched}
+                                                    setAdditionalScheds={setEditAdditionalScheds}
                                                 />
                                             </div>
                                             <div className='w-1/12 flex items-center justify-center border rounded-r-lg hover:bg-gray-200'>
@@ -982,7 +983,6 @@ const SectionEdit = ({
                             </button>
                         </div>
                     </div>
-                  
                 </div>
             </div>
         </div>

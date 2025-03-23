@@ -1235,6 +1235,12 @@ function Timetable() {
         console.log('teacherTimetable: ', teacherTimetable);
         const sectionEdited = convertToHashMap(sectionTimetable, 'Section');
         const teacherEdited = convertToHashMap(teacherTimetable, 'Teacher');
+
+        console.log('subjects: ', subjectsStore);
+        console.log('programs: ', programsStore);
+        console.log('buildings: ', buildingsStore);
+        console.log('teachers: ', teachersStore);
+        console.log('configuration: ', minTeachingLoad);
         // console.log('sectionEdited: ', sectionEdited);
         // console.log('teacherEdited: ', teacherEdited);
         const generatedMap = combineMaps(sectionEdited, teacherEdited);

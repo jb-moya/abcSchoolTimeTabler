@@ -4,7 +4,7 @@ import DragDrop from './DragDrop';
 import { generateTimeSlots } from '../utils';
 import { produce } from 'immer';
 import { PiConfetti } from 'react-icons/pi';
-import { addSched, editSched, fetchScheds } from '@features/schedulesSlice';
+// import { addSched, editSched, fetchScheds } from '@features/schedulesSlice';
 import { convertStringDataToMap } from './utils';
 // import { deployTimetable } from '../../../features/deployTimetable';
 import useDeployTimetables from '../../../hooks/useDeployTimetables';
@@ -84,11 +84,11 @@ const ModifyTimetableContainer = ({
     const [scheduleVerName, setScheduleVerName] = useState(timetableName);
     console.log('rendering');
 
-    useEffect(() => {
-        if (schedStatus === 'idle') {
-            dispatch(fetchScheds());
-        }
-    }, [schedStatus, dispatch]);
+    // useEffect(() => {
+    //     if (schedStatus === 'idle') {
+    //         dispatch(fetchScheds());
+    //     }
+    // }, [schedStatus, dispatch]);
 
     useEffect(() => {
         setScheduleVerName(timetableName);
