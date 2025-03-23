@@ -42,29 +42,25 @@ const SectionEdit = ({
     const { documents: sections, loading1, error1 } = fetchDocuments('sections');
 
     const { documents: programs, loading2, error2 } = fetchDocuments('programs');
-
     const { documents: subjects, loading3, error3 } = fetchDocuments('subjects');
-
     const { documents: teachers, loading4, error4 } = fetchDocuments('teachers');
 
     const { documents: stringfy_buildings, loading5, error5 } = fetchDocuments('buildings');
     // console.log('stringfy_buildings: ', stringfy_buildings);
 
     useEffect(() => {
+        try {
+            const converted_buildings = Object.values(stringfy_buildings).reduce((acc, { custom_id, data, id }) => {
+                const parsedData = JSON.parse(data);
+                acc[custom_id] = { ...parsedData, id, custom_id }; // Include id and custom_id inside data
+                return acc;
+            }, {});
+            console.log('converted_buildings: ', converted_buildings);
 
-            try {
-                const converted_buildings = Object.values(stringfy_buildings).reduce((acc, { custom_id, data ,id}) => {
-                    const parsedData = JSON.parse(data);
-                    acc[custom_id] = { ...parsedData, id, custom_id }; // Include id and custom_id inside data
-                    return acc;
-                }, {});
-                console.log('converted_buildings: ', converted_buildings);
-
-                setBuildings(converted_buildings);
-            } catch (error) {
-                console.error('Failed to parse buildings JSON:', error);
-            }
-        
+            setBuildings(converted_buildings);
+        } catch (error) {
+            console.error('Failed to parse buildings JSON:', error);
+        }
     }, [stringfy_buildings]);
 
     const [buildings, setBuildings] = useState({});
@@ -72,31 +68,18 @@ const SectionEdit = ({
     // ===============================================================================================
 
     const [editSectionAdviser, setEditSectionAdviser] = useState('');
-
     const [prevAdviser, setPrevAdviser] = useState('');
-
     const [editSectionProg, setEditSectionProg] = useState('');
-
     const [editSectionYear, setEditSectionYear] = useState('');
-
     const [editSectionId, setEditSectionId] = useState('');
-
     const [editSectionValue, setEditSectionValue] = useState('');
-
     const [editSectionSubjects, setEditSectionSubjects] = useState([]);
-
     const [editSectionShift, setEditSectionShift] = useState(0);
-
     const [editSectionStartTime, setEditSectionStartTime] = useState('');
-
     const [editSectionEndTime, setEditSectionEndTime] = useState('');
-
     const [editSectionFixedDays, setEditSectionFixedDays] = useState({});
-
     const [editSectionFixedPositions, setEditSectionFixedPositions] = useState({});
-
     const [editSectionClassModality, setEditSectionClassModality] = useState(new Array(numOfSchoolDays).fill(1));
-
     const [editAdditionalScheds, setEditAdditionalScheds] = useState([]);
 
     const [editRoomDetails, setEditRoomDetails] = useState({
