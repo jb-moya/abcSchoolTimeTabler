@@ -32,19 +32,16 @@ function Login() {
         }
 
         try {
-            const result = await dispatch(loginUser(loginObj)); // Wait for login to complete
-
-            console.log('🚀 ~ submitForm ~ result:', result);
-            console.log('🚀 ~ submitForm ~ loginUser:', loginUser);
-
-            if (result.meta.requestStatus === 'rejected') {
-                return;
+            const userData = await dispatch(loginUser(loginObj)).unwrap(); // Wait for successful login
+            if (userData) {
+                //console.log('🚀 ~ submitForm ~ loginUser:', userData);
+                //console.log('Successfully logged in');
+                navigate('/app/dashboard'); // Navigate only after successful Firestore retrieval
+            } else {
+                toast.error('Login failed: User data not found.');
             }
-
-            console.log('successfully logged in');
-            navigate('/app/dashboard');
         } catch (error) {
-            // ...
+            toast.error(error);
         }
     };
 

@@ -12,7 +12,7 @@ import * as XLSX from 'xlsx';
 import GeneratedTimetable from '@components/Admin/TimeTable';
 // import ForTest from '@components/Admin/ForTest';
 import { useNavigate } from 'react-router-dom';
-
+import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 import validateTimetableVariables from '@validation/validateTimetableVariables';
 import { toast } from 'sonner';
 import ViolationList from '@components/Admin/ViolationList';
@@ -103,11 +103,25 @@ function Timetable() {
         // { name: 'Modify Subjects', href: '/modify-subjects' },
     ];
 
-    const { subjects: subjectsStore, status: subjectStatus } = useSelector((state) => state.subject);
-    const { buildings: buildingsStore, status: buildingStatus } = useSelector((state) => state.building);
-    const { teachers: teachersStore } = useSelector((state) => state.teacher);
-    const { sections: sectionsStore, status: sectionStatus } = useSelector((state) => state.section);
-    const { programs: programsStore, status: programStatus } = useSelector((state) => state.program);
+    // const { subjects: subjectsStore, status: subjectStatus } = useSelector((state) => state.subject);
+    const { documents: subjectsStore, loading1, error1 } = fetchDocuments('subjects');
+    
+    //const { buildings: buildingsStore, status: buildingStatus } = useSelector((state) => state.building);
+    const { documents: buildingsStore, loading2, error2 } = fetchDocuments('buildings');
+    
+    //const { teachers: teachersStore } = useSelector((state) => state.teacher);
+    const { documents: teachersStore, loading3, error3 } = fetchDocuments('teachers');
+    
+    const sectionStatus = "idle";
+    const subjectStatus = "idle";
+    const buildingStatus = "idle";
+    const programStatus = "idle";
+    // const { sections: sectionsStore, status: sectionStatus } = useSelector((state) => state.section);
+    const { documents: sectionsStore, loading4, error4 } = fetchDocuments('sections');
+    
+    //const { programs: programsStore, status: programStatus } = useSelector((state) => state.program);
+    const { documents: programsStore, loading5, error5 } = fetchDocuments('programs');
+    
     const { minTeacherLoad: minTeachingLoad, maxTeacherLoad: maxTeachingLoad } = useSelector((state) => state.configuration);
 
     // ========================================================================

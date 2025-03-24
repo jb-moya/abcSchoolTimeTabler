@@ -12,6 +12,37 @@ const initialState = {
     status: "idle",
     error: null,
 };
+import { firestore } from '../firebase/firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
+
+export const listenToSubjectFirestore = (collectionName) => (dispatch, getState) => {
+    const collectionRef = collection(firestore, collectionName);
+
+    const unsubscribe = onSnapshot(
+        collectionRef,
+        (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                const docData = { ...change.doc.data(), id: change.doc.id };
+
+                console.log("changes", change.type);
+
+                if (change.type === 'added') {
+                    dispatch(addSubject(docData));
+                } else if (change.type === 'modified') {
+                    dispatch(editSubject(docData));
+                } else if (change.type === 'removed') {
+                    dispatch(removeSubject(change.doc.id));
+                }
+            });
+        },
+        (error) => {
+            console.error('Firestore listener error:', error);
+        }
+    );
+
+    // Store unsubscribe function in Redux (optional)
+    return unsubscribe;
+};
 
 export const fetchSubjects = createAsyncThunk(
     "subject/fetchSubjects",

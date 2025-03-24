@@ -6,7 +6,9 @@ import useAuth from './app/useAuth.js';
 import initializeApp from './app/init';
 import { Suspense, lazy } from 'react';
 import ProtectedRoute from './pages/ProtectedRoute';
-
+import { fetchSections } from './features/sectionSlice.jsx';
+import { useDispatch } from 'react-redux';
+import { listenToFirestore } from './features/sectionSlice.jsx';
 // Importing pages
 const Layout = lazy(() => import('./containers/Layout'));
 const Login = lazy(() => import('./pages/Login.jsx'));
@@ -24,13 +26,25 @@ const Page404 = lazy(() => import('./pages/404'));
 
 function App() {
     const { user, loading } = useAuth();
+    const dispatch = useDispatch();
 
     useEffect(() => {
         // Set the default theme to light on initial load
         document.documentElement.setAttribute('data-theme', 'light');
         // 👆 daisy UI themes initialization
         themeChange(false);
+
+
     }, []);
+
+    useEffect(() => {
+        console.log("Initial")
+        const unsubscribe = dispatch(listenToFirestore('subjects'));
+
+        return () => {
+            unsubscribe(); // Cleanup listener on unmount
+        };
+    }, [dispatch]);
 
     if (loading) {
         return <SuspenseContent />; // Replace with your loader

@@ -15,6 +15,8 @@ import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 import { addDocument } from '../../../hooks/CRUD/addDocument';
 import { editDocument } from '../../../hooks/CRUD/editDocument';
 import { deleteDocument } from '../../../hooks/CRUD/deleteDocument';
+import { fetchSections } from '../../../features/sectionSlice';
+
 
 const AddBuildingContainer = ({ 
     close, 

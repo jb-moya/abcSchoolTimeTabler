@@ -6,6 +6,13 @@ import {
     editEntityFromDB,
     STORE_NAMES,
 } from "../indexedDB";
+import { editDocument } from "../hooks/CRUD/editDocument";
+import { fetchDocuments } from "../hooks/CRUD/retrieveDocuments";
+
+import { useState, useEffect } from 'react';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { firestore } from "../firebase/firebase";
+import { getDocs } from "firebase/firestore";
 
 const initialState = {
     sections: {}, // Change from array to object
@@ -13,11 +20,55 @@ const initialState = {
     error: null,
 };
 
+export const listenToFirestore = (collectionName) => (dispatch, getState) => {
+    const collectionRef = collection(firestore, collectionName);
+
+    const unsubscribe = onSnapshot(
+        collectionRef,
+        (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                const docData = { ...change.doc.data(), id: change.doc.id };
+
+                console.log("changes", change.type);
+
+                if (change.type === 'added') {
+                    dispatch(addSection(docData));
+                } else if (change.type === 'modified') {
+                    dispatch(editSection(docData));
+                } else if (change.type === 'removed') {
+                    dispatch(removeSection(change.doc.id));
+                }
+            });
+        },
+        (error) => {
+            console.error('Firestore listener error:', error);
+        }
+    );
+
+    // Store unsubscribe function in Redux (optional)
+    return unsubscribe;
+};
+
 export const fetchSections = createAsyncThunk(
     "section/fetchSections",
     async () => {
-        const sections = await getAllEntitiesFromDB(STORE_NAMES.SECTIONS);
-        return sections;
+        console.log("sections fasdl fjl;askdjf lksdjf lk;sdajf l;ksadjf l;ksdajfl");
+        // const sections = await getAllEntitiesFromDB(STORE_NAMES.SECTIONS);
+
+        const collectionRef = collection(firestore, 'sections');
+
+        const querySnapshot = await getDocs(collectionRef);
+
+        const allSections = querySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+        }));
+
+        console.log('🚀 ~ allSections:', allSections);
+        
+        // const sections = fetchDocuments('sections');
+        // console.log("🚀 ~ asf sadf dsf sections:", sections)
+        // return sections;
     }
 );
 
@@ -32,7 +83,8 @@ export const addSection = createAsyncThunk(
 export const editSection = createAsyncThunk(
     "section/editSection",
     async ({ sectionId, updatedSection }, { dispatch }) => {
-        await editEntityFromDB(STORE_NAMES.SECTIONS, sectionId, updatedSection);
+        await editDocument('sections', sectionId, updatedSection);
+        // await editEntityFromDB(STORE_NAMES.SECTIONS, sectionId, updatedSection);
         dispatch(
             sectionSlice.actions.editSectionSync({
                 id: sectionId,

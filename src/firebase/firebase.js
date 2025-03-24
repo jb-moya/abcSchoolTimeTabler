@@ -15,7 +15,13 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+
+const secondApp = initializeApp(firebaseConfig, 'second');
+                // second auth reference use for creating users while the current user (super amind) is logged in
+                // prevent the newly created user to auto logged in and current user from being logged out
+const secondAuth = getAuth(secondApp);
+
 const firestore = getFirestore(app);
 const storage = getStorage(app);
 
-export { app, auth, firestore, storage };
+export { app, auth, secondAuth, firestore, storage, firebaseConfig };

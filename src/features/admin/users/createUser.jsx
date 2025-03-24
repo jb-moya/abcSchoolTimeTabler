@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useState } from 'react';
 import InputText from '../../../components/Input/InputText';
 import { useDispatch, useSelector } from 'react-redux';
 import { signUpWithEmailAndPassword } from '../../userSlice';
+import { toast } from 'sonner';
 
 const submenu = [
     'Generate Timetable',
@@ -16,11 +17,12 @@ const submenu = [
 
 const CreateUser = () => {
     const INITIAL_REGISTER_OBJ = {
-        email: '',
-        password: '',
-        confirmPassword: '',
+        email: 'admin-with-all-permissions@email.com',
+        password: '1111111111111',
+        confirmPassword: '1111111111111',
         permissions: [],
         role: '',
+        newUserNotAutoLogin: true,
     };
 
     const dispatch = useDispatch();
@@ -41,24 +43,41 @@ const CreateUser = () => {
     const updateFormValue = ({ updateType, value }) => {
         setRegisterObj({ ...registerObj, [updateType]: value });
     };
+ 
+    useEffect(() => {
+        console.log("userError", userError)
+        console.log("userStatus", userStatus)
+    }, [userError, userStatus])
 
-    const submitForm = (e) => {
+    const submitForm = async (e) => {
         e.preventDefault();
 
         try {
-            const result = dispatch(signUpWithEmailAndPassword(registerObj));
+            await dispatch(signUpWithEmailAndPassword(registerObj)).unwrap(); // Ensures promise rejection is thrown
+            console.log('Successfully registered');
+        } catch (error) {
+            toast.error(error);
+        }
 
-            if (result.meta.requestStatus === 'rejected') {
-                return;
-            }
+        // try {
+        //     const result = await dispatch(signUpWithEmailAndPassword(registerObj));
+        //     console.log("🚀 ~ submitForm ~ result:", result)
 
-            console.log('successfully registered');
-        } catch (error) {}
+        //     console.log("🚀 ~ submitForm ~ userStatus:", userStatus)
+
+        //     if (userError != null) {
+        //         throw Error('haha');
+        //     }
+
+        //     console.log('successfully registered');
+        // } catch (error) {
+        //     toast.error(userError);
+        // }
     };
 
     return (
         <div>
-            <form onSubmit={(e) => submitForm(e)} className='space-y-2'>
+            <form onSubmit={async (e) => await submitForm(e)} className='space-y-2'>
                 <div className='divider divider-start'>
                     Account Details <span className='text-sm'></span>
                 </div>
@@ -122,13 +141,13 @@ const CreateUser = () => {
 
                 <div className='form-control w-52'>
                     <label className='label cursor-pointer'>
-                        <span className='label-text'>Superman</span>
+                        <span className='label-text'>Super Admin</span>
                         <input type='radio' name='radio-10' className='radio checked:bg-red-500' defaultChecked />
                     </label>
                 </div>
                 <div className='form-control w-52'>
                     <label className='label cursor-pointer'>
-                        <span className='label-text'>Minions</span>
+                        <span className='label-text'>Admin</span>
                         <input type='radio' name='radio-10' className='radio checked:bg-blue-500' defaultChecked />
                     </label>
                 </div>
