@@ -32,26 +32,31 @@ const routes = [
                 path: '/app/admin/modify-subjects',
                 icon: <PiBooksThin className={submenuIconClasses} />,
                 name: 'Modify Subjects and Programs',
+                permissions: ['Modify Subjects and Programs'],
             },
             {
                 path: '/app/admin/modify-teachers',
                 icon: <FaChalkboardTeacher className={submenuIconClasses} />,
                 name: 'Modify Teachers',
+                permissions: ['Modify Teachers'],
             },
             {
                 path: '/app/admin/modify-sections',
                 icon: <GrGroup className={submenuIconClasses} />,
                 name: 'Modify Sections',
+                permissions: ['Modify Sections'],
             },
             {
                 path: '/app/admin/modify-departments',
                 icon: <HiOutlineOfficeBuilding className={submenuIconClasses} />,
                 name: 'Modify Departments',
+                permissions: ['Modify Departments'],
             },
             {
                 path: '/app/admin/room-mapping',
                 icon: <MdOutlineMeetingRoom className={submenuIconClasses} />,
                 name: 'Room Utilization',
+                permissions: ['Modify Buildings'],
             },
             {
                 path: '/app/admin/modify-timetable',
@@ -63,7 +68,7 @@ const routes = [
     {
         path: '/app/admin/users',
         icon: <UsersIcon className={`${iconClasses} inline`} />,
-        name: 'Users',
+        name: 'Users Management',
     },
     {
         path: '',

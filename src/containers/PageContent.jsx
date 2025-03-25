@@ -7,7 +7,7 @@ import { useEffect, useRef } from 'react';
 import { startTransition } from 'react';
 import routes from '../routes';
 const SuspenseContent = lazy(() => import('./SuspenseContent'));
-
+import ProtectedRoute from '../pages/ProtectedRoute';
 const Page404 = lazy(() => import('../pages/404'));
 
 function PageContent() {
@@ -40,9 +40,25 @@ function PageContent() {
                 {/* <main className='flex-1 overflow-y-auto md:pt-4 pt-4 px-6  bg-base-200'> */}
                 <Suspense fallback={<SuspenseContent />}>
                     <Routes>
-                        {routes.map((route, key) => {
+                        {routes.map((route, key) => (
+                            <Route
+                                key={key}
+                                path={route.path}
+                                element={
+                                    route.permissions ? (
+                                        <ProtectedRoute
+                                            element={<route.component />}
+                                            requiredPermissions={route.permissions || []}
+                                        />
+                                    ) : (
+                                        <route.component />
+                                    )
+                                }
+                            />
+                        ))}
+                        {/* {routes.map((route, key) => {
                             return <Route key={key} path={route.path} element={<route.component />} />;
-                        })}
+                        })} */}
 
                         {/* Redirecting unknown url to 404 page */}
                         <Route path='*' element={<Page404 />} />

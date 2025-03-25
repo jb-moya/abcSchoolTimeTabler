@@ -10,7 +10,6 @@ function InternalPage() {
 
     useEffect(() => {
         dispatch(setPageTitle({ title: 'Users' }));
-        console.log('test              fff f ff');
     }, []);
 
     return <User />;
