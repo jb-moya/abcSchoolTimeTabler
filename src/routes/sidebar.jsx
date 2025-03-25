@@ -27,6 +27,7 @@ const routes = [
                 path: '/app/admin/generate-timetable',
                 icon: <GrSchedules className={submenuIconClasses} />,
                 name: 'Generate Timetable',
+                permissions: ['Generate TimeTable'],
             },
             {
                 path: '/app/admin/modify-subjects',
@@ -62,6 +63,7 @@ const routes = [
                 path: '/app/admin/modify-timetable',
                 icon: <MdOutlineMeetingRoom className={submenuIconClasses} />,
                 name: 'Modify TimeTable',
+                permissions: ['Modify TimeTable'],
             },
         ],
     },
@@ -70,28 +72,28 @@ const routes = [
         icon: <UsersIcon className={`${iconClasses} inline`} />,
         name: 'Users Management',
     },
-    {
-        path: '',
-        icon: <GrSchedules className={`${iconClasses} inline`} />,
-        name: 'Report Schedules',
-        submenu: [
-            {
-                path: '/app/reports/display-teachers-schedule',
-                icon: <FaChalkboardTeacher className={submenuIconClasses} />,
-                name: 'Teacher Schedule',
-            },
-            {
-                path: '/app/reports/display-sections-schedule',
-                icon: <GrGroup className={submenuIconClasses} />,
-                name: 'Section Schedule',
-            },
-            {
-                path: '/app/reports/display-subjects-schedule',
-                icon: <UsersIcon className={submenuIconClasses} />,
-                name: 'Subject Schedule',
-            },
-        ],
-    },
+    // {
+    //     path: '',
+    //     icon: <GrSchedules className={`${iconClasses} inline`} />,
+    //     name: 'Report Schedules',
+    //     submenu: [
+    //         {
+    //             path: '/app/reports/display-teachers-schedule',
+    //             icon: <FaChalkboardTeacher className={submenuIconClasses} />,
+    //             name: 'Teacher Schedule',
+    //         },
+    //         {
+    //             path: '/app/reports/display-sections-schedule',
+    //             icon: <GrGroup className={submenuIconClasses} />,
+    //             name: 'Section Schedule',
+    //         },
+    //         {
+    //             path: '/app/reports/display-subjects-schedule',
+    //             icon: <UsersIcon className={submenuIconClasses} />,
+    //             name: 'Subject Schedule',
+    //         },
+    //     ],
+    // },
 ];
 
 export default routes;
