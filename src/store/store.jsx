@@ -11,6 +11,9 @@ import teacherSlice from '../features/slice/teacher_slice';
 import departmentSlice from '../features/slice/department_slice';
 import buildingSlice from '../features/slice/building_slice';
 import timetableSlice from '../features/slice/timetable_slice';
+import userSlice from '../features/userSlice';
+import configurationSlice from '../features/configurationSlice';
+import schedulesReducer from '../features/schedulesSlice';
 
 const combinedReducer = {
   header: headerSlice,
@@ -25,9 +28,9 @@ const combinedReducer = {
   departments: departmentSlice,
   buildings: buildingSlice,
   timetables: timetableSlice,
-  // user: userSlice,
-  // configuration: configurationSlice,
-  // schedule: schedulesReducer,
+  user: userSlice,
+  configuration: configurationSlice,
+  schedule: schedulesReducer,
 };
 
 const store = configureStore({
