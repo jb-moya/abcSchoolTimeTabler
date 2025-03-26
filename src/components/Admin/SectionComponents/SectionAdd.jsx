@@ -1,17 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { IoWarningSharp } from 'react-icons/io5';
-
-import { fetchPrograms } from '@features/programSlice';
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchTeachers, editTeacher } from '@features/teacherSlice';
-import { fetchBuildings } from '@features/buildingSlice';
-
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
-import { addDocument } from '../../../hooks/CRUD/addDocument';
-import { editDocument } from '../../../hooks/CRUD/editDocument';
 
 import { toast } from 'sonner';
 import ViewRooms from '../RoomsAndBuildings/ViewRooms';
@@ -21,10 +11,18 @@ import TimeSelector from '@utils/timeSelector';
 
 import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
 
+import { subscribeToSections } from '@features/slice/section_slice';
+import { subscribeToPrograms } from '@features/slice/program_slice';
+import { subscribeToSubjects } from '@features/slice/subject_slice';
+import { subscribeToTeachers } from '@features/slice/teacher_slice';
+// import { subscribeToBuildings } from '@features/slice/building_slice';
+
+import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+import { addDocument } from '../../../hooks/CRUD/addDocument';
+import { editDocument } from '../../../hooks/CRUD/editDocument';
+
 const AddSectionContainer = ({
     close,
-    reduxField,
-    reduxFunction,
     errorMessage,
     setErrorMessage,
     errorField,
@@ -32,31 +30,36 @@ const AddSectionContainer = ({
     numOfSchoolDays,
     breakTimeDuration,
 }) => {
+
     const inputNameRef = useRef();
     const dispatch = useDispatch();
 
-    // ===================================================================================================
+// ===================================================================================================
 
-    // const { buildings, status: buildingStatus } = useSelector((state) => state.building);
+    // const { documents: sections, loading1, error1 } = fetchDocuments('sections');
+    const { data: sections, loading1, error1 } = useSelector((state) => state.sections);
 
-    // const { programs, status: programStatus } = useSelector((state) => state.program);
+    // const { documents: programs, loading2, error2 } = fetchDocuments('programs');
+    const { data: programs, loading2, error2 } = useSelector((state) => state.programs);
 
-    // const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
+    // const { documents: subjects, loading3, error3 } = fetchDocuments('subjects');
+    const { data: subjects, loading3, error3 } = useSelector((state) => state.subjects);
 
-    // const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
-
-    // const { sections, status: sectionStatus } = useSelector((state) => state.section);
-
-    const { documents: sections, loading1, error1 } = fetchDocuments('sections');
-
-    const { documents: programs, loading2, error2 } = fetchDocuments('programs');
-
-    const { documents: subjects, loading3, error3 } = fetchDocuments('subjects');
-
-    const { documents: teachers, loading4, error4 } = fetchDocuments('teachers');
+    // const { documents: teachers, loading4, error4 } = fetchDocuments('teachers');
+    const { data: teachers, loading4, error4 } = useSelector((state) => state.teachers);
 
     const { documents: stringfy_buildings, loading5, error5 } = fetchDocuments('buildings');
     // console.log('stringfy_buildings: ', stringfy_buildings);
+
+    useEffect(() => {
+        dispatch(subscribeToSections());
+        dispatch(subscribeToPrograms());
+        dispatch(subscribeToSubjects());
+        dispatch(subscribeToTeachers());
+        // dispatch(subscribeToBuildings());
+    }, [dispatch]);
+
+// ==================================================================================================
 
     useEffect(() => {
         try {
@@ -75,7 +78,7 @@ const AddSectionContainer = ({
 
     const [buildings, setBuildings] = useState({});
 
-    // ===================================================================================================
+// ===================================================================================================
 
     const [inputValue, setInputValue] = useState('');
 
@@ -262,23 +265,7 @@ const AddSectionContainer = ({
                 roomDetails: roomDetails,
             };
 
-            // dispatch(
-            //     reduxFunction({
-            //         [reduxField[0]]: inputValue,
-            //         teacher: selectedAdviser,
-            //         program: selectedProgram,
-            //         year: selectedYearLevel,
-            //         subjects: selectedSubjects,
-            //         fixedDays: fixedDays,
-            //         fixedPositions: fixedPositions,
-            //         modality: classModality,
-            //         shift: selectedShift,
-            //         startTime: getTimeSlotIndex(selectedStartTime || '06:00 AM'),
-            //         endTime: selectedEndTime,
-            //         additionalScheds: additionalScheds,
-            //         roomDetails: roomDetails,
-            //     })
-            // );
+            
 
             addDocument('sections', entryData);
 
@@ -850,7 +837,7 @@ const AddSectionContainer = ({
             <div className='flex mt-6 justify-center gap-2'>
                 <div className='flex justify-end space-x-2'>
                     <button className='btn btn-primary flex items-center' onClick={handleAddEntry} disabled={!isEndTimeValid}>
-                        <div>Add {reduxField[0]}</div>
+                        <div>Add Section</div>
                     </button>
                 </div>
                 <button className='btn btn-error border-0' onClick={handleReset}>

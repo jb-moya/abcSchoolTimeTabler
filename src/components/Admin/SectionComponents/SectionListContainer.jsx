@@ -1,32 +1,25 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
-import { fetchSections, addSection, editSection, removeSection } from '@features/sectionSlice';
-import { fetchPrograms } from '@features/programSlice';
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchTeachers, editTeacher } from '@features/teacherSlice';
-import { fetchBuildings, editBuilding } from '@features/buildingSlice';
-
-import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
-import TimeSelector from '@utils/timeSelector';
+import { getTimeSlotString } from '@utils/timeSlotMapper';
 
 import { IoAdd, IoEye, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 
-import { toast } from 'sonner';
-import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
-
 import ViewRooms from '../RoomsAndBuildings/ViewRooms';
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
-import clsx from 'clsx';
 import AdditionalScheduleForSection from './AdditionalScheduleForSection';
 import AddSectionContainer from './SectionAdd';
 import DeleteData from '../DeleteData';
 import SectionEdit from './SectionEdit';
+
+import { subscribeToSections } from '@features/slice/section_slice';
+import { subscribeToPrograms } from '@features/slice/program_slice';
+import { subscribeToSubjects } from '@features/slice/subject_slice';
+import { subscribeToTeachers } from '@features/slice/teacher_slice';
+// import { subscribeToBuildings } from '@features/slice/building_slice';
 
 import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 
@@ -35,20 +28,35 @@ const SectionListContainer = ({
     editable = false,
     breakTimeDuration: externalBreakTimeDuration,
 }) => {
+
     const dispatch = useDispatch();
 
-    //  =======================================================================================
+//  =======================================================================================
 
-    const { documents: sections, loading1, error1 } = fetchDocuments('sections');
+    // const { documents: sections, loading1, error1 } = fetchDocuments('sections');
+    const { data: sections, loading1, error1 } = useSelector((state) => state.sections);
 
-    const { documents: programs, loading2, error2 } = fetchDocuments('programs');
+    // const { documents: programs, loading2, error2 } = fetchDocuments('programs');
+    const { data: programs, loading2, error2 } = useSelector((state) => state.programs);
 
-    const { documents: subjects, loading3, error3 } = fetchDocuments('subjects');
+    // const { documents: subjects, loading3, error3 } = fetchDocuments('subjects');
+    const { data: subjects, loading3, error3 } = useSelector((state) => state.subjects);
 
-    const { documents: teachers, loading4, error4 } = fetchDocuments('teachers');
+    // const { documents: teachers, loading4, error4 } = fetchDocuments('teachers');
+    const { data: teachers, loading4, error4 } = useSelector((state) => state.teachers);
 
     const { documents: stringfy_buildings, loading5, error5 } = fetchDocuments('buildings');
     // console.log('stringfy_buildings: ', stringfy_buildings);
+
+    useEffect(() => {
+        dispatch(subscribeToSections());
+        dispatch(subscribeToPrograms());
+        dispatch(subscribeToSubjects());
+        dispatch(subscribeToTeachers());
+        // dispatch(subscribeToBuildings());
+    }, [dispatch]);
+
+//  =======================================================================================
 
     useEffect(() => {
         try {
@@ -67,7 +75,7 @@ const SectionListContainer = ({
 
     const [buildings, setBuildings] = useState({});
 
-    //  =======================================================================================
+//  =========================================================================================
 
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
         return externalNumOfSchoolDays ?? (Number(localStorage.getItem('numOfSchoolDays')) || 0);
@@ -92,12 +100,12 @@ const SectionListContainer = ({
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState([]);
 
-    //  =======================================================================================
+//  =======================================================================================
 
     const [searchSectionResult, setSearchSectionResult] = useState(sections);
     const [searchSectionValue, setSearchSectionValue] = useState('');
 
-    //  =======================================================================================
+//  =======================================================================================
 
     const handleClose = () => {
         const modal = document.getElementById('add_section_modal');
@@ -122,15 +130,15 @@ const SectionListContainer = ({
             );
         }
 
-        dispatch(
-            editTeacher({
-                teacherId: teacherId,
-                updatedTeacher: prevSectionAdviser,
-            })
-        );
+        // dispatch(
+        //     editTeacher({
+        //         teacherId: teacherId,
+        //         updatedTeacher: prevSectionAdviser,
+        //     })
+        // );
     };
 
-    //  =======================================================================================
+//  =======================================================================================
 
     const debouncedSearch = useCallback(
         debounce((searchValue, sections, subjects) => {
@@ -157,7 +165,7 @@ const SectionListContainer = ({
         []
     );
 
-    //  =======================================================================================
+//  =======================================================================================
 
     useEffect(() => {
         if (externalNumOfSchoolDays !== undefined) {
@@ -165,7 +173,7 @@ const SectionListContainer = ({
         }
     }, [externalNumOfSchoolDays]);
 
-    //  =======================================================================================
+//  =======================================================================================
 
     useEffect(() => {
         debouncedSearch(searchSectionValue, sections, subjects);
@@ -251,8 +259,6 @@ const SectionListContainer = ({
                                 <div className='modal-box' style={{ width: '48%', maxWidth: 'none' }}>
                                     <AddSectionContainer
                                         close={handleClose}
-                                        reduxField={['section', 'subjects', 'units']}
-                                        reduxFunction={addSection}
                                         errorMessage={errorMessage}
                                         setErrorMessage={setErrorMessage}
                                         errorField={errorField}
@@ -489,8 +495,6 @@ const SectionListContainer = ({
                                                 <div className='flex '>
                                                     <SectionEdit
                                                         section={section}
-                                                        reduxField={['section', 'subjects', 'units']}
-                                                        reduxFunction={editSection}
                                                         errorMessage={errorMessage}
                                                         setErrorMessage={setErrorMessage}
                                                         errorField={errorField}

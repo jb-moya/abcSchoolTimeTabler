@@ -1,22 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
-import { fetchSubjects, addSubject, editSubject, removeSubject } from '@features/subjectSlice';
-// import { fetchPrograms} from '@features/programSlice';
-// import { fetchSections } from '@features/sectionSlice';
 
-// import { getTimeSlotIndex } from '@utils/timeSlotMapper';
-
-import { fetchDocuments } from '../../hooks/CRUD/retrieveDocuments';
+import { subscribeToSubjects } from '@features/slice/subject_slice';
 
 import { IoAdd, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
-
-// import { toast } from 'sonner';
-
-import calculateTotalClass from '../../utils/calculateTotalClass';
 
 import AddSubjectContainer from './AddSubjectContainer';
 import SubjectEdit from './SubjectEdit';
@@ -32,15 +23,12 @@ const SubjectListContainer = ({
 
 // ==============================================================================
 
-    // const { subjects, status: subjectStatus } = useSelector(
-    //     (state) => state.subject
-    // );
-
-    const { documents: subjects, loading, error } = fetchDocuments('subjects');
+    // const { documents: subjects, loading, error } = fetchDocuments('subjects');
+    const { data: subjects, loading, error } = useSelector((state) => state.subjects);
 
     useEffect(() => {
-        console.log('subjects:', subjects);
-    }, [subjects]);
+        dispatch(subscribeToSubjects());
+    }, [dispatch]);
 
 // ==============================================================================
 
@@ -205,7 +193,6 @@ const SubjectListContainer = ({
                             <div className='modal-box'>
                                 <AddSubjectContainer
                                     close={() => document.getElementById('add_subject_modal').close()}
-                                    reduxFunction={addSubject}
                                     errorMessage={errorMessage}
                                     setErrorMessage={setErrorMessage}
                                     errorField={errorField}
@@ -282,7 +269,6 @@ const SubjectListContainer = ({
                                                     setErrorMessage={setErrorMessage}
                                                     errorField={errorField}
                                                     setErrorField={setErrorField}
-                                                    reduxFunction={editSubject}
                                                     numOfSchoolDays = {numOfSchoolDays}
                                                     breakTimeDuration={breakTimeDuration}
                                                 />

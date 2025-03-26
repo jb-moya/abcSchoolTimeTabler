@@ -4,15 +4,13 @@ import { RiEdit2Fill } from 'react-icons/ri';
 import { toast } from 'sonner';
 import { useSelector } from 'react-redux';
 
-import { fetchPrograms, editProgram } from '@features/programSlice';
-import { fetchSections, editSection } from '@features/sectionSlice';
-import { fetchSubjects } from '@features/subjectSlice';
+import { subscribeToSubjects } from '@features/slice/subject_slice';
+import { subscribeToPrograms } from '@features/slice/program_slice';
+import { subscribeToSections } from '@features/slice/section_slice';
 
-import { fetchDocuments } from '../../hooks/CRUD/retrieveDocuments';
 import { editDocument } from '../../hooks/CRUD/editDocument';
 
 import calculateTotalClass from '../../utils/calculateTotalClass';
-import { getTimeSlotIndex } from '@utils/timeSlotMapper';
 
 const SubjectEdit = ({
     subject,
@@ -29,11 +27,20 @@ const SubjectEdit = ({
 
 // =============================================================================
 
-    const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
+    // const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
+    const { documents: subjects, loading1, error1 } = useSelector((state) => state.subjects);
 
-    const { documents: programs, loading2, error2 } = fetchDocuments('programs');
+    // const { documents: programs, loading2, error2 } = fetchDocuments('programs');
+    const { documents: programs, loading2, error2 } = useSelector((state) => state.programs);
 
-    const { documents: sections, loading3, error3 } = fetchDocuments('sections');
+    // const { documents: sections, loading3, error3 } = fetchDocuments('sections');
+    const { documents: sections, loading3, error3 } = useSelector((state) => state.sections);
+
+    useEffect(() => {
+        dispatch(subscribeToSubjects());
+        dispatch(subscribeToPrograms());
+        dispatch(subscribeToSections());
+    }, [dispatch]);
 
 // =============================================================================
 
@@ -53,25 +60,9 @@ const SubjectEdit = ({
         }
     }, [subject]);
 
-    useEffect(() => {
-        console.log('editSubjectId:', editSubjectId);
-        console.log('editSubjectValue:', editSubjectValue);
-        console.log('editClassDuration:', editClassDuration);
-        console.log('editSubjectWeeklyMinutes:', editSubjectWeeklyMinutes);
-    }, [
-        editSubjectId,
-        editSubjectValue,
-        editClassDuration,
-        editSubjectWeeklyMinutes,]);
-
 // =============================================================================
 
     const handleEditSubject = () => {
-
-        // console.log('editSubjectId:', editSubjectId);
-        // console.log('editSubjectValue:', editSubjectValue);
-        // console.log('editClassDuration:', editClassDuration);
-        // console.log('editSubjectWeeklyMinutes:', editSubjectWeeklyMinutes);
 
         if (!editSubjectValue.trim()) {
             setErrorMessage('Subject name cannot be empty');
@@ -101,17 +92,6 @@ const SubjectEdit = ({
             }
         }
 
-        // dispatch(
-        //     reduxFunction({
-        //         subjectId: editSubjectId,
-        //         updatedSubject: {
-        //             subject: editSubjectValue,
-        //             classDuration: editClassDuration,
-        //             weeklyMinutes: editSubjectWeeklyMinutes,
-        //         },
-        //     })
-        // );
-
         try {
             editDocument('subjects', editSubjectId, {
                 subject: editSubjectValue,
@@ -138,6 +118,7 @@ const SubjectEdit = ({
     };
 
     const updateSubjectDependencies = () => {
+
         if (Object.keys(programs).length === 0) return;
 
         // Update subject dependencies in PROGRAMS
@@ -160,28 +141,24 @@ const SubjectEdit = ({
                     let totalDuration = breakTimeCount * breakTimeDuration;
 
                     newProgram[grade].subjects.forEach((subId) => {
-                        if (subId === editSubjectId) {
+                        if (subId === editSubjectCustomId) {
                             totalDuration += editClassDuration;
                         } else {
                             totalDuration += subjects[subId].classDuration;
                         }  
                     });
 
-                    console.log('totalDuration', totalDuration);
-
                     const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
 
                     newProgram[grade].endTime = endTimeIdx || 216; // 216 = 6:00 PM
-
-                    console.log('newProgram[grade].endTime', newProgram[grade].endTime);
 
                 // =============== Update program fixed days and positons ===============
 
                     const newTotalTimeslot = calculateTotalClass(
                         {
                             ...subjects,
-                            [editSubjectId]: {
-                                ...subjects[editSubjectId],
+                            [editSubjectCustomId]: {
+                                ...subjects[editSubjectCustomId],
                                 subject: editSubjectValue,
                                 classDuration: editClassDuration,
                                 weeklyMinutes: editSubjectWeeklyMinutes,
@@ -206,6 +183,7 @@ const SubjectEdit = ({
                     let positionTimeSlots = {};
 
                     for (let subjectID of newProgram[grade].subjects) {
+
                         const { fixedDays, fixedPositions } = newProgram[grade];
 
                         fixedDays[subjectID].forEach((day, i) => {
@@ -216,6 +194,7 @@ const SubjectEdit = ({
                                 positionTimeSlots[position] ??= numOfSchoolDays;
                             }
                         });
+
                     }
 
                     // Loop through all subjects of the year level
@@ -223,7 +202,7 @@ const SubjectEdit = ({
 
                         // Retrieve the number of classes allowed for the subject
                         let numOfClasses = 0;
-                        if (subjectID === editSubjectId) {
+                        if (subjectID === editSubjectCustomId) {
                             numOfClasses = Math.min(
                                 Math.ceil(
                                     editSubjectWeeklyMinutes / editClassDuration
@@ -239,24 +218,16 @@ const SubjectEdit = ({
                                 numOfSchoolDays
                             );
                         }
-                        console.log('grade', grade);
-                        console.log('subjectID', subjectID);
-                        console.log('numOfClasses', numOfClasses);
 
                         const fixedDays = newProgram[grade].fixedDays[subjectID];
                         const fixedPositions =
                             newProgram[grade].fixedPositions[subjectID];
-
-                        console.log('fixedDays', fixedDays);
-                        console.log('fixedPositions', fixedPositions);
 
                         // Use hash maps to quickly look up subjects and day-position pairs
                         const dayPositionMap = new Map();
 
                         fixedDays.forEach((day, index) => {
                             const pos = fixedPositions[index];
-                            console.log('day', day);
-                            console.log('pos', pos);
                             if (
                                 (
                                     (day !== 0 && pos === 0) ||
@@ -269,8 +240,6 @@ const SubjectEdit = ({
                             }
                         });
 
-                        console.log('dayPositionMap', dayPositionMap);
-
                         // Now we process the day-position pairs efficiently
                         let result = [];
                         dayPositionMap.forEach(([day, pos]) => {
@@ -280,8 +249,6 @@ const SubjectEdit = ({
                                 positionTimeSlots[pos]--;
                             }
                         });
-
-                        console.log('result', result);
 
                         // Pad with [0, 0] if necessary
                         while (result.length < numOfClasses) {
@@ -295,9 +262,9 @@ const SubjectEdit = ({
                         newProgram[grade].fixedPositions[subjectID] = result.map(
                             ([_, pos]) => pos
                         );
+
                     }
 
-                    console.log('newProgram', newProgram);
             });
 
             // const updateProgramDetails = (newProgram, grade) => ({
@@ -390,7 +357,7 @@ const SubjectEdit = ({
                 let totalDuration = breakTimeCount * breakTimeDuration;
 
                 newSection.subjects.forEach((subId) => {
-                    if (subId === editSubjectId) {
+                    if (subId === editSubjectCustomId) {
                         totalDuration += editClassDuration;
                     } else {
                         totalDuration += subjects[subId].classDuration;
@@ -530,6 +497,7 @@ const SubjectEdit = ({
 
             }
         });
+
     };
 
     const handleReset = () => {

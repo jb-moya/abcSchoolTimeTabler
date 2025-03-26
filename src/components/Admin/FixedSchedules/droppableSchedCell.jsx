@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import {useDispatch, useSelector } from 'react-redux';
 import { useDroppable } from '@dnd-kit/core';
-import { useSelector } from 'react-redux';
+
 import DraggableSchedules from './draggableSchedules';
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+import { subscribeToSubjects } from '@features/slice/subject_slice';
 
 const DroppableSchedCell = ({
     editMode,
@@ -19,25 +20,28 @@ const DroppableSchedCell = ({
     fixedDays,
     fixedPositions,
 }) => {
-    // console.log('🚀 ~ selectedSubjects : : : : :', selectedSubjects);
+
+    const dispatch = useDispatch();
+
+// ===============================================================================
+
+    // const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
+    const { data: subjects, loading1, error1 } = useSelector((state) => state.subjects);
+
+    useEffect(() => {
+        dispatch(subscribeToSubjects());
+    }, [dispatch]);
+
+// ===============================================================================
 
     const numOfSchoolDays = parseInt(
         localStorage.getItem('numOfSchoolDays'),
         10
     );
 
-    // const subjects = useSelector((state) => state.subject.subjects);
-
-    const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
+// ===============================================================================
 
     const [isFull, setIsFull] = useState(false);
-
-    // useEffect(() => {
-    //     console.log('grade', grade);
-    //     console.log('selectedSubjects', selectedSubjects);
-    //     console.log('days', fixedDays);
-    //     console.log('positions', fixedPositions);
-    // }, [fixedDays, fixedPositions, selectedSubjects,grade]);
 
     useEffect(() => {
         checkIfFull();
@@ -76,10 +80,14 @@ const DroppableSchedCell = ({
         setIsFull(false);
     };
 
+// ===============================================================================
+
     const { setNodeRef } = useDroppable({
         id: `drop-g${grade}-d${day}-p${position}`,
         data: { subjectID, day, position },
     });
+
+// ===============================================================================
 
     return (
         <div

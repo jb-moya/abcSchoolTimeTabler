@@ -1,22 +1,22 @@
 import { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchRanks } from '@features/rankSlice';
-import { fetchDepartments } from '@features/departmentSlice';
 import SearchableDropdownToggler from '../searchableDropdown';
 
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import AdditionalScheduleForTeacher from './AdditionalScheduleForTeacher';
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+import { subscribeToTeachers } from '@features/slice/teacher_slice';
+import { subscribeToSubjects } from '@features/slice/subject_slice';
+import { subscribeToRanks } from '@features/slice/rank_slice';
+import { subscribeToDepartments } from '@features/slice/department_slice';
+
 import { addDocument } from '../../../hooks/CRUD/addDocument';
 
 import { toast } from 'sonner';
 
 const AddTeacherContainer = ({
     close,
-    reduxFunction,
     errorMessage,
     setErrorMessage,
     errorField,
@@ -30,13 +30,24 @@ const AddTeacherContainer = ({
 
 // =============================================================================================================
 
-    const { documents: teachers, loading1, error1 } = fetchDocuments('teachers');
+    // const { documents: teachers, loading1, error1 } = fetchDocuments('teachers');
+    const { data: teachers, loading1, error1 } = useSelector((state) => state.teachers);
 
-    const { documents: subjects, loading2, error2 } = fetchDocuments('subjects');
+    // const { documents: subjects, loading2, error2 } = fetchDocuments('subjects');
+    const { data: subjects, loading2, error2 } = useSelector((state) => state.subjects);
 
-    const { documents: ranks, loading3, error3 } = fetchDocuments('ranks');
+    // const { documents: ranks, loading3, error3 } = fetchDocuments('ranks');
+    const { data: ranks, loading3, error3 } = useSelector((state) => state.ranks);
 
-    const { documents: departments, loading4, error4 } = fetchDocuments('departments');
+    // const { documents: departments, loading4, error4 } = fetchDocuments('departments');
+    const { data: departments, loading4, error4 } = useSelector((state) => state.departments);
+
+    useEffect(() => {
+        dispatch(subscribeToTeachers());
+        dispatch(subscribeToSubjects());
+        dispatch(subscribeToRanks());
+        dispatch(subscribeToDepartments());
+    }, [dispatch]);
 
 // =============================================================================================================
 

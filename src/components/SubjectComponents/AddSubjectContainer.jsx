@@ -3,6 +3,8 @@ import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import { toast } from 'sonner';
 
+import { subscribeToSubjects } from '@features/slice/subject_slice';
+
 import { fetchDocuments } from '../../hooks/CRUD/retrieveDocuments';
 import { addDocument } from '../../hooks/CRUD/addDocument';
 
@@ -21,9 +23,12 @@ const AddSubjectContainer = ({
 
 // ==============================================================================
 
-    // const subjects = useSelector((state) => state.subject.subjects);
+    // const { documents: subjects, loading, error } = fetchDocuments('subjects');
+    const { data: subjects, loading, error } = useSelector((state) => state.subjects);
 
-    const { documents: subjects, loading, error } = fetchDocuments('subjects');
+    useEffect(() => {
+        dispatch(subscribeToSubjects());
+    }, [dispatch]);
 
 // ==============================================================================
 

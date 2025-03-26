@@ -1,24 +1,17 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-
-import { fetchPrograms, addProgram, editProgram, removeProgram } from '@features/programSlice';
-import { fetchSections, editSection } from '@features/sectionSlice';
-import { fetchSubjects } from '@features/subjectSlice';
 
 import debounce from 'debounce';
 import { FcInfo } from 'react-icons/fc';
-import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
-import SearchableDropdownToggler from '../searchableDropdown';
 
-import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';
+import { getTimeSlotString } from '@utils/timeSlotMapper';
 
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
-import { toast } from 'sonner';
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
-import { addDocument } from '../../../hooks/CRUD/addDocument';
+import { subscribeToSubjects } from '@features/slice/subject_slice';
+import { subscribeToPrograms } from '@features/slice/program_slice';
 
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
 import DeleteData from '../DeleteData';
@@ -31,28 +24,28 @@ const ProgramListContainer = ({
     editable = false,
     breakTimeDuration: externalBreakTimeDuration,
 }) => {
+
     const dispatch = useDispatch();
 
-    // ==============================================================================
+// ==============================================================================
 
-    // ==============================================================================
+    // const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
+    const { data: subjects, loading1, error1 } = useSelector((state) => state.subjects);
 
-    // const subjects = useSelector((state) => state.subject.subjects);
+    // const { documents: programs, loading2, error2 } = fetchDocuments('programs');
+    const { data: programs, loading2, error2 } = useSelector((state) => state.programs);
+    
+    useEffect(() => {
+        dispatch(subscribeToSubjects());
+        dispatch(subscribeToPrograms());
+    }, [dispatch]);
 
-    const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
-
-    // const programs = useSelector((state) => state.program.programs);
-
-    const { documents: programs, loading2, error2 } = fetchDocuments('programs');
-
-    // const { sections, status: sectionStatus } = useSelector((state) => state.section);
-
-    // ==============================================================================
+// ==============================================================================
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
 
-    // ==============================================================================
+// ==============================================================================
 
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
         return externalNumOfSchoolDays ?? (Number(localStorage.getItem('numOfSchoolDays')) || 0);
@@ -82,7 +75,7 @@ const ProgramListContainer = ({
         console.log('breakTimeDuration', breakTimeDuration);
     }, [breakTimeDuration]);
 
-    // ==============================================================================
+// ==============================================================================
 
     const handleClose = () => {
         const modal = document.getElementById('add_program_modal');
@@ -95,7 +88,7 @@ const ProgramListContainer = ({
         }
     };
 
-    // ================================================================
+// ================================================================
 
     // useEffect(() => {
     //     if (sectionStatus === 'idle') {
@@ -223,8 +216,6 @@ const ProgramListContainer = ({
 
                             <AddProgramContainer
                                 close={handleClose}
-                                reduxField={['program', 'subjects']}
-                                reduxFunction={addProgram}
                                 morningStartTime={morningStartTime}
                                 afternoonStartTime={afternoonStartTime}
                                 errorMessage={errorMessage}
@@ -410,8 +401,6 @@ const ProgramListContainer = ({
                                                         <ProgramEdit
                                                             className='btn btn-xs btn-ghost text-blue-500'
                                                             program={program}
-                                                            reduxField={['program', 'subjects']}
-                                                            reduxFunction={editProgram}
                                                             morningStartTime={morningStartTime}
                                                             afternoonStartTime={afternoonStartTime}
                                                             errorMessage={errorMessage}

@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchTeachers } from '@features/teacherSlice';
+
 import { toast } from "sonner";
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+import { subscribeToDepartments } from '@features/slice/department_slice';
+
 import { addDocument } from '../../../hooks/CRUD/addDocument';
 
 const AddDepartmentContainer = ({
@@ -16,18 +17,16 @@ const AddDepartmentContainer = ({
   }) => {
 
     const inputNameRef = useRef();
-    // const dispatch = useDispatch();
+    const dispatch = useDispatch();
 
 // ===================================================================================
-  
-  // const { teachers, status: teacherStatus } = useSelector(
-  //   (state) => state.teacher
 
-  // );
+	// const { documents: departments, loading1, error1 } = fetchDocuments('departments');
+	const { data: departments, loading1, error1 } = useSelector((state) => state.departments);
 
-  // const departments = useSelector((state) => state.department.departments);
-
-	const { documents: departments, loading1, error1 } = fetchDocuments('departments');
+	useEffect(() => {
+		dispatch(subscribeToDepartments());
+	}, [dispatch]);
 
 // ===================================================================================
   

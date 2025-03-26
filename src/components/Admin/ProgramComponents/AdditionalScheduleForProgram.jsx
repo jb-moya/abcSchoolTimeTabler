@@ -1,10 +1,8 @@
 import { clsx } from 'clsx';
-import { useState, useEffect, useRef} from 'react';
-import { useSelector } from 'react-redux';
+import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
-
-import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';
+import { subscribeToSubjects } from '@features/slice/subject_slice';
 
 const AdditionalScheduleForProgram = ({
     viewingMode = 0,
@@ -17,24 +15,35 @@ const AdditionalScheduleForProgram = ({
     setAdditionalScheds = () => {},
 }) => {
 
-    // const subjects = useSelector((state) => state.subject.subjects);
+    const dispatch = useDispatch();
 
-    const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
+// ==============================================================================
+
+    // const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
+    const { data: subjects, loading1, error1 } = useSelector((state) => state.subjects);
+
+    useEffect(() => {
+        dispatch(subscribeToSubjects());
+    }, [dispatch]);
 
 // ==============================================================================
 
     const [schedName, setSchedName] = useState(
         additionalSchedsOfProgYear.name || ''
     );
+
     const [schedSubject, setSchedSubject] = useState(
         additionalSchedsOfProgYear.subject || -1
     );
+
     const [schedDuration, setSchedDuration] = useState(
         additionalSchedsOfProgYear.duration || 0
     );
+
     const [schedFrequency, setSchedFrequency] = useState(
         additionalSchedsOfProgYear.frequency || 0
     );
+
     const [schedShown, setSchedShown] = useState(
         additionalSchedsOfProgYear.shown || false
     );

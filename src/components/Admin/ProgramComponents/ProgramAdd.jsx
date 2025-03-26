@@ -8,7 +8,9 @@ import SearchableDropdownToggler from '../searchableDropdown';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { IoWarningSharp } from 'react-icons/io5';
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+import { subscribeToSubjects } from '@features/slice/subject_slice';
+import { subscribeToPrograms } from '@features/slice/program_slice';
+
 import { addDocument } from '../../../hooks/CRUD/addDocument';
 
 import AdditionalScheduleForProgram from './AdditionalScheduleForProgram';
@@ -17,8 +19,6 @@ import TimeSelector from '@utils/timeSelector';
 
 const AddProgramContainer = ({
     close,
-    reduxField,
-    reduxFunction,
     morningStartTime,
     afternoonStartTime,
     errorMessage,
@@ -34,13 +34,16 @@ const AddProgramContainer = ({
 
 // ===============================================================================
 
-    // const subjects = useSelector((state) => state.subject.subjects);
+    // const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
+    const { data: subjects, loading1, error1 } = useSelector((state) => state.subjects);
 
-    const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
-
-    // const programs = useSelector((state) => state.program.programs);
-
-    const { documents: programs, loading2, error2 } = fetchDocuments('programs');
+    // const { documents: programs, loading2, error2 } = fetchDocuments('programs');
+    const { data: programs, loading2, error2 } = useSelector((state) => state.programs);
+    
+    useEffect(() => {
+        dispatch(subscribeToSubjects());
+        dispatch(subscribeToPrograms());
+    }, [dispatch]);
 
 // ==============================================================================
 
@@ -344,51 +347,6 @@ const AddProgramContainer = ({
             setErrorMessage('A program with this name already exists.');
             setErrorField('program');
         } else {
-            // dispatch(
-            //     reduxFunction({
-            //         [reduxField[0]]: inputValue,
-            //         7: {
-            //             subjects: selectedSubjects[7],
-            //             fixedDays: fixedDays[7],
-            //             fixedPositions: fixedPositions[7],
-            //             shift: selectedShifts[7],
-            //             startTime: getTimeSlotIndex(startTimes[7]),
-            //             endTime: endTimes[7],
-            //             additionalScheds: additionalScheds[7],
-            //             modality: classModality[7],
-            //         },
-            //         8: {
-            //             subjects: selectedSubjects[8],
-            //             fixedDays: fixedDays[8],
-            //             fixedPositions: fixedPositions[8],
-            //             shift: selectedShifts[8],
-            //             startTime: getTimeSlotIndex(startTimes[8]),
-            //             endTime: endTimes[8],
-            //             additionalScheds: additionalScheds[8],
-            //             modality: classModality[8],
-            //         },
-            //         9: {
-            //             subjects: selectedSubjects[9],
-            //             fixedDays: fixedDays[9],
-            //             fixedPositions: fixedPositions[9],
-            //             shift: selectedShifts[9],
-            //             startTime: getTimeSlotIndex(startTimes[9]),
-            //             endTime: endTimes[9],
-            //             additionalScheds: additionalScheds[9],
-            //             modality: classModality[9],
-            //         },
-            //         10: {
-            //             subjects: selectedSubjects[10],
-            //             fixedDays: fixedDays[10],
-            //             fixedPositions: fixedPositions[10],
-            //             shift: selectedShifts[10],
-            //             startTime: getTimeSlotIndex(startTimes[10]),
-            //             endTime: endTimes[10],
-            //             additionalScheds: additionalScheds[10],
-            //             modality: classModality[10],
-            //         },
-            //     })
-            // );
 
             try {
                 addDocument('programs', {
@@ -561,10 +519,10 @@ const AddProgramContainer = ({
         <dialog id='add_program_modal' className='modal'>
             <div className='modal-box' style={{ width: '48%', maxWidth: 'none' }}>
                 <div>
-                    {/* Header section with centered "Add {reduxField}" */}
+
                     <div className='flex justify-between mb-4'>
                         <h3 className='text-lg font-bold text-center w-full'>
-                            Add New {reduxField[0].charAt(0).toUpperCase() + reduxField[0].slice(1).toLowerCase()}
+                            Add New Program
                         </h3>
                     </div>
 
@@ -874,7 +832,7 @@ const AddProgramContainer = ({
                                 onClick={handleAddEntry}
                                 disabled={isAddButtonDisabled}
                             >
-                                <div>Add {reduxField[0]}</div>
+                                <div>Add Program</div>
                             </button>
                         </div>
                         <button className='btn btn-error border-0' onClick={handleReset}>

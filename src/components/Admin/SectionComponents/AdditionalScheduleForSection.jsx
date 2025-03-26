@@ -1,11 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import TimeSelector from '@utils/timeSelector';
+import { useDispatch, useSelector } from 'react-redux';
 import clsx from 'clsx';
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
-
-import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
+import { subscribeToSubjects } from '@features/slice/subject_slice';
 
 const AdditionalScheduleForSection = ({
     viewingMode = 0,
@@ -18,10 +15,16 @@ const AdditionalScheduleForSection = ({
     setAdditionalScheds = () => {},
 }) => {
 
+    const dispatch = useDispatch();
 
-    // const subjects = useSelector((state) => state.subject.subjects);
+// ===================================================================================================
 
-    const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
+    // const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
+    const { data: subjects, loading1, error1 } = useSelector((state) => state.subjects);
+
+    useEffect(() => {
+        dispatch(subscribeToSubjects());
+    }, [dispatch]);
 
 // ===================================================================================================
 

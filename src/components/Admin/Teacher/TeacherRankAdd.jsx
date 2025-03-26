@@ -1,20 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchRanks } from '@features/rankSlice';
-
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 
 import { toast } from 'sonner';
 import AdditionalScheduleForTeacherRank from './AdditionalScheduleForTeacherRank';
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+import { subscribeToRanks } from '@features/slice/rank_slice';
+
 import { addDocument } from '../../../hooks/CRUD/addDocument';
 
 const AddTeacherRankContainer = ({
     close,
-    reduxFunction,
     errorMessage,
     setErrorMessage,
     errorField,
@@ -28,11 +25,12 @@ const AddTeacherRankContainer = ({
 
 // =============================================================================================================
 
-    // const { ranks, status: rankStatus } = useSelector((state) => state.rank);
+    // const { documents: ranks, loading1, error1 } = fetchDocuments('ranks');
+    const { data: ranks, loading1, error1 } = useSelector((state) => state.ranks);
 
-    const { documents: ranks, loading1, error1 } = fetchDocuments('ranks');
-
-    // const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
+    useEffect(() => {
+        dispatch(subscribeToRanks());
+    }, [dispatch]);
 
 // =============================================================================================================
 

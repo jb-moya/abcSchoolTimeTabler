@@ -1,33 +1,30 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { toast } from 'sonner';
 
 import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
+import TimeSelector from '@utils/timeSelector';
 
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { IoWarningSharp } from 'react-icons/io5';
-
-import { fetchPrograms } from '@features/programSlice';
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchTeachers, editTeacher } from '@features/teacherSlice';
-import { fetchBuildings } from '@features/buildingSlice';
-import { fetchSections } from '@features/sectionSlice';
-
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
-import { editDocument } from '../../../hooks/CRUD/editDocument';
 
 import ViewRooms from '../RoomsAndBuildings/ViewRooms';
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
 import AdditionalScheduleForSection from './AdditionalScheduleForSection';
 
-import TimeSelector from '@utils/timeSelector';
+import { subscribeToSections } from '@features/slice/section_slice';
+import { subscribeToPrograms } from '@features/slice/program_slice';
+import { subscribeToSubjects } from '@features/slice/subject_slice';
+import { subscribeToTeachers } from '@features/slice/teacher_slice';
+// import { subscribeToBuildings } from '@features/slice/building_slice';
+
+import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+import { editDocument } from '../../../hooks/CRUD/editDocument';
+
 
 const SectionEdit = ({
     section,
-    reduxField,
-    reduxFunction,
     errorMessage,
     setErrorMessage,
     errorField,
@@ -35,18 +32,36 @@ const SectionEdit = ({
     numOfSchoolDays,
     breakTimeDuration,
 }) => {
+
     const dispatch = useDispatch();
 
-    // ===============================================================
+// =========================================================================================================
 
-    const { documents: sections, loading1, error1 } = fetchDocuments('sections');
+    // const { documents: sections, loading1, error1 } = fetchDocuments('sections');
+    const { data: sections, loading1, error1 } = useSelector((state) => state.sections);
 
-    const { documents: programs, loading2, error2 } = fetchDocuments('programs');
-    const { documents: subjects, loading3, error3 } = fetchDocuments('subjects');
-    const { documents: teachers, loading4, error4 } = fetchDocuments('teachers');
+    // const { documents: programs, loading2, error2 } = fetchDocuments('programs');
+    const { data: programs, loading2, error2 } = useSelector((state) => state.programs);
+
+    // const { documents: subjects, loading3, error3 } = fetchDocuments('subjects');
+    const { data: subjects, loading3, error3 } = useSelector((state) => state.subjects);
+
+    // const { documents: teachers, loading4, error4 } = fetchDocuments('teachers'); 
+    const { data: teachers, loading4, error4 } = useSelector((state) => state.teachers);
 
     const { documents: stringfy_buildings, loading5, error5 } = fetchDocuments('buildings');
     // console.log('stringfy_buildings: ', stringfy_buildings);
+
+    useEffect(() => {
+        dispatch(subscribeToSections());
+        dispatch(subscribeToPrograms());
+        dispatch(subscribeToSubjects());
+        dispatch(subscribeToTeachers());
+        // dispatch(subscribeToBuildings());
+    }, [dispatch]);
+
+// ========================================================================================================
+
 
     useEffect(() => {
         try {
@@ -65,7 +80,7 @@ const SectionEdit = ({
 
     const [buildings, setBuildings] = useState({});
 
-    // ===============================================================================================
+// ===========================================================================================================
 
     const [editSectionAdviser, setEditSectionAdviser] = useState('');
     const [prevAdviser, setPrevAdviser] = useState('');

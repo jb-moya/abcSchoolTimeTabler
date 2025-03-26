@@ -9,20 +9,17 @@ import SearchableDropdownToggler from '../searchableDropdown';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { IoWarningSharp } from 'react-icons/io5';
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
-import { editDocument } from '../../../hooks/CRUD/editDocument';
+import { subscribeToSubjects } from '@features/slice/subject_slice';
+import { subscribeToPrograms } from '@features/slice/program_slice';
 
+import { editDocument } from '../../../hooks/CRUD/editDocument';
 
 import AdditionalScheduleForProgram from './AdditionalScheduleForProgram';
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
-import { fetchSections, editSection } from '@features/sectionSlice';
-import { fetchSubjects } from '@features/subjectSlice';
 import TimeSelector from '@utils/timeSelector';
 
 const ProgramEdit = ({
     program,
-    reduxField,
-    reduxFunction,
     morningStartTime,
     afternoonStartTime,
     errorMessage,
@@ -38,15 +35,16 @@ const ProgramEdit = ({
 
 // ==========================================================================
 
-    // const subjects = useSelector((state) => state.subject.subjects);
+    // const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
+    const { data: subjects, loading1, error1 } = useSelector((state) => state.subjects);
+
+    // const { documents: programs, loading2, error2 } = fetchDocuments('programs');
+    const { data: programs, loading2, error2 } = useSelector((state) => state.programs);
     
-    const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
-
-    // const programs = useSelector((state) => state.program.programs);
-
-    const { documents: programs, loading2, error2 } = fetchDocuments('programs');
-
-    const { sections, status: sectionStatus } = useSelector((state) => state.section);
+    useEffect(() => {
+        dispatch(subscribeToSubjects());
+        dispatch(subscribeToPrograms());
+    }, [dispatch]);
 
 // ==========================================================================
 
@@ -283,10 +281,10 @@ const ProgramEdit = ({
 
             let totalDuration = (breakTimeCount * breakTimeDuration) + topDurations.reduce((sum, duration) => sum + duration, 0);
 
-            console.log('noOfClassBlocks', noOfClassBlocks);
-            console.log('noOfRows', noOfRows);
-            console.log('topDurations', topDurations);
-            console.log('totalDuration', totalDuration);
+            // console.log('noOfClassBlocks', noOfClassBlocks);
+            // console.log('noOfRows', noOfRows);
+            // console.log('topDurations', topDurations);
+            // console.log('totalDuration', totalDuration);
 
             const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
 
@@ -476,12 +474,7 @@ const ProgramEdit = ({
                                     newSubjDays.push(day);
                                     newSubjPositions.push(position);
                                     dayPositionMap.set(`${day}-${position}`, true);
-                                }
-                                // else if (Number(day) + Number(position) === 1) {
-                                //     newSubjDays.push(day);
-                                //     newSubjPositions.push(position);
-                                // }
-                                else {
+                                } else {
                                     newSubjDays.push(0);
                                     newSubjPositions.push(0);
                                 }
@@ -495,25 +488,25 @@ const ProgramEdit = ({
             }
 
             if (originalSection !== newSection) {
-                dispatch(
-                    editSection({
-                        sectionId: newSection.id,
-                        updatedSection: {
-                            id: newSection.id,
-                            teacher: newSection.teacher,
-                            program: newSection.program,
-                            section: newSection.section,
-                            subjects: newSection.subjects,
-                            fixedDays: newSection.fixedDays,
-                            fixedPositions: newSection.fixedPositions,
-                            year: newSection.year,
-                            shift: newSection.shift,
-                            startTime: newSection.startTime,
-                            endTime: newSection.endTime,
-                            additionalScheds: newSection.additionalScheds,
-                        },
-                    })
-                );
+                // dispatch(
+                //     editSection({
+                //         sectionId: newSection.id,
+                //         updatedSection: {
+                //             id: newSection.id,
+                //             teacher: newSection.teacher,
+                //             program: newSection.program,
+                //             section: newSection.section,
+                //             subjects: newSection.subjects,
+                //             fixedDays: newSection.fixedDays,
+                //             fixedPositions: newSection.fixedPositions,
+                //             year: newSection.year,
+                //             shift: newSection.shift,
+                //             startTime: newSection.startTime,
+                //             endTime: newSection.endTime,
+                //             additionalScheds: newSection.additionalScheds,
+                //         },
+                //     })
+                // );
             }
         });
     };

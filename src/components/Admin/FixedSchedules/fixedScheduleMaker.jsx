@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { DndContext } from '@dnd-kit/core';
 import { produce } from 'immer';
 
 import ContainerSpawn from './containerSpawn';
 import DroppableSchedCell from './droppableSchedCell';
-import { ReserveDay, ReservePosition } from './reservation';
 import { spawnColors } from './bgColors';
 import calculateTotalClass from '../../../utils/calculateTotalClass';
 import isEqual from 'lodash.isequal';
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+import { subscribeToSubjects } from '@features/slice/subject_slice';
 
 const hexToRgba = (hex, alpha) => {
     const [r, g, b] = hex
@@ -81,17 +80,23 @@ const FixedScheduleMaker = ({
     setFixedPositions = () => {},
     numOfSchoolDays = 0,
 }) => {
-    // const subjectsStore = useSelector((state) => state.subject.subjects);
 
-    const { documents: subjectsStore, loading1, error1 } = fetchDocuments('subjects');
+    const dispatch = useDispatch();
+
+// ==============================================================================
+
+    // const { documents: subjectsStore, loading1, error1 } = fetchDocuments('subjects');
+    const { data: subjectsStore, loading1, error1 } = useSelector((state) => state.subjects);
+
+    useEffect(() => {
+        dispatch(subscribeToSubjects());
+    }, [dispatch]);
+
+// ==============================================================================
 
     const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
     const [editMode, setEditMode] = useState(false);
-
-    // const [subs, setSubs] = useState(produce(selectedSubjects, (draft) => draft));
-    // const [days, setDays] = useState(produce(fixedDays, (draft) => draft));
-    // const [positions, setPositions] = useState(produce(fixedPositions, (draft) => draft));
 
     const [subs, setSubs] = useState(selectedSubjects);
     const [days, setDays] = useState(fixedDays);

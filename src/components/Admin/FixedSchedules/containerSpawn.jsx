@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
-import DraggableSchedules from './draggableSchedules';
+import { useDispatch, useSelector } from 'react-redux';
 import { useDroppable } from '@dnd-kit/core';
-import clsx from 'clsx';
-import { spawnColors } from './bgColors';
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+import DraggableSchedules from './draggableSchedules';
+
+import { subscribeToSubjects } from '@features/slice/subject_slice';
 
 const ContainerSpawn = ({
     editMode,
@@ -21,16 +20,19 @@ const ContainerSpawn = ({
     fixedDays,
     fixedPositions,
 }) => {
-    // const subjects = useSelector((state) => state.subject.subjects);
 
-    const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
+// ===============================================================================
 
-    // useEffect(() => {
-    //     console.log('selectedSubjects', selectedSubjects);
-    //     console.log('grade', grade);
-    //     console.log('fixedDays', fixedDays);
-    //     console.log('fixedPositions', fixedPositions);
-    // }, [grade, selectedSubjects, fixedDays, fixedPositions]);
+    const dispatch = useDispatch();
+
+    // const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
+    const { data: subjects, loading1, error1 } = useSelector((state) => state.subjects);
+
+    useEffect(() => {
+        dispatch(subscribeToSubjects());
+    }, [dispatch]);
+
+// ===============================================================================
 
     const { setNodeRef } = useDroppable({
         id: `spawn-g${grade}-s${subjectID}`,

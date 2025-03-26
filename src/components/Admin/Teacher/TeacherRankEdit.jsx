@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchRanks } from '@features/rankSlice';
 
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import AdditionalScheduleForTeacherRank from './AdditionalScheduleForTeacherRank';
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchTeachers, editTeacher } from '@features/teacherSlice';
+
+import { subscribeToRanks } from '@features/slice/rank_slice';
+import { subscribeToTeachers } from '@features/slice/teacher_slice';
 
 import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 import { editDocument } from '../../../hooks/CRUD/editDocument';
@@ -14,7 +14,6 @@ import { toast } from "sonner";
 
 const TeacherRankEdit = ({
     rank,
-    reduxFunction,
     errorMessage,
     setErrorMessage,
     errorField,
@@ -26,18 +25,17 @@ const TeacherRankEdit = ({
 
 // ==============================================================================
 
-    // const { ranks, status: rankStatus } = useSelector(
-	// 	(state) => state.rank
-	// );
+    // const { documents: ranks, loading1, error1 } = fetchDocuments('ranks');
+    const { data: ranks, loading1, error1 } = useSelector((state) => state.ranks);
 
-    const { documents: ranks, loading1, error1 } = fetchDocuments('ranks');
+    // const { documents: teachers, loading2, error2 } = fetchDocuments('teachers');
+    const { data: teachers, loading2, error2 } = useSelector((state) => state.teachers);
 
-	// const { teachers, status: teacherStatus } = useSelector(
-	// 	(state) => state.teacher
-	// );
-
-    const { documents: teachers, loading2, error2 } = fetchDocuments('teachers');
-
+    useEffect(() => {
+        dispatch(subscribeToRanks());
+        dispatch(subscribeToTeachers());
+    }, [dispatch]);
+    
 // ==============================================================================
 
     const [editRankId, setEditRankId] = useState(rank.id || null);
@@ -101,19 +99,19 @@ const TeacherRankEdit = ({
 			});
 
 
-			dispatch(
-				editTeacher({
-					teacherId: newTeacher.id,
-					updatedTeacher: {
-						teacher: newTeacher.teacher,
-						department: newTeacher.department,
-						rank: newTeacher.rank,
-						subjects: newTeacher.subjects,
-						yearLevels: newTeacher.yearLevels,
-						additionalTeacherScheds: newTeacher.additionalTeacherScheds,
-					},
-				})
-			);
+			// dispatch(
+			// 	editTeacher({
+			// 		teacherId: newTeacher.id,
+			// 		updatedTeacher: {
+			// 			teacher: newTeacher.teacher,
+			// 			department: newTeacher.department,
+			// 			rank: newTeacher.rank,
+			// 			subjects: newTeacher.subjects,
+			// 			yearLevels: newTeacher.yearLevels,
+			// 			additionalTeacherScheds: newTeacher.additionalTeacherScheds,
+			// 		},
+			// 	})
+			// );
 			
 		})
 	};

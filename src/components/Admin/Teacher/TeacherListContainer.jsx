@@ -1,39 +1,47 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchTeachers, addTeacher, editTeacher, removeTeacher } from '@features/teacherSlice';
 
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchRanks } from '@features/rankSlice';
-import { fetchDepartments } from '@features/departmentSlice';
 import debounce from 'debounce';
-import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
-import SearchableDropdownToggler from '../searchableDropdown';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
-
-import { toast } from 'sonner';
 
 import AdditionalScheduleForTeacher from './AdditionalScheduleForTeacher';
 import AddTeacherContainer from './TeacherAdd';
 import DeleteData from '../DeleteData';
 import TeacherEdit from './TeacherEdit';
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+import { subscribeToTeachers } from '@features/slice/teacher_slice';
+import { subscribeToSubjects } from '@features/slice/subject_slice';
+import { subscribeToRanks } from '@features/slice/rank_slice';
+import { subscribeToDepartments } from '@features/slice/department_slice';
 
 const TeacherListContainer = ({ 
     editable = false 
 }) => {
 
+    const dispatch = useDispatch();
+
 // ===================================================================================================
 
-    const { documents: teachers, loading1, error1 } = fetchDocuments('teachers');
+    // const { documents: teachers, loading1, error1 } = fetchDocuments('teachers');
+    const { data: teachers, loading1, error1 } = useSelector((state) => state.teachers);
 
-    const { documents: subjects, loading2, error2 } = fetchDocuments('subjects');
+    // const { documents: subjects, loading2, error2 } = fetchDocuments('subjects');
+    const { data: subjects, loading2, error2 } = useSelector((state) => state.subjects);
 
-    const { documents: ranks, loading3, error3 } = fetchDocuments('ranks');
+    // const { documents: ranks, loading3, error3 } = fetchDocuments('ranks');
+    const { data: ranks, loading3, error3 } = useSelector((state) => state.ranks);
 
-    const { documents: departments, loading4, error4 } = fetchDocuments('departments');
+    // const { documents: departments, loading4, error4 } = fetchDocuments('departments');
+    const { data: departments, loading4, error4 } = useSelector((state) => state.departments);
+
+    useEffect(() => {
+        dispatch(subscribeToTeachers());
+        dispatch(subscribeToSubjects());
+        dispatch(subscribeToRanks());
+        dispatch(subscribeToDepartments());
+    }, [dispatch]);
 
 // ===================================================================================================
 
@@ -170,7 +178,6 @@ const TeacherListContainer = ({
                                 <div className='modal-box' style={{ width: '40%', maxWidth: 'none' }}>
                                     <AddTeacherContainer
                                         close={() => document.getElementById('add_teacher_modal').close()}
-                                        reduxFunction={addTeacher}
                                         errorMessage={errorMessage}
                                         setErrorMessage={setErrorMessage}
                                         errorField={errorField}
@@ -345,7 +352,6 @@ const TeacherListContainer = ({
                                                 <div className='flex'>
                                                     <TeacherEdit
                                                         teacher={teacher}
-                                                        reduxFunction={editTeacher}
                                                         errorMessage={errorMessage}
                                                         setErrorMessage={setErrorMessage}
                                                         errorField={errorField}

@@ -1,12 +1,12 @@
 import  { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
+
 import { toast } from 'sonner';
 import { RiEdit2Fill } from "react-icons/ri";
 
-// import { fetchDepartments } from "@features/departmentSlice";
-// import { fetchTeachers } from "@features/teacherSlice";
+import { subscribeToDepartments } from '@features/slice/department_slice';
+import { subscribeToTeachers } from '@features/slice/teacher_slice';
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 import { editDocument } from '../../../hooks/CRUD/editDocument';
 
 const DepartmentEdit = ({
@@ -23,17 +23,16 @@ const DepartmentEdit = ({
 
 // ==========================================================================
 
-	// const { departments, status: departmentStatus } = useSelector(
-		// 	(state) => state.department
-	// );
+	// const { documents: departments, loading1, error1 } = fetchDocuments('departments');
+	const { data: departments, loading1, error1 } = useSelector((state) => state.departments);
 
-	const { documents: departments, loading1, error1 } = fetchDocuments('departments');
+	// const { documents: teachers, loading2, error2 } = fetchDocuments('teachers');
+	const { data: teachers, loading2, error2 } = useSelector((state) => state.teachers);
 
-	// const { teachers, status: teacherStatus } = useSelector(
-	// 	(state) => state.teacher
-	// );
-
-	const { documents: teachers, loading2, error2 } = fetchDocuments('teachers');
+	useEffect(() => {
+		dispatch(subscribeToDepartments());
+		dispatch(subscribeToTeachers());
+	}, [dispatch]);
 	
 // ==========================================================================
 

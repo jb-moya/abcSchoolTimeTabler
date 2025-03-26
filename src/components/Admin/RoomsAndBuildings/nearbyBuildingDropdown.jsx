@@ -89,7 +89,7 @@ const NearbyBuildingDropdown = ({
                         <div className='px-4 py-2 opacity-50'>No buildings found</div>
                     ) : (
                         filteredBuildings.map((building) => (
-                            <li key={buildings[building.id]?.id} role='button' onClick={() => handleToggleBuilding(building.id)}>
+                            <li key={building.id} role='button' onClick={() => handleToggleBuilding(building.id)}>
                                 <div className='flex justify-between items-center'>
                                     <a className={clsx('w-full')}>{buildings[building.id]?.name}</a>
                                     {nearbyBuildings.some((b) => b.id === building.id) ? (
