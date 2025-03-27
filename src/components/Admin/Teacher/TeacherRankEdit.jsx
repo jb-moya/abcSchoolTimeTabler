@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import AdditionalScheduleForTeacherRank from './AdditionalScheduleForTeacherRank';
 
-import { subscribeToRanks } from '@features/slice/rank_slice';
-import { subscribeToTeachers } from '@features/slice/teacher_slice';
-
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 import { editDocument } from '../../../hooks/CRUD/editDocument';
 
 import { toast } from "sonner";
 
 const TeacherRankEdit = ({
+    // STORES
+    ranks,
+    teachers,
+    // STORES
     rank,
     errorMessage,
     setErrorMessage,
@@ -20,21 +19,6 @@ const TeacherRankEdit = ({
     setErrorField,
     numOfSchoolDays,
 }) => {
-
-    const dispatch = useDispatch();
-
-// ==============================================================================
-
-    // const { documents: ranks, loading1, error1 } = fetchDocuments('ranks');
-    const { data: ranks, loading1, error1 } = useSelector((state) => state.ranks);
-
-    // const { documents: teachers, loading2, error2 } = fetchDocuments('teachers');
-    const { data: teachers, loading2, error2 } = useSelector((state) => state.teachers);
-
-    useEffect(() => {
-        dispatch(subscribeToRanks());
-        dispatch(subscribeToTeachers());
-    }, [dispatch]);
     
 // ==============================================================================
 

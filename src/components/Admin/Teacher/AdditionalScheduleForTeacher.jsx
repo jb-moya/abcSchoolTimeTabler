@@ -1,13 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 
 import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';
 import TimeSelector from '@utils/timeSelector';
 import clsx from 'clsx';
 
-import { subscribeToSubjects } from '@features/slice/subject_slice';
-
 const AdditionalScheduleForTeacher = ({
+	subjects,
 	viewingMode = 0,
 	teacherID = 0,
 	arrayIndex = 0,
@@ -18,16 +16,6 @@ const AdditionalScheduleForTeacher = ({
 }) => {
 
 	const lastSchedTimeRef = useRef();
-
-	const dispatch = useDispatch();
-
-// =============================================================================
-
-	// const { documents: subjects, loading, error } = fetchDocuments('subjects');
-    const { data: subjects, loading, error } = useSelector((state) => state.subjects);
-    useEffect(() => {
-        dispatch(subscribeToSubjects());
-    }, [dispatch]);
 
 // ============================================================================
 

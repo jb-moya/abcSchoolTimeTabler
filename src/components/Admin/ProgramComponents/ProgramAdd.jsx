@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 
 import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';
 import { toast } from 'sonner';
@@ -8,9 +7,6 @@ import SearchableDropdownToggler from '../searchableDropdown';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { IoWarningSharp } from 'react-icons/io5';
 
-import { subscribeToSubjects } from '@features/slice/subject_slice';
-import { subscribeToPrograms } from '@features/slice/program_slice';
-
 import { addDocument } from '../../../hooks/CRUD/addDocument';
 
 import AdditionalScheduleForProgram from './AdditionalScheduleForProgram';
@@ -18,6 +14,10 @@ import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
 import TimeSelector from '@utils/timeSelector';
 
 const AddProgramContainer = ({
+    // STORES
+    subjects,
+    programs,
+    // STORES
     close,
     morningStartTime,
     afternoonStartTime,
@@ -30,22 +30,8 @@ const AddProgramContainer = ({
 }) => {
 
     const inputNameRef = useRef();
-    const dispatch = useDispatch();
 
 // ===============================================================================
-
-    // const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
-    const { data: subjects, loading1, error1 } = useSelector((state) => state.subjects);
-
-    // const { documents: programs, loading2, error2 } = fetchDocuments('programs');
-    const { data: programs, loading2, error2 } = useSelector((state) => state.programs);
-    
-    useEffect(() => {
-        dispatch(subscribeToSubjects());
-        dispatch(subscribeToPrograms());
-    }, [dispatch]);
-
-// ==============================================================================
 
     const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 
@@ -644,6 +630,7 @@ const AddProgramContainer = ({
                                                                 </button>
 
                                                                 <FixedScheduleMaker
+                                                                    subjectsStore={subjects}
                                                                     key={grade}
                                                                     viewingMode={0}
                                                                     pvs={0}

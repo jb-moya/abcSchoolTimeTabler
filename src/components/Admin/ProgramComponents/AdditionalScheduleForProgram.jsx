@@ -1,10 +1,11 @@
 import { clsx } from 'clsx';
 import { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-
-import { subscribeToSubjects } from '@features/slice/subject_slice';
 
 const AdditionalScheduleForProgram = ({
+    // STORES
+    subjects,
+    // STOREs
+
     viewingMode = 0,
     programID = 0,
     grade = 0,
@@ -14,17 +15,6 @@ const AdditionalScheduleForProgram = ({
     additionalSchedsOfProgYear = [],
     setAdditionalScheds = () => {},
 }) => {
-
-    const dispatch = useDispatch();
-
-// ==============================================================================
-
-    // const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
-    const { data: subjects, loading1, error1 } = useSelector((state) => state.subjects);
-
-    useEffect(() => {
-        dispatch(subscribeToSubjects());
-    }, [dispatch]);
 
 // ==============================================================================
 

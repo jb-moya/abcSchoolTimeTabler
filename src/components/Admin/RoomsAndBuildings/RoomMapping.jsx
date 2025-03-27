@@ -1,9 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useSelector } from 'react-redux';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
-import { useDispatch } from 'react-redux';
-
-import { fetchBuildings, addBuilding, editBuilding, removeBuilding } from '@features/buildingSlice';
 
 import { IoAdd, IoSearch, IoTrashBin } from 'react-icons/io5';
 import debounce from 'debounce';
@@ -11,38 +7,25 @@ import { toast } from 'sonner';
 import NearbyBuildingDropdown from './nearbyBuildingDropdown';
 import { PiBuildingApartment } from 'react-icons/pi';
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 import { addDocument } from '../../../hooks/CRUD/addDocument';
 import { editDocument } from '../../../hooks/CRUD/editDocument';
 import { deleteDocument } from '../../../hooks/CRUD/deleteDocument';
 
-const AddBuildingContainer = ({ close, setErrorMessage, setErrorField, errorMessage, errorField }) => {
+const AddBuildingContainer = ({ 
+    // STORES
+    buildings,
+    // STORES
+    close, 
+    setErrorMessage, 
+    setErrorField, 
+    errorMessage, 
+    errorField 
+}) => {
+    
     const inputBuildingNameRef = useRef();
 
-    // ===========================================================================
+// ==============================================================================
 
-    // const availableBuildings = useSelector((state) => Object.values(state.building.buildings));
-
-    const { documents: stringfy_buildings, loading1, error1 } = fetchDocuments('buildings');
-    // console.log('stringfy_buildings: ', stringfy_buildings);
-
-    useEffect(() => {
-        try {
-            const converted_buildings = Object.values(stringfy_buildings).reduce((acc, { custom_id, data, id }) => {
-                const parsedData = JSON.parse(data);
-                acc[custom_id] = { ...parsedData, id, custom_id }; // Include id and custom_id inside data
-                return acc;
-            }, {});
-            console.log('converted_buildings: ', converted_buildings);
-
-            setBuildings(converted_buildings);
-        } catch (error) {
-            console.error('Failed to parse buildings JSON:', error);
-        }
-    }, [stringfy_buildings]);
-
-    const [buildings, setBuildings] = useState({});
-    // ===========================================================================
     // useEffect(() => {
     //     console.log('buildings: ', buildings);
     // }, [buildings]);
@@ -61,7 +44,7 @@ const AddBuildingContainer = ({ close, setErrorMessage, setErrorField, errorMess
 
     const [nearbyBuildings, setNearbyBuildings] = useState([]);
 
-    // ===========================================================================
+// ================================================================================
 
     // useEffect(() => {
     //     dispatch(fetchBuildings());
@@ -370,7 +353,6 @@ const AddBuildingContainer = ({ close, setErrorMessage, setErrorField, errorMess
                                 <label className='block text-sm text-left pl-2 mb-1'>Nearby Buildings:</label>
                                 <NearbyBuildingDropdown
                                     availableBuildings={buildings}
-                                    // availableBuildings={availableBuildings}
                                     nearbyBuildings={nearbyBuildings}
                                     setNearbyBuildings={setNearbyBuildings}
                                 />
@@ -424,34 +406,17 @@ const AddBuildingContainer = ({ close, setErrorMessage, setErrorField, errorMess
     );
 };
 
-const RoomListContainer = ({ editable = false }) => {
+const RoomListContainer = ({
+    // STORES
+    buildings,
+    sections,
+    // STORES
+    editable = false 
+}) => {
+
     const inputBuildingNameRef = useRef();
 
-    // =========================================================================================================================
-    const { documents: sections, loading2, error2 } = fetchDocuments('sections');
-    const { documents: stringfy_buildings, loading1, error1 } = fetchDocuments('buildings');
-
-    useEffect(() => {
-        console.log('stringfy_buildings: ', stringfy_buildings);
-        // if (Object.keys(stringfy_buildings).length !== 0) {
-        try {
-            const converted_buildings = Object.values(stringfy_buildings).reduce((acc, { custom_id, data, id }) => {
-                const parsedData = JSON.parse(data);
-                acc[custom_id] = { ...parsedData, id, custom_id }; // Include id and custom_id inside data
-                return acc;
-            }, {});
-            console.log('converted_buildings: ', converted_buildings);
-
-            setBuildings(converted_buildings);
-        } catch (error) {
-            console.error('Failed to parse buildings JSON:', error);
-        }
-        // }
-    }, [stringfy_buildings]);
-
-    const [buildings, setBuildings] = useState({});
-
-    // =========================================================================================================================
+// =========================================================================================================================
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
@@ -469,7 +434,7 @@ const RoomListContainer = ({ editable = false }) => {
     const [searchBuildingValue, setSearchBuildingValue] = useState('');
     const [searchBuildingResult, setSearchBuildingResult] = useState([]);
 
-    // ========================================================================================================================
+// ========================================================================================================================
 
     const handleClose = () => {
         const modal = document.getElementById('add_building_modal');
@@ -849,6 +814,7 @@ const RoomListContainer = ({ editable = false }) => {
                         <dialog id='add_building_modal' className='modal'>
                             <div className='modal-box flex flex-col h-[90%] max-w-5xl overflow-hidden'>
                                 <AddBuildingContainer
+                                    buildings={buildings}
                                     close={() => document.getElementById('add_building_modal').close()}
                                     errorMessage={errorMessage}
                                     setErrorMessage={setErrorMessage}

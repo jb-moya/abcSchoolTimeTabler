@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 
 import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';
 import { toast } from 'sonner';
@@ -9,9 +8,6 @@ import SearchableDropdownToggler from '../searchableDropdown';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { IoWarningSharp } from 'react-icons/io5';
 
-import { subscribeToSubjects } from '@features/slice/subject_slice';
-import { subscribeToPrograms } from '@features/slice/program_slice';
-
 import { editDocument } from '../../../hooks/CRUD/editDocument';
 
 import AdditionalScheduleForProgram from './AdditionalScheduleForProgram';
@@ -19,6 +15,9 @@ import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
 import TimeSelector from '@utils/timeSelector';
 
 const ProgramEdit = ({
+    subjects,
+    programs, 
+    sections,
     program,
     morningStartTime,
     afternoonStartTime,
@@ -31,20 +30,6 @@ const ProgramEdit = ({
 }) => {
 
     const inputNameRef = useRef();
-    const dispatch = useDispatch();
-
-// ==========================================================================
-
-    // const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
-    const { data: subjects, loading1, error1 } = useSelector((state) => state.subjects);
-
-    // const { documents: programs, loading2, error2 } = fetchDocuments('programs');
-    const { data: programs, loading2, error2 } = useSelector((state) => state.programs);
-    
-    useEffect(() => {
-        dispatch(subscribeToSubjects());
-        dispatch(subscribeToPrograms());
-    }, [dispatch]);
 
 // ==========================================================================
 
@@ -370,7 +355,7 @@ const ProgramEdit = ({
             const newSection = JSON.parse(JSON.stringify(section));
 
             // Early return if section is not part of the edited program
-            if (newSection.program !== editProgramId) return;
+            if (newSection.program !== editCustomId) return;
 
             // Update shift and start time (if true)
             if (sectionDetailsToUpdate.shiftAndStartTime === true) {
@@ -488,25 +473,22 @@ const ProgramEdit = ({
             }
 
             if (originalSection !== newSection) {
-                // dispatch(
-                //     editSection({
-                //         sectionId: newSection.id,
-                //         updatedSection: {
-                //             id: newSection.id,
-                //             teacher: newSection.teacher,
-                //             program: newSection.program,
-                //             section: newSection.section,
-                //             subjects: newSection.subjects,
-                //             fixedDays: newSection.fixedDays,
-                //             fixedPositions: newSection.fixedPositions,
-                //             year: newSection.year,
-                //             shift: newSection.shift,
-                //             startTime: newSection.startTime,
-                //             endTime: newSection.endTime,
-                //             additionalScheds: newSection.additionalScheds,
-                //         },
-                //     })
-                // );
+                const updatedEntry = {
+                    custom_id: newSection.custom_id,
+                    teacher: newSection.teacher,
+                    program: newSection.program,
+                    section: newSection.section,
+                    subjects: newSection.subjects,
+                    fixedDays: newSection.fixedDays,
+                    fixedPositions: newSection.fixedPositions,
+                    year: newSection.year,
+                    shift: newSection.shift,
+                    startTime: newSection.startTime,
+                    endTime: newSection.endTime,
+                    additionalScheds: newSection.additionalScheds,
+                }
+
+                editDocument('sections', newSection.id, updatedEntry);
             }
         });
     };
@@ -586,15 +568,15 @@ const ProgramEdit = ({
             return;
         }
 
-        console.log('editProgramId:', editProgramId);
-        console.log('editProgramValue:', editProgramValue);
-        console.log('editProgramCurr:', editProgramCurr);
-        console.log('editFixedDays:', editFixedDays);
-        console.log('editFixedPositions:', editFixedPositions);
-        console.log('editSelectedShifts:', editSelectedShifts);
-        console.log('editStartTimes:', editStartTimes);
-        console.log('editEndTimes:', editEndTimes);
-        console.log('editAdditionalScheds:', editAdditionalScheds);
+        // console.log('editProgramId:', editProgramId);
+        // console.log('editProgramValue:', editProgramValue);
+        // console.log('editProgramCurr:', editProgramCurr);
+        // console.log('editFixedDays:', editFixedDays);
+        // console.log('editFixedPositions:', editFixedPositions);
+        // console.log('editSelectedShifts:', editSelectedShifts);
+        // console.log('editStartTimes:', editStartTimes);
+        // console.log('editEndTimes:', editEndTimes);
+        // console.log('editAdditionalScheds:', editAdditionalScheds);
 
         // const currentProgram = programs[editProgramId]?.program || '';
         const currentProgram = programs[editCustomId]?.program || '';
@@ -820,7 +802,7 @@ const ProgramEdit = ({
                         },
                     });
     
-                    // updateProgramDependencies();
+                    updateProgramDependencies();
                 } catch (error) {
                     console.error("Error updating program: ", error);
                 } finally {
@@ -1078,6 +1060,7 @@ const ProgramEdit = ({
                                                                     </button>
 
                                                                     <FixedScheduleMaker
+                                                                        subjectsStore={subjects}
                                                                         key={grade}
                                                                         viewingMode={0}
                                                                         pvs={0}

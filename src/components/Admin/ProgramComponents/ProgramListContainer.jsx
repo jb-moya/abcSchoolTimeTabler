@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 
 import debounce from 'debounce';
 import { FcInfo } from 'react-icons/fc';
@@ -10,9 +9,6 @@ import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
 
-import { subscribeToSubjects } from '@features/slice/subject_slice';
-import { subscribeToPrograms } from '@features/slice/program_slice';
-
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
 import DeleteData from '../DeleteData';
 import AddProgramContainer from './ProgramAdd';
@@ -20,25 +16,15 @@ import AdditionalScheduleForProgram from './AdditionalScheduleForProgram';
 import ProgramEdit from './ProgramEdit';
 
 const ProgramListContainer = ({
+    // STORES
+    subjects,
+    programs,
+    sections,
+    // STORES
     numOfSchoolDays: externalNumOfSchoolDays,
     editable = false,
     breakTimeDuration: externalBreakTimeDuration,
 }) => {
-
-    const dispatch = useDispatch();
-
-// ==============================================================================
-
-    // const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
-    const { data: subjects, loading1, error1 } = useSelector((state) => state.subjects);
-
-    // const { documents: programs, loading2, error2 } = fetchDocuments('programs');
-    const { data: programs, loading2, error2 } = useSelector((state) => state.programs);
-    
-    useEffect(() => {
-        dispatch(subscribeToSubjects());
-        dispatch(subscribeToPrograms());
-    }, [dispatch]);
 
 // ==============================================================================
 
@@ -215,6 +201,8 @@ const ProgramListContainer = ({
                             </button>
 
                             <AddProgramContainer
+                                subjects={subjects}
+                                programs={programs}
                                 close={handleClose}
                                 morningStartTime={morningStartTime}
                                 afternoonStartTime={afternoonStartTime}
@@ -310,6 +298,7 @@ const ProgramListContainer = ({
                                                                         View Fixed Schedules for Grade {grade}
                                                                     </button>
                                                                     <FixedScheduleMaker
+                                                                        subjectsStore={subjects}
                                                                         key={grade}
                                                                         viewingMode={1}
                                                                         pvs={0}
@@ -380,6 +369,7 @@ const ProgramListContainer = ({
                                                                             )}
                                                                         </button>
                                                                         <AdditionalScheduleForProgram
+                                                                            subjects={subjects}
                                                                             viewingMode={1}
                                                                             programID={program.id}
                                                                             grade={grade}
@@ -400,6 +390,9 @@ const ProgramListContainer = ({
                                                         
                                                         <ProgramEdit
                                                             className='btn btn-xs btn-ghost text-blue-500'
+                                                            subjects={subjects}
+                                                            programs={programs}
+                                                            sections={sections}
                                                             program={program}
                                                             morningStartTime={morningStartTime}
                                                             afternoonStartTime={afternoonStartTime}

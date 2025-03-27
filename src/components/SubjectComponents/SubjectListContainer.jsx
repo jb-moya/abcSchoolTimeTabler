@@ -14,21 +14,15 @@ import SubjectEdit from './SubjectEdit';
 import DeleteData from '../Admin/DeleteData';
 
 const SubjectListContainer = ({
+    subjects,
+    programs,
+    sections,
     numOfSchoolDays: externalNumOfSchoolDays,
     editable = false,
     breakTimeDuration: externalBreakTimeDuration,
 }) => {
 
     const dispatch = useDispatch();
-
-// ==============================================================================
-
-    // const { documents: subjects, loading, error } = fetchDocuments('subjects');
-    const { data: subjects, loading, error } = useSelector((state) => state.subjects);
-
-    useEffect(() => {
-        dispatch(subscribeToSubjects());
-    }, [dispatch]);
 
 // ==============================================================================
 
@@ -138,7 +132,6 @@ const SubjectListContainer = ({
                                 if (currentPage > 1) {
                                     setCurrentPage(currentPage - 1);
                                 }
-                                resetInputs();
                             }}
                             disabled={currentPage === 1}
                         >
@@ -153,7 +146,6 @@ const SubjectListContainer = ({
                                 if (currentPage < totalPages) {
                                     setCurrentPage(currentPage + 1);
                                 }
-                                resetInputs();
                             }}
                             disabled={currentPage === totalPages}
                         >
@@ -192,6 +184,7 @@ const SubjectListContainer = ({
                         <dialog id='add_subject_modal' className='modal modal-bottom sm:modal-middle'>
                             <div className='modal-box'>
                                 <AddSubjectContainer
+                                    subjects={subjects}
                                     close={() => document.getElementById('add_subject_modal').close()}
                                     errorMessage={errorMessage}
                                     setErrorMessage={setErrorMessage}
@@ -264,6 +257,9 @@ const SubjectListContainer = ({
                                             <div className='flex'>
                                                 <SubjectEdit
                                                     className="btn btn-xs btn-ghost text-blue-500"
+                                                    subjects={subjects}
+                                                    programs={programs}
+                                                    sections={sections}
                                                     subject={subject}  // Pass the entire subject object
                                                     errorMessage={errorMessage}
                                                     setErrorMessage={setErrorMessage}

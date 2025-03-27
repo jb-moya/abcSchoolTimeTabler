@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-
 import { toast } from 'sonner';
 
 import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
@@ -13,17 +11,17 @@ import ViewRooms from '../RoomsAndBuildings/ViewRooms';
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
 import AdditionalScheduleForSection from './AdditionalScheduleForSection';
 
-import { subscribeToSections } from '@features/slice/section_slice';
-import { subscribeToPrograms } from '@features/slice/program_slice';
-import { subscribeToSubjects } from '@features/slice/subject_slice';
-import { subscribeToTeachers } from '@features/slice/teacher_slice';
-// import { subscribeToBuildings } from '@features/slice/building_slice';
-
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 import { editDocument } from '../../../hooks/CRUD/editDocument';
 
 
 const SectionEdit = ({
+    // STORES
+    sections,
+    programs,
+    subjects,
+    teachers,
+    buildings,
+    // STORES
     section,
     errorMessage,
     setErrorMessage,
@@ -32,53 +30,6 @@ const SectionEdit = ({
     numOfSchoolDays,
     breakTimeDuration,
 }) => {
-
-    const dispatch = useDispatch();
-
-// =========================================================================================================
-
-    // const { documents: sections, loading1, error1 } = fetchDocuments('sections');
-    const { data: sections, loading1, error1 } = useSelector((state) => state.sections);
-
-    // const { documents: programs, loading2, error2 } = fetchDocuments('programs');
-    const { data: programs, loading2, error2 } = useSelector((state) => state.programs);
-
-    // const { documents: subjects, loading3, error3 } = fetchDocuments('subjects');
-    const { data: subjects, loading3, error3 } = useSelector((state) => state.subjects);
-
-    // const { documents: teachers, loading4, error4 } = fetchDocuments('teachers'); 
-    const { data: teachers, loading4, error4 } = useSelector((state) => state.teachers);
-
-    const { documents: stringfy_buildings, loading5, error5 } = fetchDocuments('buildings');
-    // console.log('stringfy_buildings: ', stringfy_buildings);
-
-    useEffect(() => {
-        dispatch(subscribeToSections());
-        dispatch(subscribeToPrograms());
-        dispatch(subscribeToSubjects());
-        dispatch(subscribeToTeachers());
-        // dispatch(subscribeToBuildings());
-    }, [dispatch]);
-
-// ========================================================================================================
-
-
-    useEffect(() => {
-        try {
-            const converted_buildings = Object.values(stringfy_buildings).reduce((acc, { custom_id, data, id }) => {
-                const parsedData = JSON.parse(data);
-                acc[custom_id] = { ...parsedData, id, custom_id }; // Include id and custom_id inside data
-                return acc;
-            }, {});
-            console.log('converted_buildings: ', converted_buildings);
-
-            setBuildings(converted_buildings);
-        } catch (error) {
-            console.error('Failed to parse buildings JSON:', error);
-        }
-    }, [stringfy_buildings]);
-
-    const [buildings, setBuildings] = useState({});
 
 // ===========================================================================================================
 
@@ -725,6 +676,8 @@ const SectionEdit = ({
                                             </div>
 
                                             <ViewRooms
+                                                buildings={buildings}
+                                                sections={sections}
                                                 viewMode={0}
                                                 sectionId={section.id}
                                                 roomDetails={editRoomDetails}
@@ -802,6 +755,7 @@ const SectionEdit = ({
                                         </button>
                                     </div>
                                     <FixedScheduleMaker
+                                        subjectsStore={subjects}
                                         key={editSectionYear}
                                         viewingMode={0}
                                         isForSection={true}

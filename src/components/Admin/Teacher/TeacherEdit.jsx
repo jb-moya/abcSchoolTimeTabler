@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 
 import { RiEdit2Fill } from 'react-icons/ri';
 import { RiDeleteBin7Line } from 'react-icons/ri';
@@ -7,16 +6,17 @@ import { RiDeleteBin7Line } from 'react-icons/ri';
 import SearchableDropdownToggler from '../searchableDropdown';
 import AdditionalScheduleForTeacher from './AdditionalScheduleForTeacher';
 
-import { subscribeToTeachers } from '@features/slice/teacher_slice';
-import { subscribeToSubjects } from '@features/slice/subject_slice';
-import { subscribeToRanks } from '@features/slice/rank_slice';
-import { subscribeToDepartments } from '@features/slice/department_slice';
-
 import { editDocument } from '../../../hooks/CRUD/editDocument';
 
 import { toast } from 'sonner';
 
 const TeacherEdit = ({ 
+    // STORES
+    teachers,
+    subjects,
+    ranks,
+    departments,
+    // STORES
     teacher, 
     errorMessage, 
     setErrorMessage, 
@@ -24,29 +24,6 @@ const TeacherEdit = ({
     setErrorField, 
     numOfSchoolDays 
 }) => {
-
-    const dispatch = useDispatch();
-
-// ==============================================================================
-
-    // const { documents: teachers, loading1, error1 } = fetchDocuments('teachers');
-    const { data: teachers, loading1, error1 } = useSelector((state) => state.teachers);
-
-    // const { documents: subjects, loading2, error2 } = fetchDocuments('subjects');
-    const { data: subjects, loading2, error2 } = useSelector((state) => state.subjects);
-
-    // const { documents: ranks, loading3, error3 } = fetchDocuments('ranks');
-    const { data: ranks, loading3, error3 } = useSelector((state) => state.ranks);
-
-    // const { documents: departments, loading4, error4 } = fetchDocuments('departments');
-    const { data: departments, loading4, error4 } = useSelector((state) => state.departments);
-
-    useEffect(() => {
-        dispatch(subscribeToTeachers());
-        dispatch(subscribeToSubjects());
-        dispatch(subscribeToRanks());
-        dispatch(subscribeToDepartments());
-    }, [dispatch]);
 
 // ==============================================================================
 
@@ -485,6 +462,7 @@ const TeacherEdit = ({
                                             )}
                                         </button>
                                         <AdditionalScheduleForTeacher
+                                            subjects={subjects}
                                             viewingMode={1}
                                             teacherID={editTeacherId}
                                             arrayIndex={index}
@@ -504,6 +482,7 @@ const TeacherEdit = ({
                                         <RiEdit2Fill size={15} />
                                     </button>
                                     <AdditionalScheduleForTeacher
+                                        subjects={subjects}
                                         viewingMode={0}
                                         teacherID={editTeacherId}
                                         arrayIndex={index}

@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
 
 import { toast } from "sonner";
-
-import { subscribeToDepartments } from '@features/slice/department_slice';
 
 import { addDocument } from '../../../hooks/CRUD/addDocument';
 
 const AddDepartmentContainer = ({
+	// STORES
+	departments,
+	// STORES
     close,
     errorMessage,
     setErrorMessage,
@@ -17,16 +17,6 @@ const AddDepartmentContainer = ({
   }) => {
 
     const inputNameRef = useRef();
-    const dispatch = useDispatch();
-
-// ===================================================================================
-
-	// const { documents: departments, loading1, error1 } = fetchDocuments('departments');
-	const { data: departments, loading1, error1 } = useSelector((state) => state.departments);
-
-	useEffect(() => {
-		dispatch(subscribeToDepartments());
-	}, [dispatch]);
 
 // ===================================================================================
   
