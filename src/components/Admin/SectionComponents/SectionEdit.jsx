@@ -830,6 +830,7 @@ const SectionEdit = ({
                                                     )}
                                                 </button>
                                                 <AdditionalScheduleForSection
+                                                    subjects={subjects}
                                                     viewingMode={0}
                                                     sectionID={editSectionId}
                                                     grade={editSectionYear}
@@ -853,6 +854,7 @@ const SectionEdit = ({
                                                     <RiEdit2Fill size={15} />
                                                 </button>
                                                 <AdditionalScheduleForSection
+                                                    subjects={subjects}
                                                     viewingMode={0}
                                                     sectionID={editSectionId}
                                                     grade={editSectionYear}
