@@ -5,6 +5,7 @@ import { lazy } from 'react';
 const Dashboard = lazy(() => import('../pages/protected/Dashboard'));
 const Welcome = lazy(() => import('../pages/protected/Welcome'));
 const Page404 = lazy(() => import('../pages/404'));
+const Unauthorized = lazy(() => import('../pages/Unauthorized'));
 const Blank = lazy(() => import('../pages/protected/Blank'));
 const Leads = lazy(() => import('../pages/protected/Leads'));
 const Integration = lazy(() => import('../pages/protected/Integration'));
@@ -34,22 +35,27 @@ const routes = [
     {
         path: '/admin/generate-timetable', // the url
         component: Timetable, // view rendered
+        permissions: ['Generate Timetable'],
     },
     {
         path: '/admin/modify-teachers', // the url
         component: ModifyTeachers, // view rendered
+        permissions: ['Modify Teachers'],
     },
     {
         path: '/admin/modify-subjects', // the url
         component: ModifySubjects, // view rendered
+        permissions: ['Modify Subjects and Programs'],
     },
     {
         path: '/admin/modify-sections', // the url
         component: ModifySections, // view rendered
+        permissions: ['Modify Sections'],
     },
     {
         path: '/admin/modify-departments', // the url
         component: ModifyDepartments, // view rendered
+        permissions: ['Modify Departments'],
     },
     {
         path: '/admin/users',
@@ -58,10 +64,12 @@ const routes = [
     {
         path: '/admin/room-mapping', // the url
         component: RoomMapping, // view rendered
+        permissions: ['Modify Buildings'],
     },
     {
         path: '/admin/modify-timetable', // the url
         component: ModifyTimetable, // view rendered
+        permissions: ['Modify TimeTable'],
     },
     {
         path: '/reports/display-teachers-schedule', // the url
@@ -118,6 +126,10 @@ const routes = [
     {
         path: '/404',
         component: Page404,
+    },
+    {
+        path: '/unauthorized',
+        component: Unauthorized,
     },
     {
         path: '/blank',

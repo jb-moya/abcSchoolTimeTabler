@@ -3,7 +3,7 @@ import { auth, firestore, secondAuth } from '../firebase/firebase';
 import { toast } from 'sonner';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { collection, doc, getDocs, getDoc, query, setDoc, where } from 'firebase/firestore';
-import { Timestamp } from 'firebase/firestore';  
+import { getUserData } from '../firebase/userService';
 
 const initialState = {
     user: null,
@@ -24,21 +24,7 @@ export const loginUser = createAsyncThunk('user/loginUser', async (credentials, 
 
         const user = userCredential.user;
 
-        const userRef = doc(firestore, 'users', user.uid);
-        const userSnap = await getDoc(userRef);
-
-        if (!userSnap.exists()) {
-            return rejectWithValue('User data not found in Firestore'); // Prevent login if Firestore data is missing
-        }
-
-        let userData = userSnap.data();
-
-        // Convert Firestore Timestamps to Date strings
-        if (userData.created instanceof Timestamp) {
-            userData.created = userData.created.toDate().toISOString(); // Convert to ISO string
-        }
-
-        console.log('🚀 ~ loginUser ~ userData:', userData);
+        const userData = await getUserData(user.uid);
 
         // Return serializable data
         return {
@@ -72,7 +58,7 @@ export const signUpWithEmailAndPassword = createAsyncThunk(
             const querySnapshot = await getDocs(q);
 
             if (!querySnapshot.empty) {
-                console.log("HAHA");
+                console.log('HAHA');
                 return rejectWithValue('Sign up failed. email already exists');
             }
 
@@ -83,7 +69,7 @@ export const signUpWithEmailAndPassword = createAsyncThunk(
                 userCredential = await createUserWithEmailAndPassword(auth, email, password);
             }
 
-            console.log("🚀 ~ userCredential:", userCredential)
+            console.log('🚀 ~ userCredential:', userCredential);
 
             if (userCredential) {
                 const userDoc = {
@@ -127,7 +113,13 @@ export const logoutUser = createAsyncThunk('user/logoutUser', async (_, { reject
 const userSlice = createSlice({
     name: 'user',
     initialState,
-    reducers: {},
+    reducers: {
+        setUser: (state, action) => {
+            state.user = action.payload;
+            state.status = 'success';
+            state.error = null;
+        },
+    },
     extraReducers: (builder) => {
         builder
 
@@ -173,7 +165,7 @@ const userSlice = createSlice({
             })
             .addCase(logoutUser.fulfilled, (state) => {
                 state.status = 'idle';
-                // state.user = null;
+                state.user = null;
                 state.error = null;
             })
             .addCase(logoutUser.rejected, (state, action) => {
@@ -183,4 +175,5 @@ const userSlice = createSlice({
     },
 });
 
+export const { setUser } = userSlice.actions;
 export default userSlice.reducer;
