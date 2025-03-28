@@ -34,6 +34,7 @@ import { fetchSections, editSection } from '@features/sectionSlice';
 import { fetchPrograms, editProgram } from '@features/programSlice';
 import { fetchSubjects } from '@features/subjectSlice';
 import { fetchBuildings } from '@features/buildingSlice';
+import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 import { original } from 'immer';
 import calculateTotalClass from '../../../utils/calculateTotalClass';
 import deepEqual from '../../../utils/deepEqual';
@@ -103,12 +104,38 @@ function Timetable() {
         // { name: 'Modify Subjects', href: '/modify-subjects' },
     ];
 
-    const { subjects: subjectsStore, status: subjectStatus } = useSelector((state) => state.subject);
-    const { buildings: buildingsStore, status: buildingStatus } = useSelector((state) => state.building);
-    const { teachers: teachersStore } = useSelector((state) => state.teacher);
-    const { sections: sectionsStore, status: sectionStatus } = useSelector((state) => state.section);
-    const { programs: programsStore, status: programStatus } = useSelector((state) => state.program);
+    // const { subjects: subjectsStore, status: subjectStatus } = useSelector((state) => state.subject);
+    // const { buildings: buildingsStore, status: buildingStatus } = useSelector((state) => state.building);
+    // const { teachers: teachersStore } = useSelector((state) => state.teacher);
+    // const { sections: sectionsStore, status: sectionStatus } = useSelector((state) => state.section);
+    // const { programs: programsStore, status: programStatus } = useSelector((state) => state.program);
+
     const { minTeacherLoad: minTeachingLoad, maxTeacherLoad: maxTeachingLoad } = useSelector((state) => state.configuration);
+
+    // ========================================================================
+
+    const { documents: stringfy_buildings, loading1, error1 } = fetchDocuments('buildings');
+    const { documents: subjectsStore, loading2, error2 } = fetchDocuments('subjects');
+    const { documents: teachersStore, loading3, error3 } = fetchDocuments('teachers');
+    const { documents: sectionsStore, loading4, error4 } = fetchDocuments('sections');
+    const { documents: programsStore, loading5, error5 } = fetchDocuments('programs');
+
+    const [buildingsStore, setBuildingsStore] = useState({});
+
+    useEffect(() => {
+        try {
+            const converted_buildings = Object.values(stringfy_buildings).reduce((acc, { custom_id, data, id }) => {
+                const parsedData = JSON.parse(data);
+                acc[custom_id] = { ...parsedData, id, custom_id }; // Include id and custom_id inside data
+                return acc;
+            }, {});
+            console.log('converted_buildings: ', converted_buildings);
+
+            setBuildingsStore(converted_buildings);
+        } catch (error) {
+            console.error('Failed to parse buildings JSON:', error);
+        }
+    }, [stringfy_buildings]);
 
     // ========================================================================
 
@@ -176,7 +203,7 @@ function Timetable() {
             acc[index] = value.id;
             return acc;
         }, {});
-
+        console.log('buildingData: ', buildingData);
         const buildingMapReverse = Object.entries(buildingData).reduce((acc, [, value], index) => {
             acc[value.id] = index;
             return acc;
@@ -197,7 +224,7 @@ function Timetable() {
                           .filter((building) => building !== null)
                     : [],
 
-                floorRooms: building.rooms.reduce((acc, roomGroup) => [...acc, roomGroup.length], []),
+                floorRooms: Object.values(building.rooms).map((roomGroup) => roomGroup.length),
             };
             return acc;
         }, {});
@@ -245,7 +272,7 @@ function Timetable() {
             };
             return acc;
         }, {});
-
+        console.log('subjectMapReverse: ', subjectMapReverse);
         const teacherMap = Object.entries(teacherData).reduce((acc, [, teacher], index) => {
             acc[index] = {
                 subjects: teacher.subjects.map((subjectID) => subjectMapReverse[subjectID].id),
@@ -1236,11 +1263,11 @@ function Timetable() {
         const sectionEdited = convertToHashMap(sectionTimetable, 'Section');
         const teacherEdited = convertToHashMap(teacherTimetable, 'Teacher');
 
-        console.log('subjects: ', subjectsStore);
-        console.log('programs: ', programsStore);
-        console.log('buildings: ', buildingsStore);
-        console.log('teachers: ', teachersStore);
-        console.log('configuration: ', minTeachingLoad);
+        // console.log('subjects: ', subjectsStore);
+        // console.log('programs: ', programsStore);
+        // console.log('buildings: ', buildingsStore);
+        // console.log('teachers: ', teachersStore);
+        // console.log('configuration: ', minTeachingLoad);
         // console.log('sectionEdited: ', sectionEdited);
         // console.log('teacherEdited: ', teacherEdited);
         const generatedMap = combineMaps(sectionEdited, teacherEdited);
@@ -1534,12 +1561,13 @@ function Timetable() {
             console.log('newProgram:', newProgram);
 
             if (originalProgram !== newProgram) {
-                dispatch(
-                    editProgram({
-                        programId: newProgram.id,
-                        updatedProgram: newProgram,
-                    })
-                );
+                // dispatch(
+                //     editProgram({
+                //         programId: newProgram.id,
+                //         updatedProgram: newProgram,
+                //     })
+                // );
+                console.log('NAG EDIT PROGRAM');
             }
         });
 
@@ -1549,6 +1577,8 @@ function Timetable() {
         Object.entries(sectionsStore).forEach(([secId, sec]) => {
             const originalSection = JSON.parse(JSON.stringify(sec));
             const newSection = JSON.parse(JSON.stringify(sec));
+            console.log('originalSection: ', originalSection);
+            console.log('newSection: ', newSection);
 
             newSection.subjects.map((subId) => {
                 if (classCountLookup[subId] <= numOfSchoolDays) return;
@@ -1609,24 +1639,25 @@ function Timetable() {
             }
 
             if (originalSection !== newSection) {
-                dispatch(
-                    editSection({
-                        sectionId: newSection.id,
-                        updatedSection: {
-                            id: newSection.id,
-                            teacher: newSection.teacher,
-                            program: newSection.program,
-                            section: newSection.section,
-                            subjects: newSection.subjects,
-                            fixedDays: newSection.fixedDays,
-                            fixedPositions: newSection.fixedPositions,
-                            modality: newSection.modality,
-                            year: newSection.year,
-                            shift: newSection.shift,
-                            startTime: getTimeSlotIndex(newSection.startTime || '06:00 AM'),
-                        },
-                    })
-                );
+                console.log('NAG EDIT SECTION D KO ALAM');
+                // dispatch(
+                //     editSection({
+                //         sectionId: newSection.id,
+                //         updatedSection: {
+                //             id: newSection.id,
+                //             teacher: newSection.teacher,
+                //             program: newSection.program,
+                //             section: newSection.section,
+                //             subjects: newSection.subjects,
+                //             fixedDays: newSection.fixedDays,
+                //             fixedPositions: newSection.fixedPositions,
+                //             modality: newSection.modality,
+                //             year: newSection.year,
+                //             shift: newSection.shift,
+                //             startTime: getTimeSlotIndex(newSection.startTime || '06:00 AM'),
+                //         },
+                //     })
+                // );
             }
         });
     };
@@ -1663,12 +1694,13 @@ function Timetable() {
             });
 
             if (originalProgram !== newProgram) {
-                dispatch(
-                    editProgram({
-                        programId: newProgram.id,
-                        updatedProgram: newProgram,
-                    })
-                );
+                // dispatch(
+                //     editProgram({
+                //         programId: newProgram.id,
+                //         updatedProgram: newProgram,
+                //     })
+                // );
+                console.log('NAG EDIT PROGRAM PT2');
             }
         });
 
@@ -1694,12 +1726,13 @@ function Timetable() {
             newSection.endTime = endTimeIdx || 216; // 216 = 6:00 PM
 
             if (originalSection !== newSection) {
-                dispatch(
-                    editSection({
-                        sectionId: newSection.id,
-                        updatedSection: newSection,
-                    })
-                );
+                // dispatch(
+                //     editSection({
+                //         sectionId: newSection.id,
+                //         updatedSection: newSection,
+                //     })
+                // );
+                console.log('NAG EDIT SECTION PT2');
             }
         });
     };
@@ -1993,29 +2026,29 @@ function Timetable() {
 
     // ========================================================================
 
-    useEffect(() => {
-        if (sectionStatus === 'idle') {
-            dispatch(fetchSections());
-        }
-    }, [sectionStatus, dispatch]);
+    // useEffect(() => {
+    //     if (sectionStatus === 'idle') {
+    //         dispatch(fetchSections());
+    //     }
+    // }, [sectionStatus, dispatch]);
 
-    useEffect(() => {
-        if (programStatus === 'idle') {
-            dispatch(fetchPrograms());
-        }
-    }, [programStatus, dispatch]);
+    // useEffect(() => {
+    //     if (programStatus === 'idle') {
+    //         dispatch(fetchPrograms());
+    //     }
+    // }, [programStatus, dispatch]);
 
-    useEffect(() => {
-        if (subjectStatus === 'idle') {
-            dispatch(fetchSubjects());
-        }
-    }, [subjectStatus, dispatch]);
+    // useEffect(() => {
+    //     if (subjectStatus === 'idle') {
+    //         dispatch(fetchSubjects());
+    //     }
+    // }, [subjectStatus, dispatch]);
 
-    useEffect(() => {
-        if (buildingStatus === 'idle') {
-            dispatch(fetchBuildings());
-        }
-    }, [buildingStatus, dispatch]);
+    // useEffect(() => {
+    //     if (buildingStatus === 'idle') {
+    //         dispatch(fetchBuildings());
+    //     }
+    // }, [buildingStatus, dispatch]);
 
     console.log('retrigger index');
     return (
