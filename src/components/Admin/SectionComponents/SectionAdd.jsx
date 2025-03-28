@@ -1,17 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import { useDispatch } from 'react-redux';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { IoWarningSharp } from 'react-icons/io5';
-
-import { fetchPrograms } from '@features/programSlice';
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchTeachers, editTeacher } from '@features/teacherSlice';
-import { fetchBuildings } from '@features/buildingSlice';
-
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
-import { addDocument } from '../../../hooks/CRUD/addDocument';
-import { editDocument } from '../../../hooks/CRUD/editDocument';
 
 import { toast } from 'sonner';
 import ViewRooms from '../RoomsAndBuildings/ViewRooms';
@@ -21,10 +10,18 @@ import TimeSelector from '@utils/timeSelector';
 
 import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
 
+import { addDocument } from '../../../hooks/CRUD/addDocument';
+import { editDocument } from '../../../hooks/CRUD/editDocument';
+
 const AddSectionContainer = ({
+    // STORES
+    sections,
+    programs,
+    subjects,
+    teachers,
+    buildings,
+    // STORES
     close,
-    reduxField,
-    reduxFunction,
     errorMessage,
     setErrorMessage,
     errorField,
@@ -32,50 +29,10 @@ const AddSectionContainer = ({
     numOfSchoolDays,
     breakTimeDuration,
 }) => {
+
     const inputNameRef = useRef();
-    const dispatch = useDispatch();
 
-    // ===================================================================================================
-
-    // const { buildings, status: buildingStatus } = useSelector((state) => state.building);
-
-    // const { programs, status: programStatus } = useSelector((state) => state.program);
-
-    // const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
-
-    // const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
-
-    // const { sections, status: sectionStatus } = useSelector((state) => state.section);
-
-    const { documents: sections, loading1, error1 } = fetchDocuments('sections');
-
-    const { documents: programs, loading2, error2 } = fetchDocuments('programs');
-
-    const { documents: subjects, loading3, error3 } = fetchDocuments('subjects');
-
-    const { documents: teachers, loading4, error4 } = fetchDocuments('teachers');
-
-    const { documents: stringfy_buildings, loading5, error5 } = fetchDocuments('buildings');
-    // console.log('stringfy_buildings: ', stringfy_buildings);
-
-    useEffect(() => {
-        try {
-            const converted_buildings = Object.values(stringfy_buildings).reduce((acc, { custom_id, data, id }) => {
-                const parsedData = JSON.parse(data);
-                acc[custom_id] = { ...parsedData, id, custom_id }; // Include id and custom_id inside data
-                return acc;
-            }, {});
-            console.log('converted_buildings: ', converted_buildings);
-
-            setBuildings(converted_buildings);
-        } catch (error) {
-            console.error('Failed to parse buildings JSON:', error);
-        }
-    }, [stringfy_buildings]);
-
-    const [buildings, setBuildings] = useState({});
-
-    // ===================================================================================================
+// ===================================================================================================
 
     const [inputValue, setInputValue] = useState('');
 
@@ -262,23 +219,7 @@ const AddSectionContainer = ({
                 roomDetails: roomDetails,
             };
 
-            // dispatch(
-            //     reduxFunction({
-            //         [reduxField[0]]: inputValue,
-            //         teacher: selectedAdviser,
-            //         program: selectedProgram,
-            //         year: selectedYearLevel,
-            //         subjects: selectedSubjects,
-            //         fixedDays: fixedDays,
-            //         fixedPositions: fixedPositions,
-            //         modality: classModality,
-            //         shift: selectedShift,
-            //         startTime: getTimeSlotIndex(selectedStartTime || '06:00 AM'),
-            //         endTime: selectedEndTime,
-            //         additionalScheds: additionalScheds,
-            //         roomDetails: roomDetails,
-            //     })
-            // );
+            
 
             addDocument('sections', entryData);
 
@@ -621,6 +562,8 @@ const AddSectionContainer = ({
                         </div>
 
                         <ViewRooms
+                            buildings={buildings}
+                            sections={sections}
                             viewMode={0}
                             sectionId={0}
                             sectionModality={classModality}
@@ -687,6 +630,7 @@ const AddSectionContainer = ({
                         </button>
 
                         <FixedScheduleMaker
+                            subjectsStore={subjects}
                             key={selectedYearLevel}
                             viewingMode={0}
                             isForSection={true}
@@ -850,7 +794,7 @@ const AddSectionContainer = ({
             <div className='flex mt-6 justify-center gap-2'>
                 <div className='flex justify-end space-x-2'>
                     <button className='btn btn-primary flex items-center' onClick={handleAddEntry} disabled={!isEndTimeValid}>
-                        <div>Add {reduxField[0]}</div>
+                        <div>Add Section</div>
                     </button>
                 </div>
                 <button className='btn btn-error border-0' onClick={handleReset}>

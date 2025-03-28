@@ -1,43 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchRanks } from '@features/rankSlice';
 
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import AdditionalScheduleForTeacherRank from './AdditionalScheduleForTeacherRank';
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchTeachers, editTeacher } from '@features/teacherSlice';
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 import { editDocument } from '../../../hooks/CRUD/editDocument';
 
 import { toast } from "sonner";
 
 const TeacherRankEdit = ({
+    // STORES
+    ranks,
+    teachers,
+    // STORES
     rank,
-    reduxFunction,
     errorMessage,
     setErrorMessage,
     errorField,
     setErrorField,
     numOfSchoolDays,
 }) => {
-
-    const dispatch = useDispatch();
-
-// ==============================================================================
-
-    // const { ranks, status: rankStatus } = useSelector(
-	// 	(state) => state.rank
-	// );
-
-    const { documents: ranks, loading1, error1 } = fetchDocuments('ranks');
-
-	// const { teachers, status: teacherStatus } = useSelector(
-	// 	(state) => state.teacher
-	// );
-
-    const { documents: teachers, loading2, error2 } = fetchDocuments('teachers');
-
+    
 // ==============================================================================
 
     const [editRankId, setEditRankId] = useState(rank.id || null);
@@ -101,19 +83,19 @@ const TeacherRankEdit = ({
 			});
 
 
-			dispatch(
-				editTeacher({
-					teacherId: newTeacher.id,
-					updatedTeacher: {
-						teacher: newTeacher.teacher,
-						department: newTeacher.department,
-						rank: newTeacher.rank,
-						subjects: newTeacher.subjects,
-						yearLevels: newTeacher.yearLevels,
-						additionalTeacherScheds: newTeacher.additionalTeacherScheds,
-					},
-				})
-			);
+			// dispatch(
+			// 	editTeacher({
+			// 		teacherId: newTeacher.id,
+			// 		updatedTeacher: {
+			// 			teacher: newTeacher.teacher,
+			// 			department: newTeacher.department,
+			// 			rank: newTeacher.rank,
+			// 			subjects: newTeacher.subjects,
+			// 			yearLevels: newTeacher.yearLevels,
+			// 			additionalTeacherScheds: newTeacher.additionalTeacherScheds,
+			// 		},
+			// 	})
+			// );
 			
 		})
 	};

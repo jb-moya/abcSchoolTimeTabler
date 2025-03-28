@@ -1,42 +1,29 @@
 import { useState, useEffect } from 'react';
+
 import { RiEdit2Fill } from 'react-icons/ri';
-
-import { useDispatch, useSelector } from 'react-redux';
-import SearchableDropdownToggler from '../searchableDropdown';
-
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchRanks } from '@features/rankSlice';
-import { fetchDepartments } from '@features/departmentSlice';
-import { fetchTeachers } from '@features/teacherSlice';
-import AdditionalScheduleForTeacher from './AdditionalScheduleForTeacher';
 import { RiDeleteBin7Line } from 'react-icons/ri';
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+import SearchableDropdownToggler from '../searchableDropdown';
+import AdditionalScheduleForTeacher from './AdditionalScheduleForTeacher';
+
 import { editDocument } from '../../../hooks/CRUD/editDocument';
 
 import { toast } from 'sonner';
 
 const TeacherEdit = ({ 
+    // STORES
+    teachers,
+    subjects,
+    ranks,
+    departments,
+    // STORES
     teacher, 
-    reduxFunction, 
     errorMessage, 
     setErrorMessage, 
     errorField, 
     setErrorField, 
     numOfSchoolDays 
 }) => {
-
-    const dispatch = useDispatch();
-
-// ==============================================================================
-
-    const { documents: teachers, loading1, error1 } = fetchDocuments('teachers');
-    
-    const { documents: subjects, loading2, error2 } = fetchDocuments('subjects');
-
-    const { documents: ranks, loading3, error3 } = fetchDocuments('ranks');
-
-    const { documents: departments, loading4, error4 } = fetchDocuments('departments');
 
 // ==============================================================================
 
@@ -475,6 +462,7 @@ const TeacherEdit = ({
                                             )}
                                         </button>
                                         <AdditionalScheduleForTeacher
+                                            subjects={subjects}
                                             viewingMode={1}
                                             teacherID={editTeacherId}
                                             arrayIndex={index}
@@ -494,6 +482,7 @@ const TeacherEdit = ({
                                         <RiEdit2Fill size={15} />
                                     </button>
                                     <AdditionalScheduleForTeacher
+                                        subjects={subjects}
                                         viewingMode={0}
                                         teacherID={editTeacherId}
                                         arrayIndex={index}

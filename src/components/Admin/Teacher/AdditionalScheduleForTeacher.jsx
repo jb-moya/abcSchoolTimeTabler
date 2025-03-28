@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
+
 import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';
 import TimeSelector from '@utils/timeSelector';
 import clsx from 'clsx';
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
-
 const AdditionalScheduleForTeacher = ({
+	subjects,
 	viewingMode = 0,
 	teacherID = 0,
 	arrayIndex = 0,
@@ -16,10 +16,6 @@ const AdditionalScheduleForTeacher = ({
 }) => {
 
 	const lastSchedTimeRef = useRef();
-
-// =============================================================================
-
-	const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
 
 // ============================================================================
 

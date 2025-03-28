@@ -2,16 +2,12 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { fetchScheds, addSched, removeSched } from '@features/schedulesSlice';
-
 import debounce from 'debounce';
 import { RiEdit2Fill } from 'react-icons/ri';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
-// import { fetchTeachers } from '@features/teacherSlice';
-// import { fetchSubjects } from '@features/subjectSlice';
-// import { fetchSections } from '@features/sectionSlice';
+
 import ModifyTimetableContainer from '@components/Admin/ModifyTimetable/ModifyTimetableContainer';
 
 import DeleteData from '../DeleteData';
@@ -20,6 +16,7 @@ import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 import { addDocument } from '../../../hooks/CRUD/addDocument';
 
 const TimetableListContainer = ({}) => {
+    
     const dispatch = useDispatch();
     const location = useLocation();
     const navigate = useNavigate();
@@ -297,8 +294,6 @@ const TimetableListContainer = ({}) => {
 
                                                         <DeleteData
                                                             id={schedule.id}
-                                                            store={'schedules'}
-                                                            reduxFunction={removeSched}
                                                         />
                                                     </div>
                                                 </td>

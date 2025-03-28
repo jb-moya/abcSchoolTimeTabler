@@ -1,29 +1,16 @@
-// import { configureStore } from "@reduxjs/toolkit";
-// import subjectReducer from "../features/subjectSlice";
-// import teacherReducer from "../features/teacherSlice";
-// import sectionReducer from "../features/sectionSlice";
-// import programReducer from "../features/programSlice";
-// export const store = configureStore({
-//   reducer: {
-//     subject: subjectReducer,
-//     teacher: teacherReducer,
-//     section: sectionReducer,
-//     program: programReducer,
-//   },
-// });
-
 import { configureStore } from '@reduxjs/toolkit';
 import headerSlice from '../features/common/headerSlice';
 import modalSlice from '../features/common/modalSlice';
 import rightDrawerSlice from '../features/common/rightDrawerSlice';
 import leadsSlice from '../features/leads/leadSlice';
-import subjectReducer from '../features/subjectSlice';
-import teacherReducer from '../features/teacherSlice';
-import rankReducer from '../features/rankSlice';
-import sectionReducer from '../features/sectionSlice';
-import programReducer from '../features/programSlice';
-import departmentReducer from '../features/departmentSlice';
-import buildingReducer from '../features/buildingSlice';
+import subjectSlice from '../features/slice/subject_slice';
+import programSlice from '../features/slice/program_slice';
+import rankSlice from '../features/slice/rank_slice';
+import sectionSlice from '../features/slice/section_slice';
+import teacherSlice from '../features/slice/teacher_slice';
+import departmentSlice from '../features/slice/department_slice';
+import buildingSlice from '../features/slice/building_slice';
+import timetableSlice from '../features/slice/timetable_slice';
 import userSlice from '../features/userSlice';
 import configurationSlice from '../features/configurationSlice';
 import schedulesReducer from '../features/schedulesSlice';
@@ -33,13 +20,14 @@ const combinedReducer = {
   rightDrawer: rightDrawerSlice,
   modal: modalSlice,
   lead: leadsSlice,
-  subject: subjectReducer,
-  teacher: teacherReducer,
-  rank: rankReducer,
-  section: sectionReducer,
-  program: programReducer,
-  department: departmentReducer,
-  building: buildingReducer,
+  subjects: subjectSlice,
+  programs: programSlice,
+  ranks: rankSlice,
+  sections: sectionSlice,
+  teachers: teacherSlice,
+  departments: departmentSlice,
+  buildings: buildingSlice,
+  timetables: timetableSlice,
   user: userSlice,
   configuration: configurationSlice,
   schedule: schedulesReducer,

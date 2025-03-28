@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { useSelector } from 'react-redux';
 import { useDraggable } from '@dnd-kit/core';
 
 import { dragColors } from './bgColors';

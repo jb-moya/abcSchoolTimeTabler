@@ -1,12 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-
-import { fetchBuildings, editBuilding } from '@features/buildingSlice';
-import { fetchSections } from '@features/sectionSlice';
-
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 
 const ViewRooms = ({
+    buildings = {},
+    sections = {},
     viewMode = 1,
     sectionId = 0,
     sectionModality = [],
@@ -16,36 +12,8 @@ const ViewRooms = ({
     startTime = 0,
     endTime = 0,
 }) => {
-    const dispatch = useDispatch();
 
-    // ============================================================================
-
-    const { documents: sections, loading1, error1 } = fetchDocuments('sections');
-
-    const { documents: stringfy_buildings, loading2, error2 } = fetchDocuments('buildings');
-    // console.log('stringfy_buildings: ', stringfy_buildings);
-
-    useEffect(() => {
-        try {
-            const converted_buildings = Object.values(stringfy_buildings).reduce((acc, { custom_id, data, id }) => {
-                const parsedData = JSON.parse(data);
-                acc[custom_id] = { ...parsedData, id, custom_id }; // Include id and custom_id inside data
-                return acc;
-            }, {});
-            console.log('converted_buildings: ', converted_buildings);
-
-            setBuildings(converted_buildings);
-        } catch (error) {
-            console.error('Failed to parse buildings JSON:', error);
-        }
-    }, [stringfy_buildings]);
-
-    const [buildings, setBuildings] = useState({});
-    useEffect(() => {
-        console.log('buildings: ', buildings);
-    }, [buildings]);
-
-    // ============================================================================
+// ============================================================================
 
     const [buildingId, setBuildingId] = useState(-1);
     const [floorIdx, setFloorIdx] = useState(-1);
@@ -84,7 +52,7 @@ const ViewRooms = ({
         setSelectedEndTime(endTime);
     }, [endTime]);
 
-    // ============================================================================
+// ============================================================================
 
     const handleBuildingChange = (e) => {
         console.log(e.target.value);

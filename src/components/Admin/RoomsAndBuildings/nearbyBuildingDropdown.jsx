@@ -11,32 +11,6 @@ const NearbyBuildingDropdown = ({
     setNearbyBuildings,
     currentBuildingId, // Add this prop
 }) => {
-    const { documents: stringfy_buildings, loading1, error1 } = fetchDocuments('buildings');
-    // console.log('stringfy_buildings: ', stringfy_buildings);
-
-    useEffect(() => {
-        try {
-            const converted_buildings = Object.values(stringfy_buildings).reduce((acc, { custom_id, data, id }) => {
-                const parsedData = JSON.parse(data);
-                acc[custom_id] = { ...parsedData, id, custom_id }; // Include id and custom_id inside data
-                return acc;
-            }, {});
-            console.log('converted_buildings: ', converted_buildings);
-
-            setBuildings(converted_buildings);
-        } catch (error) {
-            console.error('Failed to parse buildings JSON:', error);
-        }
-    }, [stringfy_buildings]);
-
-    const [buildings, setBuildings] = useState({});
-    // useEffect(() => {
-    //     console.log('buildings: ', buildings);
-    // }, [buildings]);
-
-    // useEffect(() => {
-    //     console.log('nearbyBuildings: ', nearbyBuildings);
-    // }, [nearbyBuildings]);
 
     const [searchValue, setSearchValue] = useState('');
 
@@ -89,9 +63,9 @@ const NearbyBuildingDropdown = ({
                         <div className='px-4 py-2 opacity-50'>No buildings found</div>
                     ) : (
                         filteredBuildings.map((building) => (
-                            <li key={buildings[building.id]?.id} role='button' onClick={() => handleToggleBuilding(building.id)}>
+                            <li key={building.id} role='button' onClick={() => handleToggleBuilding(building.id)}>
                                 <div className='flex justify-between items-center'>
-                                    <a className={clsx('w-full')}>{buildings[building.id]?.name}</a>
+                                    <a className={clsx('w-full')}>{availableBuildings[building.id]?.name}</a>
                                     {nearbyBuildings.some((b) => b.id === building.id) ? (
                                         <IoRemove size={20} className='text-red-500' />
                                     ) : (
@@ -109,12 +83,12 @@ const NearbyBuildingDropdown = ({
                 <div className='flex flex-wrap gap-2 mt-3'>
                     {nearbyBuildings.map((building) => (
                         <span
-                            key={buildings[building]?.id}
+                            key={availableBuildings[building]?.id}
                             // key={building.custom_id}
                             className='badge badge-primary gap-2 cursor-pointer'
                             onClick={() => handleToggleBuilding(building)}
                         >
-                            {buildings[building]?.name}
+                            {availableBuildings[building]?.name}
                             {/* {buildings.custom_id} */}
                             <IoRemove size={16} className='ml-2' />
                         </span>

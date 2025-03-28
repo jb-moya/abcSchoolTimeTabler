@@ -1,73 +1,32 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
-import { useDispatch } from 'react-redux';
 
-import { fetchSections, addSection, editSection, removeSection } from '@features/sectionSlice';
-import { fetchPrograms } from '@features/programSlice';
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchTeachers, editTeacher } from '@features/teacherSlice';
-import { fetchBuildings, editBuilding } from '@features/buildingSlice';
-
-import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
-import TimeSelector from '@utils/timeSelector';
+import { getTimeSlotString } from '@utils/timeSlotMapper';
 
 import { IoAdd, IoEye, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 
-import { toast } from 'sonner';
-import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
-
-import ViewRooms from '../RoomsAndBuildings/ViewRooms';
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
-import clsx from 'clsx';
 import AdditionalScheduleForSection from './AdditionalScheduleForSection';
 import AddSectionContainer from './SectionAdd';
 import DeleteData from '../DeleteData';
 import SectionEdit from './SectionEdit';
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
-
 const SectionListContainer = ({
+    // STORES
+    sections,
+    programs,
+    subjects,
+    teachers,
+    buildings,
+    // STORES
     numOfSchoolDays: externalNumOfSchoolDays,
     editable = false,
     breakTimeDuration: externalBreakTimeDuration,
 }) => {
-    const dispatch = useDispatch();
 
-    //  =======================================================================================
-
-    const { documents: sections, loading1, error1 } = fetchDocuments('sections');
-
-    const { documents: programs, loading2, error2 } = fetchDocuments('programs');
-
-    const { documents: subjects, loading3, error3 } = fetchDocuments('subjects');
-
-    const { documents: teachers, loading4, error4 } = fetchDocuments('teachers');
-
-    const { documents: stringfy_buildings, loading5, error5 } = fetchDocuments('buildings');
-    // console.log('stringfy_buildings: ', stringfy_buildings);
-
-    useEffect(() => {
-        try {
-            const converted_buildings = Object.values(stringfy_buildings).reduce((acc, { custom_id, data, id }) => {
-                const parsedData = JSON.parse(data);
-                acc[custom_id] = { ...parsedData, id, custom_id }; // Include id and custom_id inside data
-                return acc;
-            }, {});
-            console.log('converted_buildings: ', converted_buildings);
-
-            setBuildings(converted_buildings);
-        } catch (error) {
-            console.error('Failed to parse buildings JSON:', error);
-        }
-    }, [stringfy_buildings]);
-
-    const [buildings, setBuildings] = useState({});
-
-    //  =======================================================================================
+//  =========================================================================================
 
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
         return externalNumOfSchoolDays ?? (Number(localStorage.getItem('numOfSchoolDays')) || 0);
@@ -92,12 +51,12 @@ const SectionListContainer = ({
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState([]);
 
-    //  =======================================================================================
+//  =======================================================================================
 
     const [searchSectionResult, setSearchSectionResult] = useState(sections);
     const [searchSectionValue, setSearchSectionValue] = useState('');
 
-    //  =======================================================================================
+//  =======================================================================================
 
     const handleClose = () => {
         const modal = document.getElementById('add_section_modal');
@@ -122,15 +81,15 @@ const SectionListContainer = ({
             );
         }
 
-        dispatch(
-            editTeacher({
-                teacherId: teacherId,
-                updatedTeacher: prevSectionAdviser,
-            })
-        );
+        // dispatch(
+        //     editTeacher({
+        //         teacherId: teacherId,
+        //         updatedTeacher: prevSectionAdviser,
+        //     })
+        // );
     };
 
-    //  =======================================================================================
+//  =======================================================================================
 
     const debouncedSearch = useCallback(
         debounce((searchValue, sections, subjects) => {
@@ -157,7 +116,7 @@ const SectionListContainer = ({
         []
     );
 
-    //  =======================================================================================
+//  =======================================================================================
 
     useEffect(() => {
         if (externalNumOfSchoolDays !== undefined) {
@@ -165,7 +124,7 @@ const SectionListContainer = ({
         }
     }, [externalNumOfSchoolDays]);
 
-    //  =======================================================================================
+//  =======================================================================================
 
     useEffect(() => {
         debouncedSearch(searchSectionValue, sections, subjects);
@@ -250,9 +209,12 @@ const SectionListContainer = ({
                             <dialog id='add_section_modal' className='modal '>
                                 <div className='modal-box' style={{ width: '48%', maxWidth: 'none' }}>
                                     <AddSectionContainer
+                                        sections={sections}
+                                        subjects={subjects}
+                                        programs={programs}
+                                        teachers={teachers}
+                                        buildings={buildings}
                                         close={handleClose}
-                                        reduxField={['section', 'subjects', 'units']}
-                                        reduxFunction={addSection}
                                         errorMessage={errorMessage}
                                         setErrorMessage={setErrorMessage}
                                         errorField={errorField}
@@ -403,6 +365,7 @@ const SectionListContainer = ({
 
                                                 {/* FixedScheduleMaker Component */}
                                                 <FixedScheduleMaker
+                                                    subjectsStore={subjects}
                                                     key={section.year}
                                                     viewingMode={1}
                                                     isForSection={true}
@@ -472,6 +435,7 @@ const SectionListContainer = ({
                                                                 )}
                                                             </button>
                                                             <AdditionalScheduleForSection
+                                                                subjects={subjects}
                                                                 viewingMode={1}
                                                                 sectionID={section.id}
                                                                 grade={section.year}
@@ -488,9 +452,12 @@ const SectionListContainer = ({
                                             <td className='w-28'>
                                                 <div className='flex '>
                                                     <SectionEdit
+                                                        subjects={subjects}
+                                                        programs={programs}
+                                                        teachers={teachers}
+                                                        sections={sections}
+                                                        buildings={buildings}
                                                         section={section}
-                                                        reduxField={['section', 'subjects', 'units']}
-                                                        reduxFunction={editSection}
                                                         errorMessage={errorMessage}
                                                         setErrorMessage={setErrorMessage}
                                                         errorField={errorField}

@@ -1,46 +1,28 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
-import { fetchSubjects, addSubject, editSubject, removeSubject } from '@features/subjectSlice';
-// import { fetchPrograms} from '@features/programSlice';
-// import { fetchSections } from '@features/sectionSlice';
 
-// import { getTimeSlotIndex } from '@utils/timeSlotMapper';
-
-import { fetchDocuments } from '../../hooks/CRUD/retrieveDocuments';
+import { subscribeToSubjects } from '@features/slice/subject_slice';
 
 import { IoAdd, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 
-// import { toast } from 'sonner';
-
-import calculateTotalClass from '../../utils/calculateTotalClass';
-
 import AddSubjectContainer from './AddSubjectContainer';
 import SubjectEdit from './SubjectEdit';
 import DeleteData from '../Admin/DeleteData';
 
 const SubjectListContainer = ({
+    subjects,
+    programs,
+    sections,
     numOfSchoolDays: externalNumOfSchoolDays,
     editable = false,
     breakTimeDuration: externalBreakTimeDuration,
 }) => {
 
     const dispatch = useDispatch();
-
-// ==============================================================================
-
-    // const { subjects, status: subjectStatus } = useSelector(
-    //     (state) => state.subject
-    // );
-
-    const { documents: subjects, loading, error } = fetchDocuments('subjects');
-
-    useEffect(() => {
-        console.log('subjects:', subjects);
-    }, [subjects]);
 
 // ==============================================================================
 
@@ -150,7 +132,6 @@ const SubjectListContainer = ({
                                 if (currentPage > 1) {
                                     setCurrentPage(currentPage - 1);
                                 }
-                                resetInputs();
                             }}
                             disabled={currentPage === 1}
                         >
@@ -165,7 +146,6 @@ const SubjectListContainer = ({
                                 if (currentPage < totalPages) {
                                     setCurrentPage(currentPage + 1);
                                 }
-                                resetInputs();
                             }}
                             disabled={currentPage === totalPages}
                         >
@@ -204,8 +184,8 @@ const SubjectListContainer = ({
                         <dialog id='add_subject_modal' className='modal modal-bottom sm:modal-middle'>
                             <div className='modal-box'>
                                 <AddSubjectContainer
+                                    subjects={subjects}
                                     close={() => document.getElementById('add_subject_modal').close()}
-                                    reduxFunction={addSubject}
                                     errorMessage={errorMessage}
                                     setErrorMessage={setErrorMessage}
                                     errorField={errorField}
@@ -277,12 +257,14 @@ const SubjectListContainer = ({
                                             <div className='flex'>
                                                 <SubjectEdit
                                                     className="btn btn-xs btn-ghost text-blue-500"
+                                                    subjects={subjects}
+                                                    programs={programs}
+                                                    sections={sections}
                                                     subject={subject}  // Pass the entire subject object
                                                     errorMessage={errorMessage}
                                                     setErrorMessage={setErrorMessage}
                                                     errorField={errorField}
                                                     setErrorField={setErrorField}
-                                                    reduxFunction={editSubject}
                                                     numOfSchoolDays = {numOfSchoolDays}
                                                     breakTimeDuration={breakTimeDuration}
                                                 />

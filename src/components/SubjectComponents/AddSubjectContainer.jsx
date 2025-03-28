@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import { useDispatch } from 'react-redux';
 import { toast } from 'sonner';
 
-import { fetchDocuments } from '../../hooks/CRUD/retrieveDocuments';
 import { addDocument } from '../../hooks/CRUD/addDocument';
 
 const AddSubjectContainer = ({
+    // STORES
+    subjects,
+
     close,
     reduxFunction,
     errorMessage,
@@ -17,13 +17,6 @@ const AddSubjectContainer = ({
 }) => {
 
     const inputNameRef = useRef();
-    const dispatch = useDispatch();
-
-// ==============================================================================
-
-    // const subjects = useSelector((state) => state.subject.subjects);
-
-    const { documents: subjects, loading, error } = fetchDocuments('subjects');
 
 // ==============================================================================
 

@@ -1,34 +1,22 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-
-import { fetchRanks, addRank, editRank, removeRank } from '@features/rankSlice';
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchTeachers, editTeacher } from '@features/teacherSlice';
 
 import debounce from 'debounce';
-import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
 
-import { toast } from 'sonner';
-import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 import AdditionalScheduleForTeacherRank from './AdditionalScheduleForTeacherRank';
 import AddTeacherRankContainer from './TeacherRankAdd';
 import DeleteData from '../DeleteData';
 import TeacherRankEdit from './TeacherRankEdit';
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
-
 const TeacherRankListContainer = ({ 
+    // STORES
+    ranks,
+	teachers,
+    // STORES
     editable = false 
 }) => {
-
-    // const dispatch = useDispatch();
-
-// ===================================================================================================
-
-    const { documents: ranks, loading1, error1 } = fetchDocuments('ranks');
 
 // ===================================================================================================
 
@@ -311,8 +299,8 @@ const TeacherRankListContainer = ({
                             <dialog id='add_rank_modal' className='modal modal-bottom sm:modal-middle'>
                                 <div className='modal-box'>
                                     <AddTeacherRankContainer
+                                        ranks={ranks}
                                         close={() => document.getElementById('add_rank_modal').close()}
-                                        reduxFunction={addRank}
                                         errorMessage={errorMessage}
                                         setErrorMessage={setErrorMessage}
                                         errorField={errorField}
@@ -434,8 +422,9 @@ const TeacherRankListContainer = ({
                                                 <>
                                                     <div className='flex'>
                                                         <TeacherRankEdit
+                                                            ranks={ranks}
+                                                            teachers={teachers}
                                                             rank={rank}
-                                                            reduxFunction={editRank}
                                                             errorMessage={errorMessage}
                                                             setErrorMessage={setErrorMessage}
                                                             errorField={errorField}

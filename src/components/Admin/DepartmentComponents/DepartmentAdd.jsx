@@ -1,12 +1,13 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { fetchTeachers } from '@features/teacherSlice';
+import { useState, useEffect, useRef } from 'react';
+
 import { toast } from "sonner";
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 import { addDocument } from '../../../hooks/CRUD/addDocument';
 
 const AddDepartmentContainer = ({
+	// STORES
+	departments,
+	// STORES
     close,
     errorMessage,
     setErrorMessage,
@@ -16,18 +17,6 @@ const AddDepartmentContainer = ({
   }) => {
 
     const inputNameRef = useRef();
-    // const dispatch = useDispatch();
-
-// ===================================================================================
-  
-  // const { teachers, status: teacherStatus } = useSelector(
-  //   (state) => state.teacher
-
-  // );
-
-  // const departments = useSelector((state) => state.department.departments);
-
-	const { documents: departments, loading1, error1 } = fetchDocuments('departments');
 
 // ===================================================================================
   

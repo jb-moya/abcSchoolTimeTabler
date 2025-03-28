@@ -1,33 +1,28 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import { useDispatch } from 'react-redux';
-
 import { toast } from 'sonner';
 
 import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
+import TimeSelector from '@utils/timeSelector';
 
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { IoWarningSharp } from 'react-icons/io5';
-
-import { fetchPrograms } from '@features/programSlice';
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchTeachers, editTeacher } from '@features/teacherSlice';
-import { fetchBuildings } from '@features/buildingSlice';
-import { fetchSections } from '@features/sectionSlice';
-
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
-import { editDocument } from '../../../hooks/CRUD/editDocument';
 
 import ViewRooms from '../RoomsAndBuildings/ViewRooms';
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
 import AdditionalScheduleForSection from './AdditionalScheduleForSection';
 
-import TimeSelector from '@utils/timeSelector';
+import { editDocument } from '../../../hooks/CRUD/editDocument';
+
 
 const SectionEdit = ({
+    // STORES
+    sections,
+    programs,
+    subjects,
+    teachers,
+    buildings,
+    // STORES
     section,
-    reduxField,
-    reduxFunction,
     errorMessage,
     setErrorMessage,
     errorField,
@@ -35,37 +30,8 @@ const SectionEdit = ({
     numOfSchoolDays,
     breakTimeDuration,
 }) => {
-    const dispatch = useDispatch();
 
-    // ===============================================================
-
-    const { documents: sections, loading1, error1 } = fetchDocuments('sections');
-
-    const { documents: programs, loading2, error2 } = fetchDocuments('programs');
-    const { documents: subjects, loading3, error3 } = fetchDocuments('subjects');
-    const { documents: teachers, loading4, error4 } = fetchDocuments('teachers');
-
-    const { documents: stringfy_buildings, loading5, error5 } = fetchDocuments('buildings');
-    // console.log('stringfy_buildings: ', stringfy_buildings);
-
-    useEffect(() => {
-        try {
-            const converted_buildings = Object.values(stringfy_buildings).reduce((acc, { custom_id, data, id }) => {
-                const parsedData = JSON.parse(data);
-                acc[custom_id] = { ...parsedData, id, custom_id }; // Include id and custom_id inside data
-                return acc;
-            }, {});
-            console.log('converted_buildings: ', converted_buildings);
-
-            setBuildings(converted_buildings);
-        } catch (error) {
-            console.error('Failed to parse buildings JSON:', error);
-        }
-    }, [stringfy_buildings]);
-
-    const [buildings, setBuildings] = useState({});
-
-    // ===============================================================================================
+// ===========================================================================================================
 
     const [editSectionAdviser, setEditSectionAdviser] = useState('');
     const [prevAdviser, setPrevAdviser] = useState('');
@@ -710,6 +676,8 @@ const SectionEdit = ({
                                             </div>
 
                                             <ViewRooms
+                                                buildings={buildings}
+                                                sections={sections}
                                                 viewMode={0}
                                                 sectionId={section.id}
                                                 roomDetails={editRoomDetails}
@@ -787,6 +755,7 @@ const SectionEdit = ({
                                         </button>
                                     </div>
                                     <FixedScheduleMaker
+                                        subjectsStore={subjects}
                                         key={editSectionYear}
                                         viewingMode={0}
                                         isForSection={true}

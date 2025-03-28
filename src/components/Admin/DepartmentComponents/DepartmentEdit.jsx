@@ -1,39 +1,23 @@
 import  { useState, useEffect, useRef } from "react";
-import { useSelector, useDispatch } from "react-redux";
+
 import { toast } from 'sonner';
 import { RiEdit2Fill } from "react-icons/ri";
 
-// import { fetchDepartments } from "@features/departmentSlice";
-// import { fetchTeachers } from "@features/teacherSlice";
-
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 import { editDocument } from '../../../hooks/CRUD/editDocument';
 
 const DepartmentEdit = ({
-  department,
-//   reduxFunction,
-  setErrorMessage,
-  errorMessage,
-  errorField,
-  setErrorField,
+	// STORES	
+	departments,
+	teachers,
+	// STORES
+	department,
+	setErrorMessage,
+	errorMessage,
+	errorField,
+	setErrorField,
 }) => {
 
 	const inputNameRef = useRef(null);
-	const dispatch = useDispatch();
-
-// ==========================================================================
-
-	// const { departments, status: departmentStatus } = useSelector(
-		// 	(state) => state.department
-	// );
-
-	const { documents: departments, loading1, error1 } = fetchDocuments('departments');
-
-	// const { teachers, status: teacherStatus } = useSelector(
-	// 	(state) => state.teacher
-	// );
-
-	const { documents: teachers, loading2, error2 } = fetchDocuments('teachers');
 	
 // ==========================================================================
 
