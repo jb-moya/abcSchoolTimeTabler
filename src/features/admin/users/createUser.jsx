@@ -4,16 +4,7 @@ import InputText from '../../../components/Input/InputText';
 import { useDispatch, useSelector } from 'react-redux';
 import { signUpWithEmailAndPassword } from '../../userSlice';
 import { toast } from 'sonner';
-
-const submenu = [
-    'Generate Timetable',
-    'Modify Subjects and Programs',
-    'Modify Teachers',
-    'Modify Sections',
-    'Modify Departments',
-    'Room Utilization',
-    'Modify TimeTable',
-];
+import { APP_CONFIG } from '../../../constants';
 
 const CreateUser = () => {
     const INITIAL_REGISTER_OBJ = {
@@ -122,7 +113,7 @@ const CreateUser = () => {
                 </div>
 
                 <div className='space-y-1'>
-                    {submenu.map((routeName, index) => (
+                    {APP_CONFIG.PERMISSIONS.map((routeName, index) => (
                         <div key={index} className='flex gap-2'>
                             <input
                                 type='checkbox'

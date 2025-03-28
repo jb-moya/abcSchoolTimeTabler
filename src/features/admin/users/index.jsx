@@ -1,6 +1,7 @@
 import React from 'react';
 import CreateUser from './createUser';
 import Breadcrumbs from '@components/Admin/Breadcrumbs';
+import UserList from './userList';
 
 const Users = () => {
     const links = [{ name: 'Home', href: '/' }];
@@ -10,25 +11,25 @@ const Users = () => {
             <Breadcrumbs title='Users' links={links} />
 
             <div role='tablist' className='tabs tabs-lifted tabs-lg'>
-                <input type='radio' name='my_tabs_2' role='tab' className='tab' aria-label='User Dashboard' />
+                {/* <input type='radio' name='my_tabs_2' role='tab' className='tab' aria-label='User Dashboard' />
                 <div role='tabpanel' className='tab-content bg-base-100 border-base-300 rounded-box p-6'>
                     Tab content 1
-                </div>
+                </div> */}
 
-                <input type='radio' name='my_tabs_2' role='tab' className='tab' aria-label='Create New User' defaultChecked />
+                <input type='radio' name='my_tabs_2' role='tab' className='tab' aria-label='Create New User' />
                 <div role='tabpanel' className='tab-content bg-base-100 border-base-300 rounded-box p-6'>
                     <CreateUser />
                 </div>
 
-                <input type='radio' name='my_tabs_2' role='tab' className='tab' aria-label='Edit User' defaultChecked />
+                <input type='radio' name='my_tabs_2' role='tab' className='tab' aria-label='User List' defaultChecked/>
                 <div role='tabpanel' className='tab-content bg-base-100 border-base-300 rounded-box p-6'>
-                    Edit
+                    <UserList />
                 </div>
 
-                <input type='radio' name='my_tabs_2' role='tab' className='tab' aria-label='User Logs' />
+                {/* <input type='radio' name='my_tabs_2' role='tab' className='tab' aria-label='User Logs' />
                 <div role='tabpanel' className='tab-content bg-base-100 border-base-300 rounded-box p-6'>
                     Tab content 3
-                </div>
+                </div> */}
             </div>
         </div>
     );
