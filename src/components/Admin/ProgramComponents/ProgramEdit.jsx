@@ -472,7 +472,12 @@ const ProgramEdit = ({
                 }
             }
 
+            console.log('originalSection.subjects: ', originalSection.subjects);
+            console.log('newSection.subjects: ', newSection.subjects);
+
             if (originalSection !== newSection) {
+                
+
                 const updatedEntry = {
                     custom_id: newSection.custom_id,
                     teacher: newSection.teacher,
@@ -677,7 +682,7 @@ const ProgramEdit = ({
                     },
                 });
 
-                // updateProgramDependencies();
+                updateProgramDependencies();
             } catch (error) {
                 console.error("Error updating program: ", error);
             } finally {
