@@ -149,28 +149,10 @@ const SectionEdit = ({
             editSectionValue.trim().toLowerCase() === currentSection.trim().toLowerCase() &&
             editSectionAdviser === currentSectionAdviser
         ) {
+
+            console.log('check_1!');
+
             try {
-                // dispatch(
-                //     reduxFunction({
-                //         sectionId,
-                //         updatedSection: {
-                //             id: sectionId,
-                //             teacher: editSectionAdviser,
-                //             program: editSectionProg,
-                //             section: editSectionValue,
-                //             subjects: editSectionSubjects,
-                //             fixedDays: editSectionFixedDays,
-                //             fixedPositions: editSectionFixedPositions,
-                //             year: editSectionYear,
-                //             shift: editSectionShift,
-                //             startTime: getTimeSlotIndex(editSectionStartTime),
-                //             endTime: editSectionEndTime,
-                //             modality: editSectionClassModality,
-                //             additionalScheds: editAdditionalScheds,
-                //             roomDetails: editRoomDetails,
-                //         },
-                //     })
-                // );
 
                 const entryData = {
                     teacher: editSectionAdviser,
@@ -189,6 +171,7 @@ const SectionEdit = ({
                 };
 
                 editDocument('sections', sectionId, entryData);
+
             } catch (error) {
                 console.log(error);
             } finally {
@@ -203,6 +186,7 @@ const SectionEdit = ({
                 resetStates();
                 closeModal();
             }
+
         } else {
             const duplicateSection = Object.values(sections).find(
                 (section) =>
@@ -214,10 +198,6 @@ const SectionEdit = ({
             const duplicateAdviser = Object.values(sections).find(
                 (section) => section.teacher === editSectionAdviser && section.id !== sectionId
             );
-
-            console.log('editSectionEndTime: ', editSectionEndTime);
-
-            // console.log('duplicateAdviser: ', duplicateAdviser);
 
             if (duplicateSection) {
                 toast.error('Section name already taken.', {
@@ -242,6 +222,8 @@ const SectionEdit = ({
                     };
 
                     if (prevAdviser !== editSectionAdviser) {
+                        console.log('prevAdviser: ', prevAdviser);
+
                         const prevSectionAdviser = structuredClone(teachers[prevAdviser]);
                         const prevAdviserID = teachers[prevAdviser].id;
 
@@ -251,15 +233,8 @@ const SectionEdit = ({
                             );
                         }
 
-                        // dispatch(
-                        //     editTeacher({
-                        //         teacherId: prevAdviser,
-                        //         updatedTeacher: prevSectionAdviser,
-                        //     })
-                        // );
-
                         editDocument('teachers', prevAdviserID, {
-                            additionalTeacherScheds: teacher.additionalTeacherScheds,
+                            additionalTeacherScheds: prevSectionAdviser.additionalTeacherScheds,
                         });
                     }
 
@@ -273,28 +248,6 @@ const SectionEdit = ({
                     });
 
                     // ===================== ADVISORY LOAD =====================
-
-                    // dispatch(
-                    //     reduxFunction({
-                    //         sectionId,
-                    //         updatedSection: {
-                    //             id: sectionId,
-                    //             teacher: editSectionAdviser,
-                    //             program: editSectionProg,
-                    //             section: editSectionValue,
-                    //             subjects: editSectionSubjects,
-                    //             fixedDays: editSectionFixedDays,
-                    //             fixedPositions: editSectionFixedPositions,
-                    //             year: editSectionYear,
-                    //             shift: editSectionShift,
-                    //             startTime: getTimeSlotIndex(editSectionStartTime),
-                    //             endTime: editSectionEndTime,
-                    //             modality: editSectionClassModality,
-                    //             additionalScheds: editAdditionalScheds,
-                    //             roomDetails: editRoomDetails,
-                    //         },
-                    //     })
-                    // );
 
                     const entryData = {
                         teacher: editSectionAdviser,
@@ -493,7 +446,7 @@ const SectionEdit = ({
                                         Assign an adviser
                                     </option>
                                     {Object.keys(teachers).map((key) => (
-                                        <option key={teachers[key].id} value={teachers[key].id}>
+                                        <option key={teachers[key].id} value={teachers[key].custom_id}>
                                             {teachers[key].teacher}
                                         </option>
                                     ))}
@@ -823,8 +776,7 @@ const SectionEdit = ({
                         </div>
 
                         {/* Additional Schedules */}
-                        {editAdditionalScheds.length > 0 && (
-                            <div className='p-4 rounded-lg shadow-md border'>
+                        <div className='p-4 rounded-lg shadow-md border'>
                                 <div className='text-center font-semibold text-lg'>Additional Schedules</div>
                                 <hr className='my-2'></hr>
 
@@ -878,6 +830,7 @@ const SectionEdit = ({
                                                     )}
                                                 </button>
                                                 <AdditionalScheduleForSection
+                                                    subjects={subjects}
                                                     viewingMode={0}
                                                     sectionID={editSectionId}
                                                     grade={editSectionYear}
@@ -901,6 +854,7 @@ const SectionEdit = ({
                                                     <RiEdit2Fill size={15} />
                                                 </button>
                                                 <AdditionalScheduleForSection
+                                                    subjects={subjects}
                                                     viewingMode={0}
                                                     sectionID={editSectionId}
                                                     grade={editSectionYear}
@@ -914,8 +868,7 @@ const SectionEdit = ({
                                         </div>
                                     ))}
                                 </div>
-                            </div>
-                        )}
+                        </div>
 
                         {errorMessage && <p className='text-red-500 text-sm my-4 font-medium select-none '>{errorMessage}</p>}
 

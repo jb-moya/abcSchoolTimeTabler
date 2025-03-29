@@ -744,6 +744,7 @@ const AddSectionContainer = ({
                                     )}
                                 </button>
                                 <AdditionalScheduleForSection
+                                    subjects={subjects}
                                     viewingMode={1}
                                     sectionID={0}
                                     grade={selectedYearLevel}
@@ -764,6 +765,7 @@ const AddSectionContainer = ({
                                     <RiEdit2Fill size={15} />
                                 </button>
                                 <AdditionalScheduleForSection
+                                    subjects={subjects}
                                     viewingMode={0}
                                     sectionID={0}
                                     grade={selectedYearLevel}
