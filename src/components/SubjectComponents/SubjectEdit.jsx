@@ -1,18 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
-import { useDispatch } from 'react-redux';
 import { RiEdit2Fill } from 'react-icons/ri';
 import { toast } from 'sonner';
-import { useSelector } from 'react-redux';
-
-import { subscribeToSubjects } from '@features/slice/subject_slice';
-import { subscribeToPrograms } from '@features/slice/program_slice';
-import { subscribeToSections } from '@features/slice/section_slice';
 
 import { editDocument } from '../../hooks/CRUD/editDocument';
 
 import calculateTotalClass from '../../utils/calculateTotalClass';
 
 const SubjectEdit = ({
+    // STORES
+    subjects,
+    programs,
+    sections,
+    // STORES
+
     subject,
     setErrorMessage,
     errorMessage,
@@ -23,24 +23,6 @@ const SubjectEdit = ({
 }) => {
 
     const inputNameRef = useRef(null);
-    const dispatch = useDispatch();
-
-// =============================================================================
-
-    // const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
-    const { documents: subjects, loading1, error1 } = useSelector((state) => state.subjects);
-
-    // const { documents: programs, loading2, error2 } = fetchDocuments('programs');
-    const { documents: programs, loading2, error2 } = useSelector((state) => state.programs);
-
-    // const { documents: sections, loading3, error3 } = fetchDocuments('sections');
-    const { documents: sections, loading3, error3 } = useSelector((state) => state.sections);
-
-    useEffect(() => {
-        dispatch(subscribeToSubjects());
-        dispatch(subscribeToPrograms());
-        dispatch(subscribeToSections());
-    }, [dispatch]);
 
 // =============================================================================
 

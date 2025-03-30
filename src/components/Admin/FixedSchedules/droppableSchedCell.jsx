@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import {useDispatch, useSelector } from 'react-redux';
 import { useDroppable } from '@dnd-kit/core';
 
 import DraggableSchedules from './draggableSchedules';
 
-import { subscribeToSubjects } from '@features/slice/subject_slice';
-
 const DroppableSchedCell = ({
+    // STORES
+    subjects,
+    // STORES
+
     editMode,
 
     subjectID,
@@ -20,17 +21,6 @@ const DroppableSchedCell = ({
     fixedDays,
     fixedPositions,
 }) => {
-
-    const dispatch = useDispatch();
-
-// ===============================================================================
-
-    // const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
-    const { data: subjects, loading1, error1 } = useSelector((state) => state.subjects);
-
-    useEffect(() => {
-        dispatch(subscribeToSubjects());
-    }, [dispatch]);
 
 // ===============================================================================
 

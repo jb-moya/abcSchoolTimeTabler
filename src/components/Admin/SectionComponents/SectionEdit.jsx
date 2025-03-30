@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-
 import { toast } from 'sonner';
 
 import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
@@ -13,17 +11,17 @@ import ViewRooms from '../RoomsAndBuildings/ViewRooms';
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
 import AdditionalScheduleForSection from './AdditionalScheduleForSection';
 
-import { subscribeToSections } from '@features/slice/section_slice';
-import { subscribeToPrograms } from '@features/slice/program_slice';
-import { subscribeToSubjects } from '@features/slice/subject_slice';
-import { subscribeToTeachers } from '@features/slice/teacher_slice';
-// import { subscribeToBuildings } from '@features/slice/building_slice';
-
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 import { editDocument } from '../../../hooks/CRUD/editDocument';
 
 
 const SectionEdit = ({
+    // STORES
+    sections,
+    programs,
+    subjects,
+    teachers,
+    buildings,
+    // STORES
     section,
     errorMessage,
     setErrorMessage,
@@ -32,53 +30,6 @@ const SectionEdit = ({
     numOfSchoolDays,
     breakTimeDuration,
 }) => {
-
-    const dispatch = useDispatch();
-
-// =========================================================================================================
-
-    // const { documents: sections, loading1, error1 } = fetchDocuments('sections');
-    const { data: sections, loading1, error1 } = useSelector((state) => state.sections);
-
-    // const { documents: programs, loading2, error2 } = fetchDocuments('programs');
-    const { data: programs, loading2, error2 } = useSelector((state) => state.programs);
-
-    // const { documents: subjects, loading3, error3 } = fetchDocuments('subjects');
-    const { data: subjects, loading3, error3 } = useSelector((state) => state.subjects);
-
-    // const { documents: teachers, loading4, error4 } = fetchDocuments('teachers'); 
-    const { data: teachers, loading4, error4 } = useSelector((state) => state.teachers);
-
-    const { documents: stringfy_buildings, loading5, error5 } = fetchDocuments('buildings');
-    // console.log('stringfy_buildings: ', stringfy_buildings);
-
-    useEffect(() => {
-        dispatch(subscribeToSections());
-        dispatch(subscribeToPrograms());
-        dispatch(subscribeToSubjects());
-        dispatch(subscribeToTeachers());
-        // dispatch(subscribeToBuildings());
-    }, [dispatch]);
-
-// ========================================================================================================
-
-
-    useEffect(() => {
-        try {
-            const converted_buildings = Object.values(stringfy_buildings).reduce((acc, { custom_id, data, id }) => {
-                const parsedData = JSON.parse(data);
-                acc[custom_id] = { ...parsedData, id, custom_id }; // Include id and custom_id inside data
-                return acc;
-            }, {});
-            console.log('converted_buildings: ', converted_buildings);
-
-            setBuildings(converted_buildings);
-        } catch (error) {
-            console.error('Failed to parse buildings JSON:', error);
-        }
-    }, [stringfy_buildings]);
-
-    const [buildings, setBuildings] = useState({});
 
 // ===========================================================================================================
 
@@ -198,28 +149,10 @@ const SectionEdit = ({
             editSectionValue.trim().toLowerCase() === currentSection.trim().toLowerCase() &&
             editSectionAdviser === currentSectionAdviser
         ) {
+
+            console.log('check_1!');
+
             try {
-                // dispatch(
-                //     reduxFunction({
-                //         sectionId,
-                //         updatedSection: {
-                //             id: sectionId,
-                //             teacher: editSectionAdviser,
-                //             program: editSectionProg,
-                //             section: editSectionValue,
-                //             subjects: editSectionSubjects,
-                //             fixedDays: editSectionFixedDays,
-                //             fixedPositions: editSectionFixedPositions,
-                //             year: editSectionYear,
-                //             shift: editSectionShift,
-                //             startTime: getTimeSlotIndex(editSectionStartTime),
-                //             endTime: editSectionEndTime,
-                //             modality: editSectionClassModality,
-                //             additionalScheds: editAdditionalScheds,
-                //             roomDetails: editRoomDetails,
-                //         },
-                //     })
-                // );
 
                 const entryData = {
                     teacher: editSectionAdviser,
@@ -238,6 +171,7 @@ const SectionEdit = ({
                 };
 
                 editDocument('sections', sectionId, entryData);
+
             } catch (error) {
                 console.log(error);
             } finally {
@@ -252,6 +186,7 @@ const SectionEdit = ({
                 resetStates();
                 closeModal();
             }
+
         } else {
             const duplicateSection = Object.values(sections).find(
                 (section) =>
@@ -263,10 +198,6 @@ const SectionEdit = ({
             const duplicateAdviser = Object.values(sections).find(
                 (section) => section.teacher === editSectionAdviser && section.id !== sectionId
             );
-
-            console.log('editSectionEndTime: ', editSectionEndTime);
-
-            // console.log('duplicateAdviser: ', duplicateAdviser);
 
             if (duplicateSection) {
                 toast.error('Section name already taken.', {
@@ -291,6 +222,8 @@ const SectionEdit = ({
                     };
 
                     if (prevAdviser !== editSectionAdviser) {
+                        console.log('prevAdviser: ', prevAdviser);
+
                         const prevSectionAdviser = structuredClone(teachers[prevAdviser]);
                         const prevAdviserID = teachers[prevAdviser].id;
 
@@ -300,15 +233,8 @@ const SectionEdit = ({
                             );
                         }
 
-                        // dispatch(
-                        //     editTeacher({
-                        //         teacherId: prevAdviser,
-                        //         updatedTeacher: prevSectionAdviser,
-                        //     })
-                        // );
-
                         editDocument('teachers', prevAdviserID, {
-                            additionalTeacherScheds: teacher.additionalTeacherScheds,
+                            additionalTeacherScheds: prevSectionAdviser.additionalTeacherScheds,
                         });
                     }
 
@@ -322,28 +248,6 @@ const SectionEdit = ({
                     });
 
                     // ===================== ADVISORY LOAD =====================
-
-                    // dispatch(
-                    //     reduxFunction({
-                    //         sectionId,
-                    //         updatedSection: {
-                    //             id: sectionId,
-                    //             teacher: editSectionAdviser,
-                    //             program: editSectionProg,
-                    //             section: editSectionValue,
-                    //             subjects: editSectionSubjects,
-                    //             fixedDays: editSectionFixedDays,
-                    //             fixedPositions: editSectionFixedPositions,
-                    //             year: editSectionYear,
-                    //             shift: editSectionShift,
-                    //             startTime: getTimeSlotIndex(editSectionStartTime),
-                    //             endTime: editSectionEndTime,
-                    //             modality: editSectionClassModality,
-                    //             additionalScheds: editAdditionalScheds,
-                    //             roomDetails: editRoomDetails,
-                    //         },
-                    //     })
-                    // );
 
                     const entryData = {
                         teacher: editSectionAdviser,
@@ -542,7 +446,7 @@ const SectionEdit = ({
                                         Assign an adviser
                                     </option>
                                     {Object.keys(teachers).map((key) => (
-                                        <option key={teachers[key].id} value={teachers[key].id}>
+                                        <option key={teachers[key].id} value={teachers[key].custom_id}>
                                             {teachers[key].teacher}
                                         </option>
                                     ))}
@@ -725,6 +629,8 @@ const SectionEdit = ({
                                             </div>
 
                                             <ViewRooms
+                                                buildings={buildings}
+                                                sections={sections}
                                                 viewMode={0}
                                                 sectionId={section.id}
                                                 roomDetails={editRoomDetails}
@@ -802,6 +708,7 @@ const SectionEdit = ({
                                         </button>
                                     </div>
                                     <FixedScheduleMaker
+                                        subjectsStore={subjects}
                                         key={editSectionYear}
                                         viewingMode={0}
                                         isForSection={true}
@@ -869,8 +776,7 @@ const SectionEdit = ({
                         </div>
 
                         {/* Additional Schedules */}
-                        {editAdditionalScheds.length > 0 && (
-                            <div className='p-4 rounded-lg shadow-md border'>
+                        <div className='p-4 rounded-lg shadow-md border'>
                                 <div className='text-center font-semibold text-lg'>Additional Schedules</div>
                                 <hr className='my-2'></hr>
 
@@ -924,6 +830,7 @@ const SectionEdit = ({
                                                     )}
                                                 </button>
                                                 <AdditionalScheduleForSection
+                                                    subjects={subjects}
                                                     viewingMode={0}
                                                     sectionID={editSectionId}
                                                     grade={editSectionYear}
@@ -947,6 +854,7 @@ const SectionEdit = ({
                                                     <RiEdit2Fill size={15} />
                                                 </button>
                                                 <AdditionalScheduleForSection
+                                                    subjects={subjects}
                                                     viewingMode={0}
                                                     sectionID={editSectionId}
                                                     grade={editSectionYear}
@@ -960,8 +868,7 @@ const SectionEdit = ({
                                         </div>
                                     ))}
                                 </div>
-                            </div>
-                        )}
+                        </div>
 
                         {errorMessage && <p className='text-red-500 text-sm my-4 font-medium select-none '>{errorMessage}</p>}
 

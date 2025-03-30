@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { DndContext } from '@dnd-kit/core';
 import { produce } from 'immer';
 
@@ -8,8 +7,6 @@ import DroppableSchedCell from './droppableSchedCell';
 import { spawnColors } from './bgColors';
 import calculateTotalClass from '../../../utils/calculateTotalClass';
 import isEqual from 'lodash.isequal';
-
-import { subscribeToSubjects } from '@features/slice/subject_slice';
 
 const hexToRgba = (hex, alpha) => {
     const [r, g, b] = hex
@@ -66,6 +63,10 @@ const getSubjectsPerPosition = (subs, subjectsStore, numOfSchoolDays, additional
 };
 
 const FixedScheduleMaker = ({
+    // STORES
+    subjectsStore,
+    // STORES
+
     viewingMode = 0,
     pvs = 0,
     program = 0,
@@ -80,17 +81,6 @@ const FixedScheduleMaker = ({
     setFixedPositions = () => {},
     numOfSchoolDays = 0,
 }) => {
-
-    const dispatch = useDispatch();
-
-// ==============================================================================
-
-    // const { documents: subjectsStore, loading1, error1 } = fetchDocuments('subjects');
-    const { data: subjectsStore, loading1, error1 } = useSelector((state) => state.subjects);
-
-    useEffect(() => {
-        dispatch(subscribeToSubjects());
-    }, [dispatch]);
 
 // ==============================================================================
 
@@ -448,6 +438,7 @@ const FixedScheduleMaker = ({
                                             
                                             <ContainerSpawn
                                                 key={`spawn-g${grade}-s${subject}`}
+                                                subjects={subjectsStore}
                                                 editMode={editMode}
                                                 subjectID={subject}
                                                 position={0}
@@ -500,6 +491,7 @@ const FixedScheduleMaker = ({
                                             }).map((_, index) => (
                                                 <DroppableSchedCell
                                                     key={`drop-g${grade}-d${index}-p${subIndex}`}
+                                                    subjects={subjectsStore}
                                                     editMode={editMode}
                                                     subjectID={-1}
                                                     day={index + 1}

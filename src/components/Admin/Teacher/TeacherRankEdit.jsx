@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import AdditionalScheduleForTeacherRank from './AdditionalScheduleForTeacherRank';
 
-import { subscribeToRanks } from '@features/slice/rank_slice';
-import { subscribeToTeachers } from '@features/slice/teacher_slice';
-
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 import { editDocument } from '../../../hooks/CRUD/editDocument';
 
 import { toast } from "sonner";
 
 const TeacherRankEdit = ({
+    // STORES
+    ranks,
+    teachers,
+    // STORES
     rank,
     errorMessage,
     setErrorMessage,
@@ -20,21 +19,6 @@ const TeacherRankEdit = ({
     setErrorField,
     numOfSchoolDays,
 }) => {
-
-    const dispatch = useDispatch();
-
-// ==============================================================================
-
-    // const { documents: ranks, loading1, error1 } = fetchDocuments('ranks');
-    const { data: ranks, loading1, error1 } = useSelector((state) => state.ranks);
-
-    // const { documents: teachers, loading2, error2 } = fetchDocuments('teachers');
-    const { data: teachers, loading2, error2 } = useSelector((state) => state.teachers);
-
-    useEffect(() => {
-        dispatch(subscribeToRanks());
-        dispatch(subscribeToTeachers());
-    }, [dispatch]);
     
 // ==============================================================================
 
@@ -62,7 +46,7 @@ const TeacherRankEdit = ({
 		Object.entries(teachers).forEach(([teacherID, teacher]) => {
 			const newTeacher = JSON.parse(JSON.stringify(teacher));
 
-			if (newTeacher.rank !== editRankId) return;
+			if (newTeacher.rank !== editRankCustomId) return;
 
 			const updatedSchedNames = new Set(editAdditionalRankScheds.map((sched) => sched.name));
 
@@ -98,20 +82,16 @@ const TeacherRankEdit = ({
 				return updatedSched;
 			});
 
+            const updatedEntry = {
+                custom_id: newTeacher.custom_id,
+                teacher: newTeacher.teacher,
+                rank: newTeacher.rank,
+                subjects: newTeacher.subjects,
+                yearLevels: newTeacher.yearLevels,
+                additionalTeacherScheds: newTeacher.additionalTeacherScheds,
+            }
 
-			// dispatch(
-			// 	editTeacher({
-			// 		teacherId: newTeacher.id,
-			// 		updatedTeacher: {
-			// 			teacher: newTeacher.teacher,
-			// 			department: newTeacher.department,
-			// 			rank: newTeacher.rank,
-			// 			subjects: newTeacher.subjects,
-			// 			yearLevels: newTeacher.yearLevels,
-			// 			additionalTeacherScheds: newTeacher.additionalTeacherScheds,
-			// 		},
-			// 	})
-			// );
+            editDocument('teachers', newTeacher.id, updatedEntry);
 			
 		})
 	};
@@ -137,9 +117,9 @@ const TeacherRankEdit = ({
 						additionalRankScheds: editAdditionalRankScheds,
                 });
 
-                // if (value) {
-                //     updateAllTeacherAdditionalSchedules();
-                // }
+                if (value) {
+                    updateAllTeacherAdditionalSchedules();
+                }
 
             } catch {
                 toast.error('Something went wrong. Please try again.');
@@ -156,16 +136,6 @@ const TeacherRankEdit = ({
                 resetStates();
                 closeModal();
             }
-
-			// dispatch(
-			// 	reduxFunction({
-			// 		rankId: editRankId,
-			// 		updatedRank: {
-			// 			rank: editRankValue,
-			// 			additionalRankScheds: editAdditionalRankScheds,
-			// 		},
-			// 	})
-			// );
 	
 		} else {
 			const duplicateRank = Object.values(ranks).find((rank) => rank.rank.trim().toLowerCase() === editRankValue.trim().toLowerCase());
@@ -183,9 +153,9 @@ const TeacherRankEdit = ({
                             additionalRankScheds: editAdditionalRankScheds,
                     });
         
-                    // if (value) {
-                    //     updateAllTeacherAdditionalSchedules();
-                    // }
+                    if (value) {
+                        updateAllTeacherAdditionalSchedules();
+                    }
     
                 } catch {
                     toast.error('Something went wrong. Please try again.');
@@ -202,16 +172,6 @@ const TeacherRankEdit = ({
                     resetStates();
                     closeModal();
                 }
-
-				// dispatch(
-				// 	reduxFunction({
-				// 		rankId: editRankId,
-				// 		updatedRank: {
-				// 			rank: editRankValue,
-				// 			additionalRankScheds: editAdditionalRankScheds,
-				// 		},
-				// 	})
-				// );
 
 			}
 		}
@@ -257,7 +217,7 @@ const TeacherRankEdit = ({
 		if (modalCheckbox) {
 			modalCheckbox.checked = false; // Uncheck the modal toggle
 		}
-		// handleResetDepartmentEditClick();
+		resetStates();
 	};
 
 	return (

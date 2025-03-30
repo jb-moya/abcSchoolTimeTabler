@@ -1,34 +1,22 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 
 import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
 
-import { subscribeToRanks } from '@features/slice/rank_slice';
-
 import AdditionalScheduleForTeacherRank from './AdditionalScheduleForTeacherRank';
 import AddTeacherRankContainer from './TeacherRankAdd';
 import DeleteData from '../DeleteData';
 import TeacherRankEdit from './TeacherRankEdit';
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
-
 const TeacherRankListContainer = ({ 
+    // STORES
+    ranks,
+	teachers,
+    // STORES
     editable = false 
 }) => {
-
-    const dispatch = useDispatch();
-
-// ===================================================================================================
-
-    // const { documents: ranks, loading1, error1 } = fetchDocuments('ranks');
-    const { data: ranks, loading1, error1 } = useSelector((state) => state.ranks);
-
-    useEffect(() => {
-        dispatch(subscribeToRanks());
-    }, [dispatch]);
 
 // ===================================================================================================
 
@@ -311,6 +299,7 @@ const TeacherRankListContainer = ({
                             <dialog id='add_rank_modal' className='modal modal-bottom sm:modal-middle'>
                                 <div className='modal-box'>
                                     <AddTeacherRankContainer
+                                        ranks={ranks}
                                         close={() => document.getElementById('add_rank_modal').close()}
                                         errorMessage={errorMessage}
                                         setErrorMessage={setErrorMessage}
@@ -433,6 +422,8 @@ const TeacherRankListContainer = ({
                                                 <>
                                                     <div className='flex'>
                                                         <TeacherRankEdit
+                                                            ranks={ranks}
+                                                            teachers={teachers}
                                                             rank={rank}
                                                             errorMessage={errorMessage}
                                                             setErrorMessage={setErrorMessage}

@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback} from 'react';
-import { useSelector, useDispatch } from 'react-redux';
 import debounce from 'debounce';
 
 import { IoAdd, IoSearch } from 'react-icons/io5';
@@ -11,27 +10,11 @@ import AddDepartmentContainer from './DepartmentAdd';
 import DeleteData from '../DeleteData';
 import DepartmentEdit from './DepartmentEdit';
 
-import { subscribeToDepartments } from '@features/slice/department_slice';
-import { subscribeToTeachers } from '@features/slice/teacher_slice';
-
 const DepartmentListContainer = ({ 
+	departments,
+	teachers,
 	editable = false 
 }) => {
-
-	const dispatch = useDispatch();	
-
-// ====================================================================
-
-	// const { documents: departments, loading1, error1 } = fetchDocuments('departments');
-	const { data: departments, loading1, error1 } = useSelector((state) => state.departments);
-
-	// const { documents: teachers, loading2, error2 } = fetchDocuments('teachers');
-	const { data: teachers, loading2, error2 } = useSelector((state) => state.teachers);
-
-	useEffect(() => {
-		dispatch(subscribeToDepartments());
-		dispatch(subscribeToTeachers());
-	}, [dispatch]);
 
 // ====================================================================
 
@@ -157,8 +140,8 @@ const DepartmentListContainer = ({
 						<dialog id="add_department_modal" className="modal modal-bottom sm:modal-middle">
 							<div className="modal-box">
 								<AddDepartmentContainer
+									departments={departments}
 									close={() => document.getElementById('add_department_modal').close()}
-									// reduxFunction={addDepartment}
 									errorMessage={errorMessage}
 									setErrorMessage={setErrorMessage}
 									errorField={errorField}
@@ -221,6 +204,8 @@ const DepartmentListContainer = ({
 											<div className="flex">
 												<DepartmentEdit
 													className="btn btn-xs btn-ghost text-blue-500"
+													departments={departments}
+													teachers={teachers}
 													department={department}  // Pass the entire department object
 													errorMessage={errorMessage}
 													setErrorMessage={setErrorMessage}

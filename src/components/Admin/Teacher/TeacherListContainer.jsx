@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 
 import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
@@ -11,37 +10,13 @@ import AddTeacherContainer from './TeacherAdd';
 import DeleteData from '../DeleteData';
 import TeacherEdit from './TeacherEdit';
 
-import { subscribeToTeachers } from '@features/slice/teacher_slice';
-import { subscribeToSubjects } from '@features/slice/subject_slice';
-import { subscribeToRanks } from '@features/slice/rank_slice';
-import { subscribeToDepartments } from '@features/slice/department_slice';
-
 const TeacherListContainer = ({ 
+    teachers, 
+    ranks, 
+    departments, 
+    subjects,
     editable = false 
 }) => {
-
-    const dispatch = useDispatch();
-
-// ===================================================================================================
-
-    // const { documents: teachers, loading1, error1 } = fetchDocuments('teachers');
-    const { data: teachers, loading1, error1 } = useSelector((state) => state.teachers);
-
-    // const { documents: subjects, loading2, error2 } = fetchDocuments('subjects');
-    const { data: subjects, loading2, error2 } = useSelector((state) => state.subjects);
-
-    // const { documents: ranks, loading3, error3 } = fetchDocuments('ranks');
-    const { data: ranks, loading3, error3 } = useSelector((state) => state.ranks);
-
-    // const { documents: departments, loading4, error4 } = fetchDocuments('departments');
-    const { data: departments, loading4, error4 } = useSelector((state) => state.departments);
-
-    useEffect(() => {
-        dispatch(subscribeToTeachers());
-        dispatch(subscribeToSubjects());
-        dispatch(subscribeToRanks());
-        dispatch(subscribeToDepartments());
-    }, [dispatch]);
 
 // ===================================================================================================
 
@@ -177,6 +152,10 @@ const TeacherListContainer = ({
                             <dialog id='add_teacher_modal' className='modal modal-bottom sm:modal-middle'>
                                 <div className='modal-box' style={{ width: '40%', maxWidth: 'none' }}>
                                     <AddTeacherContainer
+                                        teachers={teachers}
+                                        ranks={ranks}
+                                        departments={departments}
+                                        subjects={subjects}
                                         close={() => document.getElementById('add_teacher_modal').close()}
                                         errorMessage={errorMessage}
                                         setErrorMessage={setErrorMessage}
@@ -336,6 +315,7 @@ const TeacherListContainer = ({
                                                                 )}
                                                             </button>
                                                             <AdditionalScheduleForTeacher
+                                                                subjects={subjects}
                                                                 viewingMode={1}
                                                                 teacherID={teacher.id}
                                                                 arrayIndex={index}
@@ -351,6 +331,10 @@ const TeacherListContainer = ({
                                             <td className='w-28'>
                                                 <div className='flex'>
                                                     <TeacherEdit
+                                                        teachers={teachers}
+                                                        subjects={subjects}
+                                                        ranks={ranks}
+                                                        departments={departments}
                                                         teacher={teacher}
                                                         errorMessage={errorMessage}
                                                         setErrorMessage={setErrorMessage}

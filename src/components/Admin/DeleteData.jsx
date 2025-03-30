@@ -1,16 +1,9 @@
 import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 
 import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 import {RiDeleteBin7Line } from 'react-icons/ri';
 
-import { subscribeToSubjects } from '@features/slice/subject_slice';
-import { subscribeToPrograms } from '@features/slice/program_slice';
-import { subscribeToSections } from '@features/slice/section_slice';
-import { subscribeToRanks } from '@features/slice/rank_slice';
-import { subscribeToTeachers } from '@features/slice/teacher_slice';
-import { subscribeToDepartments } from '@features/slice/department_slice';
-
+import { fetchDocuments } from '../../hooks/CRUD/retrieveDocuments';
 import { deleteDocument } from '../../hooks/CRUD/deleteDocument';
 
 import { toast } from "sonner";
@@ -21,32 +14,14 @@ const DeleteData = ({
     callback 
 }) => {
 
-    const dispatch = useDispatch();
-
 // ===============================================================================================
 
-    // const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
-    // const { documents: programs, loading2, error2 } = fetchDocuments('programs');
-    // const { documents: sections, loading3, error3 } = fetchDocuments('sections');   
-    // const { documents: ranks, loading4, error4 } = fetchDocuments('ranks');
-    // const { documents: teachers, loading5, error5 } = fetchDocuments('teachers');
-    // const { documents: departments, loading6, error6 } = fetchDocuments('departments');
-
-    const { data: subjects, loading1, error1 } = useSelector((state) => state.subjects);
-    const { data: programs, loading2, error2 } = useSelector((state) => state.programs);
-    const { data: sections, loading3, error3 } = useSelector((state) => state.sections);   
-    const { data: ranks, loading4, error4 } = useSelector((state) => state.ranks);
-    const { data: teachers, loading5, error5 } = useSelector((state) => state.teachers);    
-    const { data: departments, loading6, error6 } = useSelector((state) => state.departments);
-
-    useEffect(() => {
-        dispatch(subscribeToSubjects());
-        dispatch(subscribeToPrograms());
-        dispatch(subscribeToSections());
-        dispatch(subscribeToRanks());
-        dispatch(subscribeToTeachers());
-        dispatch(subscribeToDepartments());
-    }, [dispatch]);
+    const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
+    const { documents: programs, loading2, error2 } = fetchDocuments('programs');
+    const { documents: sections, loading3, error3 } = fetchDocuments('sections');   
+    const { documents: ranks, loading4, error4 } = fetchDocuments('ranks');
+    const { documents: teachers, loading5, error5 } = fetchDocuments('teachers');
+    const { documents: departments, loading6, error6 } = fetchDocuments('departments');
 
 // ===============================================================================================
 

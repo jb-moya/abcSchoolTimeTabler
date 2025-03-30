@@ -1,45 +1,47 @@
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useState, useEffect } from 'react';
-import packInt16ToInt32 from '../../../utils/packInt16ToInt32';
-import { unpackInt32ToInt16 } from '../../../utils/packInt16ToInt32';
-import packInt8ToInt32 from '../../../utils/packInt8ToInt32';
-import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { wrap } from 'comlink';
-import WasmWorker from '@src/wasm.worker?worker';
-import Configuration from '@components/Admin/Configuration';
 import clsx from 'clsx';
 import * as XLSX from 'xlsx';
-import GeneratedTimetable from '@components/Admin/TimeTable';
-// import ForTest from '@components/Admin/ForTest';
-import { useNavigate } from 'react-router-dom';
 
-import validateTimetableVariables from '@validation/validateTimetableVariables';
 import { toast } from 'sonner';
-import ViolationList from '@components/Admin/ViolationList';
-import SubjectListContainer from '../../../components/SubjectComponents/SubjectListContainer';
-import ProgramListContainer from '../../../components/Admin/ProgramComponents/ProgramListContainer';
-import TeacherListContainer from '@components/Admin/Teacher/TeacherListContainer';
-import SectionListContainer from '../../../components/Admin/SectionComponents/SectionListContainer';
-import ExportImportDBButtons from '@components/Admin/ExportImportDBButtons';
-
-import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';
-import Breadcrumbs from '@components/Admin/Breadcrumbs';
-import { clearAllEntriesAndResetIDs } from '@src/indexedDB';
 import { enableMapSet } from 'immer';
 
-enableMapSet();
-const getTimetable = wrap(new WasmWorker());
+import WasmWorker from '@src/wasm.worker?worker';
+import { clearAllEntriesAndResetIDs } from '@src/indexedDB';
+
+import Configuration from '@components/Admin/Configuration';
+import ViolationList from '@components/Admin/ViolationList';
+
+import validateTimetableVariables from '@validation/validateTimetableVariables';
+
+import packInt16ToInt32 from '@utils/packInt16ToInt32';
+import { unpackInt32ToInt16 } from '@utils/packInt16ToInt32';
+import packInt8ToInt32 from '@utils/packInt8ToInt32';
+import { packThreeSignedIntsToInt32 } from '@utils/packThreeSignedIntsToInt32';
+import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';
+import calculateTotalClass from '@utils/calculateTotalClass';
+import deepEqual from '@utils/deepEqual';
+import gcdOfArray from '@utils/getGCD';
+
+import SubjectListContainer from '@components/SubjectComponents/SubjectListContainer';
+import ProgramListContainer from '@components/Admin/ProgramComponents/ProgramListContainer';
+import TeacherListContainer from '@components/Admin/Teacher/TeacherListContainer';
+import SectionListContainer from '@components/Admin/SectionComponents/SectionListContainer';
+import ExportImportDBButtons from '@components/Admin/ExportImportDBButtons';
+import NotificationHandler from '@components/Admin/NotificationHandler';
+import Breadcrumbs from '@components/Admin/Breadcrumbs';
+
+import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 
 import { fetchSections, editSection } from '@features/sectionSlice';
 import { fetchPrograms, editProgram } from '@features/programSlice';
 import { fetchSubjects } from '@features/subjectSlice';
 import { fetchBuildings } from '@features/buildingSlice';
-import { original } from 'immer';
-import calculateTotalClass from '../../../utils/calculateTotalClass';
-import deepEqual from '../../../utils/deepEqual';
-import gcdOfArray from '../../../utils/getGCD';
-import { packThreeSignedIntsToInt32 } from '../../../utils/packThreeSignedIntsToInt32';
-import NotificationHandler from '../../../components/Admin/NotificationHandler';
+
+enableMapSet();
+const getTimetable = wrap(new WasmWorker());
 
 function addObjectToMap(map, key, newObject, IDIncrementer, propertyIDName) {
     if (!map.has(key)) {
@@ -90,27 +92,66 @@ function getVacantSlots(totalTimeslot, numOfSchoolDays, fixedPositions, fixedDay
     return vacant;
 }
 
-function Timetable() {
+
+function Timetable() 
+{
+
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const [morningStartTime, setMorningStartTime] = useState(() => {
-        return localStorage.getItem('morningStartTime') || 'Cannot find';
-    });
+// ====================================================================================================================================
 
     const links = [
         { name: 'Home', href: '/' },
         // { name: 'Modify Subjects', href: '/modify-subjects' },
     ];
 
-    const { subjects: subjectsStore, status: subjectStatus } = useSelector((state) => state.subject);
-    const { buildings: buildingsStore, status: buildingStatus } = useSelector((state) => state.building);
-    const { teachers: teachersStore } = useSelector((state) => state.teacher);
-    const { sections: sectionsStore, status: sectionStatus } = useSelector((state) => state.section);
-    const { programs: programsStore, status: programStatus } = useSelector((state) => state.program);
+// ====================================================================================================================================
+
+    /* CONFIGURATIONS */
+
     const { minTeacherLoad: minTeachingLoad, maxTeacherLoad: maxTeachingLoad } = useSelector((state) => state.configuration);
 
-    // ========================================================================
+
+    /* TIMETABLE DATA */
+
+    const [buildingsStore, setBuildings] = useState({});
+
+	const { documents: subjectsStore, loading1, error1 } = fetchDocuments('subjects');
+
+	const { documents: programsStore, loading2, error2 } = fetchDocuments('programs');
+
+    const { documents: ranksStore, loading3, error3 } = fetchDocuments('ranks');
+
+	const { documents: teachersStore, loading4, error4 } = fetchDocuments('teachers');
+
+    const {  documents: departmentsStore, loading5, error5 } = fetchDocuments('departments');
+
+    const { documents: sectionsStore, loading6, error6 } = fetchDocuments('sections');
+
+	const { documents: stringfy_buildings, loading7, error7 } = fetchDocuments('buildings');
+
+    // Convert the stringified buildings object
+	useEffect(() => {
+		try {
+			const converted_buildings = Object.values(stringfy_buildings).reduce((acc, { custom_id, data, id }) => {
+				const parsedData = JSON.parse(data);
+				acc[custom_id] = { ...parsedData, id, custom_id }; // Include id and custom_id inside data
+				return acc;
+			}, {});
+			console.log('converted_buildings: ', converted_buildings);
+
+			setBuildings(converted_buildings);
+		} catch (error) {
+			console.error('Failed to parse buildings JSON:', error);
+		}
+	}, [stringfy_buildings]);
+
+// =====================================================================================================================================
+
+    const [morningStartTime, setMorningStartTime] = useState(() => {
+        return localStorage.getItem('morningStartTime') || 'Cannot find';
+    });
 
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
         return localStorage.getItem('numOfSchoolDays') || 5;
@@ -132,13 +173,16 @@ function Timetable() {
 
     const [prevBreakTimeDuration, setPrevBreakTimeDuration] = useState(breakTimeDuration);
 
-    // ========================================================================
+// =====================================================================================================================================
 
     const [sectionTimetables, setSectionTimetables] = useState({});
+
     const [teacherTimetables, setTeacherTimetables] = useState({});
+
     const [mapVal, setMapVal] = useState(new Map());
 
     const [timetableGenerationStatus, setTimetableGenerationStatus] = useState('idle');
+
     const [violations, setViolations] = useState([]);
 
     // Scope and Limitations
@@ -1991,33 +2035,10 @@ function Timetable() {
         handleBreakTimeDurationChange();
     }, [breakTimeDuration]);
 
-    // ========================================================================
-
-    useEffect(() => {
-        if (sectionStatus === 'idle') {
-            dispatch(fetchSections());
-        }
-    }, [sectionStatus, dispatch]);
-
-    useEffect(() => {
-        if (programStatus === 'idle') {
-            dispatch(fetchPrograms());
-        }
-    }, [programStatus, dispatch]);
-
-    useEffect(() => {
-        if (subjectStatus === 'idle') {
-            dispatch(fetchSubjects());
-        }
-    }, [subjectStatus, dispatch]);
-
-    useEffect(() => {
-        if (buildingStatus === 'idle') {
-            dispatch(fetchBuildings());
-        }
-    }, [buildingStatus, dispatch]);
+// =====================================================================================================================================
 
     console.log('retrigger index');
+
     return (
         <div className='App container mx-auto px-4 py-6'>
             <NotificationHandler timetableCondition={timetableGenerationStatus} />
@@ -2025,6 +2046,13 @@ function Timetable() {
                 <Breadcrumbs title='Timetable' links={links} />
                 <div className='flex items-center gap-2'>
                     <ExportImportDBButtons
+                        programs = { programsStore }
+                        subjects = { subjectsStore }
+                        teachers = { teachersStore }
+                        ranks = { ranksStore }
+                        departments = { departmentsStore }
+                        buildings = { buildingsStore }
+                        sections = { sectionsStore }
                         onClear={handleClearAndRefresh}
                         numOfSchoolDays={numOfSchoolDays}
                         breakTimeDuration={breakTimeDuration}
@@ -2063,41 +2091,70 @@ function Timetable() {
             </div>
 
             {/* Responsive card layout for Subject and Teacher Lists */}
-            {/* <div className="flex flex-col lg:flex-row gap-6">
-    <div className="w-full lg:w-4/12 bg-base-100 p-6 rounded-lg shadow-lg">
-      <h2 className="text-lg font-semibold mb-4">Subjects</h2>
-      <SubjectListContainer />
-      </div>
-      <div className="w-full lg:w-8/12 bg-base-100 p-6 rounded-lg shadow-lg">
-      <h2 className="text-lg font-semibold mb-4">Teachers</h2>
-      <TeacherListContainer />
-    </div>
-  </div> */}
+            {/* 
+                <div className="flex flex-col lg:flex-row gap-6">
+                    <div className="w-full lg:w-4/12 bg-base-100 p-6 rounded-lg shadow-lg">
+                        <h2 className="text-lg font-semibold mb-4">Subjects</h2>
+                        <SubjectListContainer />
+                    </div>
+                    <div className="w-full lg:w-8/12 bg-base-100 p-6 rounded-lg shadow-lg">
+                        <h2 className="text-lg font-semibold mb-4">Teachers</h2>
+                        <TeacherListContainer />
+                    </div>
+                </div> 
+            */}
             <div>
                 <div className='mt-6 bg-base-100 p-6 rounded-lg shadow-lg'>
                     <h2 className='text-lg font-semibold mb-4'>Subjects</h2>
-                    <SubjectListContainer numOfSchoolDays={numOfSchoolDays} breakTimeDuration={breakTimeDuration} />
+                    <SubjectListContainer 
+                        subjects={subjectsStore}
+                        programs={programsStore}
+                        sections={sectionsStore}
+                        numOfSchoolDays={numOfSchoolDays} 
+                        breakTimeDuration={breakTimeDuration} 
+                    />
                 </div>
 
                 <div className='mt-6 bg-base-100 p-6 rounded-lg shadow-lg'>
                     <h2 className='text-lg font-semibold mb-4'>Teachers</h2>
-                    <TeacherListContainer />
+                    <TeacherListContainer 
+                        teachers={teachersStore}
+                        ranks={ranksStore}
+                        departments={departmentsStore}
+                        subjects={subjectsStore} 
+                    />
                 </div>
 
                 {/* Program Lists */}
                 <div className='mt-6 bg-base-100 p-6 rounded-lg shadow-lg'>
                     <h2 className='text-lg font-semibold mb-4'>Programs</h2>
-                    <ProgramListContainer numOfSchoolDays={numOfSchoolDays} breakTimeDuration={breakTimeDuration} />
+                    <ProgramListContainer 
+                        subjects={subjectsStore}
+                        programs={programsStore}
+                        sections={sectionsStore}
+                        numOfSchoolDays={numOfSchoolDays} 
+                        breakTimeDuration={breakTimeDuration} 
+                    />
                 </div>
 
                 {/* Section List with the Generate Timetable Button */}
                 <div className='mt-6'>
                     <div className='bg-base-100 p-6 rounded-lg shadow-lg'>
                         <h2 className='text-lg font-semibold mb-4'>Sections</h2>
-                        <SectionListContainer numOfSchoolDays={numOfSchoolDays} breakTimeDuration={breakTimeDuration} />
-                        <div className='mt-4'>
-                            <ViolationList violations={violations} />
-                        </div>
+                        <SectionListContainer 
+                            subjects={subjectsStore}
+							programs={programsStore}
+							sections={sectionsStore}
+							teachers={teachersStore}
+							buildings={buildingsStore}
+                            numOfSchoolDays={numOfSchoolDays} 
+                            breakTimeDuration={breakTimeDuration} 
+                        />
+                        {/* <div className='mt-4'>
+                            <ViolationList 
+                                violations={violations} 
+                            />
+                        </div> */}
                     </div>
                 </div>
             </div>
@@ -2113,31 +2170,34 @@ function Timetable() {
             )} */}
 
             {/* pag section need Container section + sectionid + teacherid for error */}
-            {/* <GeneratedTimetable
-                sectionTimetables={sectionTimetables}
-                teacherTimetables={teacherTimetables}
-                onUpdateTimetables={setSectionTimetables}
-                errors={{
-                    containerName: 'Rosas',
-                    teacherID: [9],
-                    sectionID: [7],
-                }}
-            /> */}
+            {/* 
+                <GeneratedTimetable
+                    sectionTimetables={sectionTimetables}
+                    teacherTimetables={teacherTimetables}
+                    onUpdateTimetables={setSectionTimetables}
+                    errors={{
+                        containerName: 'Rosas',
+                        teacherID: [9],
+                        sectionID: [7],
+                    }}
+                /> 
+            */}
 
             {/* pag teacher need Container teacher + sectionid + subjectid for error */}
-
-            {/* <GeneratedTimetable
-                sectionTimetables={sectionTimetables}
-                teacherTimetables={teacherTimetables}
-                fieldparam={'teacher'}
-                columnField={['subject', 'section']}
-                onUpdateTimetables={setTeacherTimetables}
-                errors={{
-                    containerName: 'Mark Tagalogon',
-                    subjectID: [6],
-                    sectionID: [7],
-                }}
-            /> */}
+            {/* 
+                <GeneratedTimetable
+                    sectionTimetables={sectionTimetables}
+                    teacherTimetables={teacherTimetables}
+                    fieldparam={'teacher'}
+                    columnField={['subject', 'section']}
+                    onUpdateTimetables={setTeacherTimetables}
+                    errors={{
+                        containerName: 'Mark Tagalogon',
+                        subjectID: [6],
+                        sectionID: [7],
+                    }}
+                /> 
+            */}
 
             {/* <div className="grid grid-cols-1 col-span-full gap-4 sm:grid-cols-2"></div> */}
         </div>
