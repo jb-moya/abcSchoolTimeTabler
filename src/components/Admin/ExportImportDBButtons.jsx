@@ -1,30 +1,29 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+
 import { CiExport, CiImport } from 'react-icons/ci';
 import { createPortal } from 'react-dom';
-import { exportIndexedDB, loadFile, importIndexedDB, DB_NAME } from '@src/indexedDB';
+import { loadFile, } from '@src/indexedDB';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
+import { toast } from 'sonner';
+import { BiUpload } from 'react-icons/bi';
+
 import { addSubject, fetchSubjects } from '@features/subjectSlice';
 import { addSection, fetchSections } from '@features/sectionSlice';
+import { addRank, fetchRanks } from '@features/rankSlice';
 import { addTeacher, fetchTeachers } from '@features/teacherSlice';
 import { addProgram, fetchPrograms } from '@features/programSlice';
 import { addDepartment, fetchDepartments } from '@features/departmentSlice';
 import { addBuilding, fetchBuildings } from '@features/buildingSlice';
 
-import { addRank, fetchRanks } from '@features/rankSlice';
+import { deleteAllCollections } from '../../hooks/CRUD/deleteAllDocuments';
+import { addDocument } from '../../hooks/CRUD/addDocument';
 
 import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
-import { setSubjectStatusIdle } from '@features/subjectSlice';
-import { setSectionStatusIdle } from '@features/sectionSlice';
-import { setTeacherStatusIdle } from '@features/teacherSlice';
-import { setProgramStatusIdle } from '@features/programSlice';
-import { setBuildingStatusIdle } from '@features/buildingSlice';
-import { setDepartmentStatusIdle } from '@features/departmentSlice';
-import { useDispatch, useSelector } from 'react-redux';
 
-import { toast } from 'sonner';
-import { BiUpload } from 'react-icons/bi';
+
 
 const ImportingFullScreenLoader = () => {
     return createPortal(
@@ -40,169 +39,95 @@ function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) => {
+const ExportImportDBButtons = ({ 
+    // STORES
+    programs,
+    subjects,
+    teachers,
+    ranks,
+    departments,
+    buildings,
+    sections,   
+    // STORES
+
+    onClear, 
+    numOfSchoolDays, 
+    breakTimeDuration 
+}) => {
+    
     const dispatch = useDispatch();
 
     const [isImporting, setIsImporting] = useState(false);
+    const [overwrite, setOverwrite] = useState(false);
 
-    // =======================================================================
-
-    const { programs, status: programStatus } = useSelector((state) => state.program);
-
-    const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
-
-    const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
-
-    const { ranks, status: rankStatus } = useSelector((state) => state.rank);
-
-    const { departments, status: departmentStatus } = useSelector((state) => state.department);
-
-    const { buildings, status: buildingStatus } = useSelector((state) => state.building);
-
-    const { sections, status: sectionStatus } = useSelector((state) => state.section);
-
-    // =======================================================================
-
-    useEffect(() => {
-        if (sectionStatus === 'idle') {
-            dispatch(fetchSections());
-        }
-    }, [dispatch, sectionStatus]);
-
-    useEffect(() => {
-        if (programStatus === 'idle') {
-            dispatch(fetchPrograms());
-        }
-    }, [dispatch, programStatus]);
-
-    useEffect(() => {
-        if (subjectStatus === 'idle') {
-            dispatch(fetchSubjects());
-        }
-    }, [dispatch, subjectStatus]);
-
-    useEffect(() => {
-        if (teacherStatus === 'idle') {
-            dispatch(fetchTeachers());
-        }
-    }, [dispatch, teacherStatus]);
-
-    useEffect(() => {
-        if (rankStatus === 'idle') {
-            dispatch(fetchRanks());
-        }
-    }, [dispatch, rankStatus]);
-
-    useEffect(() => {
-        if (departmentStatus === 'idle') {
-            dispatch(fetchDepartments());
-        }
-    }, [dispatch, departmentStatus]);
-
-    useEffect(() => {
-        if (buildingStatus === 'idle') {
-            dispatch(fetchBuildings());
-        }
-    }, [buildingStatus, dispatch]);
-
-    // =======================================================================
+// =============================================================================================================
 
     const exportDB = (format) => {
-        exportIndexedDB(DB_NAME)
-            .then((exportData) => {
-                if (format === 'json') {
-                    const jsonData = JSON.stringify(exportData);
-                    exportToJSON(jsonData, `${DB_NAME}.json`);
-                } else if (format === 'excel') {
-                    exportToExcel(exportData);
-                }
-            })
-            .then(() => {
-                toast.success('DB exported successfully');
-            })
-            .catch((error) => {
-                toast.error('Error exporting DB');
-                console.log(error);
-                // console.error("Export error:", error);
-            });
+        try {
+            if (format === 'excel') {
+                exportToExcel();
+            }
+        } catch (error) {
+            toast.error('Error exporting DB');
+            console.error('Error exporting DB:', error);
+        } finally {
+            toast.success('DB exported successfully');
+        }
+
     };
 
     const importDB = async (format) => {
+
         try {
-            const data = await loadFile(format); // Wait for file to load
-            // console.log('🚀 ~ importDB ~ data:', typeof data);
-            // console.log('🚀 ~ importDB ~ data:', typeof data);
 
-            // const data = {};
-
-            console.log('p o tang ina mo');
+            const data = await loadFile(format); 
 
             setIsImporting(true);
 
             document.getElementById('import-format-modal').close();
 
             try {
-                await onClear();
+                // await onClear();
+                await deleteAllCollections();
                 toast.success('Data cleared successfully');
             } catch (error) {
                 toast.error('Error clearing data');
                 console.error('Error clearing data:', error);
             }
 
-            console.log('FGFFFF');
-            // await sleep(1000);
-
             console.log('🚀 ~ importDB ~ data:', data);
 
             if (!data) {
-                console.error('No file selected FEFJLE:FJLK:EJFLK:EJFKLEJ');
                 throw new Error('No file selected');
             }
 
-            // if (format === 'json') {
-            //     const message = await importIndexedDB(DB_NAME, data); // Wait for IndexedDB import
-            //     console.log(message);
-            // } else
             if (format === 'excel') {
-                await importDBfromExcel(data); // Wait for Excel import
+                await importFromExcel(data); // Wait for Excel import
             } else {
                 throw new Error('Unsupported file format. Please upload a JSON or Excel file.');
             }
 
-            // Reset statuses
-            await Promise.all([
-                dispatch(setSubjectStatusIdle()),
-                dispatch(setTeacherStatusIdle()),
-                dispatch(setProgramStatusIdle()),
-                dispatch(setSectionStatusIdle()),
-                dispatch(setDepartmentStatusIdle()),
-                dispatch(setBuildingStatusIdle()),
-            ]);
-
             // Show success message
             toast.success('DB imported successfully');
+
         } catch (error) {
-            // Handle errors
+
             toast.error('Error importing DB');
             console.error(error);
+
         } finally {
-            // Close the modal
-            console.log('DONE M O T H E R F U C K E R ');
-            console.log('DONE M O T H E R F U C K E R ');
+            
             setIsImporting(false);
             document.getElementById('import-confirmation-modal').close();
+
         }
+        
     };
 
-    const exportToJSON = (data, filename) => {
-        const blob = new Blob([data], { type: 'text/plain;charset=utf-8' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = filename;
-        link.click();
-    };
+    // ********************************************************************************************************
 
-    const exportToExcel = async (exportData) => {
+    const exportToExcel = async () => {
+
         const workbook = new ExcelJS.Workbook();
         const subjWorksheet = workbook.addWorksheet('Subjects');
         const teacherWorksheet = workbook.addWorksheet('Teachers');
@@ -222,7 +147,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
         subjHeaderRow.font = { bold: true };
         subjHeaderRow.alignment = { horizontal: 'center', vertical: 'middle' };
 
-        exportData.subjects.forEach((subject) => {
+        Object.values(subjects).forEach(subject => {
             subjWorksheet.addRow([subject.subject, subject.classDuration, subject.weeklyMinutes]);
         });
 
@@ -244,7 +169,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
             vertical: 'middle',
         };
 
-        exportData.teachers.forEach((teacher) => {
+        Object.values(teachers).forEach(teacher => {
             // Convert teacher.subjects (IDs) to subject names
             const subjectNames = teacher.subjects.map((subjectId) => subjects[subjectId].subject).join(', ');
 
@@ -281,7 +206,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
         rankHeaderRow.font = { bold: true };
         rankHeaderRow.alignment = { horizontal: 'center', vertical: 'middle' };
 
-        exportData.ranks.forEach((rank) => {
+        Object.values(ranks).forEach(rank => {
             rankWorksheet.addRow([rank.rank]);
         });
 
@@ -296,8 +221,8 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
         deptHeaderRow.font = { bold: true };
         deptHeaderRow.alignment = { horizontal: 'center', vertical: 'middle' };
 
-        exportData.departments.forEach((dept) => {
-            deptWorksheet.addRow([dept.name, teachers[dept.head]?.teacher || '']);
+        Object.values(departments).forEach(department => {
+            deptWorksheet.addRow([department.name, teachers[department.head]?.teacher || '']);
         });
 
         deptWorksheet.columns = [
@@ -368,7 +293,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
         programWorksheet.getColumn(12).alignment = { horizontal: 'center' };
         programWorksheet.getColumn(13).alignment = { horizontal: 'center' };
 
-        exportData.programs.forEach((program) => {
+        Object.values(programs).forEach(program => {
             const year7Subjects = program[7].subjects.map((subjectId) => subjects[subjectId].subject).join(', ');
             const year8Subjects = program[8].subjects.map((subjectId) => subjects[subjectId].subject).join(', ');
             const year9Subjects = program[9].subjects.map((subjectId) => subjects[subjectId].subject).join(', ');
@@ -403,7 +328,7 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
             vertical: 'middle',
         };
 
-        exportData.sections.forEach((section) => {
+        Object.values(sections).forEach(section => {
             const sectionAdviser = teachers[section.teacher];
             const sectionProgram = programs[section.program];
 
@@ -440,22 +365,24 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
         // Track the current row
         let currentRow = 2;
 
-        exportData.buildings.forEach((building) => {
+        Object.values(buildings).forEach(building => {
             const buildingName = building.name;
             const startBuildingRow = currentRow; // Track where building starts
 
-            building.rooms.forEach((floorRooms, floorIndex) => {
+            console.log('building.rooms: ', building.rooms);
+
+            Object.values(building.rooms).forEach((floorRooms, floorIndex) => {
                 const floorNumber = `Floor ${floorIndex + 1}`;
                 const startFloorRow = currentRow; // Track where floor starts
-
-                floorRooms.forEach((room) => {
+            
+                Object.values(floorRooms).forEach((room) => {
                     const roomName = room.roomName;
                     bldgWorksheet.addRow([buildingName, floorNumber, roomName]);
                     currentRow++;
                 });
-
+            
                 bldgWorksheet.mergeCells(`B${startFloorRow}:B${currentRow - 1}`);
-
+            
                 const floorCell = bldgWorksheet.getCell(`B${startFloorRow}`);
                 floorCell.alignment = {
                     horizontal: 'center',
@@ -484,9 +411,11 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
             type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         });
         saveAs(blob, 'Timetable_Data.xlsx');
+
     };
 
-    const importDBfromExcel = async (data) => {
+    const importFromExcel = async (data) => {
+        
         function formatTimeWithLeadingZero(time) {
             if (!/^\d{1,2}:\d{2} [AP]M$/.test(time)) {
                 return 'INVALID';
@@ -1251,21 +1180,11 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                 let roomDetailsIssue = false;
 
                 if (
-                    section.sectionname === '' ||
-                    section.sectionname === null ||
-                    section.sectionname === undefined ||
-                    section.program === '' ||
-                    section.program === null ||
-                    section.program === undefined ||
-                    section.adviser === '' ||
-                    section.adviser === null ||
-                    section.adviser === undefined ||
-                    section.year === '' ||
-                    section.year === null ||
-                    section.year === undefined ||
-                    section.room === '' ||
-                    section.room === null ||
-                    section.room === undefined
+                    section.sectionname === '' || section.sectionname === null || section.sectionname === undefined ||
+                    section.program === '' || section.program === null || section.program === undefined ||
+                    section.adviser === '' || section.adviser === null || section.adviser === undefined ||
+                    section.year === '' || section.year === null || section.year === undefined ||
+                    section.room === '' || section.room === null || section.room === undefined
                 ) {
                     unaddedSections.push([0, section]);
                     return;
@@ -1383,58 +1302,50 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                     }
                 }
             });
-
-            // console.log('addedSections', addedSections);
-            // console.log('addedSections_2', addedSections_2);
-            // console.log('unaddedSections', unaddedSections);
+            
         }
 
         // ======================== ADD ALL ENTRIES TO DATABASE ======================== //
 
-        // console.log('teachers', addedTeachers);
-        // console.log('sections', addedSections_2);
-
         try {
             
             // Add all subjects
-            const subjectPromises = addedSubjects.map((subject) => {
-                dispatch(
-                    addSubject({
-                        subject: subject.subject,
-                        classDuration: Number(subject.classduration),
-                        weeklyMinutes: Number(subject.weeklyminutes),
-                    })
-                )
-            });
-    
+            for (const subject of addedSubjects) {
+                await addDocument('subjects', {
+                    subject: subject.subject,
+                    classDuration: Number(subject.classduration),
+                    weeklyMinutes: Number(subject.weeklyminutes),
+                });
+            }
+
             // Add all ranks
-            const rankPromises = addedRanks.map((rank) => {
-                return dispatch(
-                    addRank({
-                        rank: rank.rank,
-                        additionalRankScheds: [],
-                    })
-                );
-            });
+            for (const rank of addedRanks) {
+                await addDocument('ranks', {
+                    rank: rank.rank,
+                    additionalRankScheds: [],
+                });
+            }
             
             // Add all buildings
-            const buildingPromises = addedBuildings.map((building) => {
-                dispatch(
-                    addBuilding({
-                        name: building.name,
-                        floors: Object.values(building.data).length,
-                        rooms: Object.values(building.data),
-                        image: null,
-                        nearbyBuildings: [],
-                    })
-                )
-            });
-    
+            for (const building of addedBuildings) {
+                const buildingData = JSON.stringify({
+                    name: building.name,
+                    floors: Object.values(building.data).length,
+                    rooms: Object.values(building.data),
+                    image: '',
+                    nearbyBuildings: [],
+                }, null, 2);
+
+                await addDocument('buildings', {
+                    data: buildingData,
+                });
+            }
+
             // Add all teachers
-            const teacherPromises = addedTeachers.map((teacherData, i) => {
-                const teacher = JSON.parse(JSON.stringify(teacherData));
-    
-                // Get department ID
+            for (const teacher of addedTeachers) {
+
+                console.log('teacher: ', teacher);
+
                 const departmentIndex = addedDepartments.findIndex(
                     (d) => d.department.trim().toLowerCase() === teacher.department.trim().toLowerCase()
                 );
@@ -1442,10 +1353,8 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                 if (departmentIndex === -1) {
                     // Skip this teacher if department is not found
                     console.warn(`Skipping teacher at index ${i} because department was not found.`);
-                    return null; // Return null for skipped teachers
+                    continue;
                 }
-    
-                teacher.department = departmentIndex + 1;
     
                 // Check if teacher is an adviser of a section
                 const isAdviser = addedSections.some(
@@ -1464,13 +1373,19 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                     });
                 }
 
-                console.log('Processing teacher:', teacher);
-    
-                return dispatch(addTeacher(teacher));
-            }).filter(Boolean);
+                await addDocument('teachers', {
+                    teacher: teacher.teacher,
+                    rank: teacher.rank,
+                    department: departmentIndex + 1,
+                    subjects: teacher.subjects,
+                    yearLevels: teacher.yearLevels,
+                    additionalTeacherScheds: teacher.additionalTeacherScheds,
+                });
+
+            }
     
             // Add all departments
-            const departmentPromises = addedDepartments.map((department) => {
+            for (const department of addedDepartments) {    
                 const headIndex =
                     department.departmenthead && department.departmenthead.trim() !== ''
                         ? addedTeachers.findIndex(
@@ -1479,67 +1394,94 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                                   t.department.trim().toLowerCase() === department.department.trim().toLowerCase()
                           )
                         : '';
-    
-                return dispatch(
-                    addDepartment({
-                        name: department.department,
-                        head: headIndex === '' ? '' : headIndex + 1,
-                    })
-                );
-            });
+
+                await addDocument('departments', {
+                    name: department.department,
+                    head: headIndex === '' ? '' : headIndex + 1,
+                });
+            }
     
             // Add all programs
-            const programPromises = addedPrograms.map((program) =>
-                dispatch(addProgram(program))
-            );
-    
+            for (const program of addedPrograms) {
+
+                await addDocument('programs', {
+                    program: program.program,
+                    7: {
+                        subjects: program[7].subjects,
+                        fixedDays: program[7].fixedDays,
+                        fixedPositions: program[7].fixedPositions,
+                        shift: program[7].shift,
+                        startTime: program[7].startTime,
+                        endTime: program[7].endTime,
+                        additionalScheds: program[7].additionalScheds,
+                        modality: program[7].modality,
+                    },
+                    8: {
+                        subjects: program[8].subjects,
+                        fixedDays: program[8].fixedDays,
+                        fixedPositions: program[8].fixedPositions,
+                        shift: program[8].shift,
+                        startTime: program[8].startTime,
+                        endTime: program[8].endTime,
+                        additionalScheds: program[8].additionalScheds,
+                        modality: program[8].modality,
+                    },
+                    9: {
+                        subjects: program[9].subjects,
+                        fixedDays: program[9].fixedDays,
+                        fixedPositions: program[9].fixedPositions,
+                        shift: program[9].shift,
+                        startTime: program[9].startTime,
+                        endTime: program[9].endTime,
+                        additionalScheds: program[9].additionalScheds,
+                        modality: program[9].modality,
+                    },
+                    10: {
+                        subjects: program[10].subjects,
+                        fixedDays: program[10].fixedDays,
+                        fixedPositions: program[10].fixedPositions,
+                        shift: program[10].shift,
+                        startTime: program[10].startTime,
+                        endTime: program[10].endTime,
+                        additionalScheds: program[10].additionalScheds,
+                        modality: program[10].modality,
+                    },
+                });
+            }
+
             // Add all sections
-            const sectionPromises = addedSections_2.map((section, i) => {
-                const section_2 = addedSections[i]; // Original section data
-    
-                const advID = addedTeachers.findIndex(
-                    (t) => t.teacher.trim().toLowerCase() === section_2.adviser.trim().toLowerCase()
-                );
-    
-                section.teacher = advID + 1;
-    
-                return dispatch(addSection(section));
-            });
-    
-            // Wait for all promises to resolve
-            await Promise.all([
-                ...subjectPromises,
-                ...rankPromises,
-                ...buildingPromises,
-                ...teacherPromises,
-                ...departmentPromises,
-                ...programPromises,
-                ...sectionPromises,
-            ]);
+            for (const section of addedSections_2) {
+                console.log('section', section);
+
+                await addDocument('sections', {
+                    section: section.section,
+                    teacher: section.teacher,
+                    program: section.program,
+                    year: section.year,
+                    subjects: section.subjects,
+                    fixedDays:section.fixedDays,
+                    fixedPositions: section.fixedPositions,
+                    modality: section.modality,
+                    shift: section.shift,
+                    startTime: section.startTime,
+                    endTime: section.endTime,
+                    additionalScheds: section.additionalScheds,
+                    roomDetails: section.roomDetails,
+                });
+            }
     
             console.log('All data has been added successfully');
+
         } catch (error) {
+
             console.error('Error importing data:', error);
             throw error;
+
         }
 
-        console.log('Added sections:', addedSections);
-        console.log('Added subjects:', addedSubjects);
-        console.log('Added teachers:', addedTeachers);
-        console.log('Added programs:', addedPrograms);
-        console.log('Added ranks:', addedRanks);
-        console.log('Added buildings:', addedBuildings);
-        console.log('Added departments:', addedDepartments);
-
-        console.log('Unadded subjects: ', unaddedSubjects);
-        console.log('Unadded teachers: ', unaddedTeachers);
-        console.log('Unadded programs: ', unaddedPrograms);
-        console.log('Unadded sections: ', unaddedSections);
-        console.log('Unadded ranks: ', unaddedRanks);
-        console.log('Unadded departments: ', unaddedDepartments);
     };
 
-    // =======================================================================
+// =============================================================================================================
 
     return (
         <div className='flex gap-2'>
@@ -1567,19 +1509,6 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                     <h3 className='font-bold text-lg'>Choose Export Format</h3>
                     <p className='py-4'>Select the format in which you want to export the database:</p>
                     <div className='modal-action'>
-                        {/* Option to Export as JSON */}
-                        {/* <button
-                            className="btn btn-primary"
-                            onClick={() => {
-                                exportDB('json');
-                                document
-                                    .getElementById('export-format-modal')
-                                    .close();
-                                // exportDB();
-                            }}
-                        >
-                            Export as JSON
-                        </button> */}
 
                         {/* Option to Export as Excel */}
                         <button
@@ -1616,7 +1545,9 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                         </button>
                         <form method='dialog'>
                             <div className='flex gap-2'>
-                                <button className='btn btn-error'>Cancel</button>
+                                <button className='btn btn-error'>
+                                    Cancel
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -1628,18 +1559,6 @@ const ExportImportDBButtons = ({ onClear, numOfSchoolDays, breakTimeDuration }) 
                     <h3 className='font-bold text-lg'>Choose Import Format</h3>
                     <p className='py-4'>Select the format in which you want to import your data:</p>
                     <div className='modal-action'>
-                        {/* Option to Import a JSON */}
-                        {/* <button
-                            className="btn btn-primary"
-                            onClick={() => {
-                                importDB('json');
-                                document
-                                    .getElementById('import-format-modal')
-                                    .close();
-                            }}
-                        >
-                            Import JSON
-                        </button> */}
 
                         {/* Option to Import an Excel */}
                         <button
