@@ -21,9 +21,16 @@ const ScheduleModal = ({ outerKey, groupedByTime, buildingInfo, role, department
         doc.setFontSize(16);
         doc.text(`${outerKey} - Schedule`, 14, 15);
     
-        doc.setFontSize(12);
-        doc.text(`Building: ${buildingInfo}`, 14, 25);
-        doc.text(`Adviser: ${AdviserName}`, 14, 35);
+        if (role === "Teachers") {
+            doc.setFontSize(12);
+            doc.text(`Department: ${department}`, 14, 25);
+            doc.text(`Rank: ${rank}`, 14, 35);
+        } else {
+            doc.setFontSize(12);
+            doc.text(`Building: ${buildingInfo}`, 14, 25);
+            doc.text(`Adviser: ${AdviserName}`, 14, 35);
+        }
+    
     
         let startY = 40; // Ensure spacing between text and table
     
@@ -334,7 +341,7 @@ const Search = () => {
                                                 const groupedByTime = new Map();
                                                 let department = '';
                                                 let rank = '';
-                                                
+
                                                 Array.from(nestedMap)
                                                     .sort((a, b) => a[1].start - b[1].start)
                                                     .forEach(([innerKey, innerMap]) => {
