@@ -1,45 +1,42 @@
-import React, { useEffect, useState } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
-import { firestore } from '../../../firebase/firebase';
+import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { APP_CONFIG } from '../../../constants';
+import { RiDeleteBin7Line } from 'react-icons/ri';
+import { useUsers } from './hooks/useUsers';
 
-
-const UserList = () => {
-    const [users, setUsers] = useState([]);
-    const [loading, setLoading] = useState(true);
+const UserList = ({ onEditUser }) => {
     const [showDetailedPermissions, setShowDetailedPermissions] = useState(true);
-
-    useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                const usersRef = collection(firestore, 'users');
-                const querySnapshot = await getDocs(usersRef);
-                const usersData = querySnapshot.docs.map((doc) => ({
-                    id: doc.id,
-                    ...doc.data(),
-                }));
-
-                setUsers(usersData);
-            } catch (error) {
-                toast.error('Error fetching users: ' + error.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchUsers();
-    }, []);
+    const [userToDelete, setUserToDelete] = useState(null);
+    const [deleteConfirmation, setDeleteConfirmation] = useState('');
+    const { users, loading, error } = useUsers();
 
     const handleEdit = (userId) => {
-        // TODO: Implement edit functionality
-        console.log('Edit user:', userId);
+        onEditUser(userId);
+    };
+
+    const handleDelete = async (userId) => {
+        try {
+            // await deleteDoc(doc(firestore, 'users', userId));
+            // setUsers(users.filter((user) => user.id !== userId));
+            // toast.success('User deleted successfully');
+            // document.getElementById('delete_modal').close();
+        } catch (error) {
+            // toast.error('Error deleting user: ' + error.message);
+        }
     };
 
     if (loading) {
         return (
             <div className='flex justify-center items-center h-64'>
                 <span className='loading loading-spinner loading-lg'></span>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className='flex justify-center items-center h-64'>
+                <div className='text-error'>{error}</div>
             </div>
         );
     }
@@ -121,15 +118,65 @@ const UserList = () => {
                                     )}
                                 </td>
                                 <td>
-                                    <button onClick={() => handleEdit(user.id)} className='btn btn-sm btn-primary'>
-                                        Edit
-                                    </button>
+                                    <div className='flex gap-2'>
+                                        <button onClick={() => handleEdit(user.id)} className='btn btn-sm btn-primary'>
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setUserToDelete(user);
+                                                setDeleteConfirmation(''); // Reset confirmation when opening modal
+                                                document.getElementById('delete_modal').showModal();
+                                            }}
+                                            className='btn btn-sm btn-ghost text-red-500'
+                                        >
+                                            <RiDeleteBin7Line size={20} />
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
+
+            {/* Delete Confirmation Modal */}
+            <dialog id='delete_modal' className='modal modal-bottom sm:modal-middle'>
+                <div className='modal-box'>
+                    <h3 className='font-bold text-lg'>Delete User</h3>
+                    <p className='py-4'>Are you sure you want to delete this user? This action cannot be undone.</p>
+                    <div className='form-control w-full'>
+                        <label className='label'>
+                            <span className='label-text'>Type &quot;DELETE THIS USER&quot; to confirm</span>
+                        </label>
+                        <input
+                            type='text'
+                            placeholder='Type DELETE THIS USER'
+                            className='input input-bordered w-full'
+                            value={deleteConfirmation}
+                            onChange={(e) => setDeleteConfirmation(e.target.value)}
+                        />
+                    </div>
+                    <div className='modal-action'>
+                        <button
+                            className='btn btn-error'
+                            onClick={() => userToDelete && handleDelete(userToDelete.id)}
+                            disabled={deleteConfirmation !== 'DELETE THIS USER'}
+                        >
+                            Delete
+                        </button>
+                        <button
+                            className='btn btn-ghost'
+                            onClick={() => {
+                                document.getElementById('delete_modal').close();
+                                setDeleteConfirmation(''); // Reset confirmation when closing
+                            }}
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </dialog>
         </div>
     );
 };

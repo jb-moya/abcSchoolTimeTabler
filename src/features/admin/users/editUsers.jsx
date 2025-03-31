@@ -1,49 +1,63 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useState } from 'react';
 import InputText from '../../../components/Input/InputText';
 import { useDispatch, useSelector } from 'react-redux';
-import { signUpWithEmailAndPassword } from '../../userSlice';
 import { toast } from 'sonner';
 import { APP_CONFIG } from '../../../constants';
+import { useUserById } from './hooks/useUsers';
 
-const CreateUser = () => {
-    const INITIAL_REGISTER_OBJ = {
-        email: 'admin-with-all-permissions@email.com',
-        password: '1111111111111',
-        confirmPassword: '1111111111111',
-        permissions: [],
-        role: '',
-        newUserNotAutoLogin: true,
-    };
-
+const EditUser = ({ userId }) => {
+    const editUserInfo = useUserById(userId);
     const dispatch = useDispatch();
     const { loading } = useSelector((state) => state.user);
-    const [registerObj, setRegisterObj] = useState(INITIAL_REGISTER_OBJ);
+    const [registerObj, setRegisterObj] = useState({
+        email: '',
+        permissions: [],
+        role: 'user',
+    });
+
+    // Update form when user data is loaded
+    useEffect(() => {
+        if (editUserInfo) {
+            setRegisterObj({
+                email: editUserInfo.email || '',
+                permissions: editUserInfo.permissions || [],
+                role: editUserInfo.role || 'user',
+            });
+        }
+    }, [editUserInfo]);
 
     const handleCheckboxChange = (event, routeName) => {
-        const { value, checked } = event.target;
-        console.log('🚀 ~ handleCheckboxChange ~ checked:', checked, value);
+        const { checked } = event.target;
         const updatedPermissions = checked
-            ? [...registerObj.permissions, routeName] // Add if checked
-            : registerObj.permissions.filter((perm) => perm !== routeName); // Remove if unchecked
+            ? [...registerObj.permissions, routeName]
+            : registerObj.permissions.filter((perm) => perm !== routeName);
 
         updateFormValue({ updateType: 'permissions', value: updatedPermissions });
     };
 
     const updateFormValue = ({ updateType, value }) => {
-        setRegisterObj({ ...registerObj, [updateType]: value });
+        setRegisterObj((prev) => ({ ...prev, [updateType]: value }));
     };
 
     const submitForm = async (e) => {
         e.preventDefault();
 
         try {
-            await dispatch(signUpWithEmailAndPassword(registerObj)).unwrap(); // Ensures promise rejection is thrown
-            console.log('Successfully registered');
+            // TODO: Implement update user functionality
+            toast.success('User updated successfully');
         } catch (error) {
-            toast.error(error);
+            toast.error(error.message);
         }
     };
+
+    if (!editUserInfo) {
+        return (
+            <div className='flex justify-center items-center h-64'>
+                <span className='loading loading-spinner loading-lg'></span>
+            </div>
+        );
+    }
 
     return (
         <div>
@@ -62,28 +76,6 @@ const CreateUser = () => {
                             updateFormValue={updateFormValue}
                         />
                     </div>
-
-                    <div>
-                        <InputText
-                            defaultValue={registerObj.password}
-                            type='password'
-                            updateType='password'
-                            containerStyle=''
-                            labelTitle='Password'
-                            updateFormValue={updateFormValue}
-                        />
-                    </div>
-
-                    <div>
-                        <InputText
-                            defaultValue={registerObj.confirmPassword}
-                            type='password'
-                            updateType='confirmPassword'
-                            containerStyle=''
-                            labelTitle='Confirm Password'
-                            updateFormValue={updateFormValue}
-                        />
-                    </div>
                 </div>
 
                 <div className='pt-6'></div>
@@ -97,6 +89,7 @@ const CreateUser = () => {
                             <input
                                 type='checkbox'
                                 className='checkbox checkbox-success'
+                                checked={registerObj.permissions.includes(routeName)}
                                 onChange={(e) => handleCheckboxChange(e, routeName)}
                             />
                             <div>{routeName}</div>
@@ -140,17 +133,17 @@ const CreateUser = () => {
                 <button
                     type='submit'
                     className={`btn mt-4 w-full btn-primary text-white transition-all duration-75 ease-in-out flex items-center justify-center ${
-                        loading ? 'cursor-not-allowed ' : ''
+                        loading ? 'cursor-not-allowed' : ''
                     }`}
                     disabled={loading}
                 >
                     {loading ? (
                         <>
                             <span className='loading loading-spinner'></span>
-                            Creating...
+                            Updating...
                         </>
                     ) : (
-                        'Create this User'
+                        'Update User'
                     )}
                 </button>
             </form>
@@ -158,4 +151,4 @@ const CreateUser = () => {
     );
 };
 
-export default CreateUser;
+export default EditUser;
