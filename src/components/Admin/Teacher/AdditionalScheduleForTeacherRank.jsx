@@ -11,9 +11,10 @@ const AdditionalScheduleForTeacherRank = ({
     additionalSchedsOfRank = [],
     setAdditionalScheds = () => {},
 }) => {
+    
     const lastSchedTimeRef = useRef();
 
-    // =============================================================================
+// =============================================================================
 
     const [schedName, setSchedName] = useState(additionalSchedsOfRank.name || '');
 
@@ -27,11 +28,11 @@ const AdditionalScheduleForTeacherRank = ({
 
     const [schedTime, setSchedtime] = useState(additionalSchedsOfRank.time || 0);
 
-    // =============================================================================
+// =============================================================================
 
     const [time, setTime] = useState();
 
-    // =============================================================================
+// =============================================================================
 
     const handleSave = () => {
         const newSched = {
@@ -78,7 +79,7 @@ const AdditionalScheduleForTeacherRank = ({
         setSchedtime(additionalSchedsOfRank.time);
     };
 
-    // =============================================================================
+// =============================================================================
 
     useEffect(() => {
         setSchedName(additionalSchedsOfRank.name || '');
@@ -104,16 +105,7 @@ const AdditionalScheduleForTeacherRank = ({
         }
     }, [schedTime]);
 
-    // =============================================================================
-
-    // useEffect(() => {
-    //     console.log('schedName', schedName);
-    //     console.log('schedSubject', schedSubject);
-    //     console.log('typeof schedSubject', typeof schedSubject);
-    //     console.log('schedDuration', schedDuration);
-    //     console.log('schedFrequency', schedFrequency);
-    //     console.log('schedShown', schedShown);
-    // }, [schedName, schedSubject, schedDuration, schedFrequency, schedShown]);
+// =============================================================================
 
     return (
         <dialog

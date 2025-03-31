@@ -1,39 +1,23 @@
 import  { useState, useEffect, useRef } from "react";
-import { useSelector, useDispatch } from "react-redux";
+
 import { toast } from 'sonner';
 import { RiEdit2Fill } from "react-icons/ri";
 
-// import { fetchDepartments } from "@features/departmentSlice";
-// import { fetchTeachers } from "@features/teacherSlice";
-
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 import { editDocument } from '../../../hooks/CRUD/editDocument';
 
 const DepartmentEdit = ({
-  department,
-//   reduxFunction,
-  setErrorMessage,
-  errorMessage,
-  errorField,
-  setErrorField,
+	// STORES	
+	departments,
+	teachers,
+	// STORES
+	department,
+	setErrorMessage,
+	errorMessage,
+	errorField,
+	setErrorField,
 }) => {
 
 	const inputNameRef = useRef(null);
-	const dispatch = useDispatch();
-
-// ==========================================================================
-
-	// const { departments, status: departmentStatus } = useSelector(
-		// 	(state) => state.department
-	// );
-
-	const { documents: departments, loading1, error1 } = fetchDocuments('departments');
-
-	// const { teachers, status: teacherStatus } = useSelector(
-	// 	(state) => state.teacher
-	// );
-
-	const { documents: teachers, loading2, error2 } = fetchDocuments('teachers');
 	
 // ==========================================================================
 
@@ -65,38 +49,13 @@ const DepartmentEdit = ({
 			return;
 		}
 
-		// dispatch (
-		// 	reduxFunction({
-		// 		departmentId: department.id,
-		// 		updatedDepartment: {
-		// 		name: editDepartmentValue.trim(),
-		// 		head: selectedTeacher
-		// 		},
-		// 	})
-		// ).then((action) => {
-		// 	if (action.meta.requestStatus === "fulfilled") {
-
-		// 		toast.success("Department updated successfully!", {
-		// 			style: { backgroundColor: "#28a745", color: "#fff" },
-		// 		});
-
-		// 		handleResetDepartmentEditClick(); // Reset input fields
-		// 		closeModal(); // Close modal	
-
-		// 	} else {
-
-		// 		toast.error("Failed to update department.");
-
-		// 	}
-		// });
-
 		try {
+			
 			editDocument('departments', department.id, {
 				name: editDepartmentValue.trim(),
-          		head: selectedTeacher.trim(),
+          		head: selectedTeacher,
 			});
 
-			// updateSubjectDependencies();
 		} catch {
 			toast.error('Something went wrong. Please try again.');
 			console.error('Something went wrong. Please try again.');
@@ -235,7 +194,7 @@ const DepartmentEdit = ({
 								{Object.keys(teachers)
 									.filter(
 										(key) =>
-										teachers[key].department === department.id &&
+										teachers[key].department === department.custom_id &&
 										teachers[key].teacher
 											.toLowerCase()
 											.includes(searchTerm.toLowerCase())
@@ -244,7 +203,7 @@ const DepartmentEdit = ({
 										<li key={teachers[key].id} className="border-b last:border-b-0 border-base-content border-opacity-20">
 										<button
 											className="w-full text-left py-2 px-4 hover:bg-blue-100"
-											onClick={() => handleTeacherClick(teachers[key].id)}
+											onClick={() => handleTeacherClick(teachers[key].custom_id)}
 										>
 											{teachers[key].teacher}
 										</button>
@@ -252,7 +211,7 @@ const DepartmentEdit = ({
 								))}
 								{Object.keys(teachers).filter(
 									(key) =>
-										teachers[key].department === department.id &&
+										teachers[key].department === department.custom_id &&
 										teachers[key].teacher
 										.toLowerCase()
 										.includes(searchTerm.toLowerCase())

@@ -1,39 +1,22 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchTeachers, addTeacher, editTeacher, removeTeacher } from '@features/teacherSlice';
 
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchRanks } from '@features/rankSlice';
-import { fetchDepartments } from '@features/departmentSlice';
 import debounce from 'debounce';
-import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
-import SearchableDropdownToggler from '../searchableDropdown';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
-
-import { toast } from 'sonner';
 
 import AdditionalScheduleForTeacher from './AdditionalScheduleForTeacher';
 import AddTeacherContainer from './TeacherAdd';
 import DeleteData from '../DeleteData';
 import TeacherEdit from './TeacherEdit';
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
-
 const TeacherListContainer = ({ 
+    teachers, 
+    ranks, 
+    departments, 
+    subjects,
     editable = false 
 }) => {
-
-// ===================================================================================================
-
-    const { documents: teachers, loading1, error1 } = fetchDocuments('teachers');
-
-    const { documents: subjects, loading2, error2 } = fetchDocuments('subjects');
-
-    const { documents: ranks, loading3, error3 } = fetchDocuments('ranks');
-
-    const { documents: departments, loading4, error4 } = fetchDocuments('departments');
 
 // ===================================================================================================
 
@@ -169,8 +152,11 @@ const TeacherListContainer = ({
                             <dialog id='add_teacher_modal' className='modal modal-bottom sm:modal-middle'>
                                 <div className='modal-box' style={{ width: '40%', maxWidth: 'none' }}>
                                     <AddTeacherContainer
+                                        teachers={teachers}
+                                        ranks={ranks}
+                                        departments={departments}
+                                        subjects={subjects}
                                         close={() => document.getElementById('add_teacher_modal').close()}
-                                        reduxFunction={addTeacher}
                                         errorMessage={errorMessage}
                                         setErrorMessage={setErrorMessage}
                                         errorField={errorField}
@@ -329,6 +315,7 @@ const TeacherListContainer = ({
                                                                 )}
                                                             </button>
                                                             <AdditionalScheduleForTeacher
+                                                                subjects={subjects}
                                                                 viewingMode={1}
                                                                 teacherID={teacher.id}
                                                                 arrayIndex={index}
@@ -344,8 +331,11 @@ const TeacherListContainer = ({
                                             <td className='w-28'>
                                                 <div className='flex'>
                                                     <TeacherEdit
+                                                        teachers={teachers}
+                                                        subjects={subjects}
+                                                        ranks={ranks}
+                                                        departments={departments}
                                                         teacher={teacher}
-                                                        reduxFunction={editTeacher}
                                                         errorMessage={errorMessage}
                                                         setErrorMessage={setErrorMessage}
                                                         errorField={errorField}

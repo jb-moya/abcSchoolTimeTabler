@@ -1,22 +1,22 @@
 import { useState, useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchRanks } from '@features/rankSlice';
-import { fetchDepartments } from '@features/departmentSlice';
 import SearchableDropdownToggler from '../searchableDropdown';
 
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import AdditionalScheduleForTeacher from './AdditionalScheduleForTeacher';
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 import { addDocument } from '../../../hooks/CRUD/addDocument';
 
 import { toast } from 'sonner';
 
 const AddTeacherContainer = ({
+    // STORES
+    teachers,
+    subjects,
+    ranks,
+    departments,
+    // STORES
     close,
-    reduxFunction,
     errorMessage,
     setErrorMessage,
     errorField,
@@ -25,18 +25,6 @@ const AddTeacherContainer = ({
 }) => {
 
     const inputNameRef = useRef();
-
-    const dispatch = useDispatch();
-
-// =============================================================================================================
-
-    const { documents: teachers, loading1, error1 } = fetchDocuments('teachers');
-
-    const { documents: subjects, loading2, error2 } = fetchDocuments('subjects');
-
-    const { documents: ranks, loading3, error3 } = fetchDocuments('ranks');
-
-    const { documents: departments, loading4, error4 } = fetchDocuments('departments');
 
 // =============================================================================================================
 
@@ -384,6 +372,7 @@ const AddTeacherContainer = ({
                                     )}
                                 </button>
                                 <AdditionalScheduleForTeacher
+                                    subjects={subjects}
                                     viewingMode={1}
                                     teacherID={0}
                                     arrayIndex={index}
@@ -399,6 +388,7 @@ const AddTeacherContainer = ({
                                     <RiEdit2Fill size={15} />
                                 </button>
                                 <AdditionalScheduleForTeacher
+                                    subjects={subjects}
                                     viewingMode={0}
                                     teacherID={0}
                                     arrayIndex={index}

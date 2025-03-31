@@ -2,61 +2,80 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { fetchScheds, addSched, removeSched } from '@features/schedulesSlice';
-
 import debounce from 'debounce';
 import { RiEdit2Fill } from 'react-icons/ri';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
-import { fetchTeachers } from '@features/teacherSlice';
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchSections } from '@features/sectionSlice';
+
 import ModifyTimetableContainer from '@components/Admin/ModifyTimetable/ModifyTimetableContainer';
 
 import DeleteData from '../DeleteData';
 import { convertStringDataToMap } from '@components/Admin/ModifyTimetable/utils';
+import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+import { addDocument } from '../../../hooks/CRUD/addDocument';
 
 const TimetableListContainer = ({}) => {
+    
     const dispatch = useDispatch();
     const location = useLocation();
     const navigate = useNavigate();
 
     // ===================================================================================================
-    const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
-    const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
-    const { sections, status: sectionStatus } = useSelector((state) => state.section);
-    const { schedules, status: schedStatus } = useSelector((state) => state.schedule);
+    // const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
+    // const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
+    // const { sections, status: sectionStatus } = useSelector((state) => state.section);
+    // const { schedules, status: schedStatus } = useSelector((state) => state.schedule);
 
-    useEffect(() => {
-        if (schedStatus === 'idle') {
-            dispatch(fetchScheds());
-        }
-    }, [dispatch, schedStatus]);
+    // useEffect(() => {
+    //     if (schedStatus === 'idle') {
+    //         dispatch(fetchScheds());
+    //     }
+    // }, [dispatch, schedStatus]);
 
-    useEffect(() => {
-        if (teacherStatus === 'idle') {
-            dispatch(fetchTeachers());
-        }
-    }, [teacherStatus, dispatch]);
+    // useEffect(() => {
+    //     if (teacherStatus === 'idle') {
+    //         dispatch(fetchTeachers());
+    //     }
+    // }, [teacherStatus, dispatch]);
 
-    useEffect(() => {
-        if (subjectStatus === 'idle') {
-            dispatch(fetchSubjects());
-        }
-    }, [subjectStatus, dispatch]);
+    // useEffect(() => {
+    //     if (subjectStatus === 'idle') {
+    //         dispatch(fetchSubjects());
+    //     }
+    // }, [subjectStatus, dispatch]);
 
-    useEffect(() => {
-        if (sectionStatus === 'idle') {
-            dispatch(fetchSections());
-        }
-    }, [sectionStatus, dispatch]);
+    // useEffect(() => {
+    //     if (sectionStatus === 'idle') {
+    //         dispatch(fetchSections());
+    //     }
+    // }, [sectionStatus, dispatch]);
 
     // ===================================================================================================
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
+    const { documents: schedules, loading1, error1 } = fetchDocuments('schedules');
+    const { documents: teachers, loading2, error2 } = fetchDocuments('teachers');
 
+    const { documents: sections, loading3, error3 } = fetchDocuments('sections');
+    const { documents: subjects, loading4, error4 } = fetchDocuments('subjects');
+
+    console.log('schedules: ', schedules);
+    // const { documents: sections, loading2, error2 } = fetchDocuments('sections');
+    // console.log('sched: ', schedules);
+
+    // console.log('sections: ', sections);
+
+    // const [timetables, setTimetables] = useState(schedules);
+
+    // useEffect(() => {
+    //     setTimetables(schedules);
+    // }, [schedules]);
+
+    // useEffect(() => {
+    //     console.log('Updated timetables:', timetables);
+    // }, [timetables]);
     // ==================================================================================================
 
     const table = location.state?.generatedMap ?? new Map();
@@ -82,6 +101,13 @@ const TimetableListContainer = ({}) => {
     // ===================================================================================================
 
     const handleEditClick = (scheduleId) => {
+        console.log();
+        console.log('editing: ', schedules[scheduleId].data);
+        // addDocument('schedules', {
+        //     name: schedules[scheduleId].name,
+        //     data: schedules[scheduleId].data,
+        // });
+
         const newTimetable = convertStringDataToMap(schedules[scheduleId].data);
         console.log('newTimetable: ', newTimetable);
         console.log('scheduleID: ', scheduleId);
@@ -144,6 +170,37 @@ const TimetableListContainer = ({}) => {
     const currentItems = Object.entries(searchSchedResult).slice(indexOfFirstItem, indexOfLastItem);
 
     // ===================================================================================================
+
+    const buildingData = {
+        floors: 2,
+        id: 1,
+        image: null,
+        name: 'BLDG 1',
+        nearbyBuildings: [],
+        rooms: [
+            [
+                { roomName: 'BLDG 1 - 101' },
+                { roomName: 'BLDG 1 - 102' },
+                { roomName: 'BLDG 1 - 103' },
+                { roomName: 'BLDG 1 - 104' },
+                { roomName: 'BLDG 1 - 105' },
+            ],
+            [
+                { roomName: 'BLDG 1 - 201' },
+                { roomName: 'BLDG 1 - 202' },
+                { roomName: 'BLDG 1 - 203' },
+                { roomName: 'BLDG 1 - 204' },
+                { roomName: 'BLDG 1 - 205' },
+            ],
+        ],
+    };
+
+    const string_building = JSON.stringify(buildingData, null, 2);
+
+    console.log('string: ', string_building);
+
+    const parsed_building = JSON.parse(string_building);
+    console.log('parsed_building: ', parsed_building);
 
     return (
         <React.Fragment>
@@ -222,7 +279,7 @@ const TimetableListContainer = ({}) => {
                                     ) : (
                                         currentItems.map(([, schedule], index) => (
                                             <tr key={schedule.id} className='group hover'>
-                                                <th>{schedule.id}</th>
+                                                <th>{schedule.custom_id}</th>
 
                                                 <td>{schedule.name}</td>
 
@@ -230,15 +287,13 @@ const TimetableListContainer = ({}) => {
                                                     <div className='flex'>
                                                         <button
                                                             className='btn btn-xs btn-ghost text-blue-500'
-                                                            onClick={() => handleEditClick(schedule.id)}
+                                                            onClick={() => handleEditClick(schedule.custom_id)}
                                                         >
                                                             <RiEdit2Fill size={20} />
                                                         </button>
 
                                                         <DeleteData
                                                             id={schedule.id}
-                                                            store={'schedules'}
-                                                            reduxFunction={removeSched}
                                                         />
                                                     </div>
                                                 </td>

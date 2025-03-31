@@ -1,12 +1,7 @@
-import { useDispatch } from 'react-redux';
-import { useState, useEffect } from 'react';
-import packInt16ToInt32 from '../../../utils/packInt16ToInt32';
-import { unpackInt32ToInt16 } from '../../../utils/packInt16ToInt32';
-import packInt8ToInt32 from '../../../utils/packInt8ToInt32';
 import { useSelector } from 'react-redux';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { wrap } from 'comlink';
-import WasmWorker from '@src/wasm.worker?worker';
-import Configuration from '@components/Admin/Configuration';
 import clsx from 'clsx';
 import * as XLSX from 'xlsx';
 import GeneratedTimetable from '@components/Admin/TimeTable';
@@ -15,31 +10,34 @@ import { useNavigate } from 'react-router-dom';
 import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 import validateTimetableVariables from '@validation/validateTimetableVariables';
 import { toast } from 'sonner';
-import ViolationList from '@components/Admin/ViolationList';
-import SubjectListContainer from '../../../components/SubjectComponents/SubjectListContainer';
-import ProgramListContainer from '../../../components/Admin/ProgramComponents/ProgramListContainer';
-import TeacherListContainer from '@components/Admin/Teacher/TeacherListContainer';
-import SectionListContainer from '../../../components/Admin/SectionComponents/SectionListContainer';
-import ExportImportDBButtons from '@components/Admin/ExportImportDBButtons';
-
-import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';
-import Breadcrumbs from '@components/Admin/Breadcrumbs';
-import { clearAllEntriesAndResetIDs } from '@src/indexedDB';
 import { enableMapSet } from 'immer';
+
+import WasmWorker from '@src/wasm.worker?worker';
+import { clearAllEntriesAndResetIDs } from '@src/indexedDB';
+
+import Configuration from '@components/Admin/Configuration';
+
+import packInt16ToInt32 from '@utils/packInt16ToInt32';
+import { unpackInt32ToInt16 } from '@utils/packInt16ToInt32';
+import packInt8ToInt32 from '@utils/packInt8ToInt32';
+import { packThreeSignedIntsToInt32 } from '@utils/packThreeSignedIntsToInt32';
+import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';
+import calculateTotalClass from '@utils/calculateTotalClass';
+import deepEqual from '@utils/deepEqual';
+import gcdOfArray from '@utils/getGCD';
+
+import SubjectListContainer from '@components/SubjectComponents/SubjectListContainer';
+import ProgramListContainer from '@components/Admin/ProgramComponents/ProgramListContainer';
+import TeacherListContainer from '@components/Admin/Teacher/TeacherListContainer';
+import SectionListContainer from '@components/Admin/SectionComponents/SectionListContainer';
+import ExportImportDBButtons from '@components/Admin/ExportImportDBButtons';
+import NotificationHandler from '@components/Admin/NotificationHandler';
+import Breadcrumbs from '@components/Admin/Breadcrumbs';
+
+import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 
 enableMapSet();
 const getTimetable = wrap(new WasmWorker());
-
-import { fetchSections, editSection } from '@features/sectionSlice';
-import { fetchPrograms, editProgram } from '@features/programSlice';
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchBuildings } from '@features/buildingSlice';
-import { original } from 'immer';
-import calculateTotalClass from '../../../utils/calculateTotalClass';
-import deepEqual from '../../../utils/deepEqual';
-import gcdOfArray from '../../../utils/getGCD';
-import { packThreeSignedIntsToInt32 } from '../../../utils/packThreeSignedIntsToInt32';
-import NotificationHandler from '../../../components/Admin/NotificationHandler';
 
 function addObjectToMap(map, key, newObject, IDIncrementer, propertyIDName) {
     if (!map.has(key)) {
@@ -90,13 +88,12 @@ function getVacantSlots(totalTimeslot, numOfSchoolDays, fixedPositions, fixedDay
     return vacant;
 }
 
-function Timetable() {
-    const dispatch = useDispatch();
+function Timetable() 
+{
+
     const navigate = useNavigate();
 
-    const [morningStartTime, setMorningStartTime] = useState(() => {
-        return localStorage.getItem('morningStartTime') || 'Cannot find';
-    });
+// ====================================================================================================================================
 
     const links = [
         { name: 'Home', href: '/' },
@@ -124,7 +121,83 @@ function Timetable() {
     
     const { minTeacherLoad: minTeachingLoad, maxTeacherLoad: maxTeachingLoad } = useSelector((state) => state.configuration);
 
-    // ========================================================================
+    /* TIMETABLE DATA */
+    const [buildingsStore, setBuildings] = useState({});
+
+    const [subjects, setSubjects] = useState({});
+    const [buildings, setBuildings_1] = useState({});
+    const [teachers, setTeachers] = useState({});
+    const [sections, setSections] = useState({});
+
+	const { documents: subjectsStore, loading1, error1 } = fetchDocuments('subjects');
+	const { documents: programsStore, loading2, error2 } = fetchDocuments('programs');
+    const { documents: ranksStore, loading3, error3 } = fetchDocuments('ranks');
+	const { documents: teachersStore, loading4, error4 } = fetchDocuments('teachers');
+    const { documents: departmentsStore, loading5, error5 } = fetchDocuments('departments');
+    const { documents: sectionsStore, loading6, error6 } = fetchDocuments('sections');
+	const { documents: stringfy_buildings, loading7, error7 } = fetchDocuments('buildings');
+
+    // Convert the stringified buildings object
+	useEffect(() => {
+		try {
+			const converted_buildings = Object.values(stringfy_buildings).reduce((acc, { custom_id, data, id }) => {
+				const parsedData = JSON.parse(data);
+				acc[custom_id] = { ...parsedData, id, custom_id }; // Include id and custom_id inside data
+				return acc;
+			}, {});
+			console.log('converted_buildings: ', converted_buildings);
+
+			setBuildings(converted_buildings);
+		} catch (error) {
+			console.error('Failed to parse buildings JSON:', error);
+		}
+	}, [stringfy_buildings]);
+
+    useEffect(() => {
+        if (subjectsStore) {
+            const transformedSubjects = Object.values(subjectsStore).map(({ custom_id, ...rest }) => ({
+                ...rest,
+                id: custom_id,
+            }));
+            setSubjects(transformedSubjects);
+        }
+    }, [subjectsStore]);
+    
+    useEffect(() => {
+        if (buildingsStore) {
+            const transformedBuildings = Object.values(buildingsStore).map(({ custom_id, ...rest }) => ({
+                ...rest,
+                id: custom_id,
+            }));
+            setBuildings_1(transformedBuildings);
+        }
+    }, [buildingsStore]);
+    
+    useEffect(() => {
+        if (teachersStore) {
+            const transformedTeachers = Object.values(teachersStore).map(({ custom_id, ...rest }) => ({
+                ...rest,
+                id: custom_id,
+            }));
+            setTeachers(transformedTeachers);
+        }
+    }, [teachersStore]);
+    
+    useEffect(() => {
+        if (sectionsStore) {
+            const transformedSections = Object.values(sectionsStore).map(({ custom_id, ...rest }) => ({
+                ...rest,
+                id: custom_id,
+            }));
+            setSections(transformedSections);
+        }
+    }, [sectionsStore]);
+
+// =====================================================================================================================================
+
+    const [morningStartTime, setMorningStartTime] = useState(() => {
+        return localStorage.getItem('morningStartTime') || 'Cannot find';
+    });
 
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
         return localStorage.getItem('numOfSchoolDays') || 5;
@@ -138,22 +211,13 @@ function Timetable() {
         return parseInt(localStorage.getItem('defaultSubjectDuration'), 10) || 40;
     });
 
-    const [defaultBreakTimeDuration, setDefaultBreakTimeDuration] = useState(() => {
-        return parseInt(localStorage.getItem('breakTimeDuration'), 10) || 30;
-    });
-
-    const [prevNumOfSchoolDays, setPrevNumOfSchoolDays] = useState(numOfSchoolDays);
-
-    const [prevBreakTimeDuration, setPrevBreakTimeDuration] = useState(breakTimeDuration);
-
-    // ========================================================================
+// =====================================================================================================================================
 
     const [sectionTimetables, setSectionTimetables] = useState({});
+
     const [teacherTimetables, setTeacherTimetables] = useState({});
-    const [mapVal, setMapVal] = useState(new Map());
 
     const [timetableGenerationStatus, setTimetableGenerationStatus] = useState('idle');
-    const [violations, setViolations] = useState([]);
 
     // Scope and Limitations
     // Room-Section Relationship: Each room is uniquely assigned to a specific subject, establishing a 1:1 relationship.
@@ -162,28 +226,6 @@ function Timetable() {
     // They do not have the option to select subjects independently.
     // Standardized Class Start and Break Times: The start time for the first class and the timing of breaks are
     // standardized across all sections and teachers, ensuring uniformity in the daily schedule.
-
-    const validate = () => {
-        const { canProceed, violations } = validateTimetableVariables({
-            sections: sectionsStore,
-            teachers: teachersStore,
-            subjects: subjectsStore,
-            programs: programsStore,
-        });
-
-        if (!canProceed) {
-            if (violations.some((v) => v.type === 'emptyDatabase')) {
-                toast.error('One or more tables are empty.');
-            } else {
-                toast.error('Invalid timetable variables');
-            }
-            setViolations(violations);
-            return false;
-        }
-
-        setViolations([]);
-        return true;
-    };
 
     const handleButtonClick = async (subjectData, buildingData, teacherData, sectionData) => {
         const subjectMap = Object.entries(subjectData).reduce((acc, [, value], index) => {
@@ -1249,6 +1291,12 @@ function Timetable() {
         console.log('teacherTimetable: ', teacherTimetable);
         const sectionEdited = convertToHashMap(sectionTimetable, 'Section');
         const teacherEdited = convertToHashMap(teacherTimetable, 'Teacher');
+
+        console.log('subjects: ', subjectsStore);
+        console.log('programs: ', programsStore);
+        console.log('buildings: ', buildingsStore);
+        console.log('teachers: ', teachersStore);
+        console.log('configuration: ', minTeachingLoad);
         // console.log('sectionEdited: ', sectionEdited);
         // console.log('teacherEdited: ', teacherEdited);
         const generatedMap = combineMaps(sectionEdited, teacherEdited);
@@ -1457,261 +1505,6 @@ function Timetable() {
         await clearAllEntriesAndResetIDs();
     };
 
-    const handleNumOfSchoolDaysChange = () => {
-        localStorage.setItem('numOfSchoolDays', numOfSchoolDays);
-
-        if (numOfSchoolDays === prevNumOfSchoolDays) return;
-        setPrevNumOfSchoolDays(numOfSchoolDays);
-
-        if (Object.keys(programsStore).length === 0) return;
-
-        // Precompute values
-        const classCountLookup = {};
-        Object.entries(subjectsStore).forEach(([subjectID, subject]) => {
-            (classCountLookup[subjectID] = Math.ceil(subject.weeklyMinutes / subject.classDuration)), numOfSchoolDays;
-        });
-
-        // Update program fixed days and fixed positions
-        Object.entries(programsStore).forEach(([progId, prog]) => {
-            const originalProgram = JSON.parse(JSON.stringify(prog));
-            const newProgram = JSON.parse(JSON.stringify(prog));
-
-            [7, 8, 9, 10].forEach((grade) => {
-                if (newProgram[grade].subjects.length === 0) return;
-
-                newProgram[grade].subjects.map((subId) => {
-                    if (classCountLookup[subId] <= numOfSchoolDays) return;
-
-                    const fixedDays = newProgram[grade].fixedDays[subId];
-                    const fixedPositions = newProgram[grade].fixedPositions[subId];
-
-                    for (let i = 0; i < fixedDays.length; i++) {
-                        if (fixedDays[i] > numOfSchoolDays) {
-                            fixedDays[i] = 0;
-                            fixedPositions[i] = 0;
-                        }
-                    }
-
-                    const numOfClasses = Math.min(classCountLookup[subId], numOfSchoolDays);
-
-                    const dayPositionMap = new Map();
-
-                    fixedDays.forEach((day, index) => {
-                        const pos = fixedPositions[index];
-                        if (
-                            (day !== 0 && pos !== 0) ||
-                            (day !== 0 && pos === 0) ||
-                            (day === 0 && pos !== 0 && !dayPositionMap.has(`${day}-${pos}`))
-                        ) {
-                            dayPositionMap.set(`${day}-${pos}`, [day, pos]);
-                        }
-                    });
-
-                    // console.log('dayPositionMap', dayPositionMap);
-
-                    let result = [];
-                    dayPositionMap.forEach(([day, pos]) => {
-                        if (result.length < numOfClasses) {
-                            result.push([day, pos]);
-                        }
-                    });
-
-                    // console.log('result1', result);
-
-                    // Pad with [0, 0] if necessary
-                    while (result.length < numOfClasses) {
-                        result.push([0, 0]);
-                    }
-
-                    // console.log('result2', result);
-
-                    newProgram[grade].fixedDays[subId] = result.map(([day]) => day);
-                    newProgram[grade].fixedPositions[subId] = result.map(([_, pos]) => pos);
-                });
-
-                if (newProgram[grade].modality.length === 0 || newProgram[grade].modality.length === numOfSchoolDays) return;
-
-                if (newProgram[grade].modality.length > numOfSchoolDays) {
-                    newProgram[grade].modality = newProgram[grade].modality.slice(0, numOfSchoolDays);
-                } else {
-                    newProgram[grade].modality.push(1);
-                }
-            });
-
-            console.log('originalProgram:', originalProgram);
-            console.log('newProgram:', newProgram);
-
-            if (originalProgram !== newProgram) {
-                dispatch(
-                    editProgram({
-                        programId: newProgram.id,
-                        updatedProgram: newProgram,
-                    })
-                );
-            }
-        });
-
-        if (Object.keys(sectionsStore).length === 0) return;
-
-        // Update section fixed days and fixed positions
-        Object.entries(sectionsStore).forEach(([secId, sec]) => {
-            const originalSection = JSON.parse(JSON.stringify(sec));
-            const newSection = JSON.parse(JSON.stringify(sec));
-
-            newSection.subjects.map((subId) => {
-                if (classCountLookup[subId] <= numOfSchoolDays) return;
-
-                const fixedDays = newSection.fixedDays[subId];
-                const fixedPositions = newSection.fixedPositions[subId];
-
-                for (let i = 0; i < fixedDays.length; i++) {
-                    if (fixedDays[i] > numOfSchoolDays) {
-                        fixedDays[i] = 0;
-                        fixedPositions[i] = 0;
-                    }
-                }
-
-                const numOfClasses = Math.min(classCountLookup[subId], numOfSchoolDays);
-
-                const dayPositionMap = new Map();
-
-                fixedDays.forEach((day, index) => {
-                    const pos = fixedPositions[index];
-                    if (
-                        (day !== 0 && pos !== 0) ||
-                        (day !== 0 && pos === 0) ||
-                        (day === 0 && pos !== 0 && !dayPositionMap.has(`${day}-${pos}`))
-                    ) {
-                        dayPositionMap.set(`${day}-${pos}`, [day, pos]);
-                    }
-                });
-
-                // console.log('dayPositionMap', dayPositionMap);
-
-                let result = [];
-                dayPositionMap.forEach(([day, pos]) => {
-                    if (result.length < numOfClasses) {
-                        result.push([day, pos]);
-                    }
-                });
-
-                // console.log('result1', result);
-
-                // Pad with [0, 0] if necessary
-                while (result.length < numOfClasses) {
-                    result.push([0, 0]);
-                }
-
-                // console.log('result2', result);
-
-                newSection.fixedDays[subId] = result.map(([day]) => day);
-                newSection.fixedPositions[subId] = result.map(([_, pos]) => pos);
-            });
-
-            if (newSection.modality.length === 0 || newSection.modality.length === numOfSchoolDays) return;
-
-            if (newSection.modality.length > numOfSchoolDays) {
-                newSection.modality = newSection.modality.slice(0, numOfSchoolDays);
-            } else {
-                newSection.modality.push(1);
-            }
-
-            if (originalSection !== newSection) {
-                dispatch(
-                    editSection({
-                        sectionId: newSection.id,
-                        updatedSection: {
-                            id: newSection.id,
-                            teacher: newSection.teacher,
-                            program: newSection.program,
-                            section: newSection.section,
-                            subjects: newSection.subjects,
-                            fixedDays: newSection.fixedDays,
-                            fixedPositions: newSection.fixedPositions,
-                            modality: newSection.modality,
-                            year: newSection.year,
-                            shift: newSection.shift,
-                            startTime: getTimeSlotIndex(newSection.startTime || '06:00 AM'),
-                        },
-                    })
-                );
-            }
-        });
-    };
-
-    const handleBreakTimeDurationChange = () => {
-        // NEW ADDITION
-        localStorage.setItem('breakTimeDuration', breakTimeDuration);
-
-        if (breakTimeDuration === prevBreakTimeDuration) return;
-
-        setPrevBreakTimeDuration(breakTimeDuration);
-
-        if (Object.keys(programsStore).length === 0) return;
-
-        Object.entries(programsStore).forEach(([progId, prog]) => {
-            const originalProgram = JSON.parse(JSON.stringify(prog));
-            const newProgram = JSON.parse(JSON.stringify(prog));
-
-            [7, 8, 9, 10].forEach((grade) => {
-                if (newProgram[grade].subjects.length === 0) return;
-
-                const startTimeIdx = newProgram[grade].startTime;
-                const breakTimeCount = newProgram[grade].subjects.length > 10 ? 2 : 1;
-
-                let totalDuration = breakTimeCount * breakTimeDuration;
-
-                newProgram[grade].subjects.forEach((subId) => {
-                    totalDuration += subjectsStore[subId].classDuration;
-                });
-
-                const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
-
-                newProgram[grade].endTime = endTimeIdx || 216; // 216 = 6:00 PM
-            });
-
-            if (originalProgram !== newProgram) {
-                dispatch(
-                    editProgram({
-                        programId: newProgram.id,
-                        updatedProgram: newProgram,
-                    })
-                );
-            }
-        });
-
-        if (Object.keys(sectionsStore).length === 0) return;
-
-        Object.entries(sectionsStore).forEach(([secId, sec]) => {
-            const originalSection = JSON.parse(JSON.stringify(sec));
-            const newSection = JSON.parse(JSON.stringify(sec));
-
-            if (newSection.subjects.length === 0) return;
-
-            const startTimeIdx = newSection.startTime;
-            const breakTimeCount = newSection.subjects.length > 10 ? 2 : 1;
-
-            let totalDuration = breakTimeCount * breakTimeDuration;
-
-            newSection.subjects.forEach((subId) => {
-                totalDuration += subjectsStore[subId].classDuration;
-            });
-
-            const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
-
-            newSection.endTime = endTimeIdx || 216; // 216 = 6:00 PM
-
-            if (originalSection !== newSection) {
-                dispatch(
-                    editSection({
-                        sectionId: newSection.id,
-                        updatedSection: newSection,
-                    })
-                );
-            }
-        });
-    };
-
     useEffect(() => {
         console.log('timetableGenerationStatus', timetableGenerationStatus);
 
@@ -1739,100 +1532,6 @@ function Timetable() {
             window.removeEventListener('beforeunload', handleBeforeUnload);
         };
     }, [timetableGenerationStatus]); // The effect depends on the isProcessRunning state
-
-    // const makeOtherTable = (table) => {
-    //     let othertable = {};
-    //     console.log("orig data: ",table);
-    // };
-
-    // makeOtherTable(sectionTimetables)
-    // makeOtherTable(teacherTimetables)
-
-    // const convertToHashMap = (inputObj) => {
-    //     const resultMap = new Map(); // Initialize the outer Map
-
-    //     // Iterate through each section in the input object
-    //     for (let tableKey in inputObj) {
-    //         let sectionData = inputObj[tableKey];
-    //         // Each section has a container name
-    //         let setTableKey = `${sectionData.containerName} - ${tableKey}`;
-
-    //         // Check if the tableKey already exists under the tableKey
-    //         if (!resultMap.has(setTableKey)) {
-    //             resultMap.set(setTableKey, new Map());
-    //         }
-    //         const scheduleMap = resultMap.get(setTableKey);
-
-    //         // Iterate through the nested objects (0, 1, 2,...)
-    //         for (let key in sectionData) {
-    //             // Skip the tableKey field to prevent redundant processing
-    //             if (key === 'containerName') continue;
-    //             // Iterate through inner objects (0, 1, 2,...)
-    //             for (let innerKey in sectionData[key]) {
-    //                 let schedule = sectionData[key][innerKey];
-    //                 const type = schedule.teacher ? 'section' : 'teacher';
-    //                 const partnerType = type === 'teacher' ? 'section' : 'teacher';
-
-    //                 if (innerKey === '0') {
-    //                     for (let i = 1; i <= 5; i++) {
-    //                         const scheduleKey = `section-${schedule.sectionID}-teacher-${schedule.teacherID}-subject-${schedule.subjectID}-day-${i}-type-${type}`;
-    //                         // Add the schedule to the nested Map
-    //                         const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
-
-    //                         scheduleMap.set(scheduleKey, {
-    //                             start: schedule.start,
-    //                             end: schedule.end,
-    //                             sectionID: schedule.sectionID,
-    //                             subject: schedule.subject,
-    //                             subjectID: schedule.subjectID,
-    //                             teacherID: schedule.teacherID,
-    //                             tableKey: setTableKey,
-    //                             partnerKey: keyToFind,
-    //                             id: scheduleKey,
-    //                             dynamicID: scheduleKey,
-    //                             day: i,
-    //                             overlap: false,
-    //                             type: type,
-    //                             ...(schedule.section && {
-    //                                 section: schedule.section,
-    //                             }), // Add section if it exists
-    //                             ...(schedule.teacher && {
-    //                                 teacher: schedule.teacher,
-    //                             }), // Add section if it exists
-    //                         });
-    //                     }
-    //                 } else {
-    //                     // Use sectionID, subjectID, and start time to create a unique key for the schedule
-    //                     const scheduleKey = `section-${schedule.sectionID}-teacher-${schedule.teacherID}-subject-${schedule.subjectID}-day-${innerKey}-type-${type}`;
-    //                     const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
-    //                     // Add the schedule to the nested Map
-    //                     scheduleMap.set(scheduleKey, {
-    //                         start: schedule.start,
-    //                         end: schedule.end,
-    //                         sectionID: schedule.sectionID,
-    //                         subject: schedule.subject,
-    //                         subjectID: schedule.subjectID,
-    //                         teacherID: schedule.teacherID,
-    //                         tableKey: setTableKey,
-    //                         partnerKey: keyToFind,
-    //                         type: type,
-    //                         id: scheduleKey,
-    //                         dynamicID: scheduleKey,
-    //                         day: Number(innerKey),
-    //                         ...(schedule.section && {
-    //                             section: schedule.section,
-    //                         }), // Add section if it exists
-    //                         ...(schedule.teacher && {
-    //                             teacher: schedule.teacher,
-    //                         }), // Add section if it exists
-    //                     });
-    //                 }
-    //             }
-    //         }
-    //     }
-
-    //     return resultMap;
-    // };
 
     const convertToHashMap = (inputMap, type) => {
         const resultMap = new Map(); // Initialize the outer Map
@@ -1971,61 +1670,10 @@ function Timetable() {
         return combinedMap;
     }
 
-    // function combineMaps(map1, map2) {
-    //     const combinedMap = new Map();
-    //     let currentKey = 1;
-
-    //     // Add entries from map1 starting with key 1
-    //     for (const [, value] of map1.entries()) {
-    //         combinedMap.set(currentKey, value);
-    //         currentKey++;
-    //     }
-
-    //     // Add entries from map2 continuing the sequence
-    //     for (const [, value] of map2?.entries()) {
-    //         combinedMap.set(currentKey, value);
-    //         currentKey++;
-    //     }
-
-    //     console.log('final: ', combinedMap);
-    //     return combinedMap;
-    // }
-
-    useEffect(() => {
-        handleNumOfSchoolDaysChange();
-    }, [numOfSchoolDays]);
-
-    useEffect(() => {
-        handleBreakTimeDurationChange();
-    }, [breakTimeDuration]);
-
-    // ========================================================================
-
-    useEffect(() => {
-        if (sectionStatus === 'idle') {
-            dispatch(fetchSections());
-        }
-    }, [sectionStatus, dispatch]);
-
-    useEffect(() => {
-        if (programStatus === 'idle') {
-            dispatch(fetchPrograms());
-        }
-    }, [programStatus, dispatch]);
-
-    useEffect(() => {
-        if (subjectStatus === 'idle') {
-            dispatch(fetchSubjects());
-        }
-    }, [subjectStatus, dispatch]);
-
-    useEffect(() => {
-        if (buildingStatus === 'idle') {
-            dispatch(fetchBuildings());
-        }
-    }, [buildingStatus, dispatch]);
+// =====================================================================================================================================
 
     console.log('retrigger index');
+
     return (
         <div className='App container mx-auto px-4 py-6'>
             <NotificationHandler timetableCondition={timetableGenerationStatus} />
@@ -2033,6 +1681,13 @@ function Timetable() {
                 <Breadcrumbs title='Timetable' links={links} />
                 <div className='flex items-center gap-2'>
                     <ExportImportDBButtons
+                        programs = { programsStore }
+                        subjects = { subjectsStore }
+                        teachers = { teachersStore }
+                        ranks = { ranksStore }
+                        departments = { departmentsStore }
+                        buildings = { buildingsStore }
+                        sections = { sectionsStore }
                         onClear={handleClearAndRefresh}
                         numOfSchoolDays={numOfSchoolDays}
                         breakTimeDuration={breakTimeDuration}
@@ -2044,7 +1699,7 @@ function Timetable() {
                         })}
                         onClick={() => {
                             // if (validate()) {
-                            handleButtonClick(subjectsStore, buildingsStore, teachersStore, sectionsStore);
+                            handleButtonClick(subjects, buildings, teachers, sections);
                             // }
                         }}
                         disabled={timetableGenerationStatus === 'running'}
@@ -2070,42 +1725,58 @@ function Timetable() {
                 />
             </div>
 
-            {/* Responsive card layout for Subject and Teacher Lists */}
-            {/* <div className="flex flex-col lg:flex-row gap-6">
-    <div className="w-full lg:w-4/12 bg-base-100 p-6 rounded-lg shadow-lg">
-      <h2 className="text-lg font-semibold mb-4">Subjects</h2>
-      <SubjectListContainer />
-      </div>
-      <div className="w-full lg:w-8/12 bg-base-100 p-6 rounded-lg shadow-lg">
-      <h2 className="text-lg font-semibold mb-4">Teachers</h2>
-      <TeacherListContainer />
-    </div>
-  </div> */}
             <div>
                 <div className='mt-6 bg-base-100 p-6 rounded-lg shadow-lg'>
                     <h2 className='text-lg font-semibold mb-4'>Subjects</h2>
-                    <SubjectListContainer numOfSchoolDays={numOfSchoolDays} breakTimeDuration={breakTimeDuration} />
+                    <SubjectListContainer 
+                        subjects={subjectsStore}
+                        programs={programsStore}
+                        sections={sectionsStore}
+                        numOfSchoolDays={numOfSchoolDays} 
+                        breakTimeDuration={breakTimeDuration} 
+                    />
                 </div>
 
                 <div className='mt-6 bg-base-100 p-6 rounded-lg shadow-lg'>
                     <h2 className='text-lg font-semibold mb-4'>Teachers</h2>
-                    <TeacherListContainer />
+                    <TeacherListContainer 
+                        teachers={teachersStore}
+                        ranks={ranksStore}
+                        departments={departmentsStore}
+                        subjects={subjectsStore} 
+                    />
                 </div>
 
                 {/* Program Lists */}
                 <div className='mt-6 bg-base-100 p-6 rounded-lg shadow-lg'>
                     <h2 className='text-lg font-semibold mb-4'>Programs</h2>
-                    <ProgramListContainer numOfSchoolDays={numOfSchoolDays} breakTimeDuration={breakTimeDuration} />
+                    <ProgramListContainer 
+                        subjects={subjectsStore}
+                        programs={programsStore}
+                        sections={sectionsStore}
+                        numOfSchoolDays={numOfSchoolDays} 
+                        breakTimeDuration={breakTimeDuration} 
+                    />
                 </div>
 
                 {/* Section List with the Generate Timetable Button */}
                 <div className='mt-6'>
                     <div className='bg-base-100 p-6 rounded-lg shadow-lg'>
                         <h2 className='text-lg font-semibold mb-4'>Sections</h2>
-                        <SectionListContainer numOfSchoolDays={numOfSchoolDays} breakTimeDuration={breakTimeDuration} />
-                        <div className='mt-4'>
-                            <ViolationList violations={violations} />
-                        </div>
+                        <SectionListContainer 
+                            subjects={subjectsStore}
+							programs={programsStore}
+							sections={sectionsStore}
+							teachers={teachersStore}
+							buildings={buildingsStore}
+                            numOfSchoolDays={numOfSchoolDays} 
+                            breakTimeDuration={breakTimeDuration} 
+                        />
+                        {/* <div className='mt-4'>
+                            <ViolationList 
+                                violations={violations} 
+                            />
+                        </div> */}
                     </div>
                 </div>
             </div>
@@ -2114,42 +1785,9 @@ function Timetable() {
                     EXPORT SCHEDULES
                 </button>
             )}
-            {/* {mapVal && mapVal.size > 0 && (
-                <>
-                    <ForTest hashMap={mapVal} />
-                </>
-            )} */}
-
-            {/* pag section need Container section + sectionid + teacherid for error */}
-            {/* <GeneratedTimetable
-                sectionTimetables={sectionTimetables}
-                teacherTimetables={teacherTimetables}
-                onUpdateTimetables={setSectionTimetables}
-                errors={{
-                    containerName: 'Rosas',
-                    teacherID: [9],
-                    sectionID: [7],
-                }}
-            /> */}
-
-            {/* pag teacher need Container teacher + sectionid + subjectid for error */}
-
-            {/* <GeneratedTimetable
-                sectionTimetables={sectionTimetables}
-                teacherTimetables={teacherTimetables}
-                fieldparam={'teacher'}
-                columnField={['subject', 'section']}
-                onUpdateTimetables={setTeacherTimetables}
-                errors={{
-                    containerName: 'Mark Tagalogon',
-                    subjectID: [6],
-                    sectionID: [7],
-                }}
-            /> */}
-
-            {/* <div className="grid grid-cols-1 col-span-full gap-4 sm:grid-cols-2"></div> */}
         </div>
     );
+
 }
 
 export default Timetable;

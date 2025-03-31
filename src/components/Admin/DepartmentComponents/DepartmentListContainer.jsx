@@ -1,46 +1,29 @@
 import { useState, useEffect, useCallback} from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { IoAdd, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
-import {
-  fetchDepartments,
-  addDepartment,
-  editDepartment,
-  removeDepartment,
-} from '@features/departmentSlice';
+
+import { IoAdd, IoSearch } from 'react-icons/io5';
+
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
-import { fetchTeachers } from '@features/teacherSlice';
-
-import { toast } from "sonner";
-
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 
 import AddDepartmentContainer from './DepartmentAdd';
 import DeleteData from '../DeleteData';
 import DepartmentEdit from './DepartmentEdit';
 
 const DepartmentListContainer = ({ 
+	departments,
+	teachers,
 	editable = false 
 }) => {
-
-// ====================================================================
-
-	const { documents: departments, loading1, error1 } = fetchDocuments('departments');
-
-	const { documents: teachers, loading2, error2 } = fetchDocuments('teachers');
 
 // ====================================================================
 
 	const [errorMessage, setErrorMessage] = useState('');
 	const [errorField, setErrorField] = useState('');
 
-	const [editDepartmentId, setEditDepartmentId] = useState(null);
-	const [editDepartmentValue, setEditDepartmentValue] = useState('');
-	const [editDepartmentHead, setEditDepartmentHead] = useState('');
 	const [searchDepartmentValue, setSearchDepartmentValue] = useState('');
 	const [searchDepartmentResult, setSearchDepartmentResult] = useState(departments);
-	const [searchTerm, setSearchTerm] = useState('');
+	// const [searchTerm, setSearchTerm] = useState('');
 
 	const handleClose = () => {
 		const modal = document.getElementById('add_department_modal');
@@ -52,10 +35,6 @@ const DepartmentListContainer = ({
 			console.error("Modal with ID 'add_department_modal' not found.");
 		}
 	};
-
-	useEffect(() => {
-		console.log('editDepartmentId', editDepartmentId);
-	}, [editDepartmentId]);
 
 	const debouncedSearch = useCallback(
 		debounce((searchValue, departments) => {	
@@ -161,8 +140,8 @@ const DepartmentListContainer = ({
 						<dialog id="add_department_modal" className="modal modal-bottom sm:modal-middle">
 							<div className="modal-box">
 								<AddDepartmentContainer
+									departments={departments}
 									close={() => document.getElementById('add_department_modal').close()}
-									// reduxFunction={addDepartment}
 									errorMessage={errorMessage}
 									setErrorMessage={setErrorMessage}
 									errorField={errorField}
@@ -213,18 +192,7 @@ const DepartmentListContainer = ({
 									<td>{department.custom_id}</td>
 
 									{/* Department Name */}
-									<td>
-										{editDepartmentId === department.id ? (
-											<input
-												type="text"
-												className="input input-bordered input-sm w-full"
-												value={editDepartmentValue}
-												onChange={(e) => setEditDepartmentValue(e.target.value)}
-											/>
-										) : (
-											department.name
-										)}
-									</td>
+									<td>{department.name}</td>
 
 									{/* Department Head */}
 									<td className="flex gap-1 flex-wrap">
@@ -236,6 +204,8 @@ const DepartmentListContainer = ({
 											<div className="flex">
 												<DepartmentEdit
 													className="btn btn-xs btn-ghost text-blue-500"
+													departments={departments}
+													teachers={teachers}
 													department={department}  // Pass the entire department object
 													errorMessage={errorMessage}
 													setErrorMessage={setErrorMessage}
@@ -249,7 +219,6 @@ const DepartmentListContainer = ({
 													id={department.custom_id}
 												/>
 											</div>
-										
 										</td>
 									)}
 								</tr>

@@ -1,56 +1,32 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
-import { useDispatch } from 'react-redux';
 
-import { fetchSections, addSection, editSection, removeSection } from '@features/sectionSlice';
-import { fetchPrograms } from '@features/programSlice';
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchTeachers, editTeacher } from '@features/teacherSlice';
-import { fetchBuildings, editBuilding } from '@features/buildingSlice';
-
-import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
-import TimeSelector from '@utils/timeSelector';
+import { getTimeSlotString } from '@utils/timeSlotMapper';
 
 import { IoAdd, IoEye, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 
-import { toast } from 'sonner';
-import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
-
-import ViewRooms from '../RoomsAndBuildings/ViewRooms';
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
-import clsx from 'clsx';
 import AdditionalScheduleForSection from './AdditionalScheduleForSection';
 import AddSectionContainer from './SectionAdd';
 import DeleteData from '../DeleteData';
 import SectionEdit from './SectionEdit';
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
-
 const SectionListContainer = ({
+    // STORES
+    sections,
+    programs,
+    subjects,
+    teachers,
+    buildings,
+    // STORES
     numOfSchoolDays: externalNumOfSchoolDays,
     editable = false,
     breakTimeDuration: externalBreakTimeDuration,
 }) => {
 
-    const dispatch = useDispatch();
-
-//  =======================================================================================
-
-    const { documents: sections, loading1, error1 } = fetchDocuments('sections');
-    
-    const { documents: programs, loading2, error2 } = fetchDocuments('programs');
-
-    const { documents: subjects, loading3, error3 } = fetchDocuments('subjects');
-
-    const { documents: teachers, loading4, error4 } = fetchDocuments('teachers');
-
-    const { documents: buildings, loading5, error5 } = fetchDocuments('buildings');
-
-//  =======================================================================================
+//  =========================================================================================
 
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
         return externalNumOfSchoolDays ?? (Number(localStorage.getItem('numOfSchoolDays')) || 0);
@@ -81,7 +57,7 @@ const SectionListContainer = ({
     const [searchSectionValue, setSearchSectionValue] = useState('');
 
 //  =======================================================================================
-    
+
     const handleClose = () => {
         const modal = document.getElementById('add_section_modal');
         if (modal) {
@@ -91,7 +67,7 @@ const SectionListContainer = ({
         } else {
             console.error("Modal with ID 'add_section_modal' not found.");
         }
-    }; 
+    };
 
     const handleDelete = (id) => {
         // Remove ADVISORY LOAD of teacher assigned as the section's adviser
@@ -105,12 +81,12 @@ const SectionListContainer = ({
             );
         }
 
-        dispatch(
-            editTeacher({
-                teacherId: teacherId,
-                updatedTeacher: prevSectionAdviser,
-            })
-        );
+        // dispatch(
+        //     editTeacher({
+        //         teacherId: teacherId,
+        //         updatedTeacher: prevSectionAdviser,
+        //     })
+        // );
     };
 
 //  =======================================================================================
@@ -148,8 +124,6 @@ const SectionListContainer = ({
         }
     }, [externalNumOfSchoolDays]);
 
-
-
 //  =======================================================================================
 
     useEffect(() => {
@@ -167,13 +141,12 @@ const SectionListContainer = ({
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Object.entries(searchSectionResult).slice(indexOfFirstItem, indexOfLastItem);
 
-//  =======================================================================================
+    //  =======================================================================================
 
     return (
         <React.Fragment>
             <div className='w-full'>
                 <div className='flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5'>
-                    
                     {/* Pagination */}
                     {currentItems.length > 0 && (
                         <div className='join flex justify-center mb-4 md:mb-0'>
@@ -236,9 +209,12 @@ const SectionListContainer = ({
                             <dialog id='add_section_modal' className='modal '>
                                 <div className='modal-box' style={{ width: '48%', maxWidth: 'none' }}>
                                     <AddSectionContainer
+                                        sections={sections}
+                                        subjects={subjects}
+                                        programs={programs}
+                                        teachers={teachers}
+                                        buildings={buildings}
                                         close={handleClose}
-                                        reduxField={['section', 'subjects', 'units']}
-                                        reduxFunction={addSection}
                                         errorMessage={errorMessage}
                                         setErrorMessage={setErrorMessage}
                                         errorField={errorField}
@@ -333,17 +309,15 @@ const SectionListContainer = ({
 
                                                 {/* Number of Floors */}
                                                 <div className='mb-5 flex flex-col justify-start text-zinc-600'>
-                                                    <div>
-                                                        {section.roomDetails.floorIdx + 1 || 'UNASSIGNED FLOOR'}
-                                                    </div>
+                                                    <div>{section.roomDetails.floorIdx + 1 || 'UNASSIGNED FLOOR'}</div>
                                                 </div>
 
                                                 {/* Room */}
                                                 <div className='mb-5 flex flex-col justify-start text-zinc-600'>
                                                     <div>
-                                                        {buildings[section.roomDetails.buildingId]?.
-                                                            rooms[section.roomDetails.floorIdx][section.roomDetails.roomIdx]?.
-                                                                roomName || 'UNASSIGNED ROOM'}
+                                                        {buildings[section.roomDetails.buildingId]?.rooms[
+                                                            section.roomDetails.floorIdx
+                                                        ][section.roomDetails.roomIdx]?.roomName || 'UNASSIGNED ROOM'}
                                                     </div>
                                                 </div>
                                             </div>
@@ -391,6 +365,7 @@ const SectionListContainer = ({
 
                                                 {/* FixedScheduleMaker Component */}
                                                 <FixedScheduleMaker
+                                                    subjectsStore={subjects}
                                                     key={section.year}
                                                     viewingMode={1}
                                                     isForSection={true}
@@ -460,6 +435,7 @@ const SectionListContainer = ({
                                                                 )}
                                                             </button>
                                                             <AdditionalScheduleForSection
+                                                                subjects={subjects}
                                                                 viewingMode={1}
                                                                 sectionID={section.id}
                                                                 grade={section.year}
@@ -476,9 +452,12 @@ const SectionListContainer = ({
                                             <td className='w-28'>
                                                 <div className='flex '>
                                                     <SectionEdit
+                                                        subjects={subjects}
+                                                        programs={programs}
+                                                        teachers={teachers}
+                                                        sections={sections}
+                                                        buildings={buildings}
                                                         section={section}
-                                                        reduxField={['section', 'subjects', 'units']}
-                                                        reduxFunction={editSection}
                                                         errorMessage={errorMessage}
                                                         setErrorMessage={setErrorMessage}
                                                         errorField={errorField}
@@ -488,7 +467,7 @@ const SectionListContainer = ({
                                                     />
 
                                                     <DeleteData
-                                                        className='btn btn-xs btn-ghost text-red-500' 
+                                                        className='btn btn-xs btn-ghost text-red-500'
                                                         collection={'sections'}
                                                         id={section.custom_id}
                                                     />
