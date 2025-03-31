@@ -16,7 +16,6 @@ const ScheduleModal = ({ outerKey, groupedByTime, buildingInfo, role, department
     const generatePDF = () => {
         const doc = new jsPDF('landscape');
     
-        // Title Section (Bold & Bigger Font)
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(16);
         doc.text(`${outerKey} - Schedule`, 14, 15);
@@ -168,6 +167,9 @@ const ScheduleModal = ({ outerKey, groupedByTime, buildingInfo, role, department
         </dialog>
     );
 };
+  
+
+
 
 const Search = () => {
     // const dispatch = useDispatch();
