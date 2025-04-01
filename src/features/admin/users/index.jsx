@@ -1,35 +1,71 @@
-import React from 'react';
+import React, { useState } from 'react';
 import CreateUser from './createUser';
 import Breadcrumbs from '@components/Admin/Breadcrumbs';
 import UserList from './userList';
+import EditUser from './editUsers';
 
 const Users = () => {
     const links = [{ name: 'Home', href: '/' }];
+    const [activeTab, setActiveTab] = useState('userList');
+    const [editingUser, setEditingUser] = useState(null);
+
+    const handleEditUser = (userId) => {
+        setEditingUser(userId);
+        setActiveTab('editUser');
+    };
 
     return (
         <div className='App container mx-auto px-4 mb-10'>
             <Breadcrumbs title='Users' links={links} />
 
             <div role='tablist' className='tabs tabs-lifted tabs-lg'>
-                {/* <input type='radio' name='my_tabs_2' role='tab' className='tab' aria-label='User Dashboard' />
-                <div role='tabpanel' className='tab-content bg-base-100 border-base-300 rounded-box p-6'>
-                    Tab content 1
-                </div> */}
-
-                <input type='radio' name='my_tabs_2' role='tab' className='tab' aria-label='Create New User' />
+                <input
+                    type='radio'
+                    name='my_tabs_2'
+                    role='tab'
+                    className='tab'
+                    aria-label='Create New User'
+                    checked={activeTab === 'createUser'}
+                    onChange={() => {
+                        setActiveTab('createUser');
+                        setEditingUser(null);
+                    }}
+                />
                 <div role='tabpanel' className='tab-content bg-base-100 border-base-300 rounded-box p-6'>
                     <CreateUser />
                 </div>
 
-                <input type='radio' name='my_tabs_2' role='tab' className='tab' aria-label='User List' defaultChecked/>
+                <input
+                    type='radio'
+                    name='my_tabs_2'
+                    role='tab'
+                    className='tab'
+                    aria-label='User List'
+                    checked={activeTab === 'userList'}
+                    onChange={() => {
+                        setActiveTab('userList');
+                        setEditingUser(null);
+                    }}
+                />
                 <div role='tabpanel' className='tab-content bg-base-100 border-base-300 rounded-box p-6'>
-                    <UserList />
+                    <UserList onEditUser={handleEditUser} />
                 </div>
 
-                {/* <input type='radio' name='my_tabs_2' role='tab' className='tab' aria-label='User Logs' />
-                <div role='tabpanel' className='tab-content bg-base-100 border-base-300 rounded-box p-6'>
-                    Tab content 3
-                </div> */}
+                <input
+                    type='radio'
+                    name='my_tabs_2'
+                    role='tab'
+                    className='tab'
+                    aria-label='Edit User'
+                    checked={activeTab === 'editUser'}
+                    onChange={() => setActiveTab('editUser')}
+                    disabled={!editingUser}
+                />
+                {activeTab === 'editUser' && (
+                    <div role='tabpanel' className='tab-content bg-base-100 border-base-300 rounded-box p-6'>
+                        <EditUser userId={editingUser} />
+                    </div>
+                )}
             </div>
         </div>
     );

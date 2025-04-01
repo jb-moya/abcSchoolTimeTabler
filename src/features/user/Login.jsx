@@ -19,7 +19,7 @@ function Login() {
     // const [errorMessage, setErrorMessage] = useState('');
     const [loginObj, setLoginObj] = useState(INITIAL_LOGIN_OBJ);
 
-    const { user, error: userError, status: userStatus } = useSelector((state) => state.user);
+    const { user, error: userError, loading } = useSelector((state) => state.user);
 
     const submitForm = async (e) => {
         e.preventDefault();
@@ -66,7 +66,7 @@ function Login() {
                         containerStyle='mt-4'
                         labelTitle='Username'
                         updateFormValue={updateFormValue}
-                        disabled={userStatus == 'loading'}
+                        disabled={loading}
                     />
 
                     {/* Password input */}
@@ -77,7 +77,7 @@ function Login() {
                         containerStyle='mt-4'
                         labelTitle='Password'
                         updateFormValue={updateFormValue}
-                        disabled={userStatus == 'loading'}
+                        disabled={loading}
                     />
                 </div>
 
@@ -95,11 +95,11 @@ function Login() {
                 <button
                     type='submit'
                     className={`btn mt-4 w-full btn-primary text-white transition-all duration-75 ease-in-out flex items-center justify-center ${
-                        userStatus == 'loading' ? 'cursor-not-allowed ' : ''
+                        loading ? 'cursor-not-allowed ' : ''
                     }`}
-                    disabled={userStatus == 'loading'}
+                    disabled={loading}
                 >
-                    {userStatus == 'loading' ? (
+                    {loading ? (
                         <>
                             <span className='loading loading-spinner'></span>
                             Logging In

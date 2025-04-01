@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { APP_CONFIG } from '../../../constants';
 import { RiDeleteBin7Line } from 'react-icons/ri';
@@ -84,9 +84,9 @@ const UserList = ({ onEditUser }) => {
                                 <td>
                                     <div
                                         className={`badge ${
-                                            user.role === 'Super Admin'
+                                            user.role.toLowerCase() === 'super admin'
                                                 ? 'badge-error'
-                                                : user.role === 'Admin'
+                                                : user.role.toLowerCase() === 'admin'
                                                 ? 'badge-primary'
                                                 : 'badge-ghost'
                                         }`}

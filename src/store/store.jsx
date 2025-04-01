@@ -12,6 +12,7 @@ import departmentSlice from '../features/slice/department_slice';
 import buildingSlice from '../features/slice/building_slice';
 import timetableSlice from '../features/slice/timetable_slice';
 import userSlice from '../features/userSlice';
+import usersSlice from '../features/admin/users/usersSlice';
 import configurationSlice from '../features/configurationSlice';
 import schedulesReducer from '../features/schedulesSlice';
 
@@ -29,6 +30,7 @@ const combinedReducer = {
   buildings: buildingSlice,
   timetables: timetableSlice,
   user: userSlice,
+  users: usersSlice,
   configuration: configurationSlice,
   schedule: schedulesReducer,
 };

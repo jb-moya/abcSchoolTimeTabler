@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useState } from 'react';
 import InputText from '../../../components/Input/InputText';
 import { useDispatch, useSelector } from 'react-redux';
 import { signUpWithEmailAndPassword } from '../../userSlice';
 import { toast } from 'sonner';
 import { APP_CONFIG } from '../../../constants';
+import { addUser } from './usersSlice';
+
+let filteredPermissions = APP_CONFIG.PERMISSIONS.filter((perm) => perm !== 'Generate Timetable' && perm !== 'Modify TimeTable');
 
 const CreateUser = () => {
     const INITIAL_REGISTER_OBJ = {
@@ -12,13 +15,23 @@ const CreateUser = () => {
         password: '1111111111111',
         confirmPassword: '1111111111111',
         permissions: [],
-        role: '',
+        role: 'admin',
         newUserNotAutoLogin: true,
     };
 
     const dispatch = useDispatch();
     const { loading } = useSelector((state) => state.user);
     const [registerObj, setRegisterObj] = useState(INITIAL_REGISTER_OBJ);
+    const [permissionsList, setPermissionsList] = useState(filteredPermissions);
+    const [role, setRole] = useState(registerObj.role);
+
+    useEffect(() => {
+        if (role === 'Super Admin') {
+            setPermissionsList(APP_CONFIG.PERMISSIONS);
+        } else {
+            setPermissionsList(filteredPermissions);
+        }
+    }, [role]);
 
     const handleCheckboxChange = (event, routeName) => {
         const { value, checked } = event.target;
@@ -30,6 +43,8 @@ const CreateUser = () => {
         updateFormValue({ updateType: 'permissions', value: updatedPermissions });
     };
 
+    const resetForm = () => setRegisterObj(INITIAL_REGISTER_OBJ);
+
     const updateFormValue = ({ updateType, value }) => {
         setRegisterObj({ ...registerObj, [updateType]: value });
     };
@@ -38,7 +53,9 @@ const CreateUser = () => {
         e.preventDefault();
 
         try {
-            await dispatch(signUpWithEmailAndPassword(registerObj)).unwrap(); // Ensures promise rejection is thrown
+            const newUserData = await dispatch(signUpWithEmailAndPassword(registerObj)).unwrap(); // Ensures promise rejection is thrown
+            dispatch(addUser({id: newUserData.uid, ...newUserData}));
+            resetForm();
             console.log('Successfully registered');
         } catch (error) {
             toast.error(error);
@@ -88,39 +105,24 @@ const CreateUser = () => {
 
                 <div className='pt-6'></div>
                 <div className='divider divider-start'>
-                    Permissions <span className='text-sm'>grant user access to the following</span>
-                </div>
-
-                <div className='space-y-1'>
-                    {APP_CONFIG.PERMISSIONS.map((routeName, index) => (
-                        <div key={index} className='flex gap-2'>
-                            <input
-                                type='checkbox'
-                                className='checkbox checkbox-success'
-                                onChange={(e) => handleCheckboxChange(e, routeName)}
-                            />
-                            <div>{routeName}</div>
-                        </div>
-                    ))}
-                </div>
-
-                <div className='pt-6'></div>
-                <div className='divider divider-start'>
                     Role <span className='text-sm'></span>
                 </div>
 
                 <div className='form-control w-52'>
-                    <label className='label cursor-pointer'>
+                    {/* <label className='label cursor-pointer'>
                         <span className='label-text'>Super Admin</span>
                         <input
                             type='radio'
                             name='role'
                             className='radio checked:bg-red-500'
-                            value='superAdmin'
-                            checked={registerObj.role === 'superAdmin'}
-                            onChange={(e) => updateFormValue({ updateType: 'role', value: e.target.value })}
+                            value='Super Admin'
+                            checked={registerObj.role === 'Super Admin'}
+                            onChange={(e) => {
+                                updateFormValue({ updateType: 'role', value: e.target.value });
+                                setRole(e.target.value);
+                            }}
                         />
-                    </label>
+                    </label> */}
                 </div>
                 <div className='form-control w-52'>
                     <label className='label cursor-pointer'>
@@ -131,9 +133,30 @@ const CreateUser = () => {
                             className='radio checked:bg-blue-500'
                             value='admin'
                             checked={registerObj.role === 'admin'}
-                            onChange={(e) => updateFormValue({ updateType: 'role', value: e.target.value })}
+                            onChange={(e) => {
+                                updateFormValue({ updateType: 'role', value: e.target.value });
+                                setRole(e.target.value);
+                            }}
                         />
                     </label>
+                </div>
+
+                <div className='pt-6'></div>
+                <div className='divider divider-start'>
+                    Permissions <span className='text-sm'>grant user access to the following</span>
+                </div>
+
+                <div className='space-y-1'>
+                    {permissionsList.map((routeName, index) => (
+                        <div key={index} className='flex gap-2'>
+                            <input
+                                type='checkbox'
+                                className='checkbox checkbox-success'
+                                onChange={(e) => handleCheckboxChange(e, routeName)}
+                            />
+                            <div>{routeName}</div>
+                        </div>
+                    ))}
                 </div>
 
                 <div className='pt-6'></div>

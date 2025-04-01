@@ -5,24 +5,44 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'sonner';
 import { APP_CONFIG } from '../../../constants';
 import { useUserById } from './hooks/useUsers';
+import { useEditUser } from './hooks/useUpdateUser';
+import { editUser as editUserAction } from './usersSlice';
+
+let filteredPermissions = APP_CONFIG.PERMISSIONS.filter((perm) => perm !== 'Generate Timetable' && perm !== 'Modify TimeTable');
+
 
 const EditUser = ({ userId }) => {
     const editUserInfo = useUserById(userId);
     const dispatch = useDispatch();
     const { loading } = useSelector((state) => state.user);
     const [registerObj, setRegisterObj] = useState({
-        email: '',
+        // email: '',
         permissions: [],
-        role: 'user',
+        // role: '',
+        // oldPassword: '',
+        // newPassword: '',
+        // confirmPassword: '',
     });
 
-    // Update form when user data is loaded
+    const { editUser, loading: editUserLoading, error: editUserError } = useEditUser();
+
+    const resetForm = () => setRegisterObj({ email: '', permissions: [], role: '' });
+
+    useEffect(() => {
+        console.log('editUserInfo', editUserInfo);
+
+        return () => {
+            resetForm();
+        };
+    }, []);
+
     useEffect(() => {
         if (editUserInfo) {
+            console.log('🚀 ~ useEffect ~ editUserInfo.email:', editUserInfo.email);
             setRegisterObj({
                 email: editUserInfo.email || '',
                 permissions: editUserInfo.permissions || [],
-                role: editUserInfo.role || 'user',
+                role: editUserInfo.role || 'Admin',
             });
         }
     }, [editUserInfo]);
@@ -44,7 +64,8 @@ const EditUser = ({ userId }) => {
         e.preventDefault();
 
         try {
-            // TODO: Implement update user functionality
+            await editUser(userId, registerObj);
+            dispatch(editUserAction({ id: userId, ...registerObj }));
             toast.success('User updated successfully');
         } catch (error) {
             toast.error(error.message);
@@ -62,14 +83,14 @@ const EditUser = ({ userId }) => {
     return (
         <div>
             <form onSubmit={async (e) => await submitForm(e)} className='space-y-2'>
-                <div className='divider divider-start'>
+                {/* <div className='divider divider-start'>
                     Account Details <span className='text-sm'></span>
                 </div>
 
                 <div className='w-96'>
                     <div>
                         <InputText
-                            defaultValue={registerObj.email}
+                            defaultValue={editUserInfo.email}
                             updateType='email'
                             containerStyle=''
                             labelTitle='Email'
@@ -80,11 +101,42 @@ const EditUser = ({ userId }) => {
 
                 <div className='pt-6'></div>
                 <div className='divider divider-start'>
-                    Permissions <span className='text-sm'>grant user access to the following</span>
+                    Change Password <span className='text-sm'></span>
+                </div>
+
+                <div className='w-96'>
+                    <div>
+                        <InputText
+                            defaultValue={registerObj.newPassword}
+                            type='password'
+                            updateType='newPassword'
+                            containerStyle=''
+                            labelTitle='New Password'
+                            updateFormValue={updateFormValue}
+                        />
+                    </div>
+                </div>
+
+                <div className='w-96'>
+                    <div>
+                        <InputText
+                            defaultValue={registerObj.confirmPassword}
+                            type='password'
+                            updateType='confirmPassword'
+                            containerStyle=''
+                            labelTitle='Confirm New Password'
+                            updateFormValue={updateFormValue}
+                        />
+                    </div>
+                </div> */}
+
+                <div className='pt-6'></div>
+                <div className='divider divider-start'>
+                    Update {editUserInfo.email}'s Permissions <span className='text-sm'>edit user access to the following</span>
                 </div>
 
                 <div className='space-y-1'>
-                    {APP_CONFIG.PERMISSIONS.map((routeName, index) => (
+                    {filteredPermissions.map((routeName, index) => (
                         <div key={index} className='flex gap-2'>
                             <input
                                 type='checkbox'
@@ -97,7 +149,7 @@ const EditUser = ({ userId }) => {
                     ))}
                 </div>
 
-                <div className='pt-6'></div>
+                {/* <div className='pt-6'></div>
                 <div className='divider divider-start'>
                     Role <span className='text-sm'></span>
                 </div>
@@ -110,7 +162,7 @@ const EditUser = ({ userId }) => {
                             name='role'
                             className='radio checked:bg-red-500'
                             value='superAdmin'
-                            checked={registerObj.role === 'superAdmin'}
+                            checked={editUserInfo.role === 'super admin'}
                             onChange={(e) => updateFormValue({ updateType: 'role', value: e.target.value })}
                         />
                     </label>
@@ -123,21 +175,22 @@ const EditUser = ({ userId }) => {
                             name='role'
                             className='radio checked:bg-blue-500'
                             value='admin'
-                            checked={registerObj.role === 'admin'}
+                            checked={editUserInfo.role === 'admin'}
                             onChange={(e) => updateFormValue({ updateType: 'role', value: e.target.value })}
                         />
                     </label>
-                </div>
+                </div> */}
 
                 <div className='pt-6'></div>
+                <div>{editUserError && <div className='alert alert-error'>{editUserError}</div>}</div>
                 <button
                     type='submit'
                     className={`btn mt-4 w-full btn-primary text-white transition-all duration-75 ease-in-out flex items-center justify-center ${
-                        loading ? 'cursor-not-allowed' : ''
+                        loading || editUserLoading ? 'cursor-not-allowed' : ''
                     }`}
-                    disabled={loading}
+                    disabled={loading || editUserLoading}
                 >
-                    {loading ? (
+                    {loading || editUserLoading ? (
                         <>
                             <span className='loading loading-spinner'></span>
                             Updating...
