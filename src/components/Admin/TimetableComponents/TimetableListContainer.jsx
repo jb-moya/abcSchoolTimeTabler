@@ -16,7 +16,6 @@ import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 import { addDocument } from '../../../hooks/CRUD/addDocument';
 
 const TimetableListContainer = ({}) => {
-    
     const dispatch = useDispatch();
     const location = useLocation();
     const navigate = useNavigate();
@@ -56,10 +55,10 @@ const TimetableListContainer = ({}) => {
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
     const { documents: schedules, loading1, error1 } = fetchDocuments('schedules');
-    const { documents: teachers, loading2, error2 } = fetchDocuments('teachers');
+    // const { documents: teachers, loading2, error2 } = fetchDocuments('teachers');
 
-    const { documents: sections, loading3, error3 } = fetchDocuments('sections');
-    const { documents: subjects, loading4, error4 } = fetchDocuments('subjects');
+    // const { documents: sections, loading3, error3 } = fetchDocuments('sections');
+    // const { documents: subjects, loading4, error4 } = fetchDocuments('subjects');
 
     console.log('schedules: ', schedules);
     // const { documents: sections, loading2, error2 } = fetchDocuments('sections');
@@ -79,7 +78,9 @@ const TimetableListContainer = ({}) => {
     // ==================================================================================================
 
     const table = location.state?.generatedMap ?? new Map();
-
+    const sections = location.state?.sectionsStore ?? {};
+    const teachers = location.state?.teachersStore ?? {};
+    const subjects = location.state?.subjectsStore ?? {};
     // ===================================================================================================
 
     // const [editRankId, setEditRankId] = useState(null);
@@ -292,9 +293,7 @@ const TimetableListContainer = ({}) => {
                                                             <RiEdit2Fill size={20} />
                                                         </button>
 
-                                                        <DeleteData
-                                                            id={schedule.id}
-                                                        />
+                                                        <DeleteData id={schedule.id} />
                                                     </div>
                                                 </td>
                                             </tr>

@@ -670,9 +670,10 @@ const ModifyTimetableContainer = ({
     }, [hashMap]);
 
     useEffect(() => {
-        const startTime = localStorage.getItem('morningStartTime') || '08:00 PM';
+        const startTime = '06:00 AM';
         const endTime = '08:00 PM';
-
+        console.log('starttime: ', startTime);
+        console.log('endtime: ', endTime);
         const slots = generateTimeSlots(startTime, endTime, 60); // You can change the interval here
         const tableHeight = Math.round(110.625 * slots.length);
         // console.log(slots)

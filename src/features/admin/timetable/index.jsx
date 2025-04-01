@@ -85,7 +85,7 @@ function getVacantSlots(totalTimeslot, numOfSchoolDays, fixedPositions, fixedDay
 }
 
 function Timetable() {
-    const dispatch = useDispatch();
+    // const dispatch = useDispatch();
     const navigate = useNavigate();
 
     // ====================================================================================================================================
@@ -102,22 +102,98 @@ function Timetable() {
 
     /* TIMETABLE DATA */
     const [buildingsStore, setBuildings] = useState({});
+    const [subjectsStore, setSubjects] = useState({});
+    const [programsStore, setPrograms] = useState({});
+    const [ranksStore, setRanks] = useState({});
+    const [teachersStore, setTeachers] = useState({});
+    const [departmentsStore, setDepartments] = useState({});
+    const [sectionsStore, setSections] = useState({});
 
-    const { documents: subjectsStore, loading1, error1 } = fetchDocuments('subjects');
+    const { documents: subjectRaw, loading1, error1 } = fetchDocuments('subjects');
 
-    const { documents: programsStore, loading2, error2 } = fetchDocuments('programs');
+    const { documents: programsRaw, loading2, error2 } = fetchDocuments('programs');
 
-    const { documents: ranksStore, loading3, error3 } = fetchDocuments('ranks');
+    const { documents: ranksRaw, loading3, error3 } = fetchDocuments('ranks');
 
-    const { documents: teachersStore, loading4, error4 } = fetchDocuments('teachers');
+    const { documents: teachersRaw, loading4, error4 } = fetchDocuments('teachers');
 
-    const { documents: departmentsStore, loading5, error5 } = fetchDocuments('departments');
+    const { documents: departmentsRaw, loading5, error5 } = fetchDocuments('departments');
 
-    const { documents: sectionsStore, loading6, error6 } = fetchDocuments('sections');
+    const { documents: sectionsRaw, loading6, error6 } = fetchDocuments('sections');
 
     const { documents: stringfy_buildings, loading7, error7 } = fetchDocuments('buildings');
 
-    // Convert the stringified buildings object
+    // ====================================================================================================================================
+    function modifyData(data) {
+        const modifiedData = {};
+
+        Object.keys(data).forEach((key) => {
+            const item = data[key];
+            modifiedData[key] = {
+                id: item.custom_id,
+                firebaseID: item.id,
+            };
+
+            Object.keys(item).forEach((prop) => {
+                if (!['custom_id', 'id'].includes(prop)) {
+                    modifiedData[key][prop] = item[prop];
+                }
+            });
+        });
+
+        return modifiedData;
+    }
+
+    // ====================================================================================================================================
+
+    useEffect(() => {
+        try {
+            setSubjects(modifyData(subjectRaw));
+        } catch (error) {
+            console.error('Failed to modify subject data:', error);
+        }
+    }, [subjectRaw]);
+
+    useEffect(() => {
+        try {
+            setPrograms(modifyData(programsRaw));
+        } catch (error) {
+            console.error('Failed to modify programs data:', error);
+        }
+    }, [programsRaw]);
+
+    useEffect(() => {
+        try {
+            setRanks(modifyData(ranksRaw));
+        } catch (error) {
+            console.error('Failed to modify ranks data:', error);
+        }
+    }, [ranksRaw]);
+
+    useEffect(() => {
+        try {
+            setTeachers(modifyData(teachersRaw));
+        } catch (error) {
+            console.error('Failed to modify teachers data:', error);
+        }
+    }, [teachersRaw]);
+
+    useEffect(() => {
+        try {
+            setDepartments(modifyData(departmentsRaw));
+        } catch (error) {
+            console.error('Failed to modify departments data:', error);
+        }
+    }, [departmentsRaw]);
+
+    useEffect(() => {
+        try {
+            setSections(modifyData(sectionsRaw));
+        } catch (error) {
+            console.error('Failed to modify sections data:', error);
+        }
+    }, [sectionsRaw]);
+
     useEffect(() => {
         try {
             const converted_buildings = Object.values(stringfy_buildings).reduce((acc, { custom_id, data, id }) => {
@@ -125,13 +201,49 @@ function Timetable() {
                 acc[custom_id] = { ...parsedData, id, custom_id }; // Include id and custom_id inside data
                 return acc;
             }, {});
-            console.log('converted_buildings: ', converted_buildings);
+            console.log('buildingsRaw: ', converted_buildings);
 
-            setBuildings(converted_buildings);
+            setBuildings(modifyData(converted_buildings));
         } catch (error) {
             console.error('Failed to parse buildings JSON:', error);
         }
     }, [stringfy_buildings]);
+
+    useEffect(() => {
+        // console.log('subjectsStore: ', subjectsStore);
+        // console.log('programsStore: ', programsStore);
+        // console.log('ranksStore: ', ranksStore);
+        // console.log('teachersStore: ', teachersStore);
+        // console.log('departmentsStore: ', departmentsStore);
+        // console.log('sectionsStore: ', sectionsStore);
+        // console.log('stringfy_buildings: ', stringfy_buildings);
+        // console.log('buildingsStore: ', buildingsStore);
+    }, [
+        subjectsStore,
+        programsStore,
+        ranksStore,
+        teachersStore,
+        departmentsStore,
+        sectionsStore,
+        stringfy_buildings,
+        buildingsStore,
+    ]);
+
+    console.log('subjectRaw: ', subjectRaw);
+    console.log('programsRaw: ', programsRaw);
+    console.log('ranksRaw: ', ranksRaw);
+    console.log('teachersRaw: ', teachersRaw);
+    console.log('departmentsRaw: ', departmentsRaw);
+    console.log('sectionsRaw: ', sectionsRaw);
+
+    console.log('subjectsStore: ', subjectsStore);
+    console.log('programsStore: ', programsStore);
+    console.log('ranksStore: ', ranksStore);
+    console.log('teachersStore: ', teachersStore);
+    console.log('departmentsStore: ', departmentsStore);
+    console.log('sectionsStore: ', sectionsStore);
+    console.log('stringfy_buildings: ', stringfy_buildings);
+    console.log('buildingsStore: ', buildingsStore);
 
     // =====================================================================================================================================
 
@@ -252,10 +364,17 @@ function Timetable() {
         console.log('subjectMapReverse: ', subjectMapReverse);
         const teacherMap = Object.entries(teacherData).reduce((acc, [, teacher], index) => {
             acc[index] = {
-                subjects: teacher.subjects.map((subjectID) => subjectMapReverse[subjectID].id),
+                subjects: teacher.subjects.map((subjectID) => {
+                    console.log('teacher.subjects: ', teacher.subjects);
+                    console.log('subjectMapReverse[subjectID]:', subjectMapReverse[subjectID]);
+                    console.log('[subjectID]:', subjectID);
+                    console.log('[subjectMapReverse]:', subjectMapReverse);
+                    return subjectMapReverse[subjectID].id;
+                }),
                 id: teacher.id,
                 additionalTeacherScheds: teacher.additionalTeacherScheds || [],
             };
+
             return acc;
         }, {});
 
@@ -1249,7 +1368,7 @@ function Timetable() {
         // console.log('teacherEdited: ', teacherEdited);
         const generatedMap = combineMaps(sectionEdited, teacherEdited);
         console.log('DATA SA DRAGDROP: ', generatedMap);
-        navigate('/app/admin/modify-timetable', { state: { generatedMap } });
+        navigate('/app/admin/modify-timetable', { state: { generatedMap, subjectsStore, sectionsStore, teachersStore } });
 
         // setMapVal(combined);
     };
@@ -1936,7 +2055,7 @@ function Timetable() {
                         })}
                         onClick={() => {
                             // if (validate()) {
-                            handleButtonClick(subjects, buildings, teachers, sections);
+                            handleButtonClick(subjectsStore, buildingsStore, teachersStore, sectionsStore);
                             // }
                         }}
                         disabled={timetableGenerationStatus === 'running'}
