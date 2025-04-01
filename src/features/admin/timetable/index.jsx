@@ -1,4 +1,4 @@
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { wrap } from 'comlink';
@@ -12,6 +12,9 @@ import WasmWorker from '@src/wasm.worker?worker';
 import { clearAllEntriesAndResetIDs } from '@src/indexedDB';
 
 import Configuration from '@components/Admin/Configuration';
+import ViolationList from '@components/Admin/ViolationList';
+
+import validateTimetableVariables from '@validation/validateTimetableVariables';
 
 import packInt16ToInt32 from '@utils/packInt16ToInt32';
 import { unpackInt32ToInt16 } from '@utils/packInt16ToInt32';
@@ -31,6 +34,11 @@ import NotificationHandler from '@components/Admin/NotificationHandler';
 import Breadcrumbs from '@components/Admin/Breadcrumbs';
 
 import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+
+import { fetchSections, editSection } from '@features/sectionSlice';
+import { fetchPrograms, editProgram } from '@features/programSlice';
+import { fetchSubjects } from '@features/subjectSlice';
+import { fetchBuildings } from '@features/buildingSlice';
 
 enableMapSet();
 const getTimetable = wrap(new WasmWorker());
@@ -98,9 +106,11 @@ function Timetable() {
     // ====================================================================================================================================
 
     /* CONFIGURATIONS */
+
     const { minTeacherLoad: minTeachingLoad, maxTeacherLoad: maxTeachingLoad } = useSelector((state) => state.configuration);
 
     /* TIMETABLE DATA */
+
     const [buildingsStore, setBuildings] = useState({});
     const [subjectsStore, setSubjects] = useState({});
     const [programsStore, setPrograms] = useState({});
@@ -277,7 +287,11 @@ function Timetable() {
 
     const [teacherTimetables, setTeacherTimetables] = useState({});
 
+    const [mapVal, setMapVal] = useState(new Map());
+
     const [timetableGenerationStatus, setTimetableGenerationStatus] = useState('idle');
+
+    const [violations, setViolations] = useState([]);
 
     // Scope and Limitations
     // Room-Section Relationship: Each room is uniquely assigned to a specific subject, establishing a 1:1 relationship.
@@ -286,6 +300,28 @@ function Timetable() {
     // They do not have the option to select subjects independently.
     // Standardized Class Start and Break Times: The start time for the first class and the timing of breaks are
     // standardized across all sections and teachers, ensuring uniformity in the daily schedule.
+
+    const validate = () => {
+        const { canProceed, violations } = validateTimetableVariables({
+            sections: sectionsStore,
+            teachers: teachersStore,
+            subjects: subjectsStore,
+            programs: programsStore,
+        });
+
+        if (!canProceed) {
+            if (violations.some((v) => v.type === 'emptyDatabase')) {
+                toast.error('One or more tables are empty.');
+            } else {
+                toast.error('Invalid timetable variables');
+            }
+            setViolations(violations);
+            return false;
+        }
+
+        setViolations([]);
+        return true;
+    };
 
     const handleButtonClick = async (subjectData, buildingData, teacherData, sectionData) => {
         const subjectMap = Object.entries(subjectData).reduce((acc, [, value], index) => {
@@ -1861,6 +1897,100 @@ function Timetable() {
         };
     }, [timetableGenerationStatus]); // The effect depends on the isProcessRunning state
 
+    // const makeOtherTable = (table) => {
+    //     let othertable = {};
+    //     console.log("orig data: ",table);
+    // };
+
+    // makeOtherTable(sectionTimetables)
+    // makeOtherTable(teacherTimetables)
+
+    // const convertToHashMap = (inputObj) => {
+    //     const resultMap = new Map(); // Initialize the outer Map
+
+    //     // Iterate through each section in the input object
+    //     for (let tableKey in inputObj) {
+    //         let sectionData = inputObj[tableKey];
+    //         // Each section has a container name
+    //         let setTableKey = `${sectionData.containerName} - ${tableKey}`;
+
+    //         // Check if the tableKey already exists under the tableKey
+    //         if (!resultMap.has(setTableKey)) {
+    //             resultMap.set(setTableKey, new Map());
+    //         }
+    //         const scheduleMap = resultMap.get(setTableKey);
+
+    //         // Iterate through the nested objects (0, 1, 2,...)
+    //         for (let key in sectionData) {
+    //             // Skip the tableKey field to prevent redundant processing
+    //             if (key === 'containerName') continue;
+    //             // Iterate through inner objects (0, 1, 2,...)
+    //             for (let innerKey in sectionData[key]) {
+    //                 let schedule = sectionData[key][innerKey];
+    //                 const type = schedule.teacher ? 'section' : 'teacher';
+    //                 const partnerType = type === 'teacher' ? 'section' : 'teacher';
+
+    //                 if (innerKey === '0') {
+    //                     for (let i = 1; i <= 5; i++) {
+    //                         const scheduleKey = `section-${schedule.sectionID}-teacher-${schedule.teacherID}-subject-${schedule.subjectID}-day-${i}-type-${type}`;
+    //                         // Add the schedule to the nested Map
+    //                         const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
+
+    //                         scheduleMap.set(scheduleKey, {
+    //                             start: schedule.start,
+    //                             end: schedule.end,
+    //                             sectionID: schedule.sectionID,
+    //                             subject: schedule.subject,
+    //                             subjectID: schedule.subjectID,
+    //                             teacherID: schedule.teacherID,
+    //                             tableKey: setTableKey,
+    //                             partnerKey: keyToFind,
+    //                             id: scheduleKey,
+    //                             dynamicID: scheduleKey,
+    //                             day: i,
+    //                             overlap: false,
+    //                             type: type,
+    //                             ...(schedule.section && {
+    //                                 section: schedule.section,
+    //                             }), // Add section if it exists
+    //                             ...(schedule.teacher && {
+    //                                 teacher: schedule.teacher,
+    //                             }), // Add section if it exists
+    //                         });
+    //                     }
+    //                 } else {
+    //                     // Use sectionID, subjectID, and start time to create a unique key for the schedule
+    //                     const scheduleKey = `section-${schedule.sectionID}-teacher-${schedule.teacherID}-subject-${schedule.subjectID}-day-${innerKey}-type-${type}`;
+    //                     const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
+    //                     // Add the schedule to the nested Map
+    //                     scheduleMap.set(scheduleKey, {
+    //                         start: schedule.start,
+    //                         end: schedule.end,
+    //                         sectionID: schedule.sectionID,
+    //                         subject: schedule.subject,
+    //                         subjectID: schedule.subjectID,
+    //                         teacherID: schedule.teacherID,
+    //                         tableKey: setTableKey,
+    //                         partnerKey: keyToFind,
+    //                         type: type,
+    //                         id: scheduleKey,
+    //                         dynamicID: scheduleKey,
+    //                         day: Number(innerKey),
+    //                         ...(schedule.section && {
+    //                             section: schedule.section,
+    //                         }), // Add section if it exists
+    //                         ...(schedule.teacher && {
+    //                             teacher: schedule.teacher,
+    //                         }), // Add section if it exists
+    //                     });
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     return resultMap;
+    // };
+
     const convertToHashMap = (inputMap, type) => {
         const resultMap = new Map(); // Initialize the outer Map
         // console.log('morningStartTime: ', morningStartTime);
@@ -2081,6 +2211,19 @@ function Timetable() {
                 />
             </div>
 
+            {/* Responsive card layout for Subject and Teacher Lists */}
+            {/* 
+                <div className="flex flex-col lg:flex-row gap-6">
+                    <div className="w-full lg:w-4/12 bg-base-100 p-6 rounded-lg shadow-lg">
+                        <h2 className="text-lg font-semibold mb-4">Subjects</h2>
+                        <SubjectListContainer />
+                    </div>
+                    <div className="w-full lg:w-8/12 bg-base-100 p-6 rounded-lg shadow-lg">
+                        <h2 className="text-lg font-semibold mb-4">Teachers</h2>
+                        <TeacherListContainer />
+                    </div>
+                </div> 
+            */}
             <div>
                 <div className='mt-6 bg-base-100 p-6 rounded-lg shadow-lg'>
                     <h2 className='text-lg font-semibold mb-4'>Subjects</h2>
@@ -2141,6 +2284,43 @@ function Timetable() {
                     EXPORT SCHEDULES
                 </button>
             )}
+            {/* {mapVal && mapVal.size > 0 && (
+                <>
+                    <ForTest hashMap={mapVal} />
+                </>
+            )} */}
+
+            {/* pag section need Container section + sectionid + teacherid for error */}
+            {/* 
+                <GeneratedTimetable
+                    sectionTimetables={sectionTimetables}
+                    teacherTimetables={teacherTimetables}
+                    onUpdateTimetables={setSectionTimetables}
+                    errors={{
+                        containerName: 'Rosas',
+                        teacherID: [9],
+                        sectionID: [7],
+                    }}
+                /> 
+            */}
+
+            {/* pag teacher need Container teacher + sectionid + subjectid for error */}
+            {/* 
+                <GeneratedTimetable
+                    sectionTimetables={sectionTimetables}
+                    teacherTimetables={teacherTimetables}
+                    fieldparam={'teacher'}
+                    columnField={['subject', 'section']}
+                    onUpdateTimetables={setTeacherTimetables}
+                    errors={{
+                        containerName: 'Mark Tagalogon',
+                        subjectID: [6],
+                        sectionID: [7],
+                    }}
+                /> 
+            */}
+
+            {/* <div className="grid grid-cols-1 col-span-full gap-4 sm:grid-cols-2"></div> */}
         </div>
     );
 }
