@@ -85,6 +85,7 @@ function getVacantSlots(totalTimeslot, numOfSchoolDays, fixedPositions, fixedDay
 }
 
 function Timetable() {
+    // const dispatch = useDispatch();
     const navigate = useNavigate();
 
     // ====================================================================================================================================
@@ -101,21 +102,25 @@ function Timetable() {
 
     /* TIMETABLE DATA */
     const [buildingsStore, setBuildings] = useState({});
+    const [subjectsStore, setSubjects] = useState({});
+    const [programsStore, setPrograms] = useState({});
+    const [ranksStore, setRanks] = useState({});
+    const [teachersStore, setTeachers] = useState({});
+    const [departmentsStore, setDepartments] = useState({});
+    const [sectionsStore, setSections] = useState({});
 
-    const [subjects, setSubjects] = useState({});
-    const [buildings, setBuildings_1] = useState({});
-    const [teachers, setTeachers] = useState({});
-    const [sections, setSections] = useState({});
-    const [programs, setPrograms] = useState({});
-    const [ranks, setRanks] = useState({});
-    const [departments, setDepartments] = useState({});
+    const { documents: subjectRaw, loading1, error1 } = fetchDocuments('subjects');
 
-    const { documents: subjectsStore, loading1, error1 } = fetchDocuments('subjects');
-    const { documents: programsStore, loading2, error2 } = fetchDocuments('programs');
-    const { documents: ranksStore, loading3, error3 } = fetchDocuments('ranks');
-    const { documents: teachersStore, loading4, error4 } = fetchDocuments('teachers');
-    const { documents: departmentsStore, loading5, error5 } = fetchDocuments('departments');
-    const { documents: sectionsStore, loading6, error6 } = fetchDocuments('sections');
+    const { documents: programsRaw, loading2, error2 } = fetchDocuments('programs');
+
+    const { documents: ranksRaw, loading3, error3 } = fetchDocuments('ranks');
+
+    const { documents: teachersRaw, loading4, error4 } = fetchDocuments('teachers');
+
+    const { documents: departmentsRaw, loading5, error5 } = fetchDocuments('departments');
+
+    const { documents: sectionsRaw, loading6, error6 } = fetchDocuments('sections');
+
     const { documents: stringfy_buildings, loading7, error7 } = fetchDocuments('buildings');
 
     // ====================================================================================================================================
@@ -141,54 +146,53 @@ function Timetable() {
 
     // ====================================================================================================================================
 
-    // Convert the stringified buildings object
     useEffect(() => {
         try {
-            setSubjects(modifyData(subjectsStore));
+            setSubjects(modifyData(subjectRaw));
         } catch (error) {
             console.error('Failed to modify subject data:', error);
         }
-    }, [subjectsStore]);
+    }, [subjectRaw]);
 
     useEffect(() => {
         try {
-            setPrograms(modifyData(programsStore));
+            setPrograms(modifyData(programsRaw));
         } catch (error) {
             console.error('Failed to modify programs data:', error);
         }
-    }, [programsStore]);
+    }, [programsRaw]);
 
     useEffect(() => {
         try {
-            setRanks(modifyData(ranksStore));
+            setRanks(modifyData(ranksRaw));
         } catch (error) {
             console.error('Failed to modify ranks data:', error);
         }
-    }, [ranksStore]);
+    }, [ranksRaw]);
 
     useEffect(() => {
         try {
-            setTeachers(modifyData(teachersStore));
+            setTeachers(modifyData(teachersRaw));
         } catch (error) {
             console.error('Failed to modify teachers data:', error);
         }
-    }, [teachersStore]);
+    }, [teachersRaw]);
 
     useEffect(() => {
         try {
-            setDepartments(modifyData(departmentsStore));
+            setDepartments(modifyData(departmentsRaw));
         } catch (error) {
             console.error('Failed to modify departments data:', error);
         }
-    }, [departmentsStore]);
+    }, [departmentsRaw]);
 
     useEffect(() => {
         try {
-            setSections(modifyData(sectionsStore));
+            setSections(modifyData(sectionsRaw));
         } catch (error) {
             console.error('Failed to modify sections data:', error);
         }
-    }, [sectionsStore]);
+    }, [sectionsRaw]);
 
     useEffect(() => {
         try {
@@ -198,21 +202,48 @@ function Timetable() {
                 return acc;
             }, {});
             console.log('buildingsRaw: ', converted_buildings);
-            setBuildings(converted_buildings);
-            setBuildings_1(modifyData(converted_buildings));
+
+            setBuildings(modifyData(converted_buildings));
         } catch (error) {
             console.error('Failed to parse buildings JSON:', error);
         }
     }, [stringfy_buildings]);
 
-    console.log('subjectsStore: ', subjects);
-    console.log('programsStore: ', programs);
-    console.log('ranksStore: ', ranks);
-    console.log('teachersStore: ', teachers);
-    console.log('departmentsStore: ', departments);
-    console.log('sectionsStore: ', sections);
+    useEffect(() => {
+        // console.log('subjectsStore: ', subjectsStore);
+        // console.log('programsStore: ', programsStore);
+        // console.log('ranksStore: ', ranksStore);
+        // console.log('teachersStore: ', teachersStore);
+        // console.log('departmentsStore: ', departmentsStore);
+        // console.log('sectionsStore: ', sectionsStore);
+        // console.log('stringfy_buildings: ', stringfy_buildings);
+        // console.log('buildingsStore: ', buildingsStore);
+    }, [
+        subjectsStore,
+        programsStore,
+        ranksStore,
+        teachersStore,
+        departmentsStore,
+        sectionsStore,
+        stringfy_buildings,
+        buildingsStore,
+    ]);
 
-    console.log('buildingsStore: ', buildings);
+    console.log('subjectRaw: ', subjectRaw);
+    console.log('programsRaw: ', programsRaw);
+    console.log('ranksRaw: ', ranksRaw);
+    console.log('teachersRaw: ', teachersRaw);
+    console.log('departmentsRaw: ', departmentsRaw);
+    console.log('sectionsRaw: ', sectionsRaw);
+
+    console.log('subjectsStore: ', subjectsStore);
+    console.log('programsStore: ', programsStore);
+    console.log('ranksStore: ', ranksStore);
+    console.log('teachersStore: ', teachersStore);
+    console.log('departmentsStore: ', departmentsStore);
+    console.log('sectionsStore: ', sectionsStore);
+    console.log('stringfy_buildings: ', stringfy_buildings);
+    console.log('buildingsStore: ', buildingsStore);
 
     // =====================================================================================================================================
 
@@ -231,6 +262,14 @@ function Timetable() {
     const [defaultSubjectClassDuration, setDefaultSubjectClassDuration] = useState(() => {
         return parseInt(localStorage.getItem('defaultSubjectDuration'), 10) || 40;
     });
+
+    const [defaultBreakTimeDuration, setDefaultBreakTimeDuration] = useState(() => {
+        return parseInt(localStorage.getItem('breakTimeDuration'), 10) || 30;
+    });
+
+    const [prevNumOfSchoolDays, setPrevNumOfSchoolDays] = useState(numOfSchoolDays);
+
+    const [prevBreakTimeDuration, setPrevBreakTimeDuration] = useState(breakTimeDuration);
 
     // =====================================================================================================================================
 
@@ -253,7 +292,7 @@ function Timetable() {
             acc[index] = value.id;
             return acc;
         }, {});
-
+        console.log('buildingData: ', buildingData);
         const buildingMapReverse = Object.entries(buildingData).reduce((acc, [, value], index) => {
             acc[value.id] = index;
             return acc;
@@ -274,7 +313,7 @@ function Timetable() {
                           .filter((building) => building !== null)
                     : [],
 
-                floorRooms: building.rooms.reduce((acc, roomGroup) => [...acc, roomGroup.length], []),
+                floorRooms: Object.values(building.rooms).map((roomGroup) => roomGroup.length),
             };
             return acc;
         }, {});
@@ -322,13 +361,20 @@ function Timetable() {
             };
             return acc;
         }, {});
-
+        console.log('subjectMapReverse: ', subjectMapReverse);
         const teacherMap = Object.entries(teacherData).reduce((acc, [, teacher], index) => {
             acc[index] = {
-                subjects: teacher.subjects.map((subjectID) => subjectMapReverse[subjectID].id),
+                subjects: teacher.subjects.map((subjectID) => {
+                    console.log('teacher.subjects: ', teacher.subjects);
+                    console.log('subjectMapReverse[subjectID]:', subjectMapReverse[subjectID]);
+                    console.log('[subjectID]:', subjectID);
+                    console.log('[subjectMapReverse]:', subjectMapReverse);
+                    return subjectMapReverse[subjectID].id;
+                }),
                 id: teacher.id,
                 additionalTeacherScheds: teacher.additionalTeacherScheds || [],
             };
+
             return acc;
         }, {});
 
@@ -1023,9 +1069,7 @@ function Timetable() {
         let generatedTimetable = [];
 
         setTimetableGenerationStatus('running');
-        console.log('TIEEEEEEEEEEEZZZZDCDSDSZF SA LABABSS', params2);
         try {
-            console.log('TIEEEEEEEEEEEZZZZDCDSDSZF ', params2);
             const { timetable, status } = await getTimetable(params2);
 
             console.log('🚀 ~ handleButtonClick ~ status:', status);
@@ -1324,7 +1368,7 @@ function Timetable() {
         // console.log('teacherEdited: ', teacherEdited);
         const generatedMap = combineMaps(sectionEdited, teacherEdited);
         console.log('DATA SA DRAGDROP: ', generatedMap);
-        navigate('/app/admin/modify-timetable', { state: { generatedMap, subjects, sections, teachers } });
+        navigate('/app/admin/modify-timetable', { state: { generatedMap, subjectsStore, sectionsStore, teachersStore } });
 
         // setMapVal(combined);
     };
@@ -1528,6 +1572,267 @@ function Timetable() {
         await clearAllEntriesAndResetIDs();
     };
 
+    const handleNumOfSchoolDaysChange = () => {
+        localStorage.setItem('numOfSchoolDays', numOfSchoolDays);
+
+        if (numOfSchoolDays === prevNumOfSchoolDays) return;
+        setPrevNumOfSchoolDays(numOfSchoolDays);
+
+        if (Object.keys(programsStore).length === 0) return;
+
+        // Precompute values
+        const classCountLookup = {};
+        Object.entries(subjectsStore).forEach(([subjectID, subject]) => {
+            (classCountLookup[subjectID] = Math.ceil(subject.weeklyMinutes / subject.classDuration)), numOfSchoolDays;
+        });
+
+        // Update program fixed days and fixed positions
+        Object.entries(programsStore).forEach(([progId, prog]) => {
+            const originalProgram = JSON.parse(JSON.stringify(prog));
+            const newProgram = JSON.parse(JSON.stringify(prog));
+
+            [7, 8, 9, 10].forEach((grade) => {
+                if (newProgram[grade].subjects.length === 0) return;
+
+                newProgram[grade].subjects.map((subId) => {
+                    if (classCountLookup[subId] <= numOfSchoolDays) return;
+
+                    const fixedDays = newProgram[grade].fixedDays[subId];
+                    const fixedPositions = newProgram[grade].fixedPositions[subId];
+
+                    for (let i = 0; i < fixedDays.length; i++) {
+                        if (fixedDays[i] > numOfSchoolDays) {
+                            fixedDays[i] = 0;
+                            fixedPositions[i] = 0;
+                        }
+                    }
+
+                    const numOfClasses = Math.min(classCountLookup[subId], numOfSchoolDays);
+
+                    const dayPositionMap = new Map();
+
+                    fixedDays.forEach((day, index) => {
+                        const pos = fixedPositions[index];
+                        if (
+                            (day !== 0 && pos !== 0) ||
+                            (day !== 0 && pos === 0) ||
+                            (day === 0 && pos !== 0 && !dayPositionMap.has(`${day}-${pos}`))
+                        ) {
+                            dayPositionMap.set(`${day}-${pos}`, [day, pos]);
+                        }
+                    });
+
+                    // console.log('dayPositionMap', dayPositionMap);
+
+                    let result = [];
+                    dayPositionMap.forEach(([day, pos]) => {
+                        if (result.length < numOfClasses) {
+                            result.push([day, pos]);
+                        }
+                    });
+
+                    // console.log('result1', result);
+
+                    // Pad with [0, 0] if necessary
+                    while (result.length < numOfClasses) {
+                        result.push([0, 0]);
+                    }
+
+                    // console.log('result2', result);
+
+                    newProgram[grade].fixedDays[subId] = result.map(([day]) => day);
+                    newProgram[grade].fixedPositions[subId] = result.map(([_, pos]) => pos);
+                });
+
+                if (newProgram[grade].modality.length === 0 || newProgram[grade].modality.length === numOfSchoolDays) return;
+
+                if (newProgram[grade].modality.length > numOfSchoolDays) {
+                    newProgram[grade].modality = newProgram[grade].modality.slice(0, numOfSchoolDays);
+                } else {
+                    newProgram[grade].modality.push(1);
+                }
+            });
+
+            console.log('originalProgram:', originalProgram);
+            console.log('newProgram:', newProgram);
+
+            if (originalProgram !== newProgram) {
+                // dispatch(
+                //     editProgram({
+                //         programId: newProgram.id,
+                //         updatedProgram: newProgram,
+                //     })
+                // );
+                console.log('NAG EDIT PROGRAM');
+            }
+        });
+
+        if (Object.keys(sectionsStore).length === 0) return;
+
+        // Update section fixed days and fixed positions
+        Object.entries(sectionsStore).forEach(([secId, sec]) => {
+            const originalSection = JSON.parse(JSON.stringify(sec));
+            const newSection = JSON.parse(JSON.stringify(sec));
+            console.log('originalSection: ', originalSection);
+            console.log('newSection: ', newSection);
+
+            newSection.subjects.map((subId) => {
+                if (classCountLookup[subId] <= numOfSchoolDays) return;
+
+                const fixedDays = newSection.fixedDays[subId];
+                const fixedPositions = newSection.fixedPositions[subId];
+
+                for (let i = 0; i < fixedDays.length; i++) {
+                    if (fixedDays[i] > numOfSchoolDays) {
+                        fixedDays[i] = 0;
+                        fixedPositions[i] = 0;
+                    }
+                }
+
+                const numOfClasses = Math.min(classCountLookup[subId], numOfSchoolDays);
+
+                const dayPositionMap = new Map();
+
+                fixedDays.forEach((day, index) => {
+                    const pos = fixedPositions[index];
+                    if (
+                        (day !== 0 && pos !== 0) ||
+                        (day !== 0 && pos === 0) ||
+                        (day === 0 && pos !== 0 && !dayPositionMap.has(`${day}-${pos}`))
+                    ) {
+                        dayPositionMap.set(`${day}-${pos}`, [day, pos]);
+                    }
+                });
+
+                // console.log('dayPositionMap', dayPositionMap);
+
+                let result = [];
+                dayPositionMap.forEach(([day, pos]) => {
+                    if (result.length < numOfClasses) {
+                        result.push([day, pos]);
+                    }
+                });
+
+                // console.log('result1', result);
+
+                // Pad with [0, 0] if necessary
+                while (result.length < numOfClasses) {
+                    result.push([0, 0]);
+                }
+
+                // console.log('result2', result);
+
+                newSection.fixedDays[subId] = result.map(([day]) => day);
+                newSection.fixedPositions[subId] = result.map(([_, pos]) => pos);
+            });
+
+            if (newSection.modality.length === 0 || newSection.modality.length === numOfSchoolDays) return;
+
+            if (newSection.modality.length > numOfSchoolDays) {
+                newSection.modality = newSection.modality.slice(0, numOfSchoolDays);
+            } else {
+                newSection.modality.push(1);
+            }
+
+            if (originalSection !== newSection) {
+                console.log('NAG EDIT SECTION D KO ALAM');
+                // dispatch(
+                //     editSection({
+                //         sectionId: newSection.id,
+                //         updatedSection: {
+                //             id: newSection.id,
+                //             teacher: newSection.teacher,
+                //             program: newSection.program,
+                //             section: newSection.section,
+                //             subjects: newSection.subjects,
+                //             fixedDays: newSection.fixedDays,
+                //             fixedPositions: newSection.fixedPositions,
+                //             modality: newSection.modality,
+                //             year: newSection.year,
+                //             shift: newSection.shift,
+                //             startTime: getTimeSlotIndex(newSection.startTime || '06:00 AM'),
+                //         },
+                //     })
+                // );
+            }
+        });
+    };
+
+    const handleBreakTimeDurationChange = () => {
+        // NEW ADDITION
+        localStorage.setItem('breakTimeDuration', breakTimeDuration);
+
+        if (breakTimeDuration === prevBreakTimeDuration) return;
+
+        setPrevBreakTimeDuration(breakTimeDuration);
+
+        if (Object.keys(programsStore).length === 0) return;
+
+        Object.entries(programsStore).forEach(([progId, prog]) => {
+            const originalProgram = JSON.parse(JSON.stringify(prog));
+            const newProgram = JSON.parse(JSON.stringify(prog));
+
+            [7, 8, 9, 10].forEach((grade) => {
+                if (newProgram[grade].subjects.length === 0) return;
+
+                const startTimeIdx = newProgram[grade].startTime;
+                const breakTimeCount = newProgram[grade].subjects.length > 10 ? 2 : 1;
+
+                let totalDuration = breakTimeCount * breakTimeDuration;
+
+                newProgram[grade].subjects.forEach((subId) => {
+                    totalDuration += subjectsStore[subId].classDuration;
+                });
+
+                const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
+
+                newProgram[grade].endTime = endTimeIdx || 216; // 216 = 6:00 PM
+            });
+
+            if (originalProgram !== newProgram) {
+                // dispatch(
+                //     editProgram({
+                //         programId: newProgram.id,
+                //         updatedProgram: newProgram,
+                //     })
+                // );
+                console.log('NAG EDIT PROGRAM PT2');
+            }
+        });
+
+        if (Object.keys(sectionsStore).length === 0) return;
+
+        Object.entries(sectionsStore).forEach(([secId, sec]) => {
+            const originalSection = JSON.parse(JSON.stringify(sec));
+            const newSection = JSON.parse(JSON.stringify(sec));
+
+            if (newSection.subjects.length === 0) return;
+
+            const startTimeIdx = newSection.startTime;
+            const breakTimeCount = newSection.subjects.length > 10 ? 2 : 1;
+
+            let totalDuration = breakTimeCount * breakTimeDuration;
+
+            newSection.subjects.forEach((subId) => {
+                totalDuration += subjectsStore[subId].classDuration;
+            });
+
+            const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
+
+            newSection.endTime = endTimeIdx || 216; // 216 = 6:00 PM
+
+            if (originalSection !== newSection) {
+                // dispatch(
+                //     editSection({
+                //         sectionId: newSection.id,
+                //         updatedSection: newSection,
+                //     })
+                // );
+                console.log('NAG EDIT SECTION PT2');
+            }
+        });
+    };
+
     useEffect(() => {
         console.log('timetableGenerationStatus', timetableGenerationStatus);
 
@@ -1693,6 +1998,34 @@ function Timetable() {
         return combinedMap;
     }
 
+    // function combineMaps(map1, map2) {
+    //     const combinedMap = new Map();
+    //     let currentKey = 1;
+
+    //     // Add entries from map1 starting with key 1
+    //     for (const [, value] of map1.entries()) {
+    //         combinedMap.set(currentKey, value);
+    //         currentKey++;
+    //     }
+
+    //     // Add entries from map2 continuing the sequence
+    //     for (const [, value] of map2?.entries()) {
+    //         combinedMap.set(currentKey, value);
+    //         currentKey++;
+    //     }
+
+    //     console.log('final: ', combinedMap);
+    //     return combinedMap;
+    // }
+
+    useEffect(() => {
+        handleNumOfSchoolDaysChange();
+    }, [numOfSchoolDays]);
+
+    useEffect(() => {
+        handleBreakTimeDurationChange();
+    }, [breakTimeDuration]);
+
     // =====================================================================================================================================
 
     console.log('retrigger index');
@@ -1722,7 +2055,7 @@ function Timetable() {
                         })}
                         onClick={() => {
                             // if (validate()) {
-                            handleButtonClick(subjects, buildings, teachers, sections);
+                            handleButtonClick(subjectsStore, buildingsStore, teachersStore, sectionsStore);
                             // }
                         }}
                         disabled={timetableGenerationStatus === 'running'}

@@ -76,15 +76,89 @@ const TimetableListContainer = ({}) => {
     //     console.log('Updated timetables:', timetables);
     // }, [timetables]);
     // ==================================================================================================
-
     const table = location.state?.generatedMap ?? new Map();
-    const sections = location.state?.sectionsStore ?? {};
-    const teachers = location.state?.teachersStore ?? {};
-    const subjects = location.state?.subjectsStore ?? {};
+
+    // Check if state exists
+    const hasInitialData = Boolean(location.state?.sections && location.state?.teachers && location.state?.subjects);
+    console.log('has fkin data: ', hasInitialData);
+    const [subjects, setSubjects] = useState(() => location.state?.subjects ?? {});
+    const [teachers, setTeachers] = useState(() => location.state?.teachers ?? {});
+    const [sections, setSections] = useState(() => location.state?.sections ?? {});
+
+    function modifyData(data) {
+        const modifiedData = {};
+
+        Object.keys(data).forEach((key) => {
+            const item = data[key];
+            modifiedData[key] = {
+                id: item.custom_id,
+                firebaseID: item.id,
+            };
+
+            Object.keys(item).forEach((prop) => {
+                if (!['custom_id', 'id'].includes(prop)) {
+                    modifiedData[key][prop] = item[prop];
+                }
+            });
+        });
+
+        return modifiedData;
+    }
+
+    // Fetch documents only if state is not set
+    const { documents: subjectsStore, loading2, error2 } = hasInitialData ? {} : fetchDocuments('subjects');
+    const { documents: teachersStore, loading4, error4 } = hasInitialData ? {} : fetchDocuments('teachers');
+    const { documents: sectionsStore, loading6, error6 } = hasInitialData ? {} : fetchDocuments('sections');
+    // Modify and set state only if data is fetched
+    useEffect(() => {
+        if (!hasInitialData && subjectsStore) {
+            try {
+                console.log('NAG SET TNGINA');
+                setSubjects(modifyData(subjectsStore));
+            } catch (error) {
+                console.error('Failed to modify subject data:', error);
+            }
+        }
+    }, [subjectsStore]);
+
+    useEffect(() => {
+        if (!hasInitialData && teachersStore) {
+            try {
+                setTeachers(modifyData(teachersStore));
+            } catch (error) {
+                console.error('Failed to modify teachers data:', error);
+            }
+        }
+    }, [teachersStore]);
+
+    useEffect(() => {
+        if (!hasInitialData && sectionsStore) {
+            try {
+                setSections(modifyData(sectionsStore));
+            } catch (error) {
+                console.error('Failed to modify sections data:', error);
+            }
+        }
+    }, [sectionsStore]);
+
+    useEffect(() => {
+        console.log('subjects log : ', subjects);
+    }, [subjects]);
+
+    useEffect(() => {
+        console.log('teachers log : ', teachers);
+    }, [teachers]);
+
+    useEffect(() => {
+        console.log('sections log : ', sections);
+    }, [sections]);
+
     // ===================================================================================================
 
     // const [editRankId, setEditRankId] = useState(null);
     const [editSchedId, setEditSchedId] = useState(null);
+    const [editSchedFirebaseId, setEditSchedFirebaseId] = useState(null);
+
     const [editSchedName, setEditSchedName] = useState('');
     const [editSchedData, setEditSchedData] = useState('');
 
@@ -101,8 +175,8 @@ const TimetableListContainer = ({}) => {
 
     // ===================================================================================================
 
-    const handleEditClick = (scheduleId) => {
-        console.log();
+    const handleEditClick = (scheduleId, FirebaseId) => {
+        console.log(schedules);
         console.log('editing: ', schedules[scheduleId].data);
         // addDocument('schedules', {
         //     name: schedules[scheduleId].name,
@@ -114,6 +188,7 @@ const TimetableListContainer = ({}) => {
         console.log('scheduleID: ', scheduleId);
         console.log('schedules[scheduleId].name: ', schedules[scheduleId].name);
         setEditSchedId(scheduleId);
+        setEditSchedFirebaseId(FirebaseId);
         setEditSchedName(schedules[scheduleId].name);
         setTimetable(newTimetable);
     };
@@ -288,7 +363,7 @@ const TimetableListContainer = ({}) => {
                                                     <div className='flex'>
                                                         <button
                                                             className='btn btn-xs btn-ghost text-blue-500'
-                                                            onClick={() => handleEditClick(schedule.custom_id)}
+                                                            onClick={() => handleEditClick(schedule.custom_id, schedule.id)}
                                                         >
                                                             <RiEdit2Fill size={20} />
                                                         </button>
@@ -316,6 +391,7 @@ const TimetableListContainer = ({}) => {
                                 hashMap={timetable}
                                 timetableName={editSchedName}
                                 timetableId={editSchedId}
+                                firebaseId={editSchedFirebaseId}
                                 errorMessage={errorMessage}
                                 setErrorMessage={setErrorMessage}
                                 errorField={errorField}

@@ -14,6 +14,8 @@ import clsx from 'clsx';
 import { IoIosAdd, IoIosWarning } from 'react-icons/io';
 import { FiMinus } from 'react-icons/fi';
 import ExportSchedules from './ExportSchedules';
+import { addDocument } from '../../../hooks/CRUD/addDocument';
+import { editDocument } from '../../../hooks/CRUD/editDocument';
 
 function processRows(data, n) {
     // Generate a key from each row ignoring the last element
@@ -54,6 +56,7 @@ const ModifyTimetableContainer = ({
     hashMap = new Map(),
     timetableName = '',
     timetableId = null,
+    firebaseId = null,
     errorMessage,
     setErrorMessage,
     errorField,
@@ -63,6 +66,13 @@ const ModifyTimetableContainer = ({
     sections,
 }) => {
     console.log('timetableName sa loob: ', timetableName);
+    console.log('timetableId sa loob: ', timetableId);
+    console.log('firebaseId sa loob: ', firebaseId);
+    console.log('teachers sa loob: ', teachers);
+    console.log('subjects sa loob: ', subjects);
+
+    console.log('sections sa loob: ', sections);
+
     const dispatch = useDispatch();
     const inputNameRef = useRef();
 
@@ -260,7 +270,7 @@ const ModifyTimetableContainer = ({
 
     const save = () => {
         const array = mapToArray(valueMap);
-
+        console.log('IDTNIGNA: ', timetableId);
         console.log('🚀 ~ save ~ valueMap:', valueMap);
 
         console.log('array          dddddddddd: ', array);
@@ -275,8 +285,9 @@ const ModifyTimetableContainer = ({
             // section_id = row[1][0][3];
             console.log('ROW LOG: ', row);
             tableArray.push(row[0]);
-            tableArray.push(row[2]);
+
             tableArray.push(result);
+            tableArray.push(row[2]);
             // let modality = [];
 
             // if (row[2] === 's') {
@@ -312,7 +323,7 @@ const ModifyTimetableContainer = ({
 
         const duplicateScheduleName = Object.values(schedules).find(
             (schedule) =>
-                schedule.name.trim().toLowerCase() === scheduleVerName.trim().toLowerCase() && schedule.id !== timetableId
+                schedule.name.trim().toLowerCase() === scheduleVerName.trim().toLowerCase() && schedule.custom_id !== timetableId
         );
 
         if (duplicateScheduleName) {
@@ -321,22 +332,30 @@ const ModifyTimetableContainer = ({
             return;
         } else {
             if (timetableId === null) {
-                dispatch(
-                    addSched({
-                        name: scheduleVerName,
-                        data: stringifiedTimeTable,
-                    })
-                );
+                // dispatch(
+                //     addSched({
+                //         name: scheduleVerName,
+                //         data: stringifiedTimeTable,
+                //     })
+                // );
+                addDocument('schedules', {
+                    name: scheduleVerName,
+                    data: stringifiedTimeTable,
+                });
             } else {
-                dispatch(
-                    editSched({
-                        schedId: timetableId,
-                        updatedSched: {
-                            name: scheduleVerName,
-                            data: stringifiedTimeTable,
-                        },
-                    })
-                );
+                // dispatch(
+                //     editSched({
+                //         schedId: timetableId,
+                //         updatedSched: {
+                //             name: scheduleVerName,
+                //             data: stringifiedTimeTable,
+                //         },
+                //     })
+                // );
+                editDocument('schedules', firebaseId, {
+                    name: scheduleVerName,
+                    data: stringifiedTimeTable,
+                });
             }
 
             document.getElementById('confirm_schedule_save_modal').close();
