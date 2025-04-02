@@ -22,7 +22,7 @@ const SubjectListContainer = ({
     breakTimeDuration: externalBreakTimeDuration,
 }) => {
 
-    const dispatch = useDispatch();
+    console.log('subjects: ', subjects);
 
 // ==============================================================================
 
@@ -213,7 +213,7 @@ const SubjectListContainer = ({
                         <tr>
                             <th>ID</th>
                             <th>Subject</th>
-                            <th>Duration HAhah(min)</th>
+                            <th>Duration (min)</th>
                             <th>Weekly Requirement (min)</th>
                             <th># of Classes (Max: {numOfSchoolDays})</th>
                             {editable && <th className='text-left'>Actions</th>}
@@ -231,8 +231,7 @@ const SubjectListContainer = ({
                                 <tr key={subject.id} className="group hover">
 
                                     {/* Subject ID */}
-                                    {/* <th>{subject.id}</th> */}
-                                    <th>{subject.custom_id}</th>
+                                    <th>{subject.id}</th>
 
                                     {/* Subject Name */}
                                     <td>{subject.subject}</td>
@@ -271,7 +270,7 @@ const SubjectListContainer = ({
                                                 <DeleteData
                                                     className='btn btn-xs btn-ghost text-red-500'
                                                     collection={'subjects'}
-                                                    id={subject.custom_id}
+                                                    id={subject.id}
                                                 />
                                             </div>
                                         </td>

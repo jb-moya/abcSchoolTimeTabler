@@ -208,9 +208,7 @@ const TeacherListContainer = ({
                                         <td>{index + indexOfFirstItem + 1}</td>
 
                                         {/* Teacher ID */}
-                                        {/* <th>{teacher.id}</th> */}
-                                        <td>{teacher.custom_id}</td>
-
+                                        <th>{teacher.id}</th>
                                         {/* Teacher Name */}
                                         <td>{teacher.teacher}</td>
 
@@ -345,7 +343,7 @@ const TeacherListContainer = ({
                                                     <DeleteData 
                                                         className='btn btn-xs btn-ghost text-red-500' 
                                                         collection={'teachers'}
-                                                        id={teacher.custom_id}
+                                                        id={teacher.id}
                                                     />
                                                 </div>
                                             </td>

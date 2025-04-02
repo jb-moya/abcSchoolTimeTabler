@@ -26,9 +26,9 @@ function Sections() {
 
 	useEffect(() => {
 		try {
-			const converted_buildings = Object.values(stringfy_buildings).reduce((acc, { custom_id, data, id }) => {
+			const converted_buildings = Object.values(stringfy_buildings).reduce((acc, { data, id }) => {
 				const parsedData = JSON.parse(data);
-				acc[custom_id] = { ...parsedData, id, custom_id }; // Include id and custom_id inside data
+				acc[id] = { ...parsedData, id }; // Include id and custom_id inside data
 				return acc;
 			}, {});
 			console.log('converted_buildings: ', converted_buildings);

@@ -148,6 +148,10 @@ const DeleteData = ({ id, collection, callback }) => {
                     entry_id = department_id;
                 }
             } else if (collection === 'sections') {
+                const section_adviser = teachers[sections[id]?.teacher]?.id;
+                
+
+
                 entry_id = sections[id]?.id;
             }
 

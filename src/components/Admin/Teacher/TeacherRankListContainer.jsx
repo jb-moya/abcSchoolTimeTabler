@@ -346,8 +346,8 @@ const TeacherRankListContainer = ({
                                         {/* Index */}
                                         <td>{index + indexOfFirstItem + 1}</td>
 
-                                        {/* Rank Custom ID */}
-                                        <th>{rank.custom_id}</th>
+                                        {/* Rank ID */}
+                                        <th>{rank.id}</th>
 
                                         {/* Rank */}
                                         <td>{rank.rank}</td>
@@ -434,7 +434,7 @@ const TeacherRankListContainer = ({
                                                         <DeleteData 
                                                             className='btn btn-xs btn-ghost text-red-500' 
                                                             collection={'ranks'}
-                                                            id={rank.custom_id}
+                                                            id={rank.id}
                                                         />
                                                     </div>
                                                 </>

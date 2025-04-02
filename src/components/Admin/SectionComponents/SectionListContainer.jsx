@@ -265,8 +265,7 @@ const SectionListContainer = ({
                                         {/* <td>{index + indexOfFirstItem + 1}</td> */}
 
                                         {/* Section ID */}
-                                        {/* <td>{section.id}</td> */}
-                                        <td>{section.custom_id}</td>
+                                        <td>{section.id}</td>
 
                                         {/* Section Name, Shift, and Start Time */}
                                         <td>
@@ -469,7 +468,7 @@ const SectionListContainer = ({
                                                     <DeleteData
                                                         className='btn btn-xs btn-ghost text-red-500'
                                                         collection={'sections'}
-                                                        id={section.custom_id}
+                                                        id={section.id}
                                                     />
                                                 </div>
 

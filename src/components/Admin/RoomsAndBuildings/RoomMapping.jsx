@@ -422,7 +422,6 @@ const RoomListContainer = ({
     const [errorField, setErrorField] = useState('');
 
     const [editBuildingID, setEditBuildingID] = useState(``);
-    const [editBuildingCustomID, setEditBuildingCustomID] = useState(``);
     const [editBuildingName, setEditBuildingName] = useState('');
     const [editNumberOfFloors, setEditNumberOfFloors] = useState(1);
     const [editNumberOfRooms, setEditNumberOfRooms] = useState([]);
@@ -604,7 +603,6 @@ const RoomListContainer = ({
         console.log('Editing building:', building);
 
         setEditBuildingID(building.id);
-        setEditBuildingCustomID(building.custom_id);
         setEditBuildingName(building.name || '');
         setEditNumberOfFloors(building.floors || 1);
 
@@ -666,17 +664,6 @@ const RoomListContainer = ({
             console.log('editBuildingID: ', editBuildingID);
             console.log('editBuildingName: ', editBuildingName);
 
-            // editDocument('buildings', editBuildingID, {
-            //     name: editBuildingName,
-            //     floors: editNumberOfFloors,
-            //     rooms: editRoomNames,
-            //     image: editBuildingImage || '',
-            //     // nearbyBuildings: editNearbyBuildings.map((building) => ({
-            //     //     id: building.id,
-            //     //     name: building.name,
-            //     // })),
-            //     nearbyBuildings: editNearbyBuildings,
-            // });
             const buildingData = {
                 name: editBuildingName,
                 floors: editNumberOfFloors,
@@ -712,45 +699,6 @@ const RoomListContainer = ({
             document.getElementById('edit_building_modal').close();
         }
 
-        // Prepare updated building data
-        // const updatedBuilding = {
-        //     id: editBuildingID,
-        //     name: editBuildingName,
-        //     floors: editNumberOfFloors,
-        //     rooms: editRoomNames,
-        //     image: editBuildingImage || null,
-        //     nearbyBuildings: editNearbyBuildings.map((building) => ({
-        //         id: building.id,
-        //         name: building.name,
-        //     })),
-        // };
-
-        // Dispatch the update action
-        // dispatch(editBuilding({ buildingId: editBuildingID, updatedBuilding }))
-        //     .then(() => {
-        //         // Close modal and clear state
-        //         setEditBuildingName('');
-        //         setEditNumberOfFloors(1);
-        //         setEditNumberOfRooms([]);
-        //         setEditRoomNames([]);
-        //         setEditBuildingImage(null);
-        //         setEditPreviewImage(null);
-        //         setEditNearbyBuildings([]);
-
-        //         document.getElementById('edit_building_modal').close();
-        //     })
-        //     .catch((error) => {
-        //         console.error('Failed to update building:', error);
-        //         setErrorMessage('Failed to update building');
-        //     });
-
-        // toast.success('Building updated successfully', {
-        //     style: {
-        //         backgroundColor: 'green',
-        //         color: 'white',
-        //         bordercolor: 'green',
-        //     },
-        // });
     };
 
     const handleCancelBuildingEditClick = () => {
@@ -990,8 +938,7 @@ const RoomListContainer = ({
                                             availableBuildings={buildings}
                                             nearbyBuildings={editNearbyBuildings}
                                             setNearbyBuildings={setEditNearbyBuildings}
-                                            // currentBuildingId={editBuildingID}
-                                            currentBuildingId={editBuildingCustomID}
+                                            currentBuildingId={editBuildingID}
                                         />
                                     </div>
                                     {/* <div className='flex flex-wrap gap-2 mt-3'>

@@ -189,7 +189,7 @@ const DepartmentListContainer = ({
 									<td>{index + 1}</td>
 
 									{/* Department ID */}
-									<td>{department.custom_id}</td>
+									<td>{department.id}</td>
 
 									{/* Department Name */}
 									<td>{department.name}</td>
@@ -216,7 +216,7 @@ const DepartmentListContainer = ({
 												<DeleteData
 													className='btn btn-xs btn-ghost text-red-500' 
 													collection={'departments'}
-													id={department.custom_id}
+													id={department.id}
 												/>
 											</div>
 										</td>

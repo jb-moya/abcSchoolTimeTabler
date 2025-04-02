@@ -382,7 +382,7 @@ const AddSectionContainer = ({
                             Assign an adviser
                         </option>
                         {Object.keys(teachers).map((key) => (
-                            <option key={teachers[key].id} value={teachers[key].custom_id}>
+                            <option key={teachers[key].id} value={teachers[key].id}>
                                 {teachers[key].teacher}
                             </option>
                         ))}
@@ -403,7 +403,7 @@ const AddSectionContainer = ({
                             Select a program
                         </option>
                         {Object.keys(programs).map((key) => (
-                            <option key={programs[key].id} value={programs[key].custom_id}>
+                            <option key={programs[key].id} value={programs[key].id}>
                                 {programs[key].program}
                             </option>
                         ))}

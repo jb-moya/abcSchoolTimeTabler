@@ -768,6 +768,7 @@ const AddProgramContainer = ({
                                                             )}
                                                         </button>
                                                         <AdditionalScheduleForProgram
+                                                            subjects={subjects}
                                                             viewingMode={1}
                                                             programID={0}
                                                             grade={grade}
@@ -788,14 +789,15 @@ const AddProgramContainer = ({
                                                             <RiEdit2Fill size={15} />
                                                         </button>
                                                         <AdditionalScheduleForProgram
-                                                             viewingMode={0}
-                                                             programID={0}
-                                                             grade={grade}
-                                                             progYearSubjects={selectedSubjects[grade]}
-                                                             arrayIndex={index}
-                                                             additionalSchedsOfProgYear={sched}
-                                                             setAdditionalScheds={setAdditionalScheds}
-                                                             numOfSchoolDays={numOfSchoolDays}
+                                                            subjects={subjects}
+                                                            viewingMode={0}
+                                                            programID={0}
+                                                            grade={grade}
+                                                            progYearSubjects={selectedSubjects[grade]}
+                                                            arrayIndex={index}
+                                                            additionalSchedsOfProgYear={sched}
+                                                            setAdditionalScheds={setAdditionalScheds}
+                                                            numOfSchoolDays={numOfSchoolDays}
                                                         />
                                                     </div>
                                                 </div>

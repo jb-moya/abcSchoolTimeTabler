@@ -33,10 +33,10 @@ const NearbyBuildingDropdown = ({
     //     console.log('availableBuildings: ', availableBuildings);
     // }, [availableBuildings]);
 
-    const handleToggleBuilding = (buildingCustomId) => {
-        const updatedList = nearbyBuildings.includes(buildingCustomId)
-            ? nearbyBuildings.filter((id) => id !== buildingCustomId)
-            : [...nearbyBuildings, buildingCustomId];
+    const handleToggleBuilding = (buildingId) => {
+        const updatedList = nearbyBuildings.includes(buildingId)
+            ? nearbyBuildings.filter((id) => id !== buildingId)
+            : [...nearbyBuildings, buildingId];
 
         setNearbyBuildings(updatedList);
     };
@@ -84,12 +84,10 @@ const NearbyBuildingDropdown = ({
                     {nearbyBuildings.map((building) => (
                         <span
                             key={availableBuildings[building]?.id}
-                            // key={building.custom_id}
                             className='badge badge-primary gap-2 cursor-pointer'
                             onClick={() => handleToggleBuilding(building)}
                         >
                             {availableBuildings[building]?.name}
-                            {/* {buildings.custom_id} */}
                             <IoRemove size={16} className='ml-2' />
                         </span>
                     ))}

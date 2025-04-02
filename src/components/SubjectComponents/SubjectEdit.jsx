@@ -27,7 +27,6 @@ const SubjectEdit = ({
 // =============================================================================
 
     const [editSubjectId, setEditSubjectId] = useState('');
-    const [editSubjectCustomId, setEditSubjectCustomId] = useState('');
     const [editSubjectValue, setEditSubjectValue] = useState('');
     const [editClassDuration, setEditClassDuration] = useState(0);
     const [editSubjectWeeklyMinutes, setEditSubjectWeeklyMinutes] = useState(0);
@@ -35,7 +34,6 @@ const SubjectEdit = ({
     useEffect(() => {
         if (subject) {
             setEditSubjectId(subject.id || '');
-            setEditSubjectCustomId(subject.custom_id || '');
             setEditSubjectValue(subject.subject || '');
             setEditClassDuration(subject.classDuration || 0);
             setEditSubjectWeeklyMinutes(subject.weeklyMinutes || 0);
@@ -113,7 +111,7 @@ const SubjectEdit = ({
             [7, 8, 9, 10].forEach((grade) => {
                 if (!newProgram[grade].subjects.length === 0) return;
 
-                if (!newProgram[grade].subjects.includes(editSubjectCustomId)) return;
+                if (!newProgram[grade].subjects.includes(editSubjectId)) return;
 
                 // =============== Update program start and end time ===============
 
@@ -123,7 +121,7 @@ const SubjectEdit = ({
                     let totalDuration = breakTimeCount * breakTimeDuration;
 
                     newProgram[grade].subjects.forEach((subId) => {
-                        if (subId === editSubjectCustomId) {
+                        if (subId === editSubjectId) {
                             totalDuration += editClassDuration;
                         } else {
                             totalDuration += subjects[subId].classDuration;
@@ -139,8 +137,8 @@ const SubjectEdit = ({
                     const newTotalTimeslot = calculateTotalClass(
                         {
                             ...subjects,
-                            [editSubjectCustomId]: {
-                                ...subjects[editSubjectCustomId],
+                            [editSubjectId]: {
+                                ...subjects[editSubjectId],
                                 subject: editSubjectValue,
                                 classDuration: editClassDuration,
                                 weeklyMinutes: editSubjectWeeklyMinutes,
@@ -184,7 +182,7 @@ const SubjectEdit = ({
 
                         // Retrieve the number of classes allowed for the subject
                         let numOfClasses = 0;
-                        if (subjectID === editSubjectCustomId) {
+                        if (subjectID === editSubjectId) {
                             numOfClasses = Math.min(
                                 Math.ceil(
                                     editSubjectWeeklyMinutes / editClassDuration
@@ -329,7 +327,7 @@ const SubjectEdit = ({
 
             const section_id = sections[id]?.id || '';
 
-            if (!newSection.subjects.includes(editSubjectCustomId)) return;
+            if (!newSection.subjects.includes(editSubjectId)) return;
 
             // =============== Update section start and end time ===============
 
@@ -339,7 +337,7 @@ const SubjectEdit = ({
                 let totalDuration = breakTimeCount * breakTimeDuration;
 
                 newSection.subjects.forEach((subId) => {
-                    if (subId === editSubjectCustomId) {
+                    if (subId === editSubjectId) {
                         totalDuration += editClassDuration;
                     } else {
                         totalDuration += subjects[subId].classDuration;
@@ -387,8 +385,8 @@ const SubjectEdit = ({
 
             const numOfClasses = Math.min(Math.ceil(editSubjectWeeklyMinutes / editClassDuration), numOfSchoolDays);
 
-            const fixedDays = newSection.fixedDays[editSubjectCustomId];
-            const fixedPositions = newSection.fixedPositions[editSubjectCustomId];
+            const fixedDays = newSection.fixedDays[editSubjectId];
+            const fixedPositions = newSection.fixedPositions[editSubjectId];
 
             let dayTimeSlots = {};
             let positionTimeSlots = {};
@@ -438,8 +436,8 @@ const SubjectEdit = ({
             }
 
             // Split the combined array back into fixedDays and fixedPositions
-            newSection.fixedDays[editSubjectCustomId] = result.map(([day]) => day);
-            newSection.fixedPositions[editSubjectCustomId] = result.map(([_, pos]) => pos);
+            newSection.fixedDays[editSubjectId] = result.map(([day]) => day);
+            newSection.fixedPositions[editSubjectId] = result.map(([_, pos]) => pos);
 
             if (originalSection !== newSection) {
 
