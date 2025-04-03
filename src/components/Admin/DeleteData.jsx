@@ -5,11 +5,17 @@ import { RiDeleteBin7Line } from 'react-icons/ri';
 
 import { fetchDocuments } from '../../hooks/CRUD/retrieveDocuments';
 import { deleteDocument } from '../../hooks/CRUD/deleteDocument';
+import { editDocument } from '../../hooks/CRUD/editDocument';
 
 import { toast } from 'sonner';
 
-const DeleteData = ({ id, collection, callback }) => {
-    // ===============================================================================================
+const DeleteData = ({ 
+    id, 
+    collection, 
+    callback 
+}) => {
+
+// ===============================================================================================
 
     const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
     const { documents: programs, loading2, error2 } = fetchDocuments('programs');
@@ -18,7 +24,7 @@ const DeleteData = ({ id, collection, callback }) => {
     const { documents: teachers, loading5, error5 } = fetchDocuments('teachers');
     const { documents: departments, loading6, error6 } = fetchDocuments('departments');
 
-    // ===============================================================================================
+// ===============================================================================================
 
     useEffect(() => {
         console.log('id:', id);
@@ -148,11 +154,22 @@ const DeleteData = ({ id, collection, callback }) => {
                     entry_id = department_id;
                 }
             } else if (collection === 'sections') {
-                const section_adviser = teachers[sections[id]?.teacher]?.id;
-                
 
+                const adviser_id = sections[id]?.teacher;
+                const section_adviser = structuredClone(teachers[adviser_id]);
+                
+                if (section_adviser.additionalTeacherScheds) {
+                    section_adviser.additionalTeacherScheds = section_adviser.additionalTeacherScheds.filter(
+                        (sched) => sched.name !== 'Advisory Load'
+                    );
+                }
+
+                editDocument('teachers', adviser_id, {
+                    additionalTeacherScheds: section_adviser.additionalTeacherScheds,
+                });
 
                 entry_id = sections[id]?.id;
+
             }
 
             const result = await deleteDocument(collection, entry_id);

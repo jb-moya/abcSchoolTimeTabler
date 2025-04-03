@@ -53,12 +53,15 @@ const TeacherListContainer = ({
                     if (!searchValue) return true;
 
                     const teachersSubjectsName = teacher.subjects.map((subjectID) => subjects[subjectID].subject).join(' ');
+                    const teacherRankName = ranks[teacher.rank].rank;
+                    const teacherDepartmentName = departments[teacher.department].name;
 
                     const escapedSearchValue = escapeRegExp(searchValue).split('\\*').join('.*');
 
                     const pattern = new RegExp(escapedSearchValue, 'i');
 
-                    return pattern.test(teacher.teacher) || pattern.test(teachersSubjectsName);
+                    return pattern.test(teacher.teacher) || pattern.test(teachersSubjectsName) 
+                        || pattern.test(teacherRankName) || pattern.test(teacherDepartmentName);
                 })
             );
         }, 200),

@@ -69,26 +69,6 @@ const SectionListContainer = ({
         }
     };
 
-    const handleDelete = (id) => {
-        // Remove ADVISORY LOAD of teacher assigned as the section's adviser
-        const teacherId = sections[id].teacher;
-
-        const prevSectionAdviser = structuredClone(teachers[teacherId]);
-
-        if (prevSectionAdviser.additionalTeacherScheds) {
-            prevSectionAdviser.additionalTeacherScheds = prevSectionAdviser.additionalTeacherScheds.filter(
-                (sched) => sched.name !== 'Advisory Load'
-            );
-        }
-
-        // dispatch(
-        //     editTeacher({
-        //         teacherId: teacherId,
-        //         updatedTeacher: prevSectionAdviser,
-        //     })
-        // );
-    };
-
 //  =======================================================================================
 
     const debouncedSearch = useCallback(
@@ -100,15 +80,15 @@ const SectionListContainer = ({
                     const sectionSubjectsName = Object.keys(section.subjects)
                         .map((subjectID) => subjects[subjectID]?.subject || '')
                         .join(' ');
+                    const programName = programs[section.program]?.program || '';
+                    const teacherName = teachers[section.teacher]?.teacher || '';
 
                     const pattern = new RegExp(escapedSearchValue, 'i');
 
-                    // Check if program or year level matches the search value
-                    const programMatches = pattern.test(section.program);
-                    const yearLevelMatches = pattern.test(section.year); // Ensure `year` is the correct property name
-
                     return (
-                        pattern.test(section.section) || programMatches || yearLevelMatches || pattern.test(sectionSubjectsName)
+                        pattern.test(section.section) || pattern.test(programName)
+                            || pattern.test(section.year) || pattern.test(sectionSubjectsName)
+                                || pattern.test(teacherName) 
                     );
                 })
             );
