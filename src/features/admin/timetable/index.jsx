@@ -119,115 +119,127 @@ function Timetable() {
     const { documents: stringfy_buildings, loading7, error7 } = fetchDocuments('buildings');
 
     // ====================================================================================================================================
-    function modifyData(data) {
-        const modifiedData = {};
+    // function modifyData(data) {
+    //     const modifiedData = {};
 
-        Object.keys(data).forEach((key) => {
-            const item = data[key];
-            modifiedData[key] = {
-                id: item.custom_id,
-                firebaseID: item.id,
-            };
+    //     Object.keys(data).forEach((key) => {
+    //         const item = data[key];
+    //         modifiedData[key] = {
+    //             id: item.custom_id,
+    //             firebaseID: item.id,
+    //         };
 
-            Object.keys(item).forEach((prop) => {
-                if (!['custom_id', 'id'].includes(prop)) {
-                    modifiedData[key][prop] = item[prop];
-                }
-            });
-        });
+    //         Object.keys(item).forEach((prop) => {
+    //             if (!['custom_id', 'id'].includes(prop)) {
+    //                 modifiedData[key][prop] = item[prop];
+    //             }
+    //         });
+    //     });
 
-        return modifiedData;
-    }
+    //     return modifiedData;
+    // }
 
     // ====================================================================================================================================
 
     // Convert the stringified buildings object
-    useEffect(() => {
-        try {
-            setSubjects(modifyData(subjectsStore));
-        } catch (error) {
-            console.error('Failed to modify subject data:', error);
-        }
-    }, [subjectsStore]);
+    // useEffect(() => {
+    //     try {
+    //         setSubjects(modifyData(subjectsStore));
+    //     } catch (error) {
+    //         console.error('Failed to modify subject data:', error);
+    //     }
+    // }, [subjectsStore]);
 
-    useEffect(() => {
-        try {
-            setPrograms(modifyData(programsStore));
-        } catch (error) {
-            console.error('Failed to modify programs data:', error);
-        }
-    }, [programsStore]);
+    // useEffect(() => {
+    //     try {
+    //         setPrograms(modifyData(programsStore));
+    //     } catch (error) {
+    //         console.error('Failed to modify programs data:', error);
+    //     }
+    // }, [programsStore]);
 
-    useEffect(() => {
-        try {
-            setRanks(modifyData(ranksStore));
-        } catch (error) {
-            console.error('Failed to modify ranks data:', error);
-        }
-    }, [ranksStore]);
+    // useEffect(() => {
+    //     try {
+    //         setRanks(modifyData(ranksStore));
+    //     } catch (error) {
+    //         console.error('Failed to modify ranks data:', error);
+    //     }
+    // }, [ranksStore]);
 
-    useEffect(() => {
-        try {
-            setTeachers(modifyData(teachersStore));
-        } catch (error) {
-            console.error('Failed to modify teachers data:', error);
-        }
-    }, [teachersStore]);
+    // useEffect(() => {
+    //     try {
+    //         setTeachers(modifyData(teachersStore));
+    //     } catch (error) {
+    //         console.error('Failed to modify teachers data:', error);
+    //     }
+    // }, [teachersStore]);
 
-    useEffect(() => {
-        try {
-            setDepartments(modifyData(departmentsStore));
-        } catch (error) {
-            console.error('Failed to modify departments data:', error);
-        }
-    }, [departmentsStore]);
+    // useEffect(() => {
+    //     try {
+    //         setDepartments(modifyData(departmentsStore));
+    //     } catch (error) {
+    //         console.error('Failed to modify departments data:', error);
+    //     }
+    // }, [departmentsStore]);
 
-    useEffect(() => {
-        try {
-            setSections(modifyData(sectionsStore));
-        } catch (error) {
-            console.error('Failed to modify sections data:', error);
-        }
-    }, [sectionsStore]);
+    // useEffect(() => {
+    //     try {
+    //         setSections(modifyData(sectionsStore));
+    //     } catch (error) {
+    //         console.error('Failed to modify sections data:', error);
+    //     }
+    // }, [sectionsStore]);
 
     useEffect(() => {
         try {
             const converted_buildings = Object.values(stringfy_buildings).reduce((acc, { custom_id, data, id }) => {
                 const parsedData = JSON.parse(data);
-                acc[custom_id] = { ...parsedData, id, custom_id }; // Include id and custom_id inside data
+                acc[id] = { ...parsedData, id }; // Include id and custom_id inside data
                 return acc;
             }, {});
             console.log('buildingsRaw: ', converted_buildings);
             setBuildings(converted_buildings);
-            setBuildings_1(modifyData(converted_buildings));
+            // setBuildings_1(modifyData(converted_buildings));
         } catch (error) {
             console.error('Failed to parse buildings JSON:', error);
         }
     }, [stringfy_buildings]);
 
-    console.log('subjectsStore: ', subjects);
-    console.log('programsStore: ', programs);
-    console.log('ranksStore: ', ranks);
-    console.log('teachersStore: ', teachers);
-    console.log('departmentsStore: ', departments);
-    console.log('sectionsStore: ', sections);
+    // console.log('subjects: ', subjects);
+    // console.log('programs: ', programs);
+    // console.log('ranks: ', ranks);
+    // console.log('teachers: ', teachers);
+    // console.log('departments: ', departments);
+    // console.log('sections: ', sections);
 
-    console.log('buildingsStore: ', buildings);
+    // console.log('buildings: ', buildings);
+
+    console.log('subjectsStore: ', subjectsStore);
+    console.log('programsStore: ', programsStore);
+    console.log('ranksStore: ', ranksStore);
+    console.log('teachersStore: ', teachersStore);
+    console.log('departmentsStore: ', departmentsStore);
+    console.log('sectionsStore: ', sectionsStore);
+    console.log('stringfy_buildings: ', stringfy_buildings);
+    console.log('buildingsStore: ', buildingsStore);
 
     // =====================================================================================================================================
 
     const [morningStartTime, setMorningStartTime] = useState(() => {
-        return localStorage.getItem('morningStartTime') || 'Cannot find';
+        const stored = localStorage.getItem('morningStartTime');
+        return stored && /^\d{2}:\d{2}$/.test(stored) ? stored : '6:00';
     });
+
+    console.log('morningStartTime: ', morningStartTime);
 
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
         return localStorage.getItem('numOfSchoolDays') || 5;
     });
-
+    console.log('numOfSchoolDays: ', numOfSchoolDays);
     const [breakTimeDuration, setBreakTimeDuration] = useState(() => {
         return localStorage.getItem('breakTimeDuration') || 30;
     });
-
+    console.log('breakTimeDuration: ', breakTimeDuration);
     const [defaultSubjectClassDuration, setDefaultSubjectClassDuration] = useState(() => {
         return parseInt(localStorage.getItem('defaultSubjectDuration'), 10) || 40;
     });
@@ -263,7 +275,8 @@ function Timetable() {
         // console.log('🚀 ~ handleButtonClick ~ buildingMapReverse:', buildingMapReverse);
 
         const buildingMap = Object.entries(buildingData).reduce((acc, [, building], index) => {
-            // console.log('🚀 ~ handleButtonClick ~ building:', building);
+            console.log('🚀 ~ handleButtonClick ~ buildingData:', buildingData);
+            console.log('🚀 ~ handleButtonClick ~ building:', building);
 
             acc[buildingMapReverse[building.id]] = {
                 id: buildingMapReverse[building.id],
@@ -1324,7 +1337,7 @@ function Timetable() {
         // console.log('teacherEdited: ', teacherEdited);
         const generatedMap = combineMaps(sectionEdited, teacherEdited);
         console.log('DATA SA DRAGDROP: ', generatedMap);
-        navigate('/app/admin/modify-timetable', { state: { generatedMap, subjects, sections, teachers } });
+        navigate('/app/admin/modify-timetable', { state: { generatedMap, subjectsStore, sectionsStore, teachersStore } });
 
         // setMapVal(combined);
     };
@@ -1559,8 +1572,9 @@ function Timetable() {
     const convertToHashMap = (inputMap, type) => {
         const resultMap = new Map(); // Initialize the outer Map
         // console.log('morningStartTime: ', morningStartTime);
-        const timeslotindex = getTimeSlotIndex(morningStartTime);
-        // console.log('timeslotindex: ', timeslotindex);
+        // const timeslotindex = getTimeSlotIndex(morningStartTime);
+        const timeslotindex = 72;
+        console.log('timeslotindex: ', timeslotindex);
         console.log('inputMap: ', inputMap);
         // Iterate through each entry in the input HashMap
         for (let [tableKey, sectionData] of inputMap.entries()) {
@@ -1722,7 +1736,7 @@ function Timetable() {
                         })}
                         onClick={() => {
                             // if (validate()) {
-                            handleButtonClick(subjects, buildings, teachers, sections);
+                            handleButtonClick(subjectsStore, buildingsStore, teachersStore, sectionsStore);
                             // }
                         }}
                         disabled={timetableGenerationStatus === 'running'}

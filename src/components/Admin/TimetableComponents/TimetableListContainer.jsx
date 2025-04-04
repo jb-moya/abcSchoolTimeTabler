@@ -79,67 +79,71 @@ const TimetableListContainer = ({}) => {
     const table = location.state?.generatedMap ?? new Map();
 
     // Check if state exists
-    const hasInitialData = Boolean(location.state?.sections && location.state?.teachers && location.state?.subjects);
-    console.log('has fkin data: ', hasInitialData);
-    const [subjects, setSubjects] = useState(() => location.state?.subjects ?? {});
-    const [teachers, setTeachers] = useState(() => location.state?.teachers ?? {});
-    const [sections, setSections] = useState(() => location.state?.sections ?? {});
+    // const [subjects, setSubjects] = useState({});
+    // const [teachers, setTeachers] = useState({});
+    // const [sections, setSections] = useState({});
 
-    function modifyData(data) {
-        const modifiedData = {};
+    // const subjectState = location.state?.subjectsStore ?? {};
+    // const teacherState = location.state?.teachersStore ?? {};
+    // const sectionState = location.state?.sectionsStore ?? {};
 
-        Object.keys(data).forEach((key) => {
-            const item = data[key];
-            modifiedData[key] = {
-                id: item.custom_id,
-                firebaseID: item.id,
-            };
+    const { documents: subjects, loading2, error2 } = fetchDocuments('subjects');
+    const { documents: teachers, loading4, error4 } = fetchDocuments('teachers');
+    const { documents: sections, loading6, error6 } = fetchDocuments('sections');
 
-            Object.keys(item).forEach((prop) => {
-                if (!['custom_id', 'id'].includes(prop)) {
-                    modifiedData[key][prop] = item[prop];
-                }
-            });
-        });
+    // function modifyData(data) {
+    //     const modifiedData = {};
 
-        return modifiedData;
-    }
+    //     Object.keys(data).forEach((key) => {
+    //         const item = data[key];
+    //         modifiedData[key] = {
+    //             id: item.custom_id,
+    //             firebaseID: item.id,
+    //         };
+
+    //         Object.keys(item).forEach((prop) => {
+    //             if (!['custom_id', 'id'].includes(prop)) {
+    //                 modifiedData[key][prop] = item[prop];
+    //             }
+    //         });
+    //     });
+
+    //     return modifiedData;
+    // }
 
     // Fetch documents only if state is not set
-    const { documents: subjectsStore, loading2, error2 } = hasInitialData ? {} : fetchDocuments('subjects');
-    const { documents: teachersStore, loading4, error4 } = hasInitialData ? {} : fetchDocuments('teachers');
-    const { documents: sectionsStore, loading6, error6 } = hasInitialData ? {} : fetchDocuments('sections');
+
     // Modify and set state only if data is fetched
-    useEffect(() => {
-        if (!hasInitialData && subjectsStore) {
-            try {
-                console.log('NAG SET TNGINA');
-                setSubjects(modifyData(subjectsStore));
-            } catch (error) {
-                console.error('Failed to modify subject data:', error);
-            }
-        }
-    }, [subjectsStore]);
+    // useEffect(() => {
+    //     if (!hasInitialData && subjectsStore) {
+    //         try {
+    //             console.log('NAG SET TNGINA');
+    //             setSubjects(modifyData(subjectsStore));
+    //         } catch (error) {
+    //             console.error('Failed to modify subject data:', error);
+    //         }
+    //     }
+    // }, [subjectsStore]);
 
-    useEffect(() => {
-        if (!hasInitialData && teachersStore) {
-            try {
-                setTeachers(modifyData(teachersStore));
-            } catch (error) {
-                console.error('Failed to modify teachers data:', error);
-            }
-        }
-    }, [teachersStore]);
+    // useEffect(() => {
+    //     if (!hasInitialData && teachersStore) {
+    //         try {
+    //             setTeachers(modifyData(teachersStore));
+    //         } catch (error) {
+    //             console.error('Failed to modify teachers data:', error);
+    //         }
+    //     }
+    // }, [teachersStore]);
 
-    useEffect(() => {
-        if (!hasInitialData && sectionsStore) {
-            try {
-                setSections(modifyData(sectionsStore));
-            } catch (error) {
-                console.error('Failed to modify sections data:', error);
-            }
-        }
-    }, [sectionsStore]);
+    // useEffect(() => {
+    //     if (!hasInitialData && sectionsStore) {
+    //         try {
+    //             setSections(modifyData(sectionsStore));
+    //         } catch (error) {
+    //             console.error('Failed to modify sections data:', error);
+    //         }
+    //     }
+    // }, [sectionsStore]);
 
     useEffect(() => {
         console.log('subjects log : ', subjects);
@@ -156,7 +160,7 @@ const TimetableListContainer = ({}) => {
     // ===================================================================================================
 
     // const [editRankId, setEditRankId] = useState(null);
-    const [editSchedId, setEditSchedId] = useState(null);
+    // const [editSchedId, setEditSchedId] = useState(null);
     const [editSchedFirebaseId, setEditSchedFirebaseId] = useState(null);
 
     const [editSchedName, setEditSchedName] = useState('');
@@ -175,28 +179,28 @@ const TimetableListContainer = ({}) => {
 
     // ===================================================================================================
 
-    const handleEditClick = (scheduleId, FirebaseId) => {
+    const handleEditClick = (FirebaseId) => {
         console.log(schedules);
-        console.log('editing: ', schedules[scheduleId].data);
+        console.log('editing: ', schedules[FirebaseId].data);
         // addDocument('schedules', {
         //     name: schedules[scheduleId].name,
         //     data: schedules[scheduleId].data,
         // });
 
-        const newTimetable = convertStringDataToMap(schedules[scheduleId].data);
+        const newTimetable = convertStringDataToMap(schedules[FirebaseId].data);
         console.log('newTimetable: ', newTimetable);
-        console.log('scheduleID: ', scheduleId);
-        console.log('schedules[scheduleId].name: ', schedules[scheduleId].name);
-        setEditSchedId(scheduleId);
+        console.log('schedules[scheduleId].name: ', schedules[FirebaseId].name);
+        // setEditSchedId(FirebaseId);
         setEditSchedFirebaseId(FirebaseId);
-        setEditSchedName(schedules[scheduleId].name);
+        setEditSchedName(schedules[FirebaseId].name);
         setTimetable(newTimetable);
     };
 
     // ===================================================================================================
 
     const resetTimetable = () => {
-        setEditSchedId(null);
+        // setEditSchedId(null);
+        setEditSchedFirebaseId(null);
         setEditSchedName('');
         setTimetable(new Map());
         resetURLState();
@@ -355,7 +359,7 @@ const TimetableListContainer = ({}) => {
                                     ) : (
                                         currentItems.map(([, schedule], index) => (
                                             <tr key={schedule.id} className='group hover'>
-                                                <th>{schedule.custom_id}</th>
+                                                <th>{schedule.id}</th>
 
                                                 <td>{schedule.name}</td>
 
@@ -363,7 +367,7 @@ const TimetableListContainer = ({}) => {
                                                     <div className='flex'>
                                                         <button
                                                             className='btn btn-xs btn-ghost text-blue-500'
-                                                            onClick={() => handleEditClick(schedule.custom_id, schedule.id)}
+                                                            onClick={() => handleEditClick(schedule.id)}
                                                         >
                                                             <RiEdit2Fill size={20} />
                                                         </button>
@@ -390,7 +394,7 @@ const TimetableListContainer = ({}) => {
                             <ModifyTimetableContainer
                                 hashMap={timetable}
                                 timetableName={editSchedName}
-                                timetableId={editSchedId}
+                                // timetableId={editSchedId}
                                 firebaseId={editSchedFirebaseId}
                                 errorMessage={errorMessage}
                                 setErrorMessage={setErrorMessage}
