@@ -1,12 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import DragDrop from './DragDrop';
 import { generateTimeSlots } from '../utils';
 import { produce } from 'immer';
 import { PiConfetti } from 'react-icons/pi';
-// import { addSched, editSched, fetchScheds } from '@features/schedulesSlice';
-import { convertStringDataToMap } from './utils';
-// import { deployTimetable } from '../../../features/deployTimetable';
 import useDeployTimetables from '../../../hooks/useDeployTimetables';
 import useDeleteAllFirebaseTimetables from '../../../hooks/useDeleteAllFirebaseTimetables';
 import mapToArray from './mapToArray';
@@ -53,6 +49,17 @@ function processRows(data, n) {
 }
 
 const ModifyTimetableContainer = ({
+    // stores
+    subjects, 
+    programs,
+    sections,
+    teachers,
+    ranks,
+    departments,
+    buildings,
+    schedules,
+    // stores
+
     hashMap = new Map(),
     timetableName = '',
     firebaseId = null,
@@ -60,9 +67,6 @@ const ModifyTimetableContainer = ({
     setErrorMessage,
     errorField,
     setErrorField,
-    teachers,
-    subjects,
-    sections,
 }) => {
     console.log('timetableName sa loob: ', timetableName);
     // console.log('timetableId sa loob: ', timetableId);
@@ -72,7 +76,6 @@ const ModifyTimetableContainer = ({
 
     console.log('sections sa loob: ', sections);
 
-    const dispatch = useDispatch();
     const inputNameRef = useRef();
 
     const { handleDeployTimetables, isLoading: deployLoading, remaining: deployRemaining } = useDeployTimetables();
@@ -82,9 +85,9 @@ const ModifyTimetableContainer = ({
         remaining: deleteRemaining,
     } = useDeleteAllFirebaseTimetables();
 
-    // ================================================================================================================
+// ================================================================================================================
 
-    const { schedules, status: schedStatus } = useSelector((state) => state.schedule);
+    // const { schedules, status: schedStatus } = useSelector((state) => state.schedule);
     // const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
     // const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
     // const { sections, status: sectionStatus } = useSelector((state) => state.section);
@@ -93,33 +96,9 @@ const ModifyTimetableContainer = ({
     const [scheduleVerName, setScheduleVerName] = useState(timetableName);
     console.log('rendering');
 
-    // useEffect(() => {
-    //     if (schedStatus === 'idle') {
-    //         dispatch(fetchScheds());
-    //     }
-    // }, [schedStatus, dispatch]);
-
     useEffect(() => {
         setScheduleVerName(timetableName);
     }, [timetableName]);
-
-    // useEffect(() => {
-    //     if (teacherStatus === 'idle') {
-    //         dispatch(fetchTeachers());
-    //     }
-    // }, [teacherStatus, dispatch]);
-
-    // useEffect(() => {
-    //     if (subjectStatus === 'idle') {
-    //         dispatch(fetchSubjects());
-    //     }
-    // }, [subjectStatus, dispatch]);
-
-    // useEffect(() => {
-    //     if (sectionStatus === 'idle') {
-    //         dispatch(fetchSections());
-    //     }
-    // }, [sectionStatus, dispatch]);
 
     const handleReset = () => {
         setScheduleVerName(timetableName ? timetableName : '');
@@ -127,11 +106,11 @@ const ModifyTimetableContainer = ({
         setErrorField('');
     };
 
-    // ================================================================================================================
+// ================================================================================================================
 
     const [showExport, setShowExport] = useState(false);
 
-    // ================================================================================================================
+// ================================================================================================================
 
     const [selectedModeValue, setSelectedModeValue] = useState('5m');
     const [valueMap, setValueMap] = useState(hashMap);
@@ -172,7 +151,7 @@ const ModifyTimetableContainer = ({
         handleDeployTimetables(resultarray);
     };
 
-    // ================================================================================================================
+// ================================================================================================================
 
     const tableRefs = useRef({}); // Make sure this initializes as an object
     const [history, setHistory] = useState([new Map()]); // history stack (array of Maps)
@@ -249,7 +228,7 @@ const ModifyTimetableContainer = ({
         setCurrentPage(page);
     };
 
-    // ===============================================================================================================
+// ===============================================================================================================
 
     const undo = () => {
         if (historyIndex > 1) {
@@ -373,7 +352,7 @@ const ModifyTimetableContainer = ({
         console.log('add');
     };
 
-    // ===============================================================================================================
+// ===============================================================================================================
 
     useEffect(() => {
         const overlaps = detectOverlaps(valueMap);
@@ -573,7 +552,7 @@ const ModifyTimetableContainer = ({
         }
     };
 
-    // ===============================================================================================================
+// ===============================================================================================================
 
     const Column = ({ section_id, type }) => {
         console.log('section_id: ', section_id);
@@ -719,16 +698,13 @@ const ModifyTimetableContainer = ({
         setSearchField(error);
     };
 
-    const optimizeTable = () => {};
-
-    // ==============================================================================================================
-    // For debugging (console.log())
+// ==============================================================================================================
 
     useEffect(() => {
         console.log('valueMap', valueMap);
     }, [valueMap]);
 
-    // ==============================================================================================================
+// ==============================================================================================================
 
     return (
         Array.from(paginatedValueMap.entries()).length > 0 && (
@@ -864,7 +840,19 @@ const ModifyTimetableContainer = ({
                     </button>
 
                     {showExport && valueMap.size > 0 && (
-                        <ExportSchedules schedule={valueMap} close={() => setShowExport(false)} />
+                        <ExportSchedules 
+                            // stores
+                            programs={programs}
+                            buildings={buildings}
+                            sections={sections}
+                            teachers={teachers}
+                            ranks={ranks}
+                            departments={departments}
+                            // stores
+
+                            schedule={valueMap} 
+                            close={() => setShowExport(false)} 
+                        />
                     )}
                     {/* EXPORT */}
 
