@@ -92,7 +92,7 @@ const DragDrop = ({
                     }
                 }
 
-                console.error(`Key not found: ${keyToFind}`);
+                // console.error(`Key not found: ${keyToFind}`);
             })
         );
     };
@@ -197,6 +197,7 @@ const DragDrop = ({
                     type: cell.type,
                     containerName: cell.containerName,
                     additional: duplicate ? true : false,
+                    // modality:
                     overlap: false,
                     ...(cell.type === 't' && { section: newCardData.section }),
                     ...(cell.type === 's' && { teacher: newCardData.teacher }),

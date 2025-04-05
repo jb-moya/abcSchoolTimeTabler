@@ -280,23 +280,25 @@ const ScheduleDialog = forwardRef((props, ref) => {
                     </div>
                 </div> */}
                 {errors.time && <span className='text-red-500'>{errors.time}</span>}
-                <div className='mb-4'>
-                    <label className='block text-sm font-medium mb-2'>
-                        Select Days:{' '}
-                        {isEverydaySelected
-                            ? 'Everyday'
-                            : selectedDays.length > 0
-                            ? selectedDays.map((i) => days[i]).join(', ')
-                            : 'None'}
-                    </label>
+                {!editingCell && (
+                    <div className='mb-4'>
+                        <label className='block text-sm font-medium mb-2'>
+                            Select Days:{' '}
+                            {isEverydaySelected
+                                ? 'Everyday'
+                                : selectedDays.length > 0
+                                ? selectedDays.map((i) => days[i]).join(', ')
+                                : 'None'}
+                        </label>
 
-                    <SetDay
-                        handleDaysChange={handleDaysChange}
-                        selectedDays={selectedDays}
-                        days={days}
-                        isEverydaySelected={isEverydaySelected}
-                    />
-                </div>
+                        <SetDay
+                            handleDaysChange={handleDaysChange}
+                            selectedDays={selectedDays}
+                            days={days}
+                            isEverydaySelected={isEverydaySelected}
+                        />
+                    </div>
+                )}
                 {!editingCell && (
                     <div className='form-control'>
                         <label className='label cursor-pointer'>

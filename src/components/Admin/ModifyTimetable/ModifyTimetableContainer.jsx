@@ -50,7 +50,7 @@ function processRows(data, n) {
 
 const ModifyTimetableContainer = ({
     // stores
-    subjects, 
+    subjects,
     programs,
     sections,
     teachers,
@@ -85,7 +85,7 @@ const ModifyTimetableContainer = ({
         remaining: deleteRemaining,
     } = useDeleteAllFirebaseTimetables();
 
-// ================================================================================================================
+    // ================================================================================================================
 
     // const { schedules, status: schedStatus } = useSelector((state) => state.schedule);
     // const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
@@ -106,11 +106,11 @@ const ModifyTimetableContainer = ({
         setErrorField('');
     };
 
-// ================================================================================================================
+    // ================================================================================================================
 
     const [showExport, setShowExport] = useState(false);
 
-// ================================================================================================================
+    // ================================================================================================================
 
     const [selectedModeValue, setSelectedModeValue] = useState('5m');
     const [valueMap, setValueMap] = useState(hashMap);
@@ -151,7 +151,7 @@ const ModifyTimetableContainer = ({
         handleDeployTimetables(resultarray);
     };
 
-// ================================================================================================================
+    // ================================================================================================================
 
     const tableRefs = useRef({}); // Make sure this initializes as an object
     const [history, setHistory] = useState([new Map()]); // history stack (array of Maps)
@@ -228,7 +228,7 @@ const ModifyTimetableContainer = ({
         setCurrentPage(page);
     };
 
-// ===============================================================================================================
+    // ===============================================================================================================
 
     const undo = () => {
         if (historyIndex > 1) {
@@ -352,7 +352,7 @@ const ModifyTimetableContainer = ({
         console.log('add');
     };
 
-// ===============================================================================================================
+    // ===============================================================================================================
 
     useEffect(() => {
         const overlaps = detectOverlaps(valueMap);
@@ -552,7 +552,7 @@ const ModifyTimetableContainer = ({
         }
     };
 
-// ===============================================================================================================
+    // ===============================================================================================================
 
     const Column = ({ section_id, type }) => {
         console.log('section_id: ', section_id);
@@ -698,13 +698,13 @@ const ModifyTimetableContainer = ({
         setSearchField(error);
     };
 
-// ==============================================================================================================
+    // ==============================================================================================================
 
     useEffect(() => {
         console.log('valueMap', valueMap);
     }, [valueMap]);
 
-// ==============================================================================================================
+    // ==============================================================================================================
 
     return (
         Array.from(paginatedValueMap.entries()).length > 0 && (
@@ -840,7 +840,7 @@ const ModifyTimetableContainer = ({
                     </button>
 
                     {showExport && valueMap.size > 0 && (
-                        <ExportSchedules 
+                        <ExportSchedules
                             // stores
                             programs={programs}
                             buildings={buildings}
@@ -850,8 +850,8 @@ const ModifyTimetableContainer = ({
                             departments={departments}
                             // stores
 
-                            schedule={valueMap} 
-                            close={() => setShowExport(false)} 
+                            schedule={valueMap}
+                            close={() => setShowExport(false)}
                         />
                     )}
                     {/* EXPORT */}

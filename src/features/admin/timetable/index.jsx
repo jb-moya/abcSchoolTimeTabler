@@ -102,13 +102,13 @@ function Timetable() {
     /* TIMETABLE DATA */
     const [buildingsStore, setBuildings] = useState({});
 
-    const [subjects, setSubjects] = useState({});
-    const [buildings, setBuildings_1] = useState({});
-    const [teachers, setTeachers] = useState({});
-    const [sections, setSections] = useState({});
-    const [programs, setPrograms] = useState({});
-    const [ranks, setRanks] = useState({});
-    const [departments, setDepartments] = useState({});
+    // const [subjects, setSubjects] = useState({});
+    // const [buildings, setBuildings_1] = useState({});
+    // const [teachers, setTeachers] = useState({});
+    // const [sections, setSections] = useState({});
+    // const [programs, setPrograms] = useState({});
+    // const [ranks, setRanks] = useState({});
+    // const [departments, setDepartments] = useState({});
 
     const { documents: subjectsStore, loading1, error1 } = fetchDocuments('subjects');
     const { documents: programsStore, loading2, error2 } = fetchDocuments('programs');
@@ -1632,7 +1632,8 @@ function Timetable() {
                         }
                         // const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
                         let keyToFind = scheduleKey.replace(/[^-]+$/, partnerType[0] ?? 'n');
-
+                        console.log;
+                        // console.log("modality: ",sectionsStore[schedule.section]?.modality)
                         scheduleMap.set(scheduleKey, {
                             start: schedule.start - timeslotindex,
                             end: schedule.end - timeslotindex,
@@ -1649,6 +1650,7 @@ function Timetable() {
                             type: type,
                             additional: schedule.additional, // Ensures 'additional' is false if not set
                             containerName: containerName,
+                            // modality: type === 's' ? sectionsStore[schedule.section]?.modality : [],
                             ...(type === 't' && { section: schedule.fieldName1 }),
                             ...(type === 's' && { teacher: schedule.fieldName2 }),
                         });
@@ -1685,6 +1687,7 @@ function Timetable() {
                         dynamicID: scheduleKey,
                         overlap: false,
                         day: schedule.day,
+                        // modality: type === 's' ? sectionsStore[schedule.section]?.modality : [],
                         additional: schedule.additional, // Ensures 'additional' is false if not set
                         containerName: containerName,
                         ...(type === 't' && { section: schedule.fieldName1 }),
