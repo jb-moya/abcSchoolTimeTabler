@@ -55,7 +55,6 @@ function processRows(data, n) {
 const ModifyTimetableContainer = ({
     hashMap = new Map(),
     timetableName = '',
-    timetableId = null,
     firebaseId = null,
     errorMessage,
     setErrorMessage,
@@ -66,7 +65,7 @@ const ModifyTimetableContainer = ({
     sections,
 }) => {
     console.log('timetableName sa loob: ', timetableName);
-    console.log('timetableId sa loob: ', timetableId);
+    // console.log('timetableId sa loob: ', timetableId);
     console.log('firebaseId sa loob: ', firebaseId);
     console.log('teachers sa loob: ', teachers);
     console.log('subjects sa loob: ', subjects);
@@ -90,7 +89,7 @@ const ModifyTimetableContainer = ({
     // const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
     // const { sections, status: sectionStatus } = useSelector((state) => state.section);
 
-    const [scheduleVerId, setScheduleVerId] = useState(timetableId);
+    // const [scheduleVerId, setScheduleVerId] = useState(timetableId);
     const [scheduleVerName, setScheduleVerName] = useState(timetableName);
     console.log('rendering');
 
@@ -270,7 +269,7 @@ const ModifyTimetableContainer = ({
 
     const save = () => {
         const array = mapToArray(valueMap);
-        console.log('IDTNIGNA: ', timetableId);
+        console.log('IDTNIGNA: ', firebaseId);
         console.log('🚀 ~ save ~ valueMap:', valueMap);
 
         console.log('array          dddddddddd: ', array);
@@ -323,7 +322,7 @@ const ModifyTimetableContainer = ({
 
         const duplicateScheduleName = Object.values(schedules).find(
             (schedule) =>
-                schedule.name.trim().toLowerCase() === scheduleVerName.trim().toLowerCase() && schedule.custom_id !== timetableId
+                schedule.name.trim().toLowerCase() === scheduleVerName.trim().toLowerCase() && schedule.custom_id !== firebaseId
         );
 
         if (duplicateScheduleName) {
@@ -331,7 +330,7 @@ const ModifyTimetableContainer = ({
             setErrorMessage(`Timetable with name '${scheduleVerName}' already exists.`);
             return;
         } else {
-            if (timetableId === null) {
+            if (firebaseId === null) {
                 // dispatch(
                 //     addSched({
                 //         name: scheduleVerName,
@@ -579,6 +578,7 @@ const ModifyTimetableContainer = ({
     const Column = ({ section_id, type }) => {
         console.log('section_id: ', section_id);
         console.log('type: ', type);
+        console.log('sections: ', sections);
         let modality_Array = [];
         if (type === 's') {
             modality_Array = sections[section_id]?.modality;
@@ -961,7 +961,7 @@ const ModifyTimetableContainer = ({
                             >
                                 {/* Card for each section */}
                                 <div className='card bg-base-100 w-full shadow-xl pt-5'>
-                                    {timetableId !== null && (
+                                    {firebaseId !== null && (
                                         <div className='flex items-center px-8'>
                                             <label className='mr-4 text-center'>Schedule Name:</label>
                                             <input
@@ -1060,11 +1060,11 @@ const ModifyTimetableContainer = ({
                         <div className='modal-action'>
                             <div className='w-full'>
                                 <label className='block text-sm font-medium mb-2 w-full'>
-                                    {timetableId === null
+                                    {firebaseId === null
                                         ? 'Provide a name for this set of schedules:'
                                         : `Are you sure you want to save the changes?`}
                                 </label>
-                                {timetableId === null && (
+                                {firebaseId === null && (
                                     <input
                                         type='text'
                                         className={`input input-bordered w-full mb-4 ${
