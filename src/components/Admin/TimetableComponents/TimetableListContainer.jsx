@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import debounce from 'debounce';
@@ -12,172 +11,48 @@ import ModifyTimetableContainer from '@components/Admin/ModifyTimetable/ModifyTi
 
 import DeleteData from '../DeleteData';
 import { convertStringDataToMap } from '@components/Admin/ModifyTimetable/utils';
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
-import { addDocument } from '../../../hooks/CRUD/addDocument';
 
-const TimetableListContainer = ({}) => {
-    const dispatch = useDispatch();
+const TimetableListContainer = ({
+    // stores
+    subjects, 
+    programs,
+    sections,
+    teachers,
+    ranks,
+    departments,
+    buildings,
+    schedules,
+    // stores
+}) => {
+
     const location = useLocation();
     const navigate = useNavigate();
 
-    // ===================================================================================================
-    // const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
-    // const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
-    // const { sections, status: sectionStatus } = useSelector((state) => state.section);
-    // const { schedules, status: schedStatus } = useSelector((state) => state.schedule);
-
-    // useEffect(() => {
-    //     if (schedStatus === 'idle') {
-    //         dispatch(fetchScheds());
-    //     }
-    // }, [dispatch, schedStatus]);
-
-    // useEffect(() => {
-    //     if (teacherStatus === 'idle') {
-    //         dispatch(fetchTeachers());
-    //     }
-    // }, [teacherStatus, dispatch]);
-
-    // useEffect(() => {
-    //     if (subjectStatus === 'idle') {
-    //         dispatch(fetchSubjects());
-    //     }
-    // }, [subjectStatus, dispatch]);
-
-    // useEffect(() => {
-    //     if (sectionStatus === 'idle') {
-    //         dispatch(fetchSections());
-    //     }
-    // }, [sectionStatus, dispatch]);
-
-    // ===================================================================================================
+// ===================================================================================================
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
-    const { documents: schedules, loading1, error1 } = fetchDocuments('schedules');
-    // const { documents: teachers, loading2, error2 } = fetchDocuments('teachers');
 
-    // const { documents: sections, loading3, error3 } = fetchDocuments('sections');
-    // const { documents: subjects, loading4, error4 } = fetchDocuments('subjects');
+// ==================================================================================================
 
-    console.log('schedules: ', schedules);
-    // const { documents: sections, loading2, error2 } = fetchDocuments('sections');
-    // console.log('sched: ', schedules);
-
-    // console.log('sections: ', sections);
-
-    // const [timetables, setTimetables] = useState(schedules);
-
-    // useEffect(() => {
-    //     setTimetables(schedules);
-    // }, [schedules]);
-
-    // useEffect(() => {
-    //     console.log('Updated timetables:', timetables);
-    // }, [timetables]);
-    // ==================================================================================================
     const table = location.state?.generatedMap ?? new Map();
 
-    // Check if state exists
-    // const [subjects, setSubjects] = useState({});
-    // const [teachers, setTeachers] = useState({});
-    // const [sections, setSections] = useState({});
+// ===================================================================================================
 
-    // const subjectState = location.state?.subjectsStore ?? {};
-    // const teacherState = location.state?.teachersStore ?? {};
-    // const sectionState = location.state?.sectionsStore ?? {};
-
-    const { documents: subjects, loading2, error2 } = fetchDocuments('subjects');
-    const { documents: teachers, loading4, error4 } = fetchDocuments('teachers');
-    const { documents: sections, loading6, error6 } = fetchDocuments('sections');
-
-    // function modifyData(data) {
-    //     const modifiedData = {};
-
-    //     Object.keys(data).forEach((key) => {
-    //         const item = data[key];
-    //         modifiedData[key] = {
-    //             id: item.custom_id,
-    //             firebaseID: item.id,
-    //         };
-
-    //         Object.keys(item).forEach((prop) => {
-    //             if (!['custom_id', 'id'].includes(prop)) {
-    //                 modifiedData[key][prop] = item[prop];
-    //             }
-    //         });
-    //     });
-
-    //     return modifiedData;
-    // }
-
-    // Fetch documents only if state is not set
-
-    // Modify and set state only if data is fetched
-    // useEffect(() => {
-    //     if (!hasInitialData && subjectsStore) {
-    //         try {
-    //             console.log('NAG SET TNGINA');
-    //             setSubjects(modifyData(subjectsStore));
-    //         } catch (error) {
-    //             console.error('Failed to modify subject data:', error);
-    //         }
-    //     }
-    // }, [subjectsStore]);
-
-    // useEffect(() => {
-    //     if (!hasInitialData && teachersStore) {
-    //         try {
-    //             setTeachers(modifyData(teachersStore));
-    //         } catch (error) {
-    //             console.error('Failed to modify teachers data:', error);
-    //         }
-    //     }
-    // }, [teachersStore]);
-
-    // useEffect(() => {
-    //     if (!hasInitialData && sectionsStore) {
-    //         try {
-    //             setSections(modifyData(sectionsStore));
-    //         } catch (error) {
-    //             console.error('Failed to modify sections data:', error);
-    //         }
-    //     }
-    // }, [sectionsStore]);
-
-    useEffect(() => {
-        console.log('subjects log : ', subjects);
-    }, [subjects]);
-
-    useEffect(() => {
-        console.log('teachers log : ', teachers);
-    }, [teachers]);
-
-    useEffect(() => {
-        console.log('sections log : ', sections);
-    }, [sections]);
-
-    // ===================================================================================================
-
-    // const [editRankId, setEditRankId] = useState(null);
-    // const [editSchedId, setEditSchedId] = useState(null);
     const [editSchedFirebaseId, setEditSchedFirebaseId] = useState(null);
-
     const [editSchedName, setEditSchedName] = useState('');
-    const [editSchedData, setEditSchedData] = useState('');
-
     const [timetable, setTimetable] = useState(table);
 
     useEffect(() => {
         console.log('timetable: ', timetable);
     }, [timetable]);
 
-    // ===================================================================================================
+// ===================================================================================================
 
     const [searchSchedResult, setSearchSchedResult] = useState(schedules);
     const [searchSchedValue, setSearchSchedValue] = useState('');
 
-    // ===================================================================================================
+// ===================================================================================================
 
     const handleEditClick = (FirebaseId) => {
         console.log(schedules);
@@ -196,7 +71,7 @@ const TimetableListContainer = ({}) => {
         setTimetable(newTimetable);
     };
 
-    // ===================================================================================================
+// ===================================================================================================
 
     const resetTimetable = () => {
         // setEditSchedId(null);
@@ -210,7 +85,7 @@ const TimetableListContainer = ({}) => {
         navigate(location.pathname, { state: null });
     };
 
-    // ===================================================================================================
+// ===================================================================================================
 
     // SEARCH FUNCTIONALITY
     const debouncedSearch = useCallback(
@@ -249,7 +124,7 @@ const TimetableListContainer = ({}) => {
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Object.entries(searchSchedResult).slice(indexOfFirstItem, indexOfLastItem);
 
-    // ===================================================================================================
+// ===================================================================================================
 
     const buildingData = {
         floors: 2,
@@ -392,6 +267,17 @@ const TimetableListContainer = ({}) => {
                         </button>
                         <div className='card-body'>
                             <ModifyTimetableContainer
+                                // stores
+                                subjects={subjects}
+                                programs={programs}
+                                sections={sections}
+                                teachers={teachers}
+                                ranks={ranks}
+                                departments={departments}
+                                schedules={schedules}
+                                buildings={buildings}
+                                // stores
+
                                 hashMap={timetable}
                                 timetableName={editSchedName}
                                 // timetableId={editSchedId}
@@ -400,9 +286,6 @@ const TimetableListContainer = ({}) => {
                                 setErrorMessage={setErrorMessage}
                                 errorField={errorField}
                                 setErrorField={setErrorField}
-                                teachers={teachers}
-                                sections={sections}
-                                subjects={subjects}
                             />
                         </div>
                     </div>
