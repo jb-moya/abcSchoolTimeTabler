@@ -5,18 +5,24 @@ import { useSelector } from 'react-redux';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import clsx from 'clsx';
-const SearchableDropdownToggler = ({ fieldIDs, setSelectedList, currentFieldID, type, mode, setReset, typePlaceholder }) => {
+const SearchableDropdownToggler = ({
+    fieldIDs,
+    setSelectedList,
+    currentFieldID,
+    type,
+    mode,
+    setReset,
+    typePlaceholder,
+    teachers,
+    subjects,
+    sections,
+}) => {
     // const subjects = useSelector((state) => state.subject.subjects);
-    // const fieldData = useSelector((state) => state.teacher.fieldData);
-    const fieldData = useSelector((state) =>
-        mode === 'Main'
-            ? type === 't'
-                ? state.section.sections
-                : type === 's'
-                ? state.teacher.teachers
-                : state.subject.subjects
-            : state.subject.subjects
-    );
+    // const fieldDataTest = useSelector((state) => state.teacher);
+    // console.log('AAAAAAAAAAAAAAAA: ', fieldDataTest);
+    const fieldData = mode === 'Main' ? (type === 't' ? sections : type === 's' ? teachers : subjects) : subjects;
+
+    console.log('fieldData: ', fieldData);
     const [searchValue, setsearchValue] = useState('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 

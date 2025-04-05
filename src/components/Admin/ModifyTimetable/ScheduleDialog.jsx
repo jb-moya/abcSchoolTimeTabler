@@ -220,6 +220,9 @@ const ScheduleDialog = forwardRef((props, ref) => {
                         mode={'Main'}
                         setReset={setReset}
                         typePlaceholder={typePlaceholder}
+                        teachers={teachers}
+                        subjects={subjects}
+                        sections={sections}
                     />
                 </div>
 
@@ -241,6 +244,9 @@ const ScheduleDialog = forwardRef((props, ref) => {
                             mode={'Subject'}
                             setReset={setReset}
                             typePlaceholder={'Subject'}
+                            teachers={teachers}
+                            subjects={subjects}
+                            sections={sections}
                         />
                     )}
                 </div>
