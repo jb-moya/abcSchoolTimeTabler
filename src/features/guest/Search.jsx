@@ -182,7 +182,8 @@ const Search = () => {
     const [role, setRole] = useState('Sections');
     const dropdownRef = useRef(null);
     const inputRef = useRef(null);
-    const [valueMap, setValueMap] = useState(new Map());
+    // const [valueMap, setValueMap] = useState(new Map());
+    const [valueMaps, setValueMaps] = useState(new Map());
     const { search, loading, error } = useSearchTimetable();
     // const { sections, status: sectionStatus } = useSelector((state) => state.section);
 
@@ -224,15 +225,29 @@ const Search = () => {
         console.log('result', results);
     };
 
+    // useEffect(() => {
+    //     console.log('potanginang results', results);
+    //     if (results.length !== 0) {
+    //         console.log('in');
+    //         const convertedData = convertStringDataToMap(results[0]?.a);
+    //         console.log('convertedData', convertedData);
+    //         setValueMap(convertedData);
+    //     }
+    // }, [results]);
+
     useEffect(() => {
-        console.log('potanginang results', results);
         if (results.length !== 0) {
-            console.log('in');
-            const convertedData = convertStringDataToMap(results[0]?.a);
-            console.log('convertedData', convertedData);
-            setValueMap(convertedData);
+            const newValueMaps = new Map();
+    
+            results.forEach(result => {
+                const convertedData = convertStringDataToMap(result.a);
+                newValueMaps.set(result.id, convertedData);
+            });
+    
+            setValueMaps(newValueMaps);
         }
     }, [results]);
+    
 
     const handleDeleteSuggestion = (itemToDelete) => {
         setSearchHistory((prevHistory) => prevHistory.filter((item) => item !== itemToDelete));
@@ -337,9 +352,9 @@ const Search = () => {
                                         <span className='text-sm md:text-base text-gray-700'>{result.n.join(' ')}</span>
                                     </div>
 
-                                    {valueMap && valueMap.size > 0 && (
+                                    {valueMaps.has(result.id) &&  (
                                         <div className='flex flex-col space-y-2'>
-                                            {Array.from(valueMap).map(([outerKey, nestedMap]) => {
+                                             {Array.from(valueMaps.get(result.id)).map(([outerKey, nestedMap]) => {
                                                 const groupedByTime = new Map();
                                                 let department = '';
                                                 let rank = '';
