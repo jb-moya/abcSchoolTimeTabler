@@ -48,6 +48,17 @@ function processRows(data, n) {
     return newData;
 }
 
+function getSectionID(data) {
+    // Generate a key from each row ignoring the last element
+
+    data.forEach((row) => {
+        const key = generateKey(row);
+        keyCounts[key] = (keyCounts[key] || 0) + 1;
+    });
+
+    return newData;
+}
+
 const ModifyTimetableContainer = ({
     // stores
     subjects,
@@ -131,10 +142,17 @@ const ModifyTimetableContainer = ({
             let result = processRows(row[1], n);
             // let section_id = null;
             // section_id = row[1][0][3];
+            console.log('row: ', row);
+            let modalityArray = [];
             tableArray.push(row[0]);
             tableArray.push(result);
             tableArray.push(row[2]);
-
+            if (row[2] === 's') {
+                console.log('sec id: ', row[1][0][3]);
+                modalityArray = sections[row[1][0][3]]?.modality;
+            }
+            console.log('modalityArray: ', modalityArray);
+            tableArray.push(modalityArray);
             // let modality = [];
 
             // if (row[2] === 's') {
@@ -261,9 +279,9 @@ const ModifyTimetableContainer = ({
             let result = processRows(row[1], n);
             // let section_id = null;
             // section_id = row[1][0][3];
+            // let modalityArray = [];
             console.log('ROW LOG: ', row);
             tableArray.push(row[0]);
-
             tableArray.push(result);
             tableArray.push(row[2]);
             // let modality = [];
