@@ -1,13 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import { useDispatch } from 'react-redux';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { IoWarningSharp } from 'react-icons/io5';
-
-import { fetchPrograms } from '@features/programSlice';
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchTeachers, editTeacher } from '@features/teacherSlice';
-import { fetchBuildings } from '@features/buildingSlice';
 
 import { toast } from 'sonner';
 import ViewRooms from '../RoomsAndBuildings/ViewRooms';
@@ -17,10 +10,18 @@ import TimeSelector from '@utils/timeSelector';
 
 import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
 
+import { addDocument } from '../../../hooks/CRUD/addDocument';
+import { editDocument } from '../../../hooks/CRUD/editDocument';
+
 const AddSectionContainer = ({
+    // STORES
+    sections,
+    programs,
+    subjects,
+    teachers,
+    buildings,
+    // STORES
     close,
-    reduxField,
-    reduxFunction,
     errorMessage,
     setErrorMessage,
     errorField,
@@ -30,19 +31,6 @@ const AddSectionContainer = ({
 }) => {
 
     const inputNameRef = useRef();
-    const dispatch = useDispatch();
-
-// ===================================================================================================
-
-    const { buildings, status: buildingStatus } = useSelector((state) => state.building);
-
-    const { programs, status: programStatus } = useSelector((state) => state.program);
-
-    const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
-
-    const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
-
-    const { sections, status: sectionStatus } = useSelector((state) => state.section);
 
 // ===================================================================================================
 
@@ -82,7 +70,8 @@ const AddSectionContainer = ({
 
     useEffect(() => {
         if (selectedProgram && selectedYearLevel) {
-            const program = Object.values(programs).find((p) => p.id === selectedProgram);
+            // const program = Object.values(programs).find((p) => p.id === selectedProgram);
+            const program = programs[selectedProgram];
 
             if (program) {
                 setSelectedSubjects(program[selectedYearLevel].subjects || []);
@@ -97,21 +86,11 @@ const AddSectionContainer = ({
         }
     }, [selectedProgram, selectedYearLevel, programs]);
 
-    // useEffect(() => {
-    //     console.log('selectedShift: ', selectedShift);
-    //     console.log('selectedStartTime: ', selectedStartTime);
-    // }, [selectedShift, selectedStartTime]);
-
-// ===================================================================================================
+    // ===================================================================================================
 
     const [totalTimeslot, setTotalTimeslot] = useState(null);
 
     useEffect(() => {
-        if (programStatus !== 'succeeded' || subjectStatus !== 'succeeded') {
-            console.log('Programs or Subjects not loaded yet. Skipping gradeTotalTimeslot calculation.');
-            return;
-        }
-
         if (selectedProgram === '' || selectedYearLevel === '') {
             console.log('No program or year level selected. Skipping gradeTotalTimeslot calculation.');
             return;
@@ -123,6 +102,9 @@ const AddSectionContainer = ({
             console.log('No data to process');
             return;
         }
+
+        console.log('programs: ', programs);
+        console.log('selectedProgram: ', selectedProgram);
 
         let totalNumOfClasses = 0;
 
@@ -138,19 +120,9 @@ const AddSectionContainer = ({
         totalTimeslot += totalTimeslot >= 10 ? 2 : 1;
 
         setTotalTimeslot(totalTimeslot);
-    }, [
-        subjects,
-        numOfSchoolDays,
-        sections,
-        sectionStatus,
-        subjectStatus,
-        programStatus,
-        programs,
-        selectedProgram,
-        selectedYearLevel,
-    ]);
+    }, [subjects, numOfSchoolDays, sections, programs, selectedProgram, selectedYearLevel]);
 
-// ===================================================================================================
+    // ===================================================================================================
 
     const handleInputChange = (e) => {
         setInputValue(e.target.value);
@@ -199,71 +171,81 @@ const AddSectionContainer = ({
             setErrorField('adviser');
             // alert(`Teacher is already assigned as adviser of section '${duplicateAdviser.section}'`);
             return;
-        } else {
-            
-            // ============== ADVISORY LOAD ==============
-                const advisoryLoad = {
-                    name: 'Advisory Load',
-                    subject: -1,
-                    duration: 60,
-                    frequency: numOfSchoolDays,
-                    shown: false,
-                    time: 96,
-                };
-
-                const teacher = structuredClone(teachers[selectedAdviser]);
-                teacher.additionalTeacherScheds = teacher.additionalTeacherScheds || [];
-                teacher.additionalTeacherScheds.push(advisoryLoad);
-
-                dispatch(
-                    editTeacher({
-                        teacherId: selectedAdviser,
-                        updatedTeacher: teacher,
-                    })
-                );
-            // ============== ADVISORY LOAD ==============
-
-            // ============== SECTION ==============
-                dispatch(
-                    reduxFunction({
-                        [reduxField[0]]: inputValue,
-                        teacher: selectedAdviser,
-                        program: selectedProgram,
-                        year: selectedYearLevel,
-                        subjects: selectedSubjects,
-                        fixedDays: fixedDays,
-                        fixedPositions: fixedPositions,
-                        modality: classModality,
-                        shift: selectedShift,
-                        startTime: getTimeSlotIndex(selectedStartTime || '06:00 AM'),
-                        endTime: selectedEndTime,
-                        additionalScheds: additionalScheds,
-                        roomDetails: roomDetails,
-                    })
-                );
-            // ============== SECTION ==============
-
-            handleReset();
         }
 
-        toast.success('Section added successfully', {
-            style: {
-                backgroundColor: 'green',
-                color: 'white',
-                bordercolor: 'green',
-            },
-        });
+        try {
+            // ============== ADVISORY LOAD ==============
+            const advisoryLoad = {
+                name: 'Advisory Load',
+                subject: -1,
+                duration: 60,
+                frequency: numOfSchoolDays,
+                shown: false,
+                time: 96,
+            };
 
-        handleReset();
-        close();
+            const teacher = structuredClone(teachers[selectedAdviser]);
+            const teacher_id = teacher.id;
+            teacher.additionalTeacherScheds = teacher.additionalTeacherScheds || [];
+            teacher.additionalTeacherScheds.push(advisoryLoad);
 
-        if (inputNameRef.current) {
-            inputNameRef.current.focus();
-            inputNameRef.current.select();
+            // dispatch(
+            //     editTeacher({
+            //         teacherId: selectedAdviser,
+            //         updatedTeacher: teacher,
+            //     })
+            // );
+
+            editDocument('teachers', teacher_id, {
+                additionalTeacherScheds: teacher.additionalTeacherScheds,
+            });
+            // ============== ADVISORY LOAD ==============
+
+            // ============== SECTION ==============
+
+            const entryData = {
+                section: inputValue,
+                teacher: selectedAdviser,
+                program: selectedProgram,
+                year: selectedYearLevel,
+                subjects: selectedSubjects,
+                fixedDays: fixedDays,
+                fixedPositions: fixedPositions,
+                modality: classModality,
+                shift: selectedShift,
+                startTime: getTimeSlotIndex(selectedStartTime || '06:00 AM'),
+                endTime: selectedEndTime,
+                additionalScheds: additionalScheds,
+                roomDetails: roomDetails,
+            };
+
+            
+
+            addDocument('sections', entryData);
+
+            // ============== SECTION ==============
+        } catch (error) {
+            console.log(error);
+        } finally {
+            toast.success('Section added successfully', {
+                style: {
+                    backgroundColor: 'green',
+                    color: 'white',
+                    bordercolor: 'green',
+                },
+            });
+
+            handleReset();
+            close();
+
+            if (inputNameRef.current) {
+                inputNameRef.current.focus();
+                inputNameRef.current.select();
+            }
         }
     };
 
-// ===================================================================================================
+    // ===================================================================================================
 
     // End Times
     const handleEndTimeChange = () => {
@@ -285,7 +267,7 @@ const AddSectionContainer = ({
 
         const topDurations = classDurations.sort((a, b) => b - a).slice(0, noOfRows);
 
-        let totalDuration = (breakTimeCount * breakTimeDuration) + topDurations.reduce((sum, duration) => sum + duration, 0);
+        let totalDuration = breakTimeCount * breakTimeDuration + topDurations.reduce((sum, duration) => sum + duration, 0);
 
         const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
 
@@ -295,7 +277,6 @@ const AddSectionContainer = ({
         }
 
         setIsEndTimeValid(true);
-
         setSelectedEndTime(endTimeIdx);
     };
 
@@ -307,12 +288,8 @@ const AddSectionContainer = ({
 
     // Modality
     const handleModalityChange = (index) => {
-        setClassModality(prevState => 
-            prevState.map((value, i) => 
-                i === index ? (value === 1 ? 0 : 1) : value
-            )
-        );
-    };    
+        setClassModality((prevState) => prevState.map((value, i) => (i === index ? (value === 1 ? 0 : 1) : value)));
+    };
 
     // Additional Schedules
     const handleAddAdditionalSchedule = () => {
@@ -332,7 +309,7 @@ const AddSectionContainer = ({
         setAdditionalScheds((prevScheds) => prevScheds.filter((_, i) => i !== index));
     };
 
-// ===================================================================================================
+    // ===================================================================================================
 
     const handleReset = () => {
         setErrorMessage('');
@@ -352,33 +329,7 @@ const AddSectionContainer = ({
         setRoomDetails({ buildingId: -1, floorIdx: -1, roomIdx: -1 });
     };
 
-// ===================================================================================================
-
-    useEffect(() => {
-        if (buildingStatus === 'idle') {
-            dispatch(fetchBuildings());
-        }
-    }, [buildingStatus, dispatch]);
-
-    useEffect(() => {
-        if (programStatus === 'idle') {
-            dispatch(fetchPrograms());
-        }
-    }, [programStatus, dispatch]);
-
-    useEffect(() => {
-        if (subjectStatus === 'idle') {
-            dispatch(fetchSubjects());
-        }
-    }, [subjectStatus, dispatch]);
-
-    useEffect(() => {
-        if (teacherStatus === 'idle') {
-            dispatch(fetchTeachers());
-        }
-    }, [teacherStatus, dispatch]);
-
-// ===================================================================================================
+    // ===================================================================================================
 
     useEffect(() => {
         if (inputNameRef.current) {
@@ -386,15 +337,11 @@ const AddSectionContainer = ({
         }
     }, []);
 
-    useEffect(() => {
-        console.log('additionalScheds:', additionalScheds);
-    }, [additionalScheds]);
-
-// ===================================================================================================
+    // ===================================================================================================
 
     const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 
-// ==================================================================================================
+    // ==================================================================================================
 
     return (
         <div>
@@ -615,6 +562,8 @@ const AddSectionContainer = ({
                         </div>
 
                         <ViewRooms
+                            buildings={buildings}
+                            sections={sections}
                             viewMode={0}
                             sectionId={0}
                             sectionModality={classModality}
@@ -681,6 +630,7 @@ const AddSectionContainer = ({
                         </button>
 
                         <FixedScheduleMaker
+                            subjectsStore={subjects}
                             key={selectedYearLevel}
                             viewingMode={0}
                             isForSection={true}
@@ -708,7 +658,7 @@ const AddSectionContainer = ({
                     <thead>
                         <tr>
                             {Array.from({ length: numOfSchoolDays }, (_, index) => (
-                                <th 
+                                <th
                                     key={index}
                                     className='text-center border border-gray-300'
                                     style={{ width: `${100 / numOfSchoolDays}%` }} // Ensures equal width for all days
@@ -718,17 +668,19 @@ const AddSectionContainer = ({
                             ))}
                         </tr>
                     </thead>
-                    <tbody> 
+                    <tbody>
                         <tr>
                             {Array.from({ length: numOfSchoolDays }, (_, index) => (
-                                <td 
+                                <td
                                     key={index}
                                     className='text-center border border-gray-300'
                                     style={{ width: `${100 / numOfSchoolDays}%` }} // Ensures equal width for all days
                                 >
                                     <button
                                         key={`day-${index}`}
-                                        className={`btn w-full h-full flex items-center justify-center ${classModality[index] === 1 ? 'bg-green-500' : 'bg-red-500'}`}
+                                        className={`btn w-full h-full flex items-center justify-center ${
+                                            classModality[index] === 1 ? 'bg-green-500' : 'bg-red-500'
+                                        }`}
                                         onClick={() => handleModalityChange(index)}
                                     >
                                         {classModality[index] === 1 ? 'ONSITE' : 'OFFSITE'}
@@ -792,6 +744,7 @@ const AddSectionContainer = ({
                                     )}
                                 </button>
                                 <AdditionalScheduleForSection
+                                    subjects={subjects}
                                     viewingMode={1}
                                     sectionID={0}
                                     grade={selectedYearLevel}
@@ -812,6 +765,7 @@ const AddSectionContainer = ({
                                     <RiEdit2Fill size={15} />
                                 </button>
                                 <AdditionalScheduleForSection
+                                    subjects={subjects}
                                     viewingMode={0}
                                     sectionID={0}
                                     grade={selectedYearLevel}
@@ -842,7 +796,7 @@ const AddSectionContainer = ({
             <div className='flex mt-6 justify-center gap-2'>
                 <div className='flex justify-end space-x-2'>
                     <button className='btn btn-primary flex items-center' onClick={handleAddEntry} disabled={!isEndTimeValid}>
-                        <div>Add {reduxField[0]}</div>
+                        <div>Add Section</div>
                     </button>
                 </div>
                 <button className='btn btn-error border-0' onClick={handleReset}>

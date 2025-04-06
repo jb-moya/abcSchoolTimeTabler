@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 
 import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';
 import { toast } from 'sonner';
@@ -8,14 +7,18 @@ import SearchableDropdownToggler from '../searchableDropdown';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { IoWarningSharp } from 'react-icons/io5';
 
+import { addDocument } from '../../../hooks/CRUD/addDocument';
+
 import AdditionalScheduleForProgram from './AdditionalScheduleForProgram';
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
 import TimeSelector from '@utils/timeSelector';
 
 const AddProgramContainer = ({
+    // STORES
+    subjects,
+    programs,
+    // STORES
     close,
-    reduxField,
-    reduxFunction,
     morningStartTime,
     afternoonStartTime,
     errorMessage,
@@ -27,15 +30,8 @@ const AddProgramContainer = ({
 }) => {
 
     const inputNameRef = useRef();
-    const dispatch = useDispatch();
 
 // ===============================================================================
-
-    const subjects = useSelector((state) => state.subject.subjects);
-
-    const programs = useSelector((state) => state.program.programs);
-
-// ==============================================================================
 
     const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 
@@ -337,9 +333,10 @@ const AddProgramContainer = ({
             setErrorMessage('A program with this name already exists.');
             setErrorField('program');
         } else {
-            dispatch(
-                reduxFunction({
-                    [reduxField[0]]: inputValue,
+
+            try {
+                addDocument('programs', {
+                    program: inputValue,
                     7: {
                         subjects: selectedSubjects[7],
                         fixedDays: fixedDays[7],
@@ -380,18 +377,21 @@ const AddProgramContainer = ({
                         additionalScheds: additionalScheds[10],
                         modality: classModality[10],
                     },
-                })
-            );
+                });
+            } catch (error) {
+                console.error('Error adding program:', error);
+            } finally {
+                toast.success('Program added successfully!', {
+                    style: {
+                        backgroundColor: 'green',
+                        color: 'white',
+                        bordercolor: 'green',
+                    },
+                });
+                handleReset();
+                close();
+            }
 
-            toast.success('Program added successfully!', {
-                style: {
-                    backgroundColor: 'green',
-                    color: 'white',
-                    bordercolor: 'green',
-                },
-            });
-            handleReset();
-            close();
         }
     };
 
@@ -505,10 +505,10 @@ const AddProgramContainer = ({
         <dialog id='add_program_modal' className='modal'>
             <div className='modal-box' style={{ width: '48%', maxWidth: 'none' }}>
                 <div>
-                    {/* Header section with centered "Add {reduxField}" */}
+
                     <div className='flex justify-between mb-4'>
                         <h3 className='text-lg font-bold text-center w-full'>
-                            Add New {reduxField[0].charAt(0).toUpperCase() + reduxField[0].slice(1).toLowerCase()}
+                            Add New Program
                         </h3>
                     </div>
 
@@ -630,6 +630,7 @@ const AddProgramContainer = ({
                                                                 </button>
 
                                                                 <FixedScheduleMaker
+                                                                    subjectsStore={subjects}
                                                                     key={grade}
                                                                     viewingMode={0}
                                                                     pvs={0}
@@ -767,6 +768,7 @@ const AddProgramContainer = ({
                                                             )}
                                                         </button>
                                                         <AdditionalScheduleForProgram
+                                                            subjects={subjects}
                                                             viewingMode={1}
                                                             programID={0}
                                                             grade={grade}
@@ -787,14 +789,15 @@ const AddProgramContainer = ({
                                                             <RiEdit2Fill size={15} />
                                                         </button>
                                                         <AdditionalScheduleForProgram
-                                                             viewingMode={0}
-                                                             programID={0}
-                                                             grade={grade}
-                                                             progYearSubjects={selectedSubjects[grade]}
-                                                             arrayIndex={index}
-                                                             additionalSchedsOfProgYear={sched}
-                                                             setAdditionalScheds={setAdditionalScheds}
-                                                             numOfSchoolDays={numOfSchoolDays}
+                                                            subjects={subjects}
+                                                            viewingMode={0}
+                                                            programID={0}
+                                                            grade={grade}
+                                                            progYearSubjects={selectedSubjects[grade]}
+                                                            arrayIndex={index}
+                                                            additionalSchedsOfProgYear={sched}
+                                                            setAdditionalScheds={setAdditionalScheds}
+                                                            numOfSchoolDays={numOfSchoolDays}
                                                         />
                                                     </div>
                                                 </div>
@@ -818,7 +821,7 @@ const AddProgramContainer = ({
                                 onClick={handleAddEntry}
                                 disabled={isAddButtonDisabled}
                             >
-                                <div>Add {reduxField[0]}</div>
+                                <div>Add Program</div>
                             </button>
                         </div>
                         <button className='btn btn-error border-0' onClick={handleReset}>

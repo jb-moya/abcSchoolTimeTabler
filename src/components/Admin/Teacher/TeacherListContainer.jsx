@@ -1,47 +1,33 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchTeachers, addTeacher, editTeacher, removeTeacher } from '@features/teacherSlice';
 
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchRanks } from '@features/rankSlice';
-import { fetchDepartments } from '@features/departmentSlice';
 import debounce from 'debounce';
-import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
-import SearchableDropdownToggler from '../searchableDropdown';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
-
-import { toast } from 'sonner';
 
 import AdditionalScheduleForTeacher from './AdditionalScheduleForTeacher';
 import AddTeacherContainer from './TeacherAdd';
 import DeleteData from '../DeleteData';
 import TeacherEdit from './TeacherEdit';
 
-const TeacherListContainer = ({ editable = false }) => {
-    const dispatch = useDispatch();
+const TeacherListContainer = ({ 
+    teachers, 
+    ranks, 
+    departments, 
+    subjects,
+    editable = false 
+}) => {
 
-    // ===================================================================================================
-
-    const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
-
-    const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
-
-    const { ranks, status: rankStatus } = useSelector((state) => state.rank);
-
-    const { departments, status: departmentStatus } = useSelector((state) => state.department);
-
-    // ===================================================================================================
+// ===================================================================================================
 
     const numOfSchoolDays = Number(localStorage.getItem('numOfSchoolDays')) || 0;
 
-    // ===================================================================================================
+// ===================================================================================================
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
 
-    // ===================================================================================================
+// ===================================================================================================
 
     // Handle closing of teacher addition modal
     const handleClose = () => {
@@ -55,33 +41,7 @@ const TeacherListContainer = ({ editable = false }) => {
         }
     };
 
-    // ===================================================================================================
-
-    useEffect(() => {
-        if (teacherStatus === 'idle') {
-            dispatch(fetchTeachers());
-        }
-    }, [teacherStatus, dispatch]);
-
-    useEffect(() => {
-        if (subjectStatus === 'idle') {
-            dispatch(fetchSubjects());
-        }
-    }, [subjectStatus, dispatch]);
-
-    useEffect(() => {
-        if (rankStatus === 'idle') {
-            dispatch(fetchRanks());
-        }
-    }, [rankStatus, dispatch]);
-
-    useEffect(() => {
-        if (departmentStatus === 'idle') {
-            dispatch(fetchDepartments());
-        }
-    }, [departmentStatus, dispatch]);
-
-    // ===================================================================================================
+// ===================================================================================================
 
     const [searchTeacherResult, setSearchTeacherResult] = useState(teachers);
     const [searchTeacherValue, setSearcTeacherValue] = useState('');
@@ -93,12 +53,15 @@ const TeacherListContainer = ({ editable = false }) => {
                     if (!searchValue) return true;
 
                     const teachersSubjectsName = teacher.subjects.map((subjectID) => subjects[subjectID].subject).join(' ');
+                    const teacherRankName = ranks[teacher.rank].rank;
+                    const teacherDepartmentName = departments[teacher.department].name;
 
                     const escapedSearchValue = escapeRegExp(searchValue).split('\\*').join('.*');
 
                     const pattern = new RegExp(escapedSearchValue, 'i');
 
-                    return pattern.test(teacher.teacher) || pattern.test(teachersSubjectsName);
+                    return pattern.test(teacher.teacher) || pattern.test(teachersSubjectsName) 
+                        || pattern.test(teacherRankName) || pattern.test(teacherDepartmentName);
                 })
             );
         }, 200),
@@ -120,12 +83,13 @@ const TeacherListContainer = ({ editable = false }) => {
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Object.entries(searchTeacherResult).slice(indexOfFirstItem, indexOfLastItem);
 
-    // ===================================================================================================
+// ===================================================================================================
 
     return (
         <React.Fragment>
             <div className='w-full'>
                 <div className='flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5'>
+
                     {/* Pagination */}
                     {currentItems.length > 0 && (
                         <div className='join flex justify-center mb-4 md:mb-0'>
@@ -191,8 +155,11 @@ const TeacherListContainer = ({ editable = false }) => {
                             <dialog id='add_teacher_modal' className='modal modal-bottom sm:modal-middle'>
                                 <div className='modal-box' style={{ width: '40%', maxWidth: 'none' }}>
                                     <AddTeacherContainer
+                                        teachers={teachers}
+                                        ranks={ranks}
+                                        departments={departments}
+                                        subjects={subjects}
                                         close={() => document.getElementById('add_teacher_modal').close()}
-                                        reduxFunction={addTeacher}
                                         errorMessage={errorMessage}
                                         setErrorMessage={setErrorMessage}
                                         errorField={errorField}
@@ -211,6 +178,7 @@ const TeacherListContainer = ({ editable = false }) => {
                             </dialog>
                         </div>
                     )}
+
                 </div>
 
                 <div className='overflow-x-auto'>
@@ -238,12 +206,12 @@ const TeacherListContainer = ({ editable = false }) => {
                             ) : (
                                 currentItems.map(([, teacher], index) => (
                                     <tr key={teacher.id} className='group hover'>
+
                                         {/* Index */}
                                         <td>{index + indexOfFirstItem + 1}</td>
 
                                         {/* Teacher ID */}
                                         <th>{teacher.id}</th>
-
                                         {/* Teacher Name */}
                                         <td>{teacher.teacher}</td>
 
@@ -255,12 +223,11 @@ const TeacherListContainer = ({ editable = false }) => {
 
                                         {/* Teacher Subjects */}
                                         <td className='flex gap-1 flex-wrap'>
-                                            {subjectStatus === 'succeeded' &&
-                                                teacher.subjects.map((subject) => (
-                                                    <div key={subject} className='badge badge-secondary m-1'>
-                                                        {subjects[subject]?.subject || 'Unknown Subject'}
-                                                    </div>
-                                                ))}
+                                            { teacher.subjects.map((subject) => (
+                                                <div key={subject} className='badge badge-secondary m-1'>
+                                                    {subjects[subject]?.subject || 'Unknown Subject'}
+                                                </div>
+                                            ))}
                                         </td>
 
                                         {/* Teacher Year Levels */}
@@ -349,6 +316,7 @@ const TeacherListContainer = ({ editable = false }) => {
                                                                 )}
                                                             </button>
                                                             <AdditionalScheduleForTeacher
+                                                                subjects={subjects}
                                                                 viewingMode={1}
                                                                 teacherID={teacher.id}
                                                                 arrayIndex={index}
@@ -364,16 +332,22 @@ const TeacherListContainer = ({ editable = false }) => {
                                             <td className='w-28'>
                                                 <div className='flex'>
                                                     <TeacherEdit
+                                                        teachers={teachers}
+                                                        subjects={subjects}
+                                                        ranks={ranks}
+                                                        departments={departments}
                                                         teacher={teacher}
-                                                        reduxFunction={editTeacher}
                                                         errorMessage={errorMessage}
                                                         setErrorMessage={setErrorMessage}
                                                         errorField={errorField}
                                                         setErrorField={setErrorField}
                                                         numOfSchoolDays={numOfSchoolDays}
                                                     />
-
-                                                    <DeleteData id={teacher.id} store={'teacher'} reduxFunction={removeTeacher} />
+                                                    <DeleteData 
+                                                        className='btn btn-xs btn-ghost text-red-500' 
+                                                        collection={'teachers'}
+                                                        id={teacher.id}
+                                                    />
                                                 </div>
                                             </td>
                                         )}

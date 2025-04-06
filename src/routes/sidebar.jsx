@@ -27,61 +27,74 @@ const routes = [
                 path: '/app/admin/generate-timetable',
                 icon: <GrSchedules className={submenuIconClasses} />,
                 name: 'Generate Timetable',
+                permissions: ['Generate TimeTable'],
             },
             {
                 path: '/app/admin/modify-subjects',
                 icon: <PiBooksThin className={submenuIconClasses} />,
                 name: 'Modify Subjects and Programs',
+                permissions: ['Modify Subjects and Programs'],
             },
             {
                 path: '/app/admin/modify-teachers',
                 icon: <FaChalkboardTeacher className={submenuIconClasses} />,
                 name: 'Modify Teachers',
+                permissions: ['Modify Teachers'],
             },
             {
                 path: '/app/admin/modify-sections',
                 icon: <GrGroup className={submenuIconClasses} />,
                 name: 'Modify Sections',
+                permissions: ['Modify Sections'],
             },
             {
                 path: '/app/admin/modify-departments',
                 icon: <HiOutlineOfficeBuilding className={submenuIconClasses} />,
                 name: 'Modify Departments',
+                permissions: ['Modify Departments'],
             },
             {
                 path: '/app/admin/room-mapping',
                 icon: <MdOutlineMeetingRoom className={submenuIconClasses} />,
                 name: 'Room Utilization',
+                permissions: ['Room Utilization'],
             },
             {
                 path: '/app/admin/modify-timetable',
                 icon: <MdOutlineMeetingRoom className={submenuIconClasses} />,
                 name: 'Modify TimeTable',
+                permissions: ['Modify TimeTable'],
             },
         ],
     },
     {
-        path: '',
-        icon: <GrSchedules className={`${iconClasses} inline`} />,
-        name: 'Report Schedules',
-        submenu: [
-            {
-                path: '/app/reports/display-teachers-schedule',
-                icon: <FaChalkboardTeacher className={submenuIconClasses} />,
-                name: 'Teacher Schedule',
-            },
-            {
-                path: '/app/reports/display-sections-schedule',
-                icon: <GrGroup className={submenuIconClasses} />,
-                name: 'Section Schedule',
-            },
-            {
-                path: '/app/reports/display-subjects-schedule',
-                icon: <UsersIcon className={submenuIconClasses} />,
-                name: 'Subject Schedule',
-            },
-        ],
+        path: '/app/admin/users',
+        icon: <UsersIcon className={`${iconClasses} inline`} />,
+        name: 'Users Management',
+        role: 'super admin',
     },
+    // {
+    //     path: '',
+    //     icon: <GrSchedules className={`${iconClasses} inline`} />,
+    //     name: 'Report Schedules',
+    //     submenu: [
+    //         {
+    //             path: '/app/reports/display-teachers-schedule',
+    //             icon: <FaChalkboardTeacher className={submenuIconClasses} />,
+    //             name: 'Teacher Schedule',
+    //         },
+    //         {
+    //             path: '/app/reports/display-sections-schedule',
+    //             icon: <GrGroup className={submenuIconClasses} />,
+    //             name: 'Section Schedule',
+    //         },
+    //         {
+    //             path: '/app/reports/display-subjects-schedule',
+    //             icon: <UsersIcon className={submenuIconClasses} />,
+    //             name: 'Subject Schedule',
+    //         },
+    //     ],
+    // },
 ];
 
 export default routes;

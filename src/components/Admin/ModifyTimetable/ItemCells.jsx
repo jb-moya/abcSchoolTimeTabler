@@ -5,8 +5,6 @@ import { motion, useMotionValue, useMotionValueEvent } from 'framer-motion';
 import { convertToNumber } from '@utils/convertToNumber';
 import { convertToTime } from '@utils/convertToTime';
 
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchTeachers } from '@features/teacherSlice';
 import ScheduleDialog from './ScheduleDialog';
 
 const ItemCells = ({
@@ -19,7 +17,6 @@ const ItemCells = ({
     isDragging,
     initialPosition,
     mode,
-    setItemWidth,
     handleCellUpdate,
     scrollToTable,
     editMode,
@@ -31,6 +28,12 @@ const ItemCells = ({
     editingCell,
     addClicked,
     setAddClicked,
+    handleAddTeacher,
+    handleDeleteBlock,
+    containerType,
+    teachers,
+    subjects,
+    sections,
 }) => {
     const itemRef = useRef(null);
 
@@ -38,36 +41,24 @@ const ItemCells = ({
     const [timeRange, setTimeRange] = useState(0);
     const [options, setOptions] = useState([]);
     // const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
-    const dispatch = useDispatch();
 
-    const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
+    // const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
     const [errors, setErrors] = useState({});
     const [hovering, setHovering] = useState(false);
 
     // useEffect(() => {
-    //     if (subjectStatus === 'idle') {
-    //         dispatch(fetchSubjects());
+    //     if (teacherStatus === 'idle') {
+    //         dispatch(fetchTeachers());
     //     }
-    // }, [subjectStatus, dispatch]);
-
-    useEffect(() => {
-        if (teacherStatus === 'idle') {
-            dispatch(fetchTeachers());
-        }
-    }, [teacherStatus, dispatch]);
+    // }, [teacherStatus, dispatch]);
 
     const x = useMotionValue(initialPosition.x);
     const y = useMotionValue(initialPosition.y);
-
     // Update motion values when `initialPosition` changes
 
     useEffect(() => {
-        if (itemRef.current) {
-            const { width } = itemRef.current.getBoundingClientRect();
-            setItemWidth(width);
-        }
         setTimeRange(String(Math.round(((cell.end - cell.start + 0.5) / 2) * 2) / 2));
-    }, [cell, setItemWidth]);
+    }, [cell]);
 
     useEffect(() => {
         // console.log('clicked');
@@ -182,18 +173,16 @@ const ItemCells = ({
     //     setOptions(getTeacherIdsBySubject(cell.subjectID));
     // }, [editMode]);
 
-    function getTeacherIdsBySubject(subjectID) {
-        return Object.values(teachers) // Convert the object to an array of teacher values
-            .filter((teacher) => teacher.subjects.includes(subjectID)) // Filter by subjectID
-            .map((teacher) => teacher.id); // Map to IDs
-    }
-
-    const handleTeacherSelection = (teacherID, teacher) => {
+    const handleTeacherSelection = (fieldID, fieldName, type) => {
         setLoading(true);
         setModalOpen(false);
 
         setTimeout(() => {
-            handleSwitchTeacher({ teacherID, teacher }, editingCell);
+            if (type === 's') {
+                handleSwitchTeacher({ teacherID: fieldID, teacher: fieldName }, editingCell);
+            } else if (type === 't') {
+                handleSwitchTeacher({ sectionID: fieldID, section: fieldName }, editingCell);
+            }
         }, 0);
     };
 
@@ -222,8 +211,33 @@ const ItemCells = ({
         setErrors(newErrors);
     };
 
-    const addSchedule = () => {
+    const addSchedule = (teacher, subject, start, end, addCheckbox, selectedDay) => {
         console.log('added');
+        console.log('teacher: ', teacher);
+        console.log('subject: ', subject);
+        const updatedStart = convertToNumber(start);
+        const updatedEnd = convertToNumber(end);
+        console.log('start: ', start);
+
+        console.log('end: ', end);
+        console.log('addCheckbox: ', addCheckbox);
+        console.log('selectedDay: ', selectedDay);
+
+        for (const day of selectedDay) {
+            handleAddTeacher(
+                {
+                    teacherID: teacher.teacherID,
+                    teacher: teacher.teacher,
+                    subjectID: subject.subjectID,
+                    subject: subject.subject,
+                    start: updatedStart,
+                    end: updatedEnd,
+                    day: day + 1,
+                },
+                addCheckbox
+            );
+        }
+
         setModalOpen(false);
     };
 
@@ -245,7 +259,7 @@ const ItemCells = ({
         if (cell.teacher === null && cell.subject === null) {
             return 'Break';
         }
-        return cellValue ? cellValue : 'NA';
+        return cellValue ? cellValue : '';
     }, [cell.teacher, cell.section, cellValue]);
     return (
         <motion.div
@@ -306,7 +320,7 @@ const ItemCells = ({
             </div>
             {/* Hover State Management */}
             <div
-                className={`absolute inset-0 ${isDragging ? 'cursor-grabbing' : hovering ? 'cursor-grab' : ''}`}
+                className={`absolute inset-0 ${isDragging ? 'cursor-grabbing' : hovering && !editMode ? 'cursor-grab' : ''}`}
                 onMouseEnter={() => {
                     console.log('cells: ', cell);
                     setHovering(true);
@@ -319,11 +333,15 @@ const ItemCells = ({
                     handleTeacherSelection={handleTeacherSelection}
                     handleStartChange={handleStartChange}
                     handleEndChange={handleEndChange}
+                    handleDeleteBlock={handleDeleteBlock}
                     setModalOpen={setModalOpen}
-                    getTeacherIdsBySubject={getTeacherIdsBySubject}
                     errors={errors}
                     addSchedule={addSchedule}
                     setAddClicked={setAddClicked}
+                    containerType={containerType}
+                    teachers={teachers}
+                    subjects={subjects}
+                    sections={sections}
                 />
             )}
         </motion.div>

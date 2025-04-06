@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
-import DraggableSchedules from './draggableSchedules';
 import { useDroppable } from '@dnd-kit/core';
-import clsx from 'clsx';
-import { spawnColors } from './bgColors';
+
+import DraggableSchedules from './draggableSchedules';
+
 
 const ContainerSpawn = ({
+    // STORES
+    subjects,
+    // STOREs
+
     editMode,
 
     subjectID,
@@ -19,14 +22,9 @@ const ContainerSpawn = ({
     fixedDays,
     fixedPositions,
 }) => {
-    const subjects = useSelector((state) => state.subject.subjects);
 
-    // useEffect(() => {
-    //     console.log('selectedSubjects', selectedSubjects);
-    //     console.log('grade', grade);
-    //     console.log('fixedDays', fixedDays);
-    //     console.log('fixedPositions', fixedPositions);
-    // }, [grade, selectedSubjects, fixedDays, fixedPositions]);
+
+// ===============================================================================
 
     const { setNodeRef } = useDroppable({
         id: `spawn-g${grade}-s${subjectID}`,
@@ -35,7 +33,7 @@ const ContainerSpawn = ({
 
     return (
         <div ref={setNodeRef} className={'w-full min-h-13 flex flex-col justify-start'}>
-            <div className='px-2 flex max-w-fit text-lg rounded-br-lg rounded-tl-sm'>subjectID</div>
+            {/* <div className='px-2 flex max-w-fit text-lg rounded-br-lg rounded-tl-sm'>subjectID</div> */}
             <div className='flex flex-wrap p-2 gap-2'>
                 {selectedSubjects?.map((subject, index) => {
                     const arrayLength = fixedDays?.[subject]?.length || 0;

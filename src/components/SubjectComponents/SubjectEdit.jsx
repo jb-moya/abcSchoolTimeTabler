@@ -1,19 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
-import { useDispatch } from 'react-redux';
 import { RiEdit2Fill } from 'react-icons/ri';
 import { toast } from 'sonner';
-import { useSelector } from 'react-redux';
 
-import { fetchPrograms, editProgram } from '@features/programSlice';
-import { fetchSections, editSection } from '@features/sectionSlice';
-import { fetchSubjects } from '@features/subjectSlice';
+import { editDocument } from '../../hooks/CRUD/editDocument';
 
 import calculateTotalClass from '../../utils/calculateTotalClass';
-import { getTimeSlotIndex } from '@utils/timeSlotMapper';
 
 const SubjectEdit = ({
+    // STORES
+    subjects,
+    programs,
+    sections,
+    // STORES
+
     subject,
-    reduxFunction,
     setErrorMessage,
     errorMessage,
     errorField,
@@ -23,21 +23,6 @@ const SubjectEdit = ({
 }) => {
 
     const inputNameRef = useRef(null);
-    const dispatch = useDispatch();
-
-// =============================================================================
-
-// =============================================================================
-
-    const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
-
-    const { programs, status: programStatus } = useSelector(
-        (state) => state.program
-    );
-    
-    const { sections, status: sectionStatus } = useSelector(
-        (state) => state.section
-    );
 
 // =============================================================================
 
@@ -55,25 +40,9 @@ const SubjectEdit = ({
         }
     }, [subject]);
 
-    useEffect(() => {
-        console.log('editSubjectId:', editSubjectId);
-        console.log('editSubjectValue:', editSubjectValue);
-        console.log('editClassDuration:', editClassDuration);
-        console.log('editSubjectWeeklyMinutes:', editSubjectWeeklyMinutes);
-    }, [
-        editSubjectId,
-        editSubjectValue,
-        editClassDuration,
-        editSubjectWeeklyMinutes,]);
-
 // =============================================================================
 
     const handleEditSubject = () => {
-
-        console.log('editSubjectId:', editSubjectId);
-        console.log('editSubjectValue:', editSubjectValue);
-        console.log('editClassDuration:', editClassDuration);
-        console.log('editSubjectWeeklyMinutes:', editSubjectWeeklyMinutes);
 
         if (!editSubjectValue.trim()) {
             setErrorMessage('Subject name cannot be empty');
@@ -103,38 +72,41 @@ const SubjectEdit = ({
             }
         }
 
-        dispatch(
-            reduxFunction({
-                subjectId: editSubjectId,
-                updatedSubject: {
-                    subject: editSubjectValue,
-                    classDuration: editClassDuration,
-                    weeklyMinutes: editSubjectWeeklyMinutes,
+        try {
+            editDocument('subjects', editSubjectId, {
+                subject: editSubjectValue,
+                classDuration: editClassDuration,
+                weeklyMinutes: editSubjectWeeklyMinutes,
+            });
+
+            updateSubjectDependencies();
+        } catch {
+            toast.error('Something went wrong. Please try again.');
+            console.error('Something went wrong. Please try again.');
+        } finally {
+            toast.success('Data and dependencies updated successfully!', {
+                style: {
+                    backgroundColor: '#28a745',
+                    color: '#fff',
+                    borderColor: '#28a745',
                 },
-            })
-        );
-
-        updateSubjectDependencies();
-
-        toast.success('Data and dependencies updated successfully!', {
-            style: {
-                backgroundColor: '#28a745',
-                color: '#fff',
-                borderColor: '#28a745',
-            },
-        });
-
-        handleReset();
-        closeModal();
+            });
+    
+            handleReset();
+            closeModal();
+        }
     };
 
     const updateSubjectDependencies = () => {
+
         if (Object.keys(programs).length === 0) return;
 
         // Update subject dependencies in PROGRAMS
         Object.entries(programs).forEach(([id, program]) => {
             const originalProgram = JSON.parse(JSON.stringify(program));
             const newProgram = JSON.parse(JSON.stringify(program));
+
+            const program_id = program?.id || '';
 
             [7, 8, 9, 10].forEach((grade) => {
                 if (!newProgram[grade].subjects.length === 0) return;
@@ -155,8 +127,6 @@ const SubjectEdit = ({
                             totalDuration += subjects[subId].classDuration;
                         }  
                     });
-
-                    console.log('totalDuration', totalDuration);
 
                     const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
 
@@ -193,6 +163,7 @@ const SubjectEdit = ({
                     let positionTimeSlots = {};
 
                     for (let subjectID of newProgram[grade].subjects) {
+
                         const { fixedDays, fixedPositions } = newProgram[grade];
 
                         fixedDays[subjectID].forEach((day, i) => {
@@ -203,10 +174,12 @@ const SubjectEdit = ({
                                 positionTimeSlots[position] ??= numOfSchoolDays;
                             }
                         });
+
                     }
 
                     // Loop through all subjects of the year level
                     for (let subjectID of newProgram[grade].subjects) {
+
                         // Retrieve the number of classes allowed for the subject
                         let numOfClasses = 0;
                         if (subjectID === editSubjectId) {
@@ -225,24 +198,16 @@ const SubjectEdit = ({
                                 numOfSchoolDays
                             );
                         }
-                        console.log('grade', grade);
-                        console.log('subjectID', subjectID);
-                        console.log('numOfClasses', numOfClasses);
 
                         const fixedDays = newProgram[grade].fixedDays[subjectID];
                         const fixedPositions =
                             newProgram[grade].fixedPositions[subjectID];
-
-                        console.log('fixedDays', fixedDays);
-                        console.log('fixedPositions', fixedPositions);
 
                         // Use hash maps to quickly look up subjects and day-position pairs
                         const dayPositionMap = new Map();
 
                         fixedDays.forEach((day, index) => {
                             const pos = fixedPositions[index];
-                            console.log('day', day);
-                            console.log('pos', pos);
                             if (
                                 (
                                     (day !== 0 && pos === 0) ||
@@ -255,8 +220,6 @@ const SubjectEdit = ({
                             }
                         });
 
-                        console.log('dayPositionMap', dayPositionMap);
-
                         // Now we process the day-position pairs efficiently
                         let result = [];
                         dayPositionMap.forEach(([day, pos]) => {
@@ -266,8 +229,6 @@ const SubjectEdit = ({
                                 positionTimeSlots[pos]--;
                             }
                         });
-
-                        console.log('result', result);
 
                         // Pad with [0, 0] if necessary
                         while (result.length < numOfClasses) {
@@ -281,34 +242,77 @@ const SubjectEdit = ({
                         newProgram[grade].fixedPositions[subjectID] = result.map(
                             ([_, pos]) => pos
                         );
+
                     }
+
             });
 
-            const updateProgramDetails = (newProgram, grade) => ({
-                subjects: newProgram[grade].subjects,
-                fixedDays: newProgram[grade].fixedDays,
-                fixedPositions: newProgram[grade].fixedPositions,
-                shift: newProgram[grade].shift,
-                startTime: newProgram[grade].startTime,
-                endTime: newProgram[grade].endTime, 
-                additionalScheds: newProgram[grade].additionalScheds,
-            });
-
-            // console.log('updated newProgram', newProgram);
+            // const updateProgramDetails = (newProgram, grade) => ({
+            //     subjects: newProgram[grade].subjects,
+            //     fixedDays: newProgram[grade].fixedDays,
+            //     fixedPositions: newProgram[grade].fixedPositions,
+            //     shift: newProgram[grade].shift,
+            //     startTime: newProgram[grade].startTime,
+            //     endTime: newProgram[grade].endTime, 
+            //     additionalScheds: newProgram[grade].additionalScheds,
+            // });
 
             if (originalProgram !== newProgram) {
-                dispatch(
-                    editProgram({
-                        programId: newProgram.id,
-                        updatedProgram: {
-                            program: newProgram.program,
-                            ...[7, 8, 9, 10].reduce((grades, grade) => {
-                                grades[grade] = updateProgramDetails(newProgram, grade);
-                                return grades;
-                            }, {}),
-                        },
-                    })
-                );
+
+                // dispatch(
+                //     editProgram({
+                //         programId: newProgram.id,
+                //         updatedProgram: {
+                //             program: newProgram.program,
+                //             ...[7, 8, 9, 10].reduce((grades, grade) => {
+                //                 grades[grade] = updateProgramDetails(newProgram, grade);
+                //                 return grades;
+                //             }, {}),
+                //         },
+                //     })
+                // );
+            
+                const updatedData = {
+                    7: {
+                        subjects: newProgram[7].subjects,
+                        fixedDays: newProgram[7].fixedDays,
+                        fixedPositions: newProgram[7].fixedPositions,
+                        shift: newProgram[7].shift,
+                        startTime: newProgram[7].startTime,
+                        endTime: newProgram[7].endTime, 
+                        additionalScheds: newProgram[7].additionalScheds, 
+                    }, 
+                    8: {
+                        subjects: newProgram[8].subjects,
+                        fixedDays: newProgram[8].fixedDays,
+                        fixedPositions: newProgram[8].fixedPositions,
+                        shift: newProgram[8].shift,
+                        startTime: newProgram[8].startTime,
+                        endTime: newProgram[8].endTime, 
+                        additionalScheds: newProgram[8].additionalScheds, 
+                    },
+                    9: {
+                        subjects: newProgram[9].subjects,
+                        fixedDays: newProgram[9].fixedDays,
+                        fixedPositions: newProgram[9].fixedPositions,
+                        shift: newProgram[9].shift,
+                        startTime: newProgram[9].startTime,
+                        endTime: newProgram[9].endTime, 
+                        additionalScheds: newProgram[9].additionalScheds,
+                    },
+                    10: {
+                        subjects: newProgram[10].subjects,
+                        fixedDays: newProgram[10].fixedDays,
+                        fixedPositions: newProgram[10].fixedPositions,
+                        shift: newProgram[10].shift,
+                        startTime: newProgram[10].startTime,
+                        endTime: newProgram[10].endTime, 
+                        additionalScheds: newProgram[10].additionalScheds,
+                    }
+                }
+
+                editDocument('programs', program_id, updatedData);
+
             } else {
                 console.log('no changes');
             }
@@ -320,6 +324,8 @@ const SubjectEdit = ({
         Object.entries(sections).forEach(([id, section]) => {
             const originalSection = JSON.parse(JSON.stringify(section));
             const newSection = JSON.parse(JSON.stringify(section));
+
+            const section_id = sections[id]?.id || '';
 
             if (!newSection.subjects.includes(editSubjectId)) return;
 
@@ -434,26 +440,44 @@ const SubjectEdit = ({
             newSection.fixedPositions[editSubjectId] = result.map(([_, pos]) => pos);
 
             if (originalSection !== newSection) {
-                dispatch(
-                    editSection({
-                        sectionId: newSection.id,
-                        updatedSection: {
-                            id: newSection.id,
-                            teacher: newSection.teacher,
-                            program: newSection.program,
-                            section: newSection.section,
-                            subjects: newSection.subjects,
-                            fixedDays: newSection.fixedDays,
-                            fixedPositions: newSection.fixedPositions,
-                            year: newSection.year,
-                            shift: newSection.shift,
-                            startTime: newSection.startTime,
-                            endTime: newSection.endTime,
-                        },
-                    })
-                );
+
+                const updatedData = {
+                    teacher: newSection.teacher,
+                    program: newSection.program,
+                    section: newSection.section,
+                    subjects: newSection.subjects,
+                    fixedDays: newSection.fixedDays,
+                    fixedPositions: newSection.fixedPositions,
+                    year: newSection.year,
+                    shift: newSection.shift,
+                    startTime: newSection.startTime,
+                    endTime: newSection.endTime,
+                }
+
+                editDocument('sections', section_id, updatedData);
+
+                // dispatch(
+                //     editSection({
+                //         sectionId: newSection.id,
+                //         updatedSection: {
+                //             id: newSection.id,
+                //             teacher: newSection.teacher,
+                //             program: newSection.program,
+                //             section: newSection.section,
+                //             subjects: newSection.subjects,
+                //             fixedDays: newSection.fixedDays,
+                //             fixedPositions: newSection.fixedPositions,
+                //             year: newSection.year,
+                //             shift: newSection.shift,
+                //             startTime: newSection.startTime,
+                //             endTime: newSection.endTime,
+                //         },
+                //     })
+                // );
+
             }
         });
+
     };
 
     const handleReset = () => {
@@ -473,26 +497,6 @@ const SubjectEdit = ({
         }
         handleReset();
     };
-
-// =============================================================================
-
-    useEffect(() => {
-        if (subjectStatus === 'idle') {
-            dispatch(fetchSubjects());
-        }
-    }, [subjectStatus, dispatch]);
-
-    useEffect(() => {
-        if (programStatus === 'idle') {
-            dispatch(fetchPrograms());
-        }
-    }, [programStatus, dispatch]);
-    
-    useEffect(() => {
-        if (sectionStatus === 'idle') {
-            dispatch(fetchSections());
-        }
-    }, [sectionStatus, dispatch]);
 
 // =============================================================================
 

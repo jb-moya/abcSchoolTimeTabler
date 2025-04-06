@@ -3,45 +3,69 @@ import ProgramListContainer from '../../../components/Admin/ProgramComponents/Pr
 import Configuration from '@components/Admin/Configuration';
 import Breadcrumbs from '@components/Admin/Breadcrumbs';
 
+import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+
 function Subject() {
-  // Scope and Limitations
-  // Room-Section Relationship: Each room is uniquely assigned to a specific subject, establishing a 1:1 relationship.
-  // Due to this strict pairing, room allocation is not a factor in timetable generation.
+	// Scope and Limitations
+	// Room-Section Relationship: Each room is uniquely assigned to a specific subject, establishing a 1:1 relationship.
+	// Due to this strict pairing, room allocation is not a factor in timetable generation.
 
-  // Curriculum-Driven Course Selection: Students are required to follow a predefined curriculum.
-  // They do not have the option to select subjects independently.
+	// Curriculum-Driven Course Selection: Students are required to follow a predefined curriculum.
+	// They do not have the option to select subjects independently.
 
-  // Standardized Class Start and Break Times: The start time for the first class and the timing of breaks are
-  // standardized across all sections and teachers, ensuring uniformity in the daily schedule.
+	// Standardized Class Start and Break Times: The start time for the first class and the timing of breaks are
+	// standardized across all sections and teachers, ensuring uniformity in the daily schedule.
 
-  const links = [
-    { name: 'Home', href: '/' },
-    // { name: 'Modify Subjects', href: '/modify-subjects' },
-  ];
+	// const dispatch = useDispatch();
 
-  return (
-    <div className="App container mx-auto px-4 mb-10">
-      {/* Optional Configuration Component */}
-      {/* <Configuration /> */}
+	const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
+	const { documents: programs, loading2, error2 } = fetchDocuments('programs');
+	const { documents: sections, loading3, error3 } = fetchDocuments('sections');
 
-      <Breadcrumbs title="Modify Subjects and Programs" links={links} />
+	// useEffect(() => {
+	// 	if (subjects.length === 0) dispatch(subscribeToSubjects());
+	// 	if (programs.length === 0) dispatch(subscribeToPrograms());
+	// 	if (sections.length === 0) dispatch(subscribeToSections());
+	// }, [dispatch]);
 
-      {/* Main Content */}
-      <div className="flex flex-col gap-4">
-        <div className="card w-full bg-base-100 shadow-md">
-          <div className="card-body">
-            <SubjectListContainer editable={true} />
-          </div>
-        </div>
+	const links = [
+		{ name: 'Home', href: '/' },
+		// { name: 'Modify Subjects', href: '/modify-subjects' },
+	];
 
-        <div className="card w-full bg-base-100 shadow-md">
-          <div className="card-body">
-            <ProgramListContainer editable={true} />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+	return (
+	<div className="App container mx-auto px-4 mb-10">
+		{/* Optional Configuration Component */}
+			{/* <Configuration /> */}
+
+			<Breadcrumbs title="Modify Subjects and Programs" links={links} />
+
+			{/* Main Content */}
+			<div className="flex flex-col gap-4">
+				<div className="card w-full bg-base-100 shadow-md">
+					<div className="card-body">
+						<SubjectListContainer 
+							subjects={subjects}
+							programs={programs}
+							sections={sections}
+							editable={true} 
+						/>
+					</div>
+				</div>
+
+				<div className="card w-full bg-base-100 shadow-md">
+					<div className="card-body">
+						<ProgramListContainer 
+							subjects={subjects}
+							programs={programs}
+							sections={sections}
+							editable={true} 
+						/>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
 }
 
 export default Subject;

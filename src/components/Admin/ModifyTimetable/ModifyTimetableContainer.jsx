@@ -1,12 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import DragDrop from './DragDrop';
 import { generateTimeSlots } from '../utils';
 import { produce } from 'immer';
 import { PiConfetti } from 'react-icons/pi';
-import { addSched, editSched, fetchScheds } from '@features/schedulesSlice';
-import { convertStringDataToMap } from './utils';
-// import { deployTimetable } from '../../../features/deployTimetable';
 import useDeployTimetables from '../../../hooks/useDeployTimetables';
 import useDeleteAllFirebaseTimetables from '../../../hooks/useDeleteAllFirebaseTimetables';
 import mapToArray from './mapToArray';
@@ -14,13 +10,14 @@ import clsx from 'clsx';
 import { IoIosAdd, IoIosWarning } from 'react-icons/io';
 import { FiMinus } from 'react-icons/fi';
 import ExportSchedules from './ExportSchedules';
+import { addDocument } from '../../../hooks/CRUD/addDocument';
+import { editDocument } from '../../../hooks/CRUD/editDocument';
 
 function processRows(data, n) {
     // Generate a key from each row ignoring the last element
     function generateKey(row) {
         return JSON.stringify(row.slice(0, -1));
     }
-
     // Count occurrences of each unique key
     const keyCounts = {};
     data.forEach((row) => {
@@ -51,17 +48,45 @@ function processRows(data, n) {
     return newData;
 }
 
+function getSectionID(data) {
+    // Generate a key from each row ignoring the last element
+
+    data.forEach((row) => {
+        const key = generateKey(row);
+        keyCounts[key] = (keyCounts[key] || 0) + 1;
+    });
+
+    return newData;
+}
+
 const ModifyTimetableContainer = ({
+    // stores
+    subjects,
+    programs,
+    sections,
+    teachers,
+    ranks,
+    departments,
+    buildings,
+    schedules,
+    // stores
+
     hashMap = new Map(),
     timetableName = '',
-    timetableId = null,
-
+    firebaseId = null,
     errorMessage,
     setErrorMessage,
     errorField,
     setErrorField,
 }) => {
-    const dispatch = useDispatch();
+    console.log('timetableName sa loob: ', timetableName);
+    // console.log('timetableId sa loob: ', timetableId);
+    console.log('firebaseId sa loob: ', firebaseId);
+    console.log('teachers sa loob: ', teachers);
+    console.log('subjects sa loob: ', subjects);
+
+    console.log('sections sa loob: ', sections);
+
     const inputNameRef = useRef();
 
     const { handleDeployTimetables, isLoading: deployLoading, remaining: deployRemaining } = useDeployTimetables();
@@ -73,16 +98,18 @@ const ModifyTimetableContainer = ({
 
     // ================================================================================================================
 
-    const { schedules, status: schedStatus } = useSelector((state) => state.schedule);
+    // const { schedules, status: schedStatus } = useSelector((state) => state.schedule);
+    // const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
+    // const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
+    // const { sections, status: sectionStatus } = useSelector((state) => state.section);
 
-    const [scheduleVerId, setScheduleVerId] = useState(timetableId);
+    // const [scheduleVerId, setScheduleVerId] = useState(timetableId);
     const [scheduleVerName, setScheduleVerName] = useState(timetableName);
+    console.log('rendering');
 
     useEffect(() => {
-        if (schedStatus === 'idle') {
-            dispatch(fetchScheds());
-        }
-    }, [schedStatus, dispatch]);
+        setScheduleVerName(timetableName);
+    }, [timetableName]);
 
     const handleReset = () => {
         setScheduleVerName(timetableName ? timetableName : '');
@@ -90,11 +117,11 @@ const ModifyTimetableContainer = ({
         setErrorField('');
     };
 
-// ================================================================================================================
+    // ================================================================================================================
 
     const [showExport, setShowExport] = useState(false);
 
-// ================================================================================================================
+    // ================================================================================================================
 
     const [selectedModeValue, setSelectedModeValue] = useState('5m');
     const [valueMap, setValueMap] = useState(hashMap);
@@ -113,15 +140,69 @@ const ModifyTimetableContainer = ({
         array.forEach((row) => {
             let tableArray = [];
             let result = processRows(row[1], n);
+            // let section_id = null;
+            // section_id = row[1][0][3];
+            console.log('row: ', row);
+            let modalityArray = [];
+            let sectionAdviser = '';
+            let sectionRoom = '';
+            let teacherRank = '';
+            let teacherDepartment = '';
+            let currSectionID = null;
+            let currTeacherID = null;
             tableArray.push(row[0]);
             tableArray.push(result);
             tableArray.push(row[2]);
+            if (row[2] === 's') {
+                for (let i = 0; i < row[1].length; i++) {
+                    if (row[1][i] && row[1][i][3] !== undefined) {
+                        currSectionID = row[1][i][3];
+                        break;
+                    }
+                }
+                console.log('sec id: ', currSectionID);
+                modalityArray = sections[currSectionID]?.modality;
+                console.log('adviser ID: ', sections[currSectionID]?.teacher);
+
+                sectionAdviser = teachers[sections[currSectionID]?.teacher]?.teacher;
+                console.log('sectionAdviser: ', sectionAdviser);
+
+                sectionRoom =
+                    buildings[sections[currSectionID]?.roomDetails?.buildingId]?.rooms[
+                        sections[currSectionID]?.roomDetails?.floorIdx
+                    ][sections[currSectionID]?.roomDetails?.roomIdx].roomName;
+                console.log('sectionRoom: ', sectionRoom);
+            } else if (row[2] === 't') {
+                for (let i = 0; i < row[1].length; i++) {
+                    if (row[1][i] && row[1][i][1] !== undefined) {
+                        currTeacherID = row[1][i][1];
+                        break;
+                    }
+                }
+                teacherDepartment = departments[teachers[currTeacherID]?.department]?.name;
+                console.log('teacherDepartment: ', teacherDepartment);
+
+                teacherRank = ranks[teachers[currTeacherID]?.rank]?.rank;
+                console.log('teacherRank: ', teacherRank);
+            }
+            console.log('modalityArray: ', modalityArray);
+            tableArray.push(modalityArray);
+            tableArray.push(sectionAdviser);
+            tableArray.push(sectionRoom);
+            tableArray.push(teacherRank);
+            tableArray.push(teacherDepartment);
+            // let modality = [];
+
+            // if (row[2] === 's') {
+            //     modality = sections[section_id].modality;
+            // }
+            // console.log('modality: ', modality);
+            // tableArray.push(modality);
             resultarray.push(tableArray);
         });
 
         // console.log('array: ', array.slice(0, 3));
         console.log('resultarray: ', resultarray.slice(0, 3));
-
 
         handleDeployTimetables(resultarray);
     };
@@ -149,6 +230,8 @@ const ModifyTimetableContainer = ({
     const totalPages = Math.ceil(valueMap?.size / itemsPerPage);
     const [pageNumbers, setPageNumbers] = useState([]); // State for page numbers
     const [editMode, setEditMode] = useState(false); // State for page numbers
+
+    // const updateState = useCallback(setValueMap, []);
 
     const generatePageNumbers = (filtered) => {
         const pages = [];
@@ -221,7 +304,7 @@ const ModifyTimetableContainer = ({
 
     const save = () => {
         const array = mapToArray(valueMap);
-
+        console.log('IDTNIGNA: ', firebaseId);
         console.log('🚀 ~ save ~ valueMap:', valueMap);
 
         console.log('array          dddddddddd: ', array);
@@ -232,8 +315,20 @@ const ModifyTimetableContainer = ({
         array.forEach((row) => {
             let tableArray = [];
             let result = processRows(row[1], n);
+            // let section_id = null;
+            // section_id = row[1][0][3];
+            // let modalityArray = [];
+            console.log('ROW LOG: ', row);
             tableArray.push(row[0]);
             tableArray.push(result);
+            tableArray.push(row[2]);
+            // let modality = [];
+
+            // if (row[2] === 's') {
+            //     modality = sections[section_id].modality;
+            // }
+            // console.log('modality: ', modality);
+            // tableArray.push(modality);
             resultarray.push(tableArray);
         });
 
@@ -262,7 +357,7 @@ const ModifyTimetableContainer = ({
 
         const duplicateScheduleName = Object.values(schedules).find(
             (schedule) =>
-                schedule.name.trim().toLowerCase() === scheduleVerName.trim().toLowerCase() && schedule.id !== timetableId
+                schedule.name.trim().toLowerCase() === scheduleVerName.trim().toLowerCase() && schedule.id !== firebaseId
         );
 
         if (duplicateScheduleName) {
@@ -270,23 +365,31 @@ const ModifyTimetableContainer = ({
             setErrorMessage(`Timetable with name '${scheduleVerName}' already exists.`);
             return;
         } else {
-            if (timetableId === null) {
-                dispatch(
-                    addSched({
-                        name: scheduleVerName,
-                        data: stringifiedTimeTable,
-                    })
-                );
+            if (firebaseId === null) {
+                // dispatch(
+                //     addSched({
+                //         name: scheduleVerName,
+                //         data: stringifiedTimeTable,
+                //     })
+                // );
+                addDocument('schedules', {
+                    name: scheduleVerName,
+                    data: stringifiedTimeTable,
+                });
             } else {
-                dispatch(
-                    editSched({
-                        schedId: timetableId,
-                        updatedSched: {
-                            name: scheduleVerName,
-                            data: stringifiedTimeTable,
-                        },
-                    })
-                );
+                // dispatch(
+                //     editSched({
+                //         schedId: timetableId,
+                //         updatedSched: {
+                //             name: scheduleVerName,
+                //             data: stringifiedTimeTable,
+                //         },
+                //     })
+                // );
+                editDocument('schedules', firebaseId, {
+                    name: scheduleVerName,
+                    data: stringifiedTimeTable,
+                });
             }
 
             document.getElementById('confirm_schedule_save_modal').close();
@@ -313,10 +416,7 @@ const ModifyTimetableContainer = ({
         setOverlapsDisplay(overlaps);
         const resolvedMap = updateOverlapFields(overlaps);
         // console.log('resolvedmap: ', resolvedMap);
-        if (overlaps.length > 1) {
-            // console.log('setting');
-            setValueMap(resolvedMap);
-        }
+        setValueMap(resolvedMap);
 
         if (!deepEqualMaps(history[historyIndex], valueMap)) {
             const newHistory = history.slice(0, historyIndex + 1); // Remove future history if undo/redo happened
@@ -373,21 +473,28 @@ const ModifyTimetableContainer = ({
                     const currentCell = cells[i];
                     const nextCell = cells[i + 1];
 
-                    if (currentCell.end > nextCell.start) {
-                        // console.log('overlap1 : ', currentCell);
-                        // console.log('overlap2 : ', nextCell);
+                    if (currentCell.additional && nextCell.additional) {
+                        // console.log('TRUE ETO: ');
+                        // console.log('current cell: ', currentCell);
+                        // console.log('next cell', nextCell);
+                        //skips
+                    } else {
+                        if (currentCell.end > nextCell.start) {
+                            // console.log('overlap1 : ', currentCell);
+                            // console.log('overlap2 : ', nextCell);
 
-                        currentCell.overlap = true;
-                        nextCell.overlap = true;
+                            currentCell.overlap = true;
+                            nextCell.overlap = true;
 
-                        const currentKey = [tableKey, currentCell.cellKey, currentCell.type];
-                        const nextKey = [tableKey, nextCell.cellKey, nextCell.type];
+                            const currentKey = [tableKey, currentCell.cellKey, currentCell.type];
+                            const nextKey = [tableKey, nextCell.cellKey, nextCell.type];
 
-                        if (!overlappingCells.some(([t, c]) => t === tableKey && c === currentCell.cellKey)) {
-                            overlappingCells.push(currentKey);
-                        }
-                        if (!overlappingCells.some(([t, c]) => t === tableKey && c === nextCell.cellKey)) {
-                            overlappingCells.push(nextKey);
+                            if (!overlappingCells.some(([t, c]) => t === tableKey && c === currentCell.cellKey)) {
+                                overlappingCells.push(currentKey);
+                            }
+                            if (!overlappingCells.some(([t, c]) => t === tableKey && c === nextCell.cellKey)) {
+                                overlappingCells.push(nextKey);
+                            }
                         }
                     }
                 }
@@ -503,22 +610,62 @@ const ModifyTimetableContainer = ({
 
     // ===============================================================================================================
 
-    const Column = () => {
+    const Column = ({ section_id, type }) => {
+        console.log('section_id: ', section_id);
+        console.log('type: ', type);
+        console.log('sections: ', sections);
+        let modality_Array = [];
+        if (type === 's') {
+            modality_Array = sections[section_id]?.modality;
+            console.log('modality array: ', modality_Array);
+            console.log('sections: ', sections[section_id]);
+        }
+
+        // const Column = () => {
+        // console.log('section_id: ', section_id);
+        // console.log('type: ', type);
+        // let modality_Array = [];
+        // if (type === 's') {
+        //     modality_Array = sections[section_id]?.modality;
+        //     console.log('modality array: ', modality_Array);
+        //     console.log('sections: ', sections[section_id]);
+        // }
+
         const days = ['Mon', 'Tue', 'Wed', 'Thur', 'Fri'];
         return (
-            <div className='flex'>
-                <div className='min-w-[105px] max-w-[105px] border border-base-content border-opacity-20 text-center font-bold'>
-                    Time
-                </div>
-                <div className='w-full flex border border-base-content border-opacity-20'>
-                    {days.map((day, index) => (
-                        <div
-                            key={`header-${index}`}
-                            className='border-r border-base-content border-opacity-20 flex-1 text-center font-bold'
-                        >
-                            {day}
+            <div>
+                {type === 's' && (
+                    <div className='flex pb-5'>
+                        <div className='min-w-[105px] max-w-[105px] border border-base-content border-opacity-20 text-center font-bold'></div>
+                        <div className='w-full flex border border-base-content border-opacity-20'>
+                            {modality_Array.map((modality, index) => (
+                                <div
+                                    key={`header-${index}`}
+                                    className={`border-r border-base-content border-opacity-20 flex-1 text-center font-bold 
+                        ${modality === 1 ? 'bg-green-500 ' : 'bg-red-500'}`}
+                                >
+                                    {modality === 1 ? 'ON SITE' : 'OFF SITE'}
+                                </div>
+                            ))}
                         </div>
-                    ))}
+                    </div>
+                )}
+
+                <div className='flex'>
+                    <div className='min-w-[105px] max-w-[105px] border border-base-content border-opacity-20 text-center font-bold'>
+                        Time
+                    </div>
+
+                    <div className='w-full flex border border-base-content border-opacity-20'>
+                        {days.map((day, index) => (
+                            <div
+                                key={`header-${index}`}
+                                className='border-r border-base-content border-opacity-20 flex-1 text-center font-bold'
+                            >
+                                {day}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         );
@@ -577,9 +724,10 @@ const ModifyTimetableContainer = ({
     }, [hashMap]);
 
     useEffect(() => {
-        const startTime = localStorage.getItem('morningStartTime') || '08:00 PM';
+        const startTime = '06:00 AM';
         const endTime = '08:00 PM';
-
+        console.log('starttime: ', startTime);
+        console.log('endtime: ', endTime);
         const slots = generateTimeSlots(startTime, endTime, 60); // You can change the interval here
         const tableHeight = Math.round(110.625 * slots.length);
         // console.log(slots)
@@ -606,10 +754,7 @@ const ModifyTimetableContainer = ({
         setSearchField(error);
     };
 
-    const optimizeTable = () => {};
-
     // ==============================================================================================================
-    // For debugging (console.log())
 
     useEffect(() => {
         console.log('valueMap', valueMap);
@@ -744,14 +889,23 @@ const ModifyTimetableContainer = ({
 
                     {/* EXPORT */}
                     <button
-                        className="btn btn-primary btn-outline flex-row items-center justify-center cursor-pointer"
+                        className='btn btn-primary btn-outline flex-row items-center justify-center cursor-pointer'
                         onClick={() => setShowExport(true)}
                     >
                         EXPORT
                     </button>
 
                     {showExport && valueMap.size > 0 && (
-                        <ExportSchedules 
+                        <ExportSchedules
+                            // stores
+                            programs={programs}
+                            buildings={buildings}
+                            sections={sections}
+                            teachers={teachers}
+                            ranks={ranks}
+                            departments={departments}
+                            // stores
+
                             schedule={valueMap}
                             close={() => setShowExport(false)}
                         />
@@ -833,13 +987,16 @@ const ModifyTimetableContainer = ({
                 ) : (
                     Array.from(paginatedValueMap.entries()).map(([key, value], index) => {
                         let containerType = null;
+                        let section_id = null;
                         for (const [key, cell] of value.entries()) {
                             if (cell.type) {
                                 containerType = cell.type;
+                                if (containerType === 's') {
+                                    section_id = cell.sectionID;
+                                }
                                 break; // Exit the loop when .type is found
                             }
                         }
-
                         return (
                             <div
                                 key={index}
@@ -848,7 +1005,7 @@ const ModifyTimetableContainer = ({
                             >
                                 {/* Card for each section */}
                                 <div className='card bg-base-100 w-full shadow-xl pt-5'>
-                                    {timetableId !== null && (
+                                    {firebaseId !== null && (
                                         <div className='flex items-center px-8'>
                                             <label className='mr-4 text-center'>Schedule Name:</label>
                                             <input
@@ -863,7 +1020,7 @@ const ModifyTimetableContainer = ({
                                             />
                                             <div className='ml-auto justify-end flex flex-col w-40 items-end'>
                                                 {deployLoading && deployRemaining > 0 && (
-                                                // {1 > 0 && (
+                                                    // {1 > 0 && (
                                                     <span className='flex items-center gap-2 text-green-500'>
                                                         <IoIosAdd />
                                                         <span>{deployRemaining} to overwrite</span>
@@ -871,7 +1028,7 @@ const ModifyTimetableContainer = ({
                                                 )}
 
                                                 {deletingLoading && deleteRemaining > 0 && (
-                                                // {1 > 0 && (
+                                                    // {1 > 0 && (
                                                     <span className='flex items-center gap-2 text-red-500'>
                                                         <FiMinus />
                                                         <span>{deleteRemaining} to delete</span>
@@ -883,7 +1040,8 @@ const ModifyTimetableContainer = ({
                                     <div className='card-body'>
                                         {/* Dynamically render section name */}
                                         <h2 className='card-title capitalize'>{key}</h2>
-                                        <Column />
+                                        <Column section_id={section_id} type={containerType} />
+                                        {/* <Column /> */}
                                         <div
                                             className='flex flex-row'
                                             style={{
@@ -927,6 +1085,10 @@ const ModifyTimetableContainer = ({
                                                 loading={loading}
                                                 addClicked={addClicked}
                                                 setAddClicked={setAddClicked}
+                                                containerType={containerType}
+                                                teachers={teachers}
+                                                subjects={subjects}
+                                                sections={sections}
                                             />
                                         </div>
                                     </div>
@@ -942,11 +1104,11 @@ const ModifyTimetableContainer = ({
                         <div className='modal-action'>
                             <div className='w-full'>
                                 <label className='block text-sm font-medium mb-2 w-full'>
-                                    {timetableId === null
+                                    {firebaseId === null
                                         ? 'Provide a name for this set of schedules:'
                                         : `Are you sure you want to save the changes?`}
                                 </label>
-                                {timetableId === null && (
+                                {firebaseId === null && (
                                     <input
                                         type='text'
                                         className={`input input-bordered w-full mb-4 ${
@@ -1012,7 +1174,7 @@ const ModifyTimetableContainer = ({
                                 onClick={async () => {
                                     await handleDeleteAllFirebaseTimetables();
                                     await deploy();
-                                    
+
                                     document.getElementById('confirm_schedule_save_modal').close();
                                     handleReset();
                                 }}
@@ -1027,7 +1189,11 @@ const ModifyTimetableContainer = ({
                                     'Yes, Deploy timetables'
                                 )}
                             </button>
-                            <button className='btn btn-error' disabled={deletingLoading || deployLoading} onClick={() => document.getElementById('deploy_confirmation').close()}>
+                            <button
+                                className='btn btn-error'
+                                disabled={deletingLoading || deployLoading}
+                                onClick={() => document.getElementById('deploy_confirmation').close()}
+                            >
                                 Cancel
                             </button>
                         </div>

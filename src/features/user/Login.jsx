@@ -11,15 +11,15 @@ function Login() {
     const dispatch = useDispatch();
 
     const INITIAL_LOGIN_OBJ = {
-        email: 'admin@email.com',
-        password: '123456',
+        email: 'super_admin@email.com',
+        password: '2#`MW0y#m5YM',
     };
 
     // const [loading, setLoading] = useState(false);
     // const [errorMessage, setErrorMessage] = useState('');
     const [loginObj, setLoginObj] = useState(INITIAL_LOGIN_OBJ);
 
-    const { user, error: userError, status: userStatus } = useSelector((state) => state.user);
+    const { user, error: userError, loading } = useSelector((state) => state.user);
 
     const submitForm = async (e) => {
         e.preventDefault();
@@ -32,19 +32,16 @@ function Login() {
         }
 
         try {
-            const result = await dispatch(loginUser(loginObj)); // Wait for login to complete
-
-            console.log('🚀 ~ submitForm ~ result:', result);
-            console.log('🚀 ~ submitForm ~ loginUser:', loginUser);
-
-            if (result.meta.requestStatus === 'rejected') {
-                return;
+            const userData = await dispatch(loginUser(loginObj)).unwrap(); // Wait for successful login
+            if (userData) {
+                //console.log('🚀 ~ submitForm ~ loginUser:', userData);
+                //console.log('Successfully logged in');
+                navigate('/app/dashboard'); // Navigate only after successful Firestore retrieval
+            } else {
+                toast.error('Login failed: User data not found.');
             }
-
-            console.log('successfully logged in');
-            navigate('/app/dashboard');
         } catch (error) {
-            // ...
+            toast.error(error);
         }
     };
 
@@ -69,7 +66,7 @@ function Login() {
                         containerStyle='mt-4'
                         labelTitle='Username'
                         updateFormValue={updateFormValue}
-                        disabled={userStatus == 'loading'}
+                        disabled={loading}
                     />
 
                     {/* Password input */}
@@ -80,7 +77,7 @@ function Login() {
                         containerStyle='mt-4'
                         labelTitle='Password'
                         updateFormValue={updateFormValue}
-                        disabled={userStatus == 'loading'}
+                        disabled={loading}
                     />
                 </div>
 
@@ -98,11 +95,11 @@ function Login() {
                 <button
                     type='submit'
                     className={`btn mt-4 w-full btn-primary text-white transition-all duration-75 ease-in-out flex items-center justify-center ${
-                        userStatus == 'loading' ? 'cursor-not-allowed ' : ''
+                        loading ? 'cursor-not-allowed ' : ''
                     }`}
-                    disabled={userStatus == 'loading'}
+                    disabled={loading}
                 >
-                    {userStatus == 'loading' ? (
+                    {loading ? (
                         <>
                             <span className='loading loading-spinner'></span>
                             Logging In

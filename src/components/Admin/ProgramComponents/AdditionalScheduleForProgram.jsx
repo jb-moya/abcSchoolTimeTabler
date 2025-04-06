@@ -1,10 +1,11 @@
 import { clsx } from 'clsx';
-import { useState, useEffect, useRef} from 'react';
-import { useSelector } from 'react-redux';
-
-import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';
+import { useState, useEffect } from 'react';
 
 const AdditionalScheduleForProgram = ({
+    // STORES
+    subjects,
+    // STOREs
+
     viewingMode = 0,
     programID = 0,
     grade = 0,
@@ -15,22 +16,24 @@ const AdditionalScheduleForProgram = ({
     setAdditionalScheds = () => {},
 }) => {
 
-    const subjects = useSelector((state) => state.subject.subjects);
-
 // ==============================================================================
 
     const [schedName, setSchedName] = useState(
         additionalSchedsOfProgYear.name || ''
     );
+
     const [schedSubject, setSchedSubject] = useState(
         additionalSchedsOfProgYear.subject || -1
     );
+
     const [schedDuration, setSchedDuration] = useState(
         additionalSchedsOfProgYear.duration || 0
     );
+
     const [schedFrequency, setSchedFrequency] = useState(
         additionalSchedsOfProgYear.frequency || 0
     );
+
     const [schedShown, setSchedShown] = useState(
         additionalSchedsOfProgYear.shown || false
     );

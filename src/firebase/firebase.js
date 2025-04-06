@@ -4,18 +4,24 @@ import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
-    apiKey: "AIzaSyA3ksqG2XCewOxbl1VRkzgDo0g1MtCK6lU",
-    authDomain: "school-timetable-generat-6367f.firebaseapp.com",
-    projectId: "school-timetable-generat-6367f",
-    storageBucket: "school-timetable-generat-6367f.firebasestorage.app",
-    messagingSenderId: "507897079726",
-    appId: "1:507897079726:web:68af3c1d4bd802687aca3f",
-    measurementId: "G-QYDRRZZMKB",
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID,
+    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+
+const secondApp = initializeApp(firebaseConfig, 'second');
+                // second auth reference use for creating users while the current user (super amind) is logged in
+                // prevent the newly created user to auto logged in and current user from being logged out
+const secondAuth = getAuth(secondApp);
+
 const firestore = getFirestore(app);
 const storage = getStorage(app);
 
-export { app, auth, firestore, storage };
+export { app, auth, secondAuth, firestore, storage, firebaseConfig };

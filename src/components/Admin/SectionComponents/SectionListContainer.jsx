@@ -1,53 +1,32 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
-import { useDispatch } from 'react-redux';
 
-import { fetchSections, addSection, editSection, removeSection } from '@features/sectionSlice';
-import { fetchPrograms } from '@features/programSlice';
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchTeachers, editTeacher } from '@features/teacherSlice';
-import { fetchBuildings, editBuilding } from '@features/buildingSlice';
+import { getTimeSlotString } from '@utils/timeSlotMapper';
 
-import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
-import TimeSelector from '@utils/timeSelector';
-
-import { IoAdd, IoSearch } from 'react-icons/io5';
+import { IoAdd, IoEye, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 
-import { toast } from 'sonner';
-import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
-
-import ViewRooms from '../RoomsAndBuildings/ViewRooms';
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
-import clsx from 'clsx';
 import AdditionalScheduleForSection from './AdditionalScheduleForSection';
 import AddSectionContainer from './SectionAdd';
 import DeleteData from '../DeleteData';
 import SectionEdit from './SectionEdit';
 
 const SectionListContainer = ({
+    // STORES
+    sections,
+    programs,
+    subjects,
+    teachers,
+    buildings,
+    // STORES
     numOfSchoolDays: externalNumOfSchoolDays,
     editable = false,
     breakTimeDuration: externalBreakTimeDuration,
 }) => {
-    const dispatch = useDispatch();
 
-    //  =======================================================================================
-
-    const { buildings, status: buildingStatus } = useSelector((state) => state.building);
-
-    const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
-
-    const { sections, status: sectionStatus } = useSelector((state) => state.section);
-
-    const { programs, status: programStatus } = useSelector((state) => state.program);
-
-    const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
-
-    //  =======================================================================================
+//  =========================================================================================
 
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
         return externalNumOfSchoolDays ?? (Number(localStorage.getItem('numOfSchoolDays')) || 0);
@@ -72,263 +51,12 @@ const SectionListContainer = ({
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState([]);
 
-    //  =======================================================================================
-
-    const [editSectionAdviser, setEditSectionAdviser] = useState('');
-    const [editSectionProg, setEditSectionProg] = useState('');
-    const [editSectionYear, setEditSectionYear] = useState('');
-    const [editSectionId, setEditSectionId] = useState('');
-    const [editSectionValue, setEditSectionValue] = useState('');
-    const [editSectionSubjects, setEditSectionSubjects] = useState([]);
-    const [editSectionShift, setEditSectionShift] = useState(0);
-    const [editSectionStartTime, setEditSectionStartTime] = useState('');
-    const [editSectionFixedDays, setEditSectionFixedDays] = useState({});
-    const [editSectionFixedPositions, setEditSectionFixedPositions] = useState({});
-    const [editAdditionalScheds, setEditAdditionalScheds] = useState([]);
-    const [editRoomDetails, setEditRoomDetails] = useState({
-        buildingId: -1,
-        floorIdx: -1,
-        roomIdx: -1,
-    });
-
-    //  =======================================================================================
-
-    const [prevAdviser, setPrevAdviser] = useState('');
-
-    const [currEditProgram, setCurrEditProgram] = useState('');
-    const [currEditYear, setCurrEditYear] = useState('');
-
-    //  =======================================================================================
+//  =======================================================================================
 
     const [searchSectionResult, setSearchSectionResult] = useState(sections);
     const [searchSectionValue, setSearchSectionValue] = useState('');
 
-    //  =======================================================================================
-
-    const handleEditSectionClick = (section) => {
-        setEditSectionId(section.id);
-        setEditSectionValue(section.section);
-
-        setEditSectionAdviser(section.teacher);
-        setPrevAdviser(section.teacher);
-
-        setEditSectionProg(section.program);
-        setEditSectionYear(section.year);
-        setEditSectionShift(section.shift);
-        setEditSectionStartTime(getTimeSlotString(section.startTime));
-        setEditSectionSubjects(section.subjects);
-        setEditSectionFixedDays(section.fixedDays);
-        setEditSectionFixedPositions(section.fixedPositions);
-        setEditAdditionalScheds(section.additionalScheds);
-        setEditRoomDetails({
-            buildingId: section.roomDetails.buildingId,
-            floorIdx: section.roomDetails.floorIdx,
-            roomIdx: section.roomDetails.roomIdx,
-        });
-
-        setCurrEditProgram(section.program);
-        setCurrEditYear(section.year);
-    };
-
-    const handleSaveSectionEditClick = (sectionId) => {
-        if (
-            !editSectionAdviser ||
-            !editSectionValue ||
-            !editSectionProg ||
-            !editSectionYear ||
-            editSectionSubjects.length === 0
-        ) {
-            toast.error('Please fill out all required fields.', {
-                style: { backgroundColor: 'red', color: 'white' },
-            });
-
-            return;
-        }
-
-        const currentSection = sections[sectionId]?.section || '';
-        const currentSectionAdviser = sections[sectionId]?.teacher || '';
-
-        if (
-            editSectionValue.trim().toLowerCase() === currentSection.trim().toLowerCase() &&
-            editSectionAdviser === currentSectionAdviser
-        ) {
-            dispatch(
-                editSection({
-                    sectionId,
-                    updatedSection: {
-                        id: sectionId,
-                        teacher: editSectionAdviser,
-                        program: editSectionProg,
-                        section: editSectionValue,
-                        subjects: editSectionSubjects,
-                        fixedDays: editSectionFixedDays,
-                        fixedPositions: editSectionFixedPositions,
-                        year: editSectionYear,
-                        shift: editSectionShift,
-                        startTime: getTimeSlotIndex(editSectionStartTime),
-                        additionalScheds: editAdditionalScheds,
-                        roomDetails: editRoomDetails,
-                    },
-                })
-            );
-
-            toast.success('Section updated successfully', {
-                style: {
-                    backgroundColor: 'green',
-                    color: 'white',
-                    bordercolor: 'green',
-                },
-            });
-
-            resetStates();
-        } else {
-            const duplicateSection = Object.values(sections).find(
-                (section) =>
-                    section.section.trim().toLowerCase() === editSectionValue.trim().toLowerCase() &&
-                    section.section.trim().toLowerCase() !== currentSection.trim().toLowerCase()
-            );
-
-            const duplicateAdviser = Object.values(sections).find((section) => section.teacher === editSectionAdviser);
-
-            // console.log('duplicateAdviser: ', duplicateAdviser);
-
-            if (duplicateSection) {
-                toast.error('Section name already taken.', {
-                    style: { backgroundColor: 'red', color: 'white' },
-                });
-                return;
-            } else if (duplicateAdviser) {
-                toast.error(`Adviser already assigned to section '${duplicateAdviser.section}'`, {
-                    tyle: { backgroundColor: 'red', color: 'white' },
-                });
-            } else {
-                const advisoryLoad = {
-                    name: 'Advisory Load',
-                    subject: 0,
-                    duration: 60,
-                    frequency: numOfSchoolDays,
-                    shown: false,
-                    time: 96,
-                };
-
-                if (prevAdviser !== editSectionAdviser) {
-                    const prevSectionAdviser = structuredClone(teachers[prevAdviser]);
-
-                    if (prevSectionAdviser.additionalTeacherScheds) {
-                        prevSectionAdviser.additionalTeacherScheds = prevSectionAdviser.additionalTeacherScheds.filter(
-                            (sched) => sched.name !== 'Advisory Load'
-                        );
-                    }
-
-                    dispatch(
-                        editTeacher({
-                            id: prevAdviser,
-                            updatedTeacher: prevSectionAdviser,
-                        })
-                    );
-                }
-
-                const teacher = structuredClone(teachers[editSectionAdviser]);
-                teacher.additionalTeacherScheds = teacher.additionalTeacherScheds || [];
-                teacher.additionalTeacherScheds.push(advisoryLoad);
-
-                dispatch(
-                    editTeacher({
-                        teacherId: editSectionAdviser,
-                        updatedTeacher: teacher,
-                    })
-                );
-
-                dispatch(
-                    editSection({
-                        sectionId,
-                        updatedSection: {
-                            id: sectionId,
-                            teacher: editSectionAdviser,
-                            program: editSectionProg,
-                            section: editSectionValue,
-                            subjects: editSectionSubjects,
-                            fixedDays: editSectionFixedDays,
-                            fixedPositions: editSectionFixedPositions,
-                            year: editSectionYear,
-                            shift: editSectionShift,
-                            startTime: getTimeSlotIndex(editSectionStartTime),
-                            additionalScheds: editAdditionalScheds,
-                            roomDetails: editRoomDetails,
-                        },
-                    })
-                );
-
-                resetStates();
-            }
-        }
-    };
-
-    const handleCancelSectionEditClick = () => {
-        setEditSectionId(null);
-        setEditSectionValue('');
-        setEditSectionAdviser('');
-        setEditSectionProg('');
-        setEditSectionYear('');
-        setEditSectionSubjects([]);
-        setEditSectionFixedDays({});
-        setEditSectionFixedPositions({});
-        setEditAdditionalScheds([]);
-        setEditRoomDetails({
-            buildingId: -1,
-            floorIdx: -1,
-            roomIdx: -1,
-        });
-
-        setCurrEditProgram('');
-        setCurrEditYear('');
-    };
-
-    //  =======================================================================================
-
-    // HANDLING ADDITION AND DELETION OF ADDITIONAL SCHEDULES
-    // const handleAddAdditionalSchedule = () => {
-    //     setEditAdditionalScheds((prevScheds) => [
-    //         ...prevScheds,
-    //         {
-    //             name: '',
-    //             subject: 0,
-    //             duration: 60,
-    //             frequency: 1,
-    //             shown: true,
-    //             time: editSectionShift === 0 ? 192 : 96,
-    //         },
-    //     ]);
-    // };
-
-    // const handleDeleteAdditionalSchedule = (index) => {
-    //     setEditAdditionalScheds((prevScheds) =>
-    //         prevScheds.filter((_, i) => i !== index)
-    //     );
-    // };
-
-    // RENDERING TIME OPTIONS
-    // const renderTimeOptions = () => {
-    //     const times =
-    //         editSectionShift === 0
-    //             ? Array.from({ length: 36 }, (_, i) => {
-    //                   const hours = 6 + Math.floor(i / 6);
-    //                   const minutes = (i % 6) * 10;
-    //                   return `${String(hours).padStart(2, '0')}:${String(
-    //                       minutes
-    //                   ).padStart(2, '0')} AM`;
-    //               })
-    //             : ['01:00 PM']; // Only one option for PM
-
-    //     return times.map((time) => (
-    //         <option key={time} value={time}>
-    //             {time}
-    //         </option>
-    //     ));
-    // };
-
-    //  =======================================================================================
-    //  Handling ADD SECTION MODAL
+//  =======================================================================================
 
     const handleClose = () => {
         const modal = document.getElementById('add_section_modal');
@@ -341,53 +69,7 @@ const SectionListContainer = ({
         }
     };
 
-    //  =======================================================================================
-    //  Handling DELETE SECTION MODAL
-
-    const deleteModal = (id) => {
-        const deleteModalElement = document.getElementById('delete_modal');
-        deleteModalElement.showModal(); // Show the modal
-
-        const deleteButton = document.getElementById('delete_button');
-        deleteButton.onclick = () => handleDelete(id); // Dynamically assign delete logic
-    };
-
-    const handleDelete = (id) => {
-        // Remove ADVISORY LOAD of teacher assigned as the section's adviser
-        const teacherId = sections[id].teacher;
-
-        const prevSectionAdviser = structuredClone(teachers[teacherId]);
-
-        if (prevSectionAdviser.additionalTeacherScheds) {
-            prevSectionAdviser.additionalTeacherScheds = prevSectionAdviser.additionalTeacherScheds.filter(
-                (sched) => sched.name !== 'Advisory Load'
-            );
-        }
-
-        dispatch(
-            editTeacher({
-                teacherId: teacherId,
-                updatedTeacher: prevSectionAdviser,
-            })
-        );
-    };
-
-    //  =======================================================================================
-
-    const resetStates = () => {
-        // Reset the editing state
-        setEditSectionId('');
-        setEditSectionValue('');
-        setEditSectionProg('');
-        setEditSectionYear('');
-        setEditSectionSubjects([]);
-        setEditSectionFixedDays({});
-        setEditSectionFixedPositions({});
-        setEditAdditionalScheds([]);
-
-        setCurrEditProgram('');
-        setCurrEditYear('');
-    };
+//  =======================================================================================
 
     const debouncedSearch = useCallback(
         debounce((searchValue, sections, subjects) => {
@@ -398,15 +80,15 @@ const SectionListContainer = ({
                     const sectionSubjectsName = Object.keys(section.subjects)
                         .map((subjectID) => subjects[subjectID]?.subject || '')
                         .join(' ');
+                    const programName = programs[section.program]?.program || '';
+                    const teacherName = teachers[section.teacher]?.teacher || '';
 
                     const pattern = new RegExp(escapedSearchValue, 'i');
 
-                    // Check if program or year level matches the search value
-                    const programMatches = pattern.test(section.program);
-                    const yearLevelMatches = pattern.test(section.year); // Ensure `year` is the correct property name
-
                     return (
-                        pattern.test(section.section) || programMatches || yearLevelMatches || pattern.test(sectionSubjectsName)
+                        pattern.test(section.section) || pattern.test(programName)
+                            || pattern.test(section.year) || pattern.test(sectionSubjectsName)
+                                || pattern.test(teacherName) 
                     );
                 })
             );
@@ -414,39 +96,7 @@ const SectionListContainer = ({
         []
     );
 
-    //  =======================================================================================
-
-    useEffect(() => {
-        if (buildingStatus === 'idle') {
-            dispatch(fetchBuildings());
-        }
-    }, [buildingStatus, dispatch]);
-
-    useEffect(() => {
-        if (sectionStatus === 'idle') {
-            dispatch(fetchSections());
-        }
-    }, [sectionStatus, dispatch]);
-
-    useEffect(() => {
-        if (programStatus === 'idle') {
-            dispatch(fetchPrograms());
-        }
-    }, [programStatus, dispatch]);
-
-    useEffect(() => {
-        if (subjectStatus === 'idle') {
-            dispatch(fetchSubjects());
-        }
-    }, [subjectStatus, dispatch]);
-
-    useEffect(() => {
-        if (teacherStatus === 'idle') {
-            dispatch(fetchTeachers());
-        }
-    }, [teacherStatus, dispatch]);
-
-    //  =======================================================================================
+//  =======================================================================================
 
     useEffect(() => {
         if (externalNumOfSchoolDays !== undefined) {
@@ -454,28 +104,7 @@ const SectionListContainer = ({
         }
     }, [externalNumOfSchoolDays]);
 
-    // Update fixed days, fixed positions, and additional schedules of sections upon program and/or year level change
-    useEffect(() => {
-        if (
-            editSectionYear !== undefined &&
-            editSectionProg !== undefined &&
-            (currEditYear !== editSectionYear || currEditProgram !== editSectionProg)
-        ) {
-            setCurrEditProgram(editSectionProg);
-            setCurrEditYear(editSectionYear);
-
-            const program = Object.values(programs).find((p) => p.id === editSectionProg);
-
-            if (program) {
-                setEditSectionSubjects(program[editSectionYear]?.subjects || []);
-                setEditSectionFixedDays(program[editSectionYear]?.fixedDays || {});
-                setEditSectionFixedPositions(program[editSectionYear]?.fixedPositions || {});
-                setEditAdditionalScheds(program[editSectionYear]?.additionalTeacherScheds || []);
-            }
-        }
-    }, [editSectionYear, editSectionProg, programs]);
-
-    //  =======================================================================================
+//  =======================================================================================
 
     useEffect(() => {
         debouncedSearch(searchSectionValue, sections, subjects);
@@ -507,7 +136,6 @@ const SectionListContainer = ({
                                     if (currentPage > 1) {
                                         setCurrentPage(currentPage - 1);
                                     }
-                                    handleCancelSectionEditClick();
                                 }}
                                 disabled={currentPage === 1}
                             >
@@ -522,7 +150,6 @@ const SectionListContainer = ({
                                     if (currentPage < totalPages) {
                                         setCurrentPage(currentPage + 1);
                                     }
-                                    handleCancelSectionEditClick();
                                 }}
                                 disabled={currentPage === totalPages}
                             >
@@ -562,9 +189,12 @@ const SectionListContainer = ({
                             <dialog id='add_section_modal' className='modal '>
                                 <div className='modal-box' style={{ width: '48%', maxWidth: 'none' }}>
                                     <AddSectionContainer
+                                        sections={sections}
+                                        subjects={subjects}
+                                        programs={programs}
+                                        teachers={teachers}
+                                        buildings={buildings}
                                         close={handleClose}
-                                        reduxField={['section', 'subjects', 'units']}
-                                        reduxFunction={addSection}
                                         errorMessage={errorMessage}
                                         setErrorMessage={setErrorMessage}
                                         errorField={errorField}
@@ -652,41 +282,29 @@ const SectionListContainer = ({
                                                 {/* Building */}
                                                 <div className='mb-5 flex flex-col justify-start font-semibold'>
                                                     <div>
-                                                        {buildings[
-                                                            editSectionId === section.id
-                                                                ? editRoomDetails.buildingId
-                                                                : section.roomDetails.buildingId
-                                                        ]?.name || 'UNASSIGNED BUILDING'}
+                                                        {buildings[section.roomDetails.buildingId]?.name || 'UNASSIGNED BUILDING'}
                                                     </div>
                                                 </div>
 
                                                 {/* Number of Floors */}
                                                 <div className='mb-5 flex flex-col justify-start text-zinc-600'>
-                                                    <div>
-                                                        {editSectionId === section.id
-                                                            ? editRoomDetails.floorIdx + 1 || 'UNASSIGNED FLOOR'
-                                                            : section.roomDetails.floorIdx + 1 || 'UNASSIGNED FLOOR'}
-                                                    </div>
+                                                    <div>{section.roomDetails.floorIdx + 1 || 'UNASSIGNED FLOOR'}</div>
                                                 </div>
 
                                                 {/* Room */}
                                                 <div className='mb-5 flex flex-col justify-start text-zinc-600'>
                                                     <div>
-                                                        {editSectionId === section.id
-                                                            ? buildings[editRoomDetails.buildingId]?.rooms[
-                                                                  editRoomDetails.floorIdx
-                                                              ][editRoomDetails.roomIdx]?.roomName
-                                                            : buildings[section.roomDetails.buildingId]?.rooms[
-                                                                  section.roomDetails.floorIdx
-                                                              ][section.roomDetails.roomIdx]?.roomName || 'UNASSIGNED ROOM'}
+                                                        {buildings[section.roomDetails.buildingId]?.rooms[
+                                                            section.roomDetails.floorIdx
+                                                        ][section.roomDetails.roomIdx]?.roomName || 'UNASSIGNED ROOM'}
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
 
                                         {/* Subject Details */}
-                                        <td className='w-full'>
-                                            <div className='flex flex-col gap-4 mt-4 overflow-y-auto h-96 max-h-96 px-4'>
+                                        <td className=''>
+                                            <div className='flex flex-col gap-4 mt-4 overflow-y-auto h-96 max-h-96 '>
                                                 {Array.isArray(section.subjects) && section.subjects.length > 0 ? (
                                                     section.subjects.map((subjectID, index) => (
                                                         <div key={index} className='mb-4'>
@@ -709,7 +327,7 @@ const SectionListContainer = ({
                                                 )}
 
                                                 {/* View Fixed Schedules Button */}
-                                                <div className='flex justify-center '>
+                                                {/* <div className='flex justify-center '>
                                                     <button
                                                         className='btn btn-primary'
                                                         onClick={() =>
@@ -722,10 +340,11 @@ const SectionListContainer = ({
                                                     >
                                                         View Fixed Schedules
                                                     </button>
-                                                </div>
+                                                </div> */}
 
                                                 {/* FixedScheduleMaker Component */}
                                                 <FixedScheduleMaker
+                                                    subjectsStore={subjects}
                                                     key={section.year}
                                                     viewingMode={1}
                                                     isForSection={true}
@@ -795,6 +414,7 @@ const SectionListContainer = ({
                                                                 )}
                                                             </button>
                                                             <AdditionalScheduleForSection
+                                                                subjects={subjects}
                                                                 viewingMode={1}
                                                                 sectionID={section.id}
                                                                 grade={section.year}
@@ -809,11 +429,14 @@ const SectionListContainer = ({
 
                                         {editable && (
                                             <td className='w-28'>
-                                                <div className='flex'>
+                                                <div className='flex '>
                                                     <SectionEdit
+                                                        subjects={subjects}
+                                                        programs={programs}
+                                                        teachers={teachers}
+                                                        sections={sections}
+                                                        buildings={buildings}
                                                         section={section}
-                                                        reduxField={['section', 'subjects', 'units']}
-                                                        reduxFunction={editSection}
                                                         errorMessage={errorMessage}
                                                         setErrorMessage={setErrorMessage}
                                                         errorField={errorField}
@@ -823,13 +446,27 @@ const SectionListContainer = ({
                                                     />
 
                                                     <DeleteData
+                                                        className='btn btn-xs btn-ghost text-red-500'
+                                                        collection={'sections'}
                                                         id={section.id}
-                                                        store={'section'}
-                                                        reduxFunction={removeSection}
-                                                        callback={() => {
-                                                            handleDelete(section.id);
-                                                        }}
                                                     />
+                                                </div>
+
+                                                <div className='sticky top-0 z-10 flex justify-center sm:justify-start py-2'>
+                                                    <button
+                                                        className='btn btn-primary flex items-center gap-2 p-2 w-full sm:w-auto'
+                                                        onClick={() =>
+                                                            document
+                                                                .getElementById(
+                                                                    `assign_fixed_sched_modal_section(${section.id})-grade(${section.year})-view(1)`
+                                                                )
+                                                                .showModal()
+                                                        }
+                                                    >
+                                                        <IoEye className='w-5 h-5' />
+                                                        <span className='hidden sm:inline'>View</span>{' '}
+                                                        {/* Show text on larger screens */}
+                                                    </button>
                                                 </div>
                                             </td>
                                         )}

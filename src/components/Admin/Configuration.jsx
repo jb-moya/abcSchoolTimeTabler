@@ -27,6 +27,14 @@ function Configuration({ numOfSchoolDays, setNumOfSchoolDays, breakTimeDuration,
     });
 
     useEffect(() => {
+        localStorage.setItem('numOfSchoolDays', numOfSchoolDays);
+    }, [numOfSchoolDays]);
+
+    useEffect(() => {
+        localStorage.setItem('breakTimeDuration', breakTimeDuration);
+    }, [breakTimeDuration]);
+
+    useEffect(() => {
         localStorage.setItem('defaultSubjectClassDuration', defaultSubjectClassDuration);
     }, [defaultSubjectClassDuration]);
 

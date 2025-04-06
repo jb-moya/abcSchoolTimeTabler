@@ -1,34 +1,24 @@
 import  { useState, useEffect, useRef } from "react";
-import { useSelector, useDispatch } from "react-redux";
+
 import { toast } from 'sonner';
 import { RiEdit2Fill } from "react-icons/ri";
 
-import { fetchDepartments } from "@features/departmentSlice";
-import { fetchTeachers } from "@features/teacherSlice";
+import { editDocument } from '../../../hooks/CRUD/editDocument';
 
 const DepartmentEdit = ({
-  department,
-  reduxFunction,
-  setErrorMessage,
-  errorMessage,
-  errorField,
-  setErrorField,
+	// STORES	
+	departments,
+	teachers,
+	// STORES
+	department,
+	setErrorMessage,
+	errorMessage,
+	errorField,
+	setErrorField,
 }) => {
 
 	const inputNameRef = useRef(null);
-	const dispatch = useDispatch();
-
-// ==========================================================================
-
-	const { departments, status: departmentStatus } = useSelector(
-		(state) => state.department
-	);
-
-	const { teachers, status: teacherStatus } = useSelector(
-		(state) => state.teacher
-	);
 	
-
 // ==========================================================================
 
 	const [editDepartmentValue, setEditDepartmentValue] = useState(department.name || "");
@@ -40,12 +30,10 @@ const DepartmentEdit = ({
 	const handleSaveDepartmentEditClick = () => {
 
 		if (!editDepartmentValue.trim() || !selectedTeacher) {
-
 			setErrorMessage("Please fill out all fields.");
 			setErrorField(["name", "head"]);
 
 			return;
-
 		}
 
 		const duplicateDepartment = Object.values(departments).find(
@@ -54,41 +42,36 @@ const DepartmentEdit = ({
 		);
 
 		if (duplicateDepartment) {
-
 			toast.error("A department with this name already exists.", {
 				style: { backgroundColor: "red", color: "white" },
 			});
 
 			return;
-
 		}
 
-		dispatch (
-
-			reduxFunction({
-				departmentId: department.id,
-				updatedDepartment: {
-				name: editDepartmentValue.trim(),
-				head: selectedTeacher
-				},
-			})
+		try {
 			
-		).then((action) => {
-			if (action.meta.requestStatus === "fulfilled") {
+			editDocument('departments', department.id, {
+				name: editDepartmentValue.trim(),
+          		head: selectedTeacher,
+			});
 
-				toast.success("Department updated successfully!", {
-					style: { backgroundColor: "#28a745", color: "#fff" },
-				});
+		} catch {
+			toast.error('Something went wrong. Please try again.');
+			console.error('Something went wrong. Please try again.');
+		} finally {
+			toast.success('Data and dependencies updated successfully!', {
+				style: {
+					backgroundColor: '#28a745',
+					color: '#fff',
+					borderColor: '#28a745',
+				},
+			});
+	
+			handleResetDepartmentEditClick();
+			closeModal();
+		}
 
-				handleResetDepartmentEditClick(); // Reset input fields
-				closeModal(); // Close modal	
-
-			} else {
-
-				toast.error("Failed to update department.");
-
-			}
-		});
 	};
 
 	const handleResetDepartmentEditClick = () => {
@@ -103,21 +86,20 @@ const DepartmentEdit = ({
 
 // ==========================================================================
 
-	useEffect(() => {
-		if (teacherStatus === "idle") {
-			dispatch(fetchTeachers());
-		}
-		if (departmentStatus === "idle") {
-			dispatch(fetchDepartments());
-		}
-	}, [teacherStatus, departmentStatus, dispatch]);
+	// useEffect(() => {
+	// 	if (teacherStatus === "idle") {
+	// 		dispatch(fetchTeachers());
+	// 	}
+	// 	if (departmentStatus === "idle") {
+	// 		dispatch(fetchDepartments());
+	// 	}
+	// }, [teacherStatus, departmentStatus, dispatch]);
 
 	useEffect(() => {
 		setEditDepartmentValue(department.name || "");
 		setSelectedTeacher(department.head || null);
 	}, [department]);
 	
-
 // ==========================================================================
 
 	const closeModal = () => {

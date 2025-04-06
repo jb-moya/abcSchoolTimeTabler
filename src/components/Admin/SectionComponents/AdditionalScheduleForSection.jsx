@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import TimeSelector from '@utils/timeSelector';
 import clsx from 'clsx';
 
-import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
-
-
 const AdditionalScheduleForSection = ({
+    // STORES
+    subjects,
+    // STORES
+
     viewingMode = 0,
     sectionID = 0,
     grade = 0,
@@ -16,9 +15,6 @@ const AdditionalScheduleForSection = ({
     additionalSchedsOfSection = [],
     setAdditionalScheds = () => {},
 }) => {
-
-
-    const subjects = useSelector((state) => state.subject.subjects);
 
 // ===================================================================================================
 

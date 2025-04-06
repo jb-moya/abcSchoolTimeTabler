@@ -5,10 +5,11 @@ import { lazy } from 'react';
 const Dashboard = lazy(() => import('../pages/protected/Dashboard'));
 const Welcome = lazy(() => import('../pages/protected/Welcome'));
 const Page404 = lazy(() => import('../pages/404'));
+const Unauthorized = lazy(() => import('../pages/Unauthorized'));
 const Blank = lazy(() => import('../pages/protected/Blank'));
 const Leads = lazy(() => import('../pages/protected/Leads'));
 const Integration = lazy(() => import('../pages/protected/Integration'));
-//const Calendar = lazy(() => import('../pages/protected/Calendar'));
+const Users = lazy(() => import('../pages/protected/admin/Users'));
 const Team = lazy(() => import('../pages/protected/Team'));
 const Transactions = lazy(() => import('../pages/protected/Transactions'));
 const Bills = lazy(() => import('../pages/protected/Bills'));
@@ -26,6 +27,7 @@ const ModifyTimetable = lazy(() => import('../pages/protected/admin/ModifyTimeTa
 const DisplaySectionSchedule = lazy(() => import('../pages/protected/reports/SectionSchedules'));
 const DisplaySubjectSchedule = lazy(() => import('../pages/protected/reports/SubjectSchedules'));
 const DisplayTeacherSchedule = lazy(() => import('../pages/protected/reports/TeacherSchedules'));
+
 const routes = [
     {
         path: '/dashboard', // the url
@@ -34,30 +36,43 @@ const routes = [
     {
         path: '/admin/generate-timetable', // the url
         component: Timetable, // view rendered
+        permissions: ['Generate Timetable'],
     },
     {
         path: '/admin/modify-teachers', // the url
         component: ModifyTeachers, // view rendered
+        permissions: ['Modify Teachers'],
     },
     {
         path: '/admin/modify-subjects', // the url
         component: ModifySubjects, // view rendered
+        permissions: ['Modify Subjects and Programs'],
     },
     {
         path: '/admin/modify-sections', // the url
         component: ModifySections, // view rendered
+        permissions: ['Modify Sections'],
     },
     {
         path: '/admin/modify-departments', // the url
         component: ModifyDepartments, // view rendered
+        permissions: ['Modify Departments'],
+    },
+    {
+        path: '/admin/users',
+        component: Users,
+        role: 'super admin',
+        permissions: ['Modify Users'],
     },
     {
         path: '/admin/room-mapping', // the url
         component: RoomMapping, // view rendered
+        permissions: ['Room Utilization'],
     },
     {
         path: '/admin/modify-timetable', // the url
         component: ModifyTimetable, // view rendered
+        permissions: ['Modify TimeTable'],
     },
     {
         path: '/reports/display-teachers-schedule', // the url
@@ -83,10 +98,6 @@ const routes = [
         path: '/settings-team',
         component: Team,
     },
-    // {
-    //     path: '/calendar',
-    //     component: Calendar,
-    // },
     {
         path: '/transactions',
         component: Transactions,
@@ -118,6 +129,10 @@ const routes = [
     {
         path: '/404',
         component: Page404,
+    },
+    {
+        path: '/unauthorized',
+        component: Unauthorized,
     },
     {
         path: '/blank',

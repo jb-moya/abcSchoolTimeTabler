@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import { useDispatch } from 'react-redux';
 import { toast } from 'sonner';
 
+import { addDocument } from '../../hooks/CRUD/addDocument';
 
 const AddSubjectContainer = ({
+    // STORES
+    subjects,
+
     close,
     reduxFunction,
     errorMessage,
@@ -15,11 +17,6 @@ const AddSubjectContainer = ({
 }) => {
 
     const inputNameRef = useRef();
-    const dispatch = useDispatch();
-
-// ==============================================================================
-
-    const subjects = useSelector((state) => state.subject.subjects);
 
 // ==============================================================================
 
@@ -58,24 +55,26 @@ const AddSubjectContainer = ({
             setErrorField('name');
         } else {
 
-            dispatch(
-                reduxFunction({
+            try {
+                addDocument('subjects', {
                     subject: subjectName,
                     classDuration: classDuration,
                     weeklyMinutes: weeklyMinutes,
-                })
-            );
-
-            toast.success('Subject added successfully', {
-                style: {
-                    backgroundColor: 'green',
-                    color: 'white',
-                    bordercolor: 'green',
-                },
-            });
-
-            handleReset();
-            close();
+                });
+            } catch (error) {
+                console.error('Error adding subject:', error);
+            } finally {
+                toast.success('Subject added successfully', {
+                    style: {
+                        backgroundColor: 'green',
+                        color: 'white',
+                        bordercolor: 'green',
+                    },
+                });
+    
+                handleReset();
+                close();
+            }
         }
     };
 

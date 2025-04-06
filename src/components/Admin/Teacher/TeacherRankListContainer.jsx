@@ -1,217 +1,170 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-
-import { fetchRanks, addRank, editRank, removeRank } from '@features/rankSlice';
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchTeachers, editTeacher } from '@features/teacherSlice';
 
 import debounce from 'debounce';
-import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
 
-import { toast } from 'sonner';
-import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 import AdditionalScheduleForTeacherRank from './AdditionalScheduleForTeacherRank';
 import AddTeacherRankContainer from './TeacherRankAdd';
 import DeleteData from '../DeleteData';
 import TeacherRankEdit from './TeacherRankEdit';
 
-const TeacherRankListContainer = ({ editable = false }) => {
-    const dispatch = useDispatch();
+const TeacherRankListContainer = ({ 
+    // STORES
+    ranks,
+	teachers,
+    // STORES
+    editable = false 
+}) => {
 
-    // ===================================================================================================
-
-    const { ranks, status: rankStatus } = useSelector((state) => state.rank);
-
-    const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
-
-    // ===================================================================================================
+// ===================================================================================================
 
     const numOfSchoolDays = Number(localStorage.getItem('numOfSchoolDays')) || 0;
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
 
-    // ===================================================================================================
+// ===================================================================================================
 
-    const [editRankId, setEditRankId] = useState(null);
-    const [editRankValue, setEditRankValue] = useState('');
-    const [editAdditionalRankScheds, setEditAdditionalRankScheds] = useState([]);
+    // const [editRankId, setEditRankId] = useState(null);
+    // const [editRankValue, setEditRankValue] = useState('');
+    // const [editAdditionalRankScheds, setEditAdditionalRankScheds] = useState([]);
 
-    // ===================================================================================================
+// ===================================================================================================
 
     const [searchRankResult, setSearchRankResult] = useState(ranks);
     const [searchRankValue, setSearchRankValue] = useState('');
 
-    // ===================================================================================================
-
-    // HANDLING CLICK OF RANK EDIT
-    // const handleEditRankClick = (rank) => {
-    // 	setEditRankId(rank.id);
-    // 	setEditRankValue(rank.rank);
-    // 	setEditAdditionalRankScheds(rank.additionalRankScheds);
-    // };
-
-    const handleCancelRankEditClick = () => {
-        setEditRankId(null);
-        setEditRankValue('');
-        setEditAdditionalRankScheds([]);
-    };
-
-    // ===================================================================================================
-
-    //  HANDLING ADDITION AND DELETION OF ADDITIONAL RANK SCHEDULES
-    // const handleAddAdditionalSchedule = () => {
-    // 	setEditAdditionalRankScheds((prevScheds) => [
-    // 		...prevScheds,
-    // 		{
-    // 			name: '',
-    // 			subject: 0,
-    // 			duration: 60,
-    // 			frequency: 1,
-    // 			shown: true,
-    // 			time: 72,
-    // 		},
-    // 	]);
-    // };
-
-    // const handleDeleteAdditionalSchedule = (index) => {
-    // 	setEditAdditionalRankScheds((prevScheds) =>
-    // 		prevScheds.filter((_, i) => i !== index)
-    // 	);
-    // };
-
-    // ===================================================================================================
+// ===================================================================================================
 
     // HANDLING UPDATE OF RANKS (and TEACHERS optional)
-    const updateAllTeacherAdditionalSchedules = () => {
-        Object.entries(teachers).forEach(([teacherID, teacher]) => {
-            const newTeacher = JSON.parse(JSON.stringify(teacher));
+    // const updateAllTeacherAdditionalSchedules = () => {
+    //     Object.entries(teachers).forEach(([teacherID, teacher]) => {
+    //         const newTeacher = JSON.parse(JSON.stringify(teacher));
 
-            if (newTeacher.rank !== editRankId) return;
+    //         if (newTeacher.rank !== editRankId) return;
 
-            const updatedSchedNames = new Set(editAdditionalRankScheds.map((sched) => sched.name));
+    //         const updatedSchedNames = new Set(editAdditionalRankScheds.map((sched) => sched.name));
 
-            const advisoryLoadSched = newTeacher.additionalTeacherScheds.find((sched) => sched.name === 'Advisory Load');
+    //         const advisoryLoadSched = newTeacher.additionalTeacherScheds.find((sched) => sched.name === 'Advisory Load');
 
-            let updatedAdditionalScheds = structuredClone(editAdditionalRankScheds);
+    //         let updatedAdditionalScheds = structuredClone(editAdditionalRankScheds);
 
-            if (advisoryLoadSched && !updatedSchedNames.has('Advisory Load')) {
-                updatedAdditionalScheds.push(advisoryLoadSched);
-                updatedSchedNames.add('Advisory Load');
-            }
+    //         if (advisoryLoadSched && !updatedSchedNames.has('Advisory Load')) {
+    //             updatedAdditionalScheds.push(advisoryLoadSched);
+    //             updatedSchedNames.add('Advisory Load');
+    //         }
 
-            const existingSchedsMap = new Map(newTeacher.additionalTeacherScheds.map((sched) => [sched.name, sched]));
+    //         const existingSchedsMap = new Map(newTeacher.additionalTeacherScheds.map((sched) => [sched.name, sched]));
 
-            newTeacher.additionalTeacherScheds = updatedAdditionalScheds.map((updatedSched) => {
-                const existingSched = existingSchedsMap.get(updatedSched.name);
+    //         newTeacher.additionalTeacherScheds = updatedAdditionalScheds.map((updatedSched) => {
+    //             const existingSched = existingSchedsMap.get(updatedSched.name);
 
-                if (existingSched) {
-                    return {
-                        ...existingSched,
-                        duration: updatedSched.duration || existingSched.duration,
-                        frequency: updatedSched.frequency || existingSched.frequency,
-                        shown: updatedSched.shown ?? existingSched.shown,
-                    };
-                }
+    //             if (existingSched) {
+    //                 return {
+    //                     ...existingSched,
+    //                     duration: updatedSched.duration || existingSched.duration,
+    //                     frequency: updatedSched.frequency || existingSched.frequency,
+    //                     shown: updatedSched.shown ?? existingSched.shown,
+    //                 };
+    //             }
 
-                // If the schedule doesn't exist, add it as is
-                return updatedSched;
-            });
+    //             // If the schedule doesn't exist, add it as is
+    //             return updatedSched;
+    //         });
 
-            dispatch(
-                editTeacher({
-                    teacherId: newTeacher.id,
-                    updatedTeacher: {
-                        teacher: newTeacher.teacher,
-                        department: newTeacher.department,
-                        rank: newTeacher.rank,
-                        subjects: newTeacher.subjects,
-                        yearLevels: newTeacher.yearLevels,
-                        additionalTeacherScheds: newTeacher.additionalTeacherScheds,
-                    },
-                })
-            );
-        });
-    };
+    //         dispatch(
+    //             editTeacher({
+    //                 teacherId: newTeacher.id,
+    //                 updatedTeacher: {
+    //                     teacher: newTeacher.teacher,
+    //                     department: newTeacher.department,
+    //                     rank: newTeacher.rank,
+    //                     subjects: newTeacher.subjects,
+    //                     yearLevels: newTeacher.yearLevels,
+    //                     additionalTeacherScheds: newTeacher.additionalTeacherScheds,
+    //                 },
+    //             })
+    //         );
+    //     });
+    // };
 
-    const handleSaveRankEditClick = (value) => {
-        if (!editRankValue.trim()) {
-            toast.error('All fields are required.', {
-                style: { backgroundColor: 'red', color: 'white' },
-            });
-            return;
-        }
+    // const handleSaveRankEditClick = (value) => {
+    //     if (!editRankValue.trim()) {
+    //         toast.error('All fields are required.', {
+    //             style: { backgroundColor: 'red', color: 'white' },
+    //         });
+    //         return;
+    //     }
 
-        const currentRank = ranks[editRankId]?.rank || '';
+    //     const currentRank = ranks[editRankId]?.rank || '';
 
-        if (editRankValue.trim().toLowerCase() === currentRank.trim().toLowerCase()) {
-            dispatch(
-                editRank({
-                    rankId: editRankId,
-                    updatedRank: {
-                        rank: editRankValue,
-                        additionalRankScheds: editAdditionalRankScheds,
-                    },
-                })
-            );
+    //     if (editRankValue.trim().toLowerCase() === currentRank.trim().toLowerCase()) {
+    //         dispatch(
+    //             editRank({
+    //                 rankId: editRankId,
+    //                 updatedRank: {
+    //                     rank: editRankValue,
+    //                     additionalRankScheds: editAdditionalRankScheds,
+    //                 },
+    //             })
+    //         );
 
-            if (value) {
-                updateAllTeacherAdditionalSchedules();
-            }
+    //         if (value) {
+    //             updateAllTeacherAdditionalSchedules();
+    //         }
 
-            toast.success('Data and dependencies updated successfully', {
-                style: { backgroundColor: 'green', color: 'white', bordercolor: 'green' },
-            });
+    //         toast.success('Data and dependencies updated successfully', {
+    //             style: { backgroundColor: 'green', color: 'white', bordercolor: 'green' },
+    //         });
 
-            setEditRankId(null);
-            setEditRankValue('');
-            setEditAdditionalRankScheds([]);
-        } else {
-            const duplicateRank = Object.values(ranks).find(
-                (rank) => rank.rank.trim().toLowerCase() === editRankValue.trim().toLowerCase()
-            );
+    //         setEditRankId(null);
+    //         setEditRankValue('');
+    //         setEditAdditionalRankScheds([]);
+    //     } else {
+    //         const duplicateRank = Object.values(ranks).find(
+    //             (rank) => rank.rank.trim().toLowerCase() === editRankValue.trim().toLowerCase()
+    //         );
 
-            if (duplicateRank) {
-                toast.error('Rank already exists.', {
-                    style: { backgroundColor: 'red', color: 'white' },
-                });
-                return;
-            } else {
-                dispatch(
-                    editRank({
-                        rankId: editRankId,
-                        updatedRank: {
-                            rank: editRankValue,
-                            additionalRankScheds: editAdditionalRankScheds,
-                        },
-                    })
-                );
+    //         if (duplicateRank) {
+    //             toast.error('Rank already exists.', {
+    //                 style: { backgroundColor: 'red', color: 'white' },
+    //             });
+    //             return;
+    //         } else {
+    //             dispatch(
+    //                 editRank({
+    //                     rankId: editRankId,
+    //                     updatedRank: {
+    //                         rank: editRankValue,
+    //                         additionalRankScheds: editAdditionalRankScheds,
+    //                     },
+    //                 })
+    //             );
 
-                if (value) {
-                    updateAllTeacherAdditionalSchedules();
-                }
+    //             if (value) {
+    //                 updateAllTeacherAdditionalSchedules();
+    //             }
 
-                toast.success('Data and dependencies updated successfully', {
-                    style: { backgroundColor: 'green', color: 'white', bordercolor: 'green' },
-                });
+    //             toast.success('Data and dependencies updated successfully', {
+    //                 style: { backgroundColor: 'green', color: 'white', bordercolor: 'green' },
+    //             });
 
-                setEditRankId(null);
-                setEditRankValue('');
-                setEditAdditionalRankScheds([]);
-            }
-        }
+    //             setEditRankId(null);
+    //             setEditRankValue('');
+    //             setEditAdditionalRankScheds([]);
+    //         }
+    //     }
 
-        handleConfirmationModalClose();
-    };
+    //     handleConfirmationModalClose();
+    // };
 
-    const handleConfirmationModalClose = () => {
-        document.getElementById(`confirm_rank_edit_modal`).close();
-    };
+    // const handleConfirmationModalClose = () => {
+    //     document.getElementById(`confirm_rank_edit_modal`).close();
+    // };
 
-    // ===================================================================================================
+// ===================================================================================================
 
     const handleClose = () => {
         const modal = document.getElementById('add_rank_modal');
@@ -224,24 +177,25 @@ const TeacherRankListContainer = ({ editable = false }) => {
         }
     };
 
-    // ===================================================================================================
+// ===================================================================================================
 
     //  FOR FETCHING ALL RANKS AND TEACHERS
-    useEffect(() => {
-        if (rankStatus === 'idle') {
-            dispatch(fetchRanks());
-        }
-    }, [rankStatus, dispatch]);
+    // useEffect(() => {
+    //     if (rankStatus === 'idle') {
+    //         dispatch(fetchRanks());
+    //     }
+    // }, [rankStatus, dispatch]);
 
-    useEffect(() => {
-        if (teacherStatus === 'idle') {
-            dispatch(fetchTeachers());
-        }
-    }, [teacherStatus, dispatch]);
+    // useEffect(() => {
+    //     if (teacherStatus === 'idle') {
+    //         dispatch(fetchTeachers());
+    //     }
+    // }, [teacherStatus, dispatch]);
 
-    // ===================================================================================================
+// ===================================================================================================
 
     // SEARCH FUNCTIONALITY
+    
     const debouncedSearch = useCallback(
         debounce((searchValue, ranks) => {
             setSearchRankResult(
@@ -252,7 +206,7 @@ const TeacherRankListContainer = ({ editable = false }) => {
 
                     const pattern = new RegExp(escapedSearchValue, 'i');
 
-                    return pattern.test(rank.rank) || pattern.test(rank.load);
+                    return pattern.test(rank.rank);
                 })
             );
         }, 200),
@@ -275,12 +229,13 @@ const TeacherRankListContainer = ({ editable = false }) => {
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Object.entries(searchRankResult).slice(indexOfFirstItem, indexOfLastItem);
 
-    // ===================================================================================================
+// ===================================================================================================
 
     return (
         <React.Fragment>
             <div className='w-full'>
                 <div className='flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5'>
+
                     {/* Pagination */}
                     {currentItems.length > 0 && (
                         <div className='join flex justify-center mb-4 md:mb-0'>
@@ -290,7 +245,6 @@ const TeacherRankListContainer = ({ editable = false }) => {
                                     if (currentPage > 1) {
                                         setCurrentPage(currentPage - 1);
                                     }
-                                    handleCancelRankEditClick();
                                 }}
                                 disabled={currentPage === 1}
                             >
@@ -305,7 +259,6 @@ const TeacherRankListContainer = ({ editable = false }) => {
                                     if (currentPage < totalPages) {
                                         setCurrentPage(currentPage + 1);
                                     }
-                                    handleCancelRankEditClick();
                                 }}
                                 disabled={currentPage === totalPages}
                             >
@@ -346,8 +299,8 @@ const TeacherRankListContainer = ({ editable = false }) => {
                             <dialog id='add_rank_modal' className='modal modal-bottom sm:modal-middle'>
                                 <div className='modal-box'>
                                     <AddTeacherRankContainer
+                                        ranks={ranks}
                                         close={() => document.getElementById('add_rank_modal').close()}
-                                        reduxFunction={addRank}
                                         errorMessage={errorMessage}
                                         setErrorMessage={setErrorMessage}
                                         errorField={errorField}
@@ -366,6 +319,7 @@ const TeacherRankListContainer = ({ editable = false }) => {
                             </dialog>
                         </div>
                     )}
+
                 </div>
                 <div className='overflow-x-auto'>
                     <table className='table table-sm table-zebra w-full'>
@@ -388,9 +342,17 @@ const TeacherRankListContainer = ({ editable = false }) => {
                             ) : (
                                 currentItems.map(([, rank], index) => (
                                     <tr key={rank.id} className='group hover'>
+
+                                        {/* Index */}
                                         <td>{index + indexOfFirstItem + 1}</td>
+
+                                        {/* Rank ID */}
                                         <th>{rank.id}</th>
+
+                                        {/* Rank */}
                                         <td>{rank.rank}</td>
+                                        
+                                        {/* Additional Schedules */}
                                         <td>
                                             <div
                                                 key={`edit-add-sched-view-tr(${rank.id})`}
@@ -458,20 +420,23 @@ const TeacherRankListContainer = ({ editable = false }) => {
                                         {editable && (
                                             <td className='w-28'>
                                                 <>
-                                                <div className='flex'>
-                                                <TeacherRankEdit
-                                                        rank={rank}
-                                                        reduxFunction={editRank}
-                                                        errorMessage={errorMessage}
-                                                        setErrorMessage={setErrorMessage}
-                                                        errorField={errorField}
-                                                        setErrorField={setErrorField}
-                                                        numOfSchoolDays={numOfSchoolDays}
-                                                    />
-                                                    <DeleteData id={rank.id} store={'rank'} reduxFunction={removeRank} />
-
-                                                </div>
-                                                    
+                                                    <div className='flex'>
+                                                        <TeacherRankEdit
+                                                            ranks={ranks}
+                                                            teachers={teachers}
+                                                            rank={rank}
+                                                            errorMessage={errorMessage}
+                                                            setErrorMessage={setErrorMessage}
+                                                            errorField={errorField}
+                                                            setErrorField={setErrorField}
+                                                            numOfSchoolDays={numOfSchoolDays}
+                                                        />
+                                                        <DeleteData 
+                                                            className='btn btn-xs btn-ghost text-red-500' 
+                                                            collection={'ranks'}
+                                                            id={rank.id}
+                                                        />
+                                                    </div>
                                                 </>
                                             </td>
                                         )}
@@ -482,49 +447,6 @@ const TeacherRankListContainer = ({ editable = false }) => {
                     </table>
                 </div>
             </div>
-
-            {/* Modal for confirming program modifications */}
-            <dialog id='confirm_rank_edit_modal' className='modal modal-bottom sm:modal-middle'>
-                <div className='modal-box' style={{ width: '30%', maxWidth: 'none' }}>
-                    <div>
-                        <div className='mb-3 text-center text-lg font-bold'>Confirmation for Modifications on Rank</div>
-                    </div>
-
-                    <div>
-                        <div className='m-2 p-2'>
-                            Your modifications in this rank will be now saved. Would you also like to for the ADDITIONAL SCHEDULE
-                            changes to reflect on all associated teachers?
-                        </div>
-                        <div className='mt-4 flex justify-center items-center gap-3'>
-                            <button
-                                className='btn btn-sm bg-green-400 hover:bg-green-200'
-                                onClick={() => {
-                                    handleSaveRankEditClick(true);
-                                }}
-                            >
-                                Yes
-                            </button>
-                            <button
-                                className='btn btn-sm'
-                                onClick={() => {
-                                    handleSaveRankEditClick(false);
-                                }}
-                            >
-                                No
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className='modal-action w-full mt-0'>
-                        <button
-                            className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2'
-                            onClick={handleConfirmationModalClose}
-                        >
-                            ✕
-                        </button>
-                    </div>
-                </div>
-            </dialog>
         </React.Fragment>
     );
 };

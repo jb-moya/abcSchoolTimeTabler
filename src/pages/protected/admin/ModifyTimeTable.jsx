@@ -5,7 +5,6 @@ import { useDispatch } from 'react-redux';
 import { setPageTitle } from '@features/common/headerSlice';
 import ModifyTimetable from '@features/admin/modify-timetable';
 import { enableMapSet } from 'immer';
-import { convertStringDataToMap } from '@components/Admin/ModifyTimetable/utils';
 
 enableMapSet();
 function InternalPage() {

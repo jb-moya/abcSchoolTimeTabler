@@ -1,34 +1,35 @@
 import { useState, useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchRanks } from '@features/rankSlice';
 
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 
 import { toast } from 'sonner';
 import AdditionalScheduleForTeacherRank from './AdditionalScheduleForTeacherRank';
 
+import { addDocument } from '../../../hooks/CRUD/addDocument';
+
 const AddTeacherRankContainer = ({
+    // STORES
+    ranks,
+    // STORES
     close,
-    reduxFunction,
     errorMessage,
     setErrorMessage,
     errorField,
     setErrorField,
     numOfSchoolDays,
 }) => {
+
     const inputNameRef = useRef();
 
-    const { ranks, status: rankStatus } = useSelector((state) => state.rank);
-    const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
-
-    const dispatch = useDispatch();
+// =============================================================================================================
 
     const [rankValue, setRankValue] = useState('');
     const [additionalRankScheds, setAdditionalRankScheds] = useState([]);
 
+// ============================================================================================================
+
     const handleAddRank = () => {
+
         if (!rankValue.trim()) {
             setErrorMessage('All fields are required.');
             if (rankValue === '') {
@@ -47,24 +48,38 @@ const AddTeacherRankContainer = ({
             return;
         }
 
-        dispatch(
-            reduxFunction({
+        try {
+            addDocument('ranks', {
                 rank: rankValue,
                 additionalRankScheds: additionalRankScheds,
-            })
-        );
+            });
+        } catch (error) {
+            console.error('Error adding rank:', error);
+        } finally {
+            toast.success('Rank added successfully', {
+                style: {
+                    backgroundColor: 'green',
+                    color: 'white',
+                    bordercolor: 'green',
+                },
+            });
 
-        toast.success('Rank added successfully', {
-            style: { backgroundColor: 'green', color: 'white', bordercolor: 'green' },
-        });
+            handleReset();
+            close();
 
-        handleReset();
-        close();
-
-        if (inputNameRef.current) {
-            inputNameRef.current.focus();
-            inputNameRef.current.select();
+            if (inputNameRef.current) {
+                inputNameRef.current.focus();
+                inputNameRef.current.select();
+            }
         }
+
+        // dispatch(
+        //     reduxFunction({
+        //         rank: rankValue,
+        //         additionalRankScheds: additionalRankScheds,
+        //     })
+        // );
+
     };
 
     const handleAddTeacherAdditionalSchedules = () => {
@@ -97,17 +112,17 @@ const AddTeacherRankContainer = ({
     // 	console.log('additionalRankScheds', additionalRankScheds);
     // }, [additionalRankScheds]);
 
-    useEffect(() => {
-        if (rankStatus === 'idle') {
-            dispatch(fetchRanks());
-        }
-    }, [rankStatus, dispatch]);
+    // useEffect(() => {
+    //     if (rankStatus === 'idle') {
+    //         dispatch(fetchRanks());
+    //     }
+    // }, [rankStatus, dispatch]);
 
-    useEffect(() => {
-        if (subjectStatus === 'idle') {
-            dispatch(fetchSubjects());
-        }
-    }, [subjectStatus, dispatch]);
+    // useEffect(() => {
+    //     if (subjectStatus === 'idle') {
+    //         dispatch(fetchSubjects());
+    //     }
+    // }, [subjectStatus, dispatch]);
 
     useEffect(() => {
         if (inputNameRef.current) {
@@ -180,7 +195,7 @@ const AddTeacherRankContainer = ({
                                         // Content to show when both are not empty
                                         <>
                                             <p>Name: {sched.name}</p>
-                                            <p>Subject: {sched.subject === -1 ? 'N/A' : subjects[sched.subject].subject}</p>
+                                            <p>Subject: {'N/A'}</p>
                                         </>
                                     ) : (
                                         // Content to show when either is empty

@@ -30,6 +30,11 @@ function useDeployTimetables() {
                     a: JSON.stringify([value.slice(0, 2)]),
                     t: value[2],
                     u: user.uid,
+                    m: value[3],
+                    sa: value[4],
+                    sr: value[5],
+                    tr: value[6],
+                    td: value[7],
                 };
 
                 // console.log(obj);

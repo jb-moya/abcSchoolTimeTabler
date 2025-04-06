@@ -1,36 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchRanks } from '@features/rankSlice';
 
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import AdditionalScheduleForTeacherRank from './AdditionalScheduleForTeacherRank';
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchTeachers, editTeacher } from '@features/teacherSlice';
+
+import { editDocument } from '../../../hooks/CRUD/editDocument';
 
 import { toast } from "sonner";
 
 const TeacherRankEdit = ({
+    // STORES
+    ranks,
+    teachers,
+    // STORES
     rank,
-    reduxFunction,
     errorMessage,
     setErrorMessage,
     errorField,
     setErrorField,
     numOfSchoolDays,
 }) => {
-
-    const dispatch = useDispatch();
-
-// ==============================================================================
-
-    const { ranks, status: rankStatus } = useSelector(
-		(state) => state.rank
-	);
-
-	const { teachers, status: teacherStatus } = useSelector(
-		(state) => state.teacher
-	);
-
+    
 // ==============================================================================
 
     const [editRankId, setEditRankId] = useState(rank.id || null);
@@ -49,21 +38,8 @@ const TeacherRankEdit = ({
 
 // ==============================================================================
 
-	useEffect(() => {
-		if (rankStatus === 'idle') {
-			dispatch(fetchRanks());
-		}
-	}, [rankStatus, dispatch]);
-
-	useEffect(() => {
-		if (teacherStatus === 'idle') {
-			dispatch(fetchTeachers());
-		}
-	}, [teacherStatus, dispatch]);
-
-// ==============================================================================
-
 	const updateAllTeacherAdditionalSchedules = () => {
+
 		Object.entries(teachers).forEach(([teacherID, teacher]) => {
 			const newTeacher = JSON.parse(JSON.stringify(teacher));
 
@@ -103,27 +79,23 @@ const TeacherRankEdit = ({
 				return updatedSched;
 			});
 
+            const updatedEntry = {
+                custom_id: newTeacher.custom_id,
+                teacher: newTeacher.teacher,
+                rank: newTeacher.rank,
+                subjects: newTeacher.subjects,
+                yearLevels: newTeacher.yearLevels,
+                additionalTeacherScheds: newTeacher.additionalTeacherScheds,
+            }
 
-			dispatch(
-				editTeacher({
-					teacherId: newTeacher.id,
-					updatedTeacher: {
-						teacher: newTeacher.teacher,
-						department: newTeacher.department,
-						rank: newTeacher.rank,
-						subjects: newTeacher.subjects,
-						yearLevels: newTeacher.yearLevels,
-						additionalTeacherScheds: newTeacher.additionalTeacherScheds,
-					},
-				})
-			);
+            editDocument('teachers', newTeacher.id, updatedEntry);
 			
 		})
 	};
-
-		
+	
 	const handleSaveRankEditClick = (value) => {
 
+        handleConfirmationModalClose();
 
 		if (!editRankValue.trim()) {
 			toast.error('All fields are required.', {
@@ -135,25 +107,33 @@ const TeacherRankEdit = ({
 		const currentRank = ranks[editRankId]?.rank || '';
 
 		if (editRankValue.trim().toLowerCase() === currentRank.trim().toLowerCase()) {
-			dispatch(
-				reduxFunction({
-					rankId: editRankId,
-					updatedRank: {
-						rank: editRankValue,
+
+            try {
+                editDocument('ranks', editRankId, {
+                    rank: editRankValue,
 						additionalRankScheds: editAdditionalRankScheds,
-					},
-				})
-			);
+                });
 
-			if (value) {
-				updateAllTeacherAdditionalSchedules();
-			}
+                if (value) {
+                    updateAllTeacherAdditionalSchedules();
+                }
 
-			toast.success('Data and dependencies updated successfully', {
-				style: { backgroundColor: 'green', color: 'white', bordercolor: 'green', },
-			});
-
-			resetStates();
+            } catch {
+                toast.error('Something went wrong. Please try again.');
+                console.error('Something went wrong. Please try again.');
+            } finally {
+                toast.success('Data and dependencies updated successfully!', {
+                    style: {
+                        backgroundColor: '#28a745',
+                        color: '#fff',
+                        borderColor: '#28a745',
+                    },
+                });
+        
+                resetStates();
+                closeModal();
+            }
+	
 		} else {
 			const duplicateRank = Object.values(ranks).find((rank) => rank.rank.trim().toLowerCase() === editRankValue.trim().toLowerCase());
 
@@ -163,30 +143,36 @@ const TeacherRankEdit = ({
 				});
 				return;
 			} else {
-				dispatch(
-					reduxFunction({
-						rankId: editRankId,
-						updatedRank: {
-							rank: editRankValue,
-							additionalRankScheds: editAdditionalRankScheds,
-						},
-					})
-				);
 
-				if (value) {
-					updateAllTeacherAdditionalSchedules();
-				}
+                try {
+                    editDocument('ranks', editRankId, {
+                        rank: editRankValue,
+                            additionalRankScheds: editAdditionalRankScheds,
+                    });
+        
+                    if (value) {
+                        updateAllTeacherAdditionalSchedules();
+                    }
+    
+                } catch {
+                    toast.error('Something went wrong. Please try again.');
+                    console.error('Something went wrong. Please try again.');
+                } finally {
+                    toast.success('Data and dependencies updated successfully!', {
+                        style: {
+                            backgroundColor: '#28a745',
+                            color: '#fff',
+                            borderColor: '#28a745',
+                        },
+                    });
+            
+                    resetStates();
+                    closeModal();
+                }
 
-				toast.success('Data and dependencies updated successfully', {
-					style: { backgroundColor: 'green', color: 'white', bordercolor: 'green', },
-				});
-
-				resetStates();
 			}
 		}
 
-		handleConfirmationModalClose();
-		closeModal();
 	};
 
 // ==============================================================================
@@ -228,7 +214,7 @@ const TeacherRankEdit = ({
 		if (modalCheckbox) {
 			modalCheckbox.checked = false; // Uncheck the modal toggle
 		}
-		// handleResetDepartmentEditClick();
+		resetStates();
 	};
 
 	return (
@@ -358,6 +344,7 @@ const TeacherRankEdit = ({
                             Reset
                         </button>
                     </div>
+
                 </div>
             </div>
 
@@ -407,4 +394,4 @@ const TeacherRankEdit = ({
     );
 }
 
-export default TeacherRankEdit
+export default TeacherRankEdit;

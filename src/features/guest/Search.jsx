@@ -1,11 +1,196 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { IoSearch } from 'react-icons/io5';
 import { MdHistory, MdOutlineCancel } from 'react-icons/md';
 import debounce from 'debounce';
 import clsx from 'clsx';
 import useSearchTimetable from '../../hooks/useSearchTimetable';
+import { convertStringDataToMap } from '../../components/Admin/ModifyTimetable/utils';
+import { convertToTime } from '@utils/convertToTime';
+// import { fetchSections } from '@features/sectionSlice';
+
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
+const ScheduleModal = ({
+    outerKey,
+    groupedByTime,
+    buildingInfo,
+    role,
+    department,
+    rank,
+    AdviserName,
+    modalityArray,
+    tableType,
+}) => {
+    const generatePDF = () => {
+        const doc = new jsPDF('landscape');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(16);
+        doc.text(`${outerKey} - Schedule`, 14, 15);
+
+        if (role === 'Teachers') {
+            doc.setFontSize(12);
+            doc.text(`Department: ${department}`, 14, 25);
+            doc.text(`Rank: ${rank}`, 14, 35);
+        } else {
+            doc.setFontSize(12);
+            doc.text(`Room: ${buildingInfo}`, 14, 25);
+            doc.text(`Adviser: ${AdviserName}`, 14, 35);
+        }
+
+        let startY = 40; // Ensure spacing between text and table
+
+        const tableColumn = ['Time', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        const tableRows = [];
+
+        const defaultRowColors = [
+            [255, 204, 204], // Light Red
+            [204, 229, 255], // Light Blue
+            [204, 255, 204], // Light Green
+            [255, 255, 204], // Light Yellow
+            [229, 204, 255], // Light Purple
+            [255, 204, 229], // Light Pink
+            [204, 204, 255], // Light Indigo
+            [204, 255, 255], // Light Teal
+            [255, 229, 204], // Light Orange
+            [224, 224, 224], // Light Gray
+            [229, 255, 204], // Light Lime
+            [204, 255, 229], // Light Cyan
+        ];
+
+        // Add schedule data
+        Array.from(groupedByTime.values()).forEach(({ time, days }, rowIndex) => {
+            const row = [
+                time,
+                ...days.map((fields) => (fields[0] && fields[1] ? `${fields[0]}\n${fields[1]}` : fields[0] || fields[1] || '')),
+            ];
+            tableRows.push(row);
+        });
+
+        autoTable(doc, {
+            head: [tableColumn],
+            body: tableRows,
+            startY: startY,
+            styles: { halign: 'center', cellPadding: 3, fontSize: 10 },
+            headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 12, fontStyle: 'bold' }, // Blue header
+            didParseCell: function (data) {
+                if (data.section === 'body' && data.column.index !== 0) {
+                    const cellText = data.cell.raw;
+                    if (cellText.includes('Math 7')) {
+                        data.cell.styles.fillColor = [255, 204, 204]; // Light Red
+                    } else {
+                        const bgColor = defaultRowColors[data.row.index % defaultRowColors.length];
+                        data.cell.styles.fillColor = bgColor;
+                    }
+                }
+            },
+        });
+
+        doc.save(`${outerKey}-schedule.pdf`);
+    };
+
+    const rowColors = [
+        'bg-red-200',
+        'bg-blue-200',
+        'bg-green-200',
+        'bg-yellow-200',
+        'bg-purple-200',
+        'bg-pink-200',
+        'bg-indigo-200',
+        'bg-teal-200',
+        'bg-orange-200',
+        'bg-gray-200',
+        'bg-lime-200',
+        'bg-cyan-200',
+    ];
+
+    return (
+        <dialog id={`modal-${outerKey}`} className='modal'>
+            <div className='modal-box w-full max-w-6xl bg-white text-black p-6 rounded-lg'>
+                <h3 className='font-bold text-lg text-center'>{outerKey} - Schedule</h3>
+
+                {role === 'Teachers' ? (
+                    <>
+                        <p className='text-center text-sm text-gray-700 mt-2'>Department: {department}</p>
+                        <p className='text-center text-sm text-gray-700 mt-2'>Rank: {rank}</p>
+                    </>
+                ) : (
+                    <>
+                        <p className='text-center text-sm text-gray-700 mt-2'>Room: {buildingInfo}</p>
+                        <p className='text-center text-sm text-gray-700 mt-2'>Adviser: {AdviserName}</p>
+                    </>
+                )}
+
+                {/* Table */}
+                <div className='overflow-x-auto mt-4'>
+                    {tableType === 's' && (
+                        <div className='flex '>
+                            <div className='w-1/5 border border-base-content border-opacity-20 text-center font-bold'></div>
+                            <div className='w-full flex border border-base-content border-opacity-20'>
+                                {modalityArray.map((modality, index) => (
+                                    <div
+                                        key={`header-${index}`}
+                                        className={`border-r border-base-content border-opacity-20 flex-1 text-center font-bold 
+                            ${modality === 1 ? 'bg-green-500 ' : 'bg-red-500'}`}
+                                    >
+                                        {modality === 1 ? 'ON SITE' : 'OFF SITE'}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    <table className='table w-full mt-2 border-2'>
+                        <thead>
+                            <tr className='bg-black text-white'>
+                                <th className='text-center w-2/12'>Time</th>
+                                <th className='text-center'>Monday</th>
+                                <th className='text-center'>Tuesday</th>
+                                <th className='text-center'>Wednesday</th>
+                                <th className='text-center'>Thursday</th>
+                                <th className='text-center'>Friday</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {Array.from(groupedByTime.values()).map(({ time, days }, rowIndex) => (
+                                <tr key={time} className={rowColors[rowIndex % rowColors.length]}>
+                                    <td className='text-center bg-white'>{time}</td>
+                                    {days.map((fields, index) => (
+                                        <td key={index} className='text-center'>
+                                            <div>{fields[0]}</div>
+                                            <div>{fields[1]}</div>
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Buttons */}
+                <div className='modal-action flex justify-center gap-4'>
+                    <button className='btn btn-primary' onClick={generatePDF}>
+                        Download PDF
+                    </button>
+                    <button
+                        className='btn btn-error'
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            const modal = document.getElementById(`modal-${outerKey}`);
+                            if (modal) modal.close();
+                        }}
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
+        </dialog>
+    );
+};
 
 const Search = () => {
+    // const dispatch = useDispatch();
     const [query, setQuery] = useState('');
     const [suggestions, setSuggestions] = useState([]);
     const [searchHistory, setSearchHistory] = useState([]);
@@ -15,8 +200,10 @@ const Search = () => {
     const [role, setRole] = useState('Sections');
     const dropdownRef = useRef(null);
     const inputRef = useRef(null);
-
+    // const [valueMap, setValueMap] = useState(new Map());
+    const [valueMaps, setValueMaps] = useState(new Map());
     const { search, loading, error } = useSearchTimetable();
+    // const { sections, status: sectionStatus } = useSelector((state) => state.section);
 
     useEffect(() => {
         const storedHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
@@ -31,58 +218,6 @@ const Search = () => {
             // ...
         }
     }, [query, searchHistory]);
-
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
-    // example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark oh example mo mark ohexample mo mark oh example mo mark oh example mo mark oh example mo mark oh 
-    const exampleTimetable = [
-        ['t', 86, null, 9, 'REG-7-SEC-3', 4, 'English 7', '8-16', 1],
-        ['t', 86, null, 9, 'REG-7-SEC-3', 4, 'English 7', '8-16', 2],
-        ['t', 86, null, 9, 'REG-7-SEC-3', 4, 'English 7', '8-16', 3],
-        ['t', 86, null, 9, 'REG-7-SEC-3', 4, 'English 7', '8-16', 4],
-        ['t', 86, null, 9, 'REG-7-SEC-3', 4, 'English 7', '8-16', 5],
-        ['t', 86, null, 6, 'STAR-7', 4, 'English 7', '16-24', 1],
-        ['t', 86, null, 6, 'STAR-7', 4, 'English 7', '16-24', 2],
-        ['t', 86, null, 6, 'STAR-7', 4, 'English 7', '16-24', 3],
-        ['t', 86, null, 6, 'STAR-7', 4, 'English 7', '16-24', 4],
-        ['t', 86, null, 6, 'STAR-7', 4, 'English 7', '16-24', 5],
-        ['t', 86, null, 13, 'REG-7-SEC-7', 4, 'English 7', '24-32', 1],
-        ['t', 86, null, 13, 'REG-7-SEC-7', 4, 'English 7', '24-32', 2],
-        ['t', 86, null, 13, 'REG-7-SEC-7', 4, 'English 7', '24-32', 3],
-        ['t', 86, null, 13, 'REG-7-SEC-7', 4, 'English 7', '24-32', 4],
-        ['t', 86, null, 13, 'REG-7-SEC-7', 4, 'English 7', '24-32', 5],
-        ['t', 86, null, 15, 'REG-7-SEC-9', 4, 'English 7', '38-46', 1],
-        ['t', 86, null, 15, 'REG-7-SEC-9', 4, 'English 7', '38-46', 2],
-        ['t', 86, null, 15, 'REG-7-SEC-9', 4, 'English 7', '38-46', 3],
-        ['t', 86, null, 15, 'REG-7-SEC-9', 4, 'English 7', '38-46', 4],
-        ['t', 86, null, 15, 'REG-7-SEC-9', 4, 'English 7', '38-46', 5],
-        ['t', 86, null, 14, 'REG-7-SEC-8', 4, 'English 7', '46-54', 1],
-        ['t', 86, null, 14, 'REG-7-SEC-8', 4, 'English 7', '46-54', 2],
-        ['t', 86, null, 14, 'REG-7-SEC-8', 4, 'English 7', '46-54', 3],
-        ['t', 86, null, 14, 'REG-7-SEC-8', 4, 'English 7', '46-54', 4],
-        ['t', 86, null, 14, 'REG-7-SEC-8', 4, 'English 7', '46-54', 5],
-        ['t', 86, null, 12, 'REG-7-SEC-6', 4, 'English 7', '54-62', 1],
-        ['t', 86, null, 12, 'REG-7-SEC-6', 4, 'English 7', '54-62', 2],
-        ['t', 86, null, 12, 'REG-7-SEC-6', 4, 'English 7', '54-62', 3],
-        ['t', 86, null, 12, 'REG-7-SEC-6', 4, 'English 7', '54-62', 4],
-        ['t', 86, null, 12, 'REG-7-SEC-6', 4, 'English 7', '54-62', 5],
-        ['t', 86, null, 5, 'TECHVOC-7', 4, 'English 7', '62-70', 1],
-        ['t', 86, null, 5, 'TECHVOC-7', 4, 'English 7', '62-70', 2],
-        ['t', 86, null, 5, 'TECHVOC-7', 4, 'English 7', '62-70', 3],
-        ['t', 86, null, 5, 'TECHVOC-7', 4, 'English 7', '62-70', 4],
-        ['t', 86, null, 5, 'TECHVOC-7', 4, 'English 7', '62-70', 5],
-        ['t', 86, null, 2, 'STE-7-2', 4, 'English 7', '84-92', 1],
-        ['t', 86, null, 2, 'STE-7-2', 4, 'English 7', '84-92', 2],
-        ['t', 86, null, 2, 'STE-7-2', 4, 'English 7', '84-92', 3],
-        ['t', 86, null, 2, 'STE-7-2', 4, 'English 7', '84-92', 4],
-        ['t', 86, null, 2, 'STE-7-2', 4, 'English 7', '84-92', 5],
-    ];
 
     useEffect(() => {
         setIsSearchClicked(false);
@@ -108,8 +243,28 @@ const Search = () => {
         console.log('result', results);
     };
 
+    // useEffect(() => {
+    //     console.log('potanginang results', results);
+    //     if (results.length !== 0) {
+    //         console.log('in');
+    //         const convertedData = convertStringDataToMap(results[0]?.a);
+    //         console.log('convertedData', convertedData);
+    //         setValueMap(convertedData);
+    //     }
+    // }, [results]);
+
     useEffect(() => {
-        console.log("potanginang results", results);
+        if (results.length !== 0) {
+            const newValueMaps = new Map();
+
+            results.forEach((result) => {
+                const convertedData = convertStringDataToMap(result.a);
+                newValueMaps.set(result.id, convertedData);
+                console.log('MODALITY: ', result.m);
+            });
+
+            setValueMaps(newValueMaps);
+        }
     }, [results]);
 
     const handleDeleteSuggestion = (itemToDelete) => {
@@ -146,7 +301,7 @@ const Search = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
-
+    // console.log(sections[1]?.modality);
     return (
         <div className='w-full h-full flex flex-col items-center px-4 lg:px-12 mt-[50px] select-none space-y-8'>
             <div className='text-center w-full max-w-4xl space-y-2'>
@@ -157,7 +312,7 @@ const Search = () => {
             <div
                 ref={dropdownRef}
                 className={clsx('rounded-3xl w-full max-w-3xl flex items-center shadow-md bg-white relative  px-4 py-2', {
-                    'rounded-b-none': isSuggestionsVisible && suggestions.length > 0,
+                    'rounded-b-none ': isSuggestionsVisible && suggestions.length > 0,
                 })}
             >
                 <select
@@ -191,22 +346,21 @@ const Search = () => {
 
                 {suggestions.length > 0 && isSuggestionsVisible && (
                     <div className='absolute left-0 top-full w-full rounded-b-3xl bg-white shadow-md z-10 border-t'>
-                        {results.length == 0 && isSearchClicked && (
+                        {results?.length === 0 && isSearchClicked && (
                             <p className='text-center text-gray-500 py-20 border border-b'>
-                                No results found for <b>{query}</b> in {role.toLowerCase()} timetables
+                                No results found for <b>{query}</b> in {role?.toLowerCase() ?? ''} timetables
                             </p>
                         )}
 
-                        <ul className=''>
-                            {results.map((result) => (
+                        <ul>
+                            {results?.map((result) => (
                                 <li
                                     key={result.id}
                                     className='group flex items-center justify-between px-4 py-2 hover:bg-gray-300 cursor-pointer last:rounded-b-3xl'
                                     onClick={() => {
-                                        console.log('fff');
-                                        inputRef.current.blur();
+                                        inputRef.current?.blur();
                                         setIsSuggestionsVisible(false);
-                                        handleSuggestionClick(result.id);
+                                        handleSuggestionClick(result.n[0]);
                                     }}
                                 >
                                     <div className='flex items-center gap-4'>
@@ -215,6 +369,76 @@ const Search = () => {
                                         </span>
                                         <span className='text-sm md:text-base text-gray-700'>{result.n.join(' ')}</span>
                                     </div>
+
+                                    {valueMaps.has(result.id) && (
+                                        <div className='flex flex-col space-y-2'>
+                                            {Array.from(valueMaps.get(result.id)).map(([outerKey, nestedMap]) => {
+                                                const groupedByTime = new Map();
+                                                const modalityArray = result.m;
+                                                const sectionAdviser = result.sa;
+                                                const sectionRoom = result.sr;
+                                                const teacherRank = result.tr;
+                                                const teacherDepartment = result.td;
+                                                const tableType = result.t;
+                                                let department = '';
+                                                let rank = '';
+
+                                                Array.from(nestedMap)
+                                                    .sort((a, b) => a[1].start - b[1].start)
+                                                    .forEach(([innerKey, innerMap]) => {
+                                                        const timeSlot = `${convertToTime(innerMap.start)}-${convertToTime(
+                                                            innerMap.end
+                                                        )}`;
+                                                        let fieldName1 =
+                                                            innerMap.type === 's' ? innerMap.teacher : innerMap.section;
+                                                        let fieldName2 = innerMap.subject;
+
+                                                        if (innerMap.type === 't') {
+                                                            department = innerMap.department;
+                                                            rank = innerMap.rank;
+                                                        }
+
+                                                        if (!groupedByTime.has(timeSlot)) {
+                                                            groupedByTime.set(timeSlot, {
+                                                                time: timeSlot,
+                                                                days: Array(5).fill([]),
+                                                            });
+                                                        }
+                                                        groupedByTime.get(timeSlot).days[innerMap.day - 1] = [
+                                                            fieldName1 ?? 'Break',
+                                                            fieldName2,
+                                                        ];
+                                                    });
+
+                                                return (
+                                                    <div key={outerKey}>
+                                                        <button
+                                                            className='btn btn-primary'
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                const modal = document.getElementById(`modal-${outerKey}`);
+                                                                if (modal) modal.showModal();
+                                                            }}
+                                                        >
+                                                            View Schedule
+                                                        </button>
+
+                                                        <ScheduleModal
+                                                            outerKey={outerKey}
+                                                            groupedByTime={groupedByTime}
+                                                            buildingInfo={sectionRoom}
+                                                            role={role}
+                                                            AdviserName={sectionAdviser}
+                                                            department={teacherDepartment}
+                                                            rank={teacherRank}
+                                                            modalityArray={modalityArray}
+                                                            tableType={tableType}
+                                                        />
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
                                 </li>
                             ))}
 
@@ -223,8 +447,7 @@ const Search = () => {
                                     key={index}
                                     className='group flex items-center justify-between px-4 py-2 hover:bg-gray-300 cursor-pointer last:rounded-b-3xl'
                                     onClick={() => {
-                                        console.log('fff');
-                                        inputRef.current.blur();
+                                        inputRef.current?.blur();
                                         setIsSuggestionsVisible(false);
                                         handleSuggestionClick(suggestion);
                                     }}
@@ -238,7 +461,6 @@ const Search = () => {
                                         className='group/hover-icon hidden group-hover:block'
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            // setIsSuggestionsVisible(false);
                                             handleDeleteSuggestion(suggestion);
                                         }}
                                     >
@@ -257,17 +479,15 @@ const Search = () => {
                 >
                     {loading ? (
                         <div className='animate-none md:animate-spin mr-2'>
-                            <IoSearch className='' />
+                            <IoSearch />
                         </div>
                     ) : (
                         <IoSearch className='mr-2' />
                     )}
-
                     {loading ? 'Searching...' : 'Search'}
                 </button>
             </div>
         </div>
-      
     );
 };
 

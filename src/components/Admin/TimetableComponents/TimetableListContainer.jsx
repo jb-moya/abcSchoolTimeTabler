@@ -1,8 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
-
-import { fetchScheds, addSched, removeSched } from '@features/schedulesSlice';
 
 import debounce from 'debounce';
 import { RiEdit2Fill } from 'react-icons/ri';
@@ -16,21 +13,20 @@ import DeleteData from '../DeleteData';
 import { convertStringDataToMap } from '@components/Admin/ModifyTimetable/utils';
 
 const TimetableListContainer = ({
+    // stores
+    subjects, 
+    programs,
+    sections,
+    teachers,
+    ranks,
+    departments,
+    buildings,
+    schedules,
+    // stores
 }) => {
-    
-    const dispatch = useDispatch();
+
     const location = useLocation();
     const navigate = useNavigate();
-
-// ===================================================================================================
-
-    const { schedules, status: schedStatus } = useSelector((state) => state.schedule);
-
-    useEffect(() => {
-        if (schedStatus === 'idle') {
-            dispatch(fetchScheds());
-        }
-    }, [dispatch, schedStatus]);
 
 // ===================================================================================================
 
@@ -43,11 +39,8 @@ const TimetableListContainer = ({
 
 // ===================================================================================================
 
-    // const [editRankId, setEditRankId] = useState(null);
-    const [editSchedId, setEditSchedId] = useState(null);
+    const [editSchedFirebaseId, setEditSchedFirebaseId] = useState(null);
     const [editSchedName, setEditSchedName] = useState('');
-    const [editSchedData, setEditSchedData] = useState('');
-
     const [timetable, setTimetable] = useState(table);
 
     useEffect(() => {
@@ -61,30 +54,36 @@ const TimetableListContainer = ({
 
 // ===================================================================================================
 
-    const handleEditClick = (scheduleId) => {
+    const handleEditClick = (FirebaseId) => {
+        console.log(schedules);
+        console.log('editing: ', schedules[FirebaseId].data);
+        // addDocument('schedules', {
+        //     name: schedules[scheduleId].name,
+        //     data: schedules[scheduleId].data,
+        // });
 
-        const newTimetable = convertStringDataToMap(schedules[scheduleId].data);
-
-        setEditSchedId(scheduleId);
-        setEditSchedName(schedules[scheduleId].name);
+        const newTimetable = convertStringDataToMap(schedules[FirebaseId].data);
+        console.log('newTimetable: ', newTimetable);
+        console.log('schedules[scheduleId].name: ', schedules[FirebaseId].name);
+        // setEditSchedId(FirebaseId);
+        setEditSchedFirebaseId(FirebaseId);
+        setEditSchedName(schedules[FirebaseId].name);
         setTimetable(newTimetable);
-        
     };
 
 // ===================================================================================================
 
     const resetTimetable = () => {
-
-        setEditSchedId(null);
+        // setEditSchedId(null);
+        setEditSchedFirebaseId(null);
         setEditSchedName('');
         setTimetable(new Map());
-
         resetURLState();
     };
 
     const resetURLState = () => {
         navigate(location.pathname, { state: null });
-    }
+    };
 
 // ===================================================================================================
 
@@ -105,6 +104,9 @@ const TimetableListContainer = ({
         }, 200),
         []
     );
+    useEffect(() => {
+        console.log('editSchedName', editSchedName);
+    }, [editSchedName]);
 
     useEffect(() => {
         debouncedSearch(searchSchedValue, schedules);
@@ -122,13 +124,42 @@ const TimetableListContainer = ({
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Object.entries(searchSchedResult).slice(indexOfFirstItem, indexOfLastItem);
 
-    // ===================================================================================================
+// ===================================================================================================
+
+    const buildingData = {
+        floors: 2,
+        id: 1,
+        image: null,
+        name: 'BLDG 1',
+        nearbyBuildings: [],
+        rooms: [
+            [
+                { roomName: 'BLDG 1 - 101' },
+                { roomName: 'BLDG 1 - 102' },
+                { roomName: 'BLDG 1 - 103' },
+                { roomName: 'BLDG 1 - 104' },
+                { roomName: 'BLDG 1 - 105' },
+            ],
+            [
+                { roomName: 'BLDG 1 - 201' },
+                { roomName: 'BLDG 1 - 202' },
+                { roomName: 'BLDG 1 - 203' },
+                { roomName: 'BLDG 1 - 204' },
+                { roomName: 'BLDG 1 - 205' },
+            ],
+        ],
+    };
+
+    const string_building = JSON.stringify(buildingData, null, 2);
+
+    console.log('string: ', string_building);
+
+    const parsed_building = JSON.parse(string_building);
+    console.log('parsed_building: ', parsed_building);
 
     return (
         <React.Fragment>
-
             <div className='flex flex-col gap-4'>
-
                 {/* Timetable List */}
                 <div className='card w-full bg-base-100 shadow-md'>
                     <div className='card-body mb-4'>
@@ -183,7 +214,6 @@ const TimetableListContainer = ({
                                     <IoSearch className='text-xl' />
                                 </label>
                             </div>
-
                         </div>
                         <div className='overflow-x-auto'>
                             <table className='table table-sm table-zebra w-full'>
@@ -204,29 +234,22 @@ const TimetableListContainer = ({
                                     ) : (
                                         currentItems.map(([, schedule], index) => (
                                             <tr key={schedule.id} className='group hover'>
-
                                                 <th>{schedule.id}</th>
 
                                                 <td>{schedule.name}</td>
-                                                
+
                                                 <td className='w-28'>
                                                     <div className='flex'>
                                                         <button
-                                                            className="btn btn-xs btn-ghost text-blue-500"
+                                                            className='btn btn-xs btn-ghost text-blue-500'
                                                             onClick={() => handleEditClick(schedule.id)}
                                                         >
-                                                            <RiEdit2Fill size={20}/>
+                                                            <RiEdit2Fill size={20} />
                                                         </button>
-                                                        
-                                                        <DeleteData 
-                                                            id={schedule.id} 
-                                                            store={'schedules'} 
-                                                            reduxFunction={removeSched} 
-                                                        />
 
+                                                        <DeleteData id={schedule.id} />
                                                     </div>
                                                 </td>
-                                                
                                             </tr>
                                         ))
                                     )}
@@ -237,32 +260,37 @@ const TimetableListContainer = ({
                 </div>
 
                 {/* Open Timetable */}
-                {
-                    timetable.size > 0 && (
-                        <div className='card w-full bg-base-100 shadow-md'>
-                            <button
-                                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-                                onClick={resetTimetable}
-                            >
-                                ✖
-                            </button>
-                            <div className='card-body'>
-                                <ModifyTimetableContainer 
-                                    hashMap={timetable} 
-                                    timetableName={editSchedName}
-                                    timetableId={editSchedId}
-                                    errorMessage={errorMessage}
-                                    setErrorMessage={setErrorMessage}
-                                    errorField={errorField}
-                                    setErrorField={setErrorField}
-                                />
-                            </div>
-                        </div>
-                    )
-                }
+                {timetable.size > 0 && (
+                    <div className='card w-full bg-base-100 shadow-md'>
+                        <button className='absolute top-2 right-2 text-gray-500 hover:text-gray-700' onClick={resetTimetable}>
+                            ✖
+                        </button>
+                        <div className='card-body'>
+                            <ModifyTimetableContainer
+                                // stores
+                                subjects={subjects}
+                                programs={programs}
+                                sections={sections}
+                                teachers={teachers}
+                                ranks={ranks}
+                                departments={departments}
+                                schedules={schedules}
+                                buildings={buildings}
+                                // stores
 
+                                hashMap={timetable}
+                                timetableName={editSchedName}
+                                // timetableId={editSchedId}
+                                firebaseId={editSchedFirebaseId}
+                                errorMessage={errorMessage}
+                                setErrorMessage={setErrorMessage}
+                                errorField={errorField}
+                                setErrorField={setErrorField}
+                            />
+                        </div>
+                    </div>
+                )}
             </div>
-            
         </React.Fragment>
     );
 };

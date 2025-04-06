@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
 import { DndContext } from '@dnd-kit/core';
 import { produce } from 'immer';
 
 import ContainerSpawn from './containerSpawn';
 import DroppableSchedCell from './droppableSchedCell';
-import { ReserveDay, ReservePosition } from './reservation';
 import { spawnColors } from './bgColors';
 import calculateTotalClass from '../../../utils/calculateTotalClass';
 import isEqual from 'lodash.isequal';
@@ -65,6 +63,10 @@ const getSubjectsPerPosition = (subs, subjectsStore, numOfSchoolDays, additional
 };
 
 const FixedScheduleMaker = ({
+    // STORES
+    subjectsStore,
+    // STORES
+
     viewingMode = 0,
     pvs = 0,
     program = 0,
@@ -79,15 +81,12 @@ const FixedScheduleMaker = ({
     setFixedPositions = () => {},
     numOfSchoolDays = 0,
 }) => {
-    const subjectsStore = useSelector((state) => state.subject.subjects);
+
+// ==============================================================================
 
     const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
     const [editMode, setEditMode] = useState(false);
-
-    // const [subs, setSubs] = useState(produce(selectedSubjects, (draft) => draft));
-    // const [days, setDays] = useState(produce(fixedDays, (draft) => draft));
-    // const [positions, setPositions] = useState(produce(fixedPositions, (draft) => draft));
 
     const [subs, setSubs] = useState(selectedSubjects);
     const [days, setDays] = useState(fixedDays);
@@ -439,6 +438,7 @@ const FixedScheduleMaker = ({
                                             
                                             <ContainerSpawn
                                                 key={`spawn-g${grade}-s${subject}`}
+                                                subjects={subjectsStore}
                                                 editMode={editMode}
                                                 subjectID={subject}
                                                 position={0}
@@ -491,6 +491,7 @@ const FixedScheduleMaker = ({
                                             }).map((_, index) => (
                                                 <DroppableSchedCell
                                                     key={`drop-g${grade}-d${index}-p${subIndex}`}
+                                                    subjects={subjectsStore}
                                                     editMode={editMode}
                                                     subjectID={-1}
                                                     day={index + 1}

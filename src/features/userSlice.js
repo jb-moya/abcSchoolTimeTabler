@@ -1,30 +1,23 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { auth, firestore } from '../firebase/firebase';
+import { useAuthLogin } from './admin/users/hooks/useAuthLogin';
+import { useAuthSignup } from './admin/users/hooks/useAuthSignup';
+import { useAuthLogout } from './admin/users/hooks/useAuthLogout';
 import { toast } from 'sonner';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
-import { collection, doc, getDocs, query, setDoc, where } from 'firebase/firestore';
 
 const initialState = {
     user: null,
-    status: 'idle', // idle, loading, success, authenticating, failed
+    isAuthenticated: false,
+    loading: false,
     error: null,
 };
 
 export const loginUser = createAsyncThunk('user/loginUser', async (credentials, { rejectWithValue }) => {
     try {
-        const email = credentials.email;
-        const password = credentials.password;
-
-        if (!email || !password) {
-            toast.error('Please fill all the fields');
-            return;
-        }
-
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-
-        console.log('🚀 ~ loginUser ~ userCredential:', userCredential);
+        const { login } = useAuthLogin();
+        const userData = await login(credentials);
+        return userData;
     } catch (error) {
-        return rejectWithValue(error.message); // Handle errors and return the error message
+        return rejectWithValue(error.message);
     }
 });
 
@@ -32,43 +25,9 @@ export const signUpWithEmailAndPassword = createAsyncThunk(
     'user/signUpWithEmailAndPassword',
     async (credentials, { rejectWithValue }) => {
         try {
-            const { name, email, schoolName, password, confirmPassword } = credentials;
-
-            if (!name || !email || !password) {
-                return rejectWithValue('Please fill all the fields');
-            }
-
-            if (password !== confirmPassword) {
-                return rejectWithValue('Passwords do not match');
-            }
-
-            const usersRef = collection(firestore, 'users');
-
-            const q = query(usersRef, where('username', '==', name));
-            const querySnapshot = await getDocs(q);
-
-            if (!querySnapshot.empty) {
-                return rejectWithValue('name already exists');
-            }
-
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-
-            if (userCredential) {
-                const userDoc = {
-                    uid: userCredential.user.uid,
-                    email: email,
-                    name: name,
-                    profilePicURL: '',
-                    schoolName: schoolName,
-                    created: new Date(),
-                };
-
-                await setDoc(doc(firestore, 'users', userCredential.user.uid), userDoc);
-
-                localStorage.setItem('user-info', JSON.stringify(userDoc));
-            }
-
-            // return userCredential.user;
+            const { signup } = useAuthSignup();
+            const userData = await signup(credentials);
+            return userData;
         } catch (error) {
             return rejectWithValue(error.message);
         }
@@ -77,72 +36,73 @@ export const signUpWithEmailAndPassword = createAsyncThunk(
 
 export const logoutUser = createAsyncThunk('user/logoutUser', async (_, { rejectWithValue }) => {
     try {
-        console.log('Logging out...');
-        await signOut(auth)
-            .then(() => {
-                toast.success('Logged out successfully');
-            })
-            .catch((error) => {
-                // toast.error(`Error logging out ${error.message}`);
-                throw error;
-            });
+        const { logout } = useAuthLogout();
+        await logout();
     } catch (error) {
-        return rejectWithValue(error.message); // Handle errors during logout
+        return rejectWithValue(error.message);
     }
 });
 
 const userSlice = createSlice({
     name: 'user',
     initialState,
-    reducers: {},
+    reducers: {
+        setUser: (state, action) => {
+            state.user = action.payload;
+            state.status = 'success';
+        },
+        clearError: (state) => {
+            state.error = null;
+        },
+    },
     extraReducers: (builder) => {
         builder
-
-            // Login
             .addCase(loginUser.pending, (state) => {
-                toast('Logging in...');
-                state.status = 'loading';
+                state.loading = true;
                 state.error = null;
             })
             .addCase(loginUser.fulfilled, (state, action) => {
-                toast.success('Logged in successfully');
-                state.status = 'success';
+                state.loading = false;
                 state.user = action.payload;
+                state.isAuthenticated = true;
+                toast.success('Logged in successfully');
             })
             .addCase(loginUser.rejected, (state, action) => {
-                state.status = 'idle';
+                state.loading = false;
                 state.error = action.payload;
+                toast.error(action.payload);
             })
-
-            // Sign Up
             .addCase(signUpWithEmailAndPassword.pending, (state) => {
-                toast('Signing up...');
-                state.status = 'loading';
+                state.loading = true;
                 state.error = null;
             })
             .addCase(signUpWithEmailAndPassword.fulfilled, (state, action) => {
-                toast.success('Signed up successfully');
-                state.status = 'success';
+                state.loading = false;
                 state.user = action.payload;
+                state.isAuthenticated = true;
+                toast.success('Account created successfully');
             })
             .addCase(signUpWithEmailAndPassword.rejected, (state, action) => {
-                state.status = 'idle';
+                state.loading = false;
                 state.error = action.payload;
+                toast.error(action.payload);
             })
-
-            // Log out
             .addCase(logoutUser.pending, (state) => {
-                state.status = 'loading';
+                state.loading = true;
             })
             .addCase(logoutUser.fulfilled, (state) => {
-                state.status = 'idle';
+                state.loading = false;
                 state.user = null;
+                state.isAuthenticated = false;
+                toast.success('Logged out successfully');
             })
             .addCase(logoutUser.rejected, (state, action) => {
-                state.status = 'idle';
-                state.error = action.error;
+                state.loading = false;
+                state.error = action.payload;
+                toast.error(action.payload);
             });
     },
 });
 
+export const { clearError, setUser } = userSlice.actions;
 export default userSlice.reducer;

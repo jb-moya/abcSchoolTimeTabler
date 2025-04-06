@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 
 import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';
 import { toast } from 'sonner';
@@ -9,16 +8,17 @@ import SearchableDropdownToggler from '../searchableDropdown';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { IoWarningSharp } from 'react-icons/io5';
 
+import { editDocument } from '../../../hooks/CRUD/editDocument';
+
 import AdditionalScheduleForProgram from './AdditionalScheduleForProgram';
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
-import { fetchSections, editSection } from '@features/sectionSlice';
-import { fetchSubjects } from '@features/subjectSlice';
 import TimeSelector from '@utils/timeSelector';
 
 const ProgramEdit = ({
+    subjects,
+    programs, 
+    sections,
     program,
-    reduxField,
-    reduxFunction,
     morningStartTime,
     afternoonStartTime,
     errorMessage,
@@ -30,15 +30,6 @@ const ProgramEdit = ({
 }) => {
 
     const inputNameRef = useRef();
-    const dispatch = useDispatch();
-
-// ==========================================================================
-
-    const { programs, status: programStatus } = useSelector((state) => state.program);
-
-    const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
-
-    const { sections, status: sectionStatus } = useSelector((state) => state.section);
 
 // ==========================================================================
 
@@ -248,6 +239,10 @@ const ProgramEdit = ({
         }));
     };
 
+    useEffect(() => {
+        console.log('editProgramCurr', editProgramCurr);
+    }, [editProgramCurr]);
+
     // End Time
     const handleEndTimeChange = () => {
 
@@ -272,10 +267,10 @@ const ProgramEdit = ({
 
             let totalDuration = (breakTimeCount * breakTimeDuration) + topDurations.reduce((sum, duration) => sum + duration, 0);
 
-            console.log('noOfClassBlocks', noOfClassBlocks);
-            console.log('noOfRows', noOfRows);
-            console.log('topDurations', topDurations);
-            console.log('totalDuration', totalDuration);
+            // console.log('noOfClassBlocks', noOfClassBlocks);
+            // console.log('noOfRows', noOfRows);
+            // console.log('topDurations', topDurations);
+            // console.log('totalDuration', totalDuration);
 
             const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
 
@@ -465,12 +460,7 @@ const ProgramEdit = ({
                                     newSubjDays.push(day);
                                     newSubjPositions.push(position);
                                     dayPositionMap.set(`${day}-${position}`, true);
-                                }
-                                // else if (Number(day) + Number(position) === 1) {
-                                //     newSubjDays.push(day);
-                                //     newSubjPositions.push(position);
-                                // }
-                                else {
+                                } else {
                                     newSubjDays.push(0);
                                     newSubjPositions.push(0);
                                 }
@@ -483,26 +473,28 @@ const ProgramEdit = ({
                 }
             }
 
+            console.log('originalSection.subjects: ', originalSection.subjects);
+            console.log('newSection.subjects: ', newSection.subjects);
+
             if (originalSection !== newSection) {
-                dispatch(
-                    editSection({
-                        sectionId: newSection.id,
-                        updatedSection: {
-                            id: newSection.id,
-                            teacher: newSection.teacher,
-                            program: newSection.program,
-                            section: newSection.section,
-                            subjects: newSection.subjects,
-                            fixedDays: newSection.fixedDays,
-                            fixedPositions: newSection.fixedPositions,
-                            year: newSection.year,
-                            shift: newSection.shift,
-                            startTime: newSection.startTime,
-                            endTime: newSection.endTime,
-                            additionalScheds: newSection.additionalScheds,
-                        },
-                    })
-                );
+                
+
+                const updatedEntry = {
+                    teacher: newSection.teacher,
+                    program: newSection.program,
+                    section: newSection.section,
+                    subjects: newSection.subjects,
+                    fixedDays: newSection.fixedDays,
+                    fixedPositions: newSection.fixedPositions,
+                    year: newSection.year,
+                    shift: newSection.shift,
+                    startTime: newSection.startTime,
+                    endTime: newSection.endTime,
+                    modality: newSection.modality,
+                    additionalScheds: newSection.additionalScheds,
+                }
+
+                editDocument('sections', newSection.id, updatedEntry);
             }
         });
     };
@@ -582,23 +574,149 @@ const ProgramEdit = ({
             return;
         }
 
-        console.log('editProgramId:', editProgramId);
-        console.log('editProgramValue:', editProgramValue);
-        console.log('editProgramCurr:', editProgramCurr);
-        console.log('editFixedDays:', editFixedDays);
-        console.log('editFixedPositions:', editFixedPositions);
-        console.log('editSelectedShifts:', editSelectedShifts);
-        console.log('editStartTimes:', editStartTimes);
-        console.log('editEndTimes:', editEndTimes);
-        console.log('editAdditionalScheds:', editAdditionalScheds);
+        // console.log('editProgramId:', editProgramId);
+        // console.log('editProgramValue:', editProgramValue);
+        // console.log('editProgramCurr:', editProgramCurr);
+        // console.log('editFixedDays:', editFixedDays);
+        // console.log('editFixedPositions:', editFixedPositions);
+        // console.log('editSelectedShifts:', editSelectedShifts);
+        // console.log('editStartTimes:', editStartTimes);
+        // console.log('editEndTimes:', editEndTimes);
+        // console.log('editAdditionalScheds:', editAdditionalScheds);
 
+        // const currentProgram = programs[editProgramId]?.program || '';
         const currentProgram = programs[editProgramId]?.program || '';
 
         if (editProgramValue.trim().toLowerCase() === currentProgram.trim().toLowerCase()) {
-            dispatch(
-                reduxFunction({
-                    programId: editProgramId,
-                    updatedProgram: {
+            
+            try {
+
+                editDocument('programs', editProgramId, {
+                    program: editProgramValue,
+                    7: {
+                        subjects: editProgramCurr[7],
+                        fixedDays: editFixedDays[7],
+                        fixedPositions: editFixedPositions[7],
+                        shift: editSelectedShifts[7],
+                        startTime: getTimeSlotIndex(editStartTimes[7] || '06:00 AM'),
+                        endTime: editEndTimes[7],
+                        additionalScheds: editAdditionalScheds[7],
+                        modality: editClassModality[7],
+                    },
+                    8: {
+                        subjects: editProgramCurr[8],
+                        fixedDays: editFixedDays[8],
+                        fixedPositions: editFixedPositions[8],
+                        shift: editSelectedShifts[8],
+                        startTime: getTimeSlotIndex(editStartTimes[8] || '06:00 AM'),
+                        endTime: editEndTimes[8],
+                        additionalScheds: editAdditionalScheds[8],
+                        modality: editClassModality[8],
+                    },
+                    9: {
+                        subjects: editProgramCurr[9],    
+                        fixedDays: editFixedDays[9],
+                        fixedPositions: editFixedPositions[9],
+                        shift: editSelectedShifts[9],
+                        startTime: getTimeSlotIndex(editStartTimes[9] || '06:00 AM'),
+                        endTime: editEndTimes[9],
+                        additionalScheds: editAdditionalScheds[9],
+                        modality: editClassModality[9],
+                    },
+                    10: {
+                        subjects: editProgramCurr[10],
+                        fixedDays: editFixedDays[10],
+                        fixedPositions: editFixedPositions[10],
+                        shift: editSelectedShifts[10],
+                        startTime: getTimeSlotIndex(editStartTimes[10] || '06:00 AM'),
+                        endTime: editEndTimes[10],
+                        additionalScheds: editAdditionalScheds[10],
+                        modality: editClassModality[10],
+                    },
+                });
+
+                updateProgramDependencies();
+            } catch (error) {
+                console.error("Error updating program: ", error);
+            } finally {
+                toast.success('Data and dependencies updated successfully!', {
+                    style: {
+                        backgroundColor: '#28a745',
+                        color: '#fff',
+                        borderColor: '#28a745',
+                    },
+                });
+    
+                resetStates();
+                handleConfirmationModalClose();
+                closeModal();
+            }
+            
+        } else {
+            const duplicateProgram = Object.values(programs).find(
+                (program) => program.program.trim().toLowerCase() === editProgramValue.trim().toLowerCase()
+            );
+
+            if (duplicateProgram) {
+                toast.error('A program with this name already exists!', {
+                    style: {
+                        backgroundColor: 'red',
+                        color: 'white',
+                    },
+                });
+            } else if (editProgramValue.trim()) {
+                // dispatch(
+                //     reduxFunction({
+                //         programId: editProgramId,
+                //         updatedProgram: {
+                //             program: editProgramValue,
+                //             7: {
+                //                 subjects: editProgramCurr[7],
+                //                 fixedDays: editFixedDays[7],
+                //                 fixedPositions: editFixedPositions[7],
+                //                 shift: editSelectedShifts[7],
+                //                 startTime: getTimeSlotIndex(editStartTimes[7] || '06:00 AM'),
+                //                 endTime: editEndTimes[7],
+                //                 additionalScheds: editAdditionalScheds[7],
+                //                 modality: editClassModality[7],
+                //             },
+                //             8: {
+                //                 subjects: editProgramCurr[8],
+                //                 fixedDays: editFixedDays[8],
+                //                 fixedPositions: editFixedPositions[8],
+                //                 shift: editSelectedShifts[8],
+                //                 startTime: getTimeSlotIndex(editStartTimes[8] || '06:00 AM'),
+                //                 endTime: editEndTimes[8],
+                //                 additionalScheds: editAdditionalScheds[8],
+                //                 modality: editClassModality[8],
+                //             },
+                //             9: {
+                //                 subjects: editProgramCurr[9],
+                //                 fixedDays: editFixedDays[9],
+                //                 fixedPositions: editFixedPositions[9],
+                //                 shift: editSelectedShifts[9],
+                //                 startTime: getTimeSlotIndex(editStartTimes[9] || '06:00 AM'),
+                //                 endTime: editEndTimes[9],
+                //                 additionalScheds: editAdditionalScheds[9],
+                //                 modality: editClassModality[9],
+                //             },
+                //             10: {
+                //                 subjects: editProgramCurr[10],
+                //                 fixedDays: editFixedDays[10],
+                //                 fixedPositions: editFixedPositions[10],
+                //                 shift: editSelectedShifts[10],
+                //                 startTime: getTimeSlotIndex(editStartTimes[10] || '06:00 AM'),
+                //                 endTime: editEndTimes[10],
+                //                 additionalScheds: editAdditionalScheds[10],
+                //                 modality: editClassModality[10],
+                //             },
+                //         },
+                //     })
+                // );
+
+                try {
+
+                    editDocument('programs', editProgramId, {
                         program: editProgramValue,
                         7: {
                             subjects: editProgramCurr[7],
@@ -621,7 +739,7 @@ const ProgramEdit = ({
                             modality: editClassModality[8],
                         },
                         9: {
-                            subjects: editProgramCurr[9],
+                            subjects: editProgramCurr[9],    
                             fixedDays: editFixedDays[9],
                             fixedPositions: editFixedPositions[9],
                             shift: editSelectedShifts[9],
@@ -640,98 +758,24 @@ const ProgramEdit = ({
                             additionalScheds: editAdditionalScheds[10],
                             modality: editClassModality[10],
                         },
-                    },
-                })
-            );
-
-            updateProgramDependencies();
-
-            toast.success('Data and dependencies updated successfully!', {
-                style: {
-                    backgroundColor: '#28a745',
-                    color: '#fff',
-                    borderColor: '#28a745',
-                },
-            });
-
-            resetStates();
-            handleConfirmationModalClose();
-            closeModal();
-        } else {
-            const duplicateProgram = Object.values(programs).find(
-                (program) => program.program.trim().toLowerCase() === editProgramValue.trim().toLowerCase()
-            );
-
-            if (duplicateProgram) {
-                toast.error('A program with this name already exists!', {
-                    style: {
-                        backgroundColor: 'red',
-                        color: 'white',
-                    },
-                });
-            } else if (editProgramValue.trim()) {
-                dispatch(
-                    reduxFunction({
-                        programId: editProgramId,
-                        updatedProgram: {
-                            program: editProgramValue,
-                            7: {
-                                subjects: editProgramCurr[7],
-                                fixedDays: editFixedDays[7],
-                                fixedPositions: editFixedPositions[7],
-                                shift: editSelectedShifts[7],
-                                startTime: getTimeSlotIndex(editStartTimes[7] || '06:00 AM'),
-                                endTime: editEndTimes[7],
-                                additionalScheds: editAdditionalScheds[7],
-                                modality: editClassModality[7],
-                            },
-                            8: {
-                                subjects: editProgramCurr[8],
-                                fixedDays: editFixedDays[8],
-                                fixedPositions: editFixedPositions[8],
-                                shift: editSelectedShifts[8],
-                                startTime: getTimeSlotIndex(editStartTimes[8] || '06:00 AM'),
-                                endTime: editEndTimes[8],
-                                additionalScheds: editAdditionalScheds[8],
-                                modality: editClassModality[8],
-                            },
-                            9: {
-                                subjects: editProgramCurr[9],
-                                fixedDays: editFixedDays[9],
-                                fixedPositions: editFixedPositions[9],
-                                shift: editSelectedShifts[9],
-                                startTime: getTimeSlotIndex(editStartTimes[9] || '06:00 AM'),
-                                endTime: editEndTimes[9],
-                                additionalScheds: editAdditionalScheds[9],
-                                modality: editClassModality[9],
-                            },
-                            10: {
-                                subjects: editProgramCurr[10],
-                                fixedDays: editFixedDays[10],
-                                fixedPositions: editFixedPositions[10],
-                                shift: editSelectedShifts[10],
-                                startTime: getTimeSlotIndex(editStartTimes[10] || '06:00 AM'),
-                                endTime: editEndTimes[10],
-                                additionalScheds: editAdditionalScheds[10],
-                                modality: editClassModality[10],
-                            },
+                    });
+    
+                    updateProgramDependencies();
+                } catch (error) {
+                    console.error("Error updating program: ", error);
+                } finally {
+                    toast.success('Data and dependencies updated successfully!', {
+                        style: {
+                            backgroundColor: '#28a745',
+                            color: '#fff',
+                            borderColor: '#28a745',
                         },
-                    })
-                );
-
-                updateProgramDependencies();
-
-                toast.success('Data and dependencies updated successfully!', {
-                    style: {
-                        backgroundColor: '#28a745',
-                        color: '#fff',
-                        borderColor: '#28a745',
-                    },
-                });
-
-                resetStates();
-                handleConfirmationModalClose();
-                closeModal();
+                    });
+        
+                    resetStates();
+                    handleConfirmationModalClose();
+                    closeModal();
+                }
             }
         }
     };
@@ -808,23 +852,23 @@ const ProgramEdit = ({
 
 // ==========================================================================
 
-    useEffect(() => {
-        if (sectionStatus === 'idle') {
-            dispatch(fetchSections());
-        }
-    }, [sectionStatus, dispatch]);
+    // useEffect(() => {
+    //     if (sectionStatus === 'idle') {
+    //         dispatch(fetchSections());
+    //     }
+    // }, [sectionStatus, dispatch]);
 
-    useEffect(() => {
-        if (programStatus === 'idle') {
-            dispatch(fetchPrograms());
-        }
-    }, [programStatus, dispatch]);
+    // useEffect(() => {
+    //     if (programStatus === 'idle') {
+    //         dispatch(fetchPrograms());
+    //     }
+    // }, [programStatus, dispatch]);
 
-    useEffect(() => {
-        if (subjectStatus === 'idle') {
-            dispatch(fetchSubjects());
-        }
-    }, [subjectStatus, dispatch]);
+    // useEffect(() => {
+    //     if (subjectStatus === 'idle') {
+    //         dispatch(fetchSubjects());
+    //     }
+    // }, [subjectStatus, dispatch]);
 
 // ==========================================================================
 
@@ -974,6 +1018,7 @@ const ProgramEdit = ({
                                                                     </button>
 
                                                                     <FixedScheduleMaker
+                                                                        subjectsStore={subjects}
                                                                         key={grade}
                                                                         viewingMode={0}
                                                                         pvs={0}
@@ -1114,6 +1159,7 @@ const ProgramEdit = ({
                                                                 )}
                                                             </button>
                                                             <AdditionalScheduleForProgram
+                                                                subjects={subjects}
                                                                 viewingMode={1}
                                                                 programID={editProgramId}
                                                                 grade={grade}
@@ -1134,6 +1180,7 @@ const ProgramEdit = ({
                                                             <RiEdit2Fill size={15} />
                                                         </button>
                                                         <AdditionalScheduleForProgram
+                                                            subjects={subjects}
                                                             viewingMode={0}
                                                             programID={editProgramId}
                                                             grade={grade}
@@ -1199,7 +1246,7 @@ const ProgramEdit = ({
                                         type='checkbox'
                                         name='shift'
                                         className='mr-2'
-                                        checked={sectionDetailsToUpdate.shiftAndStartTime}
+                                        checked={sectionDetailsToUpdate?.shiftAndStartTime || false}
                                         onChange={(e) =>
                                             setSectionDetailsToUpdate((prev) => ({
                                                 ...prev,
@@ -1216,7 +1263,7 @@ const ProgramEdit = ({
                                         type='checkbox'
                                         name='fixedScheds'
                                         className='mr-2'
-                                        checked={sectionDetailsToUpdate.fixedScheds}
+                                        checked={sectionDetailsToUpdate?.fixedScheds || false}
                                         onChange={(e) =>
                                             setSectionDetailsToUpdate((prev) => ({
                                                 ...prev,
@@ -1233,7 +1280,7 @@ const ProgramEdit = ({
                                         type='checkbox'
                                         name='additionalScheds'
                                         className='mr-2'
-                                        checked={sectionDetailsToUpdate.additionalScheds}
+                                        checked={sectionDetailsToUpdate?.additionalScheds || false}
                                         onChange={(e) =>
                                             setSectionDetailsToUpdate((prev) => ({
                                                 ...prev,
@@ -1250,7 +1297,7 @@ const ProgramEdit = ({
                                         type='checkbox'
                                         name='modality'
                                         className='mr-2'
-                                        checked={sectionDetailsToUpdate.modality}
+                                        checked={sectionDetailsToUpdate?.modality || false}
                                         onChange={(e) =>
                                             setSectionDetailsToUpdate((prev) => ({
                                                 ...prev,
@@ -1258,7 +1305,7 @@ const ProgramEdit = ({
                                             }))
                                         }
                                     />
-                                    Update Additional Schedules
+                                    Update Class Modality
                                 </label>
                             </div>
                         </div>

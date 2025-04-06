@@ -1,45 +1,41 @@
-import { useDispatch } from 'react-redux';
-import { useState, useEffect } from 'react';
-import packInt16ToInt32 from '../../../utils/packInt16ToInt32';
-import { unpackInt32ToInt16 } from '../../../utils/packInt16ToInt32';
-import packInt8ToInt32 from '../../../utils/packInt8ToInt32';
 import { useSelector } from 'react-redux';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { wrap } from 'comlink';
-import WasmWorker from '@src/wasm.worker?worker';
-import Configuration from '@components/Admin/Configuration';
 import clsx from 'clsx';
 import * as XLSX from 'xlsx';
 import GeneratedTimetable from '@components/Admin/TimeTable';
 // import ForTest from '@components/Admin/ForTest';
-import { useNavigate } from 'react-router-dom';
-
+import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 import validateTimetableVariables from '@validation/validateTimetableVariables';
 import { toast } from 'sonner';
-import ViolationList from '@components/Admin/ViolationList';
-import SubjectListContainer from '../../../components/SubjectComponents/SubjectListContainer';
-import ProgramListContainer from '../../../components/Admin/ProgramComponents/ProgramListContainer';
-import TeacherListContainer from '@components/Admin/Teacher/TeacherListContainer';
-import SectionListContainer from '../../../components/Admin/SectionComponents/SectionListContainer';
-import ExportImportDBButtons from '@components/Admin/ExportImportDBButtons';
-
-import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';
-import Breadcrumbs from '@components/Admin/Breadcrumbs';
-import { clearAllEntriesAndResetIDs } from '@src/indexedDB';
 import { enableMapSet } from 'immer';
+
+import WasmWorker from '@src/wasm.worker?worker';
+import { clearAllEntriesAndResetIDs } from '@src/indexedDB';
+
+import Configuration from '@components/Admin/Configuration';
+
+import packInt16ToInt32 from '@utils/packInt16ToInt32';
+import { unpackInt32ToInt16 } from '@utils/packInt16ToInt32';
+import packInt8ToInt32 from '@utils/packInt8ToInt32';
+import { packThreeSignedIntsToInt32 } from '@utils/packThreeSignedIntsToInt32';
+import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';
+import calculateTotalClass from '@utils/calculateTotalClass';
+import deepEqual from '@utils/deepEqual';
+import gcdOfArray from '@utils/getGCD';
+
+import SubjectListContainer from '@components/SubjectComponents/SubjectListContainer';
+import ProgramListContainer from '@components/Admin/ProgramComponents/ProgramListContainer';
+import TeacherListContainer from '@components/Admin/Teacher/TeacherListContainer';
+import SectionListContainer from '@components/Admin/SectionComponents/SectionListContainer';
+import ExportImportDBButtons from '@components/Admin/ExportImportDBButtons';
+import NotificationHandler from '@components/Admin/NotificationHandler';
+import Breadcrumbs from '@components/Admin/Breadcrumbs';
+
 
 enableMapSet();
 const getTimetable = wrap(new WasmWorker());
-
-import { fetchSections, editSection } from '@features/sectionSlice';
-import { fetchPrograms, editProgram } from '@features/programSlice';
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchBuildings } from '@features/buildingSlice';
-import { original } from 'immer';
-import calculateTotalClass from '../../../utils/calculateTotalClass';
-import deepEqual from '../../../utils/deepEqual';
-import gcdOfArray from '../../../utils/getGCD';
-import { packThreeSignedIntsToInt32 } from '../../../utils/packThreeSignedIntsToInt32';
-import NotificationHandler from '../../../components/Admin/NotificationHandler';
 
 function addObjectToMap(map, key, newObject, IDIncrementer, propertyIDName) {
     if (!map.has(key)) {
@@ -91,51 +87,172 @@ function getVacantSlots(totalTimeslot, numOfSchoolDays, fixedPositions, fixedDay
 }
 
 function Timetable() {
-    const dispatch = useDispatch();
     const navigate = useNavigate();
+
+    // ====================================================================================================================================
 
     const links = [
         { name: 'Home', href: '/' },
         // { name: 'Modify Subjects', href: '/modify-subjects' },
     ];
 
-    const { subjects: subjectsStore, status: subjectStatus } = useSelector((state) => state.subject);
-    const { buildings: buildingsStore, status: buildingStatus } = useSelector((state) => state.building);
-    const { teachers: teachersStore } = useSelector((state) => state.teacher);
-    const { sections: sectionsStore, status: sectionStatus } = useSelector((state) => state.section);
-    const { programs: programsStore, status: programStatus } = useSelector((state) => state.program);
+    // ====================================================================================================================================
+
+    /* CONFIGURATIONS */
     const { minTeacherLoad: minTeachingLoad, maxTeacherLoad: maxTeachingLoad } = useSelector((state) => state.configuration);
 
-    // ========================================================================
+    /* TIMETABLE DATA */
+    const [buildingsStore, setBuildings] = useState({});
+
+    // const [subjects, setSubjects] = useState({});
+    // const [buildings, setBuildings_1] = useState({});
+    // const [teachers, setTeachers] = useState({});
+    // const [sections, setSections] = useState({});
+    // const [programs, setPrograms] = useState({});
+    // const [ranks, setRanks] = useState({});
+    // const [departments, setDepartments] = useState({});
+
+    const { documents: subjectsStore, loading1, error1 } = fetchDocuments('subjects');
+    const { documents: programsStore, loading2, error2 } = fetchDocuments('programs');
+    const { documents: ranksStore, loading3, error3 } = fetchDocuments('ranks');
+    const { documents: teachersStore, loading4, error4 } = fetchDocuments('teachers');
+    const { documents: departmentsStore, loading5, error5 } = fetchDocuments('departments');
+    const { documents: sectionsStore, loading6, error6 } = fetchDocuments('sections');
+    const { documents: stringfy_buildings, loading7, error7 } = fetchDocuments('buildings');
+
+    // ====================================================================================================================================
+    // function modifyData(data) {
+    //     const modifiedData = {};
+
+    //     Object.keys(data).forEach((key) => {
+    //         const item = data[key];
+    //         modifiedData[key] = {
+    //             id: item.custom_id,
+    //             firebaseID: item.id,
+    //         };
+
+    //         Object.keys(item).forEach((prop) => {
+    //             if (!['custom_id', 'id'].includes(prop)) {
+    //                 modifiedData[key][prop] = item[prop];
+    //             }
+    //         });
+    //     });
+
+    //     return modifiedData;
+    // }
+
+    // ====================================================================================================================================
+
+    // Convert the stringified buildings object
+    // useEffect(() => {
+    //     try {
+    //         setSubjects(modifyData(subjectsStore));
+    //     } catch (error) {
+    //         console.error('Failed to modify subject data:', error);
+    //     }
+    // }, [subjectsStore]);
+
+    // useEffect(() => {
+    //     try {
+    //         setPrograms(modifyData(programsStore));
+    //     } catch (error) {
+    //         console.error('Failed to modify programs data:', error);
+    //     }
+    // }, [programsStore]);
+
+    // useEffect(() => {
+    //     try {
+    //         setRanks(modifyData(ranksStore));
+    //     } catch (error) {
+    //         console.error('Failed to modify ranks data:', error);
+    //     }
+    // }, [ranksStore]);
+
+    // useEffect(() => {
+    //     try {
+    //         setTeachers(modifyData(teachersStore));
+    //     } catch (error) {
+    //         console.error('Failed to modify teachers data:', error);
+    //     }
+    // }, [teachersStore]);
+
+    // useEffect(() => {
+    //     try {
+    //         setDepartments(modifyData(departmentsStore));
+    //     } catch (error) {
+    //         console.error('Failed to modify departments data:', error);
+    //     }
+    // }, [departmentsStore]);
+
+    // useEffect(() => {
+    //     try {
+    //         setSections(modifyData(sectionsStore));
+    //     } catch (error) {
+    //         console.error('Failed to modify sections data:', error);
+    //     }
+    // }, [sectionsStore]);
+
+    useEffect(() => {
+        try {
+            const converted_buildings = Object.values(stringfy_buildings).reduce((acc, { custom_id, data, id }) => {
+                const parsedData = JSON.parse(data);
+                acc[id] = { ...parsedData, id }; // Include id and custom_id inside data
+                return acc;
+            }, {});
+            console.log('buildingsRaw: ', converted_buildings);
+            setBuildings(converted_buildings);
+            // setBuildings_1(modifyData(converted_buildings));
+        } catch (error) {
+            console.error('Failed to parse buildings JSON:', error);
+        }
+    }, [stringfy_buildings]);
+
+    // console.log('subjects: ', subjects);
+    // console.log('programs: ', programs);
+    // console.log('ranks: ', ranks);
+    // console.log('teachers: ', teachers);
+    // console.log('departments: ', departments);
+    // console.log('sections: ', sections);
+
+    // console.log('buildings: ', buildings);
+
+    console.log('subjectsStore: ', subjectsStore);
+    console.log('programsStore: ', programsStore);
+    console.log('ranksStore: ', ranksStore);
+    console.log('teachersStore: ', teachersStore);
+    console.log('departmentsStore: ', departmentsStore);
+    console.log('sectionsStore: ', sectionsStore);
+    console.log('stringfy_buildings: ', stringfy_buildings);
+    console.log('buildingsStore: ', buildingsStore);
+
+    // =====================================================================================================================================
+
+    const [morningStartTime, setMorningStartTime] = useState(() => {
+        const stored = localStorage.getItem('morningStartTime');
+        return stored && /^\d{2}:\d{2}$/.test(stored) ? stored : '6:00';
+    });
+
+    console.log('morningStartTime: ', morningStartTime);
 
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
         return localStorage.getItem('numOfSchoolDays') || 5;
     });
-
+    console.log('numOfSchoolDays: ', numOfSchoolDays);
     const [breakTimeDuration, setBreakTimeDuration] = useState(() => {
         return localStorage.getItem('breakTimeDuration') || 30;
     });
-
+    console.log('breakTimeDuration: ', breakTimeDuration);
     const [defaultSubjectClassDuration, setDefaultSubjectClassDuration] = useState(() => {
         return parseInt(localStorage.getItem('defaultSubjectDuration'), 10) || 40;
     });
 
-    const [defaultBreakTimeDuration, setDefaultBreakTimeDuration] = useState(() => {
-        return parseInt(localStorage.getItem('breakTimeDuration'), 10) || 30;
-    });
-
-    const [prevNumOfSchoolDays, setPrevNumOfSchoolDays] = useState(numOfSchoolDays);
-
-    const [prevBreakTimeDuration, setPrevBreakTimeDuration] = useState(breakTimeDuration);
-
-    // ========================================================================
+    // =====================================================================================================================================
 
     const [sectionTimetables, setSectionTimetables] = useState({});
+
     const [teacherTimetables, setTeacherTimetables] = useState({});
-    const [mapVal, setMapVal] = useState(new Map());
 
     const [timetableGenerationStatus, setTimetableGenerationStatus] = useState('idle');
-    const [violations, setViolations] = useState([]);
 
     // Scope and Limitations
     // Room-Section Relationship: Each room is uniquely assigned to a specific subject, establishing a 1:1 relationship.
@@ -144,28 +261,6 @@ function Timetable() {
     // They do not have the option to select subjects independently.
     // Standardized Class Start and Break Times: The start time for the first class and the timing of breaks are
     // standardized across all sections and teachers, ensuring uniformity in the daily schedule.
-
-    const validate = () => {
-        const { canProceed, violations } = validateTimetableVariables({
-            sections: sectionsStore,
-            teachers: teachersStore,
-            subjects: subjectsStore,
-            programs: programsStore,
-        });
-
-        if (!canProceed) {
-            if (violations.some((v) => v.type === 'emptyDatabase')) {
-                toast.error('One or more tables are empty.');
-            } else {
-                toast.error('Invalid timetable variables');
-            }
-            setViolations(violations);
-            return false;
-        }
-
-        setViolations([]);
-        return true;
-    };
 
     const handleButtonClick = async (subjectData, buildingData, teacherData, sectionData) => {
         const subjectMap = Object.entries(subjectData).reduce((acc, [, value], index) => {
@@ -182,7 +277,8 @@ function Timetable() {
         // console.log('🚀 ~ handleButtonClick ~ buildingMapReverse:', buildingMapReverse);
 
         const buildingMap = Object.entries(buildingData).reduce((acc, [, building], index) => {
-            // console.log('🚀 ~ handleButtonClick ~ building:', building);
+            console.log('🚀 ~ handleButtonClick ~ buildingData:', buildingData);
+            console.log('🚀 ~ handleButtonClick ~ building:', building);
 
             acc[buildingMapReverse[building.id]] = {
                 id: buildingMapReverse[building.id],
@@ -314,7 +410,7 @@ function Timetable() {
 
             subjectsEveryDay.forEach((subjectID) => {
                 const subjectConfiguration = {
-                    name: "",
+                    name: '',
                     subject: subjectMapReverse[subjectID].id,
                     is_consistent_everyday: emptyEveryDayTimeslot.size >= subjectsEveryDay.length,
                     classDuration: subjectMapReverse[subjectID].classDuration,
@@ -340,7 +436,7 @@ function Timetable() {
 
                     classBlock.forEach((timeslot, index) => {
                         const subjectConfiguration = {
-                            name: "",
+                            name: '',
                             subject: subjectMapReverse[subjectID].id,
                             is_consistent_everyday: false,
                             classDuration: subjectMapReverse[subjectID].classDuration,
@@ -559,7 +655,7 @@ function Timetable() {
                     positionArray.every((element) => element === positionArray[0])
                 ) {
                     const subjectConfiguration = {
-                        name: "",
+                        name: '',
                         subject: subjectMapReverse[subjectID].id,
                         is_consistent_everyday: true,
                         classDuration: subjectMapReverse[subjectID].classDuration / timeDivision - offset,
@@ -578,7 +674,7 @@ function Timetable() {
 
                 positionArray.forEach((timeslot, index) => {
                     const subjectConfiguration = {
-                        name: "",
+                        name: '',
                         subject: subjectMapReverse[subjectID].id,
                         is_consistent_everyday: false,
                         classDuration: subjectMapReverse[subjectID].classDuration / timeDivision - offset,
@@ -942,7 +1038,9 @@ function Timetable() {
         let generatedTimetable = [];
 
         setTimetableGenerationStatus('running');
+        console.log('TIEEEEEEEEEEEZZZZDCDSDSZF SA LABABSS', params2);
         try {
+            console.log('TIEEEEEEEEEEEZZZZDCDSDSZF ', params2);
             const { timetable, status } = await getTimetable(params2);
 
             console.log('🚀 ~ handleButtonClick ~ status:', status);
@@ -984,7 +1082,8 @@ function Timetable() {
             fieldName1,
             fieldName2,
             containerName,
-            type
+            type,
+            additional
         ) => {
             const timeslotData = {
                 section: section_id,
@@ -996,6 +1095,7 @@ function Timetable() {
                 end: end,
                 start: start,
                 type: type,
+                additional: additional,
             };
 
             if (timetableMap.has(IDAttribute)) {
@@ -1014,7 +1114,7 @@ function Timetable() {
             // console.log('🚀 ~ handleButtonClick ~ entry of timetable:', entry);
 
             // console.log('x', teacher_id, start, end);
-
+            // console.log('sectionMap: ', sectionMap);
             const section_id = sectionMap[entry[0]].id;
             const subject_id = subjectMap[entry[1]] || null;
             const teacher_id = (teacherMap[entry[2]] || { id: null }).id;
@@ -1023,7 +1123,7 @@ function Timetable() {
 
             const start = Number(entry[5]);
             const end = Number(entry[6]);
-            
+
             const subjectConfigurationID = Number(entry[7]);
 
             // console.log(section_id, 'ETONG d', subjectConfigurationID, subject_id, subjectConfigurationMap.get(subjectMapReverse[subject_id]?.id));
@@ -1053,9 +1153,14 @@ function Timetable() {
 
             // console.log('🚀 ~ handleButtonClick ~ name:', name);
 
-
             const sectionType = 'section';
-            addTimeslotToTimetable( //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// fasdf
+            let additional = true;
+            if (name === '') {
+                additional = false;
+            }
+
+            addTimeslotToTimetable(
+                //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// fasdf
                 section_id,
                 sectionTimetable,
                 section_id,
@@ -1064,10 +1169,11 @@ function Timetable() {
                 start,
                 end,
                 day,
-                name ? name + " " + subjectData[subject_id]?.subject : subjectData[subject_id]?.subject || null,
+                name ? name + ' ' + subjectData[subject_id]?.subject : subjectData[subject_id]?.subject || null,
                 teacherData[teacher_id]?.teacher || null,
                 sectionData[section_id]?.section,
-                sectionType
+                sectionType,
+                additional
             );
 
             if (teacher_id == null) {
@@ -1099,9 +1205,10 @@ function Timetable() {
                 end,
                 day,
                 sectionData[section_id]?.section,
-                name ? name + " " + subjectData[subject_id]?.subject : subjectData[subject_id]?.subject || null,
+                name ? name + ' ' + subjectData[subject_id]?.subject : subjectData[subject_id]?.subject || null,
                 teacherData[teacher_id]?.teacher,
-                teacherType
+                teacherType,
+                additional
             );
         }
 
@@ -1189,6 +1296,7 @@ function Timetable() {
                             subject: sched.subject || null,
                             teacher: teacherData[key].id,
                             type: 'teacher',
+                            additional: true,
                         },
                     ]);
                 }
@@ -1221,11 +1329,17 @@ function Timetable() {
         console.log('teacherTimetable: ', teacherTimetable);
         const sectionEdited = convertToHashMap(sectionTimetable, 'Section');
         const teacherEdited = convertToHashMap(teacherTimetable, 'Teacher');
+
+        // console.log('subjects: ', subjectsStore);
+        // console.log('programs: ', programsStore);
+        // console.log('buildings: ', buildingsStore);
+        // console.log('teachers: ', teachersStore);
+        // console.log('configuration: ', minTeachingLoad);
         // console.log('sectionEdited: ', sectionEdited);
         // console.log('teacherEdited: ', teacherEdited);
         const generatedMap = combineMaps(sectionEdited, teacherEdited);
         console.log('DATA SA DRAGDROP: ', generatedMap);
-        navigate('/app/admin/modify-timetable', { state: { generatedMap } });
+        navigate('/app/admin/modify-timetable', { state: { generatedMap, subjectsStore, sectionsStore, teachersStore } });
 
         // setMapVal(combined);
     };
@@ -1429,265 +1543,6 @@ function Timetable() {
         await clearAllEntriesAndResetIDs();
     };
 
-    const handleNumOfSchoolDaysChange = () => {
-        localStorage.setItem('numOfSchoolDays', numOfSchoolDays);
-
-        if (numOfSchoolDays === prevNumOfSchoolDays) return;
-        setPrevNumOfSchoolDays(numOfSchoolDays);
-
-        if (Object.keys(programsStore).length === 0) return;
-
-        // Precompute values
-        const classCountLookup = {};
-        Object.entries(subjectsStore).forEach(([subjectID, subject]) => {
-            (classCountLookup[subjectID] = Math.ceil(subject.weeklyMinutes / subject.classDuration)), numOfSchoolDays;
-        });
-
-        // Update program fixed days and fixed positions
-        Object.entries(programsStore).forEach(([progId, prog]) => {
-            const originalProgram = JSON.parse(JSON.stringify(prog));
-            const newProgram = JSON.parse(JSON.stringify(prog));
-
-            [7, 8, 9, 10].forEach((grade) => {
-                if (newProgram[grade].subjects.length === 0) return;
-
-                newProgram[grade].subjects.map((subId) => {
-                    if (classCountLookup[subId] <= numOfSchoolDays) return;
-
-                    const fixedDays = newProgram[grade].fixedDays[subId];
-                    const fixedPositions = newProgram[grade].fixedPositions[subId];
-
-                    for (let i = 0; i < fixedDays.length; i++) {
-                        if (fixedDays[i] > numOfSchoolDays) {
-                            fixedDays[i] = 0;
-                            fixedPositions[i] = 0;
-                        }
-                    }
-
-                    const numOfClasses = Math.min(classCountLookup[subId], numOfSchoolDays);
-
-                    const dayPositionMap = new Map();
-
-                    fixedDays.forEach((day, index) => {
-                        const pos = fixedPositions[index];
-                        if (
-                            (day !== 0 && pos !== 0) ||
-                            (day !== 0 && pos === 0) ||
-                            (day === 0 && pos !== 0 && !dayPositionMap.has(`${day}-${pos}`))
-                        ) {
-                            dayPositionMap.set(`${day}-${pos}`, [day, pos]);
-                        }
-                    });
-
-                    // console.log('dayPositionMap', dayPositionMap);
-
-                    let result = [];
-                    dayPositionMap.forEach(([day, pos]) => {
-                        if (result.length < numOfClasses) {
-                            result.push([day, pos]);
-                        }
-                    });
-
-                    // console.log('result1', result);
-
-                    // Pad with [0, 0] if necessary
-                    while (result.length < numOfClasses) {
-                        result.push([0, 0]);
-                    }
-
-                    // console.log('result2', result);
-
-                    newProgram[grade].fixedDays[subId] = result.map(([day]) => day);
-                    newProgram[grade].fixedPositions[subId] = result.map(([_, pos]) => pos);
-                });
-
-                if (newProgram[grade].modality.length === 0 ||
-                    newProgram[grade].modality.length === numOfSchoolDays
-                ) return;
-
-                if (newProgram[grade].modality.length > numOfSchoolDays) {
-                    newProgram[grade].modality = newProgram[grade].modality.slice(0, numOfSchoolDays);
-                } else {
-                    newProgram[grade].modality.push(1);
-                }
-            });
-
-            console.log('originalProgram:', originalProgram);
-            console.log('newProgram:', newProgram);
-
-            if (originalProgram !== newProgram) {
-                dispatch(
-                    editProgram({
-                        programId: newProgram.id,
-                        updatedProgram: newProgram,
-                    })
-                );
-            }
-        });
-
-        if (Object.keys(sectionsStore).length === 0) return;
-
-        // Update section fixed days and fixed positions
-        Object.entries(sectionsStore).forEach(([secId, sec]) => {
-            const originalSection = JSON.parse(JSON.stringify(sec));
-            const newSection = JSON.parse(JSON.stringify(sec));
-
-            newSection.subjects.map((subId) => {
-                if (classCountLookup[subId] <= numOfSchoolDays) return;
-
-                const fixedDays = newSection.fixedDays[subId];
-                const fixedPositions = newSection.fixedPositions[subId];
-
-                for (let i = 0; i < fixedDays.length; i++) {
-                    if (fixedDays[i] > numOfSchoolDays) {
-                        fixedDays[i] = 0;
-                        fixedPositions[i] = 0;
-                    }
-                }
-
-                const numOfClasses = Math.min(classCountLookup[subId], numOfSchoolDays);
-
-                const dayPositionMap = new Map();
-
-                fixedDays.forEach((day, index) => {
-                    const pos = fixedPositions[index];
-                    if (
-                        (day !== 0 && pos !== 0) ||
-                        (day !== 0 && pos === 0) ||
-                        (day === 0 && pos !== 0 && !dayPositionMap.has(`${day}-${pos}`))
-                    ) {
-                        dayPositionMap.set(`${day}-${pos}`, [day, pos]);
-                    }
-                });
-
-                // console.log('dayPositionMap', dayPositionMap);
-
-                let result = [];
-                dayPositionMap.forEach(([day, pos]) => {
-                    if (result.length < numOfClasses) {
-                        result.push([day, pos]);
-                    }
-                });
-
-                // console.log('result1', result);
-
-                // Pad with [0, 0] if necessary
-                while (result.length < numOfClasses) {
-                    result.push([0, 0]);
-                }
-
-                // console.log('result2', result);
-
-                newSection.fixedDays[subId] = result.map(([day]) => day);
-                newSection.fixedPositions[subId] = result.map(([_, pos]) => pos);
-            });
-
-            if (newSection.modality.length === 0 ||
-                newSection.modality.length === numOfSchoolDays
-            ) return;
-
-            if (newSection.modality.length > numOfSchoolDays) {
-                newSection.modality = newSection.modality.slice(0, numOfSchoolDays);
-            } else {
-                newSection.modality.push(1);
-            }
-
-            if (originalSection !== newSection) {
-                dispatch(
-                    editSection({
-                        sectionId: newSection.id,
-                        updatedSection: {
-                            id: newSection.id,
-                            teacher: newSection.teacher,
-                            program: newSection.program,
-                            section: newSection.section,
-                            subjects: newSection.subjects,
-                            fixedDays: newSection.fixedDays,
-                            fixedPositions: newSection.fixedPositions,
-                            modality: newSection.modality,
-                            year: newSection.year,
-                            shift: newSection.shift,
-                            startTime: getTimeSlotIndex(newSection.startTime || '06:00 AM'),
-                        },
-                    })
-                );
-            }
-        });
-    };
-
-    const handleBreakTimeDurationChange = () => {
-        // NEW ADDITION
-        localStorage.setItem('breakTimeDuration', breakTimeDuration);
-
-        if (breakTimeDuration === prevBreakTimeDuration) return;
-
-        setPrevBreakTimeDuration(breakTimeDuration);
-
-        if (Object.keys(programsStore).length === 0) return;
-
-        Object.entries(programsStore).forEach(([progId, prog]) => {
-            const originalProgram = JSON.parse(JSON.stringify(prog));
-            const newProgram = JSON.parse(JSON.stringify(prog));
-
-            [7, 8, 9, 10].forEach((grade) => {
-                if (newProgram[grade].subjects.length === 0) return;
-
-                const startTimeIdx = newProgram[grade].startTime;
-                const breakTimeCount = newProgram[grade].subjects.length > 10 ? 2 : 1;
-
-                let totalDuration = breakTimeCount * breakTimeDuration;
-
-                newProgram[grade].subjects.forEach((subId) => {
-                    totalDuration += subjectsStore[subId].classDuration;
-                });
-
-                const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
-
-                newProgram[grade].endTime = endTimeIdx || 216; // 216 = 6:00 PM
-            });
-
-            if (originalProgram !== newProgram) {
-                dispatch(
-                    editProgram({
-                        programId: newProgram.id,
-                        updatedProgram: newProgram,
-                    })
-                );
-            }
-        });
-
-        if (Object.keys(sectionsStore).length === 0) return;
-
-        Object.entries(sectionsStore).forEach(([secId, sec]) => {
-            const originalSection = JSON.parse(JSON.stringify(sec));
-            const newSection = JSON.parse(JSON.stringify(sec));
-
-            if (newSection.subjects.length === 0) return;
-
-            const startTimeIdx = newSection.startTime;
-            const breakTimeCount = newSection.subjects.length > 10 ? 2 : 1;
-
-            let totalDuration = breakTimeCount * breakTimeDuration;
-
-            newSection.subjects.forEach((subId) => {
-                totalDuration += subjectsStore[subId].classDuration;
-            });
-
-            const endTimeIdx = Math.ceil(totalDuration / 5) + startTimeIdx;
-
-            newSection.endTime = endTimeIdx || 216; // 216 = 6:00 PM
-
-            if (originalSection !== newSection) {
-                dispatch(
-                    editSection({
-                        sectionId: newSection.id,
-                        updatedSection: newSection,
-                    })
-                );
-            }
-        });
-    };
-
     useEffect(() => {
         console.log('timetableGenerationStatus', timetableGenerationStatus);
 
@@ -1716,103 +1571,13 @@ function Timetable() {
         };
     }, [timetableGenerationStatus]); // The effect depends on the isProcessRunning state
 
-    // const makeOtherTable = (table) => {
-    //     let othertable = {};
-    //     console.log("orig data: ",table);
-    // };
-
-    // makeOtherTable(sectionTimetables)
-    // makeOtherTable(teacherTimetables)
-
-    // const convertToHashMap = (inputObj) => {
-    //     const resultMap = new Map(); // Initialize the outer Map
-
-    //     // Iterate through each section in the input object
-    //     for (let tableKey in inputObj) {
-    //         let sectionData = inputObj[tableKey];
-    //         // Each section has a container name
-    //         let setTableKey = `${sectionData.containerName} - ${tableKey}`;
-
-    //         // Check if the tableKey already exists under the tableKey
-    //         if (!resultMap.has(setTableKey)) {
-    //             resultMap.set(setTableKey, new Map());
-    //         }
-    //         const scheduleMap = resultMap.get(setTableKey);
-
-    //         // Iterate through the nested objects (0, 1, 2,...)
-    //         for (let key in sectionData) {
-    //             // Skip the tableKey field to prevent redundant processing
-    //             if (key === 'containerName') continue;
-    //             // Iterate through inner objects (0, 1, 2,...)
-    //             for (let innerKey in sectionData[key]) {
-    //                 let schedule = sectionData[key][innerKey];
-    //                 const type = schedule.teacher ? 'section' : 'teacher';
-    //                 const partnerType = type === 'teacher' ? 'section' : 'teacher';
-
-    //                 if (innerKey === '0') {
-    //                     for (let i = 1; i <= 5; i++) {
-    //                         const scheduleKey = `section-${schedule.sectionID}-teacher-${schedule.teacherID}-subject-${schedule.subjectID}-day-${i}-type-${type}`;
-    //                         // Add the schedule to the nested Map
-    //                         const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
-
-    //                         scheduleMap.set(scheduleKey, {
-    //                             start: schedule.start,
-    //                             end: schedule.end,
-    //                             sectionID: schedule.sectionID,
-    //                             subject: schedule.subject,
-    //                             subjectID: schedule.subjectID,
-    //                             teacherID: schedule.teacherID,
-    //                             tableKey: setTableKey,
-    //                             partnerKey: keyToFind,
-    //                             id: scheduleKey,
-    //                             dynamicID: scheduleKey,
-    //                             day: i,
-    //                             overlap: false,
-    //                             type: type,
-    //                             ...(schedule.section && {
-    //                                 section: schedule.section,
-    //                             }), // Add section if it exists
-    //                             ...(schedule.teacher && {
-    //                                 teacher: schedule.teacher,
-    //                             }), // Add section if it exists
-    //                         });
-    //                     }
-    //                 } else {
-    //                     // Use sectionID, subjectID, and start time to create a unique key for the schedule
-    //                     const scheduleKey = `section-${schedule.sectionID}-teacher-${schedule.teacherID}-subject-${schedule.subjectID}-day-${innerKey}-type-${type}`;
-    //                     const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
-    //                     // Add the schedule to the nested Map
-    //                     scheduleMap.set(scheduleKey, {
-    //                         start: schedule.start,
-    //                         end: schedule.end,
-    //                         sectionID: schedule.sectionID,
-    //                         subject: schedule.subject,
-    //                         subjectID: schedule.subjectID,
-    //                         teacherID: schedule.teacherID,
-    //                         tableKey: setTableKey,
-    //                         partnerKey: keyToFind,
-    //                         type: type,
-    //                         id: scheduleKey,
-    //                         dynamicID: scheduleKey,
-    //                         day: Number(innerKey),
-    //                         ...(schedule.section && {
-    //                             section: schedule.section,
-    //                         }), // Add section if it exists
-    //                         ...(schedule.teacher && {
-    //                             teacher: schedule.teacher,
-    //                         }), // Add section if it exists
-    //                     });
-    //                 }
-    //             }
-    //         }
-    //     }
-
-    //     return resultMap;
-    // };
-
     const convertToHashMap = (inputMap, type) => {
         const resultMap = new Map(); // Initialize the outer Map
-
+        // console.log('morningStartTime: ', morningStartTime);
+        // const timeslotindex = getTimeSlotIndex(morningStartTime);
+        const timeslotindex = 72;
+        console.log('timeslotindex: ', timeslotindex);
+        console.log('inputMap: ', inputMap);
         // Iterate through each entry in the input HashMap
         for (let [tableKey, sectionData] of inputMap.entries()) {
             // Each section has a container name
@@ -1827,11 +1592,7 @@ function Timetable() {
                 }
             }
 
-            if (!containerName || !timetable) {
-                console.warn(`Missing containerName or timetable for tableKey: ${tableKey}`);
-                continue;
-            }
-            let setTableKey = `${type}: ${containerName} - ${tableKey}`;
+            let setTableKey = `${type}: ${containerName}`;
             // console.log('sectionData: ', sectionData);
             // console.log('setTableKey: ', setTableKey);
 
@@ -1873,10 +1634,11 @@ function Timetable() {
                         }
                         // const keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
                         let keyToFind = scheduleKey.replace(/[^-]+$/, partnerType[0] ?? 'n');
-
+                        console.log;
+                        // console.log("modality: ",sectionsStore[schedule.section]?.modality)
                         scheduleMap.set(scheduleKey, {
-                            start: schedule.start - 72,
-                            end: schedule.end - 72,
+                            start: schedule.start - timeslotindex,
+                            end: schedule.end - timeslotindex,
                             sectionID: schedule.section,
                             subject: type === 's' ? schedule.fieldName1 : schedule.fieldName2,
                             subjectID: schedule.subject,
@@ -1888,8 +1650,9 @@ function Timetable() {
                             day: i,
                             overlap: false,
                             type: type,
-                            additional: duplicate ? true : false,
+                            additional: schedule.additional, // Ensures 'additional' is false if not set
                             containerName: containerName,
+                            // modality: type === 's' ? sectionsStore[schedule.section]?.modality : [],
                             ...(type === 't' && { section: schedule.fieldName1 }),
                             ...(type === 's' && { teacher: schedule.fieldName2 }),
                         });
@@ -1913,8 +1676,8 @@ function Timetable() {
                     let keyToFind = scheduleKey.replace(/[^-]+$/, partnerType[0] ?? 'n');
 
                     scheduleMap.set(scheduleKey, {
-                        start: schedule.start - 72,
-                        end: schedule.end - 72,
+                        start: schedule.start - timeslotindex,
+                        end: schedule.end - timeslotindex,
                         sectionID: schedule.section,
                         subject: type === 's' ? schedule.fieldName1 : schedule.fieldName2,
                         subjectID: schedule.subject,
@@ -1926,7 +1689,8 @@ function Timetable() {
                         dynamicID: scheduleKey,
                         overlap: false,
                         day: schedule.day,
-                        additional: duplicate ? true : false,
+                        // modality: type === 's' ? sectionsStore[schedule.section]?.modality : [],
+                        additional: schedule.additional, // Ensures 'additional' is false if not set
                         containerName: containerName,
                         ...(type === 't' && { section: schedule.fieldName1 }),
                         ...(type === 's' && { teacher: schedule.fieldName2 }),
@@ -1948,61 +1712,10 @@ function Timetable() {
         return combinedMap;
     }
 
-    // function combineMaps(map1, map2) {
-    //     const combinedMap = new Map();
-    //     let currentKey = 1;
-
-    //     // Add entries from map1 starting with key 1
-    //     for (const [, value] of map1.entries()) {
-    //         combinedMap.set(currentKey, value);
-    //         currentKey++;
-    //     }
-
-    //     // Add entries from map2 continuing the sequence
-    //     for (const [, value] of map2?.entries()) {
-    //         combinedMap.set(currentKey, value);
-    //         currentKey++;
-    //     }
-
-    //     console.log('final: ', combinedMap);
-    //     return combinedMap;
-    // }
-
-    useEffect(() => {
-        handleNumOfSchoolDaysChange();
-    }, [numOfSchoolDays]);
-
-    useEffect(() => {
-        handleBreakTimeDurationChange();
-    }, [breakTimeDuration]);
-
-    // ========================================================================
-
-    useEffect(() => {
-        if (sectionStatus === 'idle') {
-            dispatch(fetchSections());
-        }
-    }, [sectionStatus, dispatch]);
-
-    useEffect(() => {
-        if (programStatus === 'idle') {
-            dispatch(fetchPrograms());
-        }
-    }, [programStatus, dispatch]);
-
-    useEffect(() => {
-        if (subjectStatus === 'idle') {
-            dispatch(fetchSubjects());
-        }
-    }, [subjectStatus, dispatch]);
-
-    useEffect(() => {
-        if (buildingStatus === 'idle') {
-            dispatch(fetchBuildings());
-        }
-    }, [buildingStatus, dispatch]);
+    // =====================================================================================================================================
 
     console.log('retrigger index');
+
     return (
         <div className='App container mx-auto px-4 py-6'>
             <NotificationHandler timetableCondition={timetableGenerationStatus} />
@@ -2010,6 +1723,13 @@ function Timetable() {
                 <Breadcrumbs title='Timetable' links={links} />
                 <div className='flex items-center gap-2'>
                     <ExportImportDBButtons
+                        programs={programsStore}
+                        subjects={subjectsStore}
+                        teachers={teachersStore}
+                        ranks={ranksStore}
+                        departments={departmentsStore}
+                        buildings={buildingsStore}
+                        sections={sectionsStore}
                         onClear={handleClearAndRefresh}
                         numOfSchoolDays={numOfSchoolDays}
                         breakTimeDuration={breakTimeDuration}
@@ -2047,42 +1767,58 @@ function Timetable() {
                 />
             </div>
 
-            {/* Responsive card layout for Subject and Teacher Lists */}
-            {/* <div className="flex flex-col lg:flex-row gap-6">
-    <div className="w-full lg:w-4/12 bg-base-100 p-6 rounded-lg shadow-lg">
-      <h2 className="text-lg font-semibold mb-4">Subjects</h2>
-      <SubjectListContainer />
-      </div>
-      <div className="w-full lg:w-8/12 bg-base-100 p-6 rounded-lg shadow-lg">
-      <h2 className="text-lg font-semibold mb-4">Teachers</h2>
-      <TeacherListContainer />
-    </div>
-  </div> */}
             <div>
                 <div className='mt-6 bg-base-100 p-6 rounded-lg shadow-lg'>
                     <h2 className='text-lg font-semibold mb-4'>Subjects</h2>
-                    <SubjectListContainer numOfSchoolDays={numOfSchoolDays} breakTimeDuration={breakTimeDuration} />
+                    <SubjectListContainer
+                        subjects={subjectsStore}
+                        programs={programsStore}
+                        sections={sectionsStore}
+                        numOfSchoolDays={numOfSchoolDays}
+                        breakTimeDuration={breakTimeDuration}
+                    />
                 </div>
 
                 <div className='mt-6 bg-base-100 p-6 rounded-lg shadow-lg'>
                     <h2 className='text-lg font-semibold mb-4'>Teachers</h2>
-                    <TeacherListContainer />
+                    <TeacherListContainer
+                        teachers={teachersStore}
+                        ranks={ranksStore}
+                        departments={departmentsStore}
+                        subjects={subjectsStore}
+                    />
                 </div>
 
                 {/* Program Lists */}
                 <div className='mt-6 bg-base-100 p-6 rounded-lg shadow-lg'>
                     <h2 className='text-lg font-semibold mb-4'>Programs</h2>
-                    <ProgramListContainer numOfSchoolDays={numOfSchoolDays} breakTimeDuration={breakTimeDuration} />
+                    <ProgramListContainer
+                        subjects={subjectsStore}
+                        programs={programsStore}
+                        sections={sectionsStore}
+                        numOfSchoolDays={numOfSchoolDays}
+                        breakTimeDuration={breakTimeDuration}
+                    />
                 </div>
 
                 {/* Section List with the Generate Timetable Button */}
                 <div className='mt-6'>
                     <div className='bg-base-100 p-6 rounded-lg shadow-lg'>
                         <h2 className='text-lg font-semibold mb-4'>Sections</h2>
-                        <SectionListContainer numOfSchoolDays={numOfSchoolDays} breakTimeDuration={breakTimeDuration} />
-                        <div className='mt-4'>
-                            <ViolationList violations={violations} />
-                        </div>
+                        <SectionListContainer
+                            subjects={subjectsStore}
+                            programs={programsStore}
+                            sections={sectionsStore}
+                            teachers={teachersStore}
+                            buildings={buildingsStore}
+                            numOfSchoolDays={numOfSchoolDays}
+                            breakTimeDuration={breakTimeDuration}
+                        />
+                        {/* <div className='mt-4'>
+                            <ViolationList 
+                                violations={violations} 
+                            />
+                        </div> */}
                     </div>
                 </div>
             </div>
@@ -2091,40 +1827,6 @@ function Timetable() {
                     EXPORT SCHEDULES
                 </button>
             )}
-            {/* {mapVal && mapVal.size > 0 && (
-                <>
-                    <ForTest hashMap={mapVal} />
-                </>
-            )} */}
-
-            {/* pag section need Container section + sectionid + teacherid for error */}
-            {/* <GeneratedTimetable
-                sectionTimetables={sectionTimetables}
-                teacherTimetables={teacherTimetables}
-                onUpdateTimetables={setSectionTimetables}
-                errors={{
-                    containerName: 'Rosas',
-                    teacherID: [9],
-                    sectionID: [7],
-                }}
-            /> */}
-
-            {/* pag teacher need Container teacher + sectionid + subjectid for error */}
-
-            {/* <GeneratedTimetable
-                sectionTimetables={sectionTimetables}
-                teacherTimetables={teacherTimetables}
-                fieldparam={'teacher'}
-                columnField={['subject', 'section']}
-                onUpdateTimetables={setTeacherTimetables}
-                errors={{
-                    containerName: 'Mark Tagalogon',
-                    subjectID: [6],
-                    sectionID: [7],
-                }}
-            /> */}
-
-            {/* <div className="grid grid-cols-1 col-span-full gap-4 sm:grid-cols-2"></div> */}
         </div>
     );
 }
