@@ -6,6 +6,8 @@ import { useEditUser } from './hooks/useUpdateUser';
 import { useDispatch } from 'react-redux';
 import { editUser as editUserAction } from './usersSlice';
 import { toast } from 'sonner';
+import { useToggleAllowedStatus } from './hooks/useToggleUserStatus';
+import useAuth from '../../../app/useAuth';
 
 const UserList = ({ onEditUser }) => {
     const dispatch = useDispatch();
@@ -16,6 +18,7 @@ const UserList = ({ onEditUser }) => {
     const { users, loading, error } = useUsers();
 
     const { editUser, loading: editUserLoading, error: editUserError } = useEditUser();
+    const { toggleStatus, loading: toggleStatusLoading, error: toggleStatusError } = useToggleAllowedStatus();
 
     const handleEdit = (userId) => {
         onEditUser(userId);
@@ -30,7 +33,7 @@ const UserList = ({ onEditUser }) => {
                 ...user,
                 status: newStatus,
             };
-
+            await toggleStatus(user.id, newStatus === 'active');
             dispatch(editUserAction(editedUser));
             setUserToChangeStatus(null);
         } catch (error) {
@@ -140,18 +143,24 @@ const UserList = ({ onEditUser }) => {
 
                                 <td>
                                     <div className='flex gap-2'>
-                                        <button onClick={() => handleEdit(user.id)} className='btn btn-sm btn-primary'>
-                                            Edit Permission
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                setUserToChangeStatus(user);
-                                                document.getElementById('status_modal').showModal();
-                                            }}
-                                            className={`btn btn-sm ${user.status === 'active' ? 'btn-warning' : 'btn-success'}`}
-                                        >
-                                            {user.status === 'active' ? 'Set to Inactive' : 'Set to Active'}
-                                        </button>
+                                        {user.role !== 'super admin' && (
+                                            <>
+                                                <button onClick={() => handleEdit(user.id)} className='btn btn-sm btn-primary'>
+                                                    Edit Permission
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        setUserToChangeStatus(user);
+                                                        document.getElementById('status_modal').showModal();
+                                                    }}
+                                                    className={`btn btn-sm ${
+                                                        user.status === 'active' ? 'btn-warning' : 'btn-success'
+                                                    }`}
+                                                >
+                                                    {user.status === 'active' ? 'Set to Inactive' : 'Set to Active'}
+                                                </button>
+                                            </>
+                                        )}
                                     </div>
                                 </td>
                             </tr>
@@ -179,19 +188,21 @@ const UserList = ({ onEditUser }) => {
                                 if (userToChangeStatus) {
                                     handleChangeStatus(userToChangeStatus);
                                     document.getElementById('status_modal').close();
-                                }}
-                            }
+                                }
+                            }}
                             disabled={editUserLoading}
-                            >
-                                {editUserLoading ? (
-                                    <span className='loading loading-spinner loading-sm'></span>
-                                ) : (
-                                    userToChangeStatus?.status === 'active' ? 'Set to Inactive' : 'Set to Active'
-                                )}
-                            </button>
-                            <button
-                                className='btn btn-ghost'
-                                onClick={() => {
+                        >
+                            {editUserLoading ? (
+                                <span className='loading loading-spinner loading-sm'></span>
+                            ) : userToChangeStatus?.status === 'active' ? (
+                                'Set to Inactive'
+                            ) : (
+                                'Set to Active'
+                            )}
+                        </button>
+                        <button
+                            className='btn btn-ghost'
+                            onClick={() => {
                                 document.getElementById('status_modal').close();
                             }}
                         >
