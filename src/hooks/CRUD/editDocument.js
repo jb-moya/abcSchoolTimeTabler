@@ -7,19 +7,15 @@ import { firestore } from '../../firebase/firebase';
  * @param {object} entryData - The data to add as a new document
  */
 
-export async function editDocument (collectionName, docId, entryData) {
+export async function editDocument(collectionName, docId, entryData) {
 
     try {
-        
-        const docRef = doc(firestore, collectionName, docId);
-
+        const docRef = doc(firestore, collectionName, String(docId));
         await updateDoc(docRef, entryData);
-
         console.log("Document edited successfully!");
-
     } catch (error) {
         console.error("Error editing document: ", error);
         throw error;
     }
-
-};
+    
+}

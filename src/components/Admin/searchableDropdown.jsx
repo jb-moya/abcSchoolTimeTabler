@@ -80,10 +80,10 @@ const SearchableDropdownToggler = ({
                         <div className='px-4 py-2 opacity-50'>Not found</div>
                     ) : (
                         Object.entries(searchResults).map(([, subject]) => (
-                            <li role='button' key={subject.custom_id} onClick={() => toggleSubject(subject.custom_id)}>
+                            <li role='button' key={subject.id} onClick={() => toggleSubject(subject.id)}>
                                 <div className='flex justify-between whitespace-nowrap items-center'>
                                     <a className={clsx('w-full')}>{subject.subject}</a>
-                                    {selectedList.includes(subject.custom_id) ? (
+                                    {selectedList.includes(subject.id) ? (
                                         <IoRemove size={20} className='text-red-500' />
                                     ) : (
                                         <IoAdd size={20} className='text-green-400' />

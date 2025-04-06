@@ -24,8 +24,6 @@ const TeacherRankEdit = ({
 
     const [editRankId, setEditRankId] = useState(rank.id || null);
 
-    const [editRankCustomId, setEditRankCustomId] = useState(rank.customId || '');
-
     const [editRankValue, setEditRankValue] = useState(rank.rank || '');
 
     const [editAdditionalRankScheds, setEditAdditionalRankScheds] = useState((rank.additionalRankScheds) || []);
@@ -33,7 +31,6 @@ const TeacherRankEdit = ({
 	useEffect(() => {
 		if (rank) {
 			setEditRankId(rank.id || null);
-            setEditRankCustomId(rank.custom_id || '');
 			setEditRankValue(rank.rank || '');
 			setEditAdditionalRankScheds(rank.additionalRankScheds || []);
 		}
@@ -46,7 +43,7 @@ const TeacherRankEdit = ({
 		Object.entries(teachers).forEach(([teacherID, teacher]) => {
 			const newTeacher = JSON.parse(JSON.stringify(teacher));
 
-			if (newTeacher.rank !== editRankCustomId) return;
+			if (newTeacher.rank !== editRankId) return;
 
 			const updatedSchedNames = new Set(editAdditionalRankScheds.map((sched) => sched.name));
 
@@ -107,7 +104,7 @@ const TeacherRankEdit = ({
 			return;
 		}
 
-		const currentRank = ranks[editRankCustomId]?.rank || '';
+		const currentRank = ranks[editRankId]?.rank || '';
 
 		if (editRankValue.trim().toLowerCase() === currentRank.trim().toLowerCase()) {
 

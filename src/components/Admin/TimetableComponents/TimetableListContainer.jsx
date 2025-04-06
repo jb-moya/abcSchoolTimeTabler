@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import debounce from 'debounce';
@@ -12,115 +11,71 @@ import ModifyTimetableContainer from '@components/Admin/ModifyTimetable/ModifyTi
 
 import DeleteData from '../DeleteData';
 import { convertStringDataToMap } from '@components/Admin/ModifyTimetable/utils';
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
-import { addDocument } from '../../../hooks/CRUD/addDocument';
 
-const TimetableListContainer = ({}) => {
-    
-    const dispatch = useDispatch();
+const TimetableListContainer = ({
+    // stores
+    subjects, 
+    programs,
+    sections,
+    teachers,
+    ranks,
+    departments,
+    buildings,
+    schedules,
+    // stores
+}) => {
+
     const location = useLocation();
     const navigate = useNavigate();
 
-    // ===================================================================================================
-    // const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
-    // const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
-    // const { sections, status: sectionStatus } = useSelector((state) => state.section);
-    // const { schedules, status: schedStatus } = useSelector((state) => state.schedule);
-
-    // useEffect(() => {
-    //     if (schedStatus === 'idle') {
-    //         dispatch(fetchScheds());
-    //     }
-    // }, [dispatch, schedStatus]);
-
-    // useEffect(() => {
-    //     if (teacherStatus === 'idle') {
-    //         dispatch(fetchTeachers());
-    //     }
-    // }, [teacherStatus, dispatch]);
-
-    // useEffect(() => {
-    //     if (subjectStatus === 'idle') {
-    //         dispatch(fetchSubjects());
-    //     }
-    // }, [subjectStatus, dispatch]);
-
-    // useEffect(() => {
-    //     if (sectionStatus === 'idle') {
-    //         dispatch(fetchSections());
-    //     }
-    // }, [sectionStatus, dispatch]);
-
-    // ===================================================================================================
+// ===================================================================================================
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
-    const { documents: schedules, loading1, error1 } = fetchDocuments('schedules');
-    const { documents: teachers, loading2, error2 } = fetchDocuments('teachers');
 
-    const { documents: sections, loading3, error3 } = fetchDocuments('sections');
-    const { documents: subjects, loading4, error4 } = fetchDocuments('subjects');
-
-    console.log('schedules: ', schedules);
-    // const { documents: sections, loading2, error2 } = fetchDocuments('sections');
-    // console.log('sched: ', schedules);
-
-    // console.log('sections: ', sections);
-
-    // const [timetables, setTimetables] = useState(schedules);
-
-    // useEffect(() => {
-    //     setTimetables(schedules);
-    // }, [schedules]);
-
-    // useEffect(() => {
-    //     console.log('Updated timetables:', timetables);
-    // }, [timetables]);
-    // ==================================================================================================
+// ==================================================================================================
 
     const table = location.state?.generatedMap ?? new Map();
 
-    // ===================================================================================================
+// ===================================================================================================
 
-    // const [editRankId, setEditRankId] = useState(null);
-    const [editSchedId, setEditSchedId] = useState(null);
+    const [editSchedFirebaseId, setEditSchedFirebaseId] = useState(null);
     const [editSchedName, setEditSchedName] = useState('');
-    const [editSchedData, setEditSchedData] = useState('');
-
     const [timetable, setTimetable] = useState(table);
 
     useEffect(() => {
         console.log('timetable: ', timetable);
     }, [timetable]);
 
-    // ===================================================================================================
+// ===================================================================================================
 
     const [searchSchedResult, setSearchSchedResult] = useState(schedules);
     const [searchSchedValue, setSearchSchedValue] = useState('');
 
-    // ===================================================================================================
+// ===================================================================================================
 
-    const handleEditClick = (scheduleId) => {
-        console.log();
-        console.log('editing: ', schedules[scheduleId].data);
+    const handleEditClick = (FirebaseId) => {
+        console.log(schedules);
+        console.log('editing: ', schedules[FirebaseId].data);
         // addDocument('schedules', {
         //     name: schedules[scheduleId].name,
         //     data: schedules[scheduleId].data,
         // });
 
-        const newTimetable = convertStringDataToMap(schedules[scheduleId].data);
+        const newTimetable = convertStringDataToMap(schedules[FirebaseId].data);
         console.log('newTimetable: ', newTimetable);
-        console.log('scheduleID: ', scheduleId);
-        console.log('schedules[scheduleId].name: ', schedules[scheduleId].name);
-        setEditSchedId(scheduleId);
-        setEditSchedName(schedules[scheduleId].name);
+        console.log('schedules[scheduleId].name: ', schedules[FirebaseId].name);
+        // setEditSchedId(FirebaseId);
+        setEditSchedFirebaseId(FirebaseId);
+        setEditSchedName(schedules[FirebaseId].name);
         setTimetable(newTimetable);
     };
 
-    // ===================================================================================================
+// ===================================================================================================
 
     const resetTimetable = () => {
-        setEditSchedId(null);
+        // setEditSchedId(null);
+        setEditSchedFirebaseId(null);
         setEditSchedName('');
         setTimetable(new Map());
         resetURLState();
@@ -130,7 +85,7 @@ const TimetableListContainer = ({}) => {
         navigate(location.pathname, { state: null });
     };
 
-    // ===================================================================================================
+// ===================================================================================================
 
     // SEARCH FUNCTIONALITY
     const debouncedSearch = useCallback(
@@ -169,7 +124,7 @@ const TimetableListContainer = ({}) => {
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Object.entries(searchSchedResult).slice(indexOfFirstItem, indexOfLastItem);
 
-    // ===================================================================================================
+// ===================================================================================================
 
     const buildingData = {
         floors: 2,
@@ -279,7 +234,7 @@ const TimetableListContainer = ({}) => {
                                     ) : (
                                         currentItems.map(([, schedule], index) => (
                                             <tr key={schedule.id} className='group hover'>
-                                                <th>{schedule.custom_id}</th>
+                                                <th>{schedule.id}</th>
 
                                                 <td>{schedule.name}</td>
 
@@ -287,14 +242,12 @@ const TimetableListContainer = ({}) => {
                                                     <div className='flex'>
                                                         <button
                                                             className='btn btn-xs btn-ghost text-blue-500'
-                                                            onClick={() => handleEditClick(schedule.custom_id)}
+                                                            onClick={() => handleEditClick(schedule.id)}
                                                         >
                                                             <RiEdit2Fill size={20} />
                                                         </button>
 
-                                                        <DeleteData
-                                                            id={schedule.id}
-                                                        />
+                                                        <DeleteData id={schedule.id} />
                                                     </div>
                                                 </td>
                                             </tr>
@@ -314,16 +267,25 @@ const TimetableListContainer = ({}) => {
                         </button>
                         <div className='card-body'>
                             <ModifyTimetableContainer
+                                // stores
+                                subjects={subjects}
+                                programs={programs}
+                                sections={sections}
+                                teachers={teachers}
+                                ranks={ranks}
+                                departments={departments}
+                                schedules={schedules}
+                                buildings={buildings}
+                                // stores
+
                                 hashMap={timetable}
                                 timetableName={editSchedName}
-                                timetableId={editSchedId}
+                                // timetableId={editSchedId}
+                                firebaseId={editSchedFirebaseId}
                                 errorMessage={errorMessage}
                                 setErrorMessage={setErrorMessage}
                                 errorField={errorField}
                                 setErrorField={setErrorField}
-                                teachers={teachers}
-                                sections={sections}
-                                subjects={subjects}
                             />
                         </div>
                     </div>

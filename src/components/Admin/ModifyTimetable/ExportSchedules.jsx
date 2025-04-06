@@ -1,26 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { CiExport, CiImport } from 'react-icons/ci';
-import { createPortal } from 'react-dom';
-import { exportIndexedDB, loadFile, importIndexedDB, DB_NAME } from '@src/indexedDB';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
-import { fetchSubjects } from '@features/subjectSlice';
-import { fetchSections } from '@features/sectionSlice';
-import { fetchTeachers } from '@features/teacherSlice';
-import { fetchPrograms } from '@features/programSlice';
-import { fetchDepartments } from '@features/departmentSlice';
-import { fetchBuildings } from '@features/buildingSlice';
-import { fetchRanks } from '@features/rankSlice';
-
-import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
+import { getTimeSlotString } from '@utils/timeSlotMapper';
 import colors from '@utils/colors';
 
-const ExportSchedules = ({ schedule, close }) => {
-    const dispatch = useDispatch();
+const ExportSchedules = ({
+    // stores
+    programs,
+    buildings,
+    sections,
+    teachers,
+    ranks,
+    departments,
+    // stores
+    
+    schedule, 
+    close 
+}) => {
 
-    // ======================================================================================================
+// ======================================================================================================
 
     const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
         return localStorage.getItem('numOfSchoolDays') || 5;
@@ -30,7 +29,7 @@ const ExportSchedules = ({ schedule, close }) => {
 
     const selectedDays = days.slice(0, numOfSchoolDays);
 
-    // ======================================================================================================
+// ======================================================================================================
 
     const [timetable, setTimetable] = useState(schedule);
 
@@ -40,59 +39,7 @@ const ExportSchedules = ({ schedule, close }) => {
         }
     }, [schedule]);
 
-    // ======================================================================================================
-
-    const { programs, status: programStatus } = useSelector((state) => state.program);
-    const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
-    const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
-    const { ranks, status: rankStatus } = useSelector((state) => state.rank);
-    const { departments, status: departmentStatus } = useSelector((state) => state.department);
-    const { buildings, status: buildingStatus } = useSelector((state) => state.building);
-    const { sections, status: sectionStatus } = useSelector((state) => state.section);
-
-    useEffect(() => {
-        if (sectionStatus === 'idle') {
-            dispatch(fetchSections());
-        }
-    }, [dispatch, sectionStatus]);
-
-    useEffect(() => {
-        if (programStatus === 'idle') {
-            dispatch(fetchPrograms());
-        }
-    }, [dispatch, programStatus]);
-
-    useEffect(() => {
-        if (subjectStatus === 'idle') {
-            dispatch(fetchSubjects());
-        }
-    }, [dispatch, subjectStatus]);
-
-    useEffect(() => {
-        if (teacherStatus === 'idle') {
-            dispatch(fetchTeachers());
-        }
-    }, [dispatch, teacherStatus]);
-
-    useEffect(() => {
-        if (rankStatus === 'idle') {
-            dispatch(fetchRanks());
-        }
-    }, [dispatch, rankStatus]);
-
-    useEffect(() => {
-        if (departmentStatus === 'idle') {
-            dispatch(fetchDepartments());
-        }
-    }, [dispatch, departmentStatus]);
-
-    useEffect(() => {
-        if (buildingStatus === 'idle') {
-            dispatch(fetchBuildings());
-        }
-    }, [buildingStatus, dispatch]);
-
-    // =====================================================================================================
+// =====================================================================================================
 
     const sectionScheds = [];
     const teacherScheds = [];
@@ -104,8 +51,15 @@ const ExportSchedules = ({ schedule, close }) => {
             const key = Object.keys(sched)[0]; // Extract the first key of the sched object
             const val = sched[key]; // Extract the first value of the sched object
 
+            console.log('key: ', key);
+            console.log('val: ', val);
+
+
             const parts = key.split(' - '); // Split at " - "
             const teacherName = parts[0].replace('Teacher: ', ''); // Remove 'Teacher: '
+
+            console.log('parts: ', parts);
+            console.log('teacherName: ', teacherName);
 
             if (!teacherName) {
                 console.error('Teacher name not found in key:', key);
@@ -364,7 +318,7 @@ const ExportSchedules = ({ schedule, close }) => {
             worksheet.mergeCells(`${startColumn_2}3:${endColumn}3`);
 
             worksheet.getCell('A1').value = sectionName;
-            worksheet.getCell('A2').value = section.program;
+            worksheet.getCell('A2').value = programs[section.program]?.program || '';
             worksheet.getCell('A3').value = 'TIME';
             worksheet.getCell('B3').value = 'Minutes';
             worksheet.getCell('C3').value = 'Day';

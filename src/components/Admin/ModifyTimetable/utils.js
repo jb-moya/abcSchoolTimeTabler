@@ -19,7 +19,7 @@ export function convertStringDataToMap(stringData) {
                 break;
             }
         }
-
+        console.log('tablevalue: ', tableValue);
         let setTableKey = `${type}: ${containerName}`;
 
         if (!dataMap.has(setTableKey)) {
@@ -28,7 +28,7 @@ export function convertStringDataToMap(stringData) {
 
         const scheduleMap = dataMap.get(setTableKey);
         for (const val of tableValue) {
-            // console.log("val: ",val)
+            console.log('val: ', val);
             const type = val[0];
             const teacherID = val[1];
             const teacher = val[2];

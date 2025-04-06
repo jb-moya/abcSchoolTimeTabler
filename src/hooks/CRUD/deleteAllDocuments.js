@@ -1,7 +1,7 @@
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 import { firestore } from '../../firebase/firebase';
 
-const collectionsToDelete = ["subjects", "programs", "sections", "ranks", "teachers", "departments", "buildings"];
+const collectionsToDelete = ["subjects", "programs", "sections", "ranks", "teachers", "departments", "buildings", "counters"];
 
 export async function deleteAllCollections() {
 

@@ -35,8 +35,6 @@ const ProgramEdit = ({
 
     const [editProgramId, setEditProgramId] = useState('');
 
-    const [editCustomId, setEditCustomId] = useState('');
-
     const [editProgramValue, setEditProgramValue] = useState('');
 
     const [editProgramCurr, setEditProgramCurr] = useState({
@@ -133,7 +131,6 @@ const ProgramEdit = ({
         });
 
         setEditProgramId(program.id || null);
-        setEditCustomId(program.custom_id || '');
         setEditProgramValue(program.program || '');
         setEditProgramCurr(editProgramCurr);
         setEditSelectedShifts(editSelectedShifts);
@@ -241,6 +238,10 @@ const ProgramEdit = ({
             [grade]: filteredAdditionalScheds, // Update only the specified grade
         }));
     };
+
+    useEffect(() => {
+        console.log('editProgramCurr', editProgramCurr);
+    }, [editProgramCurr]);
 
     // End Time
     const handleEndTimeChange = () => {
@@ -355,7 +356,7 @@ const ProgramEdit = ({
             const newSection = JSON.parse(JSON.stringify(section));
 
             // Early return if section is not part of the edited program
-            if (newSection.program !== editCustomId) return;
+            if (newSection.program !== editProgramId) return;
 
             // Update shift and start time (if true)
             if (sectionDetailsToUpdate.shiftAndStartTime === true) {
@@ -479,7 +480,6 @@ const ProgramEdit = ({
                 
 
                 const updatedEntry = {
-                    custom_id: newSection.custom_id,
                     teacher: newSection.teacher,
                     program: newSection.program,
                     section: newSection.section,
@@ -584,58 +584,10 @@ const ProgramEdit = ({
         // console.log('editAdditionalScheds:', editAdditionalScheds);
 
         // const currentProgram = programs[editProgramId]?.program || '';
-        const currentProgram = programs[editCustomId]?.program || '';
+        const currentProgram = programs[editProgramId]?.program || '';
 
         if (editProgramValue.trim().toLowerCase() === currentProgram.trim().toLowerCase()) {
-            // dispatch(
-            //     reduxFunction({
-            //         programId: editProgramId,
-            //         updatedProgram: {
-            //             program: editProgramValue,
-            //             7: {
-            //                 subjects: editProgramCurr[7],
-            //                 fixedDays: editFixedDays[7],
-            //                 fixedPositions: editFixedPositions[7],
-            //                 shift: editSelectedShifts[7],
-            //                 startTime: getTimeSlotIndex(editStartTimes[7] || '06:00 AM'),
-            //                 endTime: editEndTimes[7],
-            //                 additionalScheds: editAdditionalScheds[7],
-            //                 modality: editClassModality[7],
-            //             },
-            //             8: {
-            //                 subjects: editProgramCurr[8],
-            //                 fixedDays: editFixedDays[8],
-            //                 fixedPositions: editFixedPositions[8],
-            //                 shift: editSelectedShifts[8],
-            //                 startTime: getTimeSlotIndex(editStartTimes[8] || '06:00 AM'),
-            //                 endTime: editEndTimes[8],
-            //                 additionalScheds: editAdditionalScheds[8],
-            //                 modality: editClassModality[8],
-            //             },
-            //             9: {
-            //                 subjects: editProgramCurr[9],
-            //                 fixedDays: editFixedDays[9],
-            //                 fixedPositions: editFixedPositions[9],
-            //                 shift: editSelectedShifts[9],
-            //                 startTime: getTimeSlotIndex(editStartTimes[9] || '06:00 AM'),
-            //                 endTime: editEndTimes[9],
-            //                 additionalScheds: editAdditionalScheds[9],
-            //                 modality: editClassModality[9],
-            //             },
-            //             10: {
-            //                 subjects: editProgramCurr[10],
-            //                 fixedDays: editFixedDays[10],
-            //                 fixedPositions: editFixedPositions[10],
-            //                 shift: editSelectedShifts[10],
-            //                 startTime: getTimeSlotIndex(editStartTimes[10] || '06:00 AM'),
-            //                 endTime: editEndTimes[10],
-            //                 additionalScheds: editAdditionalScheds[10],
-            //                 modality: editClassModality[10],
-            //             },
-            //         },
-            //     })
-            // );
-
+            
             try {
 
                 editDocument('programs', editProgramId, {
@@ -1206,6 +1158,7 @@ const ProgramEdit = ({
                                                                 )}
                                                             </button>
                                                             <AdditionalScheduleForProgram
+                                                                subjects={subjects}
                                                                 viewingMode={1}
                                                                 programID={editProgramId}
                                                                 grade={grade}
@@ -1226,6 +1179,7 @@ const ProgramEdit = ({
                                                             <RiEdit2Fill size={15} />
                                                         </button>
                                                         <AdditionalScheduleForProgram
+                                                            subjects={subjects}
                                                             viewingMode={0}
                                                             programID={editProgramId}
                                                             grade={grade}

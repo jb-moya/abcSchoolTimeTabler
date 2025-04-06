@@ -194,7 +194,7 @@ const DepartmentEdit = ({
 								{Object.keys(teachers)
 									.filter(
 										(key) =>
-										teachers[key].department === department.custom_id &&
+										teachers[key].department === department.id &&
 										teachers[key].teacher
 											.toLowerCase()
 											.includes(searchTerm.toLowerCase())
@@ -203,7 +203,7 @@ const DepartmentEdit = ({
 										<li key={teachers[key].id} className="border-b last:border-b-0 border-base-content border-opacity-20">
 										<button
 											className="w-full text-left py-2 px-4 hover:bg-blue-100"
-											onClick={() => handleTeacherClick(teachers[key].custom_id)}
+											onClick={() => handleTeacherClick(teachers[key].id)}
 										>
 											{teachers[key].teacher}
 										</button>
@@ -211,7 +211,7 @@ const DepartmentEdit = ({
 								))}
 								{Object.keys(teachers).filter(
 									(key) =>
-										teachers[key].department === department.custom_id &&
+										teachers[key].department === department.id &&
 										teachers[key].teacher
 										.toLowerCase()
 										.includes(searchTerm.toLowerCase())

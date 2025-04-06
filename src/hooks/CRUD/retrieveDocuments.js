@@ -17,14 +17,19 @@ export function fetchDocuments(collectionName) {
             (snapshot) => {
                 const docsObject = snapshot.docs.reduce((acc, doc) => {
                     const docData = doc.data();
-                    const customId = docData.custom_id;
-        
-                    if (customId !== undefined) { // Ensure custom_id exists
-                        acc[customId] = { ...docData, id: doc.id }; // Store Firestore id inside
+                    
+                    // Convert Firestore string ID to integer
+                    const docId = parseInt(doc.id, 10);
+
+                    if (!isNaN(docId)) { // Ensure it's a valid number
+                        acc[docId] = { ...docData, id: docId }; // Store int ID in attributes
+                    } else {
+                        console.warn(`Skipping document with non-numeric ID: ${doc.id}`);
                     }
+
                     return acc;
                 }, {});
-        
+
                 setDocuments(docsObject);
                 setLoading(false);
             },

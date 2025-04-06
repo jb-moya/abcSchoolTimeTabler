@@ -29,8 +29,6 @@ const TeacherEdit = ({
 
     const [editTeacherId, setEditTeacherId] = useState(teacher.id || null);
 
-    const [editTeacherCustomId, setEditTeacherCustomId] = useState(teacher.customId || '');
-
     const [editTeacherRank, setEditTeacherRank] = useState(teacher.rank || 0);
 
     const [editTeacherDepartment, setEditTeacherDepartment] = useState(teacher.department || 0);
@@ -50,7 +48,6 @@ const TeacherEdit = ({
     useEffect(() => {
         if (teacher) {
             setEditTeacherId(teacher.id || null);
-            setEditTeacherCustomId(teacher.custom_id || '');
             setEditTeacherValue(teacher.teacher || '');
             setEditTeacherDepartment(teacher.department || 0);
             setEditTeacherRank(teacher.rank || 0);
@@ -65,7 +62,7 @@ const TeacherEdit = ({
     // Update additional teacher schedules when rank changes
     useEffect(() => {
         if (editTeacherRank !== tempRank) {
-            const rank = Object.values(ranks).find((rank) => rank.custom_id === editTeacherRank);
+            const rank = Object.values(ranks).find((rank) => rank.id === editTeacherRank);
 
             if (rank) {
                 setEditTeacherAdditionalScheds(rank.additionalRankScheds);
@@ -93,7 +90,7 @@ const TeacherEdit = ({
             return;
         }
 
-        const currentTeacher = teachers[editTeacherCustomId]?.teacher || '';
+        const currentTeacher = teachers[editTeacherId]?.teacher || '';
 
         if (editTeacherValue.trim().toLowerCase() === currentTeacher.trim().toLowerCase()) {
 
@@ -312,7 +309,7 @@ const TeacherEdit = ({
                                     </option>
                                     {ranks && Object.keys(ranks).length > 0 ? (
                                         Object.values(ranks).map((rank) => (
-                                            <option key={rank.id} value={rank.custom_id}>
+                                            <option key={rank.id} value={rank.id}>
                                                 {rank.rank}
                                             </option>
                                         ))
@@ -340,7 +337,7 @@ const TeacherEdit = ({
                                     </option>
                                     {departments && Object.keys(departments).length > 0 ? (
                                         Object.values(departments).map((department) => (
-                                            <option key={department.id} value={department.custom_id}>
+                                            <option key={department.id} value={department.id}>
                                                 {`${department.name || ''}${
                                                     teachers[department.head]?.teacher
                                                         ? ` - ${teachers[department.head]?.teacher}`

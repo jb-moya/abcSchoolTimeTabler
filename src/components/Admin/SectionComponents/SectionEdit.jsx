@@ -446,7 +446,7 @@ const SectionEdit = ({
                                         Assign an adviser
                                     </option>
                                     {Object.keys(teachers).map((key) => (
-                                        <option key={teachers[key].id} value={teachers[key].custom_id}>
+                                        <option key={teachers[key].id} value={teachers[key].id}>
                                             {teachers[key].teacher}
                                         </option>
                                     ))}

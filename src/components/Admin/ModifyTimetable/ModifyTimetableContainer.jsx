@@ -1,12 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import DragDrop from './DragDrop';
 import { generateTimeSlots } from '../utils';
 import { produce } from 'immer';
 import { PiConfetti } from 'react-icons/pi';
-// import { addSched, editSched, fetchScheds } from '@features/schedulesSlice';
-import { convertStringDataToMap } from './utils';
-// import { deployTimetable } from '../../../features/deployTimetable';
 import useDeployTimetables from '../../../hooks/useDeployTimetables';
 import useDeleteAllFirebaseTimetables from '../../../hooks/useDeleteAllFirebaseTimetables';
 import mapToArray from './mapToArray';
@@ -14,6 +10,8 @@ import clsx from 'clsx';
 import { IoIosAdd, IoIosWarning } from 'react-icons/io';
 import { FiMinus } from 'react-icons/fi';
 import ExportSchedules from './ExportSchedules';
+import { addDocument } from '../../../hooks/CRUD/addDocument';
+import { editDocument } from '../../../hooks/CRUD/editDocument';
 
 function processRows(data, n) {
     // Generate a key from each row ignoring the last element
@@ -50,20 +48,45 @@ function processRows(data, n) {
     return newData;
 }
 
+function getSectionID(data) {
+    // Generate a key from each row ignoring the last element
+
+    data.forEach((row) => {
+        const key = generateKey(row);
+        keyCounts[key] = (keyCounts[key] || 0) + 1;
+    });
+
+    return newData;
+}
+
 const ModifyTimetableContainer = ({
+    // stores
+    subjects,
+    programs,
+    sections,
+    teachers,
+    ranks,
+    departments,
+    buildings,
+    schedules,
+    // stores
+
     hashMap = new Map(),
     timetableName = '',
-    timetableId = null,
+    firebaseId = null,
     errorMessage,
     setErrorMessage,
     errorField,
     setErrorField,
-    teachers,
-    subjects,
-    sections,
 }) => {
     console.log('timetableName sa loob: ', timetableName);
-    const dispatch = useDispatch();
+    // console.log('timetableId sa loob: ', timetableId);
+    console.log('firebaseId sa loob: ', firebaseId);
+    console.log('teachers sa loob: ', teachers);
+    console.log('subjects sa loob: ', subjects);
+
+    console.log('sections sa loob: ', sections);
+
     const inputNameRef = useRef();
 
     const { handleDeployTimetables, isLoading: deployLoading, remaining: deployRemaining } = useDeployTimetables();
@@ -75,42 +98,18 @@ const ModifyTimetableContainer = ({
 
     // ================================================================================================================
 
-    const { schedules, status: schedStatus } = useSelector((state) => state.schedule);
+    // const { schedules, status: schedStatus } = useSelector((state) => state.schedule);
     // const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
     // const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
     // const { sections, status: sectionStatus } = useSelector((state) => state.section);
 
-    const [scheduleVerId, setScheduleVerId] = useState(timetableId);
+    // const [scheduleVerId, setScheduleVerId] = useState(timetableId);
     const [scheduleVerName, setScheduleVerName] = useState(timetableName);
     console.log('rendering');
-
-    // useEffect(() => {
-    //     if (schedStatus === 'idle') {
-    //         dispatch(fetchScheds());
-    //     }
-    // }, [schedStatus, dispatch]);
 
     useEffect(() => {
         setScheduleVerName(timetableName);
     }, [timetableName]);
-
-    // useEffect(() => {
-    //     if (teacherStatus === 'idle') {
-    //         dispatch(fetchTeachers());
-    //     }
-    // }, [teacherStatus, dispatch]);
-
-    // useEffect(() => {
-    //     if (subjectStatus === 'idle') {
-    //         dispatch(fetchSubjects());
-    //     }
-    // }, [subjectStatus, dispatch]);
-
-    // useEffect(() => {
-    //     if (sectionStatus === 'idle') {
-    //         dispatch(fetchSections());
-    //     }
-    // }, [sectionStatus, dispatch]);
 
     const handleReset = () => {
         setScheduleVerName(timetableName ? timetableName : '');
@@ -143,10 +142,17 @@ const ModifyTimetableContainer = ({
             let result = processRows(row[1], n);
             // let section_id = null;
             // section_id = row[1][0][3];
+            console.log('row: ', row);
+            let modalityArray = [];
             tableArray.push(row[0]);
             tableArray.push(result);
             tableArray.push(row[2]);
-
+            if (row[2] === 's') {
+                console.log('sec id: ', row[1][0][3]);
+                modalityArray = sections[row[1][0][3]]?.modality;
+            }
+            console.log('modalityArray: ', modalityArray);
+            tableArray.push(modalityArray);
             // let modality = [];
 
             // if (row[2] === 's') {
@@ -260,7 +266,7 @@ const ModifyTimetableContainer = ({
 
     const save = () => {
         const array = mapToArray(valueMap);
-
+        console.log('IDTNIGNA: ', firebaseId);
         console.log('🚀 ~ save ~ valueMap:', valueMap);
 
         console.log('array          dddddddddd: ', array);
@@ -273,11 +279,11 @@ const ModifyTimetableContainer = ({
             let result = processRows(row[1], n);
             // let section_id = null;
             // section_id = row[1][0][3];
+            // let modalityArray = [];
             console.log('ROW LOG: ', row);
             tableArray.push(row[0]);
             tableArray.push(result);
             tableArray.push(row[2]);
-
             // let modality = [];
 
             // if (row[2] === 's') {
@@ -313,7 +319,7 @@ const ModifyTimetableContainer = ({
 
         const duplicateScheduleName = Object.values(schedules).find(
             (schedule) =>
-                schedule.name.trim().toLowerCase() === scheduleVerName.trim().toLowerCase() && schedule.id !== timetableId
+                schedule.name.trim().toLowerCase() === scheduleVerName.trim().toLowerCase() && schedule.custom_id !== firebaseId
         );
 
         if (duplicateScheduleName) {
@@ -321,23 +327,31 @@ const ModifyTimetableContainer = ({
             setErrorMessage(`Timetable with name '${scheduleVerName}' already exists.`);
             return;
         } else {
-            if (timetableId === null) {
-                dispatch(
-                    addSched({
-                        name: scheduleVerName,
-                        data: stringifiedTimeTable,
-                    })
-                );
+            if (firebaseId === null) {
+                // dispatch(
+                //     addSched({
+                //         name: scheduleVerName,
+                //         data: stringifiedTimeTable,
+                //     })
+                // );
+                addDocument('schedules', {
+                    name: scheduleVerName,
+                    data: stringifiedTimeTable,
+                });
             } else {
-                dispatch(
-                    editSched({
-                        schedId: timetableId,
-                        updatedSched: {
-                            name: scheduleVerName,
-                            data: stringifiedTimeTable,
-                        },
-                    })
-                );
+                // dispatch(
+                //     editSched({
+                //         schedId: timetableId,
+                //         updatedSched: {
+                //             name: scheduleVerName,
+                //             data: stringifiedTimeTable,
+                //         },
+                //     })
+                // );
+                editDocument('schedules', firebaseId, {
+                    name: scheduleVerName,
+                    data: stringifiedTimeTable,
+                });
             }
 
             document.getElementById('confirm_schedule_save_modal').close();
@@ -561,6 +575,7 @@ const ModifyTimetableContainer = ({
     const Column = ({ section_id, type }) => {
         console.log('section_id: ', section_id);
         console.log('type: ', type);
+        console.log('sections: ', sections);
         let modality_Array = [];
         if (type === 's') {
             modality_Array = sections[section_id]?.modality;
@@ -671,9 +686,10 @@ const ModifyTimetableContainer = ({
     }, [hashMap]);
 
     useEffect(() => {
-        const startTime = localStorage.getItem('morningStartTime') || '08:00 PM';
+        const startTime = '06:00 AM';
         const endTime = '08:00 PM';
-
+        console.log('starttime: ', startTime);
+        console.log('endtime: ', endTime);
         const slots = generateTimeSlots(startTime, endTime, 60); // You can change the interval here
         const tableHeight = Math.round(110.625 * slots.length);
         // console.log(slots)
@@ -700,10 +716,7 @@ const ModifyTimetableContainer = ({
         setSearchField(error);
     };
 
-    const optimizeTable = () => {};
-
     // ==============================================================================================================
-    // For debugging (console.log())
 
     useEffect(() => {
         console.log('valueMap', valueMap);
@@ -845,7 +858,19 @@ const ModifyTimetableContainer = ({
                     </button>
 
                     {showExport && valueMap.size > 0 && (
-                        <ExportSchedules schedule={valueMap} close={() => setShowExport(false)} />
+                        <ExportSchedules
+                            // stores
+                            programs={programs}
+                            buildings={buildings}
+                            sections={sections}
+                            teachers={teachers}
+                            ranks={ranks}
+                            departments={departments}
+                            // stores
+
+                            schedule={valueMap}
+                            close={() => setShowExport(false)}
+                        />
                     )}
                     {/* EXPORT */}
 
@@ -942,7 +967,7 @@ const ModifyTimetableContainer = ({
                             >
                                 {/* Card for each section */}
                                 <div className='card bg-base-100 w-full shadow-xl pt-5'>
-                                    {timetableId !== null && (
+                                    {firebaseId !== null && (
                                         <div className='flex items-center px-8'>
                                             <label className='mr-4 text-center'>Schedule Name:</label>
                                             <input
@@ -1041,11 +1066,11 @@ const ModifyTimetableContainer = ({
                         <div className='modal-action'>
                             <div className='w-full'>
                                 <label className='block text-sm font-medium mb-2 w-full'>
-                                    {timetableId === null
+                                    {firebaseId === null
                                         ? 'Provide a name for this set of schedules:'
                                         : `Are you sure you want to save the changes?`}
                                 </label>
-                                {timetableId === null && (
+                                {firebaseId === null && (
                                     <input
                                         type='text'
                                         className={`input input-bordered w-full mb-4 ${

@@ -12,15 +12,25 @@ import { convertToTime } from '@utils/convertToTime';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-const ScheduleModal = ({ outerKey, groupedByTime, buildingInfo, role, department, rank, AdviserName}) => {
+const ScheduleModal = ({
+    outerKey,
+    groupedByTime,
+    buildingInfo,
+    role,
+    department,
+    rank,
+    AdviserName,
+    modalityArray,
+    tableType,
+}) => {
     const generatePDF = () => {
         const doc = new jsPDF('landscape');
-    
+
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(16);
         doc.text(`${outerKey} - Schedule`, 14, 15);
-    
-        if (role === "Teachers") {
+
+        if (role === 'Teachers') {
             doc.setFontSize(12);
             doc.text(`Department: ${department}`, 14, 25);
             doc.text(`Rank: ${rank}`, 14, 35);
@@ -29,13 +39,12 @@ const ScheduleModal = ({ outerKey, groupedByTime, buildingInfo, role, department
             doc.text(`Building: ${buildingInfo}`, 14, 25);
             doc.text(`Adviser: ${AdviserName}`, 14, 35);
         }
-    
-    
+
         let startY = 40; // Ensure spacing between text and table
-    
+
         const tableColumn = ['Time', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
         const tableRows = [];
-    
+
         const defaultRowColors = [
             [255, 204, 204], // Light Red
             [204, 229, 255], // Light Blue
@@ -50,7 +59,7 @@ const ScheduleModal = ({ outerKey, groupedByTime, buildingInfo, role, department
             [229, 255, 204], // Light Lime
             [204, 255, 229], // Light Cyan
         ];
-    
+
         // Add schedule data
         Array.from(groupedByTime.values()).forEach(({ time, days }, rowIndex) => {
             const row = [
@@ -61,7 +70,7 @@ const ScheduleModal = ({ outerKey, groupedByTime, buildingInfo, role, department
             ];
             tableRows.push(row);
         });
-    
+
         autoTable(doc, {
             head: [tableColumn],
             body: tableRows,
@@ -80,10 +89,9 @@ const ScheduleModal = ({ outerKey, groupedByTime, buildingInfo, role, department
                 }
             },
         });
-    
+
         doc.save(`${outerKey}-schedule.pdf`);
     };
-    
 
     const rowColors = [
         'bg-red-200',
@@ -104,21 +112,37 @@ const ScheduleModal = ({ outerKey, groupedByTime, buildingInfo, role, department
         <dialog id={`modal-${outerKey}`} className='modal'>
             <div className='modal-box w-full max-w-6xl bg-white text-black p-6 rounded-lg'>
                 <h3 className='font-bold text-lg text-center'>{outerKey} - Schedule</h3>
-            
-                {role === "Teachers" ? (
+
+                {role === 'Teachers' ? (
                     <>
-                        <p className="text-center text-sm text-gray-700 mt-2">Department: {department}</p>
-                        <p className="text-center text-sm text-gray-700 mt-2">Rank: {rank}</p>
+                        <p className='text-center text-sm text-gray-700 mt-2'>Department: {department}</p>
+                        <p className='text-center text-sm text-gray-700 mt-2'>Rank: {rank}</p>
                     </>
                 ) : (
                     <>
-                    <p className="text-center text-sm text-gray-700 mt-2">Building: {buildingInfo}</p>
-                    <p className="text-center text-sm text-gray-700 mt-2">Adviser: {AdviserName}</p>
+                        <p className='text-center text-sm text-gray-700 mt-2'>Building: {buildingInfo}</p>
+                        <p className='text-center text-sm text-gray-700 mt-2'>Adviser: {AdviserName}</p>
                     </>
                 )}
 
                 {/* Table */}
                 <div className='overflow-x-auto mt-4'>
+                    {tableType === 's' && (
+                        <div className='flex '>
+                            <div className='w-1/5 border border-base-content border-opacity-20 text-center font-bold'></div>
+                            <div className='w-full flex border border-base-content border-opacity-20'>
+                                {modalityArray.map((modality, index) => (
+                                    <div
+                                        key={`header-${index}`}
+                                        className={`border-r border-base-content border-opacity-20 flex-1 text-center font-bold 
+                            ${modality === 1 ? 'bg-green-500 ' : 'bg-red-500'}`}
+                                    >
+                                        {modality === 1 ? 'ON SITE' : 'OFF SITE'}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                     <table className='table w-full mt-2 border-2'>
                         <thead>
                             <tr className='bg-black text-white'>
@@ -167,9 +191,6 @@ const ScheduleModal = ({ outerKey, groupedByTime, buildingInfo, role, department
         </dialog>
     );
 };
-  
-
-
 
 const Search = () => {
     // const dispatch = useDispatch();
@@ -182,7 +203,8 @@ const Search = () => {
     const [role, setRole] = useState('Sections');
     const dropdownRef = useRef(null);
     const inputRef = useRef(null);
-    const [valueMap, setValueMap] = useState(new Map());
+    // const [valueMap, setValueMap] = useState(new Map());
+    const [valueMaps, setValueMaps] = useState(new Map());
     const { search, loading, error } = useSearchTimetable();
     // const { sections, status: sectionStatus } = useSelector((state) => state.section);
 
@@ -224,13 +246,27 @@ const Search = () => {
         console.log('result', results);
     };
 
+    // useEffect(() => {
+    //     console.log('potanginang results', results);
+    //     if (results.length !== 0) {
+    //         console.log('in');
+    //         const convertedData = convertStringDataToMap(results[0]?.a);
+    //         console.log('convertedData', convertedData);
+    //         setValueMap(convertedData);
+    //     }
+    // }, [results]);
+
     useEffect(() => {
-        console.log('potanginang results', results);
         if (results.length !== 0) {
-            console.log('in');
-            const convertedData = convertStringDataToMap(results[0]?.a);
-            console.log('convertedData', convertedData);
-            setValueMap(convertedData);
+            const newValueMaps = new Map();
+
+            results.forEach((result) => {
+                const convertedData = convertStringDataToMap(result.a);
+                newValueMaps.set(result.id, convertedData);
+                console.log('MODALITY: ', result.m);
+            });
+
+            setValueMaps(newValueMaps);
         }
     }, [results]);
 
@@ -337,10 +373,12 @@ const Search = () => {
                                         <span className='text-sm md:text-base text-gray-700'>{result.n.join(' ')}</span>
                                     </div>
 
-                                    {valueMap && valueMap.size > 0 && (
+                                    {valueMaps.has(result.id) && (
                                         <div className='flex flex-col space-y-2'>
-                                            {Array.from(valueMap).map(([outerKey, nestedMap]) => {
+                                            {Array.from(valueMaps.get(result.id)).map(([outerKey, nestedMap]) => {
                                                 const groupedByTime = new Map();
+                                                const modalityArray = result.m;
+                                                const tableType = result.t;
                                                 let department = '';
                                                 let rank = '';
 
@@ -387,11 +425,13 @@ const Search = () => {
                                                         <ScheduleModal
                                                             outerKey={outerKey}
                                                             groupedByTime={groupedByTime}
-                                                            buildingInfo={"Building 1"}
+                                                            buildingInfo={'Building 1'}
                                                             role={role}
-                                                            AdviserName={"Mr. Tagalogin"}
-                                                            department={"Math Department"}
-                                                            rank={"Teacher 1"}
+                                                            AdviserName={'Mr. Tagalogin'}
+                                                            department={'Math Department'}
+                                                            rank={'Teacher 1'}
+                                                            modalityArray={modalityArray}
+                                                            tableType={tableType}
                                                         />
                                                     </div>
                                                 );

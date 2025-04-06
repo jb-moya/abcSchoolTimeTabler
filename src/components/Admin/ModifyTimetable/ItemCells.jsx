@@ -259,7 +259,7 @@ const ItemCells = ({
         if (cell.teacher === null && cell.subject === null) {
             return 'Break';
         }
-        return cellValue ? cellValue : 'NA';
+        return cellValue ? cellValue : '';
     }, [cell.teacher, cell.section, cellValue]);
     return (
         <motion.div

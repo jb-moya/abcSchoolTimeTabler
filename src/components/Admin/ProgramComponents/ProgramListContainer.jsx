@@ -243,8 +243,7 @@ const ProgramListContainer = ({
                                             <td>{index + 1 + indexOfFirstItem}</td>
 
                                             {/* Program ID */}
-                                            {/* <td>{program.id}</td> */}
-                                            <td>{program.custom_id}</td>
+                                            <td>{program.id}</td>
 
                                             {/* Program Name */}
                                             <td className='w-2/12'>{program.program}</td>
@@ -406,7 +405,7 @@ const ProgramListContainer = ({
                                                         <DeleteData
                                                             className='btn btn-xs btn-ghost text-red-500' 
                                                             collection={'programs'}
-                                                            id={program.custom_id}
+                                                            id={program.id}
                                                         />
                                                     </div>
                                                 </td>

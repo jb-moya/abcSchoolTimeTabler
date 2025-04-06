@@ -53,12 +53,15 @@ const TeacherListContainer = ({
                     if (!searchValue) return true;
 
                     const teachersSubjectsName = teacher.subjects.map((subjectID) => subjects[subjectID].subject).join(' ');
+                    const teacherRankName = ranks[teacher.rank].rank;
+                    const teacherDepartmentName = departments[teacher.department].name;
 
                     const escapedSearchValue = escapeRegExp(searchValue).split('\\*').join('.*');
 
                     const pattern = new RegExp(escapedSearchValue, 'i');
 
-                    return pattern.test(teacher.teacher) || pattern.test(teachersSubjectsName);
+                    return pattern.test(teacher.teacher) || pattern.test(teachersSubjectsName) 
+                        || pattern.test(teacherRankName) || pattern.test(teacherDepartmentName);
                 })
             );
         }, 200),
@@ -208,9 +211,7 @@ const TeacherListContainer = ({
                                         <td>{index + indexOfFirstItem + 1}</td>
 
                                         {/* Teacher ID */}
-                                        {/* <th>{teacher.id}</th> */}
-                                        <td>{teacher.custom_id}</td>
-
+                                        <th>{teacher.id}</th>
                                         {/* Teacher Name */}
                                         <td>{teacher.teacher}</td>
 
@@ -345,7 +346,7 @@ const TeacherListContainer = ({
                                                     <DeleteData 
                                                         className='btn btn-xs btn-ghost text-red-500' 
                                                         collection={'teachers'}
-                                                        id={teacher.custom_id}
+                                                        id={teacher.id}
                                                     />
                                                 </div>
                                             </td>

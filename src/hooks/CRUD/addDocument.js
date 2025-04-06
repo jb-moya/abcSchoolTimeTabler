@@ -1,4 +1,4 @@
-import { collection, getDocs, addDoc } from "firebase/firestore";
+import { doc, runTransaction, collection } from "firebase/firestore";
 import { firestore } from '../../firebase/firebase';
 
 /**
@@ -10,26 +10,33 @@ import { firestore } from '../../firebase/firebase';
 
 export async function addDocument(collectionName, entryData) {
     try {
+        const counterRef = doc(firestore, `counters/${collectionName}Counter`);
         const collectionRef = collection(firestore, collectionName);
+        let newId;
 
-        // Fetch all documents to determine the highest existing custom_id
-        const snapshot = await getDocs(collectionRef);
-        let highestId = 0;
+        // Run transaction to safely increment the counter for this collection
+        await runTransaction(firestore, async (transaction) => {
+            const counterSnap = await transaction.get(counterRef);
 
-        snapshot.forEach((docSnap) => {
-            const docData = docSnap.data();
-            if (docData.custom_id && Number.isInteger(docData.custom_id)) {
-                highestId = Math.max(highestId, docData.custom_id);
+            if (!counterSnap.exists()) {
+                // If no counter exists for this collection, create one starting at 1
+                transaction.set(counterRef, { highest_custom_id: 1 });
+                newId = 1;
+            } else {
+                const currentId = counterSnap.data().highest_custom_id;
+                newId = currentId + 1;
+                transaction.update(counterRef, { highest_custom_id: newId });
             }
         });
 
-        const newId = highestId + 1; // Assign the next sequential ID
+        // Add the new document using newId as the document ID (but without storing custom_id inside)
+        const newDocRef = doc(collectionRef, newId.toString()); // Use ID as document name
+        await runTransaction(firestore, async (transaction) => {
+            transaction.set(newDocRef, entryData); // Store only the entryData
+        });
 
-        // Add document with the generated custom_id
-        const docRef = await addDoc(collectionRef, { ...entryData, custom_id: newId });
-
-        console.log("Document added with custom_id:", newId);
-        return docRef.id;
+        console.log(`Document added to ${collectionName} with ID:`, newId);
+        return newId;
 
     } catch (error) {
         console.error("Error adding document:", error);

@@ -182,7 +182,7 @@ const ViewRooms = ({
                                     Select a building
                                 </option>
                                 {Object.keys(buildings).map((key) => (
-                                    <option key={buildings[key].id} value={buildings[key].custom_id}>
+                                    <option key={buildings[key].id} value={buildings[key].id}>
                                         {buildings[key].name}
                                     </option>
                                 ))}

@@ -167,8 +167,14 @@ const AddTeacherContainer = ({
     };
 
     useEffect(() => {
+        console.log('ranks: ', ranks);
+
         if (teacherRank) {
-            const rank = Object.values(ranks).find((rank) => rank.custom_id === teacherRank);
+            console.log('teacherRank: ', teacherRank);
+
+            const rank = Object.values(ranks).find((rank) => rank.id === teacherRank);
+
+            console.log('rank: ', rank);
 
             if (rank) {
                 setAdditionalTeacherScheds(rank.additionalRankScheds);
@@ -230,7 +236,7 @@ const AddTeacherContainer = ({
                             </option>
                             {ranks && Object.keys(ranks).length > 0 ? (
                                 Object.values(ranks).map((rank) => (
-                                    <option key={rank.id} value={rank.custom_id}>
+                                    <option key={rank.id} value={rank.id}>
                                         {rank.rank}
                                     </option>
                                 ))
@@ -258,7 +264,7 @@ const AddTeacherContainer = ({
                             </option>
                             {departments && Object.keys(departments).length > 0 ? (
                                 Object.values(departments).map((department) => (
-                                    <option key={department.id} value={department.custom_id}>
+                                    <option key={department.id} value={department.id}>
                                         {`${department.name || ''}${
                                             teachers[department.head]?.teacher ? ` - ${teachers[department.head]?.teacher}` : ''
                                         }`}
