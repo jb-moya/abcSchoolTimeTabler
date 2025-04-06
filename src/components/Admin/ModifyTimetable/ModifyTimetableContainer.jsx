@@ -319,7 +319,7 @@ const ModifyTimetableContainer = ({
 
         const duplicateScheduleName = Object.values(schedules).find(
             (schedule) =>
-                schedule.name.trim().toLowerCase() === scheduleVerName.trim().toLowerCase() && schedule.custom_id !== firebaseId
+                schedule.name.trim().toLowerCase() === scheduleVerName.trim().toLowerCase() && schedule.id !== firebaseId
         );
 
         if (duplicateScheduleName) {
