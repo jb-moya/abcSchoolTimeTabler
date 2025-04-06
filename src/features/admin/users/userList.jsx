@@ -1,27 +1,35 @@
-import React, { useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import React, { useState } from 'react';
 import { APP_CONFIG } from '../../../constants';
 import { RiDeleteBin7Line } from 'react-icons/ri';
 import { useUsers } from './hooks/useUsers';
+import { useEditUser } from './hooks/useUpdateUser';
+import { useDispatch } from 'react-redux';
+import { editUser as editUserAction } from './usersSlice';
 
 const UserList = ({ onEditUser }) => {
+    const dispatch = useDispatch();
+
     const [showDetailedPermissions, setShowDetailedPermissions] = useState(true);
-    const [userToDelete, setUserToDelete] = useState(null);
-    const [deleteConfirmation, setDeleteConfirmation] = useState('');
+    const [userToChangeStatus, setUserToChangeStatus] = useState(null);
+    const [statusConfirmation, setStatusConfirmation] = useState('');
     const { users, loading, error } = useUsers();
+
+    const { editUser, loading: editUserLoading, error: editUserError } = useEditUser();
 
     const handleEdit = (userId) => {
         onEditUser(userId);
     };
 
-    const handleDelete = async (userId) => {
+    const handleChangeStatus = async (user) => {
         try {
-            // await deleteDoc(doc(firestore, 'users', userId));
-            // setUsers(users.filter((user) => user.id !== userId));
-            // toast.success('User deleted successfully');
-            // document.getElementById('delete_modal').close();
+            const newStatus = user.status === 'active' ? 'inactive' : 'active';
+            await editUser(user.id, { status: newStatus });
+            console.log("🚀 ~ handleChangeStatus ~ newStatus:", newStatus)
+            console.log("user", user);
+            dispatch(editUserAction({ id: user.id, status: newStatus, ...user }));
+            setUserToChangeStatus(null);
         } catch (error) {
-            // toast.error('Error deleting user: ' + error.message);
+            console.error('Error changing user status:', error);
         }
     };
 
@@ -49,6 +57,7 @@ const UserList = ({ onEditUser }) => {
                         <tr>
                             <th className='whitespace-nowrap'>Email</th>
                             <th className='whitespace-nowrap'>Role</th>
+                            <th className='whitespace-nowrap'>Status</th>
                             <th className='whitespace-nowrap w-[300px]'>
                                 <div className='flex items-center gap-2'>
                                     <div className='flex items-center gap-1'>
@@ -95,6 +104,12 @@ const UserList = ({ onEditUser }) => {
                                     </div>
                                 </td>
                                 <td>
+                                    <div className={`badge ${user.status === 'active' ? 'badge-success' : 'badge-warning'}`}>
+                                        {user.status}
+                                    </div>
+                                </td>
+
+                                <td>
                                     {showDetailedPermissions ? (
                                         <div className='space-y-1'>
                                             {APP_CONFIG.PERMISSIONS.map((permission) => {
@@ -117,20 +132,21 @@ const UserList = ({ onEditUser }) => {
                                         </div>
                                     )}
                                 </td>
+
                                 <td>
                                     <div className='flex gap-2'>
                                         <button onClick={() => handleEdit(user.id)} className='btn btn-sm btn-primary'>
-                                            Edit
+                                            Edit Permission
                                         </button>
                                         <button
                                             onClick={() => {
-                                                setUserToDelete(user);
-                                                setDeleteConfirmation(''); // Reset confirmation when opening modal
-                                                document.getElementById('delete_modal').showModal();
+                                                
+                                                setUserToChangeStatus(user);
+                                                document.getElementById('status_modal').showModal();
                                             }}
-                                            className='btn btn-sm btn-ghost text-red-500'
+                                            className={`btn btn-sm ${user.status === 'active' ? 'btn-warning' : 'btn-success'}`}
                                         >
-                                            <RiDeleteBin7Line size={20} />
+                                            {user.status === 'active' ? 'Set to Inactive' : 'Set to Active'}
                                         </button>
                                     </div>
                                 </td>
@@ -140,36 +156,47 @@ const UserList = ({ onEditUser }) => {
                 </table>
             </div>
 
-            {/* Delete Confirmation Modal */}
-            <dialog id='delete_modal' className='modal modal-bottom sm:modal-middle'>
+            {/* Change Status Modal */}
+            <dialog id='status_modal' className='modal modal-bottom sm:modal-middle'>
                 <div className='modal-box'>
-                    <h3 className='font-bold text-lg'>Delete User</h3>
-                    <p className='py-4'>Are you sure you want to delete this user? This action cannot be undone.</p>
-                    <div className='form-control w-full'>
-                        <label className='label'>
-                            <span className='label-text'>Type &quot;DELETE THIS USER&quot; to confirm</span>
-                        </label>
-                        <input
-                            type='text'
-                            placeholder='Type DELETE THIS USER'
-                            className='input input-bordered w-full'
-                            value={deleteConfirmation}
-                            onChange={(e) => setDeleteConfirmation(e.target.value)}
-                        />
+                    <h3 className='font-bold text-lg'>Change User Status</h3>
+                    <div className=' flex flex-col justify-start'>
+                        <p className='py-4'>Are you sure you want to change the status of this user?</p>
+                        <p>
+                            {userToChangeStatus?.status === 'active'
+                                ? " Setting this to inactive will disable the user's ability to log in."
+                                : " Setting this to active will re-enable the user's ability to log in."}
+                        </p>
                     </div>
                     <div className='modal-action'>
                         <button
-                            className='btn btn-error'
-                            onClick={() => userToDelete && handleDelete(userToDelete.id)}
-                            disabled={deleteConfirmation !== 'DELETE THIS USER'}
-                        >
-                            Delete
-                        </button>
-                        <button
-                            className='btn btn-ghost'
+                            className={`btn ${userToChangeStatus?.status === 'active' ? 'btn-warning' : 'btn-success'}`}
                             onClick={() => {
-                                document.getElementById('delete_modal').close();
-                                setDeleteConfirmation(''); // Reset confirmation when closing
+                                                console.log("🚀 ~ UserList ~ user:", user)
+                                                console.log("🚀 ~ UserList ~ user:", user)
+                                                console.log("🚀 ~ UserList ~ user:", user)
+                                                console.log("🚀 ~ UserList ~ user:", user)
+                                                console.log("🚀 ~ UserList ~ user:", user)
+                                                console.log("🚀 ~ UserList ~ user:", user)
+                                                console.log("🚀 ~ UserList ~ user:", user)
+                                                console.log("🚀 ~ UserList ~ user:", user)
+                                if (userToChangeStatus) {
+                                    handleChangeStatus(userToChangeStatus);
+                                    document.getElementById('status_modal').close();
+                                }}
+                            }
+                            disabled={editUserLoading}
+                            >
+                                {editUserLoading ? (
+                                    <span className='loading loading-spinner loading-sm'></span>
+                                ) : (
+                                    userToChangeStatus?.status === 'active' ? 'Set to Inactive' : 'Set to Active'
+                                )}
+                            </button>
+                            <button
+                                className='btn btn-ghost'
+                                onClick={() => {
+                                document.getElementById('status_modal').close();
                             }}
                         >
                             Cancel
