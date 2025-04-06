@@ -31,6 +31,10 @@ function useDeployTimetables() {
                     t: value[2],
                     u: user.uid,
                     m: value[3],
+                    sa: value[4],
+                    sr: value[5],
+                    tr: value[6],
+                    td: value[7],
                 };
 
                 // console.log(obj);
