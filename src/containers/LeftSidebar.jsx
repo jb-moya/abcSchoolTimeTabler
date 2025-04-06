@@ -5,12 +5,14 @@ import XMarkIcon from '@heroicons/react/24/outline/XMarkIcon';
 import { useDispatch } from 'react-redux';
 import { getAuthUserUid } from '../utils/localStorageUtils';
 import { GoCopy } from 'react-icons/go';
+import useAuth from '../app/useAuth';
 
 function LeftSidebar() {
     const location = useLocation();
     const uid = getAuthUserUid();
     const navigate = useNavigate();
-
+    const { user, loading: userLoading } = useAuth();
+    console.log("🚀 ~ LeftSidebar ~ user:", user)
     const dispatch = useDispatch();
 
     const close = (e) => {
@@ -61,6 +63,9 @@ function LeftSidebar() {
                     </div>
                 </div>
                 {routes.map((route, k) => {
+                    if (!userLoading && route.role && route.role !== user.role) {
+                        return null; // Hide route if role doesn't match
+                    }
                     return (
                         <li 
                             className='' 

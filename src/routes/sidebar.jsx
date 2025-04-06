@@ -57,7 +57,7 @@ const routes = [
                 path: '/app/admin/room-mapping',
                 icon: <MdOutlineMeetingRoom className={submenuIconClasses} />,
                 name: 'Room Utilization',
-                permissions: ['Modify Buildings'],
+                permissions: ['Room Utilization'],
             },
             {
                 path: '/app/admin/modify-timetable',
@@ -71,6 +71,7 @@ const routes = [
         path: '/app/admin/users',
         icon: <UsersIcon className={`${iconClasses} inline`} />,
         name: 'Users Management',
+        role: 'super admin',
     },
     // {
     //     path: '',

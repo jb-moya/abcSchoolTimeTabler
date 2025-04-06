@@ -22,11 +22,12 @@ const useAuth = () => {
                 const userData = await getUserData(uid);
                 dispatch(setUserRedux(userData));
                 setAuthUserUid(uid);
+                setUser({ ...user, ...userData });
             } else {
+                setUser(null);
                 clearAuthUserUid();
             }
 
-            setUser(user);
             setLoading(false);
         });
 

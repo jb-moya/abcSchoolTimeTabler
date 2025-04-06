@@ -3,11 +3,13 @@ import useAuth from '../app/useAuth';
 import SuspenseContent from '../containers/SuspenseContent';
 import { useSelector } from 'react-redux';
 
-const ProtectedRoute = ({ element, requiredPermissions = [] }) => {
-    console.log('🚀 ~ ProtectedRoute ~ requiredPermissions:', requiredPermissions);
+const ProtectedRoute = ({ path, element, requiredPermissions = [], requiredRole = null }) => {
     const { user, loading } = useAuth();
     const userInfo = useSelector((state) => state.user);
-    console.log('🚀 ~ ProtectedRoute ~ userInfo:', userInfo);
+
+    if (!element) {
+        return <SuspenseContent />; // Show loading state if path or element are not available
+    }
 
     if (loading) return <SuspenseContent />;
     if (!user) return <Navigate to='/auth/login' />;
@@ -19,10 +21,10 @@ const ProtectedRoute = ({ element, requiredPermissions = [] }) => {
             Array.isArray(userInfo.user.permissions) &&
             requiredPermissions.every((perm) => userInfo.user.permissions.includes(perm)));
 
-    console.log('🚀 ~ ProtectedRoute ~ hasAccess 1:', userInfo.user.role);
-   
-    console.log('🚀 ~ ProtectedRoute ~ hasAccess 3:', hasAccess);
-    //  hasAccess = true;
+
+    if (requiredRole !== null) {
+        hasAccess = hasAccess && userInfo.user.role === requiredRole;
+    }
 
     return hasAccess ? element : <Navigate to='/app/unauthorized' />;
 };

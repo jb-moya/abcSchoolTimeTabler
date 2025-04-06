@@ -7,6 +7,6 @@ export const APP_CONFIG = {
         'Modify Teachers',
         'Modify Sections',
         'Modify Departments',
-        'Modify Buildings',
+        'Room Utilization',
     ],
 };

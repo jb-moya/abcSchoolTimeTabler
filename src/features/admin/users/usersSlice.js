@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { collection, getDocs } from 'firebase/firestore';
 import { firestore } from '../../../firebase/firebase';
 import { toast } from 'sonner';
+import { useAuthSignup } from './hooks/useAuthSignup';
 
 export const fetchUsers = createAsyncThunk('users/fetchUsers', async () => {
     try {
@@ -21,6 +22,20 @@ export const fetchUsers = createAsyncThunk('users/fetchUsers', async () => {
         throw error;
     }
 });
+
+export const createUser = createAsyncThunk(
+    'user/createUser',
+    async (credentials, { rejectWithValue }) => {
+        try {
+            const { signup } = useAuthSignup();
+            const userData = await signup(credentials);
+            console.log("🚀 ~ userData:", userData)
+            return userData;
+        } catch (error) {
+            return rejectWithValue(error.message);
+        }
+    }
+);
 
 const initialState = {
     users: {},
@@ -53,6 +68,19 @@ const usersSlice = createSlice({
                 state.users = action.payload;
             })
             .addCase(fetchUsers.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error.message;
+            })
+            .addCase(createUser.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(createUser.fulfilled, (state, action) => {
+                state.loading = false;
+                state.users = { ...state.users, [action.payload.uid]: action.payload };
+                toast.success('User created successfully!');
+            })
+            .addCase(createUser.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error.message;
             });

@@ -4,7 +4,7 @@ import { auth, secondAuth, firestore } from '../../../../firebase/firebase';
 
 export const useAuthSignup = () => {
     const signup = async (credentials) => {
-        const { email, schoolName, password, confirmPassword, permissions, role, newUserNotAutoLogin } = credentials;
+        const { email, schoolName, password, confirmPassword, permissions, role, status, newUserNotAutoLogin } = credentials;
 
         if (!email || !password) {
             throw new Error('Sign up failed. Please fill all the fields');
@@ -25,6 +25,10 @@ export const useAuthSignup = () => {
         const authInstance = newUserNotAutoLogin ? secondAuth : auth;
         const userCredential = await createUserWithEmailAndPassword(authInstance, email, password);
 
+        if (newUserNotAutoLogin) {
+            await authInstance.signOut();
+        }
+
         if (userCredential) {
             const userDoc = {
                 uid: userCredential.user.uid,
@@ -32,11 +36,16 @@ export const useAuthSignup = () => {
                 profilePicURL: '',
                 permissions: permissions,
                 role: role,
+                status: status,
                 created: new Date(),
             };
 
             await setDoc(doc(usersRef, userCredential.user.uid), userDoc);
-            localStorage.setItem('user-info', JSON.stringify(userDoc));
+
+            if (!newUserNotAutoLogin) {
+                localStorage.setItem('user-info', JSON.stringify(userDoc));
+            }
+
             return userDoc;
         }
 

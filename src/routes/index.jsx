@@ -27,6 +27,7 @@ const ModifyTimetable = lazy(() => import('../pages/protected/admin/ModifyTimeTa
 const DisplaySectionSchedule = lazy(() => import('../pages/protected/reports/SectionSchedules'));
 const DisplaySubjectSchedule = lazy(() => import('../pages/protected/reports/SubjectSchedules'));
 const DisplayTeacherSchedule = lazy(() => import('../pages/protected/reports/TeacherSchedules'));
+
 const routes = [
     {
         path: '/dashboard', // the url
@@ -60,11 +61,13 @@ const routes = [
     {
         path: '/admin/users',
         component: Users,
+        role: 'super admin',
+        permissions: ['Modify Users'],
     },
     {
         path: '/admin/room-mapping', // the url
         component: RoomMapping, // view rendered
-        permissions: ['Modify Buildings'],
+        permissions: ['Room Utilization'],
     },
     {
         path: '/admin/modify-timetable', // the url

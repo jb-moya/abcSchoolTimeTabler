@@ -3,6 +3,7 @@ import { useState } from 'react';
 import InputText from '../../../components/Input/InputText';
 import { useDispatch, useSelector } from 'react-redux';
 import { signUpWithEmailAndPassword } from '../../userSlice';
+import { createUser } from './usersSlice';
 import { toast } from 'sonner';
 import { APP_CONFIG } from '../../../constants';
 import { addUser } from './usersSlice';
@@ -16,11 +17,12 @@ const CreateUser = () => {
         confirmPassword: '1111111111111',
         permissions: [],
         role: 'admin',
+        status: 'inactive',
         newUserNotAutoLogin: true,
     };
 
     const dispatch = useDispatch();
-    const { loading } = useSelector((state) => state.user);
+    const { loading } = useSelector((state) => state.users);
     const [registerObj, setRegisterObj] = useState(INITIAL_REGISTER_OBJ);
     const [permissionsList, setPermissionsList] = useState(filteredPermissions);
     const [role, setRole] = useState(registerObj.role);
@@ -53,8 +55,7 @@ const CreateUser = () => {
         e.preventDefault();
 
         try {
-            const newUserData = await dispatch(signUpWithEmailAndPassword(registerObj)).unwrap(); // Ensures promise rejection is thrown
-            dispatch(addUser({id: newUserData.uid, ...newUserData}));
+            const newUserData = await dispatch(createUser(registerObj)).unwrap(); // Ensures promise rejection is thrown
             resetForm();
             console.log('Successfully registered');
         } catch (error) {

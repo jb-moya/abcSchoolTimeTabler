@@ -11,8 +11,8 @@ function Login() {
     const dispatch = useDispatch();
 
     const INITIAL_LOGIN_OBJ = {
-        email: 'admin@email.com',
-        password: '123456',
+        email: 'super_admin@email.com',
+        password: '2#`MW0y#m5YM',
     };
 
     // const [loading, setLoading] = useState(false);

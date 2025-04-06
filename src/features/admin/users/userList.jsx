@@ -5,6 +5,7 @@ import { useUsers } from './hooks/useUsers';
 import { useEditUser } from './hooks/useUpdateUser';
 import { useDispatch } from 'react-redux';
 import { editUser as editUserAction } from './usersSlice';
+import { toast } from 'sonner';
 
 const UserList = ({ onEditUser }) => {
     const dispatch = useDispatch();
@@ -24,12 +25,16 @@ const UserList = ({ onEditUser }) => {
         try {
             const newStatus = user.status === 'active' ? 'inactive' : 'active';
             await editUser(user.id, { status: newStatus });
-            console.log("🚀 ~ handleChangeStatus ~ newStatus:", newStatus)
-            console.log("user", user);
-            dispatch(editUserAction({ id: user.id, status: newStatus, ...user }));
+
+            const editedUser = {
+                ...user,
+                status: newStatus,
+            };
+
+            dispatch(editUserAction(editedUser));
             setUserToChangeStatus(null);
         } catch (error) {
-            console.error('Error changing user status:', error);
+            toast.error('Error changing user status: ' + (error?.message || error));
         }
     };
 
@@ -140,7 +145,6 @@ const UserList = ({ onEditUser }) => {
                                         </button>
                                         <button
                                             onClick={() => {
-                                                
                                                 setUserToChangeStatus(user);
                                                 document.getElementById('status_modal').showModal();
                                             }}
@@ -172,14 +176,6 @@ const UserList = ({ onEditUser }) => {
                         <button
                             className={`btn ${userToChangeStatus?.status === 'active' ? 'btn-warning' : 'btn-success'}`}
                             onClick={() => {
-                                                console.log("🚀 ~ UserList ~ user:", user)
-                                                console.log("🚀 ~ UserList ~ user:", user)
-                                                console.log("🚀 ~ UserList ~ user:", user)
-                                                console.log("🚀 ~ UserList ~ user:", user)
-                                                console.log("🚀 ~ UserList ~ user:", user)
-                                                console.log("🚀 ~ UserList ~ user:", user)
-                                                console.log("🚀 ~ UserList ~ user:", user)
-                                                console.log("🚀 ~ UserList ~ user:", user)
                                 if (userToChangeStatus) {
                                     handleChangeStatus(userToChangeStatus);
                                     document.getElementById('status_modal').close();
