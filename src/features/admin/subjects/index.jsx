@@ -3,14 +3,7 @@ import ProgramListContainer from '../../../components/Admin/ProgramComponents/Pr
 import Configuration from '@components/Admin/Configuration';
 import Breadcrumbs from '@components/Admin/Breadcrumbs';
 
-import { subscribeToSubjects } from '@features/slice/subject_slice';
-import { subscribeToPrograms } from '@features/slice/program_slice';
-import { subscribeToSections } from '@features/slice/section_slice';
-
 import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
-
-import { useDispatch, useSelector } from 'react-redux';
-import { useEffect } from 'react';
 
 function Subject() {
 	// Scope and Limitations

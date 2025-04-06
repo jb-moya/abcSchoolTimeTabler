@@ -55,14 +55,6 @@ const AddSubjectContainer = ({
             setErrorField('name');
         } else {
 
-            // dispatch(
-            //     reduxFunction({
-            //         subject: subjectName,
-            //         classDuration: classDuration,
-            //         weeklyMinutes: weeklyMinutes,
-            //     })
-            // );
-
             try {
                 addDocument('subjects', {
                     subject: subjectName,

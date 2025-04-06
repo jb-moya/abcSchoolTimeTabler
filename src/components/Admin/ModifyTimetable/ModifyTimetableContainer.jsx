@@ -144,15 +144,53 @@ const ModifyTimetableContainer = ({
             // section_id = row[1][0][3];
             console.log('row: ', row);
             let modalityArray = [];
+            let sectionAdviser = '';
+            let sectionRoom = '';
+            let teacherRank = '';
+            let teacherDepartment = '';
+            let currSectionID = null;
+            let currTeacherID = null;
             tableArray.push(row[0]);
             tableArray.push(result);
             tableArray.push(row[2]);
             if (row[2] === 's') {
-                console.log('sec id: ', row[1][0][3]);
-                modalityArray = sections[row[1][0][3]]?.modality;
+                for (let i = 0; i < row[1].length; i++) {
+                    if (row[1][i] && row[1][i][3] !== undefined) {
+                        currSectionID = row[1][i][3];
+                        break;
+                    }
+                }
+                console.log('sec id: ', currSectionID);
+                modalityArray = sections[currSectionID]?.modality;
+                console.log('adviser ID: ', sections[currSectionID]?.teacher);
+
+                sectionAdviser = teachers[sections[currSectionID]?.teacher]?.teacher;
+                console.log('sectionAdviser: ', sectionAdviser);
+
+                sectionRoom =
+                    buildings[sections[currSectionID]?.roomDetails?.buildingId]?.rooms[
+                        sections[currSectionID]?.roomDetails?.floorIdx
+                    ][sections[currSectionID]?.roomDetails?.roomIdx].roomName;
+                console.log('sectionRoom: ', sectionRoom);
+            } else if (row[2] === 't') {
+                for (let i = 0; i < row[1].length; i++) {
+                    if (row[1][i] && row[1][i][1] !== undefined) {
+                        currTeacherID = row[1][i][1];
+                        break;
+                    }
+                }
+                teacherDepartment = departments[teachers[currTeacherID]?.department]?.name;
+                console.log('teacherDepartment: ', teacherDepartment);
+
+                teacherRank = ranks[teachers[currTeacherID]?.rank]?.rank;
+                console.log('teacherRank: ', teacherRank);
             }
             console.log('modalityArray: ', modalityArray);
             tableArray.push(modalityArray);
+            tableArray.push(sectionAdviser);
+            tableArray.push(sectionRoom);
+            tableArray.push(teacherRank);
+            tableArray.push(teacherDepartment);
             // let modality = [];
 
             // if (row[2] === 's') {
@@ -319,7 +357,7 @@ const ModifyTimetableContainer = ({
 
         const duplicateScheduleName = Object.values(schedules).find(
             (schedule) =>
-                schedule.name.trim().toLowerCase() === scheduleVerName.trim().toLowerCase() && schedule.custom_id !== firebaseId
+                schedule.name.trim().toLowerCase() === scheduleVerName.trim().toLowerCase() && schedule.id !== firebaseId
         );
 
         if (duplicateScheduleName) {

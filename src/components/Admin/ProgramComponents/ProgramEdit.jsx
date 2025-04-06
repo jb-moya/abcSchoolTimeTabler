@@ -490,6 +490,7 @@ const ProgramEdit = ({
                     shift: newSection.shift,
                     startTime: newSection.startTime,
                     endTime: newSection.endTime,
+                    modality: newSection.modality,
                     additionalScheds: newSection.additionalScheds,
                 }
 

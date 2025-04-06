@@ -36,7 +36,7 @@ const ScheduleModal = ({
             doc.text(`Rank: ${rank}`, 14, 35);
         } else {
             doc.setFontSize(12);
-            doc.text(`Building: ${buildingInfo}`, 14, 25);
+            doc.text(`Room: ${buildingInfo}`, 14, 25);
             doc.text(`Adviser: ${AdviserName}`, 14, 35);
         }
 
@@ -64,9 +64,7 @@ const ScheduleModal = ({
         Array.from(groupedByTime.values()).forEach(({ time, days }, rowIndex) => {
             const row = [
                 time,
-                ...days.map((fields) =>
-                    fields[0] && fields[1] ? `${fields[0]}\n${fields[1]}\n${time}` : fields[0] || fields[1] || ''
-                ),
+                ...days.map((fields) => (fields[0] && fields[1] ? `${fields[0]}\n${fields[1]}` : fields[0] || fields[1] || '')),
             ];
             tableRows.push(row);
         });
@@ -120,7 +118,7 @@ const ScheduleModal = ({
                     </>
                 ) : (
                     <>
-                        <p className='text-center text-sm text-gray-700 mt-2'>Building: {buildingInfo}</p>
+                        <p className='text-center text-sm text-gray-700 mt-2'>Room: {buildingInfo}</p>
                         <p className='text-center text-sm text-gray-700 mt-2'>Adviser: {AdviserName}</p>
                     </>
                 )}
@@ -162,7 +160,6 @@ const ScheduleModal = ({
                                         <td key={index} className='text-center'>
                                             <div>{fields[0]}</div>
                                             <div>{fields[1]}</div>
-                                            {fields[0] && fields[1] && <div>{time}</div>}
                                         </td>
                                     ))}
                                 </tr>
@@ -378,6 +375,10 @@ const Search = () => {
                                             {Array.from(valueMaps.get(result.id)).map(([outerKey, nestedMap]) => {
                                                 const groupedByTime = new Map();
                                                 const modalityArray = result.m;
+                                                const sectionAdviser = result.sa;
+                                                const sectionRoom = result.sr;
+                                                const teacherRank = result.tr;
+                                                const teacherDepartment = result.td;
                                                 const tableType = result.t;
                                                 let department = '';
                                                 let rank = '';
@@ -425,11 +426,11 @@ const Search = () => {
                                                         <ScheduleModal
                                                             outerKey={outerKey}
                                                             groupedByTime={groupedByTime}
-                                                            buildingInfo={'Building 1'}
+                                                            buildingInfo={sectionRoom}
                                                             role={role}
-                                                            AdviserName={'Mr. Tagalogin'}
-                                                            department={'Math Department'}
-                                                            rank={'Teacher 1'}
+                                                            AdviserName={sectionAdviser}
+                                                            department={teacherDepartment}
+                                                            rank={teacherRank}
                                                             modalityArray={modalityArray}
                                                             tableType={tableType}
                                                         />

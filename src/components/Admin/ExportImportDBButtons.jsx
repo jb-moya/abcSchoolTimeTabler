@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
 
 import { CiExport, CiImport } from 'react-icons/ci';
 import { createPortal } from 'react-dom';
@@ -10,20 +10,10 @@ import { saveAs } from 'file-saver';
 import { toast } from 'sonner';
 import { BiUpload } from 'react-icons/bi';
 
-import { addSubject, fetchSubjects } from '@features/subjectSlice';
-import { addSection, fetchSections } from '@features/sectionSlice';
-import { addRank, fetchRanks } from '@features/rankSlice';
-import { addTeacher, fetchTeachers } from '@features/teacherSlice';
-import { addProgram, fetchPrograms } from '@features/programSlice';
-import { addDepartment, fetchDepartments } from '@features/departmentSlice';
-import { addBuilding, fetchBuildings } from '@features/buildingSlice';
-
 import { deleteAllCollections } from '../../hooks/CRUD/deleteAllDocuments';
 import { addDocument } from '../../hooks/CRUD/addDocument';
 
 import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
-
-
 
 const ImportingFullScreenLoader = () => {
     return createPortal(
@@ -34,10 +24,6 @@ const ImportingFullScreenLoader = () => {
         document.body
     );
 };
-
-function sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 const ExportImportDBButtons = ({ 
     // STORES
