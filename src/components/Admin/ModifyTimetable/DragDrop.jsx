@@ -171,10 +171,11 @@ const DragDrop = ({
                     newCardData.day ?? 'n'
                 }-${cell.type}`;
                 let duplicate = false;
+
                 if (table.has(newObjectID)) {
                     // scheduleKey = `additional-section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${i}-type-${type}`;
                     duplicate = true;
-                    scheduleKey = `a-${validSectionID ?? 'n'}-${validTeacherID ?? 'n'}-${newCardData.subjectID ?? 'n'}-${
+                    newObjectID = `a-${validSectionID ?? 'n'}-${validTeacherID ?? 'n'}-${newCardData.subjectID ?? 'n'}-${
                         newCardData.day ?? 'n'
                     }-${cell.type}`;
                 }
