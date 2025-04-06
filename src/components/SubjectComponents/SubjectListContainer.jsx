@@ -1,8 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useSelector } from 'react-redux';
-import { useDispatch } from 'react-redux';
-
-import { subscribeToSubjects } from '@features/slice/subject_slice';
 
 import { IoAdd, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
