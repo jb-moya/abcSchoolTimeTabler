@@ -6,7 +6,6 @@ import clsx from 'clsx';
 import * as XLSX from 'xlsx';
 import GeneratedTimetable from '@components/Admin/TimeTable';
 // import ForTest from '@components/Admin/ForTest';
-import { useNavigate } from 'react-router-dom';
 import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 import validateTimetableVariables from '@validation/validateTimetableVariables';
 import { toast } from 'sonner';
@@ -34,7 +33,6 @@ import ExportImportDBButtons from '@components/Admin/ExportImportDBButtons';
 import NotificationHandler from '@components/Admin/NotificationHandler';
 import Breadcrumbs from '@components/Admin/Breadcrumbs';
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 
 enableMapSet();
 const getTimetable = wrap(new WasmWorker());
