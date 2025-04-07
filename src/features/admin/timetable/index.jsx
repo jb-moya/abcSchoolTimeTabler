@@ -158,7 +158,7 @@ function Timetable() {
                           .filter((building) => building !== null)
                     : [],
 
-                floorRooms: Object.values(building.rooms).map((roomGroup) => roomGroup.length),
+                floorRooms: Object.values(building.rooms).reduce((acc, roomGroup) => [...acc, roomGroup.length], []),
             };
             return acc;
         }, {});
