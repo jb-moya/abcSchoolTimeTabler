@@ -289,7 +289,7 @@ function Timetable() {
                           .filter((building) => building !== null)
                     : [],
 
-                floorRooms: building.rooms.reduce((acc, roomGroup) => [...acc, roomGroup.length], []),
+                floorRooms: Object.values(building.rooms).reduce((acc, roomGroup) => [...acc, roomGroup.length], []),
             };
             return acc;
         }, {});
