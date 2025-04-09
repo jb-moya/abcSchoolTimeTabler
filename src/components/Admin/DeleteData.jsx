@@ -9,13 +9,8 @@ import { editDocument } from '../../hooks/CRUD/editDocument';
 
 import { toast } from 'sonner';
 
-const DeleteData = ({ 
-    id, 
-    collection, 
-    callback 
-}) => {
-
-// ===============================================================================================
+const DeleteData = ({ id, collection, callback }) => {
+    // ===============================================================================================
 
     const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
     const { documents: programs, loading2, error2 } = fetchDocuments('programs');
@@ -23,12 +18,13 @@ const DeleteData = ({
     const { documents: ranks, loading4, error4 } = fetchDocuments('ranks');
     const { documents: teachers, loading5, error5 } = fetchDocuments('teachers');
     const { documents: departments, loading6, error6 } = fetchDocuments('departments');
-
-// ===============================================================================================
+    const { documents: schedules, loading7, error7 } = fetchDocuments('schedules');
+    // ===============================================================================================
 
     useEffect(() => {
         console.log('id:', id);
     }, [id]);
+
     console.log('id:', id);
     const handleDelete = async () => {
         try {
@@ -154,10 +150,9 @@ const DeleteData = ({
                     entry_id = department_id;
                 }
             } else if (collection === 'sections') {
-
                 const adviser_id = sections[id]?.teacher;
                 const section_adviser = structuredClone(teachers[adviser_id]);
-                
+
                 if (section_adviser.additionalTeacherScheds) {
                     section_adviser.additionalTeacherScheds = section_adviser.additionalTeacherScheds.filter(
                         (sched) => sched.name !== 'Advisory Load'
@@ -169,7 +164,8 @@ const DeleteData = ({
                 });
 
                 entry_id = sections[id]?.id;
-
+            } else if (collection === 'schedules') {
+                entry_id = id;
             }
 
             const result = await deleteDocument(collection, entry_id);

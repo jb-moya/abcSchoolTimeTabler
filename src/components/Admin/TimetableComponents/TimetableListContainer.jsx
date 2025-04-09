@@ -14,7 +14,7 @@ import { convertStringDataToMap } from '@components/Admin/ModifyTimetable/utils'
 
 const TimetableListContainer = ({
     // stores
-    subjects, 
+    subjects,
     programs,
     sections,
     teachers,
@@ -24,20 +24,19 @@ const TimetableListContainer = ({
     schedules,
     // stores
 }) => {
-
     const location = useLocation();
     const navigate = useNavigate();
 
-// ===================================================================================================
+    // ===================================================================================================
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
 
-// ==================================================================================================
+    // ==================================================================================================
 
     const table = location.state?.generatedMap ?? new Map();
 
-// ===================================================================================================
+    // ===================================================================================================
 
     const [editSchedFirebaseId, setEditSchedFirebaseId] = useState(null);
     const [editSchedName, setEditSchedName] = useState('');
@@ -47,12 +46,12 @@ const TimetableListContainer = ({
         console.log('timetable: ', timetable);
     }, [timetable]);
 
-// ===================================================================================================
+    // ===================================================================================================
 
     const [searchSchedResult, setSearchSchedResult] = useState(schedules);
     const [searchSchedValue, setSearchSchedValue] = useState('');
 
-// ===================================================================================================
+    // ===================================================================================================
 
     const handleEditClick = (FirebaseId) => {
         console.log(schedules);
@@ -71,7 +70,7 @@ const TimetableListContainer = ({
         setTimetable(newTimetable);
     };
 
-// ===================================================================================================
+    // ===================================================================================================
 
     const resetTimetable = () => {
         // setEditSchedId(null);
@@ -85,7 +84,7 @@ const TimetableListContainer = ({
         navigate(location.pathname, { state: null });
     };
 
-// ===================================================================================================
+    // ===================================================================================================
 
     // SEARCH FUNCTIONALITY
     const debouncedSearch = useCallback(
@@ -124,7 +123,7 @@ const TimetableListContainer = ({
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Object.entries(searchSchedResult).slice(indexOfFirstItem, indexOfLastItem);
 
-// ===================================================================================================
+    // ===================================================================================================
 
     const buildingData = {
         floors: 2,
@@ -247,7 +246,7 @@ const TimetableListContainer = ({
                                                             <RiEdit2Fill size={20} />
                                                         </button>
 
-                                                        <DeleteData id={schedule.id} />
+                                                        <DeleteData id={schedule.id} collection={'schedules'} />
                                                     </div>
                                                 </td>
                                             </tr>
