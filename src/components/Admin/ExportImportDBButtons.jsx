@@ -37,7 +37,7 @@ const ExportImportDBButtons = ({
     // STORES
 
     onClear, 
-    numOfSchoolDays, 
+    defaultNumberOfSchoolDays, 
     breakTimeDuration 
 }) => {
     
@@ -897,7 +897,7 @@ const ExportImportDBButtons = ({
                                         Number(addedSubjects[index]['weeklyminutes']) /
                                             Number(addedSubjects[index]['classduration'])
                                     ),
-                                    numOfSchoolDays
+                                    defaultNumberOfSchoolDays
                                 );
                                 fixedDays7[index + 1] = new Array(numOfClasses).fill(0);
                                 fixedPositions7[index + 1] = new Array(numOfClasses).fill(0);
@@ -933,7 +933,7 @@ const ExportImportDBButtons = ({
                                         Number(addedSubjects[index]['weeklyminutes']) /
                                             Number(addedSubjects[index]['classduration'])
                                     ),
-                                    numOfSchoolDays
+                                    defaultNumberOfSchoolDays
                                 );
                                 fixedDays8[index + 1] = new Array(numOfClasses).fill(0);
                                 fixedPositions8[index + 1] = new Array(numOfClasses).fill(0);
@@ -969,7 +969,7 @@ const ExportImportDBButtons = ({
                                         Number(addedSubjects[index]['weeklyminutes']) /
                                             Number(addedSubjects[index]['classduration'])
                                     ),
-                                    numOfSchoolDays
+                                    defaultNumberOfSchoolDays
                                 );
                                 fixedDays9[index + 1] = new Array(numOfClasses).fill(0);
                                 fixedPositions9[index + 1] = new Array(numOfClasses).fill(0);
@@ -1005,7 +1005,7 @@ const ExportImportDBButtons = ({
                                         Number(addedSubjects[index]['weeklyminutes']) /
                                             Number(addedSubjects[index]['classduration'])
                                     ),
-                                    numOfSchoolDays
+                                    defaultNumberOfSchoolDays
                                 );
                                 fixedDays10[index + 1] = new Array(numOfClasses).fill(0);
                                 fixedPositions10[index + 1] = new Array(numOfClasses).fill(0);
@@ -1099,9 +1099,9 @@ const ExportImportDBButtons = ({
                         const endTime9Idx = startTime9Idx + totalDuration9;
                         const endTime10Idx = startTime10Idx + totalDuration10;
 
-                        const halfDays = Math.floor(numOfSchoolDays / 2);
-                        const firstHalf = Array(halfDays).fill(1).concat(Array(numOfSchoolDays - halfDays).fill(0));
-                        const secondHalf = Array(halfDays).fill(0).concat(Array(numOfSchoolDays - halfDays).fill(1));
+                        const halfDays = Math.floor(defaultNumberOfSchoolDays / 2);
+                        const firstHalf = Array(halfDays).fill(1).concat(Array(defaultNumberOfSchoolDays - halfDays).fill(0));
+                        const secondHalf = Array(halfDays).fill(0).concat(Array(defaultNumberOfSchoolDays - halfDays).fill(1));
 
                         addedPrograms.push({
                             program: program.program,
@@ -1353,7 +1353,7 @@ const ExportImportDBButtons = ({
                         name: 'Advisory Load',
                         subject: -1,
                         duration: 60,
-                        frequency: numOfSchoolDays,
+                        frequency: defaultNumberOfSchoolDays,
                         shown: false,
                         time: 96,
                     });

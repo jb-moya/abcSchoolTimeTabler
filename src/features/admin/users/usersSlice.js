@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { collection, getDocs } from 'firebase/firestore';
 import { firestore } from '../../../firebase/firebase';
 import { toast } from 'sonner';
-import { useAuthSignup } from './hooks/useAuthSignup';
+import { signup } from '../../../firebase/userService';
 
 export const fetchUsers = createAsyncThunk('users/fetchUsers', async () => {
     try {
@@ -27,7 +27,6 @@ export const createUser = createAsyncThunk(
     'user/createUser',
     async (credentials, { rejectWithValue }) => {
         try {
-            const { signup } = useAuthSignup();
             const userData = await signup(credentials);
             console.log("🚀 ~ userData:", userData)
             return userData;

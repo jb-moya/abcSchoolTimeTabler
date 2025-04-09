@@ -1,11 +1,17 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import './App.css';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { themeChange } from 'theme-change';
-import useAuth from './app/useAuth.js';
-import initializeApp from './app/init';
 import { Suspense, lazy } from 'react';
 import ProtectedRoute from './pages/ProtectedRoute';
+import { useSelector } from 'react-redux';
+import useAuth from './app/useAuth';
+import useFirestoreCacheListener from './firebase/listeners/timetableConfigurationListener.js';
+import {
+    upsertTimetableConfiguration,
+    removeTimetableConfiguration,
+    setLoading as setTimetableConfigurationLoading,
+} from './features/slice/timetableConfigurationSlice.jsx';
 // Importing pages
 const Layout = lazy(() => import('./containers/Layout'));
 const Login = lazy(() => import('./pages/Login.jsx'));
@@ -16,26 +22,31 @@ const GuestPage = lazy(() => import('./pages/Guest.jsx'));
 const SuspenseContent = lazy(() => import('./containers/SuspenseContent'));
 const Authentication = lazy(() => import('./pages/Authentication'));
 const Page404 = lazy(() => import('./pages/404'));
-// Initializing different libraries
-// initializeApp()
 
-// Check for login and initialize axios
+const collections = [
+    {
+        collectionPath: 'timetableConfiguration',
+        addAction: upsertTimetableConfiguration,
+        updateAction: upsertTimetableConfiguration,
+        removeAction: removeTimetableConfiguration,
+        setLoading: setTimetableConfigurationLoading,
+    },
+];
 
 function App() {
-    const { user, loading } = useAuth();
+    useAuth();
+    useFirestoreCacheListener(collections);
+
+    const { user } = useSelector((state) => state.user);
+
+    console.log('🚀 ~ App ~ user:', user);
 
     useEffect(() => {
         // Set the default theme to light on initial load
         document.documentElement.setAttribute('data-theme', 'light');
         // 👆 daisy UI themes initialization
         themeChange(false);
-
-
     }, []);
-
-    if (loading) {
-        return <SuspenseContent />; // Replace with your loader
-    }
 
     return (
         <>

@@ -1,13 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { APP_CONFIG } from '../../../constants';
-import { RiDeleteBin7Line } from 'react-icons/ri';
 import { useUsers } from './hooks/useUsers';
 import { useEditUser } from './hooks/useUpdateUser';
 import { useDispatch } from 'react-redux';
 import { editUser as editUserAction } from './usersSlice';
 import { toast } from 'sonner';
 import { useToggleAllowedStatus } from './hooks/useToggleUserStatus';
-import useAuth from '../../../app/useAuth';
 
 const UserList = ({ onEditUser }) => {
     const dispatch = useDispatch();

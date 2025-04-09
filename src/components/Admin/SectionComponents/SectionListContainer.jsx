@@ -12,6 +12,7 @@ import AdditionalScheduleForSection from './AdditionalScheduleForSection';
 import AddSectionContainer from './SectionAdd';
 import DeleteData from '../DeleteData';
 import SectionEdit from './SectionEdit';
+import { useSelector } from 'react-redux';
 
 const SectionListContainer = ({
     // STORES
@@ -21,26 +22,16 @@ const SectionListContainer = ({
     teachers,
     buildings,
     // STORES
-    numOfSchoolDays: externalNumOfSchoolDays,
+    numOfSchoolDays = 5,
     editable = false,
     breakTimeDuration: externalBreakTimeDuration,
 }) => {
-
-//  =========================================================================================
-
-    const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
-        return externalNumOfSchoolDays ?? (Number(localStorage.getItem('numOfSchoolDays')) || 0);
-    });
+    //  =========================================================================================
+    const { configurations, loading } = useSelector((state) => state.configuration);
 
     const [breakTimeDuration, setBreakTimeDuration] = useState(() => {
         return externalBreakTimeDuration ?? (Number(localStorage.getItem('breakTimeDuration')) || 0);
     });
-
-    useEffect(() => {
-        if (externalNumOfSchoolDays !== undefined) {
-            setNumOfSchoolDays(externalNumOfSchoolDays);
-        }
-    }, [externalNumOfSchoolDays]);
 
     useEffect(() => {
         if (externalBreakTimeDuration !== undefined) {
@@ -51,12 +42,12 @@ const SectionListContainer = ({
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState([]);
 
-//  =======================================================================================
+    //  =======================================================================================
 
     const [searchSectionResult, setSearchSectionResult] = useState(sections);
     const [searchSectionValue, setSearchSectionValue] = useState('');
 
-//  =======================================================================================
+    //  =======================================================================================
 
     const handleClose = () => {
         const modal = document.getElementById('add_section_modal');
@@ -69,7 +60,7 @@ const SectionListContainer = ({
         }
     };
 
-//  =======================================================================================
+    //  =======================================================================================
 
     const debouncedSearch = useCallback(
         debounce((searchValue, sections, subjects) => {
@@ -86,9 +77,11 @@ const SectionListContainer = ({
                     const pattern = new RegExp(escapedSearchValue, 'i');
 
                     return (
-                        pattern.test(section.section) || pattern.test(programName)
-                            || pattern.test(section.year) || pattern.test(sectionSubjectsName)
-                                || pattern.test(teacherName) 
+                        pattern.test(section.section) ||
+                        pattern.test(programName) ||
+                        pattern.test(section.year) ||
+                        pattern.test(sectionSubjectsName) ||
+                        pattern.test(teacherName)
                     );
                 })
             );
@@ -96,15 +89,7 @@ const SectionListContainer = ({
         []
     );
 
-//  =======================================================================================
-
-    useEffect(() => {
-        if (externalNumOfSchoolDays !== undefined) {
-            setNumOfSchoolDays(externalNumOfSchoolDays);
-        }
-    }, [externalNumOfSchoolDays]);
-
-//  =======================================================================================
+    //  =======================================================================================
 
     useEffect(() => {
         debouncedSearch(searchSectionValue, sections, subjects);
@@ -199,7 +184,7 @@ const SectionListContainer = ({
                                         setErrorMessage={setErrorMessage}
                                         errorField={errorField}
                                         setErrorField={setErrorField}
-                                        numOfSchoolDays={numOfSchoolDays}
+                                        numOfSchoolDays={configurations[1].defaultNumberOfSchoolDays}
                                         breakTimeDuration={breakTimeDuration}
                                     />
                                     <div className='modal-action'>
@@ -355,7 +340,7 @@ const SectionListContainer = ({
                                                     fixedDays={section.fixedDays || {}}
                                                     additionalSchedules={section.additionalScheds || []}
                                                     fixedPositions={section.fixedPositions || {}}
-                                                    numOfSchoolDays={numOfSchoolDays}
+                                                    numOfSchoolDays={configurations[1].defaultNumberOfSchoolDays}
                                                 />
                                             </div>
                                         </td>
@@ -441,7 +426,7 @@ const SectionListContainer = ({
                                                         setErrorMessage={setErrorMessage}
                                                         errorField={errorField}
                                                         setErrorField={setErrorField}
-                                                        numOfSchoolDays={numOfSchoolDays}
+                                                        numOfSchoolDays={configurations[1].defaultNumberOfSchoolDays}
                                                         breakTimeDuration={breakTimeDuration}
                                                     />
 

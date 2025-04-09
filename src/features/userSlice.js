@@ -1,8 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { useAuthLogin } from './admin/users/hooks/useAuthLogin';
-import { useAuthSignup } from './admin/users/hooks/useAuthSignup';
-import { useAuthLogout } from './admin/users/hooks/useAuthLogout';
 import { toast } from 'sonner';
+import { login, signup, logout } from '../firebase/userService';
 
 const initialState = {
     user: null,
@@ -13,7 +11,6 @@ const initialState = {
 
 export const loginUser = createAsyncThunk('user/loginUser', async (credentials, { rejectWithValue }) => {
     try {
-        const { login } = useAuthLogin();
         const userData = await login(credentials);
         return userData;
     } catch (error) {
@@ -25,7 +22,6 @@ export const signUpWithEmailAndPassword = createAsyncThunk(
     'user/signUpWithEmailAndPassword',
     async (credentials, { rejectWithValue }) => {
         try {
-            const { signup } = useAuthSignup();
             const userData = await signup(credentials);
             return userData;
         } catch (error) {
@@ -36,7 +32,6 @@ export const signUpWithEmailAndPassword = createAsyncThunk(
 
 export const logoutUser = createAsyncThunk('user/logoutUser', async (_, { rejectWithValue }) => {
     try {
-        const { logout } = useAuthLogout();
         await logout();
     } catch (error) {
         return rejectWithValue(error.message);
@@ -48,11 +43,25 @@ const userSlice = createSlice({
     initialState,
     reducers: {
         setUser: (state, action) => {
+            console.log('xxxxxxxxxxxxxxxxxxxx x x x x x    x', action.payload);
             state.user = action.payload;
             state.status = 'success';
+            state.isAuthenticated = true;
         },
         clearError: (state) => {
             state.error = null;
+        },
+        setError: (state, action) => {
+            state.error = action.payload;
+        },
+        clearUser: (state) => {
+            state.user = null;
+            state.isAuthenticated = false;
+        },
+        setLoading: (state, action) => {
+            console.log('🚀 ~ setLoading ~ action:', action.payload);
+            state.loading = action.payload;
+            console.log('🚀 ~ setLoading ~ action:', action.payload);
         },
     },
     extraReducers: (builder) => {
@@ -104,5 +113,5 @@ const userSlice = createSlice({
     },
 });
 
-export const { clearError, setUser } = userSlice.actions;
+export const { setUser, clearError, setError, clearUser, setLoading } = userSlice.actions;
 export default userSlice.reducer;

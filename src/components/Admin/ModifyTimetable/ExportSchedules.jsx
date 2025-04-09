@@ -4,6 +4,7 @@ import { saveAs } from 'file-saver';
 
 import { getTimeSlotString } from '@utils/timeSlotMapper';
 import colors from '@utils/colors';
+import { useSelector } from 'react-redux';
 
 const ExportSchedules = ({
     // stores
@@ -21,13 +22,11 @@ const ExportSchedules = ({
 
 // ======================================================================================================
 
-    const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
-        return localStorage.getItem('numOfSchoolDays') || 5;
-    });
+    const { configurations, loading } = useSelector((state) => state.configuration);
 
     const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 
-    const selectedDays = days.slice(0, numOfSchoolDays);
+    const selectedDays = days.slice(0, configurations[1].defaultNumberOfSchoolDays);
 
 // ======================================================================================================
 
@@ -146,7 +145,7 @@ const ExportSchedules = ({
 
             for (let i = 0; i < timeslots.length; i++) {
                 if (!normalizedTimeslots.has(timeslots[i])) {
-                    const timeslotValue = Array.from({ length: numOfSchoolDays }, () => ({
+                    const timeslotValue = Array.from({ length: configurations[1].defaultNumberOfSchoolDays }, () => ({
                         minutes: 0,
                         section: '',
                         subject: '',
@@ -264,7 +263,7 @@ const ExportSchedules = ({
             worksheet.getColumn(1).width = 25;
             worksheet.getColumn(2).width = 25;
             let startingCol = 3;
-            for (let i = 0; i < numOfSchoolDays; i++) {
+            for (let i = 0; i < configurations[1].defaultNumberOfSchoolDays; i++) {
                 worksheet.getColumn(startingCol).width = 20;
                 startingCol++;
             }
@@ -309,7 +308,7 @@ const ExportSchedules = ({
 
             const startColumn = 'A';
             const startColumn_2 = 'C';
-            const endColumn = String.fromCharCode(65 + Number(numOfSchoolDays) + 1);
+            const endColumn = String.fromCharCode(65 + Number(configurations[1].defaultNumberOfSchoolDays) + 1);
 
             worksheet.mergeCells(`${startColumn}1:${endColumn}1`);
             worksheet.mergeCells(`${startColumn}2:${endColumn}2`);
@@ -336,7 +335,7 @@ const ExportSchedules = ({
             worksheet.getCell('C3').font = { bold: true };
 
             let column = 'C';
-            for (let i = 0; i < numOfSchoolDays; i++) {
+            for (let i = 0; i < configurations[1].defaultNumberOfSchoolDays; i++) {
                 worksheet.getCell(`${column}4`).value = days[i];
                 worksheet.getCell(`${column}5`).value = section.modality[i] === 1 ? 'ONSITE' : 'OFFSITE';
 
@@ -415,7 +414,7 @@ const ExportSchedules = ({
 
             for (let i = 0; i < timeslots.length; i++) {
                 if (!normalizedTimeslots.has(timeslots[i])) {
-                    const timeslotValue = Array.from({ length: numOfSchoolDays }, () => ({
+                    const timeslotValue = Array.from({ length: configurations[1].defaultNumberOfSchoolDays }, () => ({
                         minutes: 0,
                         // sched_name: '',
                         subject: '',
@@ -537,7 +536,7 @@ const ExportSchedules = ({
             }
 
             const startCol = 'B';
-            const endCol = String.fromCharCode(65 + Number(numOfSchoolDays) + 1);
+            const endCol = String.fromCharCode(65 + Number(configurations[1].defaultNumberOfSchoolDays) + 1);
 
             worksheet.mergeCells(`${startCol}${row}:${endCol}${row}`);
             worksheet.mergeCells(`${startCol}${row + 1}:${endCol}${row + 1}`);
@@ -572,7 +571,7 @@ const ExportSchedules = ({
             worksheet.getColumn(1).width = 25;
             worksheet.getColumn(2).width = 15;
             let startingCol = 3;
-            for (let i = 0; i < numOfSchoolDays; i++) {
+            for (let i = 0; i < configurations[1].defaultNumberOfSchoolDays; i++) {
                 worksheet.getColumn(startingCol).width = 20;
                 startingCol++;
             }

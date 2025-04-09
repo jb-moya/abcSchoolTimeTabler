@@ -5,20 +5,20 @@ import rightDrawerSlice from '../features/common/rightDrawerSlice';
 import leadsSlice from '../features/leads/leadSlice';
 import userSlice from '../features/userSlice';
 import usersSlice from '../features/admin/users/usersSlice';
-import configurationSlice from '../features/configurationSlice';
+import timetableConfigurationSlice from '../features/slice/timetableConfigurationSlice';
 
 const combinedReducer = {
-  header: headerSlice,
-  rightDrawer: rightDrawerSlice,
-  modal: modalSlice,
-  lead: leadsSlice,
-  user: userSlice,
-  users: usersSlice,
-  configuration: configurationSlice,
+    header: headerSlice,
+    rightDrawer: rightDrawerSlice,
+    modal: modalSlice,
+    lead: leadsSlice,
+    user: userSlice,
+    users: usersSlice,
+    configuration: timetableConfigurationSlice,
 };
 
 const store = configureStore({
-  reducer: combinedReducer,
+    reducer: combinedReducer,
 });
 
 export default store;

@@ -8,6 +8,7 @@ import { getTimeSlotString } from '@utils/timeSlotMapper';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
+import { useSelector } from 'react-redux';
 
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
 import DeleteData from '../DeleteData';
@@ -25,43 +26,17 @@ const ProgramListContainer = ({
     editable = false,
     breakTimeDuration: externalBreakTimeDuration,
 }) => {
-
-// ==============================================================================
+    // ==============================================================================
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
 
-// ==============================================================================
+    // ==============================================================================
 
-    const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
-        return externalNumOfSchoolDays ?? (Number(localStorage.getItem('numOfSchoolDays')) || 0);
-    });
+    const { configurations, loading } = useSelector((state) => state.configuration);
 
-    const [breakTimeDuration, setBreakTimeDuration] = useState(() => {
-        return externalBreakTimeDuration ?? (Number(localStorage.getItem('breakTimeDuration')) || 0);
-    });
 
-    const morningStartTime = localStorage.getItem('morningStartTime') || '06:00 AM';
-
-    const afternoonStartTime = localStorage.getItem('afternoonStartTime') || '01:00 PM';
-
-    useEffect(() => {
-        if (externalNumOfSchoolDays !== undefined) {
-            setNumOfSchoolDays(externalNumOfSchoolDays);
-        }
-    }, [externalNumOfSchoolDays]);
-
-    useEffect(() => {
-        if (externalBreakTimeDuration !== undefined) {
-            setBreakTimeDuration(externalBreakTimeDuration);
-        }
-    }, [externalBreakTimeDuration]);
-
-    useEffect(() => {
-        console.log('breakTimeDuration', breakTimeDuration);
-    }, [breakTimeDuration]);
-
-// ==============================================================================
+    // ==============================================================================
 
     const handleClose = () => {
         const modal = document.getElementById('add_program_modal');
@@ -74,7 +49,7 @@ const ProgramListContainer = ({
         }
     };
 
-// ================================================================
+    // ================================================================
 
     // useEffect(() => {
     //     if (sectionStatus === 'idle') {
@@ -204,14 +179,14 @@ const ProgramListContainer = ({
                                 subjects={subjects}
                                 programs={programs}
                                 close={handleClose}
-                                morningStartTime={morningStartTime}
-                                afternoonStartTime={afternoonStartTime}
+                                morningStartTime={configurations[1].defaultMorningStart}
+                                afternoonStartTime={configurations[1].defaultAfternoonStart}
                                 errorMessage={errorMessage}
                                 setErrorMessage={setErrorMessage}
                                 errorField={errorField}
                                 setErrorField={setErrorField}
-                                numOfSchoolDays={numOfSchoolDays}
-                                breakTimeDuration={breakTimeDuration}
+                                numOfSchoolDays={configurations[1].defaultNumberOfSchoolDays}
+                                breakTimeDuration={configurations[1].defaultBreakTimeDuration}
                             />
                         </div>
                     )}
@@ -306,7 +281,7 @@ const ProgramListContainer = ({
                                                                         selectedSubjects={program[grade]?.subjects || []}
                                                                         fixedDays={program[grade]?.fixedDays || {}}
                                                                         fixedPositions={program[grade]?.fixedPositions || {}}
-                                                                        numOfSchoolDays={numOfSchoolDays}
+                                                                        numOfSchoolDays={configurations[1].defaultNumberOfSchoolDays}
                                                                     />
                                                                 </div>
                                                             </div>
@@ -336,7 +311,10 @@ const ProgramListContainer = ({
                                                                 Grade {grade}
                                                             </div>
                                                             {program[grade]?.additionalScheds.map((sched, index) => (
-                                                                <div key={index} className='flex flex-wrap  border-2 border-base-content border-opacity-20'>
+                                                                <div
+                                                                    key={index}
+                                                                    className='flex flex-wrap  border-2 border-base-content border-opacity-20'
+                                                                >
                                                                     <div className='w-1/12 text-xs font-bold flex text-center justify-center items-center p-2'>
                                                                         {index + 1}
                                                                     </div>
@@ -386,24 +364,23 @@ const ProgramListContainer = ({
                                             {editable && (
                                                 <td>
                                                     <div className='flex justify-center items-center'>
-                                                        
                                                         <ProgramEdit
                                                             className='btn btn-xs btn-ghost text-blue-500'
                                                             subjects={subjects}
                                                             programs={programs}
                                                             sections={sections}
                                                             program={program}
-                                                            morningStartTime={morningStartTime}
-                                                            afternoonStartTime={afternoonStartTime}
+                                                            morningStartTime={configurations[1].defaultMorningStart}
+                                                            afternoonStartTime={configurations[1].defaultAfternoonStart}
                                                             errorMessage={errorMessage}
                                                             setErrorMessage={setErrorMessage}
                                                             errorField={errorField}
                                                             setErrorField={setErrorField}
-                                                            numOfSchoolDays={numOfSchoolDays}
-                                                            breakTimeDuration={breakTimeDuration}
+                                                            numOfSchoolDays={configurations[1].defaultNumberOfSchoolDays}
+                                                            breakTimeDuration={configurations[1].defaultBreakTimeDuration}
                                                         />
                                                         <DeleteData
-                                                            className='btn btn-xs btn-ghost text-red-500' 
+                                                            className='btn btn-xs btn-ghost text-red-500'
                                                             collection={'programs'}
                                                             id={program.id}
                                                         />

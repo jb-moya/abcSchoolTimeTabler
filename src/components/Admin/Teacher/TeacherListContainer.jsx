@@ -4,7 +4,7 @@ import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
-
+import { useSelector } from 'react-redux';
 import AdditionalScheduleForTeacher from './AdditionalScheduleForTeacher';
 import AddTeacherContainer from './TeacherAdd';
 import DeleteData from '../DeleteData';
@@ -20,9 +20,8 @@ const TeacherListContainer = ({
 
 // ===================================================================================================
 
-    const numOfSchoolDays = Number(localStorage.getItem('numOfSchoolDays')) || 0;
+const { configurations, loading } = useSelector((state) => state.configuration);
 
-// ===================================================================================================
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
@@ -164,7 +163,7 @@ const TeacherListContainer = ({
                                         setErrorMessage={setErrorMessage}
                                         errorField={errorField}
                                         setErrorField={setErrorField}
-                                        numOfSchoolDays={numOfSchoolDays}
+                                        numOfSchoolDays={configurations[1].defaultNumberOfSchoolDays}
                                     />
                                     <div className='modal-action'>
                                         <button
@@ -341,7 +340,7 @@ const TeacherListContainer = ({
                                                         setErrorMessage={setErrorMessage}
                                                         errorField={errorField}
                                                         setErrorField={setErrorField}
-                                                        numOfSchoolDays={numOfSchoolDays}
+                                                        numOfSchoolDays={configurations[1].defaultNumberOfSchoolDays}
                                                     />
                                                     <DeleteData 
                                                         className='btn btn-xs btn-ghost text-red-500' 

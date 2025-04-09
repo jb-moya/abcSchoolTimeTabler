@@ -1,10 +1,9 @@
 import { Navigate } from 'react-router-dom';
-import useAuth from '../app/useAuth';
-import SuspenseContent from '../containers/SuspenseContent';
 import { useSelector } from 'react-redux';
+import SuspenseContent from '../containers/SuspenseContent';
 
 const ProtectedRoute = ({ path, element, requiredPermissions = [], requiredRole = null }) => {
-    const { user, loading } = useAuth();
+    const { user, loading } = useSelector((state) => state.user);
     const userInfo = useSelector((state) => state.user);
 
     if (!element) {
@@ -20,7 +19,6 @@ const ProtectedRoute = ({ path, element, requiredPermissions = [], requiredRole 
         (userInfo.user.role === 'admin' &&
             Array.isArray(userInfo.user.permissions) &&
             requiredPermissions.every((perm) => userInfo.user.permissions.includes(perm)));
-
 
     if (requiredRole !== null) {
         hasAccess = hasAccess && userInfo.user.role === requiredRole;

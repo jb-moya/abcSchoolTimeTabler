@@ -1,5 +1,5 @@
 import { themeChange } from 'theme-change';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import BellIcon from '@heroicons/react/24/outline/BellIcon';
 import Bars3Icon from '@heroicons/react/24/outline/Bars3Icon';
@@ -7,20 +7,18 @@ import MoonIcon from '@heroicons/react/24/outline/MoonIcon';
 import SunIcon from '@heroicons/react/24/outline/SunIcon';
 import { openRightDrawer } from '../features/common/rightDrawerSlice';
 import { RIGHT_DRAWER_TYPES } from '../utils/globalConstantUtil';
-import { useNavigate } from 'react-router-dom';
-import useAuth from '../app/useAuth';
 
-import { NavLink, Routes, Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { logoutUser } from '../features/userSlice';
 
 function Header() {
-    const navigate = useNavigate();
     const dispatch = useDispatch();
     const { noOfNotifications, pageTitle } = useSelector((state) => state.header);
     const [currentTheme, setCurrentTheme] = useState(
         localStorage.getItem('theme') || 'light' // Default to light mode
     );
-    const { user, loading: userLoading } = useAuth();
+
+    const { user, loading: userLoading } = useSelector((state) => state.user);
 
     useEffect(() => {
         themeChange(false); // Initialize themeChange for Tailwind/DaisyUI

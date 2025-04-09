@@ -79,7 +79,7 @@ const FixedScheduleMaker = ({
     setFixedDays = () => {},
     fixedPositions = {},
     setFixedPositions = () => {},
-    numOfSchoolDays = 0,
+    numOfSchoolDays = 5,
 }) => {
 
 // ==============================================================================
@@ -435,7 +435,6 @@ const FixedScheduleMaker = ({
                                         }}
                                     >
                                         <div className='w-12/12'>
-                                            
                                             <ContainerSpawn
                                                 key={`spawn-g${grade}-s${subject}`}
                                                 subjects={subjectsStore}
@@ -502,6 +501,7 @@ const FixedScheduleMaker = ({
                                                     selectedSubjects={subs}
                                                     fixedDays={days}
                                                     fixedPositions={positions}
+                                                    numOfSchoolDays={numOfSchoolDays}
                                                 />
                                             ))}
                                         </div>

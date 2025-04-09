@@ -33,7 +33,6 @@ import ExportImportDBButtons from '@components/Admin/ExportImportDBButtons';
 import NotificationHandler from '@components/Admin/NotificationHandler';
 import Breadcrumbs from '@components/Admin/Breadcrumbs';
 
-
 enableMapSet();
 const getTimetable = wrap(new WasmWorker());
 
@@ -96,29 +95,35 @@ function Timetable() {
         // { name: 'Modify Subjects', href: '/modify-subjects' },
     ];
 
+    const { configurations, loading } = useSelector((state) => state.configuration);
+
     // ====================================================================================================================================
 
     /* CONFIGURATIONS */
-    const { minTeacherLoad: minTeachingLoad, maxTeacherLoad: maxTeachingLoad } = useSelector((state) => state.configuration);
 
     /* TIMETABLE DATA */
     const [buildingsStore, setBuildings] = useState({});
 
-    // const [subjects, setSubjects] = useState({});
-    // const [buildings, setBuildings_1] = useState({});
-    // const [teachers, setTeachers] = useState({});
-    // const [sections, setSections] = useState({});
-    // const [programs, setPrograms] = useState({});
-    // const [ranks, setRanks] = useState({});
-    // const [departments, setDepartments] = useState({});
-
-    const { documents: subjectsStore, loading1, error1 } = fetchDocuments('subjects');
-    const { documents: programsStore, loading2, error2 } = fetchDocuments('programs');
-    const { documents: ranksStore, loading3, error3 } = fetchDocuments('ranks');
-    const { documents: teachersStore, loading4, error4 } = fetchDocuments('teachers');
-    const { documents: departmentsStore, loading5, error5 } = fetchDocuments('departments');
-    const { documents: sectionsStore, loading6, error6 } = fetchDocuments('sections');
-    const { documents: stringfy_buildings, loading7, error7 } = fetchDocuments('buildings');
+    const { documents: subjectsStore, loading: subjectsStoreLoading, error: subjectsStoreError } = fetchDocuments('subjects');
+    const { documents: programsStore, loading: programsStoreLoading, error: programsStoreError } = fetchDocuments('programs');
+    const { documents: ranksStore, loading: ranksStoreLoading, error: ranksStoreError } = fetchDocuments('ranks');
+    const { documents: teachersStore, loading: teachersStoreLoading, error: teachersStoreError } = fetchDocuments('teachers');
+    const {
+        documents: departmentsStore,
+        loading: departmentsStoreLoading,
+        error: departmentsStoreError,
+    } = fetchDocuments('departments');
+    const { documents: sectionsStore, loading: sectionsStoreLoading, error: sectionsStoreError } = fetchDocuments('sections');
+    const {
+        documents: stringfy_buildings,
+        loading: stringfy_buildingsLoading,
+        error: stringfy_buildingsError,
+    } = fetchDocuments('buildings');
+    const {
+        documents: timetableConfiguration,
+        loading: timetableConfigurationLoading,
+        error: timetableConfigurationError,
+    } = fetchDocuments('timetableConfiguration');
 
     // ====================================================================================================================================
     // function modifyData(data) {
@@ -227,24 +232,13 @@ function Timetable() {
 
     // =====================================================================================================================================
 
-    const [morningStartTime, setMorningStartTime] = useState(() => {
-        const stored = localStorage.getItem('morningStartTime');
-        return stored && /^\d{2}:\d{2}$/.test(stored) ? stored : '6:00';
-    });
 
-    console.log('morningStartTime: ', morningStartTime);
+    console.log('morningStartTime: ', configurations[1].defaultMorningStart);
 
-    const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
-        return localStorage.getItem('numOfSchoolDays') || 5;
-    });
-    console.log('numOfSchoolDays: ', numOfSchoolDays);
-    const [breakTimeDuration, setBreakTimeDuration] = useState(() => {
-        return localStorage.getItem('breakTimeDuration') || 30;
-    });
-    console.log('breakTimeDuration: ', breakTimeDuration);
-    const [defaultSubjectClassDuration, setDefaultSubjectClassDuration] = useState(() => {
-        return parseInt(localStorage.getItem('defaultSubjectDuration'), 10) || 40;
-    });
+    console.log('numOfSchoolDays: ', configurations[1].defaultNumberOfSchoolDays);
+    
+    console.log('breakTimeDuration: ', configurations[1].defaultBreakTimeDuration);
+    
 
     // =====================================================================================================================================
 
@@ -332,7 +326,7 @@ function Timetable() {
         const subjectMapReverse = Object.entries(subjectData).reduce((acc, [, subject], index) => {
             acc[subject.id] = {
                 id: index,
-                numOfClasses: Math.min(Math.ceil(subject?.weeklyMinutes / subject.classDuration), numOfSchoolDays),
+                numOfClasses: Math.min(Math.ceil(subject?.weeklyMinutes / subject.classDuration), configurations[1].defaultNumberOfSchoolDays),
                 classDuration: subject.classDuration,
             };
             return acc;
@@ -362,7 +356,7 @@ function Timetable() {
             const fixedPositions = section.fixedPositions;
             const additionalScheds = section.additionalScheds;
 
-            let totalNumOfClasses = calculateTotalClass(subjectData, section.subjects, numOfSchoolDays);
+            let totalNumOfClasses = calculateTotalClass(subjectData, section.subjects, configurations[1].defaultNumberOfSchoolDays);
 
             let totalAdditionalScheduleNumOfClass = additionalScheds.reduce((total, additionalScheduleNumOfClass) => {
                 return total + additionalScheduleNumOfClass.frequency;
@@ -370,13 +364,13 @@ function Timetable() {
 
             // console.log('🚀 ~ handleButtonClick ~ totalAdditionalScheduleNumOfClass:', totalAdditionalScheduleNumOfClass);
 
-            let totalTimeslot = Math.ceil((totalNumOfClasses + totalAdditionalScheduleNumOfClass) / numOfSchoolDays);
+            let totalTimeslot = Math.ceil((totalNumOfClasses + totalAdditionalScheduleNumOfClass) / configurations[1].defaultNumberOfSchoolDays);
 
             totalTimeslot += totalTimeslot >= 10 ? 2 : 1;
 
             const emptyEveryDayTimeslot = new Set(Array.from({ length: totalTimeslot }, (_, i) => i + 1));
 
-            let vacant = getVacantSlots(totalTimeslot, numOfSchoolDays, fixedPositions, fixedDays);
+            let vacant = getVacantSlots(totalTimeslot, configurations[1].defaultNumberOfSchoolDays, fixedPositions, fixedDays);
 
             // console.log('🚀 ~ Object.entries ~ vacant:', vacant);
 
@@ -397,7 +391,7 @@ function Timetable() {
             Object.keys(fixedPositions).forEach((subjectID) => {
                 const allElementsAreZero = fixedPositions[subjectID].every((element) => element === fixedPositions[subjectID][0]);
 
-                const hasCorrectLength = fixedPositions[subjectID].length == numOfSchoolDays;
+                const hasCorrectLength = fixedPositions[subjectID].length == configurations[1].defaultNumberOfSchoolDays;
 
                 if (allElementsAreZero && hasCorrectLength) {
                     subjectsEveryDay.push(subjectID);
@@ -528,7 +522,7 @@ function Timetable() {
             });
         });
 
-        let breakTimeDurationForAlgo = breakTimeDuration;
+        let breakTimeDurationForAlgo = configurations[1].defaultBreakTimeDuration;
 
         const durationUniqueAdditionalTeacherScheds = [
             ...new Set(
@@ -594,7 +588,7 @@ function Timetable() {
             const fixedPositions = section.fixedPositions;
             const additionalScheds = section.additionalScheds;
 
-            let totalNumOfClasses = calculateTotalClass(subjectData, section.subjects, numOfSchoolDays);
+            let totalNumOfClasses = calculateTotalClass(subjectData, section.subjects, configurations[1].defaultNumberOfSchoolDays);
 
             console.log('🚀hheee ~ handleButtonClick ~ section.additionalScheds:', section.additionalScheds);
 
@@ -604,14 +598,14 @@ function Timetable() {
 
             console.log('🚀 ~ handleButtonClick ~ totalAdditionalScheduleNumOfClass:', totalAdditionalScheduleNumOfClass);
 
-            let totalTimeslot = Math.ceil((totalNumOfClasses + totalAdditionalScheduleNumOfClass) / numOfSchoolDays);
+            let totalTimeslot = Math.ceil((totalNumOfClasses + totalAdditionalScheduleNumOfClass) / configurations[1].defaultNumberOfSchoolDays);
 
             totalTimeslot += totalTimeslot >= 10 ? 2 : 1;
 
             console.log('🚀 ~ sectionMap ~ fixedPositions:', fixedPositions);
             console.log('🚀 ~ sectionMap ~ fixedDays:', fixedDays);
 
-            let vacant = getVacantSlots(totalTimeslot, numOfSchoolDays, fixedPositions, fixedDays);
+            let vacant = getVacantSlots(totalTimeslot, configurations[1].defaultNumberOfSchoolDays, fixedPositions, fixedDays);
 
             console.log('🚀 ~ sectionMap ~ vacant:', vacant);
 
@@ -637,7 +631,7 @@ function Timetable() {
             Object.keys(fixedPositions).forEach((subjectID) => {
                 const allElementsAreZero = fixedPositions[subjectID].every((element) => element === fixedPositions[subjectID][0]);
 
-                const hasCorrectLength = fixedPositions[subjectID].length == numOfSchoolDays;
+                const hasCorrectLength = fixedPositions[subjectID].length == configurations[1].defaultNumberOfSchoolDays;
 
                 if (allElementsAreZero && hasCorrectLength) {
                     subjectsEveryDay.push(subjectID);
@@ -650,7 +644,7 @@ function Timetable() {
                 // console.log(`Key: ${subjectID}, Value: ${positionArray}`);
 
                 if (
-                    positionArray.length == numOfSchoolDays &&
+                    positionArray.length == configurations[1].defaultNumberOfSchoolDays &&
                     emptyEveryDayTimeslot.size >= subjectsEveryDay.length &&
                     positionArray.every((element) => element === positionArray[0])
                 ) {
@@ -766,12 +760,12 @@ function Timetable() {
         console.log('teacherMap', teacherMap);
         console.log('sectionMap', sectionMap);
 
-        let defaultClassDuration = defaultSubjectClassDuration;
+        let defaultClassDuration = configurations[1].defaultClassDuration;
 
-        let maxTeacherWorkLoad = maxTeachingLoad;
+        let maxTeacherWorkLoad = configurations[1].defaultMaximumTeachingLoad;
         // console.log('🚀 ~ handleButtonClick ~ maxTeachingLoad:', maxTeachingLoad);
         // console.log('🚀 ~ handleButtonClick ~ minTeachingLoad:', minTeachingLoad);
-        let minTeacherWorkLoad = minTeachingLoad;
+        let minTeacherWorkLoad = configurations[1].defaultMinimumTeachingLoad;
 
         // maxTeacherWorkLoad = 4000;
         // minTeacherWorkLoad = 100;
@@ -807,7 +801,7 @@ function Timetable() {
         for (const [sectionKey, section] of Object.entries(sectionMap)) {
             sectionStartArray[sectionKey] = section.startTime;
 
-            let totalNumOfClasses = calculateTotalClass(subjectData, section.subjects, numOfSchoolDays);
+            let totalNumOfClasses = calculateTotalClass(subjectData, section.subjects, configurations[1].defaultNumberOfSchoolDays);
 
             let additionalScheduleTotalNumOfClasses = section.additionalScheds.reduce((acc, schedule) => {
                 // console.log('schedule', schedule);
@@ -815,7 +809,7 @@ function Timetable() {
                 return acc + frequency;
             }, 0);
 
-            let totalTimeslot = Math.ceil((totalNumOfClasses + additionalScheduleTotalNumOfClasses) / numOfSchoolDays);
+            let totalTimeslot = Math.ceil((totalNumOfClasses + additionalScheduleTotalNumOfClasses) / configurations[1].defaultNumberOfSchoolDays);
             // console.log('🚀 ~ handleButtonClick ~ totalTimeslot:', totalTimeslot);
 
             // totalTimeslot =
@@ -980,7 +974,7 @@ function Timetable() {
 
         const numOfViolationType = 7;
 
-        const resultTimetableLength = totalSections * Object.entries(subjectData).length * numOfSchoolDays;
+        const resultTimetableLength = totalSections * Object.entries(subjectData).length * configurations[1].defaultNumberOfSchoolDays;
 
         const resultViolationLength = numOfViolationType * totalSections + numOfViolationType * totalTeachers;
 
@@ -1021,7 +1015,7 @@ function Timetable() {
             beesOnlooker: beesOnlooker,
             beesScout: beesScout,
             limit: limits,
-            workWeek: numOfSchoolDays,
+            workWeek: configurations[1].defaultNumberOfSchoolDays,
 
             breakTimeDuration: breakTimeDurationForAlgo,
             teacherBreakThreshold: teacherBreakThreshold,
@@ -1573,8 +1567,6 @@ function Timetable() {
 
     const convertToHashMap = (inputMap, type) => {
         const resultMap = new Map(); // Initialize the outer Map
-        // console.log('morningStartTime: ', morningStartTime);
-        // const timeslotindex = getTimeSlotIndex(morningStartTime);
         const timeslotindex = 72;
         console.log('timeslotindex: ', timeslotindex);
         console.log('inputMap: ', inputMap);
@@ -1731,8 +1723,8 @@ function Timetable() {
                         buildings={buildingsStore}
                         sections={sectionsStore}
                         onClear={handleClearAndRefresh}
-                        numOfSchoolDays={numOfSchoolDays}
-                        breakTimeDuration={breakTimeDuration}
+                        numOfSchoolDays={configurations[1].defaultNumberOfSchoolDays}
+                        breakTimeDuration={configurations[1].defaultBreakTimeDuration}
                     />
                     <button
                         className={clsx('btn btn-primary', {
@@ -1759,12 +1751,7 @@ function Timetable() {
             </div>
 
             <div className='mb-6'>
-                <Configuration
-                    numOfSchoolDays={numOfSchoolDays}
-                    setNumOfSchoolDays={setNumOfSchoolDays}
-                    breakTimeDuration={breakTimeDuration}
-                    setBreakTimeDuration={setBreakTimeDuration}
-                />
+                <Configuration />
             </div>
 
             <div>
@@ -1774,8 +1761,8 @@ function Timetable() {
                         subjects={subjectsStore}
                         programs={programsStore}
                         sections={sectionsStore}
-                        numOfSchoolDays={numOfSchoolDays}
-                        breakTimeDuration={breakTimeDuration}
+                        numOfSchoolDays={configurations[1].defaultNumberOfSchoolDays}
+                        breakTimeDuration={configurations[1].defaultBreakTimeDuration}
                     />
                 </div>
 
@@ -1796,8 +1783,8 @@ function Timetable() {
                         subjects={subjectsStore}
                         programs={programsStore}
                         sections={sectionsStore}
-                        numOfSchoolDays={numOfSchoolDays}
-                        breakTimeDuration={breakTimeDuration}
+                        numOfSchoolDays={configurations[1].defaultNumberOfSchoolDays}
+                        breakTimeDuration={configurations[1].defaultBreakTimeDuration}
                     />
                 </div>
 
@@ -1811,8 +1798,8 @@ function Timetable() {
                             sections={sectionsStore}
                             teachers={teachersStore}
                             buildings={buildingsStore}
-                            numOfSchoolDays={numOfSchoolDays}
-                            breakTimeDuration={breakTimeDuration}
+                            numOfSchoolDays={configurations[1].defaultNumberOfSchoolDays}
+                            breakTimeDuration={configurations[1].defaultBreakTimeDuration}
                         />
                         {/* <div className='mt-4'>
                             <ViolationList 

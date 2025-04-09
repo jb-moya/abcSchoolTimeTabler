@@ -20,16 +20,12 @@ const DroppableSchedCell = ({
     selectedSubjects,
     fixedDays,
     fixedPositions,
+    numOfSchoolDays,
 }) => {
+    // ===============================================================================
 
-// ===============================================================================
 
-    const numOfSchoolDays = parseInt(
-        localStorage.getItem('numOfSchoolDays'),
-        10
-    );
-
-// ===============================================================================
+    // ===============================================================================
 
     const [isFull, setIsFull] = useState(false);
 
@@ -70,14 +66,14 @@ const DroppableSchedCell = ({
         setIsFull(false);
     };
 
-// ===============================================================================
+    // ===============================================================================
 
     const { setNodeRef } = useDroppable({
         id: `drop-g${grade}-d${day}-p${position}`,
         data: { subjectID, day, position },
     });
 
-// ===============================================================================
+    // ===============================================================================
 
     return (
         <div
@@ -96,10 +92,7 @@ const DroppableSchedCell = ({
                 const arrayLength = fixedDays?.[subject]?.length || 0;
 
                 return Array.from({ length: arrayLength }).map((_, idx) => {
-                    if (
-                        fixedDays?.[subject]?.[idx] === day &&
-                        fixedPositions?.[subject]?.[idx] === position
-                    ) {
+                    if (fixedDays?.[subject]?.[idx] === day && fixedPositions?.[subject]?.[idx] === position) {
                         return (
                             <DraggableSchedules
                                 editMode={editMode}
@@ -113,9 +106,7 @@ const DroppableSchedCell = ({
                                 pos={position}
                                 mergeData={mergeData}
                                 colorIdx={index}
-                                subjectName={
-                                    subjects[subject]?.subject || 'Unknown'
-                                }
+                                subjectName={subjects[subject]?.subject || 'Unknown'}
                             />
                         );
                     }

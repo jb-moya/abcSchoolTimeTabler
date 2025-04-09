@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { CiClock1 } from 'react-icons/ci';
 
-function TimeSelector({ interval = 5, time = '06:00 AM', setTime = () => {}, am = 0, pm = 0 }) {
+function TimeSelector({ interval = 5, time = '06:00 AM', setTime = () => {}, am = 0, pm = 0, disabled = false }) {
     const [isPanelVisible, setIsPanelVisible] = useState(false);
     const [selectedTime, setSelectedTime] = useState({ hour: '', minute: '', period: '' });
 
@@ -60,7 +60,7 @@ function TimeSelector({ interval = 5, time = '06:00 AM', setTime = () => {}, am 
             <div
                 className={`flex flex-wrap h-12 bg-base-100 border border-base-content border-opacity-20 text-base ${
                     isPanelVisible ? 'rounded-t-md' : 'rounded-md'
-                }`}
+                } ${disabled ? 'border-none bg-transparent cursor-not-allowed' : ''}`}
             >
                 <div className='w-5/6 h-full'>
                     <div className='p-4 w-full h-full flex items-center justify-start'>
@@ -69,12 +69,16 @@ function TimeSelector({ interval = 5, time = '06:00 AM', setTime = () => {}, am 
                             : '--:--- --'}
                     </div>
                 </div>
-                <button className='w-1/6 flex items-center justify-center ' onClick={handleButtonClick}>
+                <button
+                    className='w-1/6 flex items-center justify-center'
+                    onClick={disabled ? undefined : handleButtonClick}
+                    disabled={disabled}
+                >
                     <CiClock1 size={20} />
                 </button>
             </div>
 
-            {isPanelVisible && (
+            {isPanelVisible && !disabled && (
                 <div className='w-5/6 absolute p-2 flex bg-base-100 border border-base-content border-opacity-20 rounded-b-md shadow-lg z-[1000]'>
                     {/* Hours */}
                     <div className='w-1/3 p-1 border-r border-gray-300 overflow-y-auto max-h-48'>
