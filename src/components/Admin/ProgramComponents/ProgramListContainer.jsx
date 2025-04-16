@@ -21,10 +21,8 @@ const ProgramListContainer = ({
     subjects,
     programs,
     sections,
-    // STORES
-    numOfSchoolDays: externalNumOfSchoolDays,
     editable = false,
-    breakTimeDuration: externalBreakTimeDuration,
+    loading,
 }) => {
     // ==============================================================================
 
@@ -33,7 +31,7 @@ const ProgramListContainer = ({
 
     // ==============================================================================
 
-    const { configurations, loading } = useSelector((state) => state.configuration);
+    const { configurations } = useSelector((state) => state.configuration);
 
 
     // ==============================================================================
@@ -112,6 +110,14 @@ const ProgramListContainer = ({
     const currentItems = Object.entries(searchProgramResult).slice(indexOfFirstItem, indexOfLastItem);
 
     // ================================================================
+
+    if (loading) {
+        return (
+            <div className='w-full flex justify-center items-center h-[50vh]'>
+                <span className='loading loading-bars loading-lg'></span>
+            </div>
+        );
+    }
 
     return (
         <React.Fragment>

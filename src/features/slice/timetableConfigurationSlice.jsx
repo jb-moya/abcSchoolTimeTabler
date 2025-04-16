@@ -1,9 +1,7 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { collection, onSnapshot } from 'firebase/firestore';
-import { firestore } from '../../firebase/firebase';
+import { createSlice} from '@reduxjs/toolkit';
 
 const timetableConfigurationSlice = createSlice({
-    name: 'ranks',
+    name: 'timetableConfiguration',
     initialState: {
         configurations: {
             1: {
@@ -20,29 +18,18 @@ const timetableConfigurationSlice = createSlice({
         error: null,
     },
     reducers: {
-        upsertTimetableConfiguration: (state, action) => {
+        upsert: (state, action) => {
             const { id, ...data } = action.payload;
             state.configurations[id] = data;
         },
-        removeTimetableConfiguration: (state, action) => {
+        remove: (state, action) => {
             delete state.configurations[action.payload];
         },
         setLoading: (state, action) => {
             state.loading = action.payload;
         },
     },
-    // extraReducers: (builder) => {
-    //     builder
-    //         .addCase(subscribeToRanks.pending, (state) => {
-    //             state.loading = true;
-    //             state.error = null;
-    //         })
-    //         .addCase(subscribeToRanks.rejected, (state, action) => {
-    //             state.loading = false;
-    //             state.error = action.error.message;
-    //         });
-    // },
 });
 
-export const { upsertTimetableConfiguration, removeTimetableConfiguration, setLoading } = timetableConfigurationSlice.actions;
+export const { upsert, remove, setLoading } = timetableConfigurationSlice.actions;
 export default timetableConfigurationSlice.reducer;

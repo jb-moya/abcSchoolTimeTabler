@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 
 import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 import { RiDeleteBin7Line } from 'react-icons/ri';
 
-import { fetchDocuments } from '../../hooks/CRUD/retrieveDocuments';
 import { deleteDocument } from '../../hooks/CRUD/deleteDocument';
 import { editDocument } from '../../hooks/CRUD/editDocument';
+import { useSelector } from 'react-redux';
 
 import { toast } from 'sonner';
 
@@ -17,12 +17,13 @@ const DeleteData = ({
 
 // ===============================================================================================
 
-    const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
-    const { documents: programs, loading2, error2 } = fetchDocuments('programs');
-    const { documents: sections, loading3, error3 } = fetchDocuments('sections');
-    const { documents: ranks, loading4, error4 } = fetchDocuments('ranks');
-    const { documents: teachers, loading5, error5 } = fetchDocuments('teachers');
-    const { documents: departments, loading6, error6 } = fetchDocuments('departments');
+    const { subjects, loading: subjectsLoading, error: subjectsError } = useSelector((state) => state.subjects);
+    const { programs, loading: programsLoading, error: programsError } = useSelector((state) => state.programs);
+    const { sections, loading: sectionsLoading, error: sectionsError } = useSelector((state) => state.sections);
+    const { ranks, loading: ranksLoading, error: ranksError } = useSelector((state) => state.ranks);
+    const { teachers, loading: teachersLoading, error: teachersError } = useSelector((state) => state.teachers);
+    const { departments, loading: departmentsLoading, error: departmentsError } = useSelector((state) => state.departments);
+
 
 // ===============================================================================================
 

@@ -1,7 +1,6 @@
 import { firestore } from '../../firebase/firebase';
 import { doc, deleteDoc } from "firebase/firestore";
 
-// import { fetchDocuments } from './retrieveDocuments';
 
 export async function deleteDocument(collectionName, docId) {
 

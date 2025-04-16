@@ -22,7 +22,7 @@ const TeacherEdit = ({
     setErrorMessage, 
     errorField, 
     setErrorField, 
-    numOfSchoolDays 
+    numOfSchoolDays = 5 
 }) => {
 
 // ==============================================================================

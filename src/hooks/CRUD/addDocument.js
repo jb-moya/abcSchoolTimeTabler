@@ -14,12 +14,10 @@ export async function addDocument(collectionName, entryData) {
         const collectionRef = collection(firestore, collectionName);
         let newId;
 
-        // Run transaction to safely increment the counter for this collection
         await runTransaction(firestore, async (transaction) => {
             const counterSnap = await transaction.get(counterRef);
 
             if (!counterSnap.exists()) {
-                // If no counter exists for this collection, create one starting at 1
                 transaction.set(counterRef, { highest_custom_id: 1 });
                 newId = 1;
             } else {
@@ -29,10 +27,9 @@ export async function addDocument(collectionName, entryData) {
             }
         });
 
-        // Add the new document using newId as the document ID (but without storing custom_id inside)
-        const newDocRef = doc(collectionRef, newId.toString()); // Use ID as document name
+        const newDocRef = doc(collectionRef, newId.toString());
         await runTransaction(firestore, async (transaction) => {
-            transaction.set(newDocRef, entryData); // Store only the entryData
+            transaction.set(newDocRef, entryData);
         });
 
         console.log(`Document added to ${collectionName} with ID:`, newId);

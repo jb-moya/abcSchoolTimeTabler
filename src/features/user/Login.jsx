@@ -17,6 +17,7 @@ function Login() {
     };
 
     const [loginObj, setLoginObj] = useState(INITIAL_LOGIN_OBJ);
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
 
     const { error: userError, loading } = useSelector((state) => state.user);
 
@@ -31,6 +32,7 @@ function Login() {
         }
 
         try {
+            setIsLoggingIn(true);
             dispatch(setLoading(true));
             console.log('🚀 ~ submitForm ~ loading:', loading);
 
@@ -39,6 +41,8 @@ function Login() {
             navigate('/app/dashboard');
         } catch (error) {
             toast.error(error);
+        } finally {
+            setIsLoggingIn(false);
         }
     };
 
@@ -91,11 +95,11 @@ function Login() {
                 <button
                     type='submit'
                     className={`btn mt-4 w-full btn-primary text-white transition-all duration-75 ease-in-out flex items-center justify-center ${
-                        loading ? 'cursor-not-allowed ' : ''
+                        isLoggingIn ? 'cursor-not-allowed ' : ''
                     }`}
-                    disabled={loading}
+                    disabled={isLoggingIn}
                 >
-                    {loading ? (
+                    {isLoggingIn ? (
                         <>
                             <span className='loading loading-spinner'></span>
                             Logging In

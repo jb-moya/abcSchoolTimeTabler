@@ -17,7 +17,7 @@ const TeacherRankEdit = ({
     setErrorMessage,
     errorField,
     setErrorField,
-    numOfSchoolDays,
+    numOfSchoolDays = 5,
 }) => {
     
 // ==============================================================================

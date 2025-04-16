@@ -5,7 +5,7 @@ import { login, signup, logout } from '../firebase/userService';
 const initialState = {
     user: null,
     isAuthenticated: false,
-    loading: false,
+    loading: true,
     error: null,
 };
 
@@ -40,7 +40,7 @@ export const logoutUser = createAsyncThunk('user/logoutUser', async (_, { reject
 
 const userSlice = createSlice({
     name: 'user',
-    initialState,
+    initialState: initialState,
     reducers: {
         setUser: (state, action) => {
             console.log('xxxxxxxxxxxxxxxxxxxx x x x x x    x', action.payload);

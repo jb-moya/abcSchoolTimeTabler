@@ -4,10 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { wrap } from 'comlink';
 import clsx from 'clsx';
 import * as XLSX from 'xlsx';
-import GeneratedTimetable from '@components/Admin/TimeTable';
-// import ForTest from '@components/Admin/ForTest';
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
-import validateTimetableVariables from '@validation/validateTimetableVariables';
 import { toast } from 'sonner';
 import { enableMapSet } from 'immer';
 
@@ -20,7 +16,7 @@ import packInt16ToInt32 from '@utils/packInt16ToInt32';
 import { unpackInt32ToInt16 } from '@utils/packInt16ToInt32';
 import packInt8ToInt32 from '@utils/packInt8ToInt32';
 import { packThreeSignedIntsToInt32 } from '@utils/packThreeSignedIntsToInt32';
-import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';
+import { getTimeSlotString } from '@utils/timeSlotMapper';
 import calculateTotalClass from '@utils/calculateTotalClass';
 import deepEqual from '@utils/deepEqual';
 import gcdOfArray from '@utils/getGCD';
@@ -95,35 +91,45 @@ function Timetable() {
         // { name: 'Modify Subjects', href: '/modify-subjects' },
     ];
 
-    const { configurations, loading } = useSelector((state) => state.configuration);
+    const { configurations, configurationsLoading } = useSelector((state) => state.configuration);
 
     // ====================================================================================================================================
 
     /* CONFIGURATIONS */
 
     /* TIMETABLE DATA */
-    const [buildingsStore, setBuildings] = useState({});
 
-    const { documents: subjectsStore, loading: subjectsStoreLoading, error: subjectsStoreError } = fetchDocuments('subjects');
-    const { documents: programsStore, loading: programsStoreLoading, error: programsStoreError } = fetchDocuments('programs');
-    const { documents: ranksStore, loading: ranksStoreLoading, error: ranksStoreError } = fetchDocuments('ranks');
-    const { documents: teachersStore, loading: teachersStoreLoading, error: teachersStoreError } = fetchDocuments('teachers');
     const {
-        documents: departmentsStore,
+        subjects: subjectsStore,
+        loading: subjectsStoreLoading,
+        error: subjectsStoreError,
+    } = useSelector((state) => state.subjects);
+    const {
+        programs: programsStore,
+        loading: programsStoreLoading,
+        error: programsStoreError,
+    } = useSelector((state) => state.programs);
+    const {
+        sections: sectionsStore,
+        loading: sectionsStoreLoading,
+        error: sectionsStoreError,
+    } = useSelector((state) => state.sections);
+    const { ranks: ranksStore, loading: ranksStoreLoading, error: ranksStoreError } = useSelector((state) => state.ranks);
+    const {
+        teachers: teachersStore,
+        loading: teachersStoreLoading,
+        error: teachersStoreError,
+    } = useSelector((state) => state.teachers);
+    const {
+        departments: departmentsStore,
         loading: departmentsStoreLoading,
         error: departmentsStoreError,
-    } = fetchDocuments('departments');
-    const { documents: sectionsStore, loading: sectionsStoreLoading, error: sectionsStoreError } = fetchDocuments('sections');
+    } = useSelector((state) => state.departments);
     const {
-        documents: stringfy_buildings,
-        loading: stringfy_buildingsLoading,
-        error: stringfy_buildingsError,
-    } = fetchDocuments('buildings');
-    const {
-        documents: timetableConfiguration,
-        loading: timetableConfigurationLoading,
-        error: timetableConfigurationError,
-    } = fetchDocuments('timetableConfiguration');
+        buildings: buildingsStore,
+        loading: buildingsLoading,
+        error: buildingsError,
+    } = useSelector((state) => state.buildings);
 
     // ====================================================================================================================================
     // function modifyData(data) {
@@ -197,21 +203,6 @@ function Timetable() {
     //     }
     // }, [sectionsStore]);
 
-    useEffect(() => {
-        try {
-            const converted_buildings = Object.values(stringfy_buildings).reduce((acc, { custom_id, data, id }) => {
-                const parsedData = JSON.parse(data);
-                acc[id] = { ...parsedData, id }; // Include id and custom_id inside data
-                return acc;
-            }, {});
-            console.log('buildingsRaw: ', converted_buildings);
-            setBuildings(converted_buildings);
-            // setBuildings_1(modifyData(converted_buildings));
-        } catch (error) {
-            console.error('Failed to parse buildings JSON:', error);
-        }
-    }, [stringfy_buildings]);
-
     // console.log('subjects: ', subjects);
     // console.log('programs: ', programs);
     // console.log('ranks: ', ranks);
@@ -227,18 +218,15 @@ function Timetable() {
     console.log('teachersStore: ', teachersStore);
     console.log('departmentsStore: ', departmentsStore);
     console.log('sectionsStore: ', sectionsStore);
-    console.log('stringfy_buildings: ', stringfy_buildings);
     console.log('buildingsStore: ', buildingsStore);
 
     // =====================================================================================================================================
 
-
     console.log('morningStartTime: ', configurations[1].defaultMorningStart);
 
     console.log('numOfSchoolDays: ', configurations[1].defaultNumberOfSchoolDays);
-    
+
     console.log('breakTimeDuration: ', configurations[1].defaultBreakTimeDuration);
-    
 
     // =====================================================================================================================================
 
@@ -326,7 +314,10 @@ function Timetable() {
         const subjectMapReverse = Object.entries(subjectData).reduce((acc, [, subject], index) => {
             acc[subject.id] = {
                 id: index,
-                numOfClasses: Math.min(Math.ceil(subject?.weeklyMinutes / subject.classDuration), configurations[1].defaultNumberOfSchoolDays),
+                numOfClasses: Math.min(
+                    Math.ceil(subject?.weeklyMinutes / subject.classDuration),
+                    configurations[1].defaultNumberOfSchoolDays
+                ),
                 classDuration: subject.classDuration,
             };
             return acc;
@@ -356,7 +347,11 @@ function Timetable() {
             const fixedPositions = section.fixedPositions;
             const additionalScheds = section.additionalScheds;
 
-            let totalNumOfClasses = calculateTotalClass(subjectData, section.subjects, configurations[1].defaultNumberOfSchoolDays);
+            let totalNumOfClasses = calculateTotalClass(
+                subjectData,
+                section.subjects,
+                configurations[1].defaultNumberOfSchoolDays
+            );
 
             let totalAdditionalScheduleNumOfClass = additionalScheds.reduce((total, additionalScheduleNumOfClass) => {
                 return total + additionalScheduleNumOfClass.frequency;
@@ -364,7 +359,9 @@ function Timetable() {
 
             // console.log('🚀 ~ handleButtonClick ~ totalAdditionalScheduleNumOfClass:', totalAdditionalScheduleNumOfClass);
 
-            let totalTimeslot = Math.ceil((totalNumOfClasses + totalAdditionalScheduleNumOfClass) / configurations[1].defaultNumberOfSchoolDays);
+            let totalTimeslot = Math.ceil(
+                (totalNumOfClasses + totalAdditionalScheduleNumOfClass) / configurations[1].defaultNumberOfSchoolDays
+            );
 
             totalTimeslot += totalTimeslot >= 10 ? 2 : 1;
 
@@ -522,6 +519,8 @@ function Timetable() {
             });
         });
 
+        console.log('wahaha');
+
         let breakTimeDurationForAlgo = configurations[1].defaultBreakTimeDuration;
 
         const durationUniqueAdditionalTeacherScheds = [
@@ -530,16 +529,16 @@ function Timetable() {
             ),
         ];
 
-        let timeDivision = gcdOfArray([
-            ...subjectConfigurationSubjectDurationArray.map((duration) => {
-                let { second: subjectDuration } = unpackInt32ToInt16(duration);
-                return subjectDuration;
-            }),
-            breakTimeDurationForAlgo,
-            durationUniqueAdditionalTeacherScheds,
-        ]);
+        // let timeDivision = gcdOfArray([
+        //     ...subjectConfigurationSubjectDurationArray.map((duration) => {
+        //         let { second: subjectDuration } = unpackInt32ToInt16(duration);
+        //         return subjectDuration;
+        //     }),
+        //     breakTimeDurationForAlgo,
+        //     durationUniqueAdditionalTeacherScheds,
+        // ]);
 
-        timeDivision = 5;
+        let timeDivision = 5;
 
         console.log('🚀 ~ handleButtonClick ~ timeDivision:', timeDivision);
 
@@ -588,7 +587,11 @@ function Timetable() {
             const fixedPositions = section.fixedPositions;
             const additionalScheds = section.additionalScheds;
 
-            let totalNumOfClasses = calculateTotalClass(subjectData, section.subjects, configurations[1].defaultNumberOfSchoolDays);
+            let totalNumOfClasses = calculateTotalClass(
+                subjectData,
+                section.subjects,
+                configurations[1].defaultNumberOfSchoolDays
+            );
 
             console.log('🚀hheee ~ handleButtonClick ~ section.additionalScheds:', section.additionalScheds);
 
@@ -598,7 +601,9 @@ function Timetable() {
 
             console.log('🚀 ~ handleButtonClick ~ totalAdditionalScheduleNumOfClass:', totalAdditionalScheduleNumOfClass);
 
-            let totalTimeslot = Math.ceil((totalNumOfClasses + totalAdditionalScheduleNumOfClass) / configurations[1].defaultNumberOfSchoolDays);
+            let totalTimeslot = Math.ceil(
+                (totalNumOfClasses + totalAdditionalScheduleNumOfClass) / configurations[1].defaultNumberOfSchoolDays
+            );
 
             totalTimeslot += totalTimeslot >= 10 ? 2 : 1;
 
@@ -801,7 +806,11 @@ function Timetable() {
         for (const [sectionKey, section] of Object.entries(sectionMap)) {
             sectionStartArray[sectionKey] = section.startTime;
 
-            let totalNumOfClasses = calculateTotalClass(subjectData, section.subjects, configurations[1].defaultNumberOfSchoolDays);
+            let totalNumOfClasses = calculateTotalClass(
+                subjectData,
+                section.subjects,
+                configurations[1].defaultNumberOfSchoolDays
+            );
 
             let additionalScheduleTotalNumOfClasses = section.additionalScheds.reduce((acc, schedule) => {
                 // console.log('schedule', schedule);
@@ -809,7 +818,9 @@ function Timetable() {
                 return acc + frequency;
             }, 0);
 
-            let totalTimeslot = Math.ceil((totalNumOfClasses + additionalScheduleTotalNumOfClasses) / configurations[1].defaultNumberOfSchoolDays);
+            let totalTimeslot = Math.ceil(
+                (totalNumOfClasses + additionalScheduleTotalNumOfClasses) / configurations[1].defaultNumberOfSchoolDays
+            );
             // console.log('🚀 ~ handleButtonClick ~ totalTimeslot:', totalTimeslot);
 
             // totalTimeslot =
@@ -974,7 +985,8 @@ function Timetable() {
 
         const numOfViolationType = 7;
 
-        const resultTimetableLength = totalSections * Object.entries(subjectData).length * configurations[1].defaultNumberOfSchoolDays;
+        const resultTimetableLength =
+            totalSections * Object.entries(subjectData).length * configurations[1].defaultNumberOfSchoolDays;
 
         const resultViolationLength = numOfViolationType * totalSections + numOfViolationType * totalTeachers;
 
@@ -1761,8 +1773,7 @@ function Timetable() {
                         subjects={subjectsStore}
                         programs={programsStore}
                         sections={sectionsStore}
-                        numOfSchoolDays={configurations[1].defaultNumberOfSchoolDays}
-                        breakTimeDuration={configurations[1].defaultBreakTimeDuration}
+                        loading={subjectsStoreLoading || programsStoreLoading || sectionsStoreLoading || configurationsLoading}
                     />
                 </div>
 
@@ -1773,6 +1784,7 @@ function Timetable() {
                         ranks={ranksStore}
                         departments={departmentsStore}
                         subjects={subjectsStore}
+                        loading={teachersStoreLoading || ranksStoreLoading || departmentsStoreLoading || subjectsStoreLoading}
                     />
                 </div>
 
@@ -1783,8 +1795,7 @@ function Timetable() {
                         subjects={subjectsStore}
                         programs={programsStore}
                         sections={sectionsStore}
-                        numOfSchoolDays={configurations[1].defaultNumberOfSchoolDays}
-                        breakTimeDuration={configurations[1].defaultBreakTimeDuration}
+                        loading={subjectsStoreLoading || programsStoreLoading || sectionsStoreLoading || configurationsLoading}
                     />
                 </div>
 
@@ -1798,8 +1809,14 @@ function Timetable() {
                             sections={sectionsStore}
                             teachers={teachersStore}
                             buildings={buildingsStore}
-                            numOfSchoolDays={configurations[1].defaultNumberOfSchoolDays}
-                            breakTimeDuration={configurations[1].defaultBreakTimeDuration}
+                            loading={
+                                subjectsStoreLoading ||
+                                programsStoreLoading ||
+                                sectionsStoreLoading ||
+                                teachersStoreLoading ||
+                                buildingsLoading ||
+                                configurationsLoading
+                            }
                         />
                         {/* <div className='mt-4'>
                             <ViolationList 

@@ -47,15 +47,13 @@ function PageContent() {
                                     element={
                                         route.permissions ? (
                                             <ProtectedRoute
-                                                path={route.path}
-                                                element={
-                                                    <Suspense fallback={<SuspenseContent />}>
-                                                        <route.component />
-                                                    </Suspense>
-                                                }
                                                 requiredPermissions={route.permissions || []}
                                                 requiredRole={route.role || null}
-                                            />
+                                            >
+                                                <Suspense fallback={<SuspenseContent />}>
+                                                    <route.component />
+                                                </Suspense>
+                                            </ProtectedRoute>
                                         ) : (
                                             <Suspense fallback={<SuspenseContent />}>
                                                 <route.component />

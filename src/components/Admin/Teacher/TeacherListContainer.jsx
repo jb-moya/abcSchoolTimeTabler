@@ -15,12 +15,13 @@ const TeacherListContainer = ({
     ranks, 
     departments, 
     subjects,
-    editable = false 
+    editable = false,
+    loading,
 }) => {
 
 // ===================================================================================================
 
-const { configurations, loading } = useSelector((state) => state.configuration);
+const { configurations } = useSelector((state) => state.configuration);
 
 
     const [errorMessage, setErrorMessage] = useState('');
@@ -83,6 +84,14 @@ const { configurations, loading } = useSelector((state) => state.configuration);
     const currentItems = Object.entries(searchTeacherResult).slice(indexOfFirstItem, indexOfLastItem);
 
 // ===================================================================================================
+
+    if (loading) {
+        return (
+            <div className='w-full flex justify-center items-center h-[50vh]'>
+                <span className='loading loading-bars loading-lg'></span>
+            </div>
+        );
+    }
 
     return (
         <React.Fragment>
@@ -163,7 +172,7 @@ const { configurations, loading } = useSelector((state) => state.configuration);
                                         setErrorMessage={setErrorMessage}
                                         errorField={errorField}
                                         setErrorField={setErrorField}
-                                        numOfSchoolDays={configurations[1].defaultNumberOfSchoolDays}
+                                        numOfSchoolDays={configurations[1]?.defaultNumberOfSchoolDays || 5}
                                     />
                                     <div className='modal-action'>
                                         <button
@@ -340,7 +349,7 @@ const { configurations, loading } = useSelector((state) => state.configuration);
                                                         setErrorMessage={setErrorMessage}
                                                         errorField={errorField}
                                                         setErrorField={setErrorField}
-                                                        numOfSchoolDays={configurations[1].defaultNumberOfSchoolDays}
+                                                        numOfSchoolDays={configurations[1]?.defaultNumberOfSchoolDays || 5}
                                                     />
                                                     <DeleteData 
                                                         className='btn btn-xs btn-ghost text-red-500' 

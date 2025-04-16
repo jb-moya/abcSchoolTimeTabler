@@ -15,29 +15,16 @@ import SectionEdit from './SectionEdit';
 import { useSelector } from 'react-redux';
 
 const SectionListContainer = ({
-    // STORES
     sections,
     programs,
     subjects,
     teachers,
     buildings,
-    // STORES
-    numOfSchoolDays = 5,
     editable = false,
-    breakTimeDuration: externalBreakTimeDuration,
+    loading,
 }) => {
     //  =========================================================================================
-    const { configurations, loading } = useSelector((state) => state.configuration);
-
-    const [breakTimeDuration, setBreakTimeDuration] = useState(() => {
-        return externalBreakTimeDuration ?? (Number(localStorage.getItem('breakTimeDuration')) || 0);
-    });
-
-    useEffect(() => {
-        if (externalBreakTimeDuration !== undefined) {
-            setBreakTimeDuration(externalBreakTimeDuration);
-        }
-    }, [externalBreakTimeDuration]);
+    const { configurations } = useSelector((state) => state.configuration);
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState([]);
@@ -107,6 +94,14 @@ const SectionListContainer = ({
     const currentItems = Object.entries(searchSectionResult).slice(indexOfFirstItem, indexOfLastItem);
 
     //  =======================================================================================
+
+    if (loading) {
+        return (
+            <div className='w-full flex justify-center items-center h-[50vh]'>
+                <span className='loading loading-bars loading-lg'></span>
+            </div>
+        );
+    }
 
     return (
         <React.Fragment>
@@ -185,7 +180,7 @@ const SectionListContainer = ({
                                         errorField={errorField}
                                         setErrorField={setErrorField}
                                         numOfSchoolDays={configurations[1].defaultNumberOfSchoolDays}
-                                        breakTimeDuration={breakTimeDuration}
+                                        breakTimeDuration={configurations[1].defaultBreakTimeDuration}
                                     />
                                     <div className='modal-action'>
                                         <button
@@ -427,7 +422,7 @@ const SectionListContainer = ({
                                                         errorField={errorField}
                                                         setErrorField={setErrorField}
                                                         numOfSchoolDays={configurations[1].defaultNumberOfSchoolDays}
-                                                        breakTimeDuration={breakTimeDuration}
+                                                        breakTimeDuration={configurations[1].defaultBreakTimeDuration}
                                                     />
 
                                                     <DeleteData

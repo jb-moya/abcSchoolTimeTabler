@@ -412,7 +412,8 @@ const RoomListContainer = ({
     buildings,
     sections,
     // STORES
-    editable = false 
+    editable = false,
+    loading
 }) => {
 
     const inputBuildingNameRef = useRef();
@@ -731,7 +732,13 @@ const RoomListContainer = ({
         deleteButton.onclick = () => handleDelete(id);
     };
 
-    // =======================================================================================================================
+    if (loading) {
+        return (
+            <div className='w-full flex justify-center items-center h-[50vh]'>
+                <span className='loading loading-bars loading-lg'></span>
+            </div>
+        );
+    }
 
     return (
         <div className='w-full'>

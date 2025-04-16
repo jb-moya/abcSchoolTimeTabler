@@ -1,0 +1,25 @@
+import { createSlice } from '@reduxjs/toolkit';
+
+const schedules = createSlice({
+    name: 'schedules',
+    initialState: {
+        schedules: {},
+        loading: true,
+        error: null,
+    },
+    reducers: {
+        upsert: (state, action) => {
+            const { id } = action.payload;
+            state.schedules[id] = action.payload;
+        },
+        remove: (state, action) => {
+            delete state.schedules[action.payload];
+        },
+        setLoading: (state, action) => {
+            state.loading = action.payload;
+        },
+    },
+});
+
+export const { upsert, remove, setLoading } = schedules.actions;
+export default schedules.reducer;

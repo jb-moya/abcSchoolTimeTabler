@@ -2,68 +2,42 @@ import { useEffect, useState } from 'react';
 
 import Breadcrumbs from '@components/Admin/Breadcrumbs';
 import SectionListContainer from '../../../components/Admin/SectionComponents/SectionListContainer';
-
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+import { useSelector } from 'react-redux';
 
 function Sections() {
+    const links = [
+        { name: 'Home', href: '/' },
+        // { name: 'Modify Subjects', href: '/modify-subjects' },
+    ];
 
-	const links = [
-		{ name: 'Home', href: '/' },
-		// { name: 'Modify Subjects', href: '/modify-subjects' },
-	];
+    const { subjects, loading: subjectsLoading, error: subjectsError } = useSelector((state) => state.subjects);
+    const { programs, loading: programsLoading, error: programsError } = useSelector((state) => state.programs);
+    const { sections, loading: sectionsLoading, error: sectionsError } = useSelector((state) => state.sections);
+    const { teachers, loading: teachersLoading, error: teachersError } = useSelector((state) => state.teachers);
+    const { buildings, loading: buildingsLoading, error: buildingsError } = useSelector((state) => state.buildings);
 
-	const [buildings, setBuildings] = useState({});
+    return (
+        <div className='App container mx-auto px-4 mb-10'>
+            <Breadcrumbs title='Modify Sections' links={links} />
 
-	const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
-
-	const { documents: programs, loading2, error2 } = fetchDocuments('programs');
-
-	const { documents: sections, loading3, error3 } = fetchDocuments('sections');
-
-	const { documents: teachers, loading4, error4 } = fetchDocuments('teachers');
-
-	const { documents: stringfy_buildings, loading5, error5 } = fetchDocuments('buildings');
-
-	useEffect(() => {
-		try {
-			const converted_buildings = Object.values(stringfy_buildings).reduce((acc, { data, id }) => {
-				const parsedData = JSON.parse(data);
-				acc[id] = { ...parsedData, id }; // Include id and custom_id inside data
-				return acc;
-			}, {});
-			console.log('converted_buildings: ', converted_buildings);
-
-			setBuildings(converted_buildings);
-		} catch (error) {
-			console.error('Failed to parse buildings JSON:', error);
-		}
-	}, [stringfy_buildings]);
-
-	return (
-		<div className="App container mx-auto px-4 mb-10">
-			
-			<Breadcrumbs title="Modify Sections" links={links} />
-
-			{/* Main Content */}
-			<div className="flex flex-col gap-4">
-				<div className="card w-full bg-base-100 shadow-md">
-					<div className="card-body">
-						<SectionListContainer 	
-							subjects={subjects}
-							programs={programs}
-							sections={sections}
-							teachers={teachers}
-							buildings={buildings}
-							editable={true} 
-						/>
-					</div>
-				</div>
-			</div>
-
-		</div>
-	);
-
- 
+            {/* Main Content */}
+            <div className='flex flex-col gap-4'>
+                <div className='card w-full bg-base-100 shadow-md'>
+                    <div className='card-body'>
+                        <SectionListContainer
+                            subjects={subjects}
+                            programs={programs}
+                            sections={sections}
+                            teachers={teachers}
+                            buildings={buildings}
+                            editable={true}
+                            loading={subjectsLoading || programsLoading || sectionsLoading || teachersLoading || buildingsLoading}
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 }
 
 export default Sections;

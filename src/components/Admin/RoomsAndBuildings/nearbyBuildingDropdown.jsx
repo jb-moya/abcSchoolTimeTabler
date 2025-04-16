@@ -3,7 +3,6 @@ import { IoChevronDown, IoRemove, IoAdd } from 'react-icons/io5';
 import clsx from 'clsx';
 import escapeRegExp from '@utils/escapeRegExp';
 
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
 
 const NearbyBuildingDropdown = ({
     availableBuildings,

@@ -25,7 +25,7 @@ const AddProgramContainer = ({
     setErrorMessage,
     errorField,
     setErrorField,
-    numOfSchoolDays,
+    numOfSchoolDays = 5,
     breakTimeDuration,
 }) => {
 

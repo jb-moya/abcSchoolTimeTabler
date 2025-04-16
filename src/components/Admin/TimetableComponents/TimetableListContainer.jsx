@@ -22,7 +22,7 @@ const TimetableListContainer = ({
     departments,
     buildings,
     schedules,
-    // stores
+    loading,
 }) => {
 
     const location = useLocation();
@@ -156,6 +156,14 @@ const TimetableListContainer = ({
 
     const parsed_building = JSON.parse(string_building);
     console.log('parsed_building: ', parsed_building);
+
+    if (loading) {
+        return (
+            <div className='w-full flex justify-center items-center h-[50vh]'>
+                <span className='loading loading-bars loading-lg'></span>
+            </div>
+        );
+    }
 
     return (
         <React.Fragment>

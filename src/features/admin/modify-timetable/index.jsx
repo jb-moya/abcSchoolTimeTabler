@@ -2,47 +2,19 @@ import { useEffect, useState } from 'react';
 
 import Breadcrumbs from '@components/Admin/Breadcrumbs';
 import TimetableListContainer from '@components/Admin/TimetableComponents/TimetableListContainer';
-
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+import { useSelector } from 'react-redux';
 
 function ModifyTimetable({}) {
+    const links = [{ name: 'Home', href: '/' }];
 
-    const links = [
-        { name: 'Home', href: '/' }
-    ];
-
-    const [buildings, setBuildings] = useState({});
-    
-    const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
-
-    const { documents: programs, loading2, error2 } = fetchDocuments('programs');
-
-    const { documents: sections, loading3, error3 } = fetchDocuments('sections');
-
-    const { documents: teachers, loading4, error4 } = fetchDocuments('teachers');
-
-    const { documents: ranks, loading5, error5 } = fetchDocuments('ranks');
-
-    const { documents: departments, loading6, error6 } = fetchDocuments('departments');
-
-    const { documents: schedules, loading7, error7 } = fetchDocuments('schedules');
-
-    const { documents: stringfy_buildings, loading8, error8 } = fetchDocuments('buildings');
-
-    useEffect(() => {
-        try {
-            const converted_buildings = Object.values(stringfy_buildings).reduce((acc, { data, id }) => {
-                const parsedData = JSON.parse(data);
-                acc[id] = { ...parsedData, id }; // Include id and custom_id inside data
-                return acc;
-            }, {});
-            console.log('converted_buildings: ', converted_buildings);
-
-            setBuildings(converted_buildings);
-        } catch (error) {
-            console.error('Failed to parse buildings JSON:', error);
-        }
-    }, [stringfy_buildings]);
+    const { subjects, loading: subjectsLoading, error: subjectsError } = useSelector((state) => state.subjects);
+    const { programs, loading: programsLoading, error: programsError } = useSelector((state) => state.programs);
+    const { sections, loading: sectionsLoading, error: sectionsError } = useSelector((state) => state.sections);
+    const { ranks, loading: ranksLoading, error: ranksError } = useSelector((state) => state.ranks);
+    const { teachers, loading: teachersLoading, error: teachersError } = useSelector((state) => state.teachers);
+    const { departments, loading: departmentsLoading, error: departmentsError } = useSelector((state) => state.departments);
+    const { schedules, loading: schedulesLoading, error: schedulesError } = useSelector((state) => state.schedules);
+    const { buildings, loading: buildingsLoading, error: buildingsError } = useSelector((state) => state.buildings);
 
     return (
         <div className='App container mx-auto px-4 mb-10'>
@@ -56,6 +28,16 @@ function ModifyTimetable({}) {
                 departments={departments}
                 schedules={schedules}
                 buildings={buildings}
+                loading={
+                    subjectsLoading ||
+                    programsLoading ||
+                    sectionsLoading ||
+                    teachersLoading ||
+                    ranksLoading ||
+                    departmentsLoading ||
+                    schedulesLoading ||
+                    buildingsLoading
+                }
             />
         </div>
     );

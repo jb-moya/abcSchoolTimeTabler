@@ -13,7 +13,8 @@ import DepartmentEdit from './DepartmentEdit';
 const DepartmentListContainer = ({ 
 	departments,
 	teachers,
-	editable = false 
+	editable = false,
+	loading
 }) => {
 
 // ====================================================================
@@ -67,6 +68,14 @@ const DepartmentListContainer = ({
 		indexOfFirstItem,
 		indexOfLastItem
 	);
+
+	if (loading) {
+        return (
+            <div className='w-full flex justify-center items-center h-[50vh]'>
+                <span className='loading loading-bars loading-lg'></span>
+            </div>
+        );
+    }
 
 	return (
 		<div className="w-full">

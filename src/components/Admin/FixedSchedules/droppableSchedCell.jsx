@@ -20,7 +20,7 @@ const DroppableSchedCell = ({
     selectedSubjects,
     fixedDays,
     fixedPositions,
-    numOfSchoolDays,
+    numOfSchoolDays = 5,
 }) => {
     // ===============================================================================
 

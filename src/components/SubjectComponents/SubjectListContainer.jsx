@@ -8,52 +8,20 @@ import escapeRegExp from '@utils/escapeRegExp';
 import AddSubjectContainer from './AddSubjectContainer';
 import SubjectEdit from './SubjectEdit';
 import DeleteData from '../Admin/DeleteData';
+import { useSelector } from 'react-redux';
 
 const SubjectListContainer = ({
     subjects,
     programs,
     sections,
-    numOfSchoolDays: externalNumOfSchoolDays,
     editable = false,
-    breakTimeDuration: externalBreakTimeDuration,
+    loading,
 }) => {
-
-    console.log('subjects: ', subjects);
-
-// ==============================================================================
-
-    const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
-        return externalNumOfSchoolDays ?? (Number(localStorage.getItem('numOfSchoolDays')) || 0);
-    });
-
-    const defaultSubjectClassDuration = localStorage.getItem(
-        'defaultSubjectClassDuration'
-    );
-
-    const [breakTimeDuration, setBreakTimeDuration] = useState(() => {
-        return (
-            externalBreakTimeDuration ??
-            (Number(localStorage.getItem('breakTimeDuration')) || 0)
-        );
-    });
-
-    useEffect(() => {
-        if (externalNumOfSchoolDays !== undefined) {
-            setNumOfSchoolDays(externalNumOfSchoolDays);
-        }
-    }, [externalNumOfSchoolDays]);
-
-    useEffect(() => {
-        if (externalBreakTimeDuration !== undefined) {
-            setBreakTimeDuration(externalBreakTimeDuration);
-        }
-    }, [externalBreakTimeDuration]);
-
-    useEffect(() => {
-        console.log('numOfSchoolDays:', numOfSchoolDays);
-    }, [numOfSchoolDays]);
-
-// ==============================================================================
+    const defaultSubjectClassDuration = localStorage.getItem('defaultSubjectClassDuration');
+    const { configurations, configurationsLoading } = useSelector((state) => state.configuration);
+    const numOfSchoolDays = configurations[1]?.numOfSchoolDays || 5; // Default to 5 if not found in configurations
+    const breakTimeDuration = configurations[1]?.breakTimeDuration || 30; // Default to 30 if not found in configurations
+    // ==============================================================================
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
@@ -61,7 +29,7 @@ const SubjectListContainer = ({
     const [searchSubjectResult, setSearchSubjectResult] = useState(subjects);
     const [searchSubjectValue, setSearchSubjectValue] = useState('');
 
-// ==============================================================================
+    // ==============================================================================
 
     const handleClose = () => {
         const modal = document.getElementById('add_subject_modal');
@@ -74,7 +42,7 @@ const SubjectListContainer = ({
         }
     };
 
-// ==============================================================================
+    // ==============================================================================
 
     // useEffect(() => {
     //     if (subjectStatus === 'idle') {
@@ -82,7 +50,7 @@ const SubjectListContainer = ({
     //     }
     // }, [subjectStatus, dispatch]);
 
-// ==============================================================================
+    // ==============================================================================
 
     const debouncedSearch = useCallback(
         debounce((searchValue, subjects) => {
@@ -100,8 +68,10 @@ const SubjectListContainer = ({
     );
 
     useEffect(() => {
+        if (loading) return;
+
         debouncedSearch(searchSubjectValue, subjects);
-    }, [searchSubjectValue, subjects, debouncedSearch]);
+    }, [searchSubjectValue, subjects, debouncedSearch, loading]);
 
     const itemsPerPage = 10; // Change this to adjust the number of items per page
     const [currentPage, setCurrentPage] = useState(1);
@@ -114,7 +84,15 @@ const SubjectListContainer = ({
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Object.entries(searchSubjectResult).slice(indexOfFirstItem, indexOfLastItem);
 
-// ==============================================================================
+    // ==============================================================================
+
+    if (loading) {
+        return (
+            <div className='w-full flex justify-center items-center h-[50vh]'>
+                <span className='loading loading-bars loading-lg'></span>
+            </div>
+        );
+    }
 
     return (
         <div className='w-full'>
@@ -224,8 +202,7 @@ const SubjectListContainer = ({
                             </tr>
                         ) : (
                             currentItems.map(([, subject], index) => (
-                                <tr key={subject.id} className="group hover">
-
+                                <tr key={subject.id} className='group hover'>
                                     {/* Subject ID */}
                                     <th>{subject.id}</th>
 
@@ -239,28 +216,23 @@ const SubjectListContainer = ({
                                     <td>{subject.weeklyMinutes}</td>
 
                                     {/* Number of Classes */}
-                                    <td>
-                                        {Math.min(
-                                            Math.ceil(subject.weeklyMinutes / subject.classDuration),
-                                            numOfSchoolDays
-                                        )}
-                                    </td>
+                                    <td>{Math.min(Math.ceil(subject.weeklyMinutes / subject.classDuration), numOfSchoolDays)}</td>
 
                                     {/* Edit and Delete */}
                                     {editable && (
                                         <td className='w-28'>
                                             <div className='flex'>
                                                 <SubjectEdit
-                                                    className="btn btn-xs btn-ghost text-blue-500"
+                                                    className='btn btn-xs btn-ghost text-blue-500'
                                                     subjects={subjects}
                                                     programs={programs}
                                                     sections={sections}
-                                                    subject={subject}  // Pass the entire subject object
+                                                    subject={subject} // Pass the entire subject object
                                                     errorMessage={errorMessage}
                                                     setErrorMessage={setErrorMessage}
                                                     errorField={errorField}
                                                     setErrorField={setErrorField}
-                                                    numOfSchoolDays = {numOfSchoolDays}
+                                                    numOfSchoolDays={numOfSchoolDays}
                                                     breakTimeDuration={breakTimeDuration}
                                                 />
                                                 <DeleteData

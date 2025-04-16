@@ -27,7 +27,7 @@ const SectionEdit = ({
     setErrorMessage,
     errorField,
     setErrorField,
-    numOfSchoolDays,
+    numOfSchoolDays = 5,
     breakTimeDuration,
 }) => {
 

@@ -18,7 +18,7 @@ const SubjectEdit = ({
     errorMessage,
     errorField,
     setErrorField,
-    numOfSchoolDays,
+    numOfSchoolDays = 5,
     breakTimeDuration,
 }) => {
 

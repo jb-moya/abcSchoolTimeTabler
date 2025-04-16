@@ -2,70 +2,66 @@ import SubjectListContainer from '../../../components/SubjectComponents/SubjectL
 import ProgramListContainer from '../../../components/Admin/ProgramComponents/ProgramListContainer';
 import Configuration from '@components/Admin/Configuration';
 import Breadcrumbs from '@components/Admin/Breadcrumbs';
-
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
+import { useSelector } from 'react-redux';
 
 function Subject() {
-	// Scope and Limitations
-	// Room-Section Relationship: Each room is uniquely assigned to a specific subject, establishing a 1:1 relationship.
-	// Due to this strict pairing, room allocation is not a factor in timetable generation.
+    // Scope and Limitations
+    // Room-Section Relationship: Each room is uniquely assigned to a specific subject, establishing a 1:1 relationship.
+    // Due to this strict pairing, room allocation is not a factor in timetable generation.
 
-	// Curriculum-Driven Course Selection: Students are required to follow a predefined curriculum.
-	// They do not have the option to select subjects independently.
+    // Curriculum-Driven Course Selection: Students are required to follow a predefined curriculum.
+    // They do not have the option to select subjects independently.
 
-	// Standardized Class Start and Break Times: The start time for the first class and the timing of breaks are
-	// standardized across all sections and teachers, ensuring uniformity in the daily schedule.
+    // Standardized Class Start and Break Times: The start time for the first class and the timing of breaks are
+    // standardized across all sections and teachers, ensuring uniformity in the daily schedule.
 
-	// const dispatch = useDispatch();
+    // const dispatch = useDispatch();
 
-	const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
-	const { documents: programs, loading2, error2 } = fetchDocuments('programs');
-	const { documents: sections, loading3, error3 } = fetchDocuments('sections');
+    const { subjects, loading: subjectsLoading, error: subjectsError } = useSelector((state) => state.subjects);
+    console.log('🚀 ~ Subject ~ subjects:', subjects);
+    const { programs, loading: programsLoading, error: programsError } = useSelector((state) => state.programs);
+    const { sections, loading: sectionsLoading, error: sectionsError } = useSelector((state) => state.sections);
 
-	// useEffect(() => {
-	// 	if (subjects.length === 0) dispatch(subscribeToSubjects());
-	// 	if (programs.length === 0) dispatch(subscribeToPrograms());
-	// 	if (sections.length === 0) dispatch(subscribeToSections());
-	// }, [dispatch]);
+    const links = [
+        { name: 'Home', href: '/' },
+        // { name: 'Modify Subjects', href: '/modify-subjects' },
+    ];
 
-	const links = [
-		{ name: 'Home', href: '/' },
-		// { name: 'Modify Subjects', href: '/modify-subjects' },
-	];
+    return (
+        <div className='App container mx-auto px-4 mb-10'>
+            {/* Optional Configuration Component */}
+            {/* <Configuration /> */}
 
-	return (
-	<div className="App container mx-auto px-4 mb-10">
-		{/* Optional Configuration Component */}
-			{/* <Configuration /> */}
+            <Breadcrumbs title='Modify Subjects and Programs' links={links} />
 
-			<Breadcrumbs title="Modify Subjects and Programs" links={links} />
+            {/* Main Content */}
+            <div className='flex flex-col gap-4'>
+                <div className='card w-full bg-base-100 shadow-md'>
+                    <div className='card-body'>
+                        <SubjectListContainer
+                            subjects={subjects}
+                            programs={programs}
+                            sections={sections}
+                            editable={true}
+                            loading={subjectsLoading || programsLoading || sectionsLoading}
+                        />
+                    </div>
+                </div>
 
-			{/* Main Content */}
-			<div className="flex flex-col gap-4">
-				<div className="card w-full bg-base-100 shadow-md">
-					<div className="card-body">
-						<SubjectListContainer 
-							subjects={subjects}
-							programs={programs}
-							sections={sections}
-							editable={true} 
-						/>
-					</div>
-				</div>
-
-				<div className="card w-full bg-base-100 shadow-md">
-					<div className="card-body">
-						<ProgramListContainer 
-							subjects={subjects}
-							programs={programs}
-							sections={sections}
-							editable={true} 
-						/>
-					</div>
-				</div>
-			</div>
-		</div>
-	);
+                <div className='card w-full bg-base-100 shadow-md'>
+                    <div className='card-body'>
+                        <ProgramListContainer
+                            subjects={subjects}
+                            programs={programs}
+                            sections={sections}
+                            editable={true}
+                            loading={subjectsLoading || programsLoading || sectionsLoading}
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 }
 
 export default Subject;

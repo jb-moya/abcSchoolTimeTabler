@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
@@ -9,18 +9,20 @@ import AdditionalScheduleForTeacherRank from './AdditionalScheduleForTeacherRank
 import AddTeacherRankContainer from './TeacherRankAdd';
 import DeleteData from '../DeleteData';
 import TeacherRankEdit from './TeacherRankEdit';
+import { useSelector } from 'react-redux';
 
 const TeacherRankListContainer = ({ 
     // STORES
     ranks,
 	teachers,
     // STORES
-    editable = false 
+    editable = false,
+    loading,
 }) => {
 
 // ===================================================================================================
 
-    const numOfSchoolDays = Number(localStorage.getItem('numOfSchoolDays')) || 0;
+    const { configurations, loading: configurationsLoading } = useSelector((state) => state.configuration);
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
@@ -231,11 +233,18 @@ const TeacherRankListContainer = ({
 
 // ===================================================================================================
 
+    if (loading) {
+        return (
+            <div className='w-full flex justify-center items-center h-[50vh]'>
+                <span className='loading loading-bars loading-lg'></span>
+            </div>
+        );
+    }
+
     return (
         <React.Fragment>
             <div className='w-full'>
                 <div className='flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5'>
-
                     {/* Pagination */}
                     {currentItems.length > 0 && (
                         <div className='join flex justify-center mb-4 md:mb-0'>
@@ -305,7 +314,7 @@ const TeacherRankListContainer = ({
                                         setErrorMessage={setErrorMessage}
                                         errorField={errorField}
                                         setErrorField={setErrorField}
-                                        numOfSchoolDays={numOfSchoolDays}
+                                        numOfSchoolDays={configurations[1]?.defaultNumberOfSchoolDays || 5}
                                     />
                                     <div className='modal-action'>
                                         <button
@@ -319,7 +328,6 @@ const TeacherRankListContainer = ({
                             </dialog>
                         </div>
                     )}
-
                 </div>
                 <div className='overflow-x-auto'>
                     <table className='table table-sm table-zebra w-full'>
@@ -342,7 +350,6 @@ const TeacherRankListContainer = ({
                             ) : (
                                 currentItems.map(([, rank], index) => (
                                     <tr key={rank.id} className='group hover'>
-
                                         {/* Index */}
                                         <td>{index + indexOfFirstItem + 1}</td>
 
@@ -351,7 +358,7 @@ const TeacherRankListContainer = ({
 
                                         {/* Rank */}
                                         <td>{rank.rank}</td>
-                                        
+
                                         {/* Additional Schedules */}
                                         <td>
                                             <div
@@ -429,10 +436,10 @@ const TeacherRankListContainer = ({
                                                             setErrorMessage={setErrorMessage}
                                                             errorField={errorField}
                                                             setErrorField={setErrorField}
-                                                            numOfSchoolDays={numOfSchoolDays}
+                                                            numOfSchoolDays={configurations[1]?.defaultNumberOfSchoolDays || 5}
                                                         />
-                                                        <DeleteData 
-                                                            className='btn btn-xs btn-ghost text-red-500' 
+                                                        <DeleteData
+                                                            className='btn btn-xs btn-ghost text-red-500'
                                                             collection={'ranks'}
                                                             id={rank.id}
                                                         />

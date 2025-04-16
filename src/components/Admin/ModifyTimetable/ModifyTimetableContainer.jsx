@@ -14,21 +14,17 @@ import { addDocument } from '../../../hooks/CRUD/addDocument';
 import { editDocument } from '../../../hooks/CRUD/editDocument';
 
 function processRows(data, n) {
-    // Generate a key from each row ignoring the last element
     function generateKey(row) {
         return JSON.stringify(row.slice(0, -1));
     }
-    // Count occurrences of each unique key
     const keyCounts = {};
     data.forEach((row) => {
         const key = generateKey(row);
         keyCounts[key] = (keyCounts[key] || 0) + 1;
     });
 
-    // Identify keys that appear at least `n` times
     const keysToOverwrite = Object.keys(keyCounts).filter((key) => keyCounts[key] >= n);
 
-    // Create the new data set
     const newData = [];
     const overwrittenKeys = new Set(keysToOverwrite);
 
@@ -37,7 +33,6 @@ function processRows(data, n) {
         newData.push([...parsedKey, 0]);
     });
 
-    // Add rows that don't meet the condition unchanged
     data.forEach((row) => {
         const key = generateKey(row);
         if (!overwrittenKeys.has(key)) {
@@ -49,7 +44,6 @@ function processRows(data, n) {
 }
 
 function getSectionID(data) {
-    // Generate a key from each row ignoring the last element
 
     data.forEach((row) => {
         const key = generateKey(row);
@@ -79,13 +73,12 @@ const ModifyTimetableContainer = ({
     errorField,
     setErrorField,
 }) => {
-    console.log('timetableName sa loob: ', timetableName);
+    // console.log('timetableName sa loob: ', timetableName);
     // console.log('timetableId sa loob: ', timetableId);
-    console.log('firebaseId sa loob: ', firebaseId);
-    console.log('teachers sa loob: ', teachers);
-    console.log('subjects sa loob: ', subjects);
-
-    console.log('sections sa loob: ', sections);
+    // console.log('firebaseId sa loob: ', firebaseId);
+    // console.log('teachers sa loob: ', teachers);
+    // console.log('subjects sa loob: ', subjects);
+    // console.log('sections sa loob: ', sections);
 
     const inputNameRef = useRef();
 
@@ -105,7 +98,6 @@ const ModifyTimetableContainer = ({
 
     // const [scheduleVerId, setScheduleVerId] = useState(timetableId);
     const [scheduleVerName, setScheduleVerName] = useState(timetableName);
-    console.log('rendering');
 
     useEffect(() => {
         setScheduleVerName(timetableName);
@@ -133,7 +125,6 @@ const ModifyTimetableContainer = ({
     const deploy = async () => {
         console.log('deploying', valueMap);
         const array = mapToArray(valueMap);
-        // console.log('array ffasdf: ', array);
 
         const n = 5;
         let resultarray = [];
@@ -171,6 +162,9 @@ const ModifyTimetableContainer = ({
                     buildings[sections[currSectionID]?.roomDetails?.buildingId]?.rooms[
                         sections[currSectionID]?.roomDetails?.floorIdx
                     ][sections[currSectionID]?.roomDetails?.roomIdx].roomName;
+
+                console.log('f', buildings[sections[currSectionID]]);
+
                 console.log('sectionRoom: ', sectionRoom);
             } else if (row[2] === 't') {
                 for (let i = 0; i < row[1].length; i++) {
