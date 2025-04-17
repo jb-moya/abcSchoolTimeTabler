@@ -12,9 +12,10 @@ let filteredPermissions = APP_CONFIG.PERMISSIONS.filter((perm) => perm !== 'Gene
 
 const CreateUser = () => {
     const INITIAL_REGISTER_OBJ = {
-        email: 'admin-with-all-permissions@email.com',
-        password: '1111111111111',
-        confirmPassword: '1111111111111',
+        email: '',
+        username: '',
+        password: '',
+        confirmPassword: '',
         permissions: [],
         role: 'admin',
         status: 'inactive',
@@ -55,7 +56,7 @@ const CreateUser = () => {
         e.preventDefault();
 
         try {
-            const newUserData = await dispatch(createUser(registerObj)).unwrap(); // Ensures promise rejection is thrown
+            await dispatch(createUser(registerObj)).unwrap(); // Ensures promise rejection is thrown
             resetForm();
             console.log('Successfully registered');
         } catch (error) {
@@ -80,6 +81,17 @@ const CreateUser = () => {
                             updateFormValue={updateFormValue}
                         />
                     </div>
+
+                    <div>
+                        <InputText
+                            defaultValue={registerObj.username}
+                            updateType='username'
+                            containerStyle=''
+                            labelTitle='Username'
+                            updateFormValue={updateFormValue}
+                        />
+                    </div>
+
 
                     <div>
                         <InputText

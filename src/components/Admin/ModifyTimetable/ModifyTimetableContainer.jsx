@@ -10,8 +10,10 @@ import clsx from 'clsx';
 import { IoIosAdd, IoIosWarning } from 'react-icons/io';
 import { FiMinus } from 'react-icons/fi';
 import ExportSchedules from './ExportSchedules';
-import { addDocument } from '../../../hooks/CRUD/addDocument';
-import { editDocument } from '../../../hooks/CRUD/editDocument';
+import { addDocument } from '../../../hooks/firebaseCRUD/addDocument';
+import { editDocument } from '../../../hooks/firebaseCRUD/editDocument';
+import { useSelector } from 'react-redux';
+import { COLLECTION_ABBREVIATION } from '../../../constants';
 
 function processRows(data, n) {
     function generateKey(row) {
@@ -44,7 +46,6 @@ function processRows(data, n) {
 }
 
 function getSectionID(data) {
-
     data.forEach((row) => {
         const key = generateKey(row);
         keyCounts[key] = (keyCounts[key] || 0) + 1;
@@ -73,12 +74,7 @@ const ModifyTimetableContainer = ({
     errorField,
     setErrorField,
 }) => {
-    // console.log('timetableName sa loob: ', timetableName);
-    // console.log('timetableId sa loob: ', timetableId);
-    // console.log('firebaseId sa loob: ', firebaseId);
-    // console.log('teachers sa loob: ', teachers);
-    // console.log('subjects sa loob: ', subjects);
-    // console.log('sections sa loob: ', sections);
+    const { user: currentUser } = useSelector((state) => state.user);
 
     const inputNameRef = useRef();
 
@@ -296,7 +292,7 @@ const ModifyTimetableContainer = ({
         }
     };
 
-    const save = () => {
+    const save = async () => {
         const array = mapToArray(valueMap);
         console.log('IDTNIGNA: ', firebaseId);
         console.log('🚀 ~ save ~ valueMap:', valueMap);
@@ -358,36 +354,39 @@ const ModifyTimetableContainer = ({
             setErrorField('timetable_name');
             setErrorMessage(`Timetable with name '${scheduleVerName}' already exists.`);
             return;
-        } else {
+        }
+
+        try {
             if (firebaseId === null) {
-                // dispatch(
-                //     addSched({
-                //         name: scheduleVerName,
-                //         data: stringifiedTimeTable,
-                //     })
-                // );
-                addDocument('schedules', {
-                    name: scheduleVerName,
-                    data: stringifiedTimeTable,
+                await addDocument({
+                    collectionName: 'schedules',
+                    collectionAbbreviation: COLLECTION_ABBREVIATION.SCHEDULES,
+                    userName: currentUser?.username || 'unknown user',
+                    itemName: scheduleVerName || 'an item',
+                    entryData: {
+                        name: scheduleVerName,
+                        data: stringifiedTimeTable,
+                    },
                 });
             } else {
-                // dispatch(
-                //     editSched({
-                //         schedId: timetableId,
-                //         updatedSched: {
-                //             name: scheduleVerName,
-                //             data: stringifiedTimeTable,
-                //         },
-                //     })
-                // );
-                editDocument('schedules', firebaseId, {
-                    name: scheduleVerName,
-                    data: stringifiedTimeTable,
+                await editDocument({
+                    docId: firebaseId,
+                    collectionName: 'schedules',
+                    collectionAbbreviation: COLLECTION_ABBREVIATION.SCHEDULES,
+                    userName: currentUser?.username || 'unknown user',
+                    itemName: scheduleVerName || 'an item',
+                    entryData: {
+                        name: scheduleVerName,
+                        data: stringifiedTimeTable,
+                    },
                 });
             }
-
-            document.getElementById('confirm_schedule_save_modal').close();
+        } catch (error) {
+            console.error('Failed to save timetable:', error);
+            setErrorMessage('Something went wrong while saving. Please try again.');
         }
+
+        document.getElementById('confirm_schedule_save_modal').close();
     };
 
     const clear = () => {

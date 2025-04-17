@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import TimeSelector from '@utils/timeSelector';
 import { setMaxTeacherLoad, setMinTeacherLoad } from '@features/configurationSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { editDocument } from '../../hooks/CRUD/editDocument';
+import { editDocument } from '../../hooks/firebaseCRUD/editDocument';
+import { COLLECTION_ABBREVIATION } from '../../constants';
 
 function Configuration() {
     const dispatch = useDispatch();
 
     const { configurations, loading } = useSelector((state) => state.configuration);
+    const { user: currentUser } = useSelector((state) => state.user);
 
     const [editMode, setEditMode] = useState(false);
     const [tempValues, setTempValues] = useState({});
@@ -128,16 +130,27 @@ function Configuration() {
         setEditMode(false);
     };
 
-    const handleConfirm = () => {
-        editDocument('timetableConfiguration', 1, {
-            defaultClassDuration: defaultClassDuration,
-            defaultMorningStart: defaultMorningStart,
-            defaultAfternoonStart: defaultAfternoonStart,
-            defaultMinimumTeachingLoad: defaultMinimumTeachingLoad,
-            defaultMaximumTeachingLoad: defaultMaximumTeachingLoad,
-            defaultNumberOfSchoolDays: defaultNumberOfSchoolDays,
-            defaultBreakTimeDuration: defaultBreakTimeDuration,
-        });
+    const handleConfirm = async () => {
+        try {
+            await editDocument({
+                collectionName: 'timetableConfiguration',
+                collectionAbbreviation: COLLECTION_ABBREVIATION.TIMETABLE_CONFIGURATIONS,
+                userName: currentUser?.username || 'unknown user',
+                itemName: 'Timetable Configuration',
+                docId: 1,
+                entryData: {
+                    defaultClassDuration: defaultClassDuration,
+                    defaultMorningStart: defaultMorningStart,
+                    defaultAfternoonStart: defaultAfternoonStart,
+                    defaultMinimumTeachingLoad: defaultMinimumTeachingLoad,
+                    defaultMaximumTeachingLoad: defaultMaximumTeachingLoad,
+                    defaultNumberOfSchoolDays: defaultNumberOfSchoolDays,
+                    defaultBreakTimeDuration: defaultBreakTimeDuration,
+                },
+            });
+        } catch (error) {
+            console.log(error);
+        }
         setEditMode(false);
     };
 

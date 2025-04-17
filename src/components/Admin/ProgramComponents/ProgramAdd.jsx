@@ -7,11 +7,13 @@ import SearchableDropdownToggler from '../searchableDropdown';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { IoWarningSharp } from 'react-icons/io5';
 
-import { addDocument } from '../../../hooks/CRUD/addDocument';
+import { addDocument } from '../../../hooks/firebaseCRUD/addDocument';
 
 import AdditionalScheduleForProgram from './AdditionalScheduleForProgram';
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
 import TimeSelector from '@utils/timeSelector';
+import { useSelector } from 'react-redux';
+import { COLLECTION_ABBREVIATION } from '../../../constants';
 
 const AddProgramContainer = ({
     // STORES
@@ -28,14 +30,14 @@ const AddProgramContainer = ({
     numOfSchoolDays = 5,
     breakTimeDuration,
 }) => {
-
     const inputNameRef = useRef();
+    const { user: currentUser } = useSelector((state) => state.user);
 
-// ===============================================================================
+    // ===============================================================================
 
     const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 
-// ===============================================================================
+    // ===============================================================================
 
     const [inputValue, setInputValue] = useState('');
 
@@ -105,7 +107,7 @@ const AddProgramContainer = ({
 
     const isAddButtonDisabled = Object.values(validEndTimes).some((value) => !value);
 
-// ==============================================================================
+    // ==============================================================================
 
     // Input
     const handleInputChange = (e) => {
@@ -135,7 +137,7 @@ const AddProgramContainer = ({
 
             const topDurations = classDurations.sort((a, b) => b - a).slice(0, noOfRows);
 
-            let totalDuration = (breakTimeCount * breakTimeDuration) + topDurations.reduce((sum, duration) => sum + duration, 0);
+            let totalDuration = breakTimeCount * breakTimeDuration + topDurations.reduce((sum, duration) => sum + duration, 0);
 
             console.log('noOfClassBlocks', noOfClassBlocks);
             console.log('noOfRows', noOfRows);
@@ -252,11 +254,9 @@ const AddProgramContainer = ({
 
     // Class Modality
     const handleModalityChange = (grade, index) => {
-        setClassModality(prevState => ({
+        setClassModality((prevState) => ({
             ...prevState,
-            [grade]: prevState[grade].map((value, i) => 
-                i === index ? (value === 1 ? 0 : 1) : value
-            )
+            [grade]: prevState[grade].map((value, i) => (i === index ? (value === 1 ? 0 : 1) : value)),
         }));
     };
 
@@ -284,9 +284,9 @@ const AddProgramContainer = ({
         }));
     };
 
-// ==============================================================================
+    // ==============================================================================
 
-    const handleAddEntry = () => {
+    const handleAddEntry = async () => {
         if (!inputValue.trim()) {
             setErrorMessage('Program name cannot be empty');
             setErrorField('program');
@@ -333,49 +333,54 @@ const AddProgramContainer = ({
             setErrorMessage('A program with this name already exists.');
             setErrorField('program');
         } else {
-
             try {
-                addDocument('programs', {
-                    program: inputValue,
-                    7: {
-                        subjects: selectedSubjects[7],
-                        fixedDays: fixedDays[7],
-                        fixedPositions: fixedPositions[7],
-                        shift: selectedShifts[7],
-                        startTime: getTimeSlotIndex(startTimes[7]),
-                        endTime: endTimes[7],
-                        additionalScheds: additionalScheds[7],
-                        modality: classModality[7],
-                    },
-                    8: {
-                        subjects: selectedSubjects[8],
-                        fixedDays: fixedDays[8],
-                        fixedPositions: fixedPositions[8],
-                        shift: selectedShifts[8],
-                        startTime: getTimeSlotIndex(startTimes[8]),
-                        endTime: endTimes[8],
-                        additionalScheds: additionalScheds[8],
-                        modality: classModality[8],
-                    },
-                    9: {
-                        subjects: selectedSubjects[9],
-                        fixedDays: fixedDays[9],
-                        fixedPositions: fixedPositions[9],
-                        shift: selectedShifts[9],
-                        startTime: getTimeSlotIndex(startTimes[9]),
-                        endTime: endTimes[9],
-                        additionalScheds: additionalScheds[9],
-                        modality: classModality[9],
-                    },
-                    10: {
-                        subjects: selectedSubjects[10],
-                        fixedDays: fixedDays[10],
-                        fixedPositions: fixedPositions[10],
-                        shift: selectedShifts[10],
-                        startTime: getTimeSlotIndex(startTimes[10]),
-                        endTime: endTimes[10],
-                        additionalScheds: additionalScheds[10],
-                        modality: classModality[10],
+                await addDocument({
+                    collectionName: 'programs',
+                    collectionAbbreviation: COLLECTION_ABBREVIATION.PROGRAMS,
+                    userName: currentUser?.username || 'unknown user',
+                    itemName: inputValue || 'an item',
+                    entryData: {
+                        program: inputValue,
+                        7: {
+                            subjects: selectedSubjects[7],
+                            fixedDays: fixedDays[7],
+                            fixedPositions: fixedPositions[7],
+                            shift: selectedShifts[7],
+                            startTime: getTimeSlotIndex(startTimes[7]),
+                            endTime: endTimes[7],
+                            additionalScheds: additionalScheds[7],
+                            modality: classModality[7],
+                        },
+                        8: {
+                            subjects: selectedSubjects[8],
+                            fixedDays: fixedDays[8],
+                            fixedPositions: fixedPositions[8],
+                            shift: selectedShifts[8],
+                            startTime: getTimeSlotIndex(startTimes[8]),
+                            endTime: endTimes[8],
+                            additionalScheds: additionalScheds[8],
+                            modality: classModality[8],
+                        },
+                        9: {
+                            subjects: selectedSubjects[9],
+                            fixedDays: fixedDays[9],
+                            fixedPositions: fixedPositions[9],
+                            shift: selectedShifts[9],
+                            startTime: getTimeSlotIndex(startTimes[9]),
+                            endTime: endTimes[9],
+                            additionalScheds: additionalScheds[9],
+                            modality: classModality[9],
+                        },
+                        10: {
+                            subjects: selectedSubjects[10],
+                            fixedDays: fixedDays[10],
+                            fixedPositions: fixedPositions[10],
+                            shift: selectedShifts[10],
+                            startTime: getTimeSlotIndex(startTimes[10]),
+                            endTime: endTimes[10],
+                            additionalScheds: additionalScheds[10],
+                            modality: classModality[10],
+                        },
                     },
                 });
             } catch (error) {
@@ -391,7 +396,6 @@ const AddProgramContainer = ({
                 handleReset();
                 close();
             }
-
         }
     };
 
@@ -434,7 +438,7 @@ const AddProgramContainer = ({
             8: afternoonStartTime,
             9: afternoonStartTime,
             10: afternoonStartTime,
-        })
+        });
         setClassModality({
             7: new Array(numOfSchoolDays).fill(1),
             8: new Array(numOfSchoolDays).fill(1),
@@ -487,7 +491,7 @@ const AddProgramContainer = ({
         document.getElementById('add_program_modal').close();
     };
 
-// ===================================================================================
+    // ===================================================================================
 
     useEffect(() => {
         if (inputNameRef.current) {
@@ -495,7 +499,7 @@ const AddProgramContainer = ({
         }
     }, []);
 
-// ==============================================================================
+    // ==============================================================================
 
     const [activeTab, setActiveTab] = useState(7);
 
@@ -505,11 +509,8 @@ const AddProgramContainer = ({
         <dialog id='add_program_modal' className='modal'>
             <div className='modal-box' style={{ width: '48%', maxWidth: 'none' }}>
                 <div>
-
                     <div className='flex justify-between mb-4'>
-                        <h3 className='text-lg font-bold text-center w-full'>
-                            Add New Program
-                        </h3>
+                        <h3 className='text-lg font-bold text-center w-full'>Add New Program</h3>
                     </div>
 
                     <hr className='mb-4' />
@@ -679,7 +680,7 @@ const AddProgramContainer = ({
                                             <thead>
                                                 <tr>
                                                     {Array.from({ length: numOfSchoolDays }, (_, index) => (
-                                                        <th 
+                                                        <th
                                                             key={index}
                                                             className='text-center border border-gray-300'
                                                             style={{ width: `${100 / numOfSchoolDays}%` }} // Ensures equal width for all days
@@ -689,17 +690,21 @@ const AddProgramContainer = ({
                                                     ))}
                                                 </tr>
                                             </thead>
-                                            <tbody> 
+                                            <tbody>
                                                 <tr>
                                                     {Array.from({ length: numOfSchoolDays }, (_, index) => (
-                                                        <td 
+                                                        <td
                                                             key={index}
                                                             className='text-center border border-gray-300'
                                                             style={{ width: `${100 / numOfSchoolDays}%` }} // Ensures equal width for all days
                                                         >
                                                             <button
                                                                 key={`${grade}-${index}`}
-                                                                className={`btn w-full h-full flex items-center justify-center ${classModality[grade][index] === 1 ? 'bg-green-500' : 'bg-red-500'}`}
+                                                                className={`btn w-full h-full flex items-center justify-center ${
+                                                                    classModality[grade][index] === 1
+                                                                        ? 'bg-green-500'
+                                                                        : 'bg-red-500'
+                                                                }`}
                                                                 onClick={() => handleModalityChange(grade, index)}
                                                             >
                                                                 {classModality[grade][index] === 1 ? 'ONSITE' : 'OFFSITE'}
@@ -718,7 +723,7 @@ const AddProgramContainer = ({
 
                                         {/* Button to add schedules */}
                                         <button
-                                            onClick={() =>  handleAddAdditionalSchedule(grade)}
+                                            onClick={() => handleAddAdditionalSchedule(grade)}
                                             className='flex flex-wrap items-right text-sm mt-2 bg-primary p-4 text-white px-2 py-1 rounded-lg hover:bg-blue-600'
                                         >
                                             Add Schedule

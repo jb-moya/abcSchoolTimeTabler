@@ -11,8 +11,9 @@ import ViewRooms from '../RoomsAndBuildings/ViewRooms';
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
 import AdditionalScheduleForSection from './AdditionalScheduleForSection';
 
-import { editDocument } from '../../../hooks/CRUD/editDocument';
-
+import { editDocument } from '../../../hooks/firebaseCRUD/editDocument';
+import { COLLECTION_ABBREVIATION } from '../../../constants';
+import { useSelector } from 'react-redux';
 
 const SectionEdit = ({
     // STORES
@@ -30,8 +31,7 @@ const SectionEdit = ({
     numOfSchoolDays = 5,
     breakTimeDuration,
 }) => {
-
-// ===========================================================================================================
+    const { user: currentUser } = useSelector((state) => state.user);
 
     const [editSectionAdviser, setEditSectionAdviser] = useState('');
     const [prevAdviser, setPrevAdviser] = useState('');
@@ -127,7 +127,7 @@ const SectionEdit = ({
 
     // ===============================================================================================
 
-    const handleSaveSectionEditClick = (sectionId) => {
+    const handleSaveSectionEditClick = async (sectionId) => {
         if (
             !editSectionAdviser ||
             !editSectionValue ||
@@ -149,29 +149,31 @@ const SectionEdit = ({
             editSectionValue.trim().toLowerCase() === currentSection.trim().toLowerCase() &&
             editSectionAdviser === currentSectionAdviser
         ) {
-
             console.log('check_1!');
 
             try {
-
-                const entryData = {
-                    teacher: editSectionAdviser,
-                    program: editSectionProg,
-                    section: editSectionValue,
-                    subjects: editSectionSubjects,
-                    fixedDays: editSectionFixedDays,
-                    fixedPositions: editSectionFixedPositions,
-                    year: editSectionYear,
-                    shift: editSectionShift,
-                    startTime: getTimeSlotIndex(editSectionStartTime),
-                    endTime: editSectionEndTime,
-                    modality: editSectionClassModality,
-                    additionalScheds: editAdditionalScheds,
-                    roomDetails: editRoomDetails,
-                };
-
-                editDocument('sections', sectionId, entryData);
-
+                await editDocument({
+                    collectionName: 'sections',
+                    collectionAbbreviation: COLLECTION_ABBREVIATION.SECTIONS,
+                    userName: currentUser?.username || 'unknown user',
+                    itemName: 'a section' || 'an item',
+                    docId: sectionId,
+                    entryData: {
+                        teacher: editSectionAdviser,
+                        program: editSectionProg,
+                        section: editSectionValue,
+                        subjects: editSectionSubjects,
+                        fixedDays: editSectionFixedDays,
+                        fixedPositions: editSectionFixedPositions,
+                        year: editSectionYear,
+                        shift: editSectionShift,
+                        startTime: getTimeSlotIndex(editSectionStartTime),
+                        endTime: editSectionEndTime,
+                        modality: editSectionClassModality,
+                        additionalScheds: editAdditionalScheds,
+                        roomDetails: editRoomDetails,
+                    },
+                });
             } catch (error) {
                 console.log(error);
             } finally {
@@ -186,7 +188,6 @@ const SectionEdit = ({
                 resetStates();
                 closeModal();
             }
-
         } else {
             const duplicateSection = Object.values(sections).find(
                 (section) =>
@@ -233,8 +234,15 @@ const SectionEdit = ({
                             );
                         }
 
-                        editDocument('teachers', prevAdviserID, {
-                            additionalTeacherScheds: prevSectionAdviser.additionalTeacherScheds,
+                        await editDocument({
+                            collectionName: 'teachers',
+                            collectionAbbreviation: COLLECTION_ABBREVIATION.TEACHERS,
+                            userName: currentUser?.username || 'unknown user',
+                            itemName: 'a teacher' || 'an item',
+                            docId: prevAdviserID,
+                            entryData: {
+                                additionalTeacherScheds: prevSectionAdviser.additionalTeacherScheds,
+                            },
                         });
                     }
 
@@ -243,29 +251,39 @@ const SectionEdit = ({
                     teacher.additionalTeacherScheds = teacher.additionalTeacherScheds || [];
                     teacher.additionalTeacherScheds.push(advisoryLoad);
 
-                    editDocument('teachers', teacher_id, {
-                        additionalTeacherScheds: teacher.additionalTeacherScheds,
+                    await editDocument({
+                        collectionName: 'teachers',
+                        collectionAbbreviation: COLLECTION_ABBREVIATION.TEACHERS,
+                        userName: currentUser?.username || 'unknown user',
+                        itemName: 'a teacher' || 'an item',
+                        docId: teacher_id,
+                        entryData: {
+                            additionalTeacherScheds: teacher.additionalTeacherScheds,
+                        },
                     });
 
-                    // ===================== ADVISORY LOAD =====================
-
-                    const entryData = {
-                        teacher: editSectionAdviser,
-                        program: editSectionProg,
-                        section: editSectionValue,
-                        subjects: editSectionSubjects,
-                        fixedDays: editSectionFixedDays,
-                        fixedPositions: editSectionFixedPositions,
-                        year: editSectionYear,
-                        shift: editSectionShift,
-                        startTime: getTimeSlotIndex(editSectionStartTime),
-                        endTime: editSectionEndTime,
-                        modality: editSectionClassModality,
-                        additionalScheds: editAdditionalScheds,
-                        roomDetails: editRoomDetails,
-                    };
-
-                    editDocument('sections', sectionId, entryData);
+                    await editDocument({
+                        collectionName: 'sections',
+                        collectionAbbreviation: COLLECTION_ABBREVIATION.SECTIONS,
+                        userName: currentUser?.username || 'unknown user',
+                        itemName: 'a section' || 'an item',
+                        docId: sectionId,
+                        entryData: {
+                            teacher: editSectionAdviser,
+                            program: editSectionProg,
+                            section: editSectionValue,
+                            subjects: editSectionSubjects,
+                            fixedDays: editSectionFixedDays,
+                            fixedPositions: editSectionFixedPositions,
+                            year: editSectionYear,
+                            shift: editSectionShift,
+                            startTime: getTimeSlotIndex(editSectionStartTime),
+                            endTime: editSectionEndTime,
+                            modality: editSectionClassModality,
+                            additionalScheds: editAdditionalScheds,
+                            roomDetails: editRoomDetails,
+                        },
+                    });
                 } catch (error) {
                     console.log(error);
                 } finally {
@@ -777,97 +795,97 @@ const SectionEdit = ({
 
                         {/* Additional Schedules */}
                         <div className='p-4 rounded-lg shadow-md border'>
-                                <div className='text-center font-semibold text-lg'>Additional Schedules</div>
-                                <hr className='my-2'></hr>
+                            <div className='text-center font-semibold text-lg'>Additional Schedules</div>
+                            <hr className='my-2'></hr>
 
-                                {/* Button to add schedules */}
-                                <button
-                                    onClick={handleAddAdditionalSchedule}
-                                    className='flex flex-wrap items-right text-sm mt-2 bg-primary p-4 text-white px-2 py-1 rounded-lg hover:bg-blue-600'
-                                >
-                                    Add Schedule
-                                </button>
+                            {/* Button to add schedules */}
+                            <button
+                                onClick={handleAddAdditionalSchedule}
+                                className='flex flex-wrap items-right text-sm mt-2 bg-primary p-4 text-white px-2 py-1 rounded-lg hover:bg-blue-600'
+                            >
+                                Add Schedule
+                            </button>
 
-                                {/* Render the ScheduleComponent as many times as specified */}
-                                <div
-                                    className='mt-2 overflow-y-auto max-h-36 border border-gray-300 rounded-lg'
-                                    style={{
-                                        scrollbarWidth: 'thin',
-                                        scrollbarColor: '#a0aec0 #edf2f7',
-                                    }} // Optional for styled scrollbars
-                                >
-                                    {editAdditionalScheds.map((sched, index) => (
-                                        <div key={index} className='flex flex-wrap'>
+                            {/* Render the ScheduleComponent as many times as specified */}
+                            <div
+                                className='mt-2 overflow-y-auto max-h-36 border border-gray-300 rounded-lg'
+                                style={{
+                                    scrollbarWidth: 'thin',
+                                    scrollbarColor: '#a0aec0 #edf2f7',
+                                }} // Optional for styled scrollbars
+                            >
+                                {editAdditionalScheds.map((sched, index) => (
+                                    <div key={index} className='flex flex-wrap'>
+                                        <button
+                                            className='w-1/12 border rounded-l-lg hover:bg-gray-200 flex items-center justify-center'
+                                            onClick={() => handleDeleteAdditionalSchedule(index)}
+                                        >
+                                            <RiDeleteBin7Line size={15} />
+                                        </button>
+                                        <div className='w-10/12'>
                                             <button
-                                                className='w-1/12 border rounded-l-lg hover:bg-gray-200 flex items-center justify-center'
-                                                onClick={() => handleDeleteAdditionalSchedule(index)}
+                                                className='w-full bg-gray-100 p-2 border shadow-sm hover:bg-gray-200'
+                                                onClick={() =>
+                                                    document
+                                                        .getElementById(
+                                                            `add_additional_sched_modal_1_grade-${editSectionYear}_sec-${editSectionId}_idx-${index}`
+                                                        )
+                                                        .showModal()
+                                                }
                                             >
-                                                <RiDeleteBin7Line size={15} />
+                                                {sched.name ? (
+                                                    // Content to show when both are not empty
+                                                    <>
+                                                        <p>Name: {sched.name}</p>
+                                                        <p>
+                                                            Subject:{' '}
+                                                            {sched.subject === -1 ? 'N/A' : subjects[sched.subject].subject}
+                                                        </p>
+                                                    </>
+                                                ) : (
+                                                    // Content to show when either is empty
+                                                    <p>Untitled Schedule {index + 1}</p>
+                                                )}
                                             </button>
-                                            <div className='w-10/12'>
-                                                <button
-                                                    className='w-full bg-gray-100 p-2 border shadow-sm hover:bg-gray-200'
-                                                    onClick={() =>
-                                                        document
-                                                            .getElementById(
-                                                                `add_additional_sched_modal_1_grade-${editSectionYear}_sec-${editSectionId}_idx-${index}`
-                                                            )
-                                                            .showModal()
-                                                    }
-                                                >
-                                                    {sched.name ? (
-                                                        // Content to show when both are not empty
-                                                        <>
-                                                            <p>Name: {sched.name}</p>
-                                                            <p>
-                                                                Subject:{' '}
-                                                                {sched.subject === -1 ? 'N/A' : subjects[sched.subject].subject}
-                                                            </p>
-                                                        </>
-                                                    ) : (
-                                                        // Content to show when either is empty
-                                                        <p>Untitled Schedule {index + 1}</p>
-                                                    )}
-                                                </button>
-                                                <AdditionalScheduleForSection
-                                                    subjects={subjects}
-                                                    viewingMode={0}
-                                                    sectionID={editSectionId}
-                                                    grade={editSectionYear}
-                                                    arrayIndex={index}
-                                                    numOfSchoolDays={numOfSchoolDays}
-                                                    sectionSubjects={editSectionSubjects}
-                                                    additionalSchedsOfSection={sched}
-                                                    setAdditionalScheds={setEditAdditionalScheds}
-                                                />
-                                            </div>
-                                            <div className='w-1/12 flex items-center justify-center border rounded-r-lg hover:bg-gray-200'>
-                                                <button
-                                                    onClick={() =>
-                                                        document
-                                                            .getElementById(
-                                                                `add_additional_sched_modal_0_grade-${editSectionYear}_sec-${editSectionId}_idx-${index}`
-                                                            )
-                                                            .showModal()
-                                                    }
-                                                >
-                                                    <RiEdit2Fill size={15} />
-                                                </button>
-                                                <AdditionalScheduleForSection
-                                                    subjects={subjects}
-                                                    viewingMode={0}
-                                                    sectionID={editSectionId}
-                                                    grade={editSectionYear}
-                                                    arrayIndex={index}
-                                                    numOfSchoolDays={numOfSchoolDays}
-                                                    sectionSubjects={editSectionSubjects}
-                                                    additionalSchedsOfSection={sched}
-                                                    setAdditionalScheds={setEditAdditionalScheds}
-                                                />
-                                            </div>
+                                            <AdditionalScheduleForSection
+                                                subjects={subjects}
+                                                viewingMode={0}
+                                                sectionID={editSectionId}
+                                                grade={editSectionYear}
+                                                arrayIndex={index}
+                                                numOfSchoolDays={numOfSchoolDays}
+                                                sectionSubjects={editSectionSubjects}
+                                                additionalSchedsOfSection={sched}
+                                                setAdditionalScheds={setEditAdditionalScheds}
+                                            />
                                         </div>
-                                    ))}
-                                </div>
+                                        <div className='w-1/12 flex items-center justify-center border rounded-r-lg hover:bg-gray-200'>
+                                            <button
+                                                onClick={() =>
+                                                    document
+                                                        .getElementById(
+                                                            `add_additional_sched_modal_0_grade-${editSectionYear}_sec-${editSectionId}_idx-${index}`
+                                                        )
+                                                        .showModal()
+                                                }
+                                            >
+                                                <RiEdit2Fill size={15} />
+                                            </button>
+                                            <AdditionalScheduleForSection
+                                                subjects={subjects}
+                                                viewingMode={0}
+                                                sectionID={editSectionId}
+                                                grade={editSectionYear}
+                                                arrayIndex={index}
+                                                numOfSchoolDays={numOfSchoolDays}
+                                                sectionSubjects={editSectionSubjects}
+                                                additionalSchedsOfSection={sched}
+                                                setAdditionalScheds={setEditAdditionalScheds}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
                         {errorMessage && <p className='text-red-500 text-sm my-4 font-medium select-none '>{errorMessage}</p>}
@@ -877,7 +895,7 @@ const SectionEdit = ({
                             <div className='flex justify-end space-x-2'>
                                 <button
                                     className='btn btn-primary'
-                                    onClick={() => handleSaveSectionEditClick(section.id)}
+                                    onClick={async () => await handleSaveSectionEditClick(section.id)}
                                     disabled={!isEndTimeValid}
                                 >
                                     <div>Update Section</div>

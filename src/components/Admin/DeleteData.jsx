@@ -3,19 +3,16 @@ import { useEffect } from 'react';
 import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 import { RiDeleteBin7Line } from 'react-icons/ri';
 
-import { deleteDocument } from '../../hooks/CRUD/deleteDocument';
-import { editDocument } from '../../hooks/CRUD/editDocument';
+import { deleteDocument } from '../../hooks/firebaseCRUD/deleteDocument';
+import { editDocument } from '../../hooks/firebaseCRUD/editDocument';
 import { useSelector } from 'react-redux';
 
 import { toast } from 'sonner';
+import { COLLECTION_ABBREVIATION } from '../../constants';
 
-const DeleteData = ({ 
-    id, 
-    collection, 
-    callback 
-}) => {
-
-// ===============================================================================================
+const DeleteData = ({ id, collection, callback }) => {
+    // ===============================================================================================
+    const { user: currentUser } = useSelector((state) => state.user);
 
     const { subjects, loading: subjectsLoading, error: subjectsError } = useSelector((state) => state.subjects);
     const { programs, loading: programsLoading, error: programsError } = useSelector((state) => state.programs);
@@ -24,8 +21,7 @@ const DeleteData = ({
     const { teachers, loading: teachersLoading, error: teachersError } = useSelector((state) => state.teachers);
     const { departments, loading: departmentsLoading, error: departmentsError } = useSelector((state) => state.departments);
 
-
-// ===============================================================================================
+    // ===============================================================================================
 
     useEffect(() => {
         console.log('id:', id);
@@ -155,25 +151,36 @@ const DeleteData = ({
                     entry_id = department_id;
                 }
             } else if (collection === 'sections') {
-
                 const adviser_id = sections[id]?.teacher;
                 const section_adviser = structuredClone(teachers[adviser_id]);
-                
+
                 if (section_adviser.additionalTeacherScheds) {
                     section_adviser.additionalTeacherScheds = section_adviser.additionalTeacherScheds.filter(
                         (sched) => sched.name !== 'Advisory Load'
                     );
                 }
 
-                editDocument('teachers', adviser_id, {
-                    additionalTeacherScheds: section_adviser.additionalTeacherScheds,
+                await editDocument({
+                    collectionName: 'teachers',
+                    collectionAbbreviation: COLLECTION_ABBREVIATION.TEACHERS,
+                    userName: currentUser?.username || 'unknown user',
+                    itemName: teachers[adviser_id]?.teacher || 'unknown teacher',
+                    docId: adviser_id,
+                    entryData: {
+                        additionalTeacherScheds: section_adviser.additionalTeacherScheds,
+                    },
                 });
 
                 entry_id = sections[id]?.id;
-
             }
 
-            const result = await deleteDocument(collection, entry_id);
+            await deleteDocument({
+                docId: entry_id,
+                collectionName: collection,
+                collectionAbbreviation: COLLECTION_ABBREVIATION[collection.toUpperCase()],
+                userName: currentUser?.username || 'unknown user',
+                itemName: 'an item',
+            });
 
             toast.success(`Entry deleted from ${collection} successfully.`, {
                 style: {

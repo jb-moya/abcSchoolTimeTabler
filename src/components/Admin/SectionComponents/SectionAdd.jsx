@@ -10,8 +10,10 @@ import TimeSelector from '@utils/timeSelector';
 
 import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
 
-import { addDocument } from '../../../hooks/CRUD/addDocument';
-import { editDocument } from '../../../hooks/CRUD/editDocument';
+import { addDocument } from '../../../hooks/firebaseCRUD/addDocument';
+import { editDocument } from '../../../hooks/firebaseCRUD/editDocument';
+import { COLLECTION_ABBREVIATION } from '../../../constants';
+import { useSelector } from 'react-redux';
 
 const AddSectionContainer = ({
     // STORES
@@ -29,10 +31,9 @@ const AddSectionContainer = ({
     numOfSchoolDays = 5,
     breakTimeDuration,
 }) => {
-
     const inputNameRef = useRef();
 
-// ===================================================================================================
+    const { user: currentUser } = useSelector((state) => state.user);
 
     const [inputValue, setInputValue] = useState('');
 
@@ -128,7 +129,7 @@ const AddSectionContainer = ({
         setInputValue(e.target.value);
     };
 
-    const handleAddEntry = () => {
+    const handleAddEntry = async () => {
         if (
             inputValue === '' ||
             selectedAdviser === '' ||
@@ -189,39 +190,38 @@ const AddSectionContainer = ({
             teacher.additionalTeacherScheds = teacher.additionalTeacherScheds || [];
             teacher.additionalTeacherScheds.push(advisoryLoad);
 
-            // dispatch(
-            //     editTeacher({
-            //         teacherId: selectedAdviser,
-            //         updatedTeacher: teacher,
-            //     })
-            // );
-
-            editDocument('teachers', teacher_id, {
-                additionalTeacherScheds: teacher.additionalTeacherScheds,
+            await editDocument({
+                collectionName: 'teachers',
+                collectionAbbreviation: COLLECTION_ABBREVIATION.TEACHERS,
+                userName: currentUser?.username || 'unknown user',
+                itemName: 'a teacher' || 'an item',
+                docId: teacher_id,
+                entryData: {
+                    additionalTeacherScheds: teacher.additionalTeacherScheds,
+                },
             });
-            // ============== ADVISORY LOAD ==============
 
-            // ============== SECTION ==============
-
-            const entryData = {
-                section: inputValue,
-                teacher: selectedAdviser,
-                program: selectedProgram,
-                year: selectedYearLevel,
-                subjects: selectedSubjects,
-                fixedDays: fixedDays,
-                fixedPositions: fixedPositions,
-                modality: classModality,
-                shift: selectedShift,
-                startTime: getTimeSlotIndex(selectedStartTime || '06:00 AM'),
-                endTime: selectedEndTime,
-                additionalScheds: additionalScheds,
-                roomDetails: roomDetails,
-            };
-
-            
-
-            addDocument('sections', entryData);
+            await addDocument({
+                collectionName: 'sections',
+                collectionAbbreviation: COLLECTION_ABBREVIATION.SECTIONS,
+                userName: currentUser?.username || 'unknown user',
+                itemName: inputValue || 'an item',
+                entryData: {
+                    section: inputValue,
+                    teacher: selectedAdviser,
+                    program: selectedProgram,
+                    year: selectedYearLevel,
+                    subjects: selectedSubjects,
+                    fixedDays: fixedDays,
+                    fixedPositions: fixedPositions,
+                    modality: classModality,
+                    shift: selectedShift,
+                    startTime: getTimeSlotIndex(selectedStartTime || '06:00 AM'),
+                    endTime: selectedEndTime,
+                    additionalScheds: additionalScheds,
+                    roomDetails: roomDetails,
+                },
+            });
 
             // ============== SECTION ==============
         } catch (error) {

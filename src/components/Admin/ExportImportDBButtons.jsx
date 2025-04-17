@@ -3,17 +3,18 @@ import { useDispatch } from 'react-redux';
 
 import { CiExport, CiImport } from 'react-icons/ci';
 import { createPortal } from 'react-dom';
-import { loadFile, } from '@src/indexedDB';
+import { loadFile } from '@src/indexedDB';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
 import { toast } from 'sonner';
 import { BiUpload } from 'react-icons/bi';
 
-import { deleteAllCollections } from '../../hooks/CRUD/deleteAllDocuments';
-import { addDocument } from '../../hooks/CRUD/addDocument';
-
+import { deleteAllCollections } from '../../hooks/firebaseCRUD/deleteAllDocuments';
+import { addDocument } from '../../hooks/firebaseCRUD/addDocument';
+import { useSelector } from 'react-redux';
 import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
+import { COLLECTION_ABBREVIATION } from '../../constants';
 
 const ImportingFullScreenLoader = () => {
     return createPortal(
@@ -25,7 +26,7 @@ const ImportingFullScreenLoader = () => {
     );
 };
 
-const ExportImportDBButtons = ({ 
+const ExportImportDBButtons = ({
     // STORES
     programs,
     subjects,
@@ -33,20 +34,20 @@ const ExportImportDBButtons = ({
     ranks,
     departments,
     buildings,
-    sections,   
+    sections,
     // STORES
 
-    onClear, 
-    defaultNumberOfSchoolDays, 
-    breakTimeDuration 
+    onClear,
+    defaultNumberOfSchoolDays,
+    breakTimeDuration,
 }) => {
-    
     const dispatch = useDispatch();
 
     const [isImporting, setIsImporting] = useState(false);
     const [overwrite, setOverwrite] = useState(false);
+    const { user: currentUser } = useSelector((state) => state.user);
 
-// =============================================================================================================
+    // =============================================================================================================
 
     const exportDB = (format) => {
         try {
@@ -59,14 +60,11 @@ const ExportImportDBButtons = ({
         } finally {
             toast.success('DB exported successfully');
         }
-
     };
 
     const importDB = async (format) => {
-
         try {
-
-            const data = await loadFile(format); 
+            const data = await loadFile(format);
 
             setIsImporting(true);
 
@@ -95,25 +93,18 @@ const ExportImportDBButtons = ({
 
             // Show success message
             toast.success('DB imported successfully');
-
         } catch (error) {
-
             toast.error('Error importing DB');
             console.error(error);
-
         } finally {
-            
             setIsImporting(false);
             document.getElementById('import-confirmation-modal').close();
-
         }
-        
     };
 
     // ********************************************************************************************************
 
     const exportToExcel = async () => {
-
         const workbook = new ExcelJS.Workbook();
         const subjWorksheet = workbook.addWorksheet('Subjects');
         const teacherWorksheet = workbook.addWorksheet('Teachers');
@@ -133,7 +124,7 @@ const ExportImportDBButtons = ({
         subjHeaderRow.font = { bold: true };
         subjHeaderRow.alignment = { horizontal: 'center', vertical: 'middle' };
 
-        Object.values(subjects).forEach(subject => {
+        Object.values(subjects).forEach((subject) => {
             subjWorksheet.addRow([subject.subject, subject.classDuration, subject.weeklyMinutes]);
         });
 
@@ -155,7 +146,7 @@ const ExportImportDBButtons = ({
             vertical: 'middle',
         };
 
-        Object.values(teachers).forEach(teacher => {
+        Object.values(teachers).forEach((teacher) => {
             // Convert teacher.subjects (IDs) to subject names
             const subjectNames = teacher.subjects.map((subjectId) => subjects[subjectId].subject).join(', ');
 
@@ -192,7 +183,7 @@ const ExportImportDBButtons = ({
         rankHeaderRow.font = { bold: true };
         rankHeaderRow.alignment = { horizontal: 'center', vertical: 'middle' };
 
-        Object.values(ranks).forEach(rank => {
+        Object.values(ranks).forEach((rank) => {
             rankWorksheet.addRow([rank.rank]);
         });
 
@@ -207,7 +198,7 @@ const ExportImportDBButtons = ({
         deptHeaderRow.font = { bold: true };
         deptHeaderRow.alignment = { horizontal: 'center', vertical: 'middle' };
 
-        Object.values(departments).forEach(department => {
+        Object.values(departments).forEach((department) => {
             deptWorksheet.addRow([department.name, teachers[department.head]?.teacher || '']);
         });
 
@@ -279,7 +270,7 @@ const ExportImportDBButtons = ({
         programWorksheet.getColumn(12).alignment = { horizontal: 'center' };
         programWorksheet.getColumn(13).alignment = { horizontal: 'center' };
 
-        Object.values(programs).forEach(program => {
+        Object.values(programs).forEach((program) => {
             const year7Subjects = program[7].subjects.map((subjectId) => subjects[subjectId].subject).join(', ');
             const year8Subjects = program[8].subjects.map((subjectId) => subjects[subjectId].subject).join(', ');
             const year9Subjects = program[9].subjects.map((subjectId) => subjects[subjectId].subject).join(', ');
@@ -314,7 +305,7 @@ const ExportImportDBButtons = ({
             vertical: 'middle',
         };
 
-        Object.values(sections).forEach(section => {
+        Object.values(sections).forEach((section) => {
             const sectionAdviser = teachers[section.teacher];
             const sectionProgram = programs[section.program];
 
@@ -351,7 +342,7 @@ const ExportImportDBButtons = ({
         // Track the current row
         let currentRow = 2;
 
-        Object.values(buildings).forEach(building => {
+        Object.values(buildings).forEach((building) => {
             const buildingName = building.name;
             const startBuildingRow = currentRow; // Track where building starts
 
@@ -360,15 +351,15 @@ const ExportImportDBButtons = ({
             Object.values(building.rooms).forEach((floorRooms, floorIndex) => {
                 const floorNumber = `Floor ${floorIndex + 1}`;
                 const startFloorRow = currentRow; // Track where floor starts
-            
+
                 Object.values(floorRooms).forEach((room) => {
                     const roomName = room.roomName;
                     bldgWorksheet.addRow([buildingName, floorNumber, roomName]);
                     currentRow++;
                 });
-            
+
                 bldgWorksheet.mergeCells(`B${startFloorRow}:B${currentRow - 1}`);
-            
+
                 const floorCell = bldgWorksheet.getCell(`B${startFloorRow}`);
                 floorCell.alignment = {
                     horizontal: 'center',
@@ -397,11 +388,9 @@ const ExportImportDBButtons = ({
             type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         });
         saveAs(blob, 'Timetable_Data.xlsx');
-
     };
 
     const importFromExcel = async (data) => {
-        
         function formatTimeWithLeadingZero(time) {
             if (!/^\d{1,2}:\d{2} [AP]M$/.test(time)) {
                 return 'INVALID';
@@ -1100,8 +1089,12 @@ const ExportImportDBButtons = ({
                         const endTime10Idx = startTime10Idx + totalDuration10;
 
                         const halfDays = Math.floor(defaultNumberOfSchoolDays / 2);
-                        const firstHalf = Array(halfDays).fill(1).concat(Array(defaultNumberOfSchoolDays - halfDays).fill(0));
-                        const secondHalf = Array(halfDays).fill(0).concat(Array(defaultNumberOfSchoolDays - halfDays).fill(1));
+                        const firstHalf = Array(halfDays)
+                            .fill(1)
+                            .concat(Array(defaultNumberOfSchoolDays - halfDays).fill(0));
+                        const secondHalf = Array(halfDays)
+                            .fill(0)
+                            .concat(Array(defaultNumberOfSchoolDays - halfDays).fill(1));
 
                         addedPrograms.push({
                             program: program.program,
@@ -1146,7 +1139,6 @@ const ExportImportDBButtons = ({
                                 additionalScheds: [],
                             },
                         });
-
                     }
                 }
             });
@@ -1166,11 +1158,21 @@ const ExportImportDBButtons = ({
                 let roomDetailsIssue = false;
 
                 if (
-                    section.sectionname === '' || section.sectionname === null || section.sectionname === undefined ||
-                    section.program === '' || section.program === null || section.program === undefined ||
-                    section.adviser === '' || section.adviser === null || section.adviser === undefined ||
-                    section.year === '' || section.year === null || section.year === undefined ||
-                    section.room === '' || section.room === null || section.room === undefined
+                    section.sectionname === '' ||
+                    section.sectionname === null ||
+                    section.sectionname === undefined ||
+                    section.program === '' ||
+                    section.program === null ||
+                    section.program === undefined ||
+                    section.adviser === '' ||
+                    section.adviser === null ||
+                    section.adviser === undefined ||
+                    section.year === '' ||
+                    section.year === null ||
+                    section.year === undefined ||
+                    section.room === '' ||
+                    section.room === null ||
+                    section.room === undefined
                 ) {
                     unaddedSections.push([0, section]);
                     return;
@@ -1250,16 +1252,18 @@ const ExportImportDBButtons = ({
                                 section.roomDetails.floorIdx === roomDetails.floorIdx &&
                                 section.roomDetails.roomIdx === roomDetails.roomIdx
                             ) {
-
                                 const secMod = section.modality;
                                 for (let i = 0; i < secMod.length; i++) {
-                                    if (secMod[i] === 1 && sectionModality [i] === 1 &&
-                                        section.startTime <= startTimeIdx && section.endTime >= endTimeIdx) {
-                                            isOverlap = true;
-                                            return;
+                                    if (
+                                        secMod[i] === 1 &&
+                                        sectionModality[i] === 1 &&
+                                        section.startTime <= startTimeIdx &&
+                                        section.endTime >= endTimeIdx
+                                    ) {
+                                        isOverlap = true;
+                                        return;
                                     }
                                 }
-
                             }
                         });
 
@@ -1288,65 +1292,84 @@ const ExportImportDBButtons = ({
                     }
                 }
             });
-            
         }
 
         // ======================== ADD ALL ENTRIES TO DATABASE ======================== //
 
         try {
-            
             // Add all subjects
             for (const subject of addedSubjects) {
-                await addDocument('subjects', {
-                    subject: subject.subject,
-                    classDuration: Number(subject.classduration),
-                    weeklyMinutes: Number(subject.weeklyminutes),
+                await addDocument({
+                    collectionName: 'subjects',
+                    collectionAbbreviation: COLLECTION_ABBREVIATION.SUBJECTS,
+                    userName: currentUser?.username || 'unknown user',
+                    itemName: subject?.subject || 'an item',
+                    entryData: {
+                        subject: subject.subject,
+                        classDuration: Number(subject.classduration),
+                        weeklyMinutes: Number(subject.weeklyminutes),
+                    },
                 });
             }
 
             // Add all ranks
             for (const rank of addedRanks) {
-                await addDocument('ranks', {
-                    rank: rank.rank,
-                    additionalRankScheds: [],
+                await addDocument({
+                    collectionName: 'ranks',
+                    collectionAbbreviation: COLLECTION_ABBREVIATION.RANKS,
+                    userName: currentUser?.username || 'unknown user',
+                    itemName: rank?.rank || 'an item',
+                    entryData: {
+                        rank: rank.rank,
+                        additionalRankScheds: [],
+                    },
                 });
             }
-            
+
             // Add all buildings
             for (const building of addedBuildings) {
-                const buildingData = JSON.stringify({
-                    name: building.name,
-                    floors: Object.values(building.data).length,
-                    rooms: Object.values(building.data),
-                    image: '',
-                    nearbyBuildings: [],
-                }, null, 2);
+                const buildingData = JSON.stringify(
+                    {
+                        name: building.name,
+                        floors: Object.values(building.data).length,
+                        rooms: Object.values(building.data),
+                        image: '',
+                        nearbyBuildings: [],
+                    },
+                    null,
+                    2
+                );
 
-                await addDocument('buildings', {
-                    data: buildingData,
+                await addDocument({
+                    collectionName: 'buildings',
+                    collectionAbbreviation: COLLECTION_ABBREVIATION.BUILDINGS,
+                    userName: currentUser?.username || 'unknown user',
+                    itemName: building?.name || 'an item',
+                    entryData: {
+                        data: buildingData,
+                    },
                 });
             }
 
             // Add all teachers
             for (const teacher of addedTeachers) {
-
                 console.log('teacher: ', teacher);
 
                 const departmentIndex = addedDepartments.findIndex(
                     (d) => d.department.trim().toLowerCase() === teacher.department.trim().toLowerCase()
                 );
-    
+
                 if (departmentIndex === -1) {
                     // Skip this teacher if department is not found
                     console.warn(`Skipping teacher at index ${i} because department was not found.`);
                     continue;
                 }
-    
+
                 // Check if teacher is an adviser of a section
                 const isAdviser = addedSections.some(
                     (section) => section.adviser.trim().toLowerCase() === teacher.teacher.trim().toLowerCase()
                 );
-    
+
                 if (isAdviser) {
                     // Add advisory schedule
                     teacher.additionalTeacherScheds.push({
@@ -1359,19 +1382,24 @@ const ExportImportDBButtons = ({
                     });
                 }
 
-                await addDocument('teachers', {
-                    teacher: teacher.teacher,
-                    rank: teacher.rank,
-                    department: departmentIndex + 1,
-                    subjects: teacher.subjects,
-                    yearLevels: teacher.yearLevels,
-                    additionalTeacherScheds: teacher.additionalTeacherScheds,
+                await addDocument({
+                    collectionName: 'teachers',
+                    collectionAbbreviation: COLLECTION_ABBREVIATION.TEACHERS,
+                    userName: currentUser?.username || 'unknown user',
+                    itemName: teacher?.teacher || 'an item',
+                    entryData: {
+                        teacher: teacher.teacher,
+                        rank: teacher.rank,
+                        department: departmentIndex + 1,
+                        subjects: teacher.subjects,
+                        yearLevels: teacher.yearLevels,
+                        additionalTeacherScheds: teacher.additionalTeacherScheds,
+                    },
                 });
-
             }
-    
+
             // Add all departments
-            for (const department of addedDepartments) {    
+            for (const department of addedDepartments) {
                 const headIndex =
                     department.departmenthead && department.departmenthead.trim() !== ''
                         ? addedTeachers.findIndex(
@@ -1381,56 +1409,67 @@ const ExportImportDBButtons = ({
                           )
                         : '';
 
-                await addDocument('departments', {
-                    name: department.department,
-                    head: headIndex === '' ? '' : headIndex + 1,
+                await addDocument({
+                    collectionName: 'departments',
+                    collectionAbbreviation: COLLECTION_ABBREVIATION.DEPARTMENTS,
+                    userName: currentUser?.username || 'unknown user',
+                    itemName: department?.department || 'an item',
+                    entryData: {
+                        name: department.department,
+                        head: headIndex === '' ? '' : headIndex + 1,
+                    },
                 });
             }
-    
+
             // Add all programs
             for (const program of addedPrograms) {
-
-                await addDocument('programs', {
-                    program: program.program,
-                    7: {
-                        subjects: program[7].subjects,
-                        fixedDays: program[7].fixedDays,
-                        fixedPositions: program[7].fixedPositions,
-                        shift: program[7].shift,
-                        startTime: program[7].startTime,
-                        endTime: program[7].endTime,
-                        additionalScheds: program[7].additionalScheds,
-                        modality: program[7].modality,
-                    },
-                    8: {
-                        subjects: program[8].subjects,
-                        fixedDays: program[8].fixedDays,
-                        fixedPositions: program[8].fixedPositions,
-                        shift: program[8].shift,
-                        startTime: program[8].startTime,
-                        endTime: program[8].endTime,
-                        additionalScheds: program[8].additionalScheds,
-                        modality: program[8].modality,
-                    },
-                    9: {
-                        subjects: program[9].subjects,
-                        fixedDays: program[9].fixedDays,
-                        fixedPositions: program[9].fixedPositions,
-                        shift: program[9].shift,
-                        startTime: program[9].startTime,
-                        endTime: program[9].endTime,
-                        additionalScheds: program[9].additionalScheds,
-                        modality: program[9].modality,
-                    },
-                    10: {
-                        subjects: program[10].subjects,
-                        fixedDays: program[10].fixedDays,
-                        fixedPositions: program[10].fixedPositions,
-                        shift: program[10].shift,
-                        startTime: program[10].startTime,
-                        endTime: program[10].endTime,
-                        additionalScheds: program[10].additionalScheds,
-                        modality: program[10].modality,
+                await addDocument({
+                    collectionName: 'programs',
+                    collectionAbbreviation: COLLECTION_ABBREVIATION.PROGRAMS,
+                    userName: currentUser?.username || 'unknown user',
+                    itemName: program?.program || 'an item',
+                    entryData: {
+                        program: program.program,
+                        7: {
+                            subjects: program[7].subjects,
+                            fixedDays: program[7].fixedDays,
+                            fixedPositions: program[7].fixedPositions,
+                            shift: program[7].shift,
+                            startTime: program[7].startTime,
+                            endTime: program[7].endTime,
+                            additionalScheds: program[7].additionalScheds,
+                            modality: program[7].modality,
+                        },
+                        8: {
+                            subjects: program[8].subjects,
+                            fixedDays: program[8].fixedDays,
+                            fixedPositions: program[8].fixedPositions,
+                            shift: program[8].shift,
+                            startTime: program[8].startTime,
+                            endTime: program[8].endTime,
+                            additionalScheds: program[8].additionalScheds,
+                            modality: program[8].modality,
+                        },
+                        9: {
+                            subjects: program[9].subjects,
+                            fixedDays: program[9].fixedDays,
+                            fixedPositions: program[9].fixedPositions,
+                            shift: program[9].shift,
+                            startTime: program[9].startTime,
+                            endTime: program[9].endTime,
+                            additionalScheds: program[9].additionalScheds,
+                            modality: program[9].modality,
+                        },
+                        10: {
+                            subjects: program[10].subjects,
+                            fixedDays: program[10].fixedDays,
+                            fixedPositions: program[10].fixedPositions,
+                            shift: program[10].shift,
+                            startTime: program[10].startTime,
+                            endTime: program[10].endTime,
+                            additionalScheds: program[10].additionalScheds,
+                            modality: program[10].modality,
+                        },
                     },
                 });
             }
@@ -1439,35 +1478,37 @@ const ExportImportDBButtons = ({
             for (const section of addedSections_2) {
                 console.log('section', section);
 
-                await addDocument('sections', {
-                    section: section.section,
-                    teacher: section.teacher,
-                    program: section.program,
-                    year: section.year,
-                    subjects: section.subjects,
-                    fixedDays:section.fixedDays,
-                    fixedPositions: section.fixedPositions,
-                    modality: section.modality,
-                    shift: section.shift,
-                    startTime: section.startTime,
-                    endTime: section.endTime,
-                    additionalScheds: section.additionalScheds,
-                    roomDetails: section.roomDetails,
+                await addDocument({
+                    collectionName: 'sections',
+                    collectionAbbreviation: COLLECTION_ABBREVIATION.SECTIONS,
+                    userName: currentUser?.username || 'unknown user',
+                    itemName: section?.section || 'an item',
+                    entryData: {
+                        section: section.section,
+                        teacher: section.teacher,
+                        program: section.program,
+                        year: section.year,
+                        subjects: section.subjects,
+                        fixedDays: section.fixedDays,
+                        fixedPositions: section.fixedPositions,
+                        modality: section.modality,
+                        shift: section.shift,
+                        startTime: section.startTime,
+                        endTime: section.endTime,
+                        additionalScheds: section.additionalScheds,
+                        roomDetails: section.roomDetails,
+                    },
                 });
             }
-    
+
             console.log('All data has been added successfully');
-
         } catch (error) {
-
             console.error('Error importing data:', error);
             throw error;
-
         }
-
     };
 
-// =============================================================================================================
+    // =============================================================================================================
 
     return (
         <div className='flex gap-2'>
@@ -1495,7 +1536,6 @@ const ExportImportDBButtons = ({
                     <h3 className='font-bold text-lg'>Choose Export Format</h3>
                     <p className='py-4'>Select the format in which you want to export the database:</p>
                     <div className='modal-action'>
-
                         {/* Option to Export as Excel */}
                         <button
                             className='btn btn-primary'
@@ -1531,9 +1571,7 @@ const ExportImportDBButtons = ({
                         </button>
                         <form method='dialog'>
                             <div className='flex gap-2'>
-                                <button className='btn btn-error'>
-                                    Cancel
-                                </button>
+                                <button className='btn btn-error'>Cancel</button>
                             </div>
                         </form>
                     </div>
@@ -1545,7 +1583,6 @@ const ExportImportDBButtons = ({
                     <h3 className='font-bold text-lg'>Choose Import Format</h3>
                     <p className='py-4'>Select the format in which you want to import your data:</p>
                     <div className='modal-action'>
-
                         {/* Option to Import an Excel */}
                         <button
                             className='btn btn-primary'

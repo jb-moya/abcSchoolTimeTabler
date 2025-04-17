@@ -7,25 +7,26 @@ import { toast } from 'sonner';
 import NearbyBuildingDropdown from './nearbyBuildingDropdown';
 import { PiBuildingApartment } from 'react-icons/pi';
 
-import { addDocument } from '../../../hooks/CRUD/addDocument';
-import { editDocument } from '../../../hooks/CRUD/editDocument';
-import { deleteDocument } from '../../../hooks/CRUD/deleteDocument';
+import { addDocument } from '../../../hooks/firebaseCRUD/addDocument';
+import { editDocument } from '../../../hooks/firebaseCRUD/editDocument';
+import { deleteDocument } from '../../../hooks/firebaseCRUD/deleteDocument';
+import { COLLECTION_ABBREVIATION } from '../../../constants';
+import { useSelector } from 'react-redux';
 
-
-const AddBuildingContainer = ({ 
+const AddBuildingContainer = ({
     // STORES
     buildings,
     // STORES
-    close, 
-    setErrorMessage, 
-    setErrorField, 
-    errorMessage, 
-    errorField 
+    close,
+    setErrorMessage,
+    setErrorField,
+    errorMessage,
+    errorField,
 }) => {
-    
     const inputBuildingNameRef = useRef();
+    const { user: currentUser } = useSelector((state) => state.user);
 
-// ==============================================================================
+    // ==============================================================================
 
     // useEffect(() => {
     //     console.log('buildings: ', buildings);
@@ -45,7 +46,7 @@ const AddBuildingContainer = ({
 
     const [nearbyBuildings, setNearbyBuildings] = useState([]);
 
-// ================================================================================
+    // ================================================================================
 
     // useEffect(() => {
     //     dispatch(fetchBuildings());
@@ -151,7 +152,7 @@ const AddBuildingContainer = ({
         }
     };
 
-    const handleAddBuilding = () => {
+    const handleAddBuilding = async () => {
         // Check if building name is empty
         if (!buildingName.trim()) {
             setErrorMessage('Building name cannot be empty');
@@ -223,23 +224,16 @@ const AddBuildingContainer = ({
                 })),
             };
 
-            // // Dispatch the action to add the building
-            // dispatch(addBuilding(buildingData));
             const string_building = JSON.stringify(buildingData, null, 2);
-            // addDocument('buildings', {
-            //     name: buildingName,
-            //     floors: numberOfFloors,
-            //     rooms: roomNames,
-            //     image: buildingImage, // Base64 string
-            //     // nearbyBuildings: nearbyBuildings.map((building) => ({
-            //     //     id: building.id,
-            //     //     name: building.name,
-            //     // })),
-            //     nearbyBuildings: nearbyBuildings,
-            // });
 
-            addDocument('buildings', {
-                data: string_building,
+            await addDocument({
+                collectionName: 'buildings',
+                collectionAbbreviation: COLLECTION_ABBREVIATION.BUILDINGS,
+                userName: currentUser?.username || 'unknown user',
+                itemName: buildingName || 'an item',
+                entryData: {
+                    data: string_building,
+                },
             });
         } catch (error) {
             console.error('Error addingbuilding:', error);
@@ -413,12 +407,13 @@ const RoomListContainer = ({
     sections,
     // STORES
     editable = false,
-    loading
+    loading,
 }) => {
-
     const inputBuildingNameRef = useRef();
 
-// =========================================================================================================================
+    const { user: currentUser } = useSelector((state) => state.user);
+
+    // =========================================================================================================================
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
@@ -435,7 +430,7 @@ const RoomListContainer = ({
     const [searchBuildingValue, setSearchBuildingValue] = useState('');
     const [searchBuildingResult, setSearchBuildingResult] = useState([]);
 
-// ========================================================================================================================
+    // ========================================================================================================================
 
     const handleClose = () => {
         const modal = document.getElementById('add_building_modal');
@@ -475,7 +470,7 @@ const RoomListContainer = ({
 
     // =======================================================================================================================
 
-    const handleDelete = (id) => {
+    const handleDelete = async (id) => {
         try {
             const building_id = id;
 
@@ -491,7 +486,13 @@ const RoomListContainer = ({
                 });
                 throw new Error('Building is used in sections. Cannot delete.');
             } else {
-                deleteDocument('buildings', building_id);
+                await deleteDocument({
+                    docId: building_id,
+                    collectionName: 'buildings',
+                    collectionAbbreviation: COLLECTION_ABBREVIATION.BUILDINGS,
+                    userName: currentUser?.username || 'unknown user',
+                    itemName: 'an item',
+                });
 
                 toast.success(`Entry deleted from buildings successfully.`, {
                     style: {
@@ -630,7 +631,7 @@ const RoomListContainer = ({
 
     // ========================================================================================================================
 
-    const handleSaveBuildingEditClick = () => {
+    const handleSaveBuildingEditClick = async () => {
         if (!editBuildingName.trim()) {
             setErrorMessage('Building name cannot be empty');
             setErrorField('buildingName');
@@ -675,8 +676,16 @@ const RoomListContainer = ({
             };
 
             const string_building = JSON.stringify(buildingData, null, 2);
-            editDocument('buildings', editBuildingID, {
-                data: string_building,
+
+            await editDocument({
+                docId: editBuildingID,
+                collectionName: 'buildings',
+                collectionAbbreviation: COLLECTION_ABBREVIATION.BUILDINGS,
+                userName: currentUser?.username || 'unknown user',
+                itemName: 'a building' || 'an item',
+                entryData: {
+                    data: string_building,
+                },
             });
         } catch {
             toast.error('Something went wrong. Please try again.');
@@ -700,7 +709,6 @@ const RoomListContainer = ({
 
             document.getElementById('edit_building_modal').close();
         }
-
     };
 
     const handleCancelBuildingEditClick = () => {
@@ -729,7 +737,7 @@ const RoomListContainer = ({
         deleteModalElement.showModal();
 
         const deleteButton = document.getElementById('delete_button');
-        deleteButton.onclick = () => handleDelete(id);
+        deleteButton.onclick = async () => await handleDelete(id);
     };
 
     if (loading) {

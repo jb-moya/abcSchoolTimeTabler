@@ -5,7 +5,9 @@ import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { toast } from 'sonner';
 import AdditionalScheduleForTeacherRank from './AdditionalScheduleForTeacherRank';
 
-import { addDocument } from '../../../hooks/CRUD/addDocument';
+import { addDocument } from '../../../hooks/firebaseCRUD/addDocument';
+import { COLLECTION_ABBREVIATION } from '../../../constants';
+import { useSelector } from 'react-redux';
 
 const AddTeacherRankContainer = ({
     // STORES
@@ -18,18 +20,15 @@ const AddTeacherRankContainer = ({
     setErrorField,
     numOfSchoolDays = 5,
 }) => {
-
     const inputNameRef = useRef();
-
-// =============================================================================================================
+    const { user: currentUser } = useSelector((state) => state.user);
 
     const [rankValue, setRankValue] = useState('');
     const [additionalRankScheds, setAdditionalRankScheds] = useState([]);
 
-// ============================================================================================================
+    // ============================================================================================================
 
-    const handleAddRank = () => {
-
+    const handleAddRank = async () => {
         if (!rankValue.trim()) {
             setErrorMessage('All fields are required.');
             if (rankValue === '') {
@@ -49,9 +48,15 @@ const AddTeacherRankContainer = ({
         }
 
         try {
-            addDocument('ranks', {
-                rank: rankValue,
-                additionalRankScheds: additionalRankScheds,
+            await addDocument({
+                collectionName: 'ranks',
+                collectionAbbreviation: COLLECTION_ABBREVIATION.RANKS,
+                userName: currentUser?.username || 'unknown user',
+                itemName: rankValue || 'an item',
+                entryData: {
+                    rank: rankValue,
+                    additionalRankScheds: additionalRankScheds,
+                },
             });
         } catch (error) {
             console.error('Error adding rank:', error);
@@ -79,7 +84,6 @@ const AddTeacherRankContainer = ({
         //         additionalRankScheds: additionalRankScheds,
         //     })
         // );
-
     };
 
     const handleAddTeacherAdditionalSchedules = () => {
@@ -157,9 +161,7 @@ const AddTeacherRankContainer = ({
 
             <div className='p-4 border rounded-lg shadow-md'>
                 <div className='text-lg font-semibold rounded-lg'> Additional Teacher Schedules</div>
-                <b> (Optional) </b>:
-                <hr className='my-2'></hr>
-
+                <b> (Optional) </b>:<hr className='my-2'></hr>
                 {/* Button to add schedules */}
                 <button
                     onClick={handleAddTeacherAdditionalSchedules}
@@ -167,7 +169,6 @@ const AddTeacherRankContainer = ({
                 >
                     Add Schedule
                 </button>
-
                 {/* Render the ScheduleComponent as many times as specified */}
                 <div
                     className='mt-2 overflow-y-auto max-h-36 border border-gray-300 rounded-lg'
@@ -211,7 +212,7 @@ const AddTeacherRankContainer = ({
                             </div>
                             <div className='w-1/12 flex items-center justify-center border rounded-r-lg hover:bg-gray-200'>
                                 <button
-                                     onClick={() =>
+                                    onClick={() =>
                                         document.getElementById(`add_additional_sched_modal_0_tr-0_idx-${index}`).showModal()
                                     }
                                 >
