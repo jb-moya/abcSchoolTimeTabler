@@ -23,6 +23,7 @@ const SubjectEdit = ({
     numOfSchoolDays = 5,
     breakTimeDuration,
 }) => {
+    
     const inputNameRef = useRef(null);
     const { user: currentUser } = useSelector((state) => state.user);
 
@@ -40,7 +41,7 @@ const SubjectEdit = ({
         }
     }, [subject]);
 
-    // =============================================================================
+// =============================================================================
 
     const handleEditSubject = async () => {
         if (!editSubjectValue.trim()) {
@@ -78,9 +79,12 @@ const SubjectEdit = ({
                 itemName: 'an item',
                 docId: editSubjectId,
                 entryData: {
-                    subject: editSubjectValue,
-                    classDuration: editClassDuration,
-                    weeklyMinutes: editSubjectWeeklyMinutes,
+                    // subject: editSubjectValue,
+                    s: editSubjectValue,
+                    // classDuration: editClassDuration,
+                    cd: editClassDuration,
+                    // weeklyMinutes: editSubjectWeeklyMinutes,
+                    wm: editSubjectWeeklyMinutes,
                 },
             });
 
@@ -106,7 +110,6 @@ const SubjectEdit = ({
         if (Object.keys(programs).length === 0) return;
 
         // Update subject dependencies in PROGRAMS
-        // Object.entries(programs).forEach(([id, program]) => {
         for (const [id, program] of Object.entries(programs)) {
             const originalProgram = JSON.parse(JSON.stringify(program));
             const newProgram = JSON.parse(JSON.stringify(program));
@@ -117,6 +120,8 @@ const SubjectEdit = ({
                 if (!newProgram[grade].subjects.length === 0) return;
 
                 if (!newProgram[grade].subjects.includes(editSubjectId)) return;
+
+                console.log(`newProgram[${grade}]: `, newProgram[grade]);
 
                 // =============== Update program start and end time ===============
 
@@ -165,8 +170,12 @@ const SubjectEdit = ({
                 let dayTimeSlots = {};
                 let positionTimeSlots = {};
 
+                
+
                 for (let subjectID of newProgram[grade].subjects) {
                     const { fixedDays, fixedPositions } = newProgram[grade];
+
+                    console.log(`fixedDays[${subjectID}]: `, fixedDays[subjectID]);
 
                     fixedDays[subjectID].forEach((day, i) => {
                         const position = fixedPositions[subjectID][i];
@@ -229,66 +238,66 @@ const SubjectEdit = ({
                 }
             });
 
-            // const updateProgramDetails = (newProgram, grade) => ({
-            //     subjects: newProgram[grade].subjects,
-            //     fixedDays: newProgram[grade].fixedDays,
-            //     fixedPositions: newProgram[grade].fixedPositions,
-            //     shift: newProgram[grade].shift,
-            //     startTime: newProgram[grade].startTime,
-            //     endTime: newProgram[grade].endTime,
-            //     additionalScheds: newProgram[grade].additionalScheds,
-            // });
-
             if (originalProgram !== newProgram) {
-                // dispatch(
-                //     editProgram({
-                //         programId: newProgram.id,
-                //         updatedProgram: {
-                //             program: newProgram.program,
-                //             ...[7, 8, 9, 10].reduce((grades, grade) => {
-                //                 grades[grade] = updateProgramDetails(newProgram, grade);
-                //                 return grades;
-                //             }, {}),
-                //         },
-                //     })
-                // );
+
+                const schedules = {
+                    7: [],
+                    8: [],
+                    9: [],
+                    10: [],
+                };
+                
+                [7, 8, 9, 10].forEach((grade) => {
+                    schedules[grade] = newProgram[grade].additionalScheds.map((sched) => ({
+                        n: sched.name,
+                        su: sched.subject,
+                        d: sched.duration,
+                        f: sched.frequency,
+                        sh: sched.shown,
+                    }));
+                });
 
                 const updatedData = {
+                    p: newProgram.program,
                     7: {
-                        subjects: newProgram[7].subjects,
-                        fixedDays: newProgram[7].fixedDays,
-                        fixedPositions: newProgram[7].fixedPositions,
-                        shift: newProgram[7].shift,
-                        startTime: newProgram[7].startTime,
-                        endTime: newProgram[7].endTime,
-                        additionalScheds: newProgram[7].additionalScheds,
+                        s: newProgram[7].subjects,
+                        fd: newProgram[7].fixedDays,
+                        fp: newProgram[7].fixedPositions,
+                        sh: newProgram[7].shift,
+                        st: newProgram[7].startTime,
+                        et: newProgram[7].endTime,
+                        m: newProgram[7].modality,
+                        as: schedules[7],
                     },
                     8: {
-                        subjects: newProgram[8].subjects,
-                        fixedDays: newProgram[8].fixedDays,
-                        fixedPositions: newProgram[8].fixedPositions,
-                        shift: newProgram[8].shift,
-                        startTime: newProgram[8].startTime,
-                        endTime: newProgram[8].endTime,
-                        additionalScheds: newProgram[8].additionalScheds,
+                        s: newProgram[8].subjects,
+                        fd: newProgram[8].fixedDays,
+                        fp: newProgram[8].fixedPositions,
+                        sh: newProgram[8].shift,
+                        st: newProgram[8].startTime,
+                        et: newProgram[8].endTime,
+                        m: newProgram[8].modality,
+                        as: schedules[8],
                     },
                     9: {
-                        subjects: newProgram[9].subjects,
-                        fixedDays: newProgram[9].fixedDays,
-                        fixedPositions: newProgram[9].fixedPositions,
-                        shift: newProgram[9].shift,
-                        startTime: newProgram[9].startTime,
-                        endTime: newProgram[9].endTime,
-                        additionalScheds: newProgram[9].additionalScheds,
+                        s: newProgram[9].subjects,
+                        fd: newProgram[9].fixedDays,
+                        fp: newProgram[9].fixedPositions,
+                        sh: newProgram[9].shift,
+                        st: newProgram[9].startTime,
+                        et: newProgram[9].endTime,
+                        m: newProgram[9].modality,
+                        as: schedules[9],
                     },
                     10: {
-                        subjects: newProgram[10].subjects,
-                        fixedDays: newProgram[10].fixedDays,
-                        fixedPositions: newProgram[10].fixedPositions,
-                        shift: newProgram[10].shift,
-                        startTime: newProgram[10].startTime,
-                        endTime: newProgram[10].endTime,
-                        additionalScheds: newProgram[10].additionalScheds,
+                        s: newProgram[10].subjects,
+                        fd: newProgram[10].fixedDays,
+                        fp: newProgram[10].fixedPositions,
+                        sh: newProgram[10].shift,
+                        st: newProgram[10].startTime,
+                        et: newProgram[10].endTime,
+                        m: newProgram[10].modality,
+                        as: schedules[10],
                     },
                 };
 
@@ -427,17 +436,27 @@ const SubjectEdit = ({
             newSection.fixedPositions[editSubjectId] = result.map(([_, pos]) => pos);
 
             if (originalSection !== newSection) {
+
+                const section_schedules = newSection.additionalScheds.map((sched) => ({
+                    n: sched.name,
+                    su: sched.subject,
+                    d: sched.duration,
+                    f: sched.frequency,
+                    sh: sched.shown,
+                }));
+
                 const updatedData = {
-                    teacher: newSection.teacher,
-                    program: newSection.program,
-                    section: newSection.section,
-                    subjects: newSection.subjects,
-                    fixedDays: newSection.fixedDays,
-                    fixedPositions: newSection.fixedPositions,
-                    year: newSection.year,
-                    shift: newSection.shift,
-                    startTime: newSection.startTime,
-                    endTime: newSection.endTime,
+                    t: newSection.teacher,
+                    p: newSection.program,
+                    s: newSection.section,
+                    ss: newSection.subjects,
+                    fd: newSection.fixedDays,
+                    fp: newSection.fixedPositions,
+                    y: newSection.year,
+                    sh: newSection.shift,
+                    st: newSection.startTime,
+                    et: newSection.endTime,
+                    as: section_schedules,
                 };
 
                 await editDocument({
@@ -470,7 +489,7 @@ const SubjectEdit = ({
         handleReset();
     };
 
-    // =============================================================================
+// =============================================================================
 
     return (
         <div className='flex items-center justify-center'>

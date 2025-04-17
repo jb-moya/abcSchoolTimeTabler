@@ -23,14 +23,11 @@ const AddBuildingContainer = ({
     errorMessage,
     errorField,
 }) => {
+
     const inputBuildingNameRef = useRef();
     const { user: currentUser } = useSelector((state) => state.user);
 
-    // ==============================================================================
-
-    // useEffect(() => {
-    //     console.log('buildings: ', buildings);
-    // }, [buildings]);
+// ==============================================================================
 
     const [buildingName, setBuildingName] = useState('');
 
@@ -46,11 +43,7 @@ const AddBuildingContainer = ({
 
     const [nearbyBuildings, setNearbyBuildings] = useState([]);
 
-    // ================================================================================
-
-    // useEffect(() => {
-    //     dispatch(fetchBuildings());
-    // }, [dispatch]);
+// ================================================================================
 
     useEffect(() => {
         if (!close) {
@@ -104,21 +97,21 @@ const AddBuildingContainer = ({
     };
 
     const handleRoomNameChange = (floorIndex, roomIndex, newRoomName) => {
-        const updatedRoomNames = [...roomNames];
-        if (!updatedRoomNames[floorIndex]) updatedRoomNames[floorIndex] = [];
-        if (!updatedRoomNames[floorIndex][roomIndex]) {
-            updatedRoomNames[floorIndex][roomIndex] = { roomName: '' };
-        }
-
-        updatedRoomNames[floorIndex][roomIndex] = {
-            ...updatedRoomNames[floorIndex][roomIndex],
-            roomName: newRoomName,
+        const updatedRoomNames = { ...roomNames };
+        
+        // Clone nested floor object if it exists, or initialize
+        updatedRoomNames[floorIndex] = {
+            ...(updatedRoomNames[floorIndex] || {})
         };
-
+        
+        updatedRoomNames[floorIndex][roomIndex] = {
+            roomName: newRoomName
+        };
+        
         setRoomNames(updatedRoomNames);
-    };
+    };   
 
-    // ===========================================================================
+// ===========================================================================
 
     const handleImageUpload = (e) => {
         const file = e.target.files[0];
@@ -196,31 +189,28 @@ const AddBuildingContainer = ({
             return;
         }
 
-        // // Prepare building data for submission
-        // const buildingData = {
-        //     name: buildingName,
-        //     floors: numberOfFloors,
-        //     rooms: roomNames,
-        //     image: buildingImage, // Base64 string
-        //     nearbyBuildings: nearbyBuildings.map((building) => ({
-        //         id: building.id,
-        //         name: building.name,
-        //     })),
-        // };
-
-        // // Dispatch the action to add the building
-        // dispatch(addBuilding(buildingData));
-
         try {
+
+            const names = {};
+            Object.entries(roomNames).forEach(([key_out, val_out]) =>{
+                names[key_out] = {};
+
+                Object.entries(val_out).forEach(([key_in, val_in]) => {
+                    names[key_out][key_in] = {
+                        n: val_in.roomName,
+                    };
+                });
+            });
+
             // Prepare building data for submission
             const buildingData = {
-                name: buildingName,
-                floors: numberOfFloors,
-                rooms: roomNames,
-                image: buildingImage, // Base64 string
-                nearbyBuildings: nearbyBuildings.map((building) => ({
+                n: buildingName,
+                f: numberOfFloors,
+                r: names,
+                i: buildingImage, // Base64 string
+                nb: nearbyBuildings.map((building) => ({
                     id: building.id,
-                    name: building.name,
+                    n: building.name,
                 })),
             };
 
@@ -232,7 +222,7 @@ const AddBuildingContainer = ({
                 userName: currentUser?.username || 'unknown user',
                 itemName: buildingName || 'an item',
                 entryData: {
-                    data: string_building,
+                    d: string_building,
                 },
             });
         } catch (error) {
@@ -526,20 +516,19 @@ const RoomListContainer = ({
     }, [editNumberOfFloors]);
 
     const handleRoomNameChange = (floorIndex, roomIndex, newRoomName) => {
-        const updatedRoomNames = [...editRoomNames];
-
-        if (!updatedRoomNames[floorIndex]) updatedRoomNames[floorIndex] = [];
-        if (!updatedRoomNames[floorIndex][roomIndex]) {
-            updatedRoomNames[floorIndex][roomIndex] = { roomName: '' };
-        }
-
-        updatedRoomNames[floorIndex][roomIndex] = {
-            ...updatedRoomNames[floorIndex][roomIndex],
-            roomName: newRoomName,
+        const updatedRoomNames = { ...editRoomNames };
+        
+        // Clone nested floor object if it exists, or initialize
+        updatedRoomNames[floorIndex] = {
+            ...(updatedRoomNames[floorIndex] || {})
         };
-
+        
+        updatedRoomNames[floorIndex][roomIndex] = {
+            roomName: newRoomName
+        };
+        
         setEditRoomNames(updatedRoomNames);
-    };
+    };      
 
     const handleNumberOfRoomsChange = (floorIndex, value) => {
         const roomsCount = Math.max(1, Number(value)); // Ensure no negative values
@@ -664,15 +653,24 @@ const RoomListContainer = ({
         }
 
         try {
-            console.log('editBuildingID: ', editBuildingID);
-            console.log('editBuildingName: ', editBuildingName);
+
+            const names = {};
+            Object.entries(editRoomNames).forEach(([key_out, val_out]) =>{
+                names[key_out] = {};
+
+                Object.entries(val_out).forEach(([key_in, val_in]) => {
+                    names[key_out][key_in] = {
+                        n: val_in.roomName,
+                    };
+                });
+            });
 
             const buildingData = {
-                name: editBuildingName,
-                floors: editNumberOfFloors,
-                rooms: editRoomNames,
-                image: editBuildingImage || '',
-                nearbyBuildings: editNearbyBuildings,
+                n: editBuildingName,
+                f: editNumberOfFloors,
+                r: names,
+                i: editBuildingImage || '',
+                nb: editNearbyBuildings,
             };
 
             const string_building = JSON.stringify(buildingData, null, 2);
@@ -684,7 +682,7 @@ const RoomListContainer = ({
                 userName: currentUser?.username || 'unknown user',
                 itemName: 'a building' || 'an item',
                 entryData: {
-                    data: string_building,
+                    d: string_building,
                 },
             });
         } catch {

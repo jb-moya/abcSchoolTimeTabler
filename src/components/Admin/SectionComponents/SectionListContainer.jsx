@@ -23,18 +23,20 @@ const SectionListContainer = ({
     editable = false,
     loading,
 }) => {
-    //  =========================================================================================
+
+//  =========================================================================================
+
     const { configurations } = useSelector((state) => state.configuration);
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState([]);
 
-    //  =======================================================================================
+//  =======================================================================================
 
     const [searchSectionResult, setSearchSectionResult] = useState(sections);
     const [searchSectionValue, setSearchSectionValue] = useState('');
 
-    //  =======================================================================================
+//  =======================================================================================
 
     const handleClose = () => {
         const modal = document.getElementById('add_section_modal');
@@ -47,7 +49,7 @@ const SectionListContainer = ({
         }
     };
 
-    //  =======================================================================================
+//  =======================================================================================
 
     const debouncedSearch = useCallback(
         debounce((searchValue, sections, subjects) => {
@@ -76,7 +78,7 @@ const SectionListContainer = ({
         []
     );
 
-    //  =======================================================================================
+//  =======================================================================================
 
     useEffect(() => {
         debouncedSearch(searchSectionValue, sections, subjects);
@@ -93,7 +95,7 @@ const SectionListContainer = ({
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Object.entries(searchSectionResult).slice(indexOfFirstItem, indexOfLastItem);
 
-    //  =======================================================================================
+//  =======================================================================================
 
     if (loading) {
         return (
@@ -459,6 +461,7 @@ const SectionListContainer = ({
             </div>
         </React.Fragment>
     );
+    
 };
 
 export default SectionListContainer;

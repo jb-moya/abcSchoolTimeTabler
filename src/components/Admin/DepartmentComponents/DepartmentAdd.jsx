@@ -53,8 +53,8 @@ const AddDepartmentContainer = ({
                 userName: currentUser?.username || 'unknown user',
                 itemName: departmentName || 'an item',
                 entryData: {
-                    name: departmentName.trim(),
-                    head: selectedHead.trim(),
+                    n: departmentName.trim(),
+                    h: selectedHead.trim(),
                 },
             });
         } catch (error) {
@@ -71,26 +71,6 @@ const AddDepartmentContainer = ({
             handleReset();
             close();
         }
-
-        //   dispatch(
-        //     reduxFunction({
-        //       name: departmentName.trim(),
-        //       head: selectedHead.trim(),
-        //     })
-        //   ).then((action) => {
-        //     if (action.meta.requestStatus === 'fulfilled') {
-        //       toast.success('Department added successfully', {
-        //         style: { backgroundColor: 'green', color: 'white', borderColor: 'green' },
-        //       });
-        //       handleReset();
-        //       close();
-        //       if (inputNameRef.current) {
-        //         inputNameRef.current.focus();
-        //       }
-        //     } else {
-        //       toast.error('Failed to add department.');
-        //     }
-        //   });
     };
 
     const handleReset = () => {

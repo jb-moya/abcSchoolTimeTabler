@@ -77,18 +77,28 @@ const AddTeacherContainer = ({
         }
 
         try {
+
+            const schedules = additionalTeacherScheds.map((sched) => ({
+                n: sched.name,
+                su: sched.subject,
+                d: sched.duration,
+                f: sched.frequency,
+                sh: sched.shown,
+                t: sched.time,
+            }));
+
             await addDocument({
                 collectionName: 'teachers',
                 collectionAbbreviation: COLLECTION_ABBREVIATION.TEACHERS,
                 userName: currentUser?.username || 'unknown user',
                 itemName: teacherName || 'an item',
                 entryData: {
-                    teacher: teacherName,
-                    rank: teacherRank,
-                    department: teacherDepartment,
-                    subjects: selectedSubjects,
-                    yearLevels: assignedYearLevels,
-                    additionalTeacherScheds: additionalTeacherScheds,
+                    t: teacherName,
+                    r: teacherRank,
+                    d: teacherDepartment,
+                    s: selectedSubjects,
+                    y: assignedYearLevels,
+                    at: schedules,
                 },
             });
         } catch (error) {

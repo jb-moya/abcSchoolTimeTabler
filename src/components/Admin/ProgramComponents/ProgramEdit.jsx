@@ -30,6 +30,7 @@ const ProgramEdit = ({
     numOfSchoolDays = 5,
     breakTimeDuration,
 }) => {
+
     const inputNameRef = useRef();
 
     const { user: currentUser } = useSelector((state) => state.user);
@@ -67,17 +68,17 @@ const ProgramEdit = ({
     });
 
     const [editFixedDays, setEditFixedDays] = useState({
-        7: {},
-        8: {},
-        9: {},
-        10: {},
+        7: [],
+        8: [],
+        9: [],
+        10: [],
     });
 
     const [editFixedPositions, setEditFixedPositions] = useState({
-        7: {},
-        8: {},
-        9: {},
-        10: {},
+        7: [],
+        8: [],
+        9: [],
+        10: [],
     });
 
     const [editClassModality, setEditClassModality] = useState({
@@ -103,11 +104,7 @@ const ProgramEdit = ({
 
     const isAddButtonDisabled = Object.values(validEndTimes).some((value) => !value);
 
-    // useEffect(() => {
-    //     console.log('editAdditionalScheds', editAdditionalScheds);
-    // }, [editAdditionalScheds]);
-
-    // ==========================================================================
+// ==========================================================================
 
     const initializeStates = () => {
         if (!program) return;
@@ -149,7 +146,7 @@ const ProgramEdit = ({
         }
     }, [program]);
 
-    // ==========================================================================
+// ==========================================================================
 
     const [sectionDetailsToUpdate, setSectionDetailsToUpdate] = useState({
         shiftAndStartTime: false,
@@ -158,7 +155,7 @@ const ProgramEdit = ({
         modality: false,
     });
 
-    // ==========================================================================
+// ==========================================================================
 
     // Subjects
     const handleSubjectSelection = (grade, selectedList) => {
@@ -345,7 +342,7 @@ const ProgramEdit = ({
         }));
     };
 
-    // ==========================================================================
+// ==========================================================================
 
     const updateProgramDependencies = async () => {
         // Update program dependencies in SECTIONS
@@ -471,10 +468,16 @@ const ProgramEdit = ({
                 }
             }
 
-            console.log('originalSection.subjects: ', originalSection.subjects);
-            console.log('newSection.subjects: ', newSection.subjects);
-
             if (originalSection !== newSection) {
+
+                const section_schedules = newSection.additionalScheds.map((sched) => ({
+                    n: sched.name,
+                    su: sched.subject,
+                    d: sched.duration,
+                    f: sched.frequency,
+                    sh: sched.shown,
+                }));
+
                 await editDocument({
                     collectionName: 'sections',
                     collectionAbbreviation: COLLECTION_ABBREVIATION.SECTIONS,
@@ -482,18 +485,19 @@ const ProgramEdit = ({
                     itemName: 'item' || 'an item',
                     docId: newSection.id,
                     entryData: {
-                        teacher: newSection.teacher,
-                        program: newSection.program,
-                        section: newSection.section,
-                        subjects: newSection.subjects,
-                        fixedDays: newSection.fixedDays,
-                        fixedPositions: newSection.fixedPositions,
-                        year: newSection.year,
-                        shift: newSection.shift,
-                        startTime: newSection.startTime,
-                        endTime: newSection.endTime,
-                        modality: newSection.modality,
-                        additionalScheds: newSection.additionalScheds,
+                        s: newSection.section,
+                        t: newSection.teacher,
+                        p: newSection.program,
+                        y: newSection.year,
+                        ss: newSection.subjects,
+                        fd: newSection.fixedDays,
+                        fp: newSection.fixedPositions,
+                        m: newSection.modality,
+                        sh: newSection.shift,
+                        st: newSection.startTime,
+                        et: newSection.endTime,
+                        as: section_schedules,
+                        rd: newSection.roomDetails,
                     },
                 });
             }
@@ -579,6 +583,24 @@ const ProgramEdit = ({
 
         if (editProgramValue.trim().toLowerCase() === currentProgram.trim().toLowerCase()) {
             try {
+
+                const schedules = {
+                    7: [],
+                    8: [],
+                    9: [],
+                    10: [],
+                };
+                
+                [7, 8, 9, 10].forEach((grade) => {
+                    schedules[grade] = editAdditionalScheds[grade].map((sched) => ({
+                        n: sched.name,
+                        su: sched.subject,
+                        d: sched.duration,
+                        f: sched.frequency,
+                        sh: sched.shown,
+                    }));
+                });
+
                 await editDocument({
                     collectionName: 'programs',
                     collectionAbbreviation: COLLECTION_ABBREVIATION.PROGRAMS,
@@ -586,51 +608,52 @@ const ProgramEdit = ({
                     itemName: currentProgram || 'an item',
                     docId: editProgramId,
                     entryData: {
-                        program: editProgramValue,
+                        p: editProgramValue,
                         7: {
-                            subjects: editProgramCurr[7],
-                            fixedDays: editFixedDays[7],
-                            fixedPositions: editFixedPositions[7],
-                            shift: editSelectedShifts[7],
-                            startTime: getTimeSlotIndex(editStartTimes[7] || '06:00 AM'),
-                            endTime: editEndTimes[7],
-                            additionalScheds: editAdditionalScheds[7],
-                            modality: editClassModality[7],
+                            s: editProgramCurr[7],
+                            fd: editFixedDays[7],
+                            fp: editFixedPositions[7],
+                            sh: editSelectedShifts[7],
+                            st: getTimeSlotIndex(editStartTimes[7] || '06:00 AM'),
+                            et: editEndTimes[7],
+                            as: schedules[7],
+                            m: editClassModality[7],
                         },
                         8: {
-                            subjects: editProgramCurr[8],
-                            fixedDays: editFixedDays[8],
-                            fixedPositions: editFixedPositions[8],
-                            shift: editSelectedShifts[8],
-                            startTime: getTimeSlotIndex(editStartTimes[8] || '06:00 AM'),
-                            endTime: editEndTimes[8],
-                            additionalScheds: editAdditionalScheds[8],
-                            modality: editClassModality[8],
+                            s: editProgramCurr[8],
+                            fd: editFixedDays[8],
+                            fp: editFixedPositions[8],
+                            sh: editSelectedShifts[8],
+                            st: getTimeSlotIndex(editStartTimes[8] || '06:00 AM'),
+                            et: editEndTimes[8],
+                            as: schedules[8],
+                            m: editClassModality[8],
                         },
                         9: {
-                            subjects: editProgramCurr[9],
-                            fixedDays: editFixedDays[9],
-                            fixedPositions: editFixedPositions[9],
-                            shift: editSelectedShifts[9],
-                            startTime: getTimeSlotIndex(editStartTimes[9] || '06:00 AM'),
-                            endTime: editEndTimes[9],
-                            additionalScheds: editAdditionalScheds[9],
-                            modality: editClassModality[9],
+                            s: editProgramCurr[9],
+                            fd: editFixedDays[9],
+                            fp: editFixedPositions[9],
+                            sh: editSelectedShifts[9],
+                            st: getTimeSlotIndex(editStartTimes[9] || '06:00 AM'),
+                            et: editEndTimes[9],
+                            as: schedules[9],
+                            m: editClassModality[9],
                         },
                         10: {
-                            subjects: editProgramCurr[10],
-                            fixedDays: editFixedDays[10],
-                            fixedPositions: editFixedPositions[10],
-                            shift: editSelectedShifts[10],
-                            startTime: getTimeSlotIndex(editStartTimes[10] || '06:00 AM'),
-                            endTime: editEndTimes[10],
-                            additionalScheds: editAdditionalScheds[10],
-                            modality: editClassModality[10],
+                            s: editProgramCurr[10],
+                            fd: editFixedDays[10],
+                            fd: editFixedPositions[10],
+                            sh: editSelectedShifts[10],
+                            st: getTimeSlotIndex(editStartTimes[10] || '06:00 AM'),
+                            et: editEndTimes[10],
+                            as: schedules[10],
+                            m: editClassModality[10],
                         },
                     },
                 });
 
                 updateProgramDependencies();
+                
             } catch (error) {
                 console.error('Error updating program: ', error);
             } finally {
@@ -667,46 +690,46 @@ const ProgramEdit = ({
                         userName: currentUser?.username || 'unknown user',
                         itemName: currentProgram || 'an item',
                         entryData: {
-                            program: editProgramValue,
+                            p: editProgramValue,
                             7: {
-                                subjects: editProgramCurr[7],
-                                fixedDays: editFixedDays[7],
-                                fixedPositions: editFixedPositions[7],
-                                shift: editSelectedShifts[7],
-                                startTime: getTimeSlotIndex(editStartTimes[7] || '06:00 AM'),
-                                endTime: editEndTimes[7],
-                                additionalScheds: editAdditionalScheds[7],
-                                modality: editClassModality[7],
+                                s: editProgramCurr[7],
+                                fd: editFixedDays[7],
+                                fp: editFixedPositions[7],
+                                sh: editSelectedShifts[7],
+                                st: getTimeSlotIndex(editStartTimes[7] || '06:00 AM'),
+                                et: editEndTimes[7],
+                                as: editAdditionalScheds[7],
+                                m: editClassModality[7],
                             },
                             8: {
-                                subjects: editProgramCurr[8],
-                                fixedDays: editFixedDays[8],
-                                fixedPositions: editFixedPositions[8],
-                                shift: editSelectedShifts[8],
-                                startTime: getTimeSlotIndex(editStartTimes[8] || '06:00 AM'),
-                                endTime: editEndTimes[8],
-                                additionalScheds: editAdditionalScheds[8],
-                                modality: editClassModality[8],
+                                s: editProgramCurr[8],
+                                fd: editFixedDays[8],
+                                fp: editFixedPositions[8],
+                                sh: editSelectedShifts[8],
+                                st: getTimeSlotIndex(editStartTimes[8] || '06:00 AM'),
+                                et: editEndTimes[8],
+                                as: editAdditionalScheds[8],
+                                m: editClassModality[8],
                             },
                             9: {
-                                subjects: editProgramCurr[9],
-                                fixedDays: editFixedDays[9],
-                                fixedPositions: editFixedPositions[9],
-                                shift: editSelectedShifts[9],
-                                startTime: getTimeSlotIndex(editStartTimes[9] || '06:00 AM'),
-                                endTime: editEndTimes[9],
-                                additionalScheds: editAdditionalScheds[9],
-                                modality: editClassModality[9],
+                                s: editProgramCurr[9],
+                                fd: editFixedDays[9],
+                                fp: editFixedPositions[9],
+                                sh: editSelectedShifts[9],
+                                st: getTimeSlotIndex(editStartTimes[9] || '06:00 AM'),
+                                et: editEndTimes[9],
+                                as: editAdditionalScheds[9],
+                                m: editClassModality[9],
                             },
                             10: {
-                                subjects: editProgramCurr[10],
-                                fixedDays: editFixedDays[10],
-                                fixedPositions: editFixedPositions[10],
-                                shift: editSelectedShifts[10],
-                                startTime: getTimeSlotIndex(editStartTimes[10] || '06:00 AM'),
-                                endTime: editEndTimes[10],
-                                additionalScheds: editAdditionalScheds[10],
-                                modality: editClassModality[10],
+                                s: editProgramCurr[10],
+                                fd: editFixedDays[10],
+                                fd: editFixedPositions[10],
+                                sh: editSelectedShifts[10],
+                                st: getTimeSlotIndex(editStartTimes[10] || '06:00 AM'),
+                                et: editEndTimes[10],
+                                as: editAdditionalScheds[10],
+                                m: editClassModality[10],
                             },
                         },
                     });
@@ -731,7 +754,7 @@ const ProgramEdit = ({
         }
     };
 
-    // ===========================================================================
+// ===========================================================================
 
     const resetStates = () => {
         setEditProgramId(null);
@@ -781,7 +804,7 @@ const ProgramEdit = ({
         });
     };
 
-    // ==========================================================================
+// ==========================================================================
 
     const handleConfirmationModalClose = () => {
         setSectionDetailsToUpdate({

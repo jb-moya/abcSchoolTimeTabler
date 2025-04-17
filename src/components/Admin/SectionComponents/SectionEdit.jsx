@@ -145,13 +145,27 @@ const SectionEdit = ({
         const currentSection = sections[sectionId]?.section || '';
         const currentSectionAdviser = sections[sectionId]?.teacher || '';
 
+        console.log('editSectionValue: ', editSectionValue);
+        console.log('currentSection: ', currentSection);
+        console.log('editSectionAdviser: ', editSectionAdviser);
+        console.log('currentSectionAdviser: ', currentSectionAdviser);
+
         if (
-            editSectionValue.trim().toLowerCase() === currentSection.trim().toLowerCase() &&
+            String(editSectionValue).trim().toLowerCase() === String(currentSection).trim().toLowerCase() &&
             editSectionAdviser === currentSectionAdviser
         ) {
             console.log('check_1!');
 
             try {
+
+                const section_schedules = editAdditionalScheds.map((sched) => ({
+                    n: sched.name,
+                    su: sched.subject,
+                    d: sched.duration,
+                    f: sched.frequency,
+                    sh: sched.shown,
+                }));
+
                 await editDocument({
                     collectionName: 'sections',
                     collectionAbbreviation: COLLECTION_ABBREVIATION.SECTIONS,
@@ -159,19 +173,19 @@ const SectionEdit = ({
                     itemName: 'a section' || 'an item',
                     docId: sectionId,
                     entryData: {
-                        teacher: editSectionAdviser,
-                        program: editSectionProg,
-                        section: editSectionValue,
-                        subjects: editSectionSubjects,
-                        fixedDays: editSectionFixedDays,
-                        fixedPositions: editSectionFixedPositions,
-                        year: editSectionYear,
-                        shift: editSectionShift,
-                        startTime: getTimeSlotIndex(editSectionStartTime),
-                        endTime: editSectionEndTime,
-                        modality: editSectionClassModality,
-                        additionalScheds: editAdditionalScheds,
-                        roomDetails: editRoomDetails,
+                        s: editSectionValue,
+                        t: editSectionAdviser,
+                        p: editSectionProg,
+                        y: editSectionYear,
+                        ss: editSectionSubjects,
+                        fd: editSectionFixedDays,
+                        fp: editSectionFixedPositions,
+                        m: editSectionClassModality,
+                        sh: editSectionShift,
+                        st: getTimeSlotIndex(editSectionStartTime),
+                        et: editSectionEndTime,
+                        as: section_schedules,
+                        rd: editRoomDetails,
                     },
                 });
             } catch (error) {
@@ -191,8 +205,8 @@ const SectionEdit = ({
         } else {
             const duplicateSection = Object.values(sections).find(
                 (section) =>
-                    section.section.trim().toLowerCase() === editSectionValue.trim().toLowerCase() &&
-                    section.section.trim().toLowerCase() !== currentSection.trim().toLowerCase() &&
+                    String(section.section).trim().toLowerCase() === editSectionValue.trim().toLowerCase() &&
+                    String(section.section).trim().toLowerCase() !== currentSection.trim().toLowerCase() &&
                     section.id !== sectionId
             );
 
@@ -251,6 +265,15 @@ const SectionEdit = ({
                     teacher.additionalTeacherScheds = teacher.additionalTeacherScheds || [];
                     teacher.additionalTeacherScheds.push(advisoryLoad);
 
+                    const teacher_schedules = teacher.additionalTeacherScheds.map((sched) => ({
+                        n: sched.name,
+                        su: sched.subject,
+                        d: sched.duration,
+                        f: sched.frequency,
+                        sh: sched.shown,
+                        t: sched.time,
+                    }));
+
                     await editDocument({
                         collectionName: 'teachers',
                         collectionAbbreviation: COLLECTION_ABBREVIATION.TEACHERS,
@@ -258,9 +281,17 @@ const SectionEdit = ({
                         itemName: 'a teacher' || 'an item',
                         docId: teacher_id,
                         entryData: {
-                            additionalTeacherScheds: teacher.additionalTeacherScheds,
+                            as: teacher_schedules,
                         },
                     });
+
+                    const section_schedules = editAdditionalScheds.map((sched) => ({
+                        n: sched.name,
+                        su: sched.subject,
+                        d: sched.duration,
+                        f: sched.frequency,
+                        sh: sched.shown,
+                    }));
 
                     await editDocument({
                         collectionName: 'sections',
@@ -269,19 +300,19 @@ const SectionEdit = ({
                         itemName: 'a section' || 'an item',
                         docId: sectionId,
                         entryData: {
-                            teacher: editSectionAdviser,
-                            program: editSectionProg,
-                            section: editSectionValue,
-                            subjects: editSectionSubjects,
-                            fixedDays: editSectionFixedDays,
-                            fixedPositions: editSectionFixedPositions,
-                            year: editSectionYear,
-                            shift: editSectionShift,
-                            startTime: getTimeSlotIndex(editSectionStartTime),
-                            endTime: editSectionEndTime,
-                            modality: editSectionClassModality,
-                            additionalScheds: editAdditionalScheds,
-                            roomDetails: editRoomDetails,
+                            s: editSectionValue,
+                            t: editSectionAdviser,
+                            p: editSectionProg,
+                            y: editSectionYear,
+                            ss: editSectionSubjects,
+                            fd: editSectionFixedDays,
+                            fp: editSectionFixedPositions,
+                            m: editSectionClassModality,
+                            sh: editSectionShift,
+                            st: getTimeSlotIndex(editSectionStartTime),
+                            et: editSectionEndTime,
+                            as: section_schedules,
+                            rd: editRoomDetails,
                         },
                     });
                 } catch (error) {

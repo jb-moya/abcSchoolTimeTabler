@@ -25,6 +25,7 @@ const TeacherEdit = ({
     setErrorField,
     numOfSchoolDays = 5,
 }) => {
+
     const { user: currentUser } = useSelector((state) => state.user);
 
     const [editTeacherId, setEditTeacherId] = useState(teacher.id || null);
@@ -72,7 +73,7 @@ const TeacherEdit = ({
         }
     }, [editTeacherRank]);
 
-    // ==================================================================================
+// ==================================================================================
 
     const handleSaveTeacherEditClick = async (teacherId) => {
         console.log('editTaecersId', editTeacherId);
@@ -101,12 +102,12 @@ const TeacherEdit = ({
                     itemName: editTeacherValue || 'an item',
                     docId: teacherId,
                     entryData: {
-                        teacher: editTeacherValue,
-                        department: editTeacherDepartment,
-                        rank: editTeacherRank,
-                        subjects: editTeacherCurr,
-                        yearLevels: editTeacherYearLevels,
-                        additionalTeacherScheds: editTeacherAdditionalScheds,
+                        t: editTeacherValue,
+                        d: editTeacherDepartment,
+                        r: editTeacherRank,
+                        s: editTeacherCurr,
+                        y: editTeacherYearLevels,
+                        at: editTeacherAdditionalScheds,
                     },
                 });
             } catch {
@@ -124,20 +125,6 @@ const TeacherEdit = ({
                 resetStates();
                 closeModal();
             }
-
-            // dispatch(
-            //     reduxFunction({
-            //         teacherId,
-            //         updatedTeacher: {
-            //             teacher: editTeacherValue,
-            //             department: editTeacherDepartment,
-            //             rank: editTeacherRank,
-            //             subjects: editTeacherCurr,
-            //             yearLevels: editTeacherYearLevels,
-            //             additionalTeacherScheds: editTeacherAdditionalScheds,
-            //         },
-            //     })
-            // );
         } else {
             const duplicateTeacher = Object.values(teachers).find(
                 (teacher) => teacher.teacher.trim().toLowerCase() === editTeacherValue.trim().toLowerCase()
@@ -157,12 +144,12 @@ const TeacherEdit = ({
                         itemName: editTeacherValue || 'an item',
                         docId: teacherId,
                         entryData: {
-                            teacher: editTeacherValue,
-                            department: editTeacherDepartment,
-                            rank: editTeacherRank,
-                            subjects: editTeacherCurr,
-                            yearLevels: editTeacherYearLevels,
-                            additionalTeacherScheds: editTeacherAdditionalScheds,
+                            t: editTeacherValue,
+                            d: editTeacherDepartment,
+                            r: editTeacherRank,
+                            s: editTeacherCurr,
+                            y: editTeacherYearLevels,
+                            at: editTeacherAdditionalScheds,
                         },
                     });
                 } catch {
@@ -180,25 +167,11 @@ const TeacherEdit = ({
                     resetStates();
                     closeModal();
                 }
-
-                // dispatch(
-                //     reduxFunction({
-                //         teacherId,
-                //         updatedTeacher: {
-                //             teacher: editTeacherValue,
-                //             department: editTeacherDepartment,
-                //             rank: editTeacherRank,
-                //             subjects: editTeacherCurr,
-                //             yearLevels: editTeacherYearLevels,
-                //             additionalTeacherScheds: editTeacherAdditionalScheds,
-                //         },
-                //     })
-                // );
             }
         }
     };
 
-    // ==================================================================================
+// ==================================================================================
 
     // Rank
     const handleRankChange = (event) => {
@@ -238,7 +211,7 @@ const TeacherEdit = ({
         }
     };
 
-    // ==============================================================================
+// ==============================================================================
 
     const resetStates = () => {
         setEditTeacherValue(teacher.teacher);
@@ -260,7 +233,7 @@ const TeacherEdit = ({
         // handleReset();
     };
 
-    // ==============================================================================
+// ==============================================================================
 
     return (
         <div className=''>

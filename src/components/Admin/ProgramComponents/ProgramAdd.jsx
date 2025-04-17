@@ -30,14 +30,15 @@ const AddProgramContainer = ({
     numOfSchoolDays = 5,
     breakTimeDuration,
 }) => {
+
     const inputNameRef = useRef();
     const { user: currentUser } = useSelector((state) => state.user);
 
-    // ===============================================================================
+// ===============================================================================
 
     const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 
-    // ===============================================================================
+// ===============================================================================
 
     const [inputValue, setInputValue] = useState('');
 
@@ -49,17 +50,17 @@ const AddProgramContainer = ({
     });
 
     const [fixedDays, setFixedDays] = useState({
-        7: {},
-        8: {},
-        9: {},
-        10: {},
+        7: [],
+        8: [],
+        9: [],
+        10: [],
     });
 
     const [fixedPositions, setFixedPositions] = useState({
-        7: {},
-        8: {},
-        9: {},
-        10: {},
+        7: [],
+        8: [],
+        9: [],
+        10: [],
     });
 
     const [selectedShifts, setSelectedShifts] = useState({
@@ -107,7 +108,7 @@ const AddProgramContainer = ({
 
     const isAddButtonDisabled = Object.values(validEndTimes).some((value) => !value);
 
-    // ==============================================================================
+// ==============================================================================
 
     // Input
     const handleInputChange = (e) => {
@@ -284,7 +285,7 @@ const AddProgramContainer = ({
         }));
     };
 
-    // ==============================================================================
+// ==============================================================================
 
     const handleAddEntry = async () => {
         if (!inputValue.trim()) {
@@ -334,52 +335,70 @@ const AddProgramContainer = ({
             setErrorField('program');
         } else {
             try {
+
+                const schedules = {
+                    7: [],
+                    8: [],
+                    9: [],
+                    10: [],
+                };
+                
+                [7, 8, 9, 10].forEach((grade) => {
+                    schedules[grade] = additionalScheds[grade].map((sched) => ({
+                        n: sched.name,
+                        su: sched.subject,
+                        d: sched.duration,
+                        f: sched.frequency,
+                        sh: sched.shown,
+                    }));
+                });
+
                 await addDocument({
                     collectionName: 'programs',
                     collectionAbbreviation: COLLECTION_ABBREVIATION.PROGRAMS,
                     userName: currentUser?.username || 'unknown user',
                     itemName: inputValue || 'an item',
                     entryData: {
-                        program: inputValue,
+                        p: inputValue,
                         7: {
-                            subjects: selectedSubjects[7],
-                            fixedDays: fixedDays[7],
-                            fixedPositions: fixedPositions[7],
-                            shift: selectedShifts[7],
-                            startTime: getTimeSlotIndex(startTimes[7]),
-                            endTime: endTimes[7],
-                            additionalScheds: additionalScheds[7],
-                            modality: classModality[7],
+                            s: selectedSubjects[7],
+                            fd: fixedDays[7],
+                            fp: fixedPositions[7],
+                            sh: selectedShifts[7],
+                            st: getTimeSlotIndex(startTimes[7]),
+                            et: endTimes[7],
+                            as: schedules[7],
+                            m: classModality[7],
                         },
                         8: {
-                            subjects: selectedSubjects[8],
-                            fixedDays: fixedDays[8],
-                            fixedPositions: fixedPositions[8],
-                            shift: selectedShifts[8],
-                            startTime: getTimeSlotIndex(startTimes[8]),
-                            endTime: endTimes[8],
-                            additionalScheds: additionalScheds[8],
-                            modality: classModality[8],
+                            s: selectedSubjects[8],
+                            fd: fixedDays[8],
+                            fp: fixedPositions[8],
+                            sh: selectedShifts[8],
+                            st: getTimeSlotIndex(startTimes[8]),
+                            et: endTimes[8],
+                            as: schedules[8],
+                            m: classModality[8],
                         },
                         9: {
-                            subjects: selectedSubjects[9],
-                            fixedDays: fixedDays[9],
-                            fixedPositions: fixedPositions[9],
-                            shift: selectedShifts[9],
-                            startTime: getTimeSlotIndex(startTimes[9]),
-                            endTime: endTimes[9],
-                            additionalScheds: additionalScheds[9],
-                            modality: classModality[9],
+                            s: selectedSubjects[9],
+                            fd: fixedDays[9],
+                            fp: fixedPositions[9],
+                            sh: selectedShifts[9],
+                            st: getTimeSlotIndex(startTimes[9]),
+                            et: endTimes[9],
+                            as: schedules[9],
+                            m: classModality[9],
                         },
                         10: {
-                            subjects: selectedSubjects[10],
-                            fixedDays: fixedDays[10],
-                            fixedPositions: fixedPositions[10],
-                            shift: selectedShifts[10],
-                            startTime: getTimeSlotIndex(startTimes[10]),
-                            endTime: endTimes[10],
-                            additionalScheds: additionalScheds[10],
-                            modality: classModality[10],
+                            s: selectedSubjects[10],
+                            fd: fixedDays[10],
+                            fp: fixedPositions[10],
+                            sh: selectedShifts[10],
+                            st: getTimeSlotIndex(startTimes[10]),
+                            et: endTimes[10],
+                            as: schedules[10],
+                            m: classModality[10],
                         },
                     },
                 });

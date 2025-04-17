@@ -10,7 +10,15 @@ const subjects = createSlice({
     reducers: {
         upsert: (state, action) => {
             const { id } = action.payload;
-            state.subjects[id] = action.payload;
+
+            const mappedObj = {
+                id,
+                subject: action.payload.s,
+                classDuration: action.payload.cd,
+                weeklyMinutes: action.payload.wm,
+            };
+
+            state.subjects[id] = mappedObj;
         },
         remove: (state, action) => {
             delete state.subjects[action.payload];

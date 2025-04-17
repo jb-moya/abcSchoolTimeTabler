@@ -261,9 +261,13 @@ function Timetable() {
         const buildingMap = Object.entries(buildingData).reduce((acc, [, building], index) => {
             console.log('🚀 ~ handleButtonClick ~ buildingData:', buildingData);
             console.log('🚀 ~ handleButtonClick ~ building:', building);
+            
+            console.log('building.rooms: ', building.rooms);
 
             acc[buildingMapReverse[building.id]] = {
                 id: buildingMapReverse[building.id],
+
+                
 
                 adjacency: Array.isArray(building.nearbyBuildings)
                     ? building.nearbyBuildings
@@ -271,7 +275,10 @@ function Timetable() {
                           .filter((building) => building !== null)
                     : [],
 
-                floorRooms: building.rooms.reduce((acc, roomGroup) => [...acc, roomGroup.length], []),
+                
+
+                floorRooms: Object.values(building.rooms).map(roomGroup => roomGroup.length),
+
             };
             return acc;
         }, {});

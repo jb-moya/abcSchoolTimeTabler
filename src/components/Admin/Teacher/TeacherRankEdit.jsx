@@ -75,6 +75,15 @@ const TeacherRankEdit = ({
                 return updatedSched;
             });
 
+            const schedules = newTeacher.additionalTeacherScheds.map((sched) => ({
+                n: sched.name,
+                su: sched.subject,
+                d: sched.duration,
+                f: sched.frequency,
+                sh: sched.shown,
+                t: sched.time,
+            }));
+
             await editDocument({
                 collectionName: 'teachers',
                 collectionAbbreviation: COLLECTION_ABBREVIATION.TEACHERS,
@@ -82,12 +91,11 @@ const TeacherRankEdit = ({
                 itemName: 'a teacher' || 'an item',
                 docId: newTeacher.id,
                 entryData: {
-                    custom_id: newTeacher.custom_id,
-                    teacher: newTeacher.teacher,
-                    rank: newTeacher.rank,
-                    subjects: newTeacher.subjects,
-                    yearLevels: newTeacher.yearLevels,
-                    additionalTeacherScheds: newTeacher.additionalTeacherScheds,
+                    t: newTeacher.teacher,
+                    r: newTeacher.rank,
+                    s: newTeacher.subjects,
+                    y: newTeacher.yearLevels,
+                    at: schedules,
                 },
             });
         }
@@ -107,6 +115,16 @@ const TeacherRankEdit = ({
 
         if (editRankValue.trim().toLowerCase() === currentRank.trim().toLowerCase()) {
             try {
+
+                const schedules = editAdditionalRankScheds.map((sched) => ({
+                    n: sched.name,
+                    su: sched.subject,
+                    d: sched.duration,
+                    f: sched.frequency,
+                    sh: sched.shown,
+                    t: sched.time,
+                }));
+
                 await editDocument({
                     collectionName: 'ranks',
                     collectionAbbreviation: COLLECTION_ABBREVIATION.RANKS,
@@ -114,17 +132,17 @@ const TeacherRankEdit = ({
                     itemName: currentRank || 'an item',
                     docId: editRankId,
                     entryData: {
-                        rank: editRankValue,
-                        additionalRankScheds: editAdditionalRankScheds,
+                        r: editRankValue,
+                        ar: schedules,
                     },
                 });
 
                 if (value) {
                     updateAllTeacherAdditionalSchedules();
                 }
-            } catch {
+            } catch (error) {
                 toast.error('Something went wrong. Please try again.');
-                console.error('Something went wrong. Please try again.');
+                console.error('Error: ', error);
             } finally {
                 toast.success('Data and dependencies updated successfully!', {
                     style: {
@@ -149,6 +167,15 @@ const TeacherRankEdit = ({
                 return;
             } else {
                 try {
+                    const schedules = editAdditionalRankScheds.map((sched) => ({
+                        n: sched.name,
+                        su: sched.subject,
+                        d: sched.duration,
+                        f: sched.frequency,
+                        sh: sched.shown,
+                        t: sched.time,
+                    }));
+    
                     await editDocument({
                         collectionName: 'ranks',
                         collectionAbbreviation: COLLECTION_ABBREVIATION.RANKS,
@@ -156,8 +183,8 @@ const TeacherRankEdit = ({
                         itemName: currentRank || 'an item',
                         docId: editRankId,
                         entryData: {
-                            rank: editRankValue,
-                            additionalRankScheds: editAdditionalRankScheds,
+                            r: editRankValue,
+                            ar: schedules,
                         },
                     });
 

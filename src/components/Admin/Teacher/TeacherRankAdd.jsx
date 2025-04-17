@@ -48,14 +48,24 @@ const AddTeacherRankContainer = ({
         }
 
         try {
+
+            const schedules = additionalRankScheds.map((sched) => ({
+                n: sched.name,
+                su: sched.subject,
+                d: sched.duration,
+                f: sched.frequency,
+                sh: sched.shown,
+                t: sched.time,
+            }));
+
             await addDocument({
                 collectionName: 'ranks',
                 collectionAbbreviation: COLLECTION_ABBREVIATION.RANKS,
                 userName: currentUser?.username || 'unknown user',
                 itemName: rankValue || 'an item',
                 entryData: {
-                    rank: rankValue,
-                    additionalRankScheds: additionalRankScheds,
+                    r: rankValue,
+                    ar: schedules,
                 },
             });
         } catch (error) {
@@ -77,13 +87,6 @@ const AddTeacherRankContainer = ({
                 inputNameRef.current.select();
             }
         }
-
-        // dispatch(
-        //     reduxFunction({
-        //         rank: rankValue,
-        //         additionalRankScheds: additionalRankScheds,
-        //     })
-        // );
     };
 
     const handleAddTeacherAdditionalSchedules = () => {
@@ -111,22 +114,6 @@ const AddTeacherRankContainer = ({
         setRankValue('');
         setAdditionalRankScheds([]);
     };
-
-    // useEffect(() => {
-    // 	console.log('additionalRankScheds', additionalRankScheds);
-    // }, [additionalRankScheds]);
-
-    // useEffect(() => {
-    //     if (rankStatus === 'idle') {
-    //         dispatch(fetchRanks());
-    //     }
-    // }, [rankStatus, dispatch]);
-
-    // useEffect(() => {
-    //     if (subjectStatus === 'idle') {
-    //         dispatch(fetchSubjects());
-    //     }
-    // }, [subjectStatus, dispatch]);
 
     useEffect(() => {
         if (inputNameRef.current) {

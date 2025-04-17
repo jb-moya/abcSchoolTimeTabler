@@ -293,6 +293,8 @@ const ExportSchedules = ({
 
             const worksheet = workbook.addWorksheet(sectionName);
 
+            console.log('sections: ', sections);
+
             // ***************** TEMPORARY *****************
             // **
             const section = Object.values(sections).find((section) => section.section === sectionName);

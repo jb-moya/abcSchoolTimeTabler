@@ -190,6 +190,15 @@ const AddSectionContainer = ({
             teacher.additionalTeacherScheds = teacher.additionalTeacherScheds || [];
             teacher.additionalTeacherScheds.push(advisoryLoad);
 
+            const teacher_schedules = teacher.additionalTeacherScheds.map((sched) => ({
+                n: sched.name,
+                su: sched.subject,
+                d: sched.duration,
+                f: sched.frequency,
+                sh: sched.shown,
+                t: sched.time,
+            }));
+
             await editDocument({
                 collectionName: 'teachers',
                 collectionAbbreviation: COLLECTION_ABBREVIATION.TEACHERS,
@@ -197,9 +206,17 @@ const AddSectionContainer = ({
                 itemName: 'a teacher' || 'an item',
                 docId: teacher_id,
                 entryData: {
-                    additionalTeacherScheds: teacher.additionalTeacherScheds,
+                    at: teacher_schedules,
                 },
             });
+
+            const section_schedules = additionalScheds.map((sched) => ({
+                n: sched.name,
+                su: sched.subject,
+                d: sched.duration,
+                f: sched.frequency,
+                sh: sched.shown,
+            }));
 
             await addDocument({
                 collectionName: 'sections',
@@ -207,19 +224,19 @@ const AddSectionContainer = ({
                 userName: currentUser?.username || 'unknown user',
                 itemName: inputValue || 'an item',
                 entryData: {
-                    section: inputValue,
-                    teacher: selectedAdviser,
-                    program: selectedProgram,
-                    year: selectedYearLevel,
-                    subjects: selectedSubjects,
-                    fixedDays: fixedDays,
-                    fixedPositions: fixedPositions,
-                    modality: classModality,
-                    shift: selectedShift,
-                    startTime: getTimeSlotIndex(selectedStartTime || '06:00 AM'),
-                    endTime: selectedEndTime,
-                    additionalScheds: additionalScheds,
-                    roomDetails: roomDetails,
+                    s: inputValue,
+                    t: selectedAdviser,
+                    p: selectedProgram,
+                    y: selectedYearLevel,
+                    ss: selectedSubjects,
+                    fd: fixedDays,
+                    fp: fixedPositions,
+                    m: classModality,
+                    sh: selectedShift,
+                    st: getTimeSlotIndex(selectedStartTime || '06:00 AM'),
+                    et: selectedEndTime,
+                    as: section_schedules,
+                    rd: roomDetails,
                 },
             });
 

@@ -10,7 +10,23 @@ const ranks = createSlice({
     reducers: {
         upsert: (state, action) => {
             const { id } = action.payload;
-            state.ranks[id] = action.payload;
+
+            const normalizedScheds = action.payload.ar.map((sched) => ({
+                name: sched.n,
+                subject: sched.su,
+                duration: sched.d,
+                frequency: sched.f,
+                shown: sched.sh,
+                time: sched.t,
+            }))
+
+            const mappedObj = {
+                id,
+                rank: action.payload.r,
+                additionalRankScheds: normalizedScheds,
+            };
+
+            state.ranks[id] = mappedObj;
         },
         remove: (state, action) => {
             delete state.ranks[action.payload];

@@ -10,7 +10,14 @@ const departments = createSlice({
     reducers: {
         upsert: (state, action) => {
             const { id } = action.payload;
-            state.departments[id] = action.payload;
+
+            const mappedObj = {
+                id,
+                name: action.payload.n,
+                head: action.payload.h,
+            };
+
+            state.departments[id] = mappedObj;
         },
         remove: (state, action) => {
             delete state.departments[action.payload];

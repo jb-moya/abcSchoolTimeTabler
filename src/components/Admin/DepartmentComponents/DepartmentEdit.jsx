@@ -55,8 +55,8 @@ const DepartmentEdit = ({
                 itemName: department?.name || 'an item',
                 docId: department.id,
                 entryData: {
-                    name: editDepartmentValue.trim(),
-                    head: selectedTeacher,
+                    n: editDepartmentValue.trim(),
+                    h: selectedTeacher,
                 },
             });
         } catch {
@@ -87,15 +87,6 @@ const DepartmentEdit = ({
     };
 
     // ==========================================================================
-
-    // useEffect(() => {
-    // 	if (teacherStatus === "idle") {
-    // 		dispatch(fetchTeachers());
-    // 	}
-    // 	if (departmentStatus === "idle") {
-    // 		dispatch(fetchDepartments());
-    // 	}
-    // }, [teacherStatus, departmentStatus, dispatch]);
 
     useEffect(() => {
         setEditDepartmentValue(department.name || '');

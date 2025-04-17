@@ -58,9 +58,12 @@ const AddSubjectContainer = ({
                     userName: currentUser?.username || 'unknown user',
                     itemName: subjectName || 'an item',
                     entryData: {
-                        subject: subjectName,
-                        classDuration: classDuration,
-                        weeklyMinutes: weeklyMinutes,
+                        // subject: subjectName,
+                        s: subjectName,
+                        // classDuration: classDuration,
+                        cd: classDuration,
+                        // weeklyMinutes: weeklyMinutes,
+                        wm: weeklyMinutes,
                     },
                 });
             } catch (error) {

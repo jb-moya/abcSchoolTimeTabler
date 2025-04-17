@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { parse } from 'postcss';
 
 const buildings = createSlice({
     name: 'buildings',
@@ -9,10 +10,34 @@ const buildings = createSlice({
     },
     reducers: {
         upsert: (state, action) => {
-            const parsedData = JSON.parse(action.payload.data);
-            
+            const parsedData = JSON.parse(action.payload.d);
             const { id } = action.payload;
-            state.buildings[id] = { ...parsedData, id };
+
+            const roomNames = {};
+
+            Object.entries(parsedData.r).forEach(([key_out, val_out]) =>{
+                roomNames[key_out] = {};
+
+                Object.entries(val_out).forEach(([key_in, val_in]) => {
+                    roomNames[key_out][key_in] = {
+                        roomName: val_in.n,
+                    };
+                });
+            });
+
+            const mappedObj = {
+                id,
+                name: parsedData.n,
+                floors: parsedData.f,
+                rooms: roomNames,
+                image: parsedData.i,
+                nearbyBuildings: parsedData.nb.map((building) => ({
+                    id: building.id,
+                    name: building.n,
+                })),
+            }
+
+            state.buildings[id] = mappedObj;
         },
         remove: (state, action) => {
             delete state.buildings[action.payload];
