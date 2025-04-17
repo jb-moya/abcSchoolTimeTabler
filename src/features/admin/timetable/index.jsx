@@ -93,6 +93,10 @@ function Timetable() {
 
     const { configurations, configurationsLoading } = useSelector((state) => state.configuration);
 
+    useEffect(() => {
+        console.log('configurations: ', configurations);
+    }, [configurations]);
+
     // ====================================================================================================================================
 
     /* CONFIGURATIONS */
@@ -1742,7 +1746,7 @@ function Timetable() {
                         buildings={buildingsStore}
                         sections={sectionsStore}
                         onClear={handleClearAndRefresh}
-                        numOfSchoolDays={configurations[1].defaultNumberOfSchoolDays}
+                        defaultNumberOfSchoolDays={configurations[1].defaultNumberOfSchoolDays}
                         breakTimeDuration={configurations[1].defaultBreakTimeDuration}
                     />
                     <button

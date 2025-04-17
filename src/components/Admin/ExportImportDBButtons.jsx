@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useState } from 'react';
 
 import { CiExport, CiImport } from 'react-icons/ci';
 import { createPortal } from 'react-dom';
@@ -15,6 +14,7 @@ import { addDocument } from '../../hooks/firebaseCRUD/addDocument';
 import { useSelector } from 'react-redux';
 import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
 import { COLLECTION_ABBREVIATION } from '../../constants';
+import { s } from 'motion/react-client';
 
 const ImportingFullScreenLoader = () => {
     return createPortal(
@@ -37,17 +37,14 @@ const ExportImportDBButtons = ({
     sections,
     // STORES
 
-    onClear,
     defaultNumberOfSchoolDays,
     breakTimeDuration,
 }) => {
-    const dispatch = useDispatch();
 
     const [isImporting, setIsImporting] = useState(false);
-    const [overwrite, setOverwrite] = useState(false);
     const { user: currentUser } = useSelector((state) => state.user);
 
-    // =============================================================================================================
+// =============================================================================================================
 
     const exportDB = (format) => {
         try {
@@ -310,6 +307,7 @@ const ExportImportDBButtons = ({
             const sectionProgram = programs[section.program];
 
             const building = buildings[section.roomDetails.buildingId];
+            
             const floor = building.rooms[section.roomDetails.floorIdx];
             const room = floor[section.roomDetails.roomIdx];
 
@@ -881,6 +879,11 @@ const ExportImportDBButtons = ({
                         for (let index = 0; index < addedSubjects.length; index++) {
                             if (addedSubjects[index]['subject'].trim().toLowerCase() === subjectName.trim().toLowerCase()) {
                                 subjIds7.push(index + 1);
+
+                                console.log('addedSubjects[index]["weeklyminutes"]: ', addedSubjects[index]['weeklyminutes']);
+                                console.log('addedSubjects[index]["classduration"]: ', addedSubjects[index]['classduration']);
+                                console.log('defaultNumberOfSchoolDays: ', defaultNumberOfSchoolDays);
+
                                 const numOfClasses = Math.min(
                                     Math.ceil(
                                         Number(addedSubjects[index]['weeklyminutes']) /
@@ -888,6 +891,7 @@ const ExportImportDBButtons = ({
                                     ),
                                     defaultNumberOfSchoolDays
                                 );
+                                console.log('numOfclasses: ', numOfClasses);
                                 fixedDays7[index + 1] = new Array(numOfClasses).fill(0);
                                 fixedPositions7[index + 1] = new Array(numOfClasses).fill(0);
                                 found = true;
@@ -1155,8 +1159,6 @@ const ExportImportDBButtons = ({
                 section.adviser = String(section.adviser).trim().toUpperCase();
                 section.roomdetails = String(section.roomdetails).trim().toUpperCase();
 
-                let roomDetailsIssue = false;
-
                 if (
                     section.sectionname === '' ||
                     section.sectionname === null ||
@@ -1305,9 +1307,9 @@ const ExportImportDBButtons = ({
                     userName: currentUser?.username || 'unknown user',
                     itemName: subject?.subject || 'an item',
                     entryData: {
-                        subject: subject.subject,
-                        classDuration: Number(subject.classduration),
-                        weeklyMinutes: Number(subject.weeklyminutes),
+                        s: subject.subject,
+                        cd: Number(subject.classduration),
+                        wm: Number(subject.weeklyminutes),
                     },
                 });
             }
@@ -1320,21 +1322,35 @@ const ExportImportDBButtons = ({
                     userName: currentUser?.username || 'unknown user',
                     itemName: rank?.rank || 'an item',
                     entryData: {
-                        rank: rank.rank,
-                        additionalRankScheds: [],
+                        r: rank.rank,
+                        ar: [],
                     },
                 });
             }
 
             // Add all buildings
             for (const building of addedBuildings) {
+
+                console.log('building.data: ', building.data);
+
+                const names = {};
+                Object.entries(Object.values(building.data)).forEach(([key_out, val_out]) =>{
+                    names[key_out] = {};
+
+                    Object.entries(val_out).forEach(([key_in, val_in]) => {
+                        names[key_out][key_in] = {
+                            n: val_in.roomName,
+                        };
+                    });
+                });
+
                 const buildingData = JSON.stringify(
                     {
-                        name: building.name,
-                        floors: Object.values(building.data).length,
-                        rooms: Object.values(building.data),
-                        image: '',
-                        nearbyBuildings: [],
+                        n: building.name,
+                        f: Object.values(building.data).length,
+                        r: names,
+                        i: '',
+                        nb: [],
                     },
                     null,
                     2
@@ -1346,7 +1362,7 @@ const ExportImportDBButtons = ({
                     userName: currentUser?.username || 'unknown user',
                     itemName: building?.name || 'an item',
                     entryData: {
-                        data: buildingData,
+                        d: buildingData,
                     },
                 });
             }
@@ -1373,12 +1389,12 @@ const ExportImportDBButtons = ({
                 if (isAdviser) {
                     // Add advisory schedule
                     teacher.additionalTeacherScheds.push({
-                        name: 'Advisory Load',
-                        subject: -1,
-                        duration: 60,
-                        frequency: defaultNumberOfSchoolDays,
-                        shown: false,
-                        time: 96,
+                        n: 'Advisory Load',
+                        su: -1,
+                        d: 60,
+                        f: defaultNumberOfSchoolDays,
+                        sh: false,
+                        t: 96,
                     });
                 }
 
@@ -1388,12 +1404,12 @@ const ExportImportDBButtons = ({
                     userName: currentUser?.username || 'unknown user',
                     itemName: teacher?.teacher || 'an item',
                     entryData: {
-                        teacher: teacher.teacher,
-                        rank: teacher.rank,
-                        department: departmentIndex + 1,
-                        subjects: teacher.subjects,
-                        yearLevels: teacher.yearLevels,
-                        additionalTeacherScheds: teacher.additionalTeacherScheds,
+                        t: teacher.teacher,
+                        r: teacher.rank,
+                        d: departmentIndex + 1,
+                        s: teacher.subjects,
+                        y: teacher.yearLevels,
+                        at: teacher.additionalTeacherScheds,
                     },
                 });
             }
@@ -1415,8 +1431,8 @@ const ExportImportDBButtons = ({
                     userName: currentUser?.username || 'unknown user',
                     itemName: department?.department || 'an item',
                     entryData: {
-                        name: department.department,
-                        head: headIndex === '' ? '' : headIndex + 1,
+                        n: department.department,
+                        h: headIndex === '' ? '' : headIndex + 1,
                     },
                 });
             }
@@ -1429,46 +1445,46 @@ const ExportImportDBButtons = ({
                     userName: currentUser?.username || 'unknown user',
                     itemName: program?.program || 'an item',
                     entryData: {
-                        program: program.program,
+                        p: program.program,
                         7: {
-                            subjects: program[7].subjects,
-                            fixedDays: program[7].fixedDays,
-                            fixedPositions: program[7].fixedPositions,
-                            shift: program[7].shift,
-                            startTime: program[7].startTime,
-                            endTime: program[7].endTime,
-                            additionalScheds: program[7].additionalScheds,
-                            modality: program[7].modality,
+                            s: program[7].subjects,
+                            fd: program[7].fixedDays,
+                            fp: program[7].fixedPositions,
+                            sh: program[7].shift,
+                            st: program[7].startTime,
+                            et: program[7].endTime,
+                            as: program[7].additionalScheds,
+                            m: program[7].modality,
                         },
                         8: {
-                            subjects: program[8].subjects,
-                            fixedDays: program[8].fixedDays,
-                            fixedPositions: program[8].fixedPositions,
-                            shift: program[8].shift,
-                            startTime: program[8].startTime,
-                            endTime: program[8].endTime,
-                            additionalScheds: program[8].additionalScheds,
-                            modality: program[8].modality,
+                            s: program[8].subjects,
+                            fd: program[8].fixedDays,
+                            fp: program[8].fixedPositions,
+                            sh: program[8].shift,
+                            st: program[8].startTime,
+                            et: program[8].endTime,
+                            as: program[8].additionalScheds,
+                            m: program[8].modality,
                         },
                         9: {
-                            subjects: program[9].subjects,
-                            fixedDays: program[9].fixedDays,
-                            fixedPositions: program[9].fixedPositions,
-                            shift: program[9].shift,
-                            startTime: program[9].startTime,
-                            endTime: program[9].endTime,
-                            additionalScheds: program[9].additionalScheds,
-                            modality: program[9].modality,
+                            s: program[9].subjects,
+                            fd: program[9].fixedDays,
+                            fp: program[9].fixedPositions,
+                            sh: program[9].shift,
+                            st: program[9].startTime,
+                            et: program[9].endTime,
+                            as: program[9].additionalScheds,
+                            m: program[9].modality,
                         },
                         10: {
-                            subjects: program[10].subjects,
-                            fixedDays: program[10].fixedDays,
-                            fixedPositions: program[10].fixedPositions,
-                            shift: program[10].shift,
-                            startTime: program[10].startTime,
-                            endTime: program[10].endTime,
-                            additionalScheds: program[10].additionalScheds,
-                            modality: program[10].modality,
+                            s: program[10].subjects,
+                            fd: program[10].fixedDays,
+                            fp: program[10].fixedPositions,
+                            sh: program[10].shift,
+                            st: program[10].startTime,
+                            et: program[10].endTime,
+                            as: program[10].additionalScheds,
+                            m: program[10].modality,
                         },
                     },
                 });
@@ -1476,7 +1492,6 @@ const ExportImportDBButtons = ({
 
             // Add all sections
             for (const section of addedSections_2) {
-                console.log('section', section);
 
                 await addDocument({
                     collectionName: 'sections',
@@ -1484,21 +1499,22 @@ const ExportImportDBButtons = ({
                     userName: currentUser?.username || 'unknown user',
                     itemName: section?.section || 'an item',
                     entryData: {
-                        section: section.section,
-                        teacher: section.teacher,
-                        program: section.program,
-                        year: section.year,
-                        subjects: section.subjects,
-                        fixedDays: section.fixedDays,
-                        fixedPositions: section.fixedPositions,
-                        modality: section.modality,
-                        shift: section.shift,
-                        startTime: section.startTime,
-                        endTime: section.endTime,
-                        additionalScheds: section.additionalScheds,
-                        roomDetails: section.roomDetails,
+                        s: section.section,
+                        t: section.teacher,
+                        p: section.program,
+                        y: section.year,
+                        ss: section.subjects,
+                        fd: section.fixedDays,
+                        fp: section.fixedPositions,
+                        m: section.modality,
+                        sh: section.shift,
+                        st: section.startTime,
+                        et: section.endTime,
+                        as: section.additionalScheds,
+                        rd: section.roomDetails,
                     },
                 });
+                
             }
 
             console.log('All data has been added successfully');

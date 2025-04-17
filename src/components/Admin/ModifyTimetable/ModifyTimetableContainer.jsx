@@ -364,8 +364,8 @@ const ModifyTimetableContainer = ({
                     userName: currentUser?.username || 'unknown user',
                     itemName: scheduleVerName || 'an item',
                     entryData: {
-                        name: scheduleVerName,
-                        data: stringifiedTimeTable,
+                        n: scheduleVerName,
+                        d: stringifiedTimeTable,
                     },
                 });
             } else {
@@ -376,8 +376,8 @@ const ModifyTimetableContainer = ({
                     userName: currentUser?.username || 'unknown user',
                     itemName: scheduleVerName || 'an item',
                     entryData: {
-                        name: scheduleVerName,
-                        data: stringifiedTimeTable,
+                        n: scheduleVerName,
+                        d: stringifiedTimeTable,
                     },
                 });
             }

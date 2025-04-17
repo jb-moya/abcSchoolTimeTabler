@@ -175,7 +175,7 @@ const DeleteData = ({ id, collection, callback }) => {
             }
 
             await deleteDocument({
-                docId: entry_id,
+                docId: entry_id === null ? id : entry_id,
                 collectionName: collection,
                 collectionAbbreviation: COLLECTION_ABBREVIATION[collection.toUpperCase()],
                 userName: currentUser?.username || 'unknown user',

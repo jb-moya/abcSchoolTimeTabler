@@ -255,7 +255,10 @@ const TimetableListContainer = ({
                                                             <RiEdit2Fill size={20} />
                                                         </button>
 
-                                                        <DeleteData id={schedule.id} />
+                                                        <DeleteData 
+                                                            id={schedule.id}
+                                                            collection={'schedules'}
+                                                        />
                                                     </div>
                                                 </td>
                                             </tr>
