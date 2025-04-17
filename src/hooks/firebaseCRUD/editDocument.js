@@ -1,4 +1,4 @@
-import { doc, addDoc, runTransaction, collection } from 'firebase/firestore';
+import { doc, addDoc, runTransaction, collection, serverTimestamp } from 'firebase/firestore';
 import { firestore } from '../../firebase/firebase';
 import { toast } from 'sonner';
 
@@ -32,10 +32,10 @@ export async function editDocument({
             transaction.update(docRef, entryData);
 
             await addDoc(logCollectionRef, {
-                d: `${collectionAbbreviation}e`,
+                d: `${collectionAbbreviation}-e`,
                 i: itemName,
                 u: userName,
-                t: new Date().toISOString(),
+                t: serverTimestamp(),
             });
         });
 

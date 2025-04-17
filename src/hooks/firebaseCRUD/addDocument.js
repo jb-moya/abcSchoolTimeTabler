@@ -1,4 +1,4 @@
-import { doc, addDoc, runTransaction, collection } from 'firebase/firestore';
+import { doc, addDoc, runTransaction, collection, serverTimestamp } from 'firebase/firestore';
 import { firestore } from '../../firebase/firebase';
 import { toast } from 'sonner';
 
@@ -11,7 +11,13 @@ import { toast } from 'sonner';
  * @param {string} itemName - The name of the item being added
  */
 
-export async function addDocument({entryData, collectionName = '', collectionAbbreviation = '-', userName = '', itemName = ''}) {
+export async function addDocument({
+    entryData,
+    collectionName = '',
+    collectionAbbreviation = '-',
+    userName = '',
+    itemName = '',
+}) {
     try {
         const counterRef = doc(firestore, `counters/${collectionName}Counter`);
         const collectionRef = collection(firestore, collectionName);
@@ -37,7 +43,7 @@ export async function addDocument({entryData, collectionName = '', collectionAbb
                 d: `${collectionAbbreviation}-a`,
                 i: itemName,
                 u: userName,
-                t: new Date().toISOString(),
+                t: serverTimestamp(),
             });
         });
 

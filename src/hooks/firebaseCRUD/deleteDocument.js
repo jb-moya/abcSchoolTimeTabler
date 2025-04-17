@@ -1,5 +1,5 @@
 import { firestore } from '../../firebase/firebase';
-import { doc, addDoc, collection, runTransaction } from 'firebase/firestore';
+import { doc, addDoc, collection, runTransaction, serverTimestamp } from 'firebase/firestore';
 import { toast } from 'sonner';
 
 /**
@@ -24,10 +24,10 @@ export async function deleteDocument({ docId, collectionName = '', collectionAbb
 
             transaction.delete(docRef);
             await addDoc(logCollectionRef, {
-                d: `${collectionAbbreviation}d`,
+                d: `${collectionAbbreviation}-d`,
                 i: itemName,
                 u: userName,
-                t: new Date().toISOString(),
+                t: serverTimestamp(),
             });
         });
 

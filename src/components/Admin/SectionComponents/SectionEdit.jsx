@@ -255,7 +255,7 @@ const SectionEdit = ({
                             itemName: 'a teacher' || 'an item',
                             docId: prevAdviserID,
                             entryData: {
-                                additionalTeacherScheds: prevSectionAdviser.additionalTeacherScheds,
+                                at: prevSectionAdviser.additionalTeacherScheds,
                             },
                         });
                     }

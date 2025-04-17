@@ -10,12 +10,12 @@ import { RIGHT_DRAWER_TYPES } from '../utils/globalConstantUtil';
 
 import { Link } from 'react-router-dom';
 import { logoutUser } from '../features/userSlice';
-import { resetNewLogsCount } from '../features/slice/userLogsSlice';
+import { resetNewLogsCount } from '../features/slice/notificationUserLogs';
 
 function Header() {
     const dispatch = useDispatch();
     const { pageTitle } = useSelector((state) => state.header);
-    const { newLogsCount } = useSelector((state) => state.logs);
+    const { newLogsCount } = useSelector((state) => state.notificationUserLogs);
     const [currentTheme, setCurrentTheme] = useState(
         localStorage.getItem('theme') || 'light' // Default to light mode
     );

@@ -1,42 +1,45 @@
-import { createSlice } from '@reduxjs/toolkit';
-import { ABBREVIATION_COLLECTION, ABBREVIATION_OPERATION } from '../../constants';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { toast } from 'sonner';
-import { increment } from 'firebase/firestore';
+import { getLogsQuery } from '../../firebase/getUserLogsQuery';
+import { formatLog } from '../../utils/formatLogs';
+
+export const fetchLogs = createAsyncThunk('logs/fetchLogs', async ({ lastVisible, limitItems }) => {
+    const querySnapshot = await getLogsQuery({ lastVisible: lastVisible, limitItems: limitItems });
+    const logs = [];
+    let lastDoc = null;
+
+    querySnapshot.forEach((doc) => {
+        logs.push({ id: doc.id, ...doc.data() });
+        lastDoc = doc;
+    });
+
+    return { logs, lastVisible: lastDoc };
+});
+
 const logs = createSlice({
-    name: 'logs',
+    name: 'userLogs',
     initialState: {
         logs: [],
         newLogsCount: 0,
+        lastVisible: null,
+        total: 0,
         loading: true,
         error: null,
     },
     reducers: {
+        resetLogs(state) {
+            state.logs = [];
+            state.lastVisible = null;
+        },
+
         resetNewLogsCount: (state) => {
             state.newLogsCount = 0;
         },
 
         upsert: (state, action) => {
-            const { id, ...logData } = action.payload;
-            const rawDescriptor = logData?.d ?? '-';
-            const split = rawDescriptor.split('-');
+            const newLog = formatLog(action.payload);
 
-            const abbrevCollection = split?.[0] ?? '-';
-            const abbrevOperation = split?.[1] ?? '-';
-
-            const collectionName = ABBREVIATION_COLLECTION[abbrevCollection] ?? 'an unknown collection';
-            const operationName = ABBREVIATION_OPERATION[abbrevOperation] ?? 'did something on';
-            const username = logData?.u ?? 'Unknown User';
-            const item = logData?.i ?? 'unknown item';
-
-            const newLog = {
-                collectionName: collectionName,
-                operation: operationName,
-                item: item,
-                date: logData.t,
-                username: username,
-            };
-
-            toast.success(`${username} ${operationName} ${item} in ${collectionName}`, {
+            toast.success(`${newLog.username} ${newLog.operationName} ${newLog.item} in ${newLog.collectionName}`, {
                 duration: 3000,
                 richColors: true,
                 position: 'bottom-left',
@@ -52,7 +55,22 @@ const logs = createSlice({
             state.loading = action.payload;
         },
     },
+    extraReducers: (builder) => {
+        builder
+            .addCase(fetchLogs.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchLogs.fulfilled, (state, action) => {
+                const formattedLogs = action.payload.logs.map(formatLog);
+                state.logs.push(...formattedLogs);
+                state.lastVisible = action.payload.lastVisible;
+                state.loading = false;
+            })
+            .addCase(fetchLogs.rejected, (state) => {
+                state.loading = false;
+            });
+    },
 });
 
-export const { upsert, remove, setLoading, resetNewLogsCount } = logs.actions;
+export const { upsert, remove, setLoading, resetNewLogsCount, resetLogs } = logs.actions;
 export default logs.reducer;

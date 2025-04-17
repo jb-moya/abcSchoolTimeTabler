@@ -167,7 +167,7 @@ const DeleteData = ({ id, collection, callback }) => {
                     itemName: teachers[adviser_id]?.teacher || 'unknown teacher',
                     docId: adviser_id,
                     entryData: {
-                        additionalTeacherScheds: section_adviser.additionalTeacherScheds,
+                        at: section_adviser.additionalTeacherScheds,
                     },
                 });
 

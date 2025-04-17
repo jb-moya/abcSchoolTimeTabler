@@ -642,7 +642,7 @@ const ProgramEdit = ({
                         10: {
                             s: editProgramCurr[10],
                             fd: editFixedDays[10],
-                            fd: editFixedPositions[10],
+                            fp: editFixedPositions[10],
                             sh: editSelectedShifts[10],
                             st: getTimeSlotIndex(editStartTimes[10] || '06:00 AM'),
                             et: editEndTimes[10],
@@ -724,7 +724,7 @@ const ProgramEdit = ({
                             10: {
                                 s: editProgramCurr[10],
                                 fd: editFixedDays[10],
-                                fd: editFixedPositions[10],
+                                fp: editFixedPositions[10],
                                 sh: editSelectedShifts[10],
                                 st: getTimeSlotIndex(editStartTimes[10] || '06:00 AM'),
                                 et: editEndTimes[10],

@@ -53,7 +53,9 @@ import {
     upsert as upsertLogs,
     remove as removeLogs,
     setLoading as setLogsLoading,
-} from './features/slice/userLogsSlice.jsx';
+} from './features/slice/notificationUserLogs.jsx';
+import { collection, query, orderBy, where } from 'firebase/firestore';
+import { firestore } from './firebase/firebase.js';
 
 const Layout = lazy(() => import('./containers/Layout'));
 const Login = lazy(() => import('./pages/Login.jsx'));
@@ -68,75 +70,75 @@ const Unauthorized = lazy(() => import('./pages/Unauthorized'));
 
 const collections = [
     {
-        collectionPath: 'timetableConfiguration',
         addAction: upsertTimetableConfiguration,
         updateAction: upsertTimetableConfiguration,
         removeAction: removeTimetableConfiguration,
         setLoading: setTimetableConfigurationLoading,
+        queryBuilder: query(collection(firestore, 'timetableConfiguration')),
     },
     {
-        collectionPath: 'departments',
         addAction: upsertDepartments,
         updateAction: upsertDepartments,
         removeAction: removeDepartments,
         setLoading: setDepartmentsLoading,
+        queryBuilder: query(collection(firestore, 'departments')),
     },
     {
-        collectionPath: 'teachers',
         addAction: upsertTeachers,
         updateAction: upsertTeachers,
         removeAction: removeTeachers,
         setLoading: setTeachersLoading,
+        queryBuilder: query(collection(firestore, 'teachers')),
     },
     {
-        collectionPath: 'sections',
         addAction: upsertSections,
         updateAction: upsertSections,
         removeAction: removeSections,
         setLoading: setSectionsLoading,
+        queryBuilder: query(collection(firestore, 'sections')),
     },
     {
-        collectionPath: 'subjects',
         addAction: upsertSubjects,
         updateAction: upsertSubjects,
         removeAction: removeSubjects,
         setLoading: setSubjectsLoading,
+        queryBuilder: query(collection(firestore, 'subjects')),
     },
     {
-        collectionPath: 'ranks',
         addAction: upsertRanks,
         updateAction: upsertRanks,
         removeAction: removeRanks,
         setLoading: setRanksLoading,
+        queryBuilder: query(collection(firestore, 'ranks')),
     },
     {
-        collectionPath: 'programs',
         addAction: upsertPrograms,
         updateAction: upsertPrograms,
         removeAction: removePrograms,
         setLoading: setProgramsLoading,
+        queryBuilder: query(collection(firestore, 'programs')),
     },
     {
-        collectionPath: 'buildings',
         addAction: upsertBuildings,
         updateAction: upsertBuildings,
         removeAction: removeBuildings,
         setLoading: setBuildingsLoading,
+        queryBuilder: query(collection(firestore, 'buildings')),
     },
     {
-        collectionPath: 'schedules',
         addAction: upsertSchedules,
         updateAction: upsertSchedules,
         removeAction: removeSchedules,
         setLoading: setSchedulesLoading,
+        queryBuilder: query(collection(firestore, 'schedules')),
     },
     {
-        collectionPath: 'logs',
         addAction: upsertLogs,
         updateAction: upsertLogs,
         removeAction: removeLogs,
         setLoading: setLogsLoading,
-    }
+        queryBuilder: query(collection(firestore, 'logs'), where('t', '>', new Date()), orderBy('t')),
+    },
 ];
 
 function App() {
