@@ -49,6 +49,11 @@ import {
     remove as removeSchedules,
     setLoading as setSchedulesLoading,
 } from './features/slice/schedulesSlice.jsx';
+import {
+    upsert as upsertLogs,
+    remove as removeLogs,
+    setLoading as setLogsLoading,
+} from './features/slice/userLogsSlice.jsx';
 
 const Layout = lazy(() => import('./containers/Layout'));
 const Login = lazy(() => import('./pages/Login.jsx'));
@@ -125,6 +130,13 @@ const collections = [
         removeAction: removeSchedules,
         setLoading: setSchedulesLoading,
     },
+    {
+        collectionPath: 'logs',
+        addAction: upsertLogs,
+        updateAction: upsertLogs,
+        removeAction: removeLogs,
+        setLoading: setLogsLoading,
+    }
 ];
 
 function App() {

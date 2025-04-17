@@ -10,13 +10,17 @@ import { RIGHT_DRAWER_TYPES } from '../utils/globalConstantUtil';
 
 import { Link } from 'react-router-dom';
 import { logoutUser } from '../features/userSlice';
+import { resetNewLogsCount } from '../features/slice/userLogsSlice';
 
 function Header() {
     const dispatch = useDispatch();
-    const { noOfNotifications, pageTitle } = useSelector((state) => state.header);
+    const { pageTitle } = useSelector((state) => state.header);
+    const { newLogsCount } = useSelector((state) => state.logs);
     const [currentTheme, setCurrentTheme] = useState(
         localStorage.getItem('theme') || 'light' // Default to light mode
     );
+
+    const [isPinging, setIsPinging] = useState(false); // State to track animation
 
     const { user, loading: userLoading } = useSelector((state) => state.user);
 
@@ -50,6 +54,7 @@ function Header() {
                 bodyType: RIGHT_DRAWER_TYPES.NOTIFICATION,
             })
         );
+        dispatch(resetNewLogsCount());
     };
 
     function clearLocalStorage() {
@@ -64,6 +69,16 @@ function Header() {
             console.error('Logout failed', error);
         }
     };
+
+    useEffect(() => {
+        if (newLogsCount > 0) {
+            setIsPinging(true);
+            const timer = setTimeout(() => {
+                setIsPinging(false); // Stop the ping animation after a short time
+            }, 1000); // Adjust duration as needed
+            return () => clearTimeout(timer); // Cleanup timeout on component unmount
+        }
+    }, [newLogsCount]);
 
     return (
         <>
@@ -85,8 +100,16 @@ function Header() {
                     <button className='btn btn-ghost ml-4 btn-circle' onClick={openNotification}>
                         <div className='indicator'>
                             <BellIcon className='h-6 w-6' />
-                            {noOfNotifications > 0 && (
-                                <span className='indicator-item badge badge-secondary badge-sm'>{noOfNotifications}</span>
+                            {newLogsCount > 0 && (
+                                <span className='relative flex size-5 items-center justify-center'>
+                                    <span className='absolute z-20 text-base-100'>{newLogsCount}</span>
+                                    <span
+                                        className={`absolute inline-flex h-full w-full rounded-full bg-accent opacity-75 ${
+                                            isPinging ? 'animate-ping' : ''
+                                        }`}
+                                    ></span>
+                                    <span className='relative inline-flex size-5 rounded-full bg-accent'></span>
+                                </span>
                             )}
                         </div>
                     </button>

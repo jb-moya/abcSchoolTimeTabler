@@ -3,6 +3,7 @@ import CreateUser from './createUser';
 import Breadcrumbs from '@components/Admin/Breadcrumbs';
 import UserList from './userList';
 import EditUser from './editUsers';
+import UserLogs from './userLogs';
 
 const Users = () => {
     const links = [{ name: 'Home', href: '/' }];
@@ -64,6 +65,21 @@ const Users = () => {
                 {activeTab === 'editUser' && (
                     <div role='tabpanel' className='tab-content bg-base-100 border-base-300 rounded-box p-6'>
                         <EditUser userId={editingUser} />
+                    </div>
+                )}
+
+                <input
+                    type='radio'
+                    name='my_tabs_2'
+                    role='tab'
+                    className='tab'
+                    aria-label='User Logs'
+                    checked={activeTab === 'userLogs'}
+                    onChange={() => setActiveTab('userLogs')}
+                />
+                {activeTab === 'userLogs' && (
+                    <div role='tabpanel' className='tab-content bg-base-100 border-base-300 rounded-box p-6'>
+                        <UserLogs />
                     </div>
                 )}
             </div>
