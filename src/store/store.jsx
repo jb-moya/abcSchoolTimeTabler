@@ -14,6 +14,7 @@ import ranksSlice from '../features/slice/ranksSlice';
 import programsSlice from '../features/slice/programsSlice';
 import buildingsSlice from '../features/slice/buildingsSlice';
 import schedulesSlice from '../features/slice/schedulesSlice';
+import logsSlice from '../features/slice/userLogsSlice';
 
 const combinedReducer = {
     header: headerSlice,
@@ -31,6 +32,7 @@ const combinedReducer = {
     programs: programsSlice,
     buildings: buildingsSlice,
     schedules: schedulesSlice,
+    logs: logsSlice,
 };
 
 const store = configureStore({

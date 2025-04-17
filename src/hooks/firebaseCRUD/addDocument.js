@@ -34,7 +34,7 @@ export async function addDocument({entryData, collectionName = '', collectionAbb
             transaction.set(newDocRef, entryData);
 
             await addDoc(logCollectionRef, {
-                d: `${collectionAbbreviation}a`,
+                d: `${collectionAbbreviation}-a`,
                 i: itemName,
                 u: userName,
                 t: new Date().toISOString(),

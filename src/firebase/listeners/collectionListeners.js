@@ -4,6 +4,8 @@ import { firestore } from '../firebase';
 import { collection, query, onSnapshot } from 'firebase/firestore';
 import { useSelector } from 'react-redux';
 
+const ignoreCollectionOnInitialAddedEvent = ['logs'];
+
 const useFirestoreCollectionListeners = (collections) => {
     const dispatch = useDispatch();
     const { user } = useSelector((state) => state.user);
@@ -12,28 +14,33 @@ const useFirestoreCollectionListeners = (collections) => {
         if (!user) {
             return;
         }
-        
+
         collections.forEach(({ setLoading }) => {
             dispatch(setLoading(true));
         });
-        
+
         const unsubscribeFunctions = collections.map(({ collectionPath, addAction, updateAction, removeAction, setLoading }) => {
             const q = query(collection(firestore, collectionPath));
-            
+
+            let isInitialSnapshot = ignoreCollectionOnInitialAddedEvent.includes(collectionPath);
+
             const unsubscribe = onSnapshot(q, (snapshot) => {
                 snapshot.docChanges().forEach((change) => {
-                    
                     const docData = {
                         id: parseInt(change.doc.id, 10),
                         ...change.doc.data(),
                     };
-                    
-                    console.log("🚀 ~ snapshot.docChanges ~ change:", change)
-                    console.log("🚀 ~ unsubscribeFunctions ~ collectionPath:", collectionPath)
-                    console.log("🚀 ~ snapshot.docChanges ~ docData:", docData)
+
+                    if (
+                        isInitialSnapshot &&
+                        change.type === 'added' &&
+                        ignoreCollectionOnInitialAddedEvent.includes(collectionPath)
+                    ) {
+                        // Skip this 'added' event from initial snapshot
+                        return;
+                    }
 
                     if (change.type === 'added') {
-                        console.log('Added document: ', collectionPath, docData);
                         dispatch(addAction(docData));
                     } else if (change.type === 'modified') {
                         dispatch(updateAction(docData));
@@ -42,8 +49,8 @@ const useFirestoreCollectionListeners = (collections) => {
                     }
                 });
 
-                console.log('GGG'); 
                 dispatch(setLoading(false));
+                isInitialSnapshot = false;
             });
 
             return unsubscribe;
@@ -52,7 +59,6 @@ const useFirestoreCollectionListeners = (collections) => {
         return () => {
             unsubscribeFunctions.forEach((unsubscribe) => unsubscribe());
             collections.forEach(({ setLoading }) => {
-                console.log('ZZZZZZZZ');
                 dispatch(setLoading(false));
             });
         };
