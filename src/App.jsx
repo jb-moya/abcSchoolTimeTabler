@@ -56,11 +56,11 @@ import {
 } from './features/slice/notificationUserLogs.jsx';
 import { collection, query, orderBy, where } from 'firebase/firestore';
 import { firestore } from './firebase/firebase.js';
+import formatFirebaseDate from './utils/formatDate.js';
 
 const Layout = lazy(() => import('./containers/Layout'));
 const Login = lazy(() => import('./pages/Login.jsx'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
-const Register = lazy(() => import('./pages/Register'));
 const Documentation = lazy(() => import('./pages/Documentation'));
 const GuestPage = lazy(() => import('./pages/Guest.jsx'));
 const SuspenseContent = lazy(() => import('./containers/SuspenseContent'));
@@ -138,6 +138,7 @@ const collections = [
         removeAction: removeLogs,
         setLoading: setLogsLoading,
         queryBuilder: query(collection(firestore, 'logs'), where('t', '>', new Date()), orderBy('t')),
+        transform: (doc) => ({ ...doc, t: formatFirebaseDate(doc.t.toDate()) }),
     },
 ];
 

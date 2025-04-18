@@ -1,8 +1,7 @@
-// ScheduleDialog.jsx
-import React, { forwardRef, useEffect, useState } from 'react';
+import { forwardRef, useState } from 'react';
 import SearchableDropdownToggler from './searchableDropdownForAll';
 import { convertToTime } from '@utils/convertToTime';
-import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
+import { getTimeSlotIndex } from '@utils/timeSlotMapper';
 import TimeSelector from '@utils/timeSelector';
 import DeleteData from './DeleteData';
 
@@ -33,9 +32,6 @@ const ScheduleDialog = forwardRef((props, ref) => {
     const [addCheckbox, setAddCheckbox] = useState(true);
     const [subject, setSubject] = useState({ subject: editingCell?.subject, subjectID: editingCell?.subjectID });
 
-    // const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
-    // const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
-    // const { sections, status: sectionStatus } = useSelector((state) => state.section);
     const [reset, setReset] = useState(false);
 
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
@@ -49,24 +45,6 @@ const ScheduleDialog = forwardRef((props, ref) => {
 
     const editName = containerType === 's' ? editingCell?.teacher : containerType === 't' ? editingCell?.section : undefined;
     const editID = containerType === 's' ? editingCell?.teacherID : containerType === 't' ? editingCell?.sectionID : undefined;
-
-    // useEffect(() => {
-    //     if (teacherStatus === 'idle') {
-    //         dispatch(fetchTeachers());
-    //     }
-    // }, [teacherStatus, dispatch]);
-
-    // useEffect(() => {
-    //     if (subjectStatus === 'idle') {
-    //         dispatch(fetchSubjects());
-    //     }
-    // }, [subjectStatus, dispatch]);
-
-    // useEffect(() => {
-    //     if (sectionStatus === 'idle') {
-    //         dispatch(fetchSections());
-    //     }
-    // }, [sectionStatus, dispatch]);
 
     const setStartTime = (newTime) => {
         if (getTimeSlotIndex(newTime) >= 0 && newTime !== convertToTime(start)) {
@@ -98,7 +76,7 @@ const ScheduleDialog = forwardRef((props, ref) => {
     };
 
     const handleCheckboxChange = (e) => {
-        setAddCheckbox(e.target.checked); // Update state based on checkbox status
+        setAddCheckbox(e.target.checked);
     };
 
     function getFieldIdsBySubject(subjectID) {
@@ -149,32 +127,18 @@ const ScheduleDialog = forwardRef((props, ref) => {
         const isChecked = event.target.checked;
 
         if (dayIndex === -1) {
-            // "Everyday" selected
             setSelectedDays(isChecked ? Array.from({ length: days.length }, (_, i) => i) : []);
         } else {
-            // Individual day selection
             const updatedDays = isChecked ? [...selectedDays, dayIndex] : selectedDays.filter((day) => day !== dayIndex);
 
             setSelectedDays(updatedDays.sort((a, b) => a - b));
         }
     };
-    // console.log("dialogRender")
     const handleDeleteButton = (data, deleteCheckbox) => {
         handleDeleteBlock(data, deleteCheckbox);
         setModalOpen(false);
         document.getElementById('my_modal_2').close();
     };
-    // useEffect(() => {
-    //     console.log('teacher Log: ', teacher);
-    // }, [teacher]);
-
-    // useEffect(() => {
-    //     console.log('start log: ', start);
-    // }, [start]);
-
-    // useEffect(() => {
-    //     console.log('end log: ', end);
-    // }, [end]);
 
     const isEverydaySelected = selectedDays.length === days.length;
     const typePlaceholder = containerType === 's' ? 'Teacher' : containerType === 't' ? 'Section' : undefined;
@@ -266,19 +230,6 @@ const ScheduleDialog = forwardRef((props, ref) => {
                         </div>
                     </div>
                 </div>
-                {/* <div className='flex flex-row'>
-                    <div className='form-control w-1/2'>
-                        <TimeSelector
-                            key={`startTime`}
-                            interval={5}
-                            time={convertToTime(editingCell?.start)}
-                            setTime={setStartTime}
-                        />
-                    </div>
-                    <div className='form-control w-1/2'>
-                        <TimeSelector key={`endTime`} interval={5} time={convertToTime(editingCell?.end)} setTime={setEndTime} />
-                    </div>
-                </div> */}
                 {errors.time && <span className='text-red-500'>{errors.time}</span>}
                 {!editingCell && (
                     <div className='mb-4'>
@@ -334,25 +285,13 @@ const ScheduleDialog = forwardRef((props, ref) => {
                     >
                         Reset
                     </button>
-                    {/* <button
-                        onClick={() => {
-                            handleDeleteButton();
-                        }}
-                        disabled={
-                            teacher.teacher !== editingCell?.teacher ||
-                            teacher.teacherID !== editingCell?.teacherID ||
-                            start !== convertToTime(editingCell?.start) ||
-                            end !== convertToTime(editingCell?.end)
-                        }
-                        className='btn btn-error'
-                    >
-                        Delete
-                    </button> */}
                     <DeleteData handleDeleteButton={handleDeleteButton} data={editingCell} />
                 </div>
             </div>
         </dialog>
     );
 });
+
+ScheduleDialog.displayName = 'ScheduleDialog';
 
 export default ScheduleDialog;

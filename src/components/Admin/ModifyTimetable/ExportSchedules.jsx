@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
@@ -6,29 +6,16 @@ import { getTimeSlotString } from '@utils/timeSlotMapper';
 import colors from '@utils/colors';
 import { useSelector } from 'react-redux';
 
-const ExportSchedules = ({
-    // stores
-    programs,
-    buildings,
-    sections,
-    teachers,
-    ranks,
-    departments,
-    // stores
-    
-    schedule, 
-    close 
-}) => {
+const ExportSchedules = ({ programs, buildings, sections, teachers, ranks, departments, schedule, close }) => {
+    // ======================================================================================================
 
-// ======================================================================================================
-
-    const { configurations, loading } = useSelector((state) => state.configuration);
+    const { configurations } = useSelector((state) => state.configuration);
 
     const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 
     const selectedDays = days.slice(0, configurations[1].defaultNumberOfSchoolDays);
 
-// ======================================================================================================
+    // ======================================================================================================
 
     const [timetable, setTimetable] = useState(schedule);
 
@@ -38,7 +25,7 @@ const ExportSchedules = ({
         }
     }, [schedule]);
 
-// =====================================================================================================
+    // =====================================================================================================
 
     const sectionScheds = [];
     const teacherScheds = [];
@@ -52,7 +39,6 @@ const ExportSchedules = ({
 
             console.log('key: ', key);
             console.log('val: ', val);
-
 
             const parts = key.split(' - '); // Split at " - "
             const teacherName = parts[0].replace('Teacher: ', ''); // Remove 'Teacher: '
@@ -588,15 +574,12 @@ const ExportSchedules = ({
         console.log('Starting export process...');
 
         timetable.forEach((value, key) => {
-            // console.log('key: ', key);
             if (key.startsWith('Section:')) {
                 sectionScheds.push({ [key]: value });
             } else if (key.startsWith('Teacher:')) {
                 teacherScheds.push({ [key]: value });
             }
         });
-
-        // console.log('hahahfsaa');
 
         exportTeacherScheds();
         exportSectionScheds();

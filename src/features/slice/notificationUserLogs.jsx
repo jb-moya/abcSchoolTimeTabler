@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { ABBREVIATION_COLLECTION, ABBREVIATION_OPERATION } from '../../constants';
 import { toast } from 'sonner';
-import { increment } from 'firebase/firestore';
+import formatFirebaseDate from '../../utils/formatDate';
 const logs = createSlice({
     name: 'notificationUserLogs',
     initialState: {
@@ -27,12 +27,13 @@ const logs = createSlice({
             const operationName = ABBREVIATION_OPERATION[abbrevOperation] ?? 'did something on';
             const username = logData?.u ?? 'Unknown User';
             const item = logData?.i ?? 'unknown item';
+            const date = logData?.t;
 
             const newLog = {
                 collectionName: collectionName,
                 operation: operationName,
                 item: item,
-                date: logData.t,
+                date: date,
                 username: username,
             };
 

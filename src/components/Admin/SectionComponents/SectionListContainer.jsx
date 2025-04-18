@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import { getTimeSlotString } from '@utils/timeSlotMapper';
 
@@ -14,29 +14,19 @@ import DeleteData from '../DeleteData';
 import SectionEdit from './SectionEdit';
 import { useSelector } from 'react-redux';
 
-const SectionListContainer = ({
-    sections,
-    programs,
-    subjects,
-    teachers,
-    buildings,
-    editable = false,
-    loading,
-}) => {
-
-//  =========================================================================================
-
+const SectionListContainer = ({ editable = false }) => {
+    const { subjects, loading: subjectsStoreLoading, error: subjectsStoreError } = useSelector((state) => state.subjects);
+    const { programs, loading: programsStoreLoading, error: programsStoreError } = useSelector((state) => state.programs);
+    const { sections, loading: sectionsStoreLoading, error: sectionsStoreError } = useSelector((state) => state.sections);
+    const { buildings, loading: buildingsStoreLoading, error: buildingsStoreError } = useSelector((state) => state.buildings);
+    const { teachers, loading: teachersStoreLoading, error: teachersStoreError } = useSelector((state) => state.teachers);
     const { configurations } = useSelector((state) => state.configuration);
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState([]);
 
-//  =======================================================================================
-
     const [searchSectionResult, setSearchSectionResult] = useState(sections);
     const [searchSectionValue, setSearchSectionValue] = useState('');
-
-//  =======================================================================================
 
     const handleClose = () => {
         const modal = document.getElementById('add_section_modal');
@@ -48,8 +38,6 @@ const SectionListContainer = ({
             console.error("Modal with ID 'add_section_modal' not found.");
         }
     };
-
-//  =======================================================================================
 
     const debouncedSearch = useCallback(
         debounce((searchValue, sections, subjects) => {
@@ -78,29 +66,53 @@ const SectionListContainer = ({
         []
     );
 
-//  =======================================================================================
-
     useEffect(() => {
+        if (
+            subjectsStoreLoading ||
+            programsStoreLoading ||
+            sectionsStoreLoading ||
+            buildingsStoreLoading ||
+            teachersStoreLoading
+        ) {
+            return;
+        }
         debouncedSearch(searchSectionValue, sections, subjects);
-    }, [searchSectionValue, sections, debouncedSearch, subjects]);
+    }, [
+        searchSectionValue,
+        sections,
+        debouncedSearch,
+        subjects,
+        programs,
+        subjectsStoreLoading,
+        programsStoreLoading,
+        sectionsStoreLoading,
+        buildingsStoreLoading,
+        teachersStoreLoading,
+    ]);
 
     const itemsPerPage = 10; // Adjust this to change items per page
     const [currentPage, setCurrentPage] = useState(1);
 
-    // Calculate total pages based on filtered sections
     const totalPages = Math.ceil(Object.values(searchSectionResult).length / itemsPerPage);
 
-    // Get current items
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Object.entries(searchSectionResult).slice(indexOfFirstItem, indexOfLastItem);
 
-//  =======================================================================================
-
-    if (loading) {
+    if (subjectsStoreLoading || programsStoreLoading || sectionsStoreLoading || buildingsStoreLoading || teachersStoreLoading) {
         return (
             <div className='w-full flex justify-center items-center h-[50vh]'>
                 <span className='loading loading-bars loading-lg'></span>
+            </div>
+        );
+    }
+
+    if (subjectsStoreError || programsStoreError || sectionsStoreError || buildingsStoreError || teachersStoreError) {
+        return (
+            <div role='alert' className='alert alert-error alert-soft'>
+                <span>
+                    {subjectsStoreError || programsStoreError || sectionsStoreError || buildingsStoreError || teachersStoreError}
+                </span>
             </div>
         );
     }
@@ -109,7 +121,6 @@ const SectionListContainer = ({
         <React.Fragment>
             <div className='w-full'>
                 <div className='flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5'>
-                    {/* Pagination */}
                     {currentItems.length > 0 && (
                         <div className='join flex justify-center mb-4 md:mb-0'>
                             <button
@@ -144,7 +155,6 @@ const SectionListContainer = ({
                         <div className='hidden'>{setCurrentPage(currentPage - 1)}</div>
                     )}
 
-                    {/* Search Section */}
                     <div className='flex-grow w-full md:w-1/3 lg:w-1/4'>
                         <label className='input input-bordered flex items-center gap-2 w-full'>
                             <input
@@ -167,7 +177,6 @@ const SectionListContainer = ({
                                 Add Section <IoAdd size={20} className='ml-2' />
                             </button>
 
-                            {/* // modal-bottom sm:modal-middle */}
                             <dialog id='add_section_modal' className='modal '>
                                 <div className='modal-box' style={{ width: '48%', maxWidth: 'none' }}>
                                     <AddSectionContainer
@@ -198,17 +207,13 @@ const SectionListContainer = ({
                     )}
                 </div>
 
-                {/* Section Table */}
                 <div className='overflow-x-auto'>
                     <table className='table table-sm table-zebra min-w-full'>
                         <thead>
                             <tr>
-                                {/* <th className="w-8">#</th> */}
                                 <th className='w-1/12'>Section ID</th>
                                 <th className='w-3/12'>Section</th>
                                 <th className='w-2/12'>Room Details</th>
-                                {/* <th>Program</th> */}
-                                {/* <th>Year</th> */}
                                 <th className='w-2/12'>Subjects</th>
                                 <th className='w-3/12'>Additional Schedules</th>
                                 {editable && <th className='w-1/12 text-right'>Actions</th>}
@@ -224,20 +229,13 @@ const SectionListContainer = ({
                             ) : (
                                 currentItems.map(([, section], index) => (
                                     <tr key={section.id} className='group hover'>
-                                        {/* <td>{index + indexOfFirstItem + 1}</td> */}
-
-                                        {/* Section ID */}
                                         <td>{section.id}</td>
 
-                                        {/* Section Name, Shift, and Start Time */}
                                         <td>
-                                            {/* Section year and name */}
                                             <div className='text-base font-bold'>{`${section.year} -  ${section.section}`}</div>
 
-                                            {/* Section program */}
                                             <div className='mt-1'>{`(${programs[section.program]?.program})`}</div>
 
-                                            {/* Section shift and start time */}
                                             <div className='flex items-center mt-2'>
                                                 <span className='inline-block bg-blue-500 text-white text-sm font-semibold py-1 px-3 rounded-lg'>
                                                     {section.shift === 0 ? 'AM' : 'PM'}
@@ -247,7 +245,6 @@ const SectionListContainer = ({
                                                 </span>
                                             </div>
 
-                                            {/* Section Adviser */}
                                             <div className='flex flex-wrap mt-2'>
                                                 <div className='w-1/4 p-2 mr-2 font-bold flex items-center justify-center'>
                                                     Adviser:
@@ -258,22 +255,18 @@ const SectionListContainer = ({
                                             </div>
                                         </td>
 
-                                        {/* Section room (work in progress) */}
                                         <td>
                                             <div>
-                                                {/* Building */}
                                                 <div className='mb-5 flex flex-col justify-start font-semibold'>
                                                     <div>
                                                         {buildings[section.roomDetails.buildingId]?.name || 'UNASSIGNED BUILDING'}
                                                     </div>
                                                 </div>
 
-                                                {/* Number of Floors */}
                                                 <div className='mb-5 flex flex-col justify-start text-zinc-600'>
                                                     <div>{section.roomDetails.floorIdx + 1 || 'UNASSIGNED FLOOR'}</div>
                                                 </div>
 
-                                                {/* Room */}
                                                 <div className='mb-5 flex flex-col justify-start text-zinc-600'>
                                                     <div>
                                                         {buildings[section.roomDetails.buildingId]?.rooms[
@@ -284,19 +277,16 @@ const SectionListContainer = ({
                                             </div>
                                         </td>
 
-                                        {/* Subject Details */}
                                         <td className=''>
                                             <div className='flex flex-col gap-4 mt-4 overflow-y-auto h-96 max-h-96 '>
                                                 {Array.isArray(section.subjects) && section.subjects.length > 0 ? (
                                                     section.subjects.map((subjectID, index) => (
                                                         <div key={index} className='mb-4'>
-                                                            {/* Subject Name */}
                                                             <div className='font-semibold'>
                                                                 {subjects[subjectID]?.subject ||
                                                                     `Unknown Subject, ID: ${subjectID}`}
                                                             </div>
 
-                                                            {/* Duration and Weekly Minutes */}
                                                             <div className='text-zinc-600'>
                                                                 {subjects[subjectID]?.classDuration || 'Unknown Duration'} min /{' '}
                                                                 {subjects[subjectID]?.weeklyMinutes || 'Unknown Weekly Minutes'}{' '}
@@ -308,23 +298,6 @@ const SectionListContainer = ({
                                                     <div className='text-center text-gray-500'>No subjects selected</div>
                                                 )}
 
-                                                {/* View Fixed Schedules Button */}
-                                                {/* <div className='flex justify-center '>
-                                                    <button
-                                                        className='btn btn-primary'
-                                                        onClick={() =>
-                                                            document
-                                                                .getElementById(
-                                                                    `assign_fixed_sched_modal_section(${section.id})-grade(${section.year})-view(1)`
-                                                                )
-                                                                .showModal()
-                                                        }
-                                                    >
-                                                        View Fixed Schedules
-                                                    </button>
-                                                </div> */}
-
-                                                {/* FixedScheduleMaker Component */}
                                                 <FixedScheduleMaker
                                                     subjectsStore={subjects}
                                                     key={section.year}
@@ -342,7 +315,6 @@ const SectionListContainer = ({
                                             </div>
                                         </td>
 
-                                        {/* Additional Schedule */}
                                         <td>
                                             <div
                                                 key={`edit-add-sched-view-section(${section.id})`}
@@ -350,7 +322,7 @@ const SectionListContainer = ({
                                                 style={{
                                                     scrollbarWidth: 'thin',
                                                     scrollbarColor: '#a0aec0 #edf2f7',
-                                                }} // Optional for styled scrollbars
+                                                }}
                                             >
                                                 <div
                                                     className='font-bold border-base-content border-opacity-20'
@@ -380,7 +352,6 @@ const SectionListContainer = ({
                                                                 }
                                                             >
                                                                 {sched.name ? (
-                                                                    // Content to show when both are not empty
                                                                     <>
                                                                         <p>Name: {sched.name}</p>
                                                                         <p>
@@ -391,7 +362,6 @@ const SectionListContainer = ({
                                                                         </p>
                                                                     </>
                                                                 ) : (
-                                                                    // Content to show when either is empty
                                                                     <p>Untitled Schedule {index + 1}</p>
                                                                 )}
                                                             </button>
@@ -447,7 +417,6 @@ const SectionListContainer = ({
                                                     >
                                                         <IoEye className='w-5 h-5' />
                                                         <span className='hidden sm:inline'>View</span>{' '}
-                                                        {/* Show text on larger screens */}
                                                     </button>
                                                 </div>
                                             </td>
@@ -461,7 +430,6 @@ const SectionListContainer = ({
             </div>
         </React.Fragment>
     );
-    
 };
 
 export default SectionListContainer;

@@ -14,12 +14,12 @@ const DeleteData = ({ id, collection, callback }) => {
     // ===============================================================================================
     const { user: currentUser } = useSelector((state) => state.user);
 
-    const { subjects, loading: subjectsLoading, error: subjectsError } = useSelector((state) => state.subjects);
-    const { programs, loading: programsLoading, error: programsError } = useSelector((state) => state.programs);
-    const { sections, loading: sectionsLoading, error: sectionsError } = useSelector((state) => state.sections);
-    const { ranks, loading: ranksLoading, error: ranksError } = useSelector((state) => state.ranks);
-    const { teachers, loading: teachersLoading, error: teachersError } = useSelector((state) => state.teachers);
-    const { departments, loading: departmentsLoading, error: departmentsError } = useSelector((state) => state.departments);
+    const { subjects } = useSelector((state) => state.subjects);
+    const { programs } = useSelector((state) => state.programs);
+    const { sections } = useSelector((state) => state.sections);
+    const { ranks } = useSelector((state) => state.ranks);
+    const { teachers } = useSelector((state) => state.teachers);
+    const { departments } = useSelector((state) => state.departments);
 
     // ===============================================================================================
 
@@ -189,15 +189,9 @@ const DeleteData = ({ id, collection, callback }) => {
                     bordercolor: 'green',
                 },
             });
-
-            console.log(result);
         } catch (error) {
             console.error(error);
         } finally {
-            if (callback) {
-                callback(result);
-            }
-
             closeModal();
         }
     };

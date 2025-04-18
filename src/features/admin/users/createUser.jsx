@@ -6,7 +6,6 @@ import { signUpWithEmailAndPassword } from '../../userSlice';
 import { createUser } from './usersSlice';
 import { toast } from 'sonner';
 import { APP_CONFIG } from '../../../constants';
-import { addUser } from './usersSlice';
 
 let filteredPermissions = APP_CONFIG.PERMISSIONS.filter((perm) => perm !== 'Generate Timetable' && perm !== 'Modify TimeTable');
 

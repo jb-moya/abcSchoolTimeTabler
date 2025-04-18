@@ -9,32 +9,20 @@ import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
 import { useSelector } from 'react-redux';
-
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
 import DeleteData from '../DeleteData';
 import AddProgramContainer from './ProgramAdd';
 import AdditionalScheduleForProgram from './AdditionalScheduleForProgram';
 import ProgramEdit from './ProgramEdit';
 
-const ProgramListContainer = ({
-    // STORES
-    subjects,
-    programs,
-    sections,
-    editable = false,
-    loading,
-}) => {
-    // ==============================================================================
-
+const ProgramListContainer = ({ editable = false }) => {
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
 
-    // ==============================================================================
-
     const { configurations } = useSelector((state) => state.configuration);
-
-
-    // ==============================================================================
+    const { subjects, loading: subjectsStoreLoading, error: subjectsStoreError } = useSelector((state) => state.subjects);
+    const { programs, loading: programsStoreLoading, error: programsStoreError } = useSelector((state) => state.programs);
+    const { sections, loading: sectionsStoreLoading, error: sectionsStoreError } = useSelector((state) => state.sections);
 
     const handleClose = () => {
         const modal = document.getElementById('add_program_modal');
@@ -46,28 +34,6 @@ const ProgramListContainer = ({
             console.error("Modal with ID 'add_program_modal' not found.");
         }
     };
-
-    // ================================================================
-
-    // useEffect(() => {
-    //     if (sectionStatus === 'idle') {
-    //         dispatch(fetchSections());
-    //     }
-    // }, [sectionStatus, dispatch]);
-
-    // useEffect(() => {
-    //     if (programStatus === 'idle') {
-    //         dispatch(fetchPrograms());
-    //     }
-    // }, [programStatus, dispatch]);
-
-    // useEffect(() => {
-    //     if (subjectStatus === 'idle') {
-    //         dispatch(fetchSubjects());
-    //     }
-    // }, [subjectStatus, dispatch]);
-
-    // ================================================================================
 
     const [searchProgramResult, setSearchProgramResult] = useState(programs);
     const [searchProgramValue, setSearchProgramValue] = useState('');
@@ -95,26 +61,40 @@ const ProgramListContainer = ({
     );
 
     useEffect(() => {
-        debouncedSearch(searchProgramValue, programs, subjects);
-    }, [searchProgramValue, programs, debouncedSearch, subjects]);
+        if (programsStoreLoading || subjectsStoreLoading || sectionsStoreLoading) return;
 
-    const itemsPerPage = 3; // Change this to adjust the number of items per page
+        debouncedSearch(searchProgramValue, programs, subjects);
+    }, [
+        searchProgramValue,
+        programs,
+        debouncedSearch,
+        subjects,
+        programsStoreLoading,
+        subjectsStoreLoading,
+        sectionsStoreLoading,
+    ]);
+
+    const itemsPerPage = 3;
     const [currentPage, setCurrentPage] = useState(1);
 
-    // Calculate total pages
     const totalPages = Math.ceil(Object.values(searchProgramResult).length / itemsPerPage);
 
-    // Get current items
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Object.entries(searchProgramResult).slice(indexOfFirstItem, indexOfLastItem);
 
-    // ================================================================
-
-    if (loading) {
+    if (subjectsStoreLoading || programsStoreLoading || sectionsStoreLoading) {
         return (
             <div className='w-full flex justify-center items-center h-[50vh]'>
                 <span className='loading loading-bars loading-lg'></span>
+            </div>
+        );
+    }
+
+    if (subjectsStoreError || programsStoreError || sectionsStoreError) {
+        return (
+            <div role='alert' className='alert alert-error alert-soft'>
+                <span>{subjectsStoreError || programsStoreError || sectionsStoreError}</span>
             </div>
         );
     }
@@ -131,7 +111,6 @@ const ProgramListContainer = ({
                                     if (currentPage > 1) {
                                         setCurrentPage(currentPage - 1);
                                     }
-                                    resetStates();
                                 }}
                                 disabled={currentPage === 1}
                             >
@@ -146,7 +125,6 @@ const ProgramListContainer = ({
                                     if (currentPage < totalPages) {
                                         setCurrentPage(currentPage + 1);
                                     }
-                                    resetStates();
                                 }}
                                 disabled={currentPage === totalPages}
                             >
@@ -223,13 +201,10 @@ const ProgramListContainer = ({
                                         <tr key={program.id} className='group hover'>
                                             <td>{index + 1 + indexOfFirstItem}</td>
 
-                                            {/* Program ID */}
                                             <td>{program.id}</td>
 
-                                            {/* Program Name */}
                                             <td className='w-2/12'>{program.program}</td>
 
-                                            {/* Shift, Start Time, and Subjects (per year level) */}
                                             <td className='w-7/12'>
                                                 <div className=''>
                                                     {[7, 8, 9, 10].map((grade) => (
@@ -287,7 +262,9 @@ const ProgramListContainer = ({
                                                                         selectedSubjects={program[grade]?.subjects || []}
                                                                         fixedDays={program[grade]?.fixedDays || {}}
                                                                         fixedPositions={program[grade]?.fixedPositions || {}}
-                                                                        numOfSchoolDays={configurations[1].defaultNumberOfSchoolDays}
+                                                                        numOfSchoolDays={
+                                                                            configurations[1].defaultNumberOfSchoolDays
+                                                                        }
                                                                     />
                                                                 </div>
                                                             </div>
@@ -296,7 +273,6 @@ const ProgramListContainer = ({
                                                 </div>
                                             </td>
 
-                                            {/* Additional Schedules (per year level) */}
                                             <td>
                                                 <div>
                                                     {[7, 8, 9, 10].map((grade) => (
@@ -311,7 +287,6 @@ const ProgramListContainer = ({
                                                                     position: 'sticky',
                                                                     top: 0,
                                                                     zIndex: 1,
-                                                                    // backgroundColor: 'white',
                                                                 }}
                                                             >
                                                                 Grade {grade}
@@ -336,7 +311,6 @@ const ProgramListContainer = ({
                                                                             }
                                                                         >
                                                                             {sched.name || sched.subject ? (
-                                                                                // Content to show when both are not empty
                                                                                 <>
                                                                                     <p>Name: {sched.name}</p>
                                                                                     <p>
@@ -347,7 +321,6 @@ const ProgramListContainer = ({
                                                                                     </p>
                                                                                 </>
                                                                             ) : (
-                                                                                // Content to show when either is empty
                                                                                 <p>Untitled Schedule {index + 1}</p>
                                                                             )}
                                                                         </button>

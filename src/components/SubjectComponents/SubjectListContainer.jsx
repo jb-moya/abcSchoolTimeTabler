@@ -10,26 +10,19 @@ import SubjectEdit from './SubjectEdit';
 import DeleteData from '../Admin/DeleteData';
 import { useSelector } from 'react-redux';
 
-const SubjectListContainer = ({
-    subjects,
-    programs,
-    sections,
-    editable = false,
-    loading,
-}) => {
-    const defaultSubjectClassDuration = localStorage.getItem('defaultSubjectClassDuration');
-    const { configurations, configurationsLoading } = useSelector((state) => state.configuration);
-    const numOfSchoolDays = configurations[1]?.numOfSchoolDays || 5; // Default to 5 if not found in configurations
-    const breakTimeDuration = configurations[1]?.breakTimeDuration || 30; // Default to 30 if not found in configurations
-    // ==============================================================================
+const SubjectListContainer = ({ editable = false }) => {
+    const { configurations } = useSelector((state) => state.configuration);
+    const { subjects, loading: subjectsStoreLoading, error: subjectsStoreError } = useSelector((state) => state.subjects);
+    const { programs, loading: programsStoreLoading, error: programsStoreError } = useSelector((state) => state.programs);
+    const { sections, loading: sectionsStoreLoading, error: sectionsStoreError } = useSelector((state) => state.sections);
 
+    const numOfSchoolDays = configurations[1]?.numOfSchoolDays || 5; // Default to 5 if not found in configurations
+    const defaultSubjectClassDuration = configurations[1]?.defaultClassDuration || 40; // Default to 40 if not found in configurations
+    const breakTimeDuration = configurations[1]?.breakTimeDuration || 30; // Default to 30 if not found in configurations
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
-
     const [searchSubjectResult, setSearchSubjectResult] = useState(subjects);
     const [searchSubjectValue, setSearchSubjectValue] = useState('');
-
-    // ==============================================================================
 
     const handleClose = () => {
         const modal = document.getElementById('add_subject_modal');
@@ -41,16 +34,6 @@ const SubjectListContainer = ({
             console.error("Modal with ID 'add_subject_modal' not found.");
         }
     };
-
-    // ==============================================================================
-
-    // useEffect(() => {
-    //     if (subjectStatus === 'idle') {
-    //         dispatch(fetchSubjects());
-    //     }
-    // }, [subjectStatus, dispatch]);
-
-    // ==============================================================================
 
     const debouncedSearch = useCallback(
         debounce((searchValue, subjects) => {
@@ -68,25 +51,21 @@ const SubjectListContainer = ({
     );
 
     useEffect(() => {
-        if (loading) return;
+        if (subjectsStoreLoading || programsStoreLoading || sectionsStoreLoading) return;
 
         debouncedSearch(searchSubjectValue, subjects);
-    }, [searchSubjectValue, subjects, debouncedSearch, loading]);
+    }, [searchSubjectValue, subjects, debouncedSearch, subjectsStoreLoading, programsStoreLoading, sectionsStoreLoading]);
 
     const itemsPerPage = 10; // Change this to adjust the number of items per page
     const [currentPage, setCurrentPage] = useState(1);
 
-    // Calculate total pages
     const totalPages = Math.ceil(Object.values(searchSubjectResult).length / itemsPerPage);
 
-    // Get current items
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Object.entries(searchSubjectResult).slice(indexOfFirstItem, indexOfLastItem);
 
-    // ==============================================================================
-
-    if (loading) {
+    if (subjectsStoreLoading || programsStoreLoading || sectionsStoreLoading) {
         return (
             <div className='w-full flex justify-center items-center h-[50vh]'>
                 <span className='loading loading-bars loading-lg'></span>
@@ -94,10 +73,17 @@ const SubjectListContainer = ({
         );
     }
 
+    if (subjectsStoreError || programsStoreError || sectionsStoreError) {
+        return (
+            <div role='alert' className='alert alert-error alert-soft'>
+                <span>{subjectsStoreError || programsStoreError || sectionsStoreError}</span>
+            </div>
+        );
+    }
+
     return (
         <div className='w-full'>
             <div className='flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5'>
-                {/* Pagination */}
                 {currentItems.length > 0 && (
                     <div className='join flex justify-center  mb-4 md:mb-0'>
                         <button
@@ -130,7 +116,6 @@ const SubjectListContainer = ({
 
                 {currentItems.length === 0 && currentPage > 1 && <div className='hidden'>{setCurrentPage(currentPage - 1)}</div>}
 
-                {/* Search Subject */}
                 <div className='flex-grow w-full md:w-1/3 lg:w-1/4'>
                     <label className='input input-bordered flex items-center gap-2 w-full'>
                         <input
@@ -144,7 +129,6 @@ const SubjectListContainer = ({
                     </label>
                 </div>
 
-                {/* Add Subject Button (only when editable) */}
                 {editable && (
                     <div className='w-full mt-4 md:mt-0 md:w-auto'>
                         <button
@@ -154,7 +138,6 @@ const SubjectListContainer = ({
                             Add Subject <IoAdd size={20} className='ml-2' />
                         </button>
 
-                        {/* Modal for adding subject */}
                         <dialog id='add_subject_modal' className='modal modal-bottom sm:modal-middle'>
                             <div className='modal-box'>
                                 <AddSubjectContainer
@@ -180,7 +163,6 @@ const SubjectListContainer = ({
                 )}
             </div>
 
-            {/* Table */}
             <div className='overflow-x-auto'>
                 <table className='table table-sm table-zebra md:table-md w-full'>
                     <thead>
@@ -203,22 +185,16 @@ const SubjectListContainer = ({
                         ) : (
                             currentItems.map(([, subject], index) => (
                                 <tr key={subject.id} className='group hover'>
-                                    {/* Subject ID */}
                                     <th>{subject.id}</th>
 
-                                    {/* Subject Name */}
                                     <td>{subject.subject}</td>
 
-                                    {/* Class Duration */}
                                     <td>{subject.classDuration}</td>
 
-                                    {/* Subject Weekly Minutes */}
                                     <td>{subject.weeklyMinutes}</td>
 
-                                    {/* Number of Classes */}
                                     <td>{Math.min(Math.ceil(subject.weeklyMinutes / subject.classDuration), numOfSchoolDays)}</td>
 
-                                    {/* Edit and Delete */}
                                     {editable && (
                                         <td className='w-28'>
                                             <div className='flex'>

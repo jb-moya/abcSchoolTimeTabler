@@ -40,29 +40,17 @@ const ItemCells = ({
     const [targetPosition, setTargetPosition] = useState(initialPosition);
     const [timeRange, setTimeRange] = useState(0);
     const [options, setOptions] = useState([]);
-    // const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
-
-    // const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
     const [errors, setErrors] = useState({});
     const [hovering, setHovering] = useState(false);
 
-    // useEffect(() => {
-    //     if (teacherStatus === 'idle') {
-    //         dispatch(fetchTeachers());
-    //     }
-    // }, [teacherStatus, dispatch]);
-
     const x = useMotionValue(initialPosition.x);
     const y = useMotionValue(initialPosition.y);
-    // Update motion values when `initialPosition` changes
 
     useEffect(() => {
         setTimeRange(String(Math.round(((cell.end - cell.start + 0.5) / 2) * 2) / 2));
     }, [cell]);
 
     useEffect(() => {
-        // console.log('clicked');
-        // console.log('add: ', addClicked);
         if (addClicked) {
             setEditingCell(null);
             setModalOpen(true);
@@ -70,7 +58,6 @@ const ItemCells = ({
                 document.getElementById('my_modal_2').showModal();
             }, 0);
         }
-        // setAddClicked(false);
     }, [addClicked]);
     const getUpdatedStart = (mode, start) => {
         switch (mode) {
@@ -94,12 +81,7 @@ const ItemCells = ({
     };
 
     const handleClick = () => {
-        // console.log('clicked: on', cell);
-        // console.log('isDragging', isDragging);
-        // console.log('modalOpen', modalOpen);
-
         if (isDragging || modalOpen) return;
-        // console.log('clicked: on', cell);
         if (editMode && !modalOpen) {
             setEditingCell(cell);
             setModalOpen(true);
@@ -116,7 +98,6 @@ const ItemCells = ({
         if (itemRef.current && !editMode) {
             const { width } = itemRef.current.getBoundingClientRect();
 
-            // Find the closest line and column
             const closestLine = lineRowPositions.reduce((prev, curr) => {
                 const prevDiff = Math.abs(prev - y.get());
                 const currDiff = Math.abs(curr - y.get());
@@ -131,7 +112,6 @@ const ItemCells = ({
 
             const offset = 2;
 
-            // Set intermediate and final target positions
             const intermediatePosition = {
                 x: closestColumn + offset,
                 y: closestLine + offset,
@@ -142,11 +122,6 @@ const ItemCells = ({
             const initialStart = lineRowPositions.indexOf(closestLine);
             const start = getUpdatedStart(mode, initialStart);
             const day = lineColPositions.indexOf(closestColumn) + 1;
-            // console.log('range: ', Number(timeRange));
-
-            // console.log('range: ', Number(timeRange));
-            // const end = start + Number(timeRange) * 2;
-            // console.log('end: ', end);
 
             setTimeout(() => {
                 setTargetPosition({ x: closestColumn + 1, y: closestLine });
@@ -164,14 +139,10 @@ const ItemCells = ({
     });
 
     useEffect(() => {
-        if (isDragging) return; // Prevent the effect from running while dragging
+        if (isDragging) return;
 
         setTargetPosition(initialPosition);
-    }, [initialPosition, isDragging]); // Include isDragging in the dependency array
-
-    // useEffect(() => {
-    //     setOptions(getTeacherIdsBySubject(cell.subjectID));
-    // }, [editMode]);
+    }, [initialPosition, isDragging]);
 
     const handleTeacherSelection = (fieldID, fieldName, type) => {
         setLoading(true);
@@ -263,7 +234,7 @@ const ItemCells = ({
     }, [cell.teacher, cell.section, cellValue]);
     return (
         <motion.div
-            drag={!editMode} // Draggable only if editMode is false
+            drag={!editMode}
             dragConstraints={containerRef}
             style={{
                 height: `${timeRange}%`,
@@ -282,17 +253,15 @@ const ItemCells = ({
             dragElastic={0}
             animate={targetPosition}
             transition={{
-                type: 'spring', // Use spring physics
-                stiffness: 50, // Controls the rigidity of the spring
-                damping: 15, // Controls the "bounciness" (lower = more bounce)
-                mass: 1, // Affects inertia (higher = slower motion)
-                restDelta: 1, // Minimum movement before stopping
+                type: 'spring',
+                stiffness: 50,
+                damping: 15,
+                mass: 1,
+                restDelta: 1,
             }}
             title={!modalOpen ? `${cell.teacher || ''} \n${cell.subject || ''}` : undefined}
         >
-            {/* Hover Wrapper */}
             <div className='relative w-full h-full'>
-                {/* Original Content */}
                 {!editMode || !hovering ? (
                     <motion.div
                         className='absolute inset-0 flex truncate flex-col justify-center items-center p-1 sm:text-[9px] md:text-[11px] lg:text-base text-base'
@@ -307,7 +276,6 @@ const ItemCells = ({
                     </motion.div>
                 ) : null}
 
-                {/* Edit Label */}
                 {editMode && (
                     <motion.div
                         className='absolute inset-0 flex items-center justify-center text-primary font-medium'
@@ -318,7 +286,6 @@ const ItemCells = ({
                     </motion.div>
                 )}
             </div>
-            {/* Hover State Management */}
             <div
                 className={`absolute inset-0 ${isDragging ? 'cursor-grabbing' : hovering && !editMode ? 'cursor-grab' : ''}`}
                 onMouseEnter={() => {

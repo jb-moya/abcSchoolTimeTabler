@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 
-import { IoAdd, IoSearch, IoTrashBin } from 'react-icons/io5';
+import { IoAdd, IoSearch } from 'react-icons/io5';
 import debounce from 'debounce';
 import { toast } from 'sonner';
 import NearbyBuildingDropdown from './nearbyBuildingDropdown';
@@ -14,20 +14,15 @@ import { COLLECTION_ABBREVIATION } from '../../../constants';
 import { useSelector } from 'react-redux';
 
 const AddBuildingContainer = ({
-    // STORES
     buildings,
-    // STORES
     close,
     setErrorMessage,
     setErrorField,
     errorMessage,
     errorField,
 }) => {
-
     const inputBuildingNameRef = useRef();
     const { user: currentUser } = useSelector((state) => state.user);
-
-// ==============================================================================
 
     const [buildingName, setBuildingName] = useState('');
 
@@ -42,8 +37,6 @@ const AddBuildingContainer = ({
     const [previewImage, setPreviewImage] = useState('');
 
     const [nearbyBuildings, setNearbyBuildings] = useState([]);
-
-// ================================================================================
 
     useEffect(() => {
         if (!close) {
@@ -72,18 +65,15 @@ const AddBuildingContainer = ({
     const handleNumberOfRoomsChange = (floorIndex, value) => {
         const roomsCount = Math.max(1, Number(value)); // Ensure no negative values
 
-        // Update number of rooms per floor
         setNumberOfRooms((prev) => {
             const updatedRooms = [...prev];
             updatedRooms[floorIndex] = roomsCount;
             return updatedRooms;
         });
 
-        // Adjust roomNames structure (ensure it's treated as an object)
         setRoomNames((prev) => {
             const updatedRoomNames = { ...prev }; // Copy existing room names object
 
-            // Create new room objects
             const newRooms = {};
             for (let i = 0; i < roomsCount; i++) {
                 newRooms[i] = {
@@ -98,20 +88,20 @@ const AddBuildingContainer = ({
 
     const handleRoomNameChange = (floorIndex, roomIndex, newRoomName) => {
         const updatedRoomNames = { ...roomNames };
-        
+
         // Clone nested floor object if it exists, or initialize
         updatedRoomNames[floorIndex] = {
-            ...(updatedRoomNames[floorIndex] || {})
+            ...(updatedRoomNames[floorIndex] || {}),
         };
-        
-        updatedRoomNames[floorIndex][roomIndex] = {
-            roomName: newRoomName
-        };
-        
-        setRoomNames(updatedRoomNames);
-    };   
 
-// ===========================================================================
+        updatedRoomNames[floorIndex][roomIndex] = {
+            roomName: newRoomName,
+        };
+
+        setRoomNames(updatedRoomNames);
+    };
+
+    // ===========================================================================
 
     const handleImageUpload = (e) => {
         const file = e.target.files[0];
@@ -190,9 +180,8 @@ const AddBuildingContainer = ({
         }
 
         try {
-
             const names = {};
-            Object.entries(roomNames).forEach(([key_out, val_out]) =>{
+            Object.entries(roomNames).forEach(([key_out, val_out]) => {
                 names[key_out] = {};
 
                 Object.entries(val_out).forEach(([key_in, val_in]) => {
@@ -391,19 +380,13 @@ const AddBuildingContainer = ({
     );
 };
 
-const RoomListContainer = ({
-    // STORES
-    buildings,
-    sections,
-    // STORES
-    editable = false,
-    loading,
-}) => {
+const RoomListContainer = ({ editable = false }) => {
+    const { sections, loading: sectionsLoading, error: sectionsError } = useSelector((state) => state.sections);
+    const { buildings, loading: buildingsLoading, error: buildingsError } = useSelector((state) => state.buildings);
+
     const inputBuildingNameRef = useRef();
 
     const { user: currentUser } = useSelector((state) => state.user);
-
-    // =========================================================================================================================
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
@@ -419,8 +402,6 @@ const RoomListContainer = ({
 
     const [searchBuildingValue, setSearchBuildingValue] = useState('');
     const [searchBuildingResult, setSearchBuildingResult] = useState([]);
-
-    // ========================================================================================================================
 
     const handleClose = () => {
         const modal = document.getElementById('add_building_modal');
@@ -457,8 +438,6 @@ const RoomListContainer = ({
         setSearchBuildingResult(Object.values(buildings));
         console.log('hatdog: ', buildings);
     }, [buildings]);
-
-    // =======================================================================================================================
 
     const handleDelete = async (id) => {
         try {
@@ -507,7 +486,7 @@ const RoomListContainer = ({
 
             for (let i = 0; i < editNumberOfFloors; i++) {
                 if (!updatedRoomNames[i]) {
-                    updatedRoomNames[i] = {}; // Ensure each floor index is an object
+                    updatedRoomNames[i] = {};
                 }
             }
 
@@ -517,31 +496,27 @@ const RoomListContainer = ({
 
     const handleRoomNameChange = (floorIndex, roomIndex, newRoomName) => {
         const updatedRoomNames = { ...editRoomNames };
-        
-        // Clone nested floor object if it exists, or initialize
+
         updatedRoomNames[floorIndex] = {
-            ...(updatedRoomNames[floorIndex] || {})
+            ...(updatedRoomNames[floorIndex] || {}),
         };
-        
+
         updatedRoomNames[floorIndex][roomIndex] = {
-            roomName: newRoomName
+            roomName: newRoomName,
         };
-        
+
         setEditRoomNames(updatedRoomNames);
-    };      
+    };
 
     const handleNumberOfRoomsChange = (floorIndex, value) => {
         const roomsCount = Math.max(1, Number(value)); // Ensure no negative values
 
-        // Update number of rooms per floor
         const updatedRooms = [...editNumberOfRooms];
         updatedRooms[floorIndex] = roomsCount;
         setEditNumberOfRooms(updatedRooms);
 
-        // Adjust roomNames structure
         const updatedRoomNames = { ...editRoomNames }; // Clone as an object
 
-        // Create room objects with numeric keys
         const newRooms = {};
         for (let i = 0; i < roomsCount; i++) {
             newRooms[i] = {
@@ -549,46 +524,8 @@ const RoomListContainer = ({
             };
         }
 
-        updatedRoomNames[floorIndex] = newRooms; // Assign room object to corresponding floor index
+        updatedRoomNames[floorIndex] = newRooms;
         setEditRoomNames(updatedRoomNames);
-    };
-
-    const handleImageUpload = (e) => {
-        const file = e.target.files[0];
-
-        if (file) {
-            // Validate file type
-            const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-            if (!allowedTypes.includes(file.type)) {
-                alert('Only JPEG and PNG files are allowed.');
-                e.target.value = null; // Reset the file input
-                setEditBuildingImage(null);
-                setEditPreviewImage(null);
-                return;
-            }
-
-            // Validate file size (example: max 2MB)
-            const maxSizeInBytes = 2 * 1024 * 1024; // 2MB
-            if (file.size > maxSizeInBytes) {
-                alert('File size exceeds the 2MB limit.');
-                e.target.value = null; // Reset the file input
-                setEditBuildingImage(null);
-                setEditPreviewImage(null);
-                return;
-            }
-
-            // Process valid file
-            const reader = new FileReader();
-            reader.onload = () => {
-                setEditBuildingImage(reader.result); // Save the Base64 string of the image
-                setEditPreviewImage(reader.result); // For previewing the image
-            };
-            reader.readAsDataURL(file); // Read file as Base64 string
-        } else {
-            // Reset if no file is selected
-            setEditBuildingImage(null);
-            setEditPreviewImage(null);
-        }
     };
 
     const handleEdit = (building) => {
@@ -598,11 +535,9 @@ const RoomListContainer = ({
         setEditBuildingName(building.name || '');
         setEditNumberOfFloors(building.floors || 1);
 
-        // Ensure rooms are correctly mapped for editing
         const roomCounts = Object.values(building.rooms || {}).map((floor) => Object.keys(floor).length);
         setEditNumberOfRooms(roomCounts);
 
-        // const roomNames = Object.values(building.rooms || {}).flatMap((floor) => Object.values(floor));
         setEditRoomNames(building.rooms || {});
 
         setEditBuildingImage(building.image || '');
@@ -610,15 +545,8 @@ const RoomListContainer = ({
 
         setEditNearbyBuildings(building.nearbyBuildings || []);
 
-        // Open modal
         document.getElementById('edit_building_modal').showModal();
     };
-
-    // useEffect(() => {
-    //     console.log('editRoomNames:', editRoomNames);
-    // }, [editRoomNames]);
-
-    // ========================================================================================================================
 
     const handleSaveBuildingEditClick = async () => {
         if (!editBuildingName.trim()) {
@@ -627,21 +555,18 @@ const RoomListContainer = ({
             return;
         }
 
-        // Check if the number of floors is valid
         if (editNumberOfFloors <= 0) {
             setErrorMessage('Number of floors must be greater than zero');
             setErrorField('floors');
             return;
         }
 
-        // Check if each floor has at least one room
         if (editNumberOfRooms.some((rooms) => rooms <= 0)) {
             setErrorMessage('Each floor must have at least one room');
             setErrorField('rooms');
             return;
         }
 
-        // Check if all room names are provided and non-empty
         const hasEmptyRoomNames = Object.values(editRoomNames).some(
             (floorRooms) =>
                 Object.keys(floorRooms).length === 0 || Object.values(floorRooms).some((room) => !room.roomName.trim())
@@ -653,9 +578,8 @@ const RoomListContainer = ({
         }
 
         try {
-
             const names = {};
-            Object.entries(editRoomNames).forEach(([key_out, val_out]) =>{
+            Object.entries(editRoomNames).forEach(([key_out, val_out]) => {
                 names[key_out] = {};
 
                 Object.entries(val_out).forEach(([key_in, val_in]) => {
@@ -726,10 +650,6 @@ const RoomListContainer = ({
         document.getElementById('edit_building_modal').close();
     };
 
-    const handleBadgeRemove = (buildingId) => {
-        setEditNearbyBuildings((prev) => prev.filter((b) => b.id !== buildingId));
-    };
-
     const deleteModal = (id) => {
         const deleteModalElement = document.getElementById('delete_modal');
         deleteModalElement.showModal();
@@ -738,7 +658,7 @@ const RoomListContainer = ({
         deleteButton.onclick = async () => await handleDelete(id);
     };
 
-    if (loading) {
+    if (sectionsLoading || buildingsLoading) {
         return (
             <div className='w-full flex justify-center items-center h-[50vh]'>
                 <span className='loading loading-bars loading-lg'></span>
@@ -746,11 +666,17 @@ const RoomListContainer = ({
         );
     }
 
+    if (sectionsError || buildingsError) {
+        return (
+            <div role='alert' className='alert alert-error alert-soft'>
+                <span>{sectionsError || buildingsError}</span>
+            </div>
+        );
+    }
+
     return (
         <div className='w-full'>
-            {/* Header with Search and Add Building Button */}
             <div className='flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5'>
-                {/* Search Building */}
                 <div className='flex-grow w-full md:w-1/3 lg:w-1/4'>
                     <label className='input input-bordered flex items-center gap-2 w-full'>
                         <input
@@ -764,7 +690,6 @@ const RoomListContainer = ({
                     </label>
                 </div>
 
-                {/* Add Building Button */}
                 {editable && (
                     <div className='w-full mt-4 md:mt-0 md:w-auto'>
                         <button
@@ -797,7 +722,6 @@ const RoomListContainer = ({
                 )}
             </div>
 
-            {/* Building Cards */}
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
                 {searchBuildingResult.length === 0 ? (
                     <div className='text-center text-sm col-span-full'>No Buildings Found</div>
@@ -844,7 +768,6 @@ const RoomListContainer = ({
                 )}
             </div>
 
-            {/* Edit Building Modal */}
             <dialog id='edit_building_modal' className='modal'>
                 <div
                     className='modal-box flex flex-col h-screen w-8/12 overflow-hidden'
@@ -896,7 +819,6 @@ const RoomListContainer = ({
 
                             <div className='flex gap-4'>
                                 <div className='w-6/12 flex flex-col gap-2'>
-                                    {/* Building Name */}
                                     <div className='flex items-center text-left'>
                                         <label className='text-sm  w-9/12'>Building Name:</label>
                                         <input
@@ -910,7 +832,6 @@ const RoomListContainer = ({
                                         />
                                     </div>
 
-                                    {/* Number of Floors */}
                                     <div className='flex items-center text-left'>
                                         <label className='text-sm  w-9/12'>Number of Floors:</label>
                                         <input
@@ -923,28 +844,8 @@ const RoomListContainer = ({
                                             min={1}
                                         />
                                     </div>
-
-                                    {/* Building Image */}
-                                    {/* <div className=''>
-                                        <div className='space-y-4'>
-                                            <div>
-                                                <label className='block text-sm font-medium mb-1'>Building Image:</label>
-                                                <label className='form-control w-full'>
-                                                    <input
-                                                        type='file'
-                                                        accept='image/*'
-                                                        className={`file-input file-input-sm file-input-bordered w-full ${
-                                                            errorField === 'buildingImage' ? 'border-red-500' : ''
-                                                        }`}
-                                                        onChange={handleImageUpload}
-                                                    />
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </div> */}
                                 </div>
 
-                                {/* Nearby Buildings */}
                                 <div className='w-6/12'>
                                     <div>
                                         <label className='block text-sm text-left pl-2 mb-1'>Nearby Buildings:</label>
@@ -955,31 +856,11 @@ const RoomListContainer = ({
                                             currentBuildingId={editBuildingID}
                                         />
                                     </div>
-                                    {/* <div className='flex flex-wrap gap-2 mt-3'>
-                                        {editNearbyBuildings.length > 0 &&
-                                            editNearbyBuildings.map((id, index) => {
-                                                // const building = availableBuildings.find((b) => b.id === id);
-
-                                                const building = buildings[id];
-                                                return (
-                                                    building && (
-                                                        <span
-                                                            key={`${building.id}-${index}`}
-                                                            className='badge badge-primary gap-2 cursor-pointer'
-                                                            onClick={() => handleBadgeRemove(building.id)}
-                                                        >
-                                                            {building.name}
-                                                        </span>
-                                                    )
-                                                );
-                                            })}
-                                    </div> */}
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Floors and Rooms */}
                     <div className='flex-grow grid grid-cols-1 md:grid-cols-4 gap-4 overflow-auto'>
                         {Array.from({ length: editNumberOfFloors }, (_, floorIndex) => (
                             <div
@@ -1019,24 +900,6 @@ const RoomListContainer = ({
                                                     value={editRoomNames[floorIndex]?.[roomIndex]?.roomName || ''}
                                                     onChange={(e) => handleRoomNameChange(floorIndex, roomIndex, e.target.value)}
                                                 />
-
-                                                {/* <input
-                                                        type="checkbox"
-                                                        className="w-3/12 toggle toggle-sm toggle-primary"
-                                                        checked={
-                                                            editRoomNames[
-                                                                floorIndex
-                                                            ]?.[roomIndex]
-                                                                ?.isAvailable ||
-                                                            false
-                                                        }
-                                                        onChange={(e) =>
-                                                            handleRoomAvailabilityChange(
-                                                                floorIndex,
-                                                                roomIndex
-                                                            )
-                                                        }
-                                                    /> */}
                                             </div>
                                         )
                                     )}
@@ -1055,7 +918,6 @@ const RoomListContainer = ({
                 </div>
             </dialog>
 
-            {/* Delete Confirmation Modal */}
             <dialog id='delete_modal' className='modal modal-bottom sm:modal-middle'>
                 <div className='modal-box'>
                     <h3 className='font-bold text-lg'>Confirm Delete</h3>

@@ -36,7 +36,7 @@ function NotificationBodyRightDrawer() {
                                 <span className='font-semibold'>{log.collectionName}</span>.
                             </div>
                             <div className='text-xs text-gray-500 flex items-center gap-2'>
-                                <span>{formatFirebaseDate(log.date)}</span>
+                                <span>{log.date}</span>
                             </div>
                         </div>
                     ))

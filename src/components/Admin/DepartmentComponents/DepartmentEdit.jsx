@@ -7,25 +7,13 @@ import { editDocument } from '../../../hooks/firebaseCRUD/editDocument';
 import { COLLECTION_ABBREVIATION } from '../../../constants';
 import { useSelector } from 'react-redux';
 
-const DepartmentEdit = ({
-    // STORES
-    departments,
-    teachers,
-    // STORES
-    department,
-    setErrorMessage,
-    errorMessage,
-    errorField,
-    setErrorField,
-}) => {
+const DepartmentEdit = ({ departments, teachers, department, setErrorMessage, errorMessage, setErrorField }) => {
     const inputNameRef = useRef(null);
     const { user: currentUser } = useSelector((state) => state.user);
 
     const [editDepartmentValue, setEditDepartmentValue] = useState(department.name || '');
     const [selectedTeacher, setSelectedTeacher] = useState(department.head || null);
     const [searchTerm, setSearchTerm] = useState('');
-
-    // ==========================================================================
 
     const handleSaveDepartmentEditClick = async () => {
         if (!editDepartmentValue.trim() || !selectedTeacher) {
@@ -78,27 +66,23 @@ const DepartmentEdit = ({
 
     const handleResetDepartmentEditClick = () => {
         setEditDepartmentValue(department.name || '');
-        setSelectedTeacher(department.head || null); // Reset selected teacher
+        setSelectedTeacher(department.head || null);
         setSearchTerm('');
     };
 
     const handleTeacherClick = (teacherId) => {
-        setSelectedTeacher(teacherId); // Only one teacher can be selected
+        setSelectedTeacher(teacherId);
     };
-
-    // ==========================================================================
 
     useEffect(() => {
         setEditDepartmentValue(department.name || '');
         setSelectedTeacher(department.head || null);
     }, [department]);
 
-    // ==========================================================================
-
     const closeModal = () => {
         const modalCheckbox = document.getElementById(`edit_modal_${department.id}`);
         if (modalCheckbox) {
-            modalCheckbox.checked = false; // Uncheck the modal toggle
+            modalCheckbox.checked = false;
         }
         handleResetDepartmentEditClick();
     };

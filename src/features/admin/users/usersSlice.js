@@ -3,16 +3,19 @@ import { collection, getDocs } from 'firebase/firestore';
 import { firestore } from '../../../firebase/firebase';
 import { toast } from 'sonner';
 import { signup } from '../../../firebase/userService';
+import formatFirebaseDate from '../../../utils/formatDate';
 
 export const fetchUsers = createAsyncThunk('users/fetchUsers', async () => {
     try {
         const usersRef = collection(firestore, 'users');
         const querySnapshot = await getDocs(usersRef);
-        // Convert array to object with IDs as keys
         const usersData = querySnapshot.docs.reduce((acc, doc) => {
+            const data = doc.data();
+
             acc[doc.id] = {
                 id: doc.id,
-                ...doc.data(),
+                ...data,
+                created: formatFirebaseDate(data.created?.toDate?.() || null),
             };
             return acc;
         }, {});
@@ -23,18 +26,15 @@ export const fetchUsers = createAsyncThunk('users/fetchUsers', async () => {
     }
 });
 
-export const createUser = createAsyncThunk(
-    'user/createUser',
-    async (credentials, { rejectWithValue }) => {
-        try {
-            const userData = await signup(credentials);
-            console.log("🚀 ~ userData:", userData)
-            return userData;
-        } catch (error) {
-            return rejectWithValue(error.message);
-        }
+export const createUser = createAsyncThunk('user/createUser', async (credentials, { rejectWithValue }) => {
+    try {
+        const userData = await signup(credentials);
+        console.log('🚀 ~ userData:', userData);
+        return userData;
+    } catch (error) {
+        return rejectWithValue(error.message);
     }
-);
+});
 
 const initialState = {
     users: {},

@@ -17,15 +17,19 @@ const useFirestoreCollectionListeners = (collections) => {
         });
 
         const unsubscribeFunctions = collections.map(
-            ({ queryBuilder, addAction, updateAction, removeAction, setLoading }) => {
+            ({ queryBuilder, addAction, updateAction, removeAction, transform, setLoading }) => {
                 const q = queryBuilder;
 
                 const unsubscribe = onSnapshot(q, (snapshot) => {
                     snapshot.docChanges().forEach((change) => {
-                        const docData = {
+                        let docData = {
                             id: parseInt(change.doc.id, 10),
                             ...change.doc.data(),
                         };
+
+                        if (typeof transform === 'function') {
+                            docData = transform(docData);
+                        }
 
                         if (change.type === 'added') {
                             dispatch(addAction(docData));

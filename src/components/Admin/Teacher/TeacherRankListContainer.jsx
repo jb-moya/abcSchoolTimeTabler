@@ -11,34 +11,15 @@ import DeleteData from '../DeleteData';
 import TeacherRankEdit from './TeacherRankEdit';
 import { useSelector } from 'react-redux';
 
-const TeacherRankListContainer = ({ 
-    // STORES
-    ranks,
-	teachers,
-    // STORES
-    editable = false,
-    loading,
-}) => {
-
-// ===================================================================================================
-
-    const { configurations, loading: configurationsLoading } = useSelector((state) => state.configuration);
+const TeacherRankListContainer = ({ editable = false }) => {
+    const { configurations } = useSelector((state) => state.configuration);
+    const { ranks, loading: ranksStoreLoading, error: ranksStoreError } = useSelector((state) => state.ranks);
+    const { teachers, loading: teachersStoreLoading, error: teachersStoreError } = useSelector((state) => state.teachers);
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
-
-// ===================================================================================================
-
-    // const [editRankId, setEditRankId] = useState(null);
-    // const [editRankValue, setEditRankValue] = useState('');
-    // const [editAdditionalRankScheds, setEditAdditionalRankScheds] = useState([]);
-
-// ===================================================================================================
-
     const [searchRankResult, setSearchRankResult] = useState(ranks);
     const [searchRankValue, setSearchRankValue] = useState('');
-
-// ===================================================================================================
 
     // HANDLING UPDATE OF RANKS (and TEACHERS optional)
     // const updateAllTeacherAdditionalSchedules = () => {
@@ -166,8 +147,6 @@ const TeacherRankListContainer = ({
     //     document.getElementById(`confirm_rank_edit_modal`).close();
     // };
 
-// ===================================================================================================
-
     const handleClose = () => {
         const modal = document.getElementById('add_rank_modal');
         if (modal) {
@@ -179,25 +158,6 @@ const TeacherRankListContainer = ({
         }
     };
 
-// ===================================================================================================
-
-    //  FOR FETCHING ALL RANKS AND TEACHERS
-    // useEffect(() => {
-    //     if (rankStatus === 'idle') {
-    //         dispatch(fetchRanks());
-    //     }
-    // }, [rankStatus, dispatch]);
-
-    // useEffect(() => {
-    //     if (teacherStatus === 'idle') {
-    //         dispatch(fetchTeachers());
-    //     }
-    // }, [teacherStatus, dispatch]);
-
-// ===================================================================================================
-
-    // SEARCH FUNCTIONALITY
-    
     const debouncedSearch = useCallback(
         debounce((searchValue, ranks) => {
             setSearchRankResult(
@@ -216,27 +176,34 @@ const TeacherRankListContainer = ({
     );
 
     useEffect(() => {
-        debouncedSearch(searchRankValue, ranks);
-    }, [searchRankValue, ranks, debouncedSearch]);
+        if (ranksStoreLoading || teachersStoreLoading) {
+            return;
+        }
 
-    // PAGINATION
+        debouncedSearch(searchRankValue, ranks);
+    }, [searchRankValue, ranks, debouncedSearch, ranksStoreLoading, teachersStoreLoading]);
+
     const itemsPerPage = 10; // Change this to adjust the number of items per page
     const [currentPage, setCurrentPage] = useState(1);
 
-    // Calculate total pages
     const totalPages = Math.ceil(Object.values(searchRankResult).length / itemsPerPage);
 
-    // Get current items
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Object.entries(searchRankResult).slice(indexOfFirstItem, indexOfLastItem);
 
-// ===================================================================================================
-
-    if (loading) {
+    if (ranksStoreLoading || teachersStoreLoading) {
         return (
             <div className='w-full flex justify-center items-center h-[50vh]'>
                 <span className='loading loading-bars loading-lg'></span>
+            </div>
+        );
+    }
+
+    if (ranksStoreError || teachersStoreError) {
+        return (
+            <div role='alert' className='alert alert-error alert-soft'>
+                <span>{ranksStoreError || teachersStoreError}</span>
             </div>
         );
     }
@@ -245,7 +212,6 @@ const TeacherRankListContainer = ({
         <React.Fragment>
             <div className='w-full'>
                 <div className='flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5'>
-                    {/* Pagination */}
                     {currentItems.length > 0 && (
                         <div className='join flex justify-center mb-4 md:mb-0'>
                             <button
@@ -280,7 +246,6 @@ const TeacherRankListContainer = ({
                         <div className='hidden'>{setCurrentPage(currentPage - 1)}</div>
                     )}
 
-                    {/* Search Rank */}
                     <div className='flex-grow w-full md:w-1/3 lg:w-1/4'>
                         <label className='input input-bordered flex items-center gap-2 w-full'>
                             <input
@@ -294,7 +259,6 @@ const TeacherRankListContainer = ({
                         </label>
                     </div>
 
-                    {/* Add Rank Button (only when editable) */}
                     {editable && (
                         <div className='w-full mt-4 md:mt-0 md:w-auto'>
                             <button
@@ -304,7 +268,6 @@ const TeacherRankListContainer = ({
                                 Add Rank <IoAdd size={20} className='ml-2' />
                             </button>
 
-                            {/* Modal for adding rank */}
                             <dialog id='add_rank_modal' className='modal modal-bottom sm:modal-middle'>
                                 <div className='modal-box'>
                                     <AddTeacherRankContainer
@@ -350,16 +313,12 @@ const TeacherRankListContainer = ({
                             ) : (
                                 currentItems.map(([, rank], index) => (
                                     <tr key={rank.id} className='group hover'>
-                                        {/* Index */}
                                         <td>{index + indexOfFirstItem + 1}</td>
 
-                                        {/* Rank ID */}
                                         <th>{rank.id}</th>
 
-                                        {/* Rank */}
                                         <td>{rank.rank}</td>
 
-                                        {/* Additional Schedules */}
                                         <td>
                                             <div
                                                 key={`edit-add-sched-view-tr(${rank.id})`}
@@ -367,7 +326,7 @@ const TeacherRankListContainer = ({
                                                 style={{
                                                     scrollbarWidth: 'thin',
                                                     scrollbarColor: '#a0aec0 #edf2f7',
-                                                }} // Optional for styled scrollbars
+                                                }}
                                             >
                                                 <div
                                                     className='font-bold border-base-content border-opacity-20 bg-base-200'
@@ -397,7 +356,6 @@ const TeacherRankListContainer = ({
                                                                 }
                                                             >
                                                                 {sched.name ? (
-                                                                    // Content to show when both are not empty
                                                                     <>
                                                                         <p>Name: {sched.name}</p>
                                                                         <p>
@@ -408,7 +366,6 @@ const TeacherRankListContainer = ({
                                                                         </p>
                                                                     </>
                                                                 ) : (
-                                                                    // Content to show when either is empty
                                                                     <p>Untitled Schedule {index + 1}</p>
                                                                 )}
                                                             </button>

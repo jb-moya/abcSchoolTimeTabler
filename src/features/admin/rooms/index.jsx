@@ -1,27 +1,20 @@
-import { useEffect, useState } from 'react';
-
 import Breadcrumbs from '@components/Admin/Breadcrumbs';
-import RoomMapping from '@components/Admin/RoomsAndBuildings/RoomMapping';
-import { useSelector } from 'react-redux';
+import RoomListContainer from '@components/Admin/RoomsAndBuildings/RoomMapping';
 
 function Rooms() {
     const links = [
         { name: 'Home', href: '/' },
-        // { name: 'Modify Subjects', href: '/modify-subjects' },
     ];
 
-    const { sections, loading: sectionsLoading, error: sectionsError } = useSelector((state) => state.sections);
-    const { buildings, loading: buildingsLoading, error: buildingsError } = useSelector((state) => state.buildings);
-
+    
     return (
         <div className='App container mx-auto px-4 mb-10'>
             <Breadcrumbs title='Room Mapping' links={links} />
 
-            {/* Main Content */}
             <div className='flex flex-col gap-4'>
                 <div className='card w-full bg-base-100 shadow-md'>
                     <div className='card-body'>
-                        <RoomMapping buildings={buildings} sections={sections} editable={true} />
+                        <RoomListContainer editable={true} />
                     </div>
                 </div>
             </div>

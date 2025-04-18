@@ -1,6 +1,6 @@
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { getUserData } from '../firebase/userService';
 import { useDispatch } from 'react-redux';
 import { setUser, clearUser, setLoading } from '../features/userSlice';
@@ -12,7 +12,6 @@ const useAuth = () => {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        // dispatch(setLoading(true));
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             if (user) {
                 console.log('User is signed in', user.uid);
@@ -24,7 +23,6 @@ const useAuth = () => {
                 } catch (error) {
                     console.error('Error fetching user data:', error);
                     toast.error('User data not found. Signing out...');
-                    // dispatch(setError(error.message));
                     await signOut(auth);
                     dispatch(clearUser());
                 }

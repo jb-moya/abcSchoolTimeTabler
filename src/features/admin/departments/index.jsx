@@ -1,34 +1,17 @@
 import Breadcrumbs from '@components/Admin/Breadcrumbs';
 import DepartmentListContainer from '../../../components/Admin/DepartmentComponents/DepartmentListContainer';
 
-import { useSelector } from 'react-redux';
-
 function Departments() {
-    const { teachers, loading: teachersLoading, error: teachersError } = useSelector((state) => state.teachers);
-    const { departments, loading: departmentsLoading, error: departmentsError } = useSelector((state) => state.departments);
-
-    const links = [
-        { name: 'Home', href: '/' },
-        // { name: 'Modify Subjects', href: '/modify-subjects' },
-    ];
+    const links = [{ name: 'Home', href: '/' }];
 
     return (
         <div className='App container mx-auto px-4 mb-10'>
             <Breadcrumbs title='Modify Departments' links={links} />
 
-            {/* Main Content */}
             <div className='flex flex-col gap-4'>
                 <div className='card w-full bg-base-100 shadow-md'>
                     <div className='card-body'>
-                        <DepartmentListContainer 
-                            departments={departments} 
-                            teachers={teachers} 
-                            editable={true}
-                            loading={
-                                teachersLoading || 
-                                departmentsLoading
-                            }
-                        />
+                        <DepartmentListContainer editable={true} />
                     </div>
                 </div>
             </div>

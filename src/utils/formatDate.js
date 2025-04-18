@@ -1,16 +1,22 @@
 export default function formatFirebaseDate(dateInput) {
     try {
-        if (!dateInput || typeof dateInput.toDate !== 'function') {
+        let date;
+
+        if (!dateInput) return null;
+
+        if (typeof dateInput.toDate === 'function') {
+            date = dateInput.toDate();
+        } else if (dateInput instanceof Date) {
+            date = dateInput;
+        } else {
             return null;
         }
 
-        const jsDate = dateInput.toDate();
-
-        if (!(jsDate instanceof Date) || isNaN(jsDate.getTime())) {
+        if (!(date instanceof Date) || isNaN(date.getTime())) {
             return null;
         }
 
-        return jsDate.toLocaleString(undefined, {
+        return date.toLocaleString('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
