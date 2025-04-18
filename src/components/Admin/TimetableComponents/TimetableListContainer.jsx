@@ -8,7 +8,6 @@ import escapeRegExp from '@utils/escapeRegExp';
 import { IoSearch } from 'react-icons/io5';
 import { useSelector } from 'react-redux';
 import ModifyTimetableContainer from '@components/Admin/ModifyTimetable/ModifyTimetableContainer';
-
 import DeleteData from '../DeleteData';
 import { convertStringDataToMap } from '@components/Admin/ModifyTimetable/utils';
 
@@ -268,7 +267,7 @@ const TimetableListContainer = () => {
                                                             <RiEdit2Fill size={20} />
                                                         </button>
 
-                                                        <DeleteData id={schedule.id} collection={'schedules'} />
+                                                        {/* <DeleteData id={schedule.id} collection={'schedules'} /> */}
                                                     </div>
                                                 </td>
                                             </tr>
