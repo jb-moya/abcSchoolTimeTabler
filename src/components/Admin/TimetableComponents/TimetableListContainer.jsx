@@ -20,6 +20,9 @@ const TimetableListContainer = () => {
     const { departments, loading: departmentsLoading, error: departmentsError } = useSelector((state) => state.departments);
     const { schedules, loading: schedulesLoading, error: schedulesError } = useSelector((state) => state.schedules);
     const { buildings, loading: buildingsLoading, error: buildingsError } = useSelector((state) => state.buildings);
+    console.log('buildings: ', buildings);
+    console.log('teachers: ', teachers);
+    console.log('sections: ', sections);
 
     const location = useLocation();
     const navigate = useNavigate();
@@ -108,36 +111,36 @@ const TimetableListContainer = () => {
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Object.entries(searchSchedResult).slice(indexOfFirstItem, indexOfLastItem);
 
-    const buildingData = {
-        floors: 2,
-        id: 1,
-        image: null,
-        name: 'BLDG 1',
-        nearbyBuildings: [],
-        rooms: [
-            [
-                { roomName: 'BLDG 1 - 101' },
-                { roomName: 'BLDG 1 - 102' },
-                { roomName: 'BLDG 1 - 103' },
-                { roomName: 'BLDG 1 - 104' },
-                { roomName: 'BLDG 1 - 105' },
-            ],
-            [
-                { roomName: 'BLDG 1 - 201' },
-                { roomName: 'BLDG 1 - 202' },
-                { roomName: 'BLDG 1 - 203' },
-                { roomName: 'BLDG 1 - 204' },
-                { roomName: 'BLDG 1 - 205' },
-            ],
-        ],
-    };
+    // const buildingData = {
+    //     floors: 2,
+    //     id: 1,
+    //     image: null,
+    //     name: 'BLDG 1',
+    //     nearbyBuildings: [],
+    //     rooms: [
+    //         [
+    //             { roomName: 'BLDG 1 - 101' },
+    //             { roomName: 'BLDG 1 - 102' },
+    //             { roomName: 'BLDG 1 - 103' },
+    //             { roomName: 'BLDG 1 - 104' },
+    //             { roomName: 'BLDG 1 - 105' },
+    //         ],
+    //         [
+    //             { roomName: 'BLDG 1 - 201' },
+    //             { roomName: 'BLDG 1 - 202' },
+    //             { roomName: 'BLDG 1 - 203' },
+    //             { roomName: 'BLDG 1 - 204' },
+    //             { roomName: 'BLDG 1 - 205' },
+    //         ],
+    //     ],
+    // };
 
-    const string_building = JSON.stringify(buildingData, null, 2);
+    // const string_building = JSON.stringify(buildingData, null, 2);
 
-    console.log('string: ', string_building);
+    // console.log('string: ', string_building);
 
-    const parsed_building = JSON.parse(string_building);
-    console.log('parsed_building: ', parsed_building);
+    // const parsed_building = JSON.parse(string_building);
+    // console.log('parsed_building: ', parsed_building);
 
     if (
         subjectsLoading ||
@@ -267,7 +270,7 @@ const TimetableListContainer = () => {
                                                             <RiEdit2Fill size={20} />
                                                         </button>
 
-                                                        {/* <DeleteData id={schedule.id} collection={'schedules'} /> */}
+                                                        <DeleteData id={schedule.id} collection={'schedules'} />
                                                     </div>
                                                 </td>
                                             </tr>

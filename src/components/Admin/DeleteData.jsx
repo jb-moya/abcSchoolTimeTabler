@@ -12,14 +12,14 @@ import { COLLECTION_ABBREVIATION } from '../../constants';
 
 const DeleteData = ({ id, collection, callback }) => {
     // ===============================================================================================
+    const { user: currentUser } = useSelector((state) => state.user);
 
-    const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
-    const { documents: programs, loading2, error2 } = fetchDocuments('programs');
-    const { documents: sections, loading3, error3 } = fetchDocuments('sections');
-    const { documents: ranks, loading4, error4 } = fetchDocuments('ranks');
-    const { documents: teachers, loading5, error5 } = fetchDocuments('teachers');
-    const { documents: departments, loading6, error6 } = fetchDocuments('departments');
-    const { documents: schedules, loading7, error7 } = fetchDocuments('schedules');
+    const { subjects } = useSelector((state) => state.subjects);
+    const { programs } = useSelector((state) => state.programs);
+    const { sections } = useSelector((state) => state.sections);
+    const { ranks } = useSelector((state) => state.ranks);
+    const { teachers } = useSelector((state) => state.teachers);
+    const { departments } = useSelector((state) => state.departments);
     // ===============================================================================================
 
     useEffect(() => {

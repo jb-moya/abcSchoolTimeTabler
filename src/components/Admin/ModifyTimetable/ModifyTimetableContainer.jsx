@@ -6,6 +6,7 @@ import { PiConfetti } from 'react-icons/pi';
 import useDeployTimetables from '../../../hooks/useDeployTimetables';
 import useDeleteAllFirebaseTimetables from '../../../hooks/useDeleteAllFirebaseTimetables';
 import mapToArray from './mapToArray';
+import mapToArrayDeploy from './mapToArrayDeploy';
 import clsx from 'clsx';
 import { IoIosAdd, IoIosWarning } from 'react-icons/io';
 import { FiMinus } from 'react-icons/fi';
@@ -100,7 +101,7 @@ const ModifyTimetableContainer = ({
 
     const deploy = async () => {
         console.log('deploying', valueMap);
-        const array = mapToArray(valueMap);
+        const array = mapToArrayDeploy(valueMap, buildings, sections);
 
         const n = 5;
         let resultarray = [];
@@ -136,8 +137,14 @@ const ModifyTimetableContainer = ({
                     buildings[sections[currSectionID]?.roomDetails?.buildingId]?.rooms[
                         sections[currSectionID]?.roomDetails?.floorIdx
                     ][sections[currSectionID]?.roomDetails?.roomIdx].roomName;
-
-                console.log('f', buildings[sections[currSectionID]]);
+                console.log('buildings: ', buildings);
+                console.log('b', buildings[sections[currSectionID]?.roomDetails?.buildingId]);
+                console.log(
+                    'r',
+                    buildings[sections[currSectionID]?.roomDetails?.buildingId]?.rooms[
+                        sections[currSectionID]?.roomDetails?.floorIdx
+                    ]
+                );
 
                 console.log('sectionRoom: ', sectionRoom);
             } else if (row[2] === 't') {

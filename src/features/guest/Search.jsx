@@ -5,7 +5,8 @@ import { MdHistory, MdOutlineCancel } from 'react-icons/md';
 import debounce from 'debounce';
 import clsx from 'clsx';
 import useSearchTimetable from '../../hooks/useSearchTimetable';
-import { convertStringDataToMap } from '../../components/Admin/ModifyTimetable/utils';
+import { convertStringDataToMapDeployed } from '../../components/Admin/ModifyTimetable/utils';
+
 import { convertToTime } from '@utils/convertToTime';
 // import { fetchSections } from '@features/sectionSlice';
 
@@ -64,7 +65,13 @@ const ScheduleModal = ({
         Array.from(groupedByTime.values()).forEach(({ time, days }, rowIndex) => {
             const row = [
                 time,
-                ...days.map((fields) => (fields[0] && fields[1] ? `${fields[0]}\n${fields[1]}` : fields[0] || fields[1] || '')),
+                ...days.map((fields) => {
+                    const parts = [];
+                    if (fields[0]) parts.push(fields[0]);
+                    if (fields[1]) parts.push(fields[1]);
+                    if (fields[2]) parts.push(fields[2]); // Add if exists and not ''
+                    return parts.join('\n') || '';
+                }),
             ];
             tableRows.push(row);
         });
@@ -160,6 +167,7 @@ const ScheduleModal = ({
                                         <td key={index} className='text-center'>
                                             <div>{fields[0]}</div>
                                             <div>{fields[1]}</div>
+                                            {tableType === 't' ? <div>{fields[2]}</div> : null}
                                         </td>
                                     ))}
                                 </tr>
@@ -258,7 +266,7 @@ const Search = () => {
             const newValueMaps = new Map();
 
             results.forEach((result) => {
-                const convertedData = convertStringDataToMap(result.a);
+                const convertedData = convertStringDataToMapDeployed(result.a);
                 newValueMaps.set(result.id, convertedData);
                 console.log('MODALITY: ', result.m);
             });
@@ -393,6 +401,8 @@ const Search = () => {
                                                             innerMap.type === 's' ? innerMap.teacher : innerMap.section;
                                                         let fieldName2 = innerMap.subject;
 
+                                                        let fieldName3 = innerMap.roomDetails;
+
                                                         if (innerMap.type === 't') {
                                                             department = innerMap.department;
                                                             rank = innerMap.rank;
@@ -407,6 +417,7 @@ const Search = () => {
                                                         groupedByTime.get(timeSlot).days[innerMap.day - 1] = [
                                                             fieldName1 ?? 'Break',
                                                             fieldName2,
+                                                            fieldName3,
                                                         ];
                                                     });
 
