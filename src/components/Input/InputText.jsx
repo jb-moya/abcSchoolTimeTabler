@@ -1,11 +1,19 @@
 import { useState } from 'react';
 
-function InputText({ labelTitle, labelStyle, type, containerStyle, defaultValue, placeholder, updateFormValue, updateType }) {
-    const [value, setValue] = useState(defaultValue || '');
+function InputText({
+    labelTitle,
+    labelStyle,
+    type,
+    containerStyle,
+    value,
+    placeholder,
+    updateFormValue,
+    updateType,
+    inputProps,
+}) {
     const [inputType, setInputType] = useState(type || 'text');
 
     const updateInputValue = (val) => {
-        setValue(val);
         updateFormValue({ updateType, value: val });
     };
 
@@ -25,6 +33,7 @@ function InputText({ labelTitle, labelStyle, type, containerStyle, defaultValue,
                     placeholder={placeholder || ''}
                     onChange={(e) => updateInputValue(e.target.value)}
                     className='input input-bordered w-full'
+                    {...inputProps}
                 />
                 {type === 'password' && (
                     <button

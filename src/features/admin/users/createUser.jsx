@@ -6,15 +6,15 @@ import { signUpWithEmailAndPassword } from '../../userSlice';
 import { createUser } from './usersSlice';
 import { toast } from 'sonner';
 import { APP_CONFIG } from '../../../constants';
-import { addUser } from './usersSlice';
 
 let filteredPermissions = APP_CONFIG.PERMISSIONS.filter((perm) => perm !== 'Generate Timetable' && perm !== 'Modify TimeTable');
 
 const CreateUser = () => {
     const INITIAL_REGISTER_OBJ = {
-        email: 'admin-with-all-permissions@email.com',
-        password: '1111111111111',
-        confirmPassword: '1111111111111',
+        email: '',
+        username: '',
+        password: '',
+        confirmPassword: '',
         permissions: [],
         role: 'admin',
         status: 'inactive',
@@ -55,7 +55,7 @@ const CreateUser = () => {
         e.preventDefault();
 
         try {
-            const newUserData = await dispatch(createUser(registerObj)).unwrap(); // Ensures promise rejection is thrown
+            await dispatch(createUser(registerObj)).unwrap(); // Ensures promise rejection is thrown
             resetForm();
             console.log('Successfully registered');
         } catch (error) {
@@ -77,6 +77,16 @@ const CreateUser = () => {
                             updateType='email'
                             containerStyle=''
                             labelTitle='Email'
+                            updateFormValue={updateFormValue}
+                        />
+                    </div>
+
+                    <div>
+                        <InputText
+                            defaultValue={registerObj.username}
+                            updateType='username'
+                            containerStyle=''
+                            labelTitle='Username'
                             updateFormValue={updateFormValue}
                         />
                     </div>
@@ -160,23 +170,33 @@ const CreateUser = () => {
                     ))}
                 </div>
 
-                <div className='pt-6'></div>
-                <button
-                    type='submit'
-                    className={`btn mt-4 w-full btn-primary text-white transition-all duration-75 ease-in-out flex items-center justify-center ${
-                        loading ? 'cursor-not-allowed ' : ''
-                    }`}
-                    disabled={loading}
-                >
-                    {loading ? (
-                        <>
-                            <span className='loading loading-spinner'></span>
-                            Creating...
-                        </>
-                    ) : (
-                        'Create this User'
-                    )}
-                </button>
+                <div className='flex justify-end gap-4 pt-6 w-full'>
+                    <button
+                        type='submit'
+                        className={`btn mt-4 btn-primary text-white transition-all duration-75 ease-in-out flex items-center justify-center ${
+                            loading ? 'cursor-not-allowed ' : ''
+                        }`}
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <>
+                                <span className='loading loading-spinner'></span>
+                                Creating...
+                            </>
+                        ) : (
+                            'Create this User'
+                        )}
+                    </button>
+                    <button
+                        type='button'
+                        onClick={resetForm}
+                        className={`btn mt-4 btn-primary text-white transition-all duration-75 ease-in-out flex items-center justify-center ${
+                            loading ? 'cursor-not-allowed ' : ''
+                        }`}
+                    >
+                        Reset
+                    </button>
+                </div>
             </form>
         </div>
     );

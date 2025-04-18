@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { addDoc, collection } from 'firebase/firestore';
 import { firestore } from '../firebase/firebase';
 import { toast } from 'sonner';
-import useAuth from '../app/useAuth';
+import { useSelector } from 'react-redux';
 
 function useDeployTimetables() {
     const [isLoading, setIsLoading] = useState(false);
     const [remaining, setRemaining] = useState(0);
-    const { user, loading: userLoading } = useAuth();
+    const { user, loading: userLoading } = useSelector((state) => state.user);
 
     const itemsCollection = collection(firestore, 'timetables'); // Reference the collection
 

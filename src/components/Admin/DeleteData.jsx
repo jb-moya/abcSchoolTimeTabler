@@ -1,13 +1,14 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 
 import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 import { RiDeleteBin7Line } from 'react-icons/ri';
 
-import { fetchDocuments } from '../../hooks/CRUD/retrieveDocuments';
-import { deleteDocument } from '../../hooks/CRUD/deleteDocument';
-import { editDocument } from '../../hooks/CRUD/editDocument';
+import { deleteDocument } from '../../hooks/firebaseCRUD/deleteDocument';
+import { editDocument } from '../../hooks/firebaseCRUD/editDocument';
+import { useSelector } from 'react-redux';
 
 import { toast } from 'sonner';
+import { COLLECTION_ABBREVIATION } from '../../constants';
 
 const DeleteData = ({ id, collection, callback }) => {
     // ===============================================================================================
@@ -159,8 +160,15 @@ const DeleteData = ({ id, collection, callback }) => {
                     );
                 }
 
-                editDocument('teachers', adviser_id, {
-                    additionalTeacherScheds: section_adviser.additionalTeacherScheds,
+                await editDocument({
+                    collectionName: 'teachers',
+                    collectionAbbreviation: COLLECTION_ABBREVIATION.TEACHERS,
+                    userName: currentUser?.username || 'unknown user',
+                    itemName: teachers[adviser_id]?.teacher || 'unknown teacher',
+                    docId: adviser_id,
+                    entryData: {
+                        at: section_adviser.additionalTeacherScheds,
+                    },
                 });
 
                 entry_id = sections[id]?.id;
@@ -168,7 +176,13 @@ const DeleteData = ({ id, collection, callback }) => {
                 entry_id = id;
             }
 
-            const result = await deleteDocument(collection, entry_id);
+            await deleteDocument({
+                docId: entry_id === null ? id : entry_id,
+                collectionName: collection,
+                collectionAbbreviation: COLLECTION_ABBREVIATION[collection.toUpperCase()],
+                userName: currentUser?.username || 'unknown user',
+                itemName: 'an item',
+            });
 
             toast.success(`Entry deleted from ${collection} successfully.`, {
                 style: {
@@ -177,15 +191,9 @@ const DeleteData = ({ id, collection, callback }) => {
                     bordercolor: 'green',
                 },
             });
-
-            console.log(result);
         } catch (error) {
             console.error(error);
         } finally {
-            if (callback) {
-                callback(result);
-            }
-
             closeModal();
         }
     };

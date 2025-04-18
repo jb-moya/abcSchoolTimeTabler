@@ -35,11 +35,11 @@ const validateTimetableVariables = ({ sections, teachers, subjects, programs }) 
     console.log("includedSubjects", includedSubjects);
     console.log("teachersCoveredSubjects", teachersCoveredSubjects);
 
-    function isSubset(subset, superset) {
-        return Array.from(subset).every((element) => superset.has(element));
-    }
+    // function isSubset(subset, superset) {
+    //     return Array.from(subset).every((element) => superset.has(element));
+    // }
 
-    const isCovered = isSubset(teachersCoveredSubjects, includedSubjects);
+    // const isCovered = isSubset(teachersCoveredSubjects, includedSubjects);
     // console.log("isCovered", isCovered);
 
     function hasAtLeastOneUnique(set1, set2) {

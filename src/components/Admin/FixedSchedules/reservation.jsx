@@ -5,6 +5,7 @@ import { useDroppable } from '@dnd-kit/core';
 
 import { IoMdAdd } from 'react-icons/io';
 import { RiSubtractFill } from 'react-icons/ri';
+import { useSelector } from 'react-redux';
 
 const ReserveList = ({
     editMode,
@@ -25,10 +26,7 @@ const ReserveList = ({
 }) => {
     const subjects = useSelector((state) => state.subject.subjects);
 
-    const numOfSchoolDays = parseInt(
-        localStorage.getItem('numOfSchoolDays'),
-        10
-    );
+    const { configurations, loading } = useSelector((state) => state.configuration);\
 
     const [reservedSubjects, setReservedSubjects] = useState([]);
     const [reservedSubjectsCount, setReservedSubjectsCount] = useState({});
@@ -128,7 +126,7 @@ const ReserveList = ({
         }
 
         if (day === 0) {
-            if (count >= numOfSchoolDays) {
+            if (count >= configurations[1].defaultNumberOfSchoolDays) {
                 setReservationFull(true);
                 return;
             }

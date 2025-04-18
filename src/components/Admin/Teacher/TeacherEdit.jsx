@@ -6,26 +6,27 @@ import { RiDeleteBin7Line } from 'react-icons/ri';
 import SearchableDropdownToggler from '../searchableDropdown';
 import AdditionalScheduleForTeacher from './AdditionalScheduleForTeacher';
 
-import { editDocument } from '../../../hooks/CRUD/editDocument';
-
+import { editDocument } from '../../../hooks/firebaseCRUD/editDocument';
+import { useSelector } from 'react-redux';
 import { toast } from 'sonner';
+import { COLLECTION_ABBREVIATION } from '../../../constants';
 
-const TeacherEdit = ({ 
+const TeacherEdit = ({
     // STORES
     teachers,
     subjects,
     ranks,
     departments,
     // STORES
-    teacher, 
-    errorMessage, 
-    setErrorMessage, 
-    errorField, 
-    setErrorField, 
-    numOfSchoolDays 
+    teacher,
+    errorMessage,
+    setErrorMessage,
+    errorField,
+    setErrorField,
+    numOfSchoolDays = 5,
 }) => {
 
-// ==============================================================================
+    const { user: currentUser } = useSelector((state) => state.user);
 
     const [editTeacherId, setEditTeacherId] = useState(teacher.id || null);
 
@@ -74,7 +75,7 @@ const TeacherEdit = ({
 
 // ==================================================================================
 
-    const handleSaveTeacherEditClick = (teacherId) => {
+    const handleSaveTeacherEditClick = async (teacherId) => {
         console.log('editTaecersId', editTeacherId);
         console.log('editTeacherValue', editTeacherValue);
 
@@ -93,15 +94,21 @@ const TeacherEdit = ({
         const currentTeacher = teachers[editTeacherId]?.teacher || '';
 
         if (editTeacherValue.trim().toLowerCase() === currentTeacher.trim().toLowerCase()) {
-
             try {
-                editDocument('teachers', teacherId, {
-                    teacher: editTeacherValue,
-                    department: editTeacherDepartment,
-                    rank: editTeacherRank,
-                    subjects: editTeacherCurr,
-                    yearLevels: editTeacherYearLevels,
-                    additionalTeacherScheds: editTeacherAdditionalScheds,
+                await editDocument({
+                    collectionName: 'teachers',
+                    collectionAbbreviation: COLLECTION_ABBREVIATION.TEACHERS,
+                    userName: currentUser?.username || 'unknown user',
+                    itemName: editTeacherValue || 'an item',
+                    docId: teacherId,
+                    entryData: {
+                        t: editTeacherValue,
+                        d: editTeacherDepartment,
+                        r: editTeacherRank,
+                        s: editTeacherCurr,
+                        y: editTeacherYearLevels,
+                        at: editTeacherAdditionalScheds,
+                    },
                 });
             } catch {
                 toast.error('Something went wrong. Please try again.');
@@ -114,27 +121,11 @@ const TeacherEdit = ({
                         borderColor: '#28a745',
                     },
                 });
-        
+
                 resetStates();
                 closeModal();
             }
-
-            // dispatch(
-            //     reduxFunction({
-            //         teacherId,
-            //         updatedTeacher: {
-            //             teacher: editTeacherValue,
-            //             department: editTeacherDepartment,
-            //             rank: editTeacherRank,
-            //             subjects: editTeacherCurr,
-            //             yearLevels: editTeacherYearLevels,
-            //             additionalTeacherScheds: editTeacherAdditionalScheds,
-            //         },
-            //     })
-            // );
-
         } else {
-
             const duplicateTeacher = Object.values(teachers).find(
                 (teacher) => teacher.teacher.trim().toLowerCase() === editTeacherValue.trim().toLowerCase()
             );
@@ -145,17 +136,22 @@ const TeacherEdit = ({
                 });
                 return;
             } else {
-
                 try {
-                    editDocument('teachers', teacherId, {
-                        teacher: editTeacherValue,
-                        department: editTeacherDepartment,
-                        rank: editTeacherRank,
-                        subjects: editTeacherCurr,
-                        yearLevels: editTeacherYearLevels,
-                        additionalTeacherScheds: editTeacherAdditionalScheds,
+                    await editDocument({
+                        collectionName: 'teachers',
+                        collectionAbbreviation: COLLECTION_ABBREVIATION.TEACHERS,
+                        userName: currentUser?.username || 'unknown user',
+                        itemName: editTeacherValue || 'an item',
+                        docId: teacherId,
+                        entryData: {
+                            t: editTeacherValue,
+                            d: editTeacherDepartment,
+                            r: editTeacherRank,
+                            s: editTeacherCurr,
+                            y: editTeacherYearLevels,
+                            at: editTeacherAdditionalScheds,
+                        },
                     });
-    
                 } catch {
                     toast.error('Something went wrong. Please try again.');
                     console.error('Something went wrong. Please try again.');
@@ -167,25 +163,10 @@ const TeacherEdit = ({
                             borderColor: '#28a745',
                         },
                     });
-            
+
                     resetStates();
                     closeModal();
                 }
-
-                // dispatch(
-                //     reduxFunction({
-                //         teacherId,
-                //         updatedTeacher: {
-                //             teacher: editTeacherValue,
-                //             department: editTeacherDepartment,
-                //             rank: editTeacherRank,
-                //             subjects: editTeacherCurr,
-                //             yearLevels: editTeacherYearLevels,
-                //             additionalTeacherScheds: editTeacherAdditionalScheds,
-                //         },
-                //     })
-                // );
-                
             }
         }
     };
@@ -255,9 +236,7 @@ const TeacherEdit = ({
 // ==============================================================================
 
     return (
-
         <div className=''>
-
             {/* Trigger Button */}
             <label htmlFor={`teacherEdit_modal_${teacher.id}`} className='btn btn-xs btn-ghost text-blue-500'>
                 <RiEdit2Fill size={20} />
@@ -275,7 +254,6 @@ const TeacherEdit = ({
                     <hr className='mb-4' />
 
                     <div className='rounded-lg shadow-md md:shadow-lg sm:shadow-sm space-y-4 mb-4 p-4'>
-
                         {/* Teacher Name */}
                         <div className='mb-4'>
                             <label className='text-sm font-medium mb-1 flex justify-center ' htmlFor='teacherName'>

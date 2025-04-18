@@ -13,7 +13,6 @@ export const useEditUser = () => {
             const userRef = doc(firestore, 'users', userId);
             await updateDoc(userRef, newData);
             setLoading(false);
-            console.log("ffffffff")
         } catch (err) {
             setError(err);
             setLoading(false);

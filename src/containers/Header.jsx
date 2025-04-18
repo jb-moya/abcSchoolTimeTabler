@@ -1,5 +1,5 @@
 import { themeChange } from 'theme-change';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import BellIcon from '@heroicons/react/24/outline/BellIcon';
 import Bars3Icon from '@heroicons/react/24/outline/Bars3Icon';
@@ -7,20 +7,22 @@ import MoonIcon from '@heroicons/react/24/outline/MoonIcon';
 import SunIcon from '@heroicons/react/24/outline/SunIcon';
 import { openRightDrawer } from '../features/common/rightDrawerSlice';
 import { RIGHT_DRAWER_TYPES } from '../utils/globalConstantUtil';
-import { useNavigate } from 'react-router-dom';
-import useAuth from '../app/useAuth';
 
-import { NavLink, Routes, Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { logoutUser } from '../features/userSlice';
+import { resetNewLogsCount } from '../features/slice/notificationUserLogs';
 
 function Header() {
-    const navigate = useNavigate();
     const dispatch = useDispatch();
-    const { noOfNotifications, pageTitle } = useSelector((state) => state.header);
+    const { pageTitle } = useSelector((state) => state.header);
+    const { newLogsCount } = useSelector((state) => state.notificationUserLogs);
     const [currentTheme, setCurrentTheme] = useState(
         localStorage.getItem('theme') || 'light' // Default to light mode
     );
-    const { user, loading: userLoading } = useAuth();
+
+    const [isPinging, setIsPinging] = useState(false); // State to track animation
+
+    const { user, loading: userLoading } = useSelector((state) => state.user);
 
     useEffect(() => {
         themeChange(false); // Initialize themeChange for Tailwind/DaisyUI
@@ -52,6 +54,7 @@ function Header() {
                 bodyType: RIGHT_DRAWER_TYPES.NOTIFICATION,
             })
         );
+        dispatch(resetNewLogsCount());
     };
 
     function clearLocalStorage() {
@@ -66,6 +69,16 @@ function Header() {
             console.error('Logout failed', error);
         }
     };
+
+    useEffect(() => {
+        if (newLogsCount > 0) {
+            setIsPinging(true);
+            const timer = setTimeout(() => {
+                setIsPinging(false); // Stop the ping animation after a short time
+            }, 1000); // Adjust duration as needed
+            return () => clearTimeout(timer); // Cleanup timeout on component unmount
+        }
+    }, [newLogsCount]);
 
     return (
         <>
@@ -87,8 +100,16 @@ function Header() {
                     <button className='btn btn-ghost ml-4 btn-circle' onClick={openNotification}>
                         <div className='indicator'>
                             <BellIcon className='h-6 w-6' />
-                            {noOfNotifications > 0 && (
-                                <span className='indicator-item badge badge-secondary badge-sm'>{noOfNotifications}</span>
+                            {newLogsCount > 0 && (
+                                <span className='relative flex size-5 items-center justify-center'>
+                                    <span className='absolute z-20 text-base-100'>{newLogsCount}</span>
+                                    <span
+                                        className={`absolute inline-flex h-full w-full rounded-full bg-accent opacity-75 ${
+                                            isPinging ? 'animate-ping' : ''
+                                        }`}
+                                    ></span>
+                                    <span className='relative inline-flex size-5 rounded-full bg-accent'></span>
+                                </span>
                             )}
                         </div>
                     </button>

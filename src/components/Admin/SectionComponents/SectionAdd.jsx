@@ -10,8 +10,10 @@ import TimeSelector from '@utils/timeSelector';
 
 import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
 
-import { addDocument } from '../../../hooks/CRUD/addDocument';
-import { editDocument } from '../../../hooks/CRUD/editDocument';
+import { addDocument } from '../../../hooks/firebaseCRUD/addDocument';
+import { editDocument } from '../../../hooks/firebaseCRUD/editDocument';
+import { COLLECTION_ABBREVIATION } from '../../../constants';
+import { useSelector } from 'react-redux';
 
 const AddSectionContainer = ({
     // STORES
@@ -26,13 +28,12 @@ const AddSectionContainer = ({
     setErrorMessage,
     errorField,
     setErrorField,
-    numOfSchoolDays,
+    numOfSchoolDays = 5,
     breakTimeDuration,
 }) => {
-
     const inputNameRef = useRef();
 
-// ===================================================================================================
+    const { user: currentUser } = useSelector((state) => state.user);
 
     const [inputValue, setInputValue] = useState('');
 
@@ -128,7 +129,7 @@ const AddSectionContainer = ({
         setInputValue(e.target.value);
     };
 
-    const handleAddEntry = () => {
+    const handleAddEntry = async () => {
         if (
             inputValue === '' ||
             selectedAdviser === '' ||
@@ -189,39 +190,55 @@ const AddSectionContainer = ({
             teacher.additionalTeacherScheds = teacher.additionalTeacherScheds || [];
             teacher.additionalTeacherScheds.push(advisoryLoad);
 
-            // dispatch(
-            //     editTeacher({
-            //         teacherId: selectedAdviser,
-            //         updatedTeacher: teacher,
-            //     })
-            // );
+            const teacher_schedules = teacher.additionalTeacherScheds.map((sched) => ({
+                n: sched.name,
+                su: sched.subject,
+                d: sched.duration,
+                f: sched.frequency,
+                sh: sched.shown,
+                t: sched.time,
+            }));
 
-            editDocument('teachers', teacher_id, {
-                additionalTeacherScheds: teacher.additionalTeacherScheds,
+            await editDocument({
+                collectionName: 'teachers',
+                collectionAbbreviation: COLLECTION_ABBREVIATION.TEACHERS,
+                userName: currentUser?.username || 'unknown user',
+                itemName: 'a teacher' || 'an item',
+                docId: teacher_id,
+                entryData: {
+                    at: teacher_schedules,
+                },
             });
-            // ============== ADVISORY LOAD ==============
 
-            // ============== SECTION ==============
+            const section_schedules = additionalScheds.map((sched) => ({
+                n: sched.name,
+                su: sched.subject,
+                d: sched.duration,
+                f: sched.frequency,
+                sh: sched.shown,
+            }));
 
-            const entryData = {
-                section: inputValue,
-                teacher: selectedAdviser,
-                program: selectedProgram,
-                year: selectedYearLevel,
-                subjects: selectedSubjects,
-                fixedDays: fixedDays,
-                fixedPositions: fixedPositions,
-                modality: classModality,
-                shift: selectedShift,
-                startTime: getTimeSlotIndex(selectedStartTime || '06:00 AM'),
-                endTime: selectedEndTime,
-                additionalScheds: additionalScheds,
-                roomDetails: roomDetails,
-            };
-
-            
-
-            addDocument('sections', entryData);
+            await addDocument({
+                collectionName: 'sections',
+                collectionAbbreviation: COLLECTION_ABBREVIATION.SECTIONS,
+                userName: currentUser?.username || 'unknown user',
+                itemName: inputValue || 'an item',
+                entryData: {
+                    s: inputValue,
+                    t: selectedAdviser,
+                    p: selectedProgram,
+                    y: selectedYearLevel,
+                    ss: selectedSubjects,
+                    fd: fixedDays,
+                    fp: fixedPositions,
+                    m: classModality,
+                    sh: selectedShift,
+                    st: getTimeSlotIndex(selectedStartTime || '06:00 AM'),
+                    et: selectedEndTime,
+                    as: section_schedules,
+                    rd: roomDetails,
+                },
+            });
 
             // ============== SECTION ==============
         } catch (error) {

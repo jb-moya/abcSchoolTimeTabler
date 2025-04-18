@@ -1,25 +1,25 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ErrorText from '@components/Typography/ErrorText';
 import InputText from '../../components/Input/InputText';
 import { loginUser } from '../userSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { setLoading } from '../userSlice';
 
 function Login() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
     const INITIAL_LOGIN_OBJ = {
-        email: 'super_admin@email.com',
-        password: '2#`MW0y#m5YM',
+        email: '',
+        password: '',
     };
 
-    // const [loading, setLoading] = useState(false);
-    // const [errorMessage, setErrorMessage] = useState('');
     const [loginObj, setLoginObj] = useState(INITIAL_LOGIN_OBJ);
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-    const { user, error: userError, loading } = useSelector((state) => state.user);
+    const { error: userError, loading } = useSelector((state) => state.user);
 
     const submitForm = async (e) => {
         e.preventDefault();
@@ -32,21 +32,21 @@ function Login() {
         }
 
         try {
-            const userData = await dispatch(loginUser(loginObj)).unwrap(); // Wait for successful login
-            if (userData) {
-                //console.log('🚀 ~ submitForm ~ loginUser:', userData);
-                //console.log('Successfully logged in');
-                navigate('/app/dashboard'); // Navigate only after successful Firestore retrieval
-            } else {
-                toast.error('Login failed: User data not found.');
-            }
+            setIsLoggingIn(true);
+            dispatch(setLoading(true));
+            console.log('🚀 ~ submitForm ~ loading:', loading);
+
+            await dispatch(loginUser(loginObj)).unwrap();
+
+            navigate('/app/dashboard');
         } catch (error) {
             toast.error(error);
+        } finally {
+            setIsLoggingIn(false);
         }
     };
 
     const updateFormValue = ({ updateType, value }) => {
-        // setErrorMessage('');
         setLoginObj({ ...loginObj, [updateType]: value });
     };
 
@@ -95,11 +95,11 @@ function Login() {
                 <button
                     type='submit'
                     className={`btn mt-4 w-full btn-primary text-white transition-all duration-75 ease-in-out flex items-center justify-center ${
-                        loading ? 'cursor-not-allowed ' : ''
+                        isLoggingIn ? 'cursor-not-allowed ' : ''
                     }`}
-                    disabled={loading}
+                    disabled={isLoggingIn}
                 >
-                    {loading ? (
+                    {isLoggingIn ? (
                         <>
                             <span className='loading loading-spinner'></span>
                             Logging In

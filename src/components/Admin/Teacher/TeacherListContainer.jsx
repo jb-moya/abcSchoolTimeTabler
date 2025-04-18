@@ -4,32 +4,27 @@ import debounce from 'debounce';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import { IoAdd, IoSearch } from 'react-icons/io5';
-
+import { useSelector } from 'react-redux';
 import AdditionalScheduleForTeacher from './AdditionalScheduleForTeacher';
 import AddTeacherContainer from './TeacherAdd';
 import DeleteData from '../DeleteData';
 import TeacherEdit from './TeacherEdit';
 
-const TeacherListContainer = ({ 
-    teachers, 
-    ranks, 
-    departments, 
-    subjects,
-    editable = false 
-}) => {
-
-// ===================================================================================================
-
-    const numOfSchoolDays = Number(localStorage.getItem('numOfSchoolDays')) || 0;
-
-// ===================================================================================================
+const TeacherListContainer = ({ editable = false }) => {
+    const { configurations } = useSelector((state) => state.configuration);
 
     const [errorMessage, setErrorMessage] = useState('');
     const [errorField, setErrorField] = useState('');
 
-// ===================================================================================================
+    const { teachers, loading: teachersStoreLoading, error: teachersStoreError } = useSelector((state) => state.teachers);
+    const { ranks, loading: ranksStoreLoading, error: ranksStoreError } = useSelector((state) => state.ranks);
+    const {
+        departments,
+        loading: departmentsStoreLoading,
+        error: departmentsStoreError,
+    } = useSelector((state) => state.departments);
+    const { subjects, loading: subjectsStoreLoading, error: subjectsStoreError } = useSelector((state) => state.subjects);
 
-    // Handle closing of teacher addition modal
     const handleClose = () => {
         const modal = document.getElementById('add_teacher_modal');
         if (modal) {
@@ -40,8 +35,6 @@ const TeacherListContainer = ({
             console.error("Modal with ID 'add_teacher_modal' not found.");
         }
     };
-
-// ===================================================================================================
 
     const [searchTeacherResult, setSearchTeacherResult] = useState(teachers);
     const [searchTeacherValue, setSearcTeacherValue] = useState('');
@@ -60,8 +53,12 @@ const TeacherListContainer = ({
 
                     const pattern = new RegExp(escapedSearchValue, 'i');
 
-                    return pattern.test(teacher.teacher) || pattern.test(teachersSubjectsName) 
-                        || pattern.test(teacherRankName) || pattern.test(teacherDepartmentName);
+                    return (
+                        pattern.test(teacher.teacher) ||
+                        pattern.test(teachersSubjectsName) ||
+                        pattern.test(teacherRankName) ||
+                        pattern.test(teacherDepartmentName)
+                    );
                 })
             );
         }, 200),
@@ -75,21 +72,32 @@ const TeacherListContainer = ({
     const itemsPerPage = 10; // Change this to adjust the number of items per page
     const [currentPage, setCurrentPage] = useState(1);
 
-    // Calculate total pages
     const totalPages = Math.ceil(Object.values(searchTeacherResult).length / itemsPerPage);
 
-    // Get current items
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Object.entries(searchTeacherResult).slice(indexOfFirstItem, indexOfLastItem);
 
-// ===================================================================================================
+    if (teachersStoreLoading || ranksStoreLoading || departmentsStoreLoading || subjectsStoreLoading) {
+        return (
+            <div className='w-full flex justify-center items-center h-[50vh]'>
+                <span className='loading loading-bars loading-lg'></span>
+            </div>
+        );
+    }
+
+    if (teachersStoreError || ranksStoreError || departmentsStoreError || teachersStoreError) {
+        return (
+            <div role='alert' className='alert alert-error alert-soft'>
+                <span>{teachersStoreError || ranksStoreError || departmentsStoreError || subjectsStoreError}</span>
+            </div>
+        );
+    }
 
     return (
         <React.Fragment>
             <div className='w-full'>
                 <div className='flex flex-col md:flex-row md:gap-6 justify-between items-center mb-5'>
-
                     {/* Pagination */}
                     {currentItems.length > 0 && (
                         <div className='join flex justify-center mb-4 md:mb-0'>
@@ -164,7 +172,7 @@ const TeacherListContainer = ({
                                         setErrorMessage={setErrorMessage}
                                         errorField={errorField}
                                         setErrorField={setErrorField}
-                                        numOfSchoolDays={numOfSchoolDays}
+                                        numOfSchoolDays={configurations[1]?.defaultNumberOfSchoolDays || 5}
                                     />
                                     <div className='modal-action'>
                                         <button
@@ -178,7 +186,6 @@ const TeacherListContainer = ({
                             </dialog>
                         </div>
                     )}
-
                 </div>
 
                 <div className='overflow-x-auto'>
@@ -206,7 +213,6 @@ const TeacherListContainer = ({
                             ) : (
                                 currentItems.map(([, teacher], index) => (
                                     <tr key={teacher.id} className='group hover'>
-
                                         {/* Index */}
                                         <td>{index + indexOfFirstItem + 1}</td>
 
@@ -223,7 +229,7 @@ const TeacherListContainer = ({
 
                                         {/* Teacher Subjects */}
                                         <td className='flex gap-1 flex-wrap'>
-                                            { teacher.subjects.map((subject) => (
+                                            {teacher.subjects.map((subject) => (
                                                 <div key={subject} className='badge badge-secondary m-1'>
                                                     {subjects[subject]?.subject || 'Unknown Subject'}
                                                 </div>
@@ -273,7 +279,7 @@ const TeacherListContainer = ({
                                                 style={{
                                                     scrollbarWidth: 'thin',
                                                     scrollbarColor: '#a0aec0 #edf2f7',
-                                                }} // Optional for styled scrollbars 
+                                                }} // Optional for styled scrollbars
                                             >
                                                 <div
                                                     className='font-bold bg-base-100 border-base-content border-opacity-20'
@@ -341,10 +347,10 @@ const TeacherListContainer = ({
                                                         setErrorMessage={setErrorMessage}
                                                         errorField={errorField}
                                                         setErrorField={setErrorField}
-                                                        numOfSchoolDays={numOfSchoolDays}
+                                                        numOfSchoolDays={configurations[1]?.defaultNumberOfSchoolDays || 5}
                                                     />
-                                                    <DeleteData 
-                                                        className='btn btn-xs btn-ghost text-red-500' 
+                                                    <DeleteData
+                                                        className='btn btn-xs btn-ghost text-red-500'
                                                         collection={'teachers'}
                                                         id={teacher.id}
                                                     />

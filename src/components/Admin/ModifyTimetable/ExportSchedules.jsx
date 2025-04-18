@@ -1,35 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
 import { getTimeSlotString } from '@utils/timeSlotMapper';
 import colors from '@utils/colors';
+import { useSelector } from 'react-redux';
 
-const ExportSchedules = ({
-    // stores
-    programs,
-    buildings,
-    sections,
-    teachers,
-    ranks,
-    departments,
-    // stores
-    
-    schedule, 
-    close 
-}) => {
+const ExportSchedules = ({ programs, buildings, sections, teachers, ranks, departments, schedule, close }) => {
+    // ======================================================================================================
 
-// ======================================================================================================
-
-    const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
-        return localStorage.getItem('numOfSchoolDays') || 5;
-    });
+    const { configurations } = useSelector((state) => state.configuration);
 
     const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 
-    const selectedDays = days.slice(0, numOfSchoolDays);
+    const selectedDays = days.slice(0, configurations[1].defaultNumberOfSchoolDays);
 
-// ======================================================================================================
+    // ======================================================================================================
 
     const [timetable, setTimetable] = useState(schedule);
 
@@ -39,7 +25,7 @@ const ExportSchedules = ({
         }
     }, [schedule]);
 
-// =====================================================================================================
+    // =====================================================================================================
 
     const sectionScheds = [];
     const teacherScheds = [];
@@ -53,7 +39,6 @@ const ExportSchedules = ({
 
             console.log('key: ', key);
             console.log('val: ', val);
-
 
             const parts = key.split(' - '); // Split at " - "
             const teacherName = parts[0].replace('Teacher: ', ''); // Remove 'Teacher: '
@@ -146,7 +131,7 @@ const ExportSchedules = ({
 
             for (let i = 0; i < timeslots.length; i++) {
                 if (!normalizedTimeslots.has(timeslots[i])) {
-                    const timeslotValue = Array.from({ length: numOfSchoolDays }, () => ({
+                    const timeslotValue = Array.from({ length: configurations[1].defaultNumberOfSchoolDays }, () => ({
                         minutes: 0,
                         section: '',
                         subject: '',
@@ -264,7 +249,7 @@ const ExportSchedules = ({
             worksheet.getColumn(1).width = 25;
             worksheet.getColumn(2).width = 25;
             let startingCol = 3;
-            for (let i = 0; i < numOfSchoolDays; i++) {
+            for (let i = 0; i < configurations[1].defaultNumberOfSchoolDays; i++) {
                 worksheet.getColumn(startingCol).width = 20;
                 startingCol++;
             }
@@ -294,6 +279,8 @@ const ExportSchedules = ({
 
             const worksheet = workbook.addWorksheet(sectionName);
 
+            console.log('sections: ', sections);
+
             // ***************** TEMPORARY *****************
             // **
             const section = Object.values(sections).find((section) => section.section === sectionName);
@@ -309,7 +296,7 @@ const ExportSchedules = ({
 
             const startColumn = 'A';
             const startColumn_2 = 'C';
-            const endColumn = String.fromCharCode(65 + Number(numOfSchoolDays) + 1);
+            const endColumn = String.fromCharCode(65 + Number(configurations[1].defaultNumberOfSchoolDays) + 1);
 
             worksheet.mergeCells(`${startColumn}1:${endColumn}1`);
             worksheet.mergeCells(`${startColumn}2:${endColumn}2`);
@@ -336,7 +323,7 @@ const ExportSchedules = ({
             worksheet.getCell('C3').font = { bold: true };
 
             let column = 'C';
-            for (let i = 0; i < numOfSchoolDays; i++) {
+            for (let i = 0; i < configurations[1].defaultNumberOfSchoolDays; i++) {
                 worksheet.getCell(`${column}4`).value = days[i];
                 worksheet.getCell(`${column}5`).value = section.modality[i] === 1 ? 'ONSITE' : 'OFFSITE';
 
@@ -415,7 +402,7 @@ const ExportSchedules = ({
 
             for (let i = 0; i < timeslots.length; i++) {
                 if (!normalizedTimeslots.has(timeslots[i])) {
-                    const timeslotValue = Array.from({ length: numOfSchoolDays }, () => ({
+                    const timeslotValue = Array.from({ length: configurations[1].defaultNumberOfSchoolDays }, () => ({
                         minutes: 0,
                         // sched_name: '',
                         subject: '',
@@ -537,7 +524,7 @@ const ExportSchedules = ({
             }
 
             const startCol = 'B';
-            const endCol = String.fromCharCode(65 + Number(numOfSchoolDays) + 1);
+            const endCol = String.fromCharCode(65 + Number(configurations[1].defaultNumberOfSchoolDays) + 1);
 
             worksheet.mergeCells(`${startCol}${row}:${endCol}${row}`);
             worksheet.mergeCells(`${startCol}${row + 1}:${endCol}${row + 1}`);
@@ -572,7 +559,7 @@ const ExportSchedules = ({
             worksheet.getColumn(1).width = 25;
             worksheet.getColumn(2).width = 15;
             let startingCol = 3;
-            for (let i = 0; i < numOfSchoolDays; i++) {
+            for (let i = 0; i < configurations[1].defaultNumberOfSchoolDays; i++) {
                 worksheet.getColumn(startingCol).width = 20;
                 startingCol++;
             }
@@ -587,15 +574,12 @@ const ExportSchedules = ({
         console.log('Starting export process...');
 
         timetable.forEach((value, key) => {
-            // console.log('key: ', key);
             if (key.startsWith('Section:')) {
                 sectionScheds.push({ [key]: value });
             } else if (key.startsWith('Teacher:')) {
                 teacherScheds.push({ [key]: value });
             }
         });
-
-        // console.log('hahahfsaa');
 
         exportTeacherScheds();
         exportSectionScheds();

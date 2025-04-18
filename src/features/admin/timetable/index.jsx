@@ -4,10 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { wrap } from 'comlink';
 import clsx from 'clsx';
 import * as XLSX from 'xlsx';
-import GeneratedTimetable from '@components/Admin/TimeTable';
-// import ForTest from '@components/Admin/ForTest';
-import { fetchDocuments } from '../../../hooks/CRUD/retrieveDocuments';
-import validateTimetableVariables from '@validation/validateTimetableVariables';
 import { toast } from 'sonner';
 import { enableMapSet } from 'immer';
 
@@ -20,10 +16,9 @@ import packInt16ToInt32 from '@utils/packInt16ToInt32';
 import { unpackInt32ToInt16 } from '@utils/packInt16ToInt32';
 import packInt8ToInt32 from '@utils/packInt8ToInt32';
 import { packThreeSignedIntsToInt32 } from '@utils/packThreeSignedIntsToInt32';
-import { getTimeSlotIndex, getTimeSlotString } from '@utils/timeSlotMapper';
+import { getTimeSlotString } from '@utils/timeSlotMapper';
 import calculateTotalClass from '@utils/calculateTotalClass';
 import deepEqual from '@utils/deepEqual';
-import gcdOfArray from '@utils/getGCD';
 
 import SubjectListContainer from '@components/SubjectComponents/SubjectListContainer';
 import ProgramListContainer from '@components/Admin/ProgramComponents/ProgramListContainer';
@@ -32,7 +27,6 @@ import SectionListContainer from '@components/Admin/SectionComponents/SectionLis
 import ExportImportDBButtons from '@components/Admin/ExportImportDBButtons';
 import NotificationHandler from '@components/Admin/NotificationHandler';
 import Breadcrumbs from '@components/Admin/Breadcrumbs';
-
 
 enableMapSet();
 const getTimetable = wrap(new WasmWorker());
@@ -43,8 +37,6 @@ function addObjectToMap(map, key, newObject, IDIncrementer, propertyIDName) {
     }
 
     const currentArray = map.get(key);
-
-    // console.log('🚀 ~ currentArray:', currentArray);
 
     const isDuplicate = currentArray.some((item) => {
         let { [propertyIDName]: _, ...rest } = item;
@@ -67,13 +59,11 @@ function addObjectToMap(map, key, newObject, IDIncrementer, propertyIDName) {
 }
 
 function getVacantSlots(totalTimeslot, numOfSchoolDays, fixedPositions, fixedDays) {
-    // Create an array of sets, each set initialized with the range [1, numOfSchoolDays].
     const vacant = Array.from(
         { length: totalTimeslot },
         () => new Set(Array.from({ length: numOfSchoolDays }, (_, index) => index + 1))
     );
 
-    // Process each fixed position to adjust the `vacant` array.
     Object.entries(fixedPositions).forEach(([subjectID, fixedPosition]) => {
         fixedPosition.forEach((timeslot, index) => {
             if (timeslot !== 0) {
@@ -89,164 +79,41 @@ function getVacantSlots(totalTimeslot, numOfSchoolDays, fixedPositions, fixedDay
 function Timetable() {
     const navigate = useNavigate();
 
-    // ====================================================================================================================================
+    const links = [{ name: 'Home', href: '/' }];
 
-    const links = [
-        { name: 'Home', href: '/' },
-        // { name: 'Modify Subjects', href: '/modify-subjects' },
-    ];
+    const { configurations, configurationsLoading } = useSelector((state) => state.configuration);
 
-    // ====================================================================================================================================
-
-    /* CONFIGURATIONS */
-    const { minTeacherLoad: minTeachingLoad, maxTeacherLoad: maxTeachingLoad } = useSelector((state) => state.configuration);
-
-    /* TIMETABLE DATA */
-    const [buildingsStore, setBuildings] = useState({});
-
-    // const [subjects, setSubjects] = useState({});
-    // const [buildings, setBuildings_1] = useState({});
-    // const [teachers, setTeachers] = useState({});
-    // const [sections, setSections] = useState({});
-    // const [programs, setPrograms] = useState({});
-    // const [ranks, setRanks] = useState({});
-    // const [departments, setDepartments] = useState({});
-
-    const { documents: subjectsStore, loading1, error1 } = fetchDocuments('subjects');
-    const { documents: programsStore, loading2, error2 } = fetchDocuments('programs');
-    const { documents: ranksStore, loading3, error3 } = fetchDocuments('ranks');
-    const { documents: teachersStore, loading4, error4 } = fetchDocuments('teachers');
-    const { documents: departmentsStore, loading5, error5 } = fetchDocuments('departments');
-    const { documents: sectionsStore, loading6, error6 } = fetchDocuments('sections');
-    const { documents: stringfy_buildings, loading7, error7 } = fetchDocuments('buildings');
-
-    // ====================================================================================================================================
-    // function modifyData(data) {
-    //     const modifiedData = {};
-
-    //     Object.keys(data).forEach((key) => {
-    //         const item = data[key];
-    //         modifiedData[key] = {
-    //             id: item.custom_id,
-    //             firebaseID: item.id,
-    //         };
-
-    //         Object.keys(item).forEach((prop) => {
-    //             if (!['custom_id', 'id'].includes(prop)) {
-    //                 modifiedData[key][prop] = item[prop];
-    //             }
-    //         });
-    //     });
-
-    //     return modifiedData;
-    // }
-
-    // ====================================================================================================================================
-
-    // Convert the stringified buildings object
-    // useEffect(() => {
-    //     try {
-    //         setSubjects(modifyData(subjectsStore));
-    //     } catch (error) {
-    //         console.error('Failed to modify subject data:', error);
-    //     }
-    // }, [subjectsStore]);
-
-    // useEffect(() => {
-    //     try {
-    //         setPrograms(modifyData(programsStore));
-    //     } catch (error) {
-    //         console.error('Failed to modify programs data:', error);
-    //     }
-    // }, [programsStore]);
-
-    // useEffect(() => {
-    //     try {
-    //         setRanks(modifyData(ranksStore));
-    //     } catch (error) {
-    //         console.error('Failed to modify ranks data:', error);
-    //     }
-    // }, [ranksStore]);
-
-    // useEffect(() => {
-    //     try {
-    //         setTeachers(modifyData(teachersStore));
-    //     } catch (error) {
-    //         console.error('Failed to modify teachers data:', error);
-    //     }
-    // }, [teachersStore]);
-
-    // useEffect(() => {
-    //     try {
-    //         setDepartments(modifyData(departmentsStore));
-    //     } catch (error) {
-    //         console.error('Failed to modify departments data:', error);
-    //     }
-    // }, [departmentsStore]);
-
-    // useEffect(() => {
-    //     try {
-    //         setSections(modifyData(sectionsStore));
-    //     } catch (error) {
-    //         console.error('Failed to modify sections data:', error);
-    //     }
-    // }, [sectionsStore]);
-
-    useEffect(() => {
-        try {
-            const converted_buildings = Object.values(stringfy_buildings).reduce((acc, { custom_id, data, id }) => {
-                const parsedData = JSON.parse(data);
-                acc[id] = { ...parsedData, id }; // Include id and custom_id inside data
-                return acc;
-            }, {});
-            console.log('buildingsRaw: ', converted_buildings);
-            setBuildings(converted_buildings);
-            // setBuildings_1(modifyData(converted_buildings));
-        } catch (error) {
-            console.error('Failed to parse buildings JSON:', error);
-        }
-    }, [stringfy_buildings]);
-
-    // console.log('subjects: ', subjects);
-    // console.log('programs: ', programs);
-    // console.log('ranks: ', ranks);
-    // console.log('teachers: ', teachers);
-    // console.log('departments: ', departments);
-    // console.log('sections: ', sections);
-
-    // console.log('buildings: ', buildings);
-
-    console.log('subjectsStore: ', subjectsStore);
-    console.log('programsStore: ', programsStore);
-    console.log('ranksStore: ', ranksStore);
-    console.log('teachersStore: ', teachersStore);
-    console.log('departmentsStore: ', departmentsStore);
-    console.log('sectionsStore: ', sectionsStore);
-    console.log('stringfy_buildings: ', stringfy_buildings);
-    console.log('buildingsStore: ', buildingsStore);
-
-    // =====================================================================================================================================
-
-    const [morningStartTime, setMorningStartTime] = useState(() => {
-        const stored = localStorage.getItem('morningStartTime');
-        return stored && /^\d{2}:\d{2}$/.test(stored) ? stored : '6:00';
-    });
-
-    console.log('morningStartTime: ', morningStartTime);
-
-    const [numOfSchoolDays, setNumOfSchoolDays] = useState(() => {
-        return localStorage.getItem('numOfSchoolDays') || 5;
-    });
-    console.log('numOfSchoolDays: ', numOfSchoolDays);
-    const [breakTimeDuration, setBreakTimeDuration] = useState(() => {
-        return localStorage.getItem('breakTimeDuration') || 30;
-    });
-    console.log('breakTimeDuration: ', breakTimeDuration);
-    const [defaultSubjectClassDuration, setDefaultSubjectClassDuration] = useState(() => {
-        return parseInt(localStorage.getItem('defaultSubjectDuration'), 10) || 40;
-    });
-
-    // =====================================================================================================================================
+    const {
+        subjects: subjectsStore,
+        loading: subjectsStoreLoading,
+        error: subjectsStoreError,
+    } = useSelector((state) => state.subjects);
+    const {
+        programs: programsStore,
+        loading: programsStoreLoading,
+        error: programsStoreError,
+    } = useSelector((state) => state.programs);
+    const {
+        sections: sectionsStore,
+        loading: sectionsStoreLoading,
+        error: sectionsStoreError,
+    } = useSelector((state) => state.sections);
+    const { ranks: ranksStore, loading: ranksStoreLoading, error: ranksStoreError } = useSelector((state) => state.ranks);
+    const {
+        teachers: teachersStore,
+        loading: teachersStoreLoading,
+        error: teachersStoreError,
+    } = useSelector((state) => state.teachers);
+    const {
+        departments: departmentsStore,
+        loading: departmentsStoreLoading,
+        error: departmentsStoreError,
+    } = useSelector((state) => state.departments);
+    const {
+        buildings: buildingsStore,
+        loading: buildingsLoading,
+        error: buildingsError,
+    } = useSelector((state) => state.buildings);
 
     const [sectionTimetables, setSectionTimetables] = useState({});
 
@@ -279,6 +146,8 @@ function Timetable() {
         const buildingMap = Object.entries(buildingData).reduce((acc, [, building], index) => {
             console.log('🚀 ~ handleButtonClick ~ buildingData:', buildingData);
             console.log('🚀 ~ handleButtonClick ~ building:', building);
+
+            console.log('building.rooms: ', building.rooms);
 
             acc[buildingMapReverse[building.id]] = {
                 id: buildingMapReverse[building.id],
@@ -332,7 +201,10 @@ function Timetable() {
         const subjectMapReverse = Object.entries(subjectData).reduce((acc, [, subject], index) => {
             acc[subject.id] = {
                 id: index,
-                numOfClasses: Math.min(Math.ceil(subject?.weeklyMinutes / subject.classDuration), numOfSchoolDays),
+                numOfClasses: Math.min(
+                    Math.ceil(subject?.weeklyMinutes / subject.classDuration),
+                    configurations[1].defaultNumberOfSchoolDays
+                ),
                 classDuration: subject.classDuration,
             };
             return acc;
@@ -362,7 +234,11 @@ function Timetable() {
             const fixedPositions = section.fixedPositions;
             const additionalScheds = section.additionalScheds;
 
-            let totalNumOfClasses = calculateTotalClass(subjectData, section.subjects, numOfSchoolDays);
+            let totalNumOfClasses = calculateTotalClass(
+                subjectData,
+                section.subjects,
+                configurations[1].defaultNumberOfSchoolDays
+            );
 
             let totalAdditionalScheduleNumOfClass = additionalScheds.reduce((total, additionalScheduleNumOfClass) => {
                 return total + additionalScheduleNumOfClass.frequency;
@@ -370,13 +246,15 @@ function Timetable() {
 
             // console.log('🚀 ~ handleButtonClick ~ totalAdditionalScheduleNumOfClass:', totalAdditionalScheduleNumOfClass);
 
-            let totalTimeslot = Math.ceil((totalNumOfClasses + totalAdditionalScheduleNumOfClass) / numOfSchoolDays);
+            let totalTimeslot = Math.ceil(
+                (totalNumOfClasses + totalAdditionalScheduleNumOfClass) / configurations[1].defaultNumberOfSchoolDays
+            );
 
             totalTimeslot += totalTimeslot >= 10 ? 2 : 1;
 
             const emptyEveryDayTimeslot = new Set(Array.from({ length: totalTimeslot }, (_, i) => i + 1));
 
-            let vacant = getVacantSlots(totalTimeslot, numOfSchoolDays, fixedPositions, fixedDays);
+            let vacant = getVacantSlots(totalTimeslot, configurations[1].defaultNumberOfSchoolDays, fixedPositions, fixedDays);
 
             // console.log('🚀 ~ Object.entries ~ vacant:', vacant);
 
@@ -397,7 +275,7 @@ function Timetable() {
             Object.keys(fixedPositions).forEach((subjectID) => {
                 const allElementsAreZero = fixedPositions[subjectID].every((element) => element === fixedPositions[subjectID][0]);
 
-                const hasCorrectLength = fixedPositions[subjectID].length == numOfSchoolDays;
+                const hasCorrectLength = fixedPositions[subjectID].length == configurations[1].defaultNumberOfSchoolDays;
 
                 if (allElementsAreZero && hasCorrectLength) {
                     subjectsEveryDay.push(subjectID);
@@ -528,7 +406,9 @@ function Timetable() {
             });
         });
 
-        let breakTimeDurationForAlgo = breakTimeDuration;
+        console.log('wahaha');
+
+        let breakTimeDurationForAlgo = configurations[1].defaultBreakTimeDuration;
 
         const durationUniqueAdditionalTeacherScheds = [
             ...new Set(
@@ -536,16 +416,16 @@ function Timetable() {
             ),
         ];
 
-        let timeDivision = gcdOfArray([
-            ...subjectConfigurationSubjectDurationArray.map((duration) => {
-                let { second: subjectDuration } = unpackInt32ToInt16(duration);
-                return subjectDuration;
-            }),
-            breakTimeDurationForAlgo,
-            durationUniqueAdditionalTeacherScheds,
-        ]);
+        // let timeDivision = gcdOfArray([
+        //     ...subjectConfigurationSubjectDurationArray.map((duration) => {
+        //         let { second: subjectDuration } = unpackInt32ToInt16(duration);
+        //         return subjectDuration;
+        //     }),
+        //     breakTimeDurationForAlgo,
+        //     durationUniqueAdditionalTeacherScheds,
+        // ]);
 
-        timeDivision = 5;
+        let timeDivision = 5;
 
         console.log('🚀 ~ handleButtonClick ~ timeDivision:', timeDivision);
 
@@ -594,7 +474,11 @@ function Timetable() {
             const fixedPositions = section.fixedPositions;
             const additionalScheds = section.additionalScheds;
 
-            let totalNumOfClasses = calculateTotalClass(subjectData, section.subjects, numOfSchoolDays);
+            let totalNumOfClasses = calculateTotalClass(
+                subjectData,
+                section.subjects,
+                configurations[1].defaultNumberOfSchoolDays
+            );
 
             console.log('🚀hheee ~ handleButtonClick ~ section.additionalScheds:', section.additionalScheds);
 
@@ -604,14 +488,16 @@ function Timetable() {
 
             console.log('🚀 ~ handleButtonClick ~ totalAdditionalScheduleNumOfClass:', totalAdditionalScheduleNumOfClass);
 
-            let totalTimeslot = Math.ceil((totalNumOfClasses + totalAdditionalScheduleNumOfClass) / numOfSchoolDays);
+            let totalTimeslot = Math.ceil(
+                (totalNumOfClasses + totalAdditionalScheduleNumOfClass) / configurations[1].defaultNumberOfSchoolDays
+            );
 
             totalTimeslot += totalTimeslot >= 10 ? 2 : 1;
 
             console.log('🚀 ~ sectionMap ~ fixedPositions:', fixedPositions);
             console.log('🚀 ~ sectionMap ~ fixedDays:', fixedDays);
 
-            let vacant = getVacantSlots(totalTimeslot, numOfSchoolDays, fixedPositions, fixedDays);
+            let vacant = getVacantSlots(totalTimeslot, configurations[1].defaultNumberOfSchoolDays, fixedPositions, fixedDays);
 
             console.log('🚀 ~ sectionMap ~ vacant:', vacant);
 
@@ -637,7 +523,7 @@ function Timetable() {
             Object.keys(fixedPositions).forEach((subjectID) => {
                 const allElementsAreZero = fixedPositions[subjectID].every((element) => element === fixedPositions[subjectID][0]);
 
-                const hasCorrectLength = fixedPositions[subjectID].length == numOfSchoolDays;
+                const hasCorrectLength = fixedPositions[subjectID].length == configurations[1].defaultNumberOfSchoolDays;
 
                 if (allElementsAreZero && hasCorrectLength) {
                     subjectsEveryDay.push(subjectID);
@@ -650,7 +536,7 @@ function Timetable() {
                 // console.log(`Key: ${subjectID}, Value: ${positionArray}`);
 
                 if (
-                    positionArray.length == numOfSchoolDays &&
+                    positionArray.length == configurations[1].defaultNumberOfSchoolDays &&
                     emptyEveryDayTimeslot.size >= subjectsEveryDay.length &&
                     positionArray.every((element) => element === positionArray[0])
                 ) {
@@ -766,12 +652,12 @@ function Timetable() {
         console.log('teacherMap', teacherMap);
         console.log('sectionMap', sectionMap);
 
-        let defaultClassDuration = defaultSubjectClassDuration;
+        let defaultClassDuration = configurations[1].defaultClassDuration;
 
-        let maxTeacherWorkLoad = maxTeachingLoad;
+        let maxTeacherWorkLoad = configurations[1].defaultMaximumTeachingLoad;
         // console.log('🚀 ~ handleButtonClick ~ maxTeachingLoad:', maxTeachingLoad);
         // console.log('🚀 ~ handleButtonClick ~ minTeachingLoad:', minTeachingLoad);
-        let minTeacherWorkLoad = minTeachingLoad;
+        let minTeacherWorkLoad = configurations[1].defaultMinimumTeachingLoad;
 
         // maxTeacherWorkLoad = 4000;
         // minTeacherWorkLoad = 100;
@@ -807,7 +693,11 @@ function Timetable() {
         for (const [sectionKey, section] of Object.entries(sectionMap)) {
             sectionStartArray[sectionKey] = section.startTime;
 
-            let totalNumOfClasses = calculateTotalClass(subjectData, section.subjects, numOfSchoolDays);
+            let totalNumOfClasses = calculateTotalClass(
+                subjectData,
+                section.subjects,
+                configurations[1].defaultNumberOfSchoolDays
+            );
 
             let additionalScheduleTotalNumOfClasses = section.additionalScheds.reduce((acc, schedule) => {
                 // console.log('schedule', schedule);
@@ -815,7 +705,9 @@ function Timetable() {
                 return acc + frequency;
             }, 0);
 
-            let totalTimeslot = Math.ceil((totalNumOfClasses + additionalScheduleTotalNumOfClasses) / numOfSchoolDays);
+            let totalTimeslot = Math.ceil(
+                (totalNumOfClasses + additionalScheduleTotalNumOfClasses) / configurations[1].defaultNumberOfSchoolDays
+            );
             // console.log('🚀 ~ handleButtonClick ~ totalTimeslot:', totalTimeslot);
 
             // totalTimeslot =
@@ -980,7 +872,8 @@ function Timetable() {
 
         const numOfViolationType = 7;
 
-        const resultTimetableLength = totalSections * Object.entries(subjectData).length * numOfSchoolDays;
+        const resultTimetableLength =
+            totalSections * Object.entries(subjectData).length * configurations[1].defaultNumberOfSchoolDays;
 
         const resultViolationLength = numOfViolationType * totalSections + numOfViolationType * totalTeachers;
 
@@ -1021,7 +914,7 @@ function Timetable() {
             beesOnlooker: beesOnlooker,
             beesScout: beesScout,
             limit: limits,
-            workWeek: numOfSchoolDays,
+            workWeek: configurations[1].defaultNumberOfSchoolDays,
 
             breakTimeDuration: breakTimeDurationForAlgo,
             teacherBreakThreshold: teacherBreakThreshold,
@@ -1573,8 +1466,6 @@ function Timetable() {
 
     const convertToHashMap = (inputMap, type) => {
         const resultMap = new Map(); // Initialize the outer Map
-        // console.log('morningStartTime: ', morningStartTime);
-        // const timeslotindex = getTimeSlotIndex(morningStartTime);
         const timeslotindex = 72;
         console.log('timeslotindex: ', timeslotindex);
         console.log('inputMap: ', inputMap);
@@ -1658,8 +1549,6 @@ function Timetable() {
                         });
                     }
                 } else {
-                    // Use sectionID, subjectID, and start time to create a unique key for the schedule
-                    // let scheduleKey = `section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${schedule.day}-type-${type}`;
                     let scheduleKey = `${schedule.section ?? 'n'}-${schedule.teacher ?? 'n'}-${schedule.subject ?? 'n'}-${
                         schedule.day ?? 'n'
                     }-${type[0] ?? 'n'}`;
@@ -1667,12 +1556,10 @@ function Timetable() {
                     let duplicate = false;
                     if (scheduleMap.has(scheduleKey)) {
                         duplicate = true;
-                        // scheduleKey = `additional-section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${schedule.day}-type-${type}`;
                         scheduleKey = `a-${schedule.section ?? 'n'}-${schedule.teacher ?? 'n'}-${schedule.subject ?? 'n'}-${
                             schedule.day ?? 'n'
                         }-${type[0] ?? 'n'}`;
                     }
-                    // let keyToFind = scheduleKey.replace(/(type-)([^-]+)/, `$1${partnerType}`);
                     let keyToFind = scheduleKey.replace(/[^-]+$/, partnerType[0] ?? 'n');
 
                     scheduleMap.set(scheduleKey, {
@@ -1712,10 +1599,6 @@ function Timetable() {
         return combinedMap;
     }
 
-    // =====================================================================================================================================
-
-    console.log('retrigger index');
-
     return (
         <div className='App container mx-auto px-4 py-6'>
             <NotificationHandler timetableCondition={timetableGenerationStatus} />
@@ -1731,8 +1614,8 @@ function Timetable() {
                         buildings={buildingsStore}
                         sections={sectionsStore}
                         onClear={handleClearAndRefresh}
-                        numOfSchoolDays={numOfSchoolDays}
-                        breakTimeDuration={breakTimeDuration}
+                        defaultNumberOfSchoolDays={configurations[1].defaultNumberOfSchoolDays}
+                        breakTimeDuration={configurations[1].defaultBreakTimeDuration}
                     />
                     <button
                         className={clsx('btn btn-primary', {
@@ -1759,66 +1642,29 @@ function Timetable() {
             </div>
 
             <div className='mb-6'>
-                <Configuration
-                    numOfSchoolDays={numOfSchoolDays}
-                    setNumOfSchoolDays={setNumOfSchoolDays}
-                    breakTimeDuration={breakTimeDuration}
-                    setBreakTimeDuration={setBreakTimeDuration}
-                />
+                <Configuration />
             </div>
 
             <div>
                 <div className='mt-6 bg-base-100 p-6 rounded-lg shadow-lg'>
                     <h2 className='text-lg font-semibold mb-4'>Subjects</h2>
-                    <SubjectListContainer
-                        subjects={subjectsStore}
-                        programs={programsStore}
-                        sections={sectionsStore}
-                        numOfSchoolDays={numOfSchoolDays}
-                        breakTimeDuration={breakTimeDuration}
-                    />
+                    <SubjectListContainer />
                 </div>
 
                 <div className='mt-6 bg-base-100 p-6 rounded-lg shadow-lg'>
                     <h2 className='text-lg font-semibold mb-4'>Teachers</h2>
-                    <TeacherListContainer
-                        teachers={teachersStore}
-                        ranks={ranksStore}
-                        departments={departmentsStore}
-                        subjects={subjectsStore}
-                    />
+                    <TeacherListContainer />
                 </div>
 
-                {/* Program Lists */}
                 <div className='mt-6 bg-base-100 p-6 rounded-lg shadow-lg'>
                     <h2 className='text-lg font-semibold mb-4'>Programs</h2>
-                    <ProgramListContainer
-                        subjects={subjectsStore}
-                        programs={programsStore}
-                        sections={sectionsStore}
-                        numOfSchoolDays={numOfSchoolDays}
-                        breakTimeDuration={breakTimeDuration}
-                    />
+                    <ProgramListContainer />
                 </div>
 
-                {/* Section List with the Generate Timetable Button */}
                 <div className='mt-6'>
                     <div className='bg-base-100 p-6 rounded-lg shadow-lg'>
                         <h2 className='text-lg font-semibold mb-4'>Sections</h2>
-                        <SectionListContainer
-                            subjects={subjectsStore}
-                            programs={programsStore}
-                            sections={sectionsStore}
-                            teachers={teachersStore}
-                            buildings={buildingsStore}
-                            numOfSchoolDays={numOfSchoolDays}
-                            breakTimeDuration={breakTimeDuration}
-                        />
-                        {/* <div className='mt-4'>
-                            <ViolationList 
-                                violations={violations} 
-                            />
-                        </div> */}
+                        <SectionListContainer />
                     </div>
                 </div>
             </div>

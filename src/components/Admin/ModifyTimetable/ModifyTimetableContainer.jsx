@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import DragDrop from './DragDrop';
 import { generateTimeSlots } from '../utils';
 import { produce } from 'immer';
@@ -10,25 +10,23 @@ import clsx from 'clsx';
 import { IoIosAdd, IoIosWarning } from 'react-icons/io';
 import { FiMinus } from 'react-icons/fi';
 import ExportSchedules from './ExportSchedules';
-import { addDocument } from '../../../hooks/CRUD/addDocument';
-import { editDocument } from '../../../hooks/CRUD/editDocument';
+import { addDocument } from '../../../hooks/firebaseCRUD/addDocument';
+import { editDocument } from '../../../hooks/firebaseCRUD/editDocument';
+import { useSelector } from 'react-redux';
+import { COLLECTION_ABBREVIATION } from '../../../constants';
 
 function processRows(data, n) {
-    // Generate a key from each row ignoring the last element
     function generateKey(row) {
         return JSON.stringify(row.slice(0, -1));
     }
-    // Count occurrences of each unique key
     const keyCounts = {};
     data.forEach((row) => {
         const key = generateKey(row);
         keyCounts[key] = (keyCounts[key] || 0) + 1;
     });
 
-    // Identify keys that appear at least `n` times
     const keysToOverwrite = Object.keys(keyCounts).filter((key) => keyCounts[key] >= n);
 
-    // Create the new data set
     const newData = [];
     const overwrittenKeys = new Set(keysToOverwrite);
 
@@ -37,7 +35,6 @@ function processRows(data, n) {
         newData.push([...parsedKey, 0]);
     });
 
-    // Add rows that don't meet the condition unchanged
     data.forEach((row) => {
         const key = generateKey(row);
         if (!overwrittenKeys.has(key)) {
@@ -48,19 +45,7 @@ function processRows(data, n) {
     return newData;
 }
 
-function getSectionID(data) {
-    // Generate a key from each row ignoring the last element
-
-    data.forEach((row) => {
-        const key = generateKey(row);
-        keyCounts[key] = (keyCounts[key] || 0) + 1;
-    });
-
-    return newData;
-}
-
 const ModifyTimetableContainer = ({
-    // stores
     subjects,
     programs,
     sections,
@@ -69,8 +54,6 @@ const ModifyTimetableContainer = ({
     departments,
     buildings,
     schedules,
-    // stores
-
     hashMap = new Map(),
     timetableName = '',
     firebaseId = null,
@@ -79,13 +62,7 @@ const ModifyTimetableContainer = ({
     errorField,
     setErrorField,
 }) => {
-    console.log('timetableName sa loob: ', timetableName);
-    // console.log('timetableId sa loob: ', timetableId);
-    console.log('firebaseId sa loob: ', firebaseId);
-    console.log('teachers sa loob: ', teachers);
-    console.log('subjects sa loob: ', subjects);
-
-    console.log('sections sa loob: ', sections);
+    const { user: currentUser } = useSelector((state) => state.user);
 
     const inputNameRef = useRef();
 
@@ -96,16 +73,7 @@ const ModifyTimetableContainer = ({
         remaining: deleteRemaining,
     } = useDeleteAllFirebaseTimetables();
 
-    // ================================================================================================================
-
-    // const { schedules, status: schedStatus } = useSelector((state) => state.schedule);
-    // const { teachers, status: teacherStatus } = useSelector((state) => state.teacher);
-    // const { subjects, status: subjectStatus } = useSelector((state) => state.subject);
-    // const { sections, status: sectionStatus } = useSelector((state) => state.section);
-
-    // const [scheduleVerId, setScheduleVerId] = useState(timetableId);
     const [scheduleVerName, setScheduleVerName] = useState(timetableName);
-    console.log('rendering');
 
     useEffect(() => {
         setScheduleVerName(timetableName);
@@ -133,15 +101,12 @@ const ModifyTimetableContainer = ({
     const deploy = async () => {
         console.log('deploying', valueMap);
         const array = mapToArray(valueMap);
-        // console.log('array ffasdf: ', array);
 
         const n = 5;
         let resultarray = [];
         array.forEach((row) => {
             let tableArray = [];
             let result = processRows(row[1], n);
-            // let section_id = null;
-            // section_id = row[1][0][3];
             console.log('row: ', row);
             let modalityArray = [];
             let sectionAdviser = '';
@@ -171,6 +136,9 @@ const ModifyTimetableContainer = ({
                     buildings[sections[currSectionID]?.roomDetails?.buildingId]?.rooms[
                         sections[currSectionID]?.roomDetails?.floorIdx
                     ][sections[currSectionID]?.roomDetails?.roomIdx].roomName;
+
+                console.log('f', buildings[sections[currSectionID]]);
+
                 console.log('sectionRoom: ', sectionRoom);
             } else if (row[2] === 't') {
                 for (let i = 0; i < row[1].length; i++) {
@@ -191,17 +159,9 @@ const ModifyTimetableContainer = ({
             tableArray.push(sectionRoom);
             tableArray.push(teacherRank);
             tableArray.push(teacherDepartment);
-            // let modality = [];
-
-            // if (row[2] === 's') {
-            //     modality = sections[section_id].modality;
-            // }
-            // console.log('modality: ', modality);
-            // tableArray.push(modality);
             resultarray.push(tableArray);
         });
 
-        // console.log('array: ', array.slice(0, 3));
         console.log('resultarray: ', resultarray.slice(0, 3));
 
         handleDeployTimetables(resultarray);
@@ -231,51 +191,37 @@ const ModifyTimetableContainer = ({
     const [pageNumbers, setPageNumbers] = useState([]); // State for page numbers
     const [editMode, setEditMode] = useState(false); // State for page numbers
 
-    // const updateState = useCallback(setValueMap, []);
-
     const generatePageNumbers = (filtered) => {
         const pages = [];
         const pageCount = Math.ceil(filtered.size / itemsPerPage); // Calculate total pages based on filtered data
 
-        // console.log("check: ", pageCount);
-
-        // If there are fewer than or equal to 6 pages, just add all pages
         if (pageCount <= 6) {
             for (let i = 1; i <= pageCount; i++) {
                 pages.push(i);
             }
         } else {
-            // Add first page
             pages.push(1);
 
-            // If the current page is near the beginning, show the next 2 pages
             if (currentPage <= 3) {
                 for (let i = 2; i <= 3; i++) {
                     pages.push(i);
                 }
             } else if (currentPage >= pageCount - 2) {
-                // If the current page is near the end, show the previous 2 pages
                 for (let i = pageCount - 2; i <= pageCount - 1; i++) {
                     pages.push(i);
                 }
             } else {
-                // Add previous page
                 pages.push(currentPage - 1);
 
-                // Add current page
                 pages.push(currentPage);
 
-                // Add next page
                 pages.push(currentPage + 1);
             }
 
-            // Add ellipsis (null)
             pages.push(null);
 
-            // Add last page
             pages.push(pageCount);
         }
-        // console.log('pages: ', pages);
         return pages;
     };
 
@@ -302,33 +248,22 @@ const ModifyTimetableContainer = ({
         }
     };
 
-    const save = () => {
+    const save = async () => {
         const array = mapToArray(valueMap);
         console.log('IDTNIGNA: ', firebaseId);
         console.log('🚀 ~ save ~ valueMap:', valueMap);
 
         console.log('array          dddddddddd: ', array);
 
-        //n is for number of days
         const n = 5;
         let resultarray = [];
         array.forEach((row) => {
             let tableArray = [];
             let result = processRows(row[1], n);
-            // let section_id = null;
-            // section_id = row[1][0][3];
-            // let modalityArray = [];
             console.log('ROW LOG: ', row);
             tableArray.push(row[0]);
             tableArray.push(result);
             tableArray.push(row[2]);
-            // let modality = [];
-
-            // if (row[2] === 's') {
-            //     modality = sections[section_id].modality;
-            // }
-            // console.log('modality: ', modality);
-            // tableArray.push(modality);
             resultarray.push(tableArray);
         });
 
@@ -336,7 +271,6 @@ const ModifyTimetableContainer = ({
 
         console.log('stringified table: ', stringifiedTimeTable);
 
-        //calculate size
         function getStringSizeInKB(string) {
             const sizeInBytes = new Blob([string]).size;
             return sizeInBytes / 1024;
@@ -345,9 +279,6 @@ const ModifyTimetableContainer = ({
         const sizeStringified = getStringSizeInKB(stringifiedTimeTable);
 
         console.log(`Output size: ${sizeStringified.toFixed(2)} KB`);
-
-        // const dataMap = convertStringDataToMap(stringifiedTimeTable);
-        // console.log('dataMap: ', dataMap);
 
         if (!scheduleVerName.trim()) {
             setErrorField('timetable_name');
@@ -364,36 +295,39 @@ const ModifyTimetableContainer = ({
             setErrorField('timetable_name');
             setErrorMessage(`Timetable with name '${scheduleVerName}' already exists.`);
             return;
-        } else {
+        }
+
+        try {
             if (firebaseId === null) {
-                // dispatch(
-                //     addSched({
-                //         name: scheduleVerName,
-                //         data: stringifiedTimeTable,
-                //     })
-                // );
-                addDocument('schedules', {
-                    name: scheduleVerName,
-                    data: stringifiedTimeTable,
+                await addDocument({
+                    collectionName: 'schedules',
+                    collectionAbbreviation: COLLECTION_ABBREVIATION.SCHEDULES,
+                    userName: currentUser?.username || 'unknown user',
+                    itemName: scheduleVerName || 'an item',
+                    entryData: {
+                        n: scheduleVerName,
+                        d: stringifiedTimeTable,
+                    },
                 });
             } else {
-                // dispatch(
-                //     editSched({
-                //         schedId: timetableId,
-                //         updatedSched: {
-                //             name: scheduleVerName,
-                //             data: stringifiedTimeTable,
-                //         },
-                //     })
-                // );
-                editDocument('schedules', firebaseId, {
-                    name: scheduleVerName,
-                    data: stringifiedTimeTable,
+                await editDocument({
+                    docId: firebaseId,
+                    collectionName: 'schedules',
+                    collectionAbbreviation: COLLECTION_ABBREVIATION.SCHEDULES,
+                    userName: currentUser?.username || 'unknown user',
+                    itemName: scheduleVerName || 'an item',
+                    entryData: {
+                        n: scheduleVerName,
+                        d: stringifiedTimeTable,
+                    },
                 });
             }
-
-            document.getElementById('confirm_schedule_save_modal').close();
+        } catch (error) {
+            console.error('Failed to save timetable:', error);
+            setErrorMessage('Something went wrong while saving. Please try again.');
         }
+
+        document.getElementById('confirm_schedule_save_modal').close();
     };
 
     const clear = () => {

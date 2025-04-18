@@ -1,40 +1,42 @@
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
-import { useState, useEffect } from 'react';
-import { setAuthUserUid, clearAuthUserUid } from '../utils/localStorageUtils';
+import { useEffect } from 'react';
 import { getUserData } from '../firebase/userService';
 import { useDispatch } from 'react-redux';
-import { setUser as setUserRedux } from '../features/userSlice';
+import { setUser, clearUser, setLoading } from '../features/userSlice';
+import { toast } from 'sonner';
+
+import { signOut } from 'firebase/auth';
+
 const useAuth = () => {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-
     const dispatch = useDispatch();
-
-    useEffect(() => {
-        console.log('user', user);
-    }, [user]);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             if (user) {
-                const uid = user.uid;
-                const userData = await getUserData(uid);
-                dispatch(setUserRedux(userData));
-                setAuthUserUid(uid);
-                setUser({ ...user, ...userData });
+                console.log('User is signed in', user.uid);
+                try {
+                    const userData = await getUserData(user.uid);
+                    console.log('🚀 ~ handleUserLoggedIn ~ user:', user);
+                    console.log('🚀 ~ handleUserLoggedIn ~ userData:', userData);
+                    dispatch(setUser(userData));
+                } catch (error) {
+                    console.error('Error fetching user data:', error);
+                    toast.error('User data not found. Signing out...');
+                    await signOut(auth);
+                    dispatch(clearUser());
+                }
             } else {
-                setUser(null);
-                clearAuthUserUid();
+                console.log('User is signed out');
+                dispatch(clearUser());
             }
 
-            setLoading(false);
+            dispatch(setLoading(false));
         });
-
-        return () => unsubscribe();
-    }, []);
-
-    return { user, loading };
+        return () => {
+            unsubscribe();
+        };
+    }, [dispatch]);
 };
 
 export default useAuth;

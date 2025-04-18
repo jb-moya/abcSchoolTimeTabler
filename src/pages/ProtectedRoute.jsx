@@ -1,32 +1,30 @@
 import { Navigate } from 'react-router-dom';
-import useAuth from '../app/useAuth';
-import SuspenseContent from '../containers/SuspenseContent';
 import { useSelector } from 'react-redux';
+import SuspenseContent from '../containers/SuspenseContent';
 
-const ProtectedRoute = ({ path, element, requiredPermissions = [], requiredRole = null }) => {
-    const { user, loading } = useAuth();
+const ProtectedRoute = ({ children, requiredPermissions = [], requiredRole = null }) => {
+    const { user, loading } = useSelector((state) => state.user);
     const userInfo = useSelector((state) => state.user);
-
-    if (!element) {
+    
+    const { role = '', permissions = [] } = userInfo?.user || {};
+    
+    if (!children) {
         return <SuspenseContent />; // Show loading state if path or element are not available
     }
-
+    
     if (loading) return <SuspenseContent />;
-    if (!user) return <Navigate to='/auth/login' />;
+    
+    if (!user && !loading) return <Navigate to='/auth/login' />;
+    
+    if (role === 'super admin') return children; // Super admin has access to everything
+    
+    const hasPermissions = role === 'admin' && requiredPermissions.every((perm) => permissions.includes(perm));
 
-    // Super Admin always has access
-    let hasAccess =
-        userInfo.user.role === 'super admin' ||
-        (userInfo.user.role === 'admin' &&
-            Array.isArray(userInfo.user.permissions) &&
-            requiredPermissions.every((perm) => userInfo.user.permissions.includes(perm)));
+    const hasRequiredRole = requiredRole ? role === requiredRole : true;
 
+    const hasAccess = hasPermissions && hasRequiredRole;
 
-    if (requiredRole !== null) {
-        hasAccess = hasAccess && userInfo.user.role === requiredRole;
-    }
-
-    return hasAccess ? element : <Navigate to='/app/unauthorized' />;
+    return hasAccess ? children : <Navigate to='/unauthorized' />;
 };
 
 export default ProtectedRoute;

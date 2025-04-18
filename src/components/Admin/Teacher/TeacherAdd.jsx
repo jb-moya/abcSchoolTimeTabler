@@ -5,9 +5,11 @@ import SearchableDropdownToggler from '../searchableDropdown';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import AdditionalScheduleForTeacher from './AdditionalScheduleForTeacher';
 
-import { addDocument } from '../../../hooks/CRUD/addDocument';
+import { addDocument } from '../../../hooks/firebaseCRUD/addDocument';
 
 import { toast } from 'sonner';
+import { COLLECTION_ABBREVIATION } from '../../../constants';
+import { useSelector } from 'react-redux';
 
 const AddTeacherContainer = ({
     // STORES
@@ -21,12 +23,11 @@ const AddTeacherContainer = ({
     setErrorMessage,
     errorField,
     setErrorField,
-    numOfSchoolDays,
+    numOfSchoolDays = 5,
 }) => {
-
     const inputNameRef = useRef();
 
-// =============================================================================================================
+    const { user: currentUser } = useSelector((state) => state.user);
 
     const [teacherName, setTeacherName] = useState('');
 
@@ -40,10 +41,9 @@ const AddTeacherContainer = ({
 
     const [additionalTeacherScheds, setAdditionalTeacherScheds] = useState([]);
 
-// =============================================================================================================
+    // =============================================================================================================
 
-    const handleAddTeacher = () => {
-
+    const handleAddTeacher = async () => {
         if (!teacherName.trim()) {
             setErrorMessage('Teacher name cannot be empty.');
             setErrorField('name');
@@ -74,16 +74,32 @@ const AddTeacherContainer = ({
             setErrorField('name');
             setErrorMessage('Teacher already exists.');
             return;
-        } 
+        }
 
         try {
-            addDocument('teachers', {
-                teacher: teacherName,
-                rank: teacherRank,
-                department: teacherDepartment,
-                subjects: selectedSubjects,
-                yearLevels: assignedYearLevels,
-                additionalTeacherScheds: additionalTeacherScheds,
+
+            const schedules = additionalTeacherScheds.map((sched) => ({
+                n: sched.name,
+                su: sched.subject,
+                d: sched.duration,
+                f: sched.frequency,
+                sh: sched.shown,
+                t: sched.time,
+            }));
+
+            await addDocument({
+                collectionName: 'teachers',
+                collectionAbbreviation: COLLECTION_ABBREVIATION.TEACHERS,
+                userName: currentUser?.username || 'unknown user',
+                itemName: teacherName || 'an item',
+                entryData: {
+                    t: teacherName,
+                    r: teacherRank,
+                    d: teacherDepartment,
+                    s: selectedSubjects,
+                    y: assignedYearLevels,
+                    at: schedules,
+                },
             });
         } catch (error) {
             console.error('Error adding teacher:', error);
@@ -115,7 +131,6 @@ const AddTeacherContainer = ({
         //         additionalTeacherScheds: additionalTeacherScheds,
         //     })
         // );
-
     };
 
     const handleRankChange = (event) => {
@@ -154,7 +169,7 @@ const AddTeacherContainer = ({
         setAdditionalTeacherScheds((prevScheds) => prevScheds.filter((_, i) => i !== index));
     };
 
-// ============================================================================================================
+    // ============================================================================================================
 
     const handleReset = () => {
         setErrorField('');
@@ -182,7 +197,7 @@ const AddTeacherContainer = ({
         }
     }, [teacherRank]);
 
-// =============================================================================================================
+    // =============================================================================================================
 
     useEffect(() => {
         if (inputNameRef.current) {
@@ -190,7 +205,7 @@ const AddTeacherContainer = ({
         }
     }, []);
 
-// ============================================================================================================
+    // ============================================================================================================
 
     return (
         <div className='justify-left'>
@@ -201,7 +216,6 @@ const AddTeacherContainer = ({
             <hr className=''></hr>
 
             <div className='rounded-lg shadow-md md:shadow-lg sm:shadow-sm space-y-4 mb-4 p-4'>
-
                 {/* Teacher Name */}
                 <div className='mb-4'>
                     <label className='block text-sm font-medium mb-1' htmlFor='teacherName'>
@@ -276,7 +290,7 @@ const AddTeacherContainer = ({
                         </select>
                     </div>
                 </div>
-                
+
                 {/* Assigning of Subjects and Grade Levels to Teach */}
                 <div className='flex flex-wrap mb-4 '>
                     {/* Subjects Section */}
@@ -284,9 +298,7 @@ const AddTeacherContainer = ({
                         <div className='rounded-lg border p-4 shadow-md'>
                             <h4 className='font-semibold text-sm text-left'>Subjects</h4>
                             <hr className='my-2'></hr>
-                            <SearchableDropdownToggler 
-                                    selectedList={selectedSubjects}
-                                    setSelectedList={setSelectedSubjects} />
+                            <SearchableDropdownToggler selectedList={selectedSubjects} setSelectedList={setSelectedSubjects} />
                             <div className='mt-2'>
                                 <p className='font-medium text-left text-sm mb-2'>Selected Subjects:</p>
                                 {selectedSubjects.length === 0 ? (
@@ -327,7 +339,6 @@ const AddTeacherContainer = ({
                         </div>
                     </div>
                 </div>
-
             </div>
 
             {/* Additional Schedules */}
@@ -421,7 +432,6 @@ const AddTeacherContainer = ({
             </div>
         </div>
     );
-
 };
 
 export default AddTeacherContainer;

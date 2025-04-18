@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { firestore } from '../firebase/firebase';
 import { toast } from 'sonner';
-import useAuth from '../app/useAuth';
+import { useSelector } from 'react-redux';
 
 function useDeleteAllFirebaseTimetables() {
     const [isLoading, setIsLoading] = useState(false);
     const [remaining, setRemaining] = useState(0);
-    const { loading: userLoading } = useAuth;
+    const { loading: userLoading } = useSelector((state) => state.user);
 
     const collectionPath = 'timetables';
 

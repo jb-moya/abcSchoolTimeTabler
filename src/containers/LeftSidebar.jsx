@@ -1,19 +1,16 @@
 import routes from '../routes/sidebar';
-import { NavLink, Routes, Link, useLocation, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import SidebarSubmenu from './SidebarSubmenu';
 import XMarkIcon from '@heroicons/react/24/outline/XMarkIcon';
-import { useDispatch } from 'react-redux';
 import { getAuthUserUid } from '../utils/localStorageUtils';
 import { GoCopy } from 'react-icons/go';
-import useAuth from '../app/useAuth';
+import { useSelector } from 'react-redux';
 
 function LeftSidebar() {
     const location = useLocation();
     const uid = getAuthUserUid();
     const navigate = useNavigate();
-    const { user, loading: userLoading } = useAuth();
-    console.log("🚀 ~ LeftSidebar ~ user:", user)
-    const dispatch = useDispatch();
+    const { user, loading: userLoading } = useSelector((state) => state.user);
 
     const close = (e) => {
         document.getElementById('left-sidebar-drawer').click();
@@ -67,10 +64,7 @@ function LeftSidebar() {
                         return null; // Hide route if role doesn't match
                     }
                     return (
-                        <li 
-                            className='' 
-                            key={k}
-                        >
+                        <li className='' key={k}>
                             {route.submenu ? (
                                 <SidebarSubmenu {...route} />
                             ) : (

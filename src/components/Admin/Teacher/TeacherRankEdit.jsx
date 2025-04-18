@@ -3,9 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import AdditionalScheduleForTeacherRank from './AdditionalScheduleForTeacherRank';
 
-import { editDocument } from '../../../hooks/CRUD/editDocument';
+import { editDocument } from '../../../hooks/firebaseCRUD/editDocument';
 
-import { toast } from "sonner";
+import { toast } from 'sonner';
+import { COLLECTION_ABBREVIATION } from '../../../constants';
+import { useSelector } from 'react-redux';
 
 const TeacherRankEdit = ({
     // STORES
@@ -17,110 +19,130 @@ const TeacherRankEdit = ({
     setErrorMessage,
     errorField,
     setErrorField,
-    numOfSchoolDays,
+    numOfSchoolDays = 5,
 }) => {
-    
-// ==============================================================================
+    const { user: currentUser } = useSelector((state) => state.user);
 
     const [editRankId, setEditRankId] = useState(rank.id || null);
 
     const [editRankValue, setEditRankValue] = useState(rank.rank || '');
 
-    const [editAdditionalRankScheds, setEditAdditionalRankScheds] = useState((rank.additionalRankScheds) || []);
+    const [editAdditionalRankScheds, setEditAdditionalRankScheds] = useState(rank.additionalRankScheds || []);
 
-	useEffect(() => {
-		if (rank) {
-			setEditRankId(rank.id || null);
-			setEditRankValue(rank.rank || '');
-			setEditAdditionalRankScheds(rank.additionalRankScheds || []);
-		}
-	}, [rank]);
+    useEffect(() => {
+        if (rank) {
+            setEditRankId(rank.id || null);
+            setEditRankValue(rank.rank || '');
+            setEditAdditionalRankScheds(rank.additionalRankScheds || []);
+        }
+    }, [rank]);
 
-// ==============================================================================
+    // ==============================================================================
 
-	const updateAllTeacherAdditionalSchedules = () => {
+    const updateAllTeacherAdditionalSchedules = async () => {
+        for (const [teacherID, teacher] of Object.entries(teachers)) {
+            const newTeacher = JSON.parse(JSON.stringify(teacher));
 
-		Object.entries(teachers).forEach(([teacherID, teacher]) => {
-			const newTeacher = JSON.parse(JSON.stringify(teacher));
+            if (newTeacher.rank !== editRankId) return;
 
-			if (newTeacher.rank !== editRankId) return;
+            const updatedSchedNames = new Set(editAdditionalRankScheds.map((sched) => sched.name));
 
-			const updatedSchedNames = new Set(editAdditionalRankScheds.map((sched) => sched.name));
+            const advisoryLoadSched = newTeacher.additionalTeacherScheds.find((sched) => sched.name === 'Advisory Load');
 
-			const advisoryLoadSched = newTeacher.additionalTeacherScheds.find(
-				(sched) => sched.name === 'Advisory Load'
-			);
+            let updatedAdditionalScheds = structuredClone(editAdditionalRankScheds);
 
-			let updatedAdditionalScheds = structuredClone(editAdditionalRankScheds);
-
-			if (advisoryLoadSched && !updatedSchedNames.has('Advisory Load')) {
-				updatedAdditionalScheds.push(advisoryLoadSched);
-				updatedSchedNames.add('Advisory Load'); 
-			}
-
-			const existingSchedsMap = new Map(
-				newTeacher.additionalTeacherScheds.map((sched) => [sched.name, sched])
-			);
-
-			newTeacher.additionalTeacherScheds = updatedAdditionalScheds.map((updatedSched) => {
-				const existingSched = existingSchedsMap.get(updatedSched.name);
-
-				if (existingSched) {
-					return {
-						...existingSched,
-						duration: updatedSched.duration || existingSched.duration,
-						frequency: updatedSched.frequency || existingSched.frequency,
-						shown: updatedSched.shown ?? existingSched.shown,
-						time: updatedSched.time || existingSched.time,
-					};
-				}
-
-				// If the schedule doesn't exist, add it as is
-				return updatedSched;
-			});
-
-            const updatedEntry = {
-                custom_id: newTeacher.custom_id,
-                teacher: newTeacher.teacher,
-                rank: newTeacher.rank,
-                subjects: newTeacher.subjects,
-                yearLevels: newTeacher.yearLevels,
-                additionalTeacherScheds: newTeacher.additionalTeacherScheds,
+            if (advisoryLoadSched && !updatedSchedNames.has('Advisory Load')) {
+                updatedAdditionalScheds.push(advisoryLoadSched);
+                updatedSchedNames.add('Advisory Load');
             }
 
-            editDocument('teachers', newTeacher.id, updatedEntry);
-			
-		})
-	};
-	
-	const handleSaveRankEditClick = (value) => {
+            const existingSchedsMap = new Map(newTeacher.additionalTeacherScheds.map((sched) => [sched.name, sched]));
 
+            newTeacher.additionalTeacherScheds = updatedAdditionalScheds.map((updatedSched) => {
+                const existingSched = existingSchedsMap.get(updatedSched.name);
+
+                if (existingSched) {
+                    return {
+                        ...existingSched,
+                        duration: updatedSched.duration || existingSched.duration,
+                        frequency: updatedSched.frequency || existingSched.frequency,
+                        shown: updatedSched.shown ?? existingSched.shown,
+                        time: updatedSched.time || existingSched.time,
+                    };
+                }
+
+                // If the schedule doesn't exist, add it as is
+                return updatedSched;
+            });
+
+            const schedules = newTeacher.additionalTeacherScheds.map((sched) => ({
+                n: sched.name,
+                su: sched.subject,
+                d: sched.duration,
+                f: sched.frequency,
+                sh: sched.shown,
+                t: sched.time,
+            }));
+
+            await editDocument({
+                collectionName: 'teachers',
+                collectionAbbreviation: COLLECTION_ABBREVIATION.TEACHERS,
+                userName: currentUser?.username || 'unknown user',
+                itemName: 'a teacher' || 'an item',
+                docId: newTeacher.id,
+                entryData: {
+                    t: newTeacher.teacher,
+                    r: newTeacher.rank,
+                    s: newTeacher.subjects,
+                    y: newTeacher.yearLevels,
+                    at: schedules,
+                },
+            });
+        }
+    };
+
+    const handleSaveRankEditClick = async (value) => {
         handleConfirmationModalClose();
 
-		if (!editRankValue.trim()) {
-			toast.error('All fields are required.', {
-				style: { backgroundColor: 'red', color: 'white' },
-			});
-			return;
-		}
+        if (!editRankValue.trim()) {
+            toast.error('All fields are required.', {
+                style: { backgroundColor: 'red', color: 'white' },
+            });
+            return;
+        }
 
-		const currentRank = ranks[editRankId]?.rank || '';
+        const currentRank = ranks[editRankId]?.rank || '';
 
-		if (editRankValue.trim().toLowerCase() === currentRank.trim().toLowerCase()) {
-
+        if (editRankValue.trim().toLowerCase() === currentRank.trim().toLowerCase()) {
             try {
-                editDocument('ranks', editRankId, {
-                    rank: editRankValue,
-						additionalRankScheds: editAdditionalRankScheds,
+
+                const schedules = editAdditionalRankScheds.map((sched) => ({
+                    n: sched.name,
+                    su: sched.subject,
+                    d: sched.duration,
+                    f: sched.frequency,
+                    sh: sched.shown,
+                    t: sched.time,
+                }));
+
+                await editDocument({
+                    collectionName: 'ranks',
+                    collectionAbbreviation: COLLECTION_ABBREVIATION.RANKS,
+                    userName: currentUser?.username || 'unknown user',
+                    itemName: currentRank || 'an item',
+                    docId: editRankId,
+                    entryData: {
+                        r: editRankValue,
+                        ar: schedules,
+                    },
                 });
 
                 if (value) {
                     updateAllTeacherAdditionalSchedules();
                 }
-
-            } catch {
+            } catch (error) {
                 toast.error('Something went wrong. Please try again.');
-                console.error('Something went wrong. Please try again.');
+                console.error('Error: ', error);
             } finally {
                 toast.success('Data and dependencies updated successfully!', {
                     style: {
@@ -129,31 +151,46 @@ const TeacherRankEdit = ({
                         borderColor: '#28a745',
                     },
                 });
-        
+
                 resetStates();
                 closeModal();
             }
-	
-		} else {
-			const duplicateRank = Object.values(ranks).find((rank) => rank.rank.trim().toLowerCase() === editRankValue.trim().toLowerCase());
+        } else {
+            const duplicateRank = Object.values(ranks).find(
+                (rank) => rank.rank.trim().toLowerCase() === editRankValue.trim().toLowerCase()
+            );
 
-			if (duplicateRank) {
-				toast.error('Rank already exists.', {
-					style: { backgroundColor: 'red', color: 'white' },
-				});
-				return;
-			} else {
-
+            if (duplicateRank) {
+                toast.error('Rank already exists.', {
+                    style: { backgroundColor: 'red', color: 'white' },
+                });
+                return;
+            } else {
                 try {
-                    editDocument('ranks', editRankId, {
-                        rank: editRankValue,
-                            additionalRankScheds: editAdditionalRankScheds,
+                    const schedules = editAdditionalRankScheds.map((sched) => ({
+                        n: sched.name,
+                        su: sched.subject,
+                        d: sched.duration,
+                        f: sched.frequency,
+                        sh: sched.shown,
+                        t: sched.time,
+                    }));
+    
+                    await editDocument({
+                        collectionName: 'ranks',
+                        collectionAbbreviation: COLLECTION_ABBREVIATION.RANKS,
+                        userName: currentUser?.username || 'unknown user',
+                        itemName: currentRank || 'an item',
+                        docId: editRankId,
+                        entryData: {
+                            r: editRankValue,
+                            ar: schedules,
+                        },
                     });
-        
+
                     if (value) {
                         updateAllTeacherAdditionalSchedules();
                     }
-    
                 } catch {
                     toast.error('Something went wrong. Please try again.');
                     console.error('Something went wrong. Please try again.');
@@ -165,59 +202,55 @@ const TeacherRankEdit = ({
                             borderColor: '#28a745',
                         },
                     });
-            
+
                     resetStates();
                     closeModal();
                 }
+            }
+        }
+    };
 
-			}
-		}
+    // ==============================================================================
 
-	};
+    const handleDeleteAdditionalSchedule = (index) => {
+        setEditAdditionalRankScheds((prevScheds) => prevScheds.filter((_, i) => i !== index));
+    };
 
-// ==============================================================================
+    const handleAddAdditionalSchedule = () => {
+        setEditAdditionalRankScheds((prevScheds) => [
+            ...prevScheds,
+            {
+                name: '',
+                subject: -1,
+                duration: 60,
+                frequency: 1,
+                shown: true,
+                time: 72,
+            },
+        ]);
+    };
 
-	const handleDeleteAdditionalSchedule = (index) => {
-		setEditAdditionalRankScheds((prevScheds) =>
-			prevScheds.filter((_, i) => i !== index)
-		);
-	};
-
-	const handleAddAdditionalSchedule = () => {
-		setEditAdditionalRankScheds((prevScheds) => [
-			...prevScheds,
-			{
-				name: '',
-				subject: -1,
-				duration: 60,
-				frequency: 1,
-				shown: true,
-				time: 72,
-			},
-		]);
-	};
-
-// ==============================================================================
+    // ==============================================================================
 
     const resetStates = () => {
-		setEditRankId(rank.id || null);
-		setEditRankValue(rank.rank || "");
-		setEditAdditionalRankScheds((rank.additionalRankScheds) || []);
-	};
+        setEditRankId(rank.id || null);
+        setEditRankValue(rank.rank || '');
+        setEditAdditionalRankScheds(rank.additionalRankScheds || []);
+    };
 
     const handleConfirmationModalClose = () => {
         document.getElementById(`confirm_rank_edit_modal_${rank.id}`).close();
     };
 
     const closeModal = () => {
-		const modalCheckbox = document.getElementById(`rankEdit_modal_${rank.id}`);
-		if (modalCheckbox) {
-			modalCheckbox.checked = false; // Uncheck the modal toggle
-		}
-		resetStates();
-	};
+        const modalCheckbox = document.getElementById(`rankEdit_modal_${rank.id}`);
+        if (modalCheckbox) {
+            modalCheckbox.checked = false; // Uncheck the modal toggle
+        }
+        resetStates();
+    };
 
-	return (
+    return (
         <div className=''>
             {/* Trigger Button */}
             <label htmlFor={`rankEdit_modal_${rank.id}`} className='btn btn-xs btn-ghost text-blue-500'>
@@ -344,7 +377,6 @@ const TeacherRankEdit = ({
                             Reset
                         </button>
                     </div>
-
                 </div>
             </div>
 
@@ -363,16 +395,16 @@ const TeacherRankEdit = ({
                         <div className='mt-4 flex justify-center items-center gap-3'>
                             <button
                                 className='btn btn-sm bg-green-400 hover:bg-green-200'
-                                onClick={() => {
-                                    handleSaveRankEditClick(true);
+                                onClick={async () => {
+                                    await handleSaveRankEditClick(true);
                                 }}
                             >
                                 Yes
                             </button>
                             <button
                                 className='btn btn-sm'
-                                onClick={() => {
-                                    handleSaveRankEditClick(false);
+                                onClick={async () => {
+                                    await handleSaveRankEditClick(false);
                                 }}
                             >
                                 No
@@ -392,6 +424,6 @@ const TeacherRankEdit = ({
             </dialog>
         </div>
     );
-}
+};
 
 export default TeacherRankEdit;

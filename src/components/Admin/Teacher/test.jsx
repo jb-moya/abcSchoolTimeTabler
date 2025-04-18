@@ -18,7 +18,7 @@ const AddTeacherContainer = ({
     setErrorMessage,
     errorField,
     setErrorField,
-    numOfSchoolDays,
+    numOfSchoolDays = 5,
 }) => {
     const inputNameRef = useRef();
 

@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
-import { addDocument } from '../../hooks/CRUD/addDocument';
+import { addDocument } from '../../hooks/firebaseCRUD/addDocument';
+import { useSelector } from 'react-redux';
+import { COLLECTION_ABBREVIATION } from '../../constants';
 
 const AddSubjectContainer = ({
     // STORES
@@ -15,19 +17,16 @@ const AddSubjectContainer = ({
     setErrorField,
     defaultSubjectClassDuration,
 }) => {
-
     const inputNameRef = useRef();
-
-// ==============================================================================
+    const { user: currentUser } = useSelector((state) => state.user);
 
     const [subjectName, setSubjectName] = useState('');
     const [classSubjectDuration, setClassSubjectDuration] = useState(defaultSubjectClassDuration || 10);
     const [subjectWeeklyMinutes, setSubjectWeeklyMinutes] = useState(200);
 
-// ==============================================================================
+    // ==============================================================================
 
-    const handleAddSubject = () => {
-
+    const handleAddSubject = async () => {
         if (!subjectName.trim()) {
             setErrorMessage('Subject name cannot be empty');
             setErrorField('name'); // Highlight Subject Name input
@@ -45,21 +44,27 @@ const AddSubjectContainer = ({
         const weeklyMinutes = parseInt(subjectWeeklyMinutes, 10);
 
         const duplicateSubject = Object.values(subjects).find(
-            (subject) =>
-                subject.subject.trim().toLowerCase() ===
-                subjectName.trim().toLowerCase()
+            (subject) => subject.subject.trim().toLowerCase() === subjectName.trim().toLowerCase()
         );
 
         if (duplicateSubject) {
             setErrorMessage('A subject with this name already exists');
             setErrorField('name');
         } else {
-
             try {
-                addDocument('subjects', {
-                    subject: subjectName,
-                    classDuration: classDuration,
-                    weeklyMinutes: weeklyMinutes,
+                await addDocument({
+                    collectionName: 'subjects',
+                    collectionAbbreviation: COLLECTION_ABBREVIATION.SUBJECTS,
+                    userName: currentUser?.username || 'unknown user',
+                    itemName: subjectName || 'an item',
+                    entryData: {
+                        // subject: subjectName,
+                        s: subjectName,
+                        // classDuration: classDuration,
+                        cd: classDuration,
+                        // weeklyMinutes: weeklyMinutes,
+                        wm: weeklyMinutes,
+                    },
                 });
             } catch (error) {
                 console.error('Error adding subject:', error);
@@ -71,7 +76,7 @@ const AddSubjectContainer = ({
                         bordercolor: 'green',
                     },
                 });
-    
+
                 handleReset();
                 close();
             }
@@ -90,7 +95,7 @@ const AddSubjectContainer = ({
         }
     };
 
-// =============================================================================
+    // =============================================================================
 
     // Tracks which input field has an error
     useEffect(() => {
@@ -108,52 +113,40 @@ const AddSubjectContainer = ({
 
     return (
         <div>
-            <h3 className="text-lg font-bold mb-4">Add New Subject</h3>
+            <h3 className='text-lg font-bold mb-4'>Add New Subject</h3>
 
-            <hr className="mb-4" />
-            
-            <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">
-                    Subject Name:
-                </label>
+            <hr className='mb-4' />
+
+            <div className='mb-4'>
+                <label className='block text-sm font-medium mb-2'>Subject Name:</label>
                 <input
-                    type="text"
-                    className={`input input-bordered w-full ${
-                        errorField === 'name' ? 'border-red-500' : ''
-                    }`}
+                    type='text'
+                    className={`input input-bordered w-full ${errorField === 'name' ? 'border-red-500' : ''}`}
                     value={subjectName}
                     onChange={(e) => setSubjectName(e.target.value)}
-                    placeholder="Enter subject name"
+                    placeholder='Enter subject name'
                     ref={inputNameRef}
                 />
             </div>
 
-            <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">
-                    Class Duration (minutes):
-                </label>
+            <div className='mb-4'>
+                <label className='block text-sm font-medium mb-2'>Class Duration (minutes):</label>
                 <input
-                    type="number"
-                    className={`input input-bordered w-full ${
-                        errorField === 'duration' ? 'border-red-500' : ''
-                    }`}
+                    type='number'
+                    className={`input input-bordered w-full ${errorField === 'duration' ? 'border-red-500' : ''}`}
                     value={classSubjectDuration}
-                    onChange={(e) =>
-                        setClassSubjectDuration(Number(e.target.value))
-                    }
-                    placeholder="Enter class duration"
+                    onChange={(e) => setClassSubjectDuration(Number(e.target.value))}
+                    placeholder='Enter class duration'
                     step={5}
                     min={10}
                 />
             </div>
 
-            <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">
-                    Subject Weekly Time Requirement (minutes):
-                </label>
+            <div className='mb-4'>
+                <label className='block text-sm font-medium mb-2'>Subject Weekly Time Requirement (minutes):</label>
                 <input
-                    type="number"
-                    className="input input-bordered w-full"
+                    type='number'
+                    className='input input-bordered w-full'
                     value={subjectWeeklyMinutes}
                     onChange={(e) => {
                         const value = Number(e.target.value);
@@ -164,20 +157,13 @@ const AddSubjectContainer = ({
                 />
             </div>
 
-            {errorMessage && (
-                <p className="text-red-500 text-sm my-4 font-medium select-none ">
-                    {errorMessage}
-                </p>
-            )}
+            {errorMessage && <p className='text-red-500 text-sm my-4 font-medium select-none '>{errorMessage}</p>}
 
-            <div className="flex justify-center gap-2">
-                <button className="btn btn-primary" onClick={handleAddSubject}>
+            <div className='flex justify-center gap-2'>
+                <button className='btn btn-primary' onClick={handleAddSubject}>
                     Add Subject
                 </button>
-                <button
-                    className="btn btn-error border-0"
-                    onClick={handleReset}
-                >
+                <button className='btn btn-error border-0' onClick={handleReset}>
                     Reset
                 </button>
             </div>
@@ -185,4 +171,4 @@ const AddSubjectContainer = ({
     );
 };
 
-export default  AddSubjectContainer;
+export default AddSubjectContainer;

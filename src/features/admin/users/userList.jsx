@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { APP_CONFIG } from '../../../constants';
-import { RiDeleteBin7Line } from 'react-icons/ri';
 import { useUsers } from './hooks/useUsers';
 import { useEditUser } from './hooks/useUpdateUser';
 import { useDispatch } from 'react-redux';
 import { editUser as editUserAction } from './usersSlice';
 import { toast } from 'sonner';
 import { useToggleAllowedStatus } from './hooks/useToggleUserStatus';
-import useAuth from '../../../app/useAuth';
+import { useSelector } from 'react-redux';
 
 const UserList = ({ onEditUser }) => {
     const dispatch = useDispatch();
@@ -16,6 +15,7 @@ const UserList = ({ onEditUser }) => {
     const [userToChangeStatus, setUserToChangeStatus] = useState(null);
     const [statusConfirmation, setStatusConfirmation] = useState('');
     const { users, loading, error } = useUsers();
+    const { user: currentUser } = useSelector((state) => state.user);
 
     const { editUser, loading: editUserLoading, error: editUserError } = useEditUser();
     const { toggleStatus, loading: toggleStatusLoading, error: toggleStatusError } = useToggleAllowedStatus();
@@ -64,8 +64,9 @@ const UserList = ({ onEditUser }) => {
                     <thead>
                         <tr>
                             <th className='whitespace-nowrap'>Email</th>
-                            <th className='whitespace-nowrap'>Role</th>
-                            <th className='whitespace-nowrap'>Status</th>
+                            <th className='whitespace-nowrap'>Username</th>
+                            <th className='whitespace-nowrap w-[100px]'>Role</th>
+                            <th className='whitespace-nowrap w-[100px]'>Status</th>
                             <th className='whitespace-nowrap w-[300px]'>
                                 <div className='flex items-center gap-2'>
                                     <div className='flex items-center gap-1'>
@@ -91,29 +92,35 @@ const UserList = ({ onEditUser }) => {
                                     </button>
                                 </div>
                             </th>
-                            <th className='whitespace-nowrap'>Actions</th>
+                            <th className='whitespace-nowrap w-[100px]'>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {users.map((user) => (
-                            <tr key={user.id}>
-                                <td className='whitespace-nowrap'>{user.email}</td>
+                            <tr key={user?.id}>
+                                <td className='whitespace-nowrap'>
+                                    <div>{user?.email || 'N/A'}</div>
+                                    <div className='text-xs text-purple-500'>{user?.id === currentUser?.uid && '(You)'}</div>
+                                </td>
+                                <td className='whitespace-nowrap'>
+                                    <div>{user?.username || '-'}</div>
+                                </td>
                                 <td>
                                     <div
-                                        className={`badge ${
-                                            user.role.toLowerCase() === 'super admin'
+                                        className={`badge text-nowrap ${
+                                            (user?.role || 'unknown role').toLowerCase() === 'super admin'
                                                 ? 'badge-error'
-                                                : user.role.toLowerCase() === 'admin'
+                                                : (user?.role || 'unknown role').toLowerCase() === 'admin'
                                                 ? 'badge-primary'
                                                 : 'badge-ghost'
                                         }`}
                                     >
-                                        {user.role}
+                                        {user?.role || 'unknown role'}
                                     </div>
                                 </td>
                                 <td>
-                                    <div className={`badge ${user.status === 'active' ? 'badge-success' : 'badge-warning'}`}>
-                                        {user.status}
+                                    <div className={`badge ${user?.status === 'active' ? 'badge-success' : 'badge-warning'}`}>
+                                        {user?.status}
                                     </div>
                                 </td>
 
@@ -121,7 +128,7 @@ const UserList = ({ onEditUser }) => {
                                     {showDetailedPermissions ? (
                                         <div className='space-y-1'>
                                             {APP_CONFIG.PERMISSIONS.map((permission) => {
-                                                const hasPermission = user.permissions?.includes(permission);
+                                                const hasPermission = user?.permissions?.includes(permission);
                                                 return (
                                                     <div
                                                         key={permission}
@@ -136,16 +143,16 @@ const UserList = ({ onEditUser }) => {
                                         </div>
                                     ) : (
                                         <div className='badge badge-neutral'>
-                                            {user.permissions?.length || 0} / {APP_CONFIG.PERMISSIONS.length} permissions
+                                            {user?.permissions?.length || 0} / {APP_CONFIG.PERMISSIONS.length} permissions
                                         </div>
                                     )}
                                 </td>
 
                                 <td>
-                                    <div className='flex gap-2'>
-                                        {user.role !== 'super admin' && (
+                                    <div className='flex flex-col gap-2'>
+                                        {user?.role !== 'super admin' && (
                                             <>
-                                                <button onClick={() => handleEdit(user.id)} className='btn btn-sm btn-primary'>
+                                                <button onClick={() => handleEdit(user?.id)} className='btn btn-sm btn-primary'>
                                                     Edit Permission
                                                 </button>
                                                 <button
@@ -154,10 +161,10 @@ const UserList = ({ onEditUser }) => {
                                                         document.getElementById('status_modal').showModal();
                                                     }}
                                                     className={`btn btn-sm ${
-                                                        user.status === 'active' ? 'btn-warning' : 'btn-success'
+                                                        user?.status === 'active' ? 'btn-warning' : 'btn-success'
                                                     }`}
                                                 >
-                                                    {user.status === 'active' ? 'Set to Inactive' : 'Set to Active'}
+                                                    {user?.status === 'active' ? 'Set to Inactive' : 'Set to Active'}
                                                 </button>
                                             </>
                                         )}

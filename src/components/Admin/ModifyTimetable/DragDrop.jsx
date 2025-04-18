@@ -36,18 +36,11 @@ const DragDrop = ({
     const handleCellUpdate = async (tableKey, cellId, newCardData, editingCell = null) => {
         let keyToFind = '';
         if (editingCell) {
-            // console.log('has editing cell');
             tableKey = editingCell.tableKey;
             cellId = editingCell.dynamicID;
         }
         setValueMap((prevState) =>
             produce(prevState, (draft) => {
-                // console.log('cellId:', cellId);
-                // console.log('prevState:', prevState);
-                // console.log('draft:', draft);
-                // console.log('newCardData:', newCardData);
-                // console.log('tableKey:', tableKey);
-
                 const table = draft.get(tableKey);
                 if (!table) {
                     console.error(`Table with key \"${tableKey}\" not found.`);
@@ -60,25 +53,16 @@ const DragDrop = ({
                     return;
                 }
 
-                // const partnerType =
-                //     cell.type === 'teacher' ? 'section' : 'teacher';
-                // keyToFind = cellId.replace(
-                //     /(type-)([^-]+)/,
-                //     `$1${partnerType}`
-                // );
                 keyToFind = cell.partnerKey;
 
-                // console.log('keytoFind: ', keyToFind);
                 const range = cell.end - cell.start;
                 if (!editingCell) {
                     newCardData.end = newCardData.start + range;
                 }
-                // console.log('newCardData: ', newCardData);
                 table.set(cellId, { ...cell, ...newCardData });
                 if (editingCell) {
                     setEditingCell(table.get(cellId));
                 }
-                // console.log('Updated cell:', table.get(cellId));
             })
         );
 
@@ -91,8 +75,6 @@ const DragDrop = ({
                         return;
                     }
                 }
-
-                // console.error(`Key not found: ${keyToFind}`);
             })
         );
     };
@@ -153,12 +135,6 @@ const DragDrop = ({
 
         setValueMap((prevState) =>
             produce(prevState, (draft) => {
-                // console.log('cellId:', cellId);
-                // console.log('prevState:', prevState);
-                // console.log('draft:', draft);
-                // console.log('newCardData:', newCardData);
-                // console.log('tableKey:', tableKey);
-
                 const table = draft.get(cell.tableKey);
                 if (!table) {
                     console.error(`Table with key \"${cell.tableKey}\" not found.`);
@@ -173,7 +149,6 @@ const DragDrop = ({
                 let duplicate = false;
 
                 if (table.has(newObjectID)) {
-                    // scheduleKey = `additional-section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${i}-type-${type}`;
                     duplicate = true;
                     newObjectID = `a-${validSectionID ?? 'n'}-${validTeacherID ?? 'n'}-${newCardData.subjectID ?? 'n'}-${
                         newCardData.day ?? 'n'
@@ -221,7 +196,6 @@ const DragDrop = ({
                     let partnerDuplicate = false;
 
                     if (partnerTable.has(partnerKey)) {
-                        // scheduleKey = `additional-section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${i}-type-${type}`;
                         partnerDuplicate = true;
 
                         partnerKey = `a-${validSectionID ?? 'n'}-${validTeacherID ?? 'n'}-${newCardData.subjectID ?? 'n'}-${
@@ -259,11 +233,6 @@ const DragDrop = ({
 
         setValueMap((prevState) =>
             produce(prevState, (draft) => {
-                // console.log('cellDynamicID:', cellDynamicID);
-                // console.log('prevState:', prevState);
-                // console.log('draft:', draft);
-                // console.log('tableKey:', tableKey);
-
                 const table = draft.get(tableKey);
                 if (!table) {
                     console.error(`Table with key \"${tableKey}\" not found.`);
@@ -302,25 +271,19 @@ const DragDrop = ({
                 newObject.teacherID = newCardData.teacherID;
                 newObject.sectionID = cell.sectionID;
                 newObject.type = cell.type === 's' ? 't' : 's';
-                // newObject.containerName = cell.containerName;
-
-                // let newObjectID = `section-${cell.sectionID}-teacher-${newCardData.teacherID}-subject-${cell.subjectID}-day-${cell.day}-type-teacher`;
                 let newObjectID = `${cell.sectionID ?? 'n'}-${newCardData.teacherID ?? 'n'}-${cell.subjectID ?? 'n'}-${
                     cell.day ?? 'n'
                 }-${cell.type === 's' ? 't' : 's'}`;
 
-                // let currCellNewID = `section-${cell.sectionID}-teacher-${newCardData.teacherID}-subject-${cell.subjectID}-day-${cell.day}-type-${cell.type}`;
                 let currCellNewID = `${cell.sectionID ?? 'n'}-${newCardData.teacherID ?? 'n'}-${cell.subjectID ?? 'n'}-${
                     cell.day ?? 'n'
                 }-${cell.type ?? 'n'}`;
 
                 if (cell.additional) {
-                    // newObjectID = `additional-section-${cell.sectionID}-teacher-${newCardData.teacherID}-subject-${cell.subjectID}-day-${cell.day}-type-teacher`;
                     newObjectID = `a-${cell.sectionID ?? 'n'}-${newCardData.teacherID ?? 'n'}-${cell.subjectID ?? 'n'}-${
                         cell.day ?? 'n'
                     }-${cell.type === 's' ? 't' : 's'}`;
 
-                    // currCellNewID = `additional-section-${cell.sectionID}-teacher-${newCardData.teacherID}-subject-${cell.subjectID}-day-${cell.day}-type-${cell.type}`;
                     currCellNewID = `a-${cell.sectionID ?? 'n'}-${newCardData.teacherID ?? 'n'}-${cell.subjectID ?? 'n'}-${
                         cell.day ?? 'n'
                     }-${cell.type ?? 'n'}`;
@@ -330,26 +293,19 @@ const DragDrop = ({
                 newObject.dynamicID = newObjectID;
 
                 const partnerType = cell.type === 't' ? 's' : 't';
-                // keyToFind = cellDynamicID.replace(/(type-)([^-]+)/, `$1${partnerType}`);
                 keyToFind = cellDynamicID.replace(/[^-]+$/, partnerType[0] ?? 'n');
 
                 const newObjPartnerKeyType = cell.type === 's' ? 's' : 't';
-                // let newObjPartnerKey = newObjectID.replace(/(type-)([^-]+)/, `$1${newObjPartnerKeyType}`);
                 let newObjPartnerKey = newObjectID.replace(/[^-]+$/, newObjPartnerKeyType[0] ?? 'n');
-
-                // console.log('keytoFind: ', keyToFind);
 
                 newObject.partnerKey = newObjPartnerKey;
 
                 newCardData.dynamicID = currCellNewID;
                 newCardData.partnerKey = newObjectID;
-                // console.log('newCardData: ', newCardData);
                 console.log('deleted cell:', table.get(cellDynamicID));
                 table.delete(cellDynamicID);
 
                 table.set(currCellNewID, { ...cell, ...newCardData });
-
-                // console.log('Updated cell:', table.get(currCellNewID));
 
                 draft.forEach((iterTable, iterTableKey) => {
                     const targetCell = iterTable.get(keyToFind);
@@ -367,28 +323,9 @@ const DragDrop = ({
 
                             newObject.teacher = targetCell?.teacher;
                         }
-                        // console.log(
-                        //     `Deleting cell "${keyToFind}" from table "${iterTableKey}"`
-                        // );
                         iterTable.delete(keyToFind);
                     }
                 });
-
-                // let targetTableKey = '';
-
-                // draft.forEach((iterTable) => {
-                //     const firstKey = iterTable.keys().next().value; // Get the first key
-                //     if (!firstKey) return; // Skip if the Map is empty
-
-                //     const targetCell = iterTable.get(firstKey); // Get the first value using the key
-
-                //     // Check if teacherID matches targetTeacherID
-                //     if (targetCell.teacherID !== newCardData.teacherID) return; // Skip to the next iterTable if no match
-                //     // console.log('targetCell: ', iterTable);
-                //     targetTableKey = targetCell.tableKey; // Assign the matching tableKey
-                //     newObject.containerName = targetCell?.containerName;
-
-                // });
 
                 const stringType = partnerType === 't' ? 'Teacher' : 'Section';
                 const partnerContainer = cell.type === 't' ? newCardData.section : newCardData.teacher;
@@ -405,7 +342,6 @@ const DragDrop = ({
                 let partnerDuplicate = false;
 
                 if (partnerTable.has(newObjPartnerKey)) {
-                    // scheduleKey = `additional-section-${schedule.section}-teacher-${schedule.teacher}-subject-${schedule.subject}-day-${i}-type-${type}`;
                     console.log('HAS DUP');
 
                     partnerDuplicate = true;
@@ -425,7 +361,6 @@ const DragDrop = ({
                 }
 
                 newTable.set(newObjectID, newObject);
-                // console.log('new table:', newTable);
                 console.log('added cell:', newTable.get(newObjectID));
             })
         );
@@ -469,7 +404,6 @@ const DragDrop = ({
 
     useEffect(() => {
         const initializePositions = () => {
-            // console.log('mode: ', mode);
             const newLinePositions = [];
             rows.forEach((_, index) => {
                 const basePosition = index * segmentHeight;
@@ -482,7 +416,6 @@ const DragDrop = ({
             if (originalRowPositions.length === 0 && mode === '5m') {
                 setOriginalRowPositions(newLinePositions);
             }
-            // console.log('row newLinePositions: ', newLinePositions);
 
             setRowPositions(newLinePositions);
 
@@ -575,8 +508,6 @@ const DragDrop = ({
                         {lineRowPositions.length > 0 &&
                             lineColPositions.length > 0 &&
                             Array.from(value.entries()).map(([key, cell], index) => {
-                                // console.log(originalRowPositions[cell.start]);
-
                                 const pos = {
                                     x: lineColPositions[cell.day - 1],
                                     y: originalRowPositions[cell.start],

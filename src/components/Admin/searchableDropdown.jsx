@@ -1,21 +1,15 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { IoChevronDown, IoRemove, IoAdd } from 'react-icons/io5';
 import { useSelector } from 'react-redux';
 import { filterObject } from '@utils/filterObject';
 import escapeRegExp from '@utils/escapeRegExp';
 import clsx from 'clsx';
 
-import { fetchDocuments } from '../../hooks/CRUD/retrieveDocuments';
 
-const SearchableDropdownToggler = ({ 
-    selectedList, 
-    setSelectedList, 
-    isEditMode = false 
-}) => {
-
+const SearchableDropdownToggler = ({ selectedList, setSelectedList, isEditMode = false }) => {
     // const subjects = useSelector((state) => state.subject.subjects);
 
-    const { documents: subjects, loading1, error1 } = fetchDocuments('subjects');
+    const { subjects, loading: subjectsLoading, error: subjectsError } = useSelector((state) => state.subjects);
 
     const [searchSubjectValue, setSearchSubjectValue] = useState('');
     const searchInputRef = useRef(null);
@@ -26,10 +20,6 @@ const SearchableDropdownToggler = ({
         const pattern = new RegExp(escapedSearchValue, 'i');
         return pattern.test(subject.subject);
     });
-
-    // useEffect(() => {
-    //   console.log(searchResults);
-    // }, [searchResults]);
 
     const handleInputChange = (e) => {
         setSearchSubjectValue(e.target.value);
@@ -61,21 +51,20 @@ const SearchableDropdownToggler = ({
                 className='dropdown-content menu bg-base-100 rounded-box z-[1] w-full h-auto shadow max-h-48 overflow-y-auto' // Updated here
                 style={{ overflowX: 'hidden' }} // Ensure no horizontal scroll
             >
-                
                 <div
                     className='overflow-y-scroll h-full max-h-40 scrollbar-hide'
                     style={{ WebkitOverflowScrolling: 'touch', overflowX: 'hidden' }} // Added overflowX: hidden here
                 >
-                  <li>
-                    <input
-                        type='text'
-                        placeholder='Search subject'
-                        ref={searchInputRef}
-                        className='input input-bordered input-sm w-full'
-                        value={searchSubjectValue}
-                        onChange={handleInputChange}
-                    />
-                  </li> 
+                    <li>
+                        <input
+                            type='text'
+                            placeholder='Search subject'
+                            ref={searchInputRef}
+                            className='input input-bordered input-sm w-full'
+                            value={searchSubjectValue}
+                            onChange={handleInputChange}
+                        />
+                    </li>
                     {Object.keys(searchResults).length === 0 ? (
                         <div className='px-4 py-2 opacity-50'>Not found</div>
                     ) : (
