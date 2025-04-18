@@ -163,48 +163,32 @@ function Configuration() {
         <div className='mb-10 px-6'>
             <h1 className='divider text-2xl font-bold text-center mb-10'>Configuration</h1>
 
-            <div className='flex justify-end mb-4'>
-                {!editMode ? (
-                    <button className='btn btn-primary' onClick={handleEdit}>
-                        Edit
-                    </button>
-                ) : (
-                    <div className='flex gap-2'>
-                        <button className='btn btn-primary' onClick={handleConfirm}>
-                            Confirm Changes
-                        </button>
-                        <button className='btn btn-secondary' onClick={handleCancel}>
-                            Cancel
-                        </button>
+            <div className='grid grid-cols-2 gap-6'>
+                <div className='flex flex-col gap-2'>
+                    <div className='flex flex-row form-control'>
+                        <label className='w-[250px] label'>Number of Days in a Week</label>
+                        <label className='input input-sm w-[250px] input-bordered flex items-center gap-2'>
+                            <input
+                                type='number'
+                                placeholder='e.g., 5 (Mon-Fri)'
+                                className='font-semibold w-full disabled:text-base-content'
+                                value={loading ? 'Loading...' : defaultNumberOfSchoolDays}
+                                onChange={handleChangeNumOfSchoolDays}
+                                max={maxNumOfSchoolDays}
+                                min={minNumOfSchoolDays}
+                                disabled={!editMode || loading}
+                            />
+                            <span className='opacity-60'>days</span>
+                        </label>
                     </div>
-                )}
-            </div>
 
-            <div className='grid grid-cols-1 gap-6'>
-                <div className='flex flex-row form-control'>
-                    <label className='w-[250px] label font-medium'>Number of Days in a Week</label>
-                    <div className='w-[200px]'>
-                        <input
-                            type='number'
-                            placeholder='e.g., 5 (Mon-Fri)'
-                            className='input input-bordered disabled:text-base-content w-full'
-                            value={loading ? 'Loading...' : defaultNumberOfSchoolDays}
-                            onChange={handleChangeNumOfSchoolDays}
-                            max={maxNumOfSchoolDays}
-                            min={minNumOfSchoolDays}
-                            disabled={!editMode || loading}
-                        />
-                    </div>
-                </div>
-
-                <div className='flex flex-row form-control'>
-                    <label className='w-[250px] label font-medium'>Default Class Duration</label>
-                    <div className='w-[200px]'>
-                        <label className='input input-bordered flex items-center gap-2'>
+                    <div className='flex flex-row form-control'>
+                        <label className='w-[250px] label'>Default Class Duration</label>
+                        <label className='input input-sm w-[250px] input-bordered flex items-center gap-2'>
                             <input
                                 type='number'
                                 placeholder='Default class duration (mins)'
-                                className='w-full disabled:text-base-content'
+                                className='font-semibold w-full disabled:text-base-content'
                                 value={loading ? 'Loading...' : defaultClassDuration}
                                 onChange={(e) => handleChangeDefaultSubjectClassDuration(e, setDefaultClassDuration)}
                                 max={maxDuration}
@@ -215,16 +199,14 @@ function Configuration() {
                             <span className='opacity-60'>mins</span>
                         </label>
                     </div>
-                </div>
 
-                <div className='flex flex-row form-control'>
-                    <label className='w-[250px] label font-medium'>Break Time Duration</label>
-                    <div className='w-[200px]'>
-                        <label className='input input-bordered flex items-center gap-2'>
+                    <div className='flex flex-row form-control'>
+                        <label className='w-[250px] label'>Break Time Duration</label>
+                        <label className='input input-sm w-[250px] input-bordered flex items-center gap-2'>
                             <input
                                 type='number'
                                 placeholder='Break Time Duration'
-                                className='w-full disabled:text-base-content'
+                                className='font-semibold w-full disabled:text-base-content'
                                 value={loading ? 'Loading...' : defaultBreakTimeDuration}
                                 onChange={(e) => handleChangeDefaultSubjectClassDuration(e, setDefaultBreakTimeDuration)}
                                 max={maxDuration}
@@ -236,14 +218,11 @@ function Configuration() {
                         </label>
                     </div>
                 </div>
-            </div>
 
-            <div className='grid grid-cols-1 gap-6 mt-6'>
-                <div className='flex flex-row form-control'>
-                    <label className='w-[250px] label font-medium'>Start Times</label>
-                    <div className='w-[400px] flex flex-col sm:flex-row gap-4'>
-                        <div className='flex-1'>
-                            <label className='label text-sm'>Morning</label>
+                <div className='flex flex-col gap-2'>
+                    <div className='flex flex-row form-control'>
+                        <label className='w-[250px] label'>Morning Start Times</label>
+                        <label className='flex items-center gap-2'>
                             <div className='w-[200px]'>
                                 <TimeSelector
                                     key='morningStartTime'
@@ -253,9 +232,12 @@ function Configuration() {
                                     disabled={!editMode || loading}
                                 />
                             </div>
-                        </div>
-                        <div className='flex-1'>
-                            <label className='label text-sm'>Afternoon</label>
+                        </label>
+                    </div>
+
+                    <div className='flex flex-row form-control'>
+                        <label className='w-[250px] label'>Afternoon Start Times</label>
+                        <label className='flex items-center gap-2'>
                             <div className='w-[200px]'>
                                 <TimeSelector
                                     key='afternoonStartTime'
@@ -265,36 +247,38 @@ function Configuration() {
                                     disabled={!editMode || loading}
                                 />
                             </div>
-                        </div>
+                        </label>
                     </div>
-                </div>
 
-                <div className='flex flex-row form-control'>
-                    <label className='w-[250px] label font-medium'>Teaching Load</label>
-                    <div className='w-[400px] flex flex-col sm:flex-row gap-4'>
-                        <div className='flex-1'>
-                            <label className='label text-sm'>Minimum</label>
-                            <div className='w-[200px]'>
-                                <label className='input input-bordered flex items-center gap-2'>
-                                    <input
-                                        type='number'
-                                        placeholder='e.g., 1300'
-                                        className='w-full disabled:text-base-content'
-                                        value={loading ? 'Loading...' : defaultMinimumTeachingLoad}
-                                        onChange={handleChangeMinTeachingLoad}
-                                        max={defaultMaximumTeachingLoad}
-                                        min={minWorkloadBound}
-                                        step={workloadInterval}
-                                        disabled={!editMode || loading}
-                                    />
-                                    <span className='opacity-60'>mins</span>
-                                </label>
+                    <div className='flex flex-row form-control'>
+                        <label className='w-[250px] label font-medium'>Minimum Teaching Load</label>
+                        <div className='flex flex-col sm:flex-row gap-4'>
+                            <div className='flex-1'>
+                                <div className='w-[200px]'>
+                                    <label className='input input-sm input-bordered flex items-center gap-2'>
+                                        <input
+                                            type='number'
+                                            placeholder='e.g., 1300'
+                                            className='w-full disabled:text-base-content'
+                                            value={loading ? 'Loading...' : defaultMinimumTeachingLoad}
+                                            onChange={handleChangeMinTeachingLoad}
+                                            max={defaultMaximumTeachingLoad}
+                                            min={minWorkloadBound}
+                                            step={workloadInterval}
+                                            disabled={!editMode || loading}
+                                        />
+                                        <span className='opacity-60'>mins</span>
+                                    </label>
+                                </div>
                             </div>
                         </div>
+                    </div>
+
+                    <div className='flex flex-row form-control'>
+                        <label className='w-[250px] label font-medium'>Maximum Teaching Load</label>
                         <div className='flex-1'>
-                            <label className='label text-sm'>Maximum</label>
                             <div className='w-[200px]'>
-                                <label className='input input-bordered flex items-center gap-2'>
+                                <label className='input input-sm input-bordered flex items-center gap-2'>
                                     <input
                                         type='number'
                                         placeholder='e.g., 1800'
@@ -309,6 +293,23 @@ function Configuration() {
                                 </label>
                             </div>
                         </div>
+                    </div>
+
+                    <div className='flex justify-end mb-4'>
+                        {!editMode ? (
+                            <button className='btn btn-primary' onClick={handleEdit}>
+                                Edit
+                            </button>
+                        ) : (
+                            <div className='flex gap-2'>
+                                <button className='btn btn-primary' onClick={handleConfirm}>
+                                    Confirm Changes
+                                </button>
+                                <button className='btn btn-secondary' onClick={handleCancel}>
+                                    Cancel
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

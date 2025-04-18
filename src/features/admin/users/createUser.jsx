@@ -1,8 +1,7 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useState } from 'react';
 import InputText from '../../../components/Input/InputText';
 import { useDispatch, useSelector } from 'react-redux';
-import { signUpWithEmailAndPassword } from '../../userSlice';
 import { createUser } from './usersSlice';
 import { toast } from 'sonner';
 import { APP_CONFIG } from '../../../constants';
