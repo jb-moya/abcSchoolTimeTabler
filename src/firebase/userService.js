@@ -56,7 +56,8 @@ export const login = async (credentials) => {
 };
 
 export const signup = async (credentials) => {
-    const { email, schoolName, username, password, confirmPassword, permissions, role, status, newUserNotAutoLogin } = credentials;
+    const { email, schoolName, username, password, confirmPassword, permissions, role, status, newUserNotAutoLogin } =
+        credentials;
 
     if (!email || !password) {
         throw new Error('Sign up failed. Please fill all the fields');

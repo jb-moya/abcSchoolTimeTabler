@@ -92,7 +92,6 @@ const CreateUser = () => {
                         />
                     </div>
 
-
                     <div>
                         <InputText
                             defaultValue={registerObj.password}
@@ -172,23 +171,33 @@ const CreateUser = () => {
                     ))}
                 </div>
 
-                <div className='pt-6'></div>
-                <button
-                    type='submit'
-                    className={`btn mt-4 w-full btn-primary text-white transition-all duration-75 ease-in-out flex items-center justify-center ${
-                        loading ? 'cursor-not-allowed ' : ''
-                    }`}
-                    disabled={loading}
-                >
-                    {loading ? (
-                        <>
-                            <span className='loading loading-spinner'></span>
-                            Creating...
-                        </>
-                    ) : (
-                        'Create this User'
-                    )}
-                </button>
+                <div className='flex justify-end gap-4 pt-6 w-full'>
+                    <button
+                        type='submit'
+                        className={`btn mt-4 btn-primary text-white transition-all duration-75 ease-in-out flex items-center justify-center ${
+                            loading ? 'cursor-not-allowed ' : ''
+                        }`}
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <>
+                                <span className='loading loading-spinner'></span>
+                                Creating...
+                            </>
+                        ) : (
+                            'Create this User'
+                        )}
+                    </button>
+                    <button
+                        type='button'
+                        onClick={resetForm}
+                        className={`btn mt-4 btn-primary text-white transition-all duration-75 ease-in-out flex items-center justify-center ${
+                            loading ? 'cursor-not-allowed ' : ''
+                        }`}
+                    >
+                        Reset
+                    </button>
+                </div>
             </form>
         </div>
     );
