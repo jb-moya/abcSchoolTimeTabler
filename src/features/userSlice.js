@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { toast } from 'sonner';
 import { login, signup, logout } from '../firebase/userService';
+import { AuthErrorCodes } from 'firebase/auth';
 
 const initialState = {
     user: null,
@@ -14,6 +15,10 @@ export const loginUser = createAsyncThunk('user/loginUser', async (credentials, 
         const userData = await login(credentials);
         return userData;
     } catch (error) {
+        if (error.code === AuthErrorCodes.INVALID_LOGIN_CREDENTIALS) {
+            return rejectWithValue('Invalid login credentials. Please check your email and password.');
+        }
+
         return rejectWithValue(error.message);
     }
 });
@@ -80,6 +85,7 @@ const userSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
                 toast.error(action.payload);
+                console.log('🚀 ~ state.error:', action.payload);
             })
             .addCase(signUpWithEmailAndPassword.pending, (state) => {
                 state.loading = true;

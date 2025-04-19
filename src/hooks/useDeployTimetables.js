@@ -55,7 +55,7 @@ function useDeployTimetables() {
             const addChunks = chunkArray(schedules, batchLimit);
 
             // console.log('vv');
-            console.log(schedules);
+            // console.log(schedules);
             setRemaining(schedules.length);
 
             for (const chunk of addChunks) {
@@ -66,11 +66,6 @@ function useDeployTimetables() {
                 });
                 await batch.commit();
             }
-
-            // for (const item of schedules) {
-            //     await addDoc(itemsCollection, item);
-            //     setRemaining((prevRemaining) => prevRemaining - 1);
-            // }
 
             toast.success('Timetables deployed successfully');
         } catch (error) {
