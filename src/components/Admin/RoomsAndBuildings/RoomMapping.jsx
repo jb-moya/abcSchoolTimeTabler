@@ -380,7 +380,10 @@ const AddBuildingContainer = ({
     );
 };
 
-const RoomListContainer = ({ editable = false }) => {
+const RoomListContainer = ({ 
+    editable = false
+}) => {
+
     const { sections, loading: sectionsLoading, error: sectionsError } = useSelector((state) => state.sections);
     const { buildings, loading: buildingsLoading, error: buildingsError } = useSelector((state) => state.buildings);
 
@@ -403,81 +406,6 @@ const RoomListContainer = ({ editable = false }) => {
     const [searchBuildingValue, setSearchBuildingValue] = useState('');
     const [searchBuildingResult, setSearchBuildingResult] = useState([]);
 
-    const handleClose = () => {
-        const modal = document.getElementById('add_building_modal');
-        if (modal) {
-            modal.close();
-            setErrorMessage('');
-            setErrorField('');
-        }
-    };
-
-    const debouncedSearch = useCallback(
-        debounce((searchValue, buildings) => {
-            const lowerCaseSearchValue = searchValue.toLowerCase();
-            setSearchBuildingResult(
-                Object.values(buildings).filter((building) => {
-                    console.log('buildings: ', buildings);
-                    // Search by building name or room names
-                    const nameMatch = building.name.toLowerCase().includes(lowerCaseSearchValue);
-                    const roomMatch = Object.values(building.rooms).some((floor) =>
-                        Object.values(floor).some((room) => room.roomName.toLowerCase().includes(lowerCaseSearchValue))
-                    );
-                    return nameMatch || roomMatch;
-                })
-            );
-        }, 300),
-        []
-    );
-
-    useEffect(() => {
-        debouncedSearch(searchBuildingValue, buildings);
-    }, [searchBuildingValue, buildings, debouncedSearch]);
-
-    useEffect(() => {
-        setSearchBuildingResult(Object.values(buildings));
-        console.log('hatdog: ', buildings);
-    }, [buildings]);
-
-    const handleDelete = async (id) => {
-        try {
-            const building_id = id;
-
-            const isInSections = Object.values(sections).some((section) => section.roomDetails?.buildingId === id);
-
-            if (isInSections) {
-                toast.error('Building is used in sections. Cannot delete.', {
-                    style: {
-                        backgroundColor: 'red',
-                        color: 'white',
-                        bordercolor: 'red',
-                    },
-                });
-                throw new Error('Building is used in sections. Cannot delete.');
-            } else {
-                await deleteDocument({
-                    docId: building_id,
-                    collectionName: 'buildings',
-                    collectionAbbreviation: COLLECTION_ABBREVIATION.BUILDINGS,
-                    userName: currentUser?.username || 'unknown user',
-                    itemName: 'an item',
-                });
-
-                toast.success(`Entry deleted from buildings successfully.`, {
-                    style: {
-                        backgroundColor: 'green',
-                        color: 'white',
-                        bordercolor: 'green',
-                    },
-                });
-            }
-        } catch (error) {
-            console.error(error);
-        } finally {
-            document.getElementById('delete_modal').close();
-        }
-    };
-
     useEffect(() => {
         setEditNumberOfRooms((prev) => Array.from({ length: editNumberOfFloors }, (_, i) => prev[i] || 0));
 
@@ -494,6 +422,73 @@ const RoomListContainer = ({ editable = false }) => {
         });
     }, [editNumberOfFloors]);
 
+    const handleNumberOfFloorsChange = (value) => {
+
+        if (value < editNumberOfFloors) {
+
+            const hasSectionOnFloorToRemove = Object.values(sections).some(section => 
+                section.roomDetails.buildingId === editBuildingID &&
+                section.roomDetails.floorIdx === editNumberOfFloors - 1
+            );
+            
+            if (hasSectionOnFloorToRemove) {
+                alert("Error: There are section(s) on assigned on this floor. Operation aborted.");
+                return;
+            }
+            
+            setEditNumberOfFloors(value);
+
+        } else {
+
+            setEditNumberOfFloors(value);
+
+        }
+
+    };
+
+    const handleNumberOfRoomsChange = (floorIndex, value) => {
+
+        if (value < editNumberOfRooms[floorIndex]) {
+
+            const hasSectionOnRoomToRemove = Object.values(sections).some(section => 
+                section.roomDetails.buildingId === editBuildingID &&
+                section.roomDetails.floorIdx === floorIndex &&
+                section.roomDetails.roomIdx >= editNumberOfRooms[floorIndex] - 1
+            );
+            
+            if (hasSectionOnRoomToRemove) {
+                alert("Error: There are section(s) on assigned on this room. Operation aborted.");
+                return;
+            }
+            
+            const updatedRooms = [...editNumberOfRooms];
+            updatedRooms[floorIndex] = value;
+            setEditNumberOfRooms(updatedRooms);
+
+        } else {
+
+            const roomsCount = Math.max(1, Number(value));
+
+            const updatedRooms = [...editNumberOfRooms];
+            updatedRooms[floorIndex] = roomsCount;
+            setEditNumberOfRooms(updatedRooms);
+
+            const updatedRoomNames = { ...editRoomNames };
+
+            const newRooms = {};
+            for (let i = 0; i < roomsCount; i++) {
+                newRooms[i] = {
+                    roomName: `${editBuildingName || 'room'} - ${(floorIndex + 1) * 100 + i + 1}`,
+                };
+            }
+
+            updatedRoomNames[floorIndex] = newRooms;
+            setEditRoomNames(updatedRoomNames);
+
+        }
+
+    };
+
     const handleRoomNameChange = (floorIndex, roomIndex, newRoomName) => {
         const updatedRoomNames = { ...editRoomNames };
 
@@ -508,25 +503,7 @@ const RoomListContainer = ({ editable = false }) => {
         setEditRoomNames(updatedRoomNames);
     };
 
-    const handleNumberOfRoomsChange = (floorIndex, value) => {
-        const roomsCount = Math.max(1, Number(value)); // Ensure no negative values
-
-        const updatedRooms = [...editNumberOfRooms];
-        updatedRooms[floorIndex] = roomsCount;
-        setEditNumberOfRooms(updatedRooms);
-
-        const updatedRoomNames = { ...editRoomNames }; // Clone as an object
-
-        const newRooms = {};
-        for (let i = 0; i < roomsCount; i++) {
-            newRooms[i] = {
-                roomName: `${editBuildingName || 'room'} - ${(floorIndex + 1) * 100 + i + 1}`,
-            };
-        }
-
-        updatedRoomNames[floorIndex] = newRooms;
-        setEditRoomNames(updatedRoomNames);
-    };
+// =====================================================================================================================
 
     const handleEdit = (building) => {
         console.log('Editing building:', building);
@@ -549,6 +526,7 @@ const RoomListContainer = ({ editable = false }) => {
     };
 
     const handleSaveBuildingEditClick = async () => {
+
         if (!editBuildingName.trim()) {
             setErrorMessage('Building name cannot be empty');
             setErrorField('buildingName');
@@ -571,6 +549,7 @@ const RoomListContainer = ({ editable = false }) => {
             (floorRooms) =>
                 Object.keys(floorRooms).length === 0 || Object.values(floorRooms).some((room) => !room.roomName.trim())
         );
+
         if (hasEmptyRoomNames) {
             setErrorMessage('All rooms must have names');
             setErrorField('roomNames');
@@ -631,6 +610,7 @@ const RoomListContainer = ({ editable = false }) => {
 
             document.getElementById('edit_building_modal').close();
         }
+
     };
 
     const handleCancelBuildingEditClick = () => {
@@ -650,6 +630,47 @@ const RoomListContainer = ({ editable = false }) => {
         document.getElementById('edit_building_modal').close();
     };
 
+// =====================================================================================================================
+
+    const handleDelete = async (id) => {
+        try {
+            const building_id = id;
+
+            const isInSections = Object.values(sections).some((section) => section.roomDetails?.buildingId === id);
+
+            if (isInSections) {
+                toast.error('Building is used in sections. Cannot delete.', {
+                    style: {
+                        backgroundColor: 'red',
+                        color: 'white',
+                        bordercolor: 'red',
+                    },
+                });
+                throw new Error('Building is used in sections. Cannot delete.');
+            } else {
+                await deleteDocument({
+                    docId: building_id,
+                    collectionName: 'buildings',
+                    collectionAbbreviation: COLLECTION_ABBREVIATION.BUILDINGS,
+                    userName: currentUser?.username || 'unknown user',
+                    itemName: 'an item',
+                });
+
+                toast.success(`Entry deleted from buildings successfully.`, {
+                    style: {
+                        backgroundColor: 'green',
+                        color: 'white',
+                        bordercolor: 'green',
+                    },
+                });
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            document.getElementById('delete_modal').close();
+        }
+    };
+
     const deleteModal = (id) => {
         const deleteModalElement = document.getElementById('delete_modal');
         deleteModalElement.showModal();
@@ -657,6 +678,48 @@ const RoomListContainer = ({ editable = false }) => {
         const deleteButton = document.getElementById('delete_button');
         deleteButton.onclick = async () => await handleDelete(id);
     };
+
+// =====================================================================================================================
+
+    const handleClose = () => {
+        const modal = document.getElementById('add_building_modal');
+        if (modal) {
+            modal.close();
+            setErrorMessage('');
+            setErrorField('');
+        }
+    };
+
+// =====================================================================================================================
+
+    const debouncedSearch = useCallback(
+        debounce((searchValue, buildings) => {
+            const lowerCaseSearchValue = searchValue.toLowerCase();
+            setSearchBuildingResult(
+                Object.values(buildings).filter((building) => {
+                    console.log('buildings: ', buildings);
+                    // Search by building name or room names
+                    const nameMatch = building.name.toLowerCase().includes(lowerCaseSearchValue);
+                    const roomMatch = Object.values(building.rooms).some((floor) =>
+                        Object.values(floor).some((room) => room.roomName.toLowerCase().includes(lowerCaseSearchValue))
+                    );
+                    return nameMatch || roomMatch;
+                })
+            );
+        }, 300),
+        []
+    );
+
+    useEffect(() => {
+        debouncedSearch(searchBuildingValue, buildings);
+    }, [searchBuildingValue, buildings, debouncedSearch]);
+
+    useEffect(() => {
+        setSearchBuildingResult(Object.values(buildings));
+        console.log('hatdog: ', buildings);
+    }, [buildings]);
+
+// =====================================================================================================================
 
     if (sectionsLoading || buildingsLoading) {
         return (
@@ -840,7 +903,7 @@ const RoomListContainer = ({ editable = false }) => {
                                                 errorField === 'floors' ? 'border-red-500' : ''
                                             }`}
                                             value={editNumberOfFloors}
-                                            onChange={(e) => setEditNumberOfFloors(Math.max(1, Number(e.target.value)))}
+                                            onChange={(e) => handleNumberOfFloorsChange(e.target.value)}
                                             min={1}
                                         />
                                     </div>
