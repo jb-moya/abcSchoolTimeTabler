@@ -20,12 +20,12 @@ const DeleteData = ({ id, collection, callback }) => {
     const { ranks } = useSelector((state) => state.ranks);
     const { teachers } = useSelector((state) => state.teachers);
     const { departments } = useSelector((state) => state.departments);
-
     // ===============================================================================================
 
     useEffect(() => {
         console.log('id:', id);
     }, [id]);
+
     console.log('id:', id);
     const handleDelete = async () => {
         try {
@@ -172,6 +172,8 @@ const DeleteData = ({ id, collection, callback }) => {
                 });
 
                 entry_id = sections[id]?.id;
+            } else if (collection === 'schedules') {
+                entry_id = id;
             }
 
             await deleteDocument({

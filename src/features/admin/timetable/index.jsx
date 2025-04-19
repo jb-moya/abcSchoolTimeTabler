@@ -9,7 +9,7 @@ import { enableMapSet } from 'immer';
 
 import WasmWorker from '@src/wasm.worker?worker';
 import { clearAllEntriesAndResetIDs } from '@src/indexedDB';
-
+import { getTimeSlotIndex } from '../../../utils/timeSlotMapper';
 import Configuration from '@components/Admin/Configuration';
 
 import packInt16ToInt32 from '@utils/packInt16ToInt32';
@@ -1466,7 +1466,9 @@ function Timetable() {
 
     const convertToHashMap = (inputMap, type) => {
         const resultMap = new Map(); // Initialize the outer Map
-        const timeslotindex = 72;
+        // const { configurations, configurationsLoading } = useSelector((state) => state.configuration);
+        console.log('defaultMorningStart: ', configurations[1].defaultMorningStart);
+        const timeslotindex = getTimeSlotIndex(configurations[1].defaultMorningStart);
         console.log('timeslotindex: ', timeslotindex);
         console.log('inputMap: ', inputMap);
         // Iterate through each entry in the input HashMap
