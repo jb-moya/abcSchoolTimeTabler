@@ -9,7 +9,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     // <React.StrictMode>
     <Provider store={store}>
         {/* <WasmProvider> */}
-        <Toaster richColors position='top-right' closeButton/>
+        <Toaster richColors position='top-right' closeButton expand/>
         <App />
         {/* </WasmProvider> */}
     </Provider>

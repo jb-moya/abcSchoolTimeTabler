@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { updatePassword } from 'firebase/auth';
+import { AuthErrorCodes, updatePassword } from 'firebase/auth';
 import { auth } from '../../../../firebase/firebase';
 
 export const useEditUserPassword = () => {
@@ -11,8 +11,6 @@ export const useEditUserPassword = () => {
         setError(null);
 
         try {
-            console.log('updating xxxxx');
-
             if (newPassword !== confirmNewPassword) {
                 console.log('Passwords do not match');
                 throw new Error('Passwords do not match');
@@ -24,7 +22,12 @@ export const useEditUserPassword = () => {
 
             setLoading(false);
         } catch (err) {
-            setError(err.message || 'An error occurred');
+            if (err.code === AuthErrorCodes.CREDENTIAL_TOO_OLD_LOGIN_AGAIN) {
+                setError("Please sign in again to change your password — it's been over 5 minutes since your last login.");
+            } else {
+                setError(err.message || 'An error occurred');
+            }
+
             setLoading(false);
         }
     };
