@@ -26,7 +26,7 @@ function useDeployTimetables() {
                 console.log(value);
 
                 const obj = {
-                    n: value[0].split(' '),
+                    n: value[0].split(' ').map((str) => str.toLowerCase()),
                     a: JSON.stringify([value.slice(0, 2)]),
                     t: value[2],
                     u: user.uid,

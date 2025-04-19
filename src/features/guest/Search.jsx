@@ -1,16 +1,15 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useState, useEffect, useRef } from 'react';
 import { IoSearch } from 'react-icons/io5';
 import { MdHistory, MdOutlineCancel } from 'react-icons/md';
-import debounce from 'debounce';
 import clsx from 'clsx';
 import useSearchTimetable from '../../hooks/useSearchTimetable';
 import { convertStringDataToMap } from '../../components/Admin/ModifyTimetable/utils';
 import { convertToTime } from '@utils/convertToTime';
-// import { fetchSections } from '@features/sectionSlice';
 
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useSchedule } from '../../hooks/indexedDB/useScheduleSearch';
+import schedules from '../../indexedDB/savedSearchedSchedules';
 
 const ScheduleModal = ({
     outerKey,
@@ -195,20 +194,44 @@ const Search = () => {
     const [suggestions, setSuggestions] = useState([]);
     const [searchHistory, setSearchHistory] = useState([]);
     const [results, setResults] = useState([]);
+    const [savedScheduleResults, setSavedScheduleResults] = useState([]);
     const [isSearchClicked, setIsSearchClicked] = useState(false);
     const [isSuggestionsVisible, setIsSuggestionsVisible] = useState(false);
     const [role, setRole] = useState('Sections');
     const dropdownRef = useRef(null);
     const inputRef = useRef(null);
-    // const [valueMap, setValueMap] = useState(new Map());
     const [valueMaps, setValueMaps] = useState(new Map());
     const { search, loading, error } = useSearchTimetable();
-    // const { sections, status: sectionStatus } = useSelector((state) => state.section);
+
+    const { getAllNameAndID, scheduleNameAndID, loading: scheduleLoading, error: scheduleError } = useSchedule();
 
     useEffect(() => {
         const storedHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
         setSearchHistory(storedHistory);
+
+        getAllNameAndID();
     }, []);
+
+    useEffect(() => {
+        const fetchSchedules = async () => {
+            const savedSchedules = await schedules.getSchedulesByFuzzyName(query);
+
+            const schedulesWithoutProperty = savedSchedules.map((schedule) => {
+                if (schedule && typeof schedule === 'object') {
+                    const { nameID, ...rest } = schedule;
+                    return {
+                        ...rest,
+                        source: 'saved',
+                    };
+                }
+                return schedule;
+            });
+
+            setSavedScheduleResults(schedulesWithoutProperty);
+        };
+
+        fetchSchedules();
+    }, [query]);
 
     useEffect(() => {
         if (query.trim()) {
@@ -234,7 +257,15 @@ const Search = () => {
 
         const cleanedQuery = query.replace(/\s+/g, ' ').trim();
 
-        setResults(await search(cleanedQuery.split(' '), role == 'Sections' ? 's' : 't'));
+        const results = await search(cleanedQuery.split(' '), role == 'Sections' ? 's' : 't');
+
+        setResults(results);
+
+        console.log(schedules.getAllNames());
+
+        for (const result of results) {
+            schedules.upsert(result);
+        }
 
         setSuggestions([]);
         setIsSuggestionsVisible(true);
@@ -243,27 +274,33 @@ const Search = () => {
         console.log('result', results);
     };
 
-    // useEffect(() => {
-    //     console.log('potanginang results', results);
-    //     if (results.length !== 0) {
-    //         console.log('in');
-    //         const convertedData = convertStringDataToMap(results[0]?.a);
-    //         console.log('convertedData', convertedData);
-    //         setValueMap(convertedData);
-    //     }
-    // }, [results]);
+    useEffect(() => {
+        if (savedScheduleResults.length !== 0) {
+            setValueMaps((prev) => {
+                const newValueMaps = new Map(prev);
+
+                savedScheduleResults.forEach((result) => {
+                    const convertedData = convertStringDataToMap(result.a);
+                    newValueMaps.set(result.id, convertedData);
+                });
+
+                return newValueMaps;
+            });
+        }
+    }, [savedScheduleResults]);
 
     useEffect(() => {
         if (results.length !== 0) {
-            const newValueMaps = new Map();
+            setValueMaps((prev) => {
+                const newValueMaps = new Map(prev);
 
-            results.forEach((result) => {
-                const convertedData = convertStringDataToMap(result.a);
-                newValueMaps.set(result.id, convertedData);
-                console.log('MODALITY: ', result.m);
+                results.forEach((result) => {
+                    const convertedData = convertStringDataToMap(result.a);
+                    newValueMaps.set(result.id, convertedData);
+                });
+
+                return newValueMaps;
             });
-
-            setValueMaps(newValueMaps);
         }
     }, [results]);
 
@@ -274,7 +311,7 @@ const Search = () => {
     };
 
     const handleFocus = () => {
-        if (searchHistory.length > 0) {
+        if (searchHistory.length + results.length + savedScheduleResults.length > 0) {
             setSuggestions(searchHistory);
             setIsSuggestionsVisible(true);
         }
@@ -301,7 +338,7 @@ const Search = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
-    // console.log(sections[1]?.modality);
+
     return (
         <div className='w-full h-full flex flex-col items-center px-4 lg:px-12 mt-[50px] select-none space-y-8'>
             <div className='text-center w-full max-w-4xl space-y-2'>
@@ -312,7 +349,8 @@ const Search = () => {
             <div
                 ref={dropdownRef}
                 className={clsx('rounded-3xl w-full max-w-3xl flex items-center shadow-md bg-white relative  px-4 py-2', {
-                    'rounded-b-none ': isSuggestionsVisible && suggestions.length > 0,
+                    'rounded-b-none ':
+                        isSuggestionsVisible && suggestions.length + savedScheduleResults.length + results.length > 0,
                 })}
             >
                 <select
@@ -344,7 +382,7 @@ const Search = () => {
                     onBlur={() => console.log('onBlur')}
                 />
 
-                {suggestions.length > 0 && isSuggestionsVisible && (
+                {suggestions.length + savedScheduleResults.length + results.length > 0 && isSuggestionsVisible && (
                     <div className='absolute left-0 top-full w-full rounded-b-3xl bg-white shadow-md z-10 border-t'>
                         {results?.length === 0 && isSearchClicked && (
                             <p className='text-center text-gray-500 py-20 border border-b'>
@@ -353,7 +391,7 @@ const Search = () => {
                         )}
 
                         <ul>
-                            {results?.map((result) => (
+                            {[...savedScheduleResults, ...results]?.map((result) => (
                                 <li
                                     key={result.id}
                                     className='group flex items-center justify-between px-4 py-2 hover:bg-gray-300 cursor-pointer last:rounded-b-3xl'
@@ -364,8 +402,13 @@ const Search = () => {
                                     }}
                                 >
                                     <div className='flex items-center gap-4'>
-                                        <span className='text-xs w-10 border text-accent border-accent text-opacity-75 border-opacity-75'>
-                                            result
+                                        <span
+                                            className={clsx(
+                                                'text-xs w-10 text-center',
+                                                result.source === 'saved' ? 'text-green-400 border-green-400' : 'text-accent'
+                                            )}
+                                        >
+                                            {result.source === 'saved' ? 'saved' : 'result'}
                                         </span>
                                         <span className='text-sm md:text-base text-gray-700'>{result.n.join(' ')}</span>
                                     </div>
