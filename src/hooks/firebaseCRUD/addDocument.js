@@ -39,7 +39,9 @@ export async function addDocument({
             const newDocRef = doc(collectionRef, newId.toString());
             transaction.set(newDocRef, entryData);
 
-            await addDoc(logCollectionRef, {
+            const newLogDocRef = doc(logCollectionRef);
+
+            transaction.set(newLogDocRef, {
                 d: `${collectionAbbreviation}-a`,
                 i: itemName,
                 u: userName,

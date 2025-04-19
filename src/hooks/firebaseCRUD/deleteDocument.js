@@ -23,7 +23,10 @@ export async function deleteDocument({ docId, collectionName = '', collectionAbb
             }
 
             transaction.delete(docRef);
-            await addDoc(logCollectionRef, {
+
+            const newLogDocRef = doc(logCollectionRef);
+
+            transaction.set(newLogDocRef, {
                 d: `${collectionAbbreviation}-d`,
                 i: itemName,
                 u: userName,
