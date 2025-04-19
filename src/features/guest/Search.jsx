@@ -271,7 +271,7 @@ const Search = () => {
         setSearchHistory(updatedHistory);
         localStorage.setItem('searchHistory', JSON.stringify(updatedHistory));
 
-        const cleanedQuery = query.replace(/\s+/g, ' ').trim();
+        const cleanedQuery = query.replace(/\s+/g, ' ').trim().toLowerCase();
 
         const results = await search(cleanedQuery.split(' '), role == 'Sections' ? 's' : 't');
 
