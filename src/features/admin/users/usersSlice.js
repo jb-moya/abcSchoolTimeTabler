@@ -30,7 +30,10 @@ export const createUser = createAsyncThunk('user/createUser', async (credentials
     try {
         const userData = await signup(credentials);
         console.log('🚀 ~ userData:', userData);
-        return userData;
+        return {
+            id: userData.uid,
+            ...userData,
+        };
     } catch (error) {
         return rejectWithValue(error.message);
     }

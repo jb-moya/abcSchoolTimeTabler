@@ -58,7 +58,7 @@ function TimeSelector({ interval = 5, time = '06:00 AM', setTime = () => {}, am 
     return (
         <div ref={ref} className='relative'>
             <div
-                className={`flex flex-wrap h-12 bg-base-100 border border-base-content border-opacity-20 text-base ${
+                className={`flex flex-wrap h-8 bg-base-100 border border-base-content border-opacity-20 text-sm ${
                     isPanelVisible ? 'rounded-t-md' : 'rounded-md'
                 } ${disabled ? 'border-none bg-transparent cursor-not-allowed' : ''}`}
             >
