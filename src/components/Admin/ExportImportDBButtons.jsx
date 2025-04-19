@@ -1382,11 +1382,16 @@ const ExportImportDBButtons = ({
                 }
 
                 // Check if teacher is an adviser of a section
-                const isAdviser = addedSections.some(
+                const adviserSection = addedSections.find(
                     (section) => section.adviser.trim().toLowerCase() === teacher.teacher.trim().toLowerCase()
                 );
+                
+                const isAdviser = !!adviserSection;
 
                 if (isAdviser) {
+
+                    const startTime = adviserSection.startTime;
+
                     // Add advisory schedule
                     teacher.additionalTeacherScheds.push({
                         n: 'Advisory Load',
@@ -1394,7 +1399,7 @@ const ExportImportDBButtons = ({
                         d: 60,
                         f: defaultNumberOfSchoolDays,
                         sh: false,
-                        t: 96,
+                        t: startTime,
                     });
                 }
 

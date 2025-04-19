@@ -90,7 +90,7 @@ const SectionListContainer = ({ editable = false }) => {
         teachersStoreLoading,
     ]);
 
-    const itemsPerPage = 10; // Adjust this to change items per page
+    const itemsPerPage = 2; // Adjust this to change items per page
     const [currentPage, setCurrentPage] = useState(1);
 
     const totalPages = Math.ceil(Object.values(searchSectionResult).length / itemsPerPage);

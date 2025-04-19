@@ -233,7 +233,7 @@ const SectionEdit = ({
                         duration: 60,
                         frequency: numOfSchoolDays,
                         shown: false,
-                        time: 96,
+                        time: getTimeSlotIndex(editSectionStartTime),
                     };
 
                     if (prevAdviser !== editSectionAdviser) {

@@ -182,7 +182,7 @@ const AddSectionContainer = ({
                 duration: 60,
                 frequency: numOfSchoolDays,
                 shown: false,
-                time: 96,
+                time: getTimeSlotIndex(selectedStartTime || '06:00 AM'),
             };
 
             const teacher = structuredClone(teachers[selectedAdviser]);

@@ -95,6 +95,16 @@ const TeacherEdit = ({
 
         if (editTeacherValue.trim().toLowerCase() === currentTeacher.trim().toLowerCase()) {
             try {
+
+                const schedules = editTeacherAdditionalScheds.map((sched) => ({
+                    n: sched.name,
+                    su: sched.subject,
+                    d: sched.duration,
+                    f: sched.frequency,
+                    sh: sched.shown,
+                    t: sched.time,
+                }));
+
                 await editDocument({
                     collectionName: 'teachers',
                     collectionAbbreviation: COLLECTION_ABBREVIATION.TEACHERS,
@@ -107,7 +117,7 @@ const TeacherEdit = ({
                         r: editTeacherRank,
                         s: editTeacherCurr,
                         y: editTeacherYearLevels,
-                        at: editTeacherAdditionalScheds,
+                        at: schedules
                     },
                 });
             } catch {
@@ -137,6 +147,16 @@ const TeacherEdit = ({
                 return;
             } else {
                 try {
+
+                    const schedules = editTeacherAdditionalScheds.map((sched) => ({
+                        n: sched.name,
+                        su: sched.subject,
+                        d: sched.duration,
+                        f: sched.frequency,
+                        sh: sched.shown,
+                        t: sched.time,
+                    }));
+
                     await editDocument({
                         collectionName: 'teachers',
                         collectionAbbreviation: COLLECTION_ABBREVIATION.TEACHERS,
@@ -149,7 +169,7 @@ const TeacherEdit = ({
                             r: editTeacherRank,
                             s: editTeacherCurr,
                             y: editTeacherYearLevels,
-                            at: editTeacherAdditionalScheds,
+                            at: schedules,
                         },
                     });
                 } catch {

@@ -57,7 +57,7 @@ const DepartmentListContainer = ({ editable = false }) => {
         debouncedSearch(searchDepartmentValue, departments);
     }, [searchDepartmentValue, departments, debouncedSearch, departmentsStoreLoading, teachersStoreLoading]);
 
-    const itemsPerPage = 2;
+    const itemsPerPage = 10;
     const [currentPage, setCurrentPage] = useState(1);
 
     const totalPages = Math.ceil(Object.values(searchDepartmentResult).length / itemsPerPage);
