@@ -1,26 +1,38 @@
 import { useState } from 'react';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, doc, getDocs, writeBatch } from 'firebase/firestore';
 import { firestore } from '../firebase/firebase';
 import { toast } from 'sonner';
 import { useSelector } from 'react-redux';
+import chunkArray from '../utils/chunkArray';
 
 function useDeployTimetables() {
     const [isLoading, setIsLoading] = useState(false);
     const [remaining, setRemaining] = useState(0);
     const { user, loading: userLoading } = useSelector((state) => state.user);
 
-    const itemsCollection = collection(firestore, 'timetables'); // Reference the collection
+    const itemsCollection = collection(firestore, 'timetables');
+    const batchLimit = 500;
 
     const handleDeployTimetables = async (timetables) => {
-        setIsLoading(true);
-
         if (userLoading) {
             return;
         }
 
-        try {
-            const schedules = [];
+        setIsLoading(true);
 
+        try {
+            // 1. Delete existing timetables
+            const existingDocs = await getDocs(itemsCollection);
+            const deleteChunks = chunkArray(existingDocs.docs, batchLimit);
+
+            for (const chunk of deleteChunks) {
+                const batch = writeBatch(firestore);
+                chunk.forEach((docSnap) => batch.delete(docSnap.ref));
+                await batch.commit();
+            }
+
+            // 2. Prepare new timetable data
+            const schedules = [];
             timetables.forEach((value, key) => {
                 console.log(`${key}: ${value}`);
                 console.log(value);
@@ -37,19 +49,28 @@ function useDeployTimetables() {
                     td: value[7],
                 };
 
-                // console.log(obj);
-
                 schedules.push(obj);
             });
 
-            console.log('vv');
+            const addChunks = chunkArray(schedules, batchLimit);
+
+            // console.log('vv');
             console.log(schedules);
             setRemaining(schedules.length);
 
-            for (const item of schedules) {
-                await addDoc(itemsCollection, item);
-                setRemaining((prevRemaining) => prevRemaining - 1);
+            for (const chunk of addChunks) {
+                const batch = writeBatch(firestore);
+                chunk.forEach((item) => {
+                    const newDocRef = doc(itemsCollection);
+                    batch.set(newDocRef, item);
+                });
+                await batch.commit();
             }
+
+            // for (const item of schedules) {
+            //     await addDoc(itemsCollection, item);
+            //     setRemaining((prevRemaining) => prevRemaining - 1);
+            // }
 
             toast.success('Timetables deployed successfully');
         } catch (error) {

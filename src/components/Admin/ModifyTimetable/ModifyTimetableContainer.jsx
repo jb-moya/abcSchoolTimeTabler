@@ -4,12 +4,10 @@ import { generateTimeSlots } from '../utils';
 import { produce } from 'immer';
 import { PiConfetti } from 'react-icons/pi';
 import useDeployTimetables from '../../../hooks/useDeployTimetables';
-import useDeleteAllFirebaseTimetables from '../../../hooks/useDeleteAllFirebaseTimetables';
 import mapToArray from './mapToArray';
 import mapToArrayDeploy from './mapToArrayDeploy';
 import clsx from 'clsx';
 import { IoIosAdd, IoIosWarning } from 'react-icons/io';
-import { FiMinus } from 'react-icons/fi';
 import ExportSchedules from './ExportSchedules';
 import { addDocument } from '../../../hooks/firebaseCRUD/addDocument';
 import { editDocument } from '../../../hooks/firebaseCRUD/editDocument';
@@ -68,11 +66,6 @@ const ModifyTimetableContainer = ({
     const inputNameRef = useRef();
 
     const { handleDeployTimetables, isLoading: deployLoading, remaining: deployRemaining } = useDeployTimetables();
-    const {
-        handleDeleteAllFirebaseTimetables,
-        isLoading: deletingLoading,
-        remaining: deleteRemaining,
-    } = useDeleteAllFirebaseTimetables();
 
     const [scheduleVerName, setScheduleVerName] = useState(timetableName);
 
@@ -904,14 +897,13 @@ const ModifyTimetableContainer = ({
 
                         <button
                             className={clsx('btn btn-primary flex-1', {
-                                'btn-disabled': deletingLoading || deployLoading,
+                                'btn-disabled': deployLoading,
                             })}
-                            disabled={deletingLoading || deployLoading}
+                            disabled={deployLoading}
                             onClick={() => document.getElementById('deploy_confirmation').showModal()}
                         >
-                            {(deletingLoading || deployLoading) && <span className='loading loading-spinner'></span>}
-                            {/* {deletingLoading || deployLoading ? ( */}
-                            {deletingLoading || deployLoading ? (
+                            {deployLoading && <span className='loading loading-spinner'></span>}
+                            {deployLoading ? (
                                 <div className='mt-4 min-h-12 text-start'>
                                     <p>Deploying</p>
                                 </div>
@@ -965,14 +957,6 @@ const ModifyTimetableContainer = ({
                                                     <span className='flex items-center gap-2 text-green-500'>
                                                         <IoIosAdd />
                                                         <span>{deployRemaining} to overwrite</span>
-                                                    </span>
-                                                )}
-
-                                                {deletingLoading && deleteRemaining > 0 && (
-                                                    // {1 > 0 && (
-                                                    <span className='flex items-center gap-2 text-red-500'>
-                                                        <FiMinus />
-                                                        <span>{deleteRemaining} to delete</span>
                                                     </span>
                                                 )}
                                             </div>
@@ -1106,22 +1090,20 @@ const ModifyTimetableContainer = ({
                             </p>
                             <div className='mt-4 min-h-7 text-start'>
                                 {deployLoading && deployRemaining > 0 && <p>{deployRemaining} to overwrite</p>}
-                                {deletingLoading && deleteRemaining > 0 && <p>{deleteRemaining} to delete</p>}
                             </div>
                         </div>
                         <div className='flex justify-end gap-2'>
                             <button
                                 className='btn btn-primary flex-1'
                                 onClick={async () => {
-                                    await handleDeleteAllFirebaseTimetables();
                                     await deploy();
 
                                     document.getElementById('confirm_schedule_save_modal').close();
                                     handleReset();
                                 }}
-                                disabled={deletingLoading || deployLoading}
+                                disabled={deployLoading}
                             >
-                                {deletingLoading || deployLoading ? (
+                                {deployLoading ? (
                                     <>
                                         <span className='loading loading-spinner'></span>
                                         <span>Deploying... This may take a while</span>
@@ -1132,7 +1114,7 @@ const ModifyTimetableContainer = ({
                             </button>
                             <button
                                 className='btn btn-error'
-                                disabled={deletingLoading || deployLoading}
+                                disabled={deployLoading}
                                 onClick={() => document.getElementById('deploy_confirmation').close()}
                             >
                                 Cancel

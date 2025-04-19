@@ -9,7 +9,6 @@ import { convertToTime } from '@utils/convertToTime';
 
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { useSchedule } from '../../hooks/indexedDB/useScheduleSearch';
 import Schedules from '../../indexedDB/savedSearchedSchedules';
 
 const ScheduleModal = ({
