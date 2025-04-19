@@ -10,7 +10,7 @@ import { convertToTime } from '@utils/convertToTime';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useSchedule } from '../../hooks/indexedDB/useScheduleSearch';
-import schedules from '../../indexedDB/savedSearchedSchedules';
+import Schedules from '../../indexedDB/savedSearchedSchedules';
 
 const ScheduleModal = ({
     outerKey,
@@ -196,6 +196,7 @@ const ScheduleModal = ({
     );
 };
 
+
 const Search = () => {
     // const dispatch = useDispatch();
     const [query, setQuery] = useState('');
@@ -209,20 +210,28 @@ const Search = () => {
     const dropdownRef = useRef(null);
     const inputRef = useRef(null);
     const [valueMaps, setValueMaps] = useState(new Map());
+    const [scheduleReady, setScheduleReady] = useState(false);
     const { search, loading, error } = useSearchTimetable();
-
-    const { getAllNameAndID, scheduleNameAndID, loading: scheduleLoading, error: scheduleError } = useSchedule();
+    
 
     useEffect(() => {
+        const scheduleInit = async () => {
+            console.log('rrrr');
+            await Schedules.init();
+            setScheduleReady(true);
+        };
+
+        console.log('asdfasfdsfsdf');
+        scheduleInit();
+
         const storedHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
         setSearchHistory(storedHistory);
-
-        getAllNameAndID();
     }, []);
 
     useEffect(() => {
         const fetchSchedules = async () => {
-            const savedSchedules = await schedules.getSchedulesByFuzzyName(query);
+            if (!scheduleReady) return;
+            let savedSchedules = await Schedules.getSchedulesByFuzzyName(query);
 
             const schedulesWithoutProperty = savedSchedules.map((schedule) => {
                 if (schedule && typeof schedule === 'object') {
@@ -239,7 +248,7 @@ const Search = () => {
         };
 
         fetchSchedules();
-    }, [query]);
+    }, [query, scheduleReady]);
 
     useEffect(() => {
         if (query.trim()) {
@@ -269,10 +278,10 @@ const Search = () => {
 
         setResults(results);
 
-        console.log(schedules.getAllNames());
+        console.log(Schedules.getAllNames());
 
         for (const result of results) {
-            schedules.upsert(result);
+            Schedules.upsert(result);
         }
 
         setSuggestions([]);
@@ -302,10 +311,10 @@ const Search = () => {
             setValueMaps((prev) => {
                 const newValueMaps = new Map(prev);
 
-            results.forEach((result) => {
-                const convertedData = convertStringDataToMapDeployed(result.a);
-                newValueMaps.set(result.id, convertedData);
-            });
+                results.forEach((result) => {
+                    const convertedData = convertStringDataToMapDeployed(result.a);
+                    newValueMaps.set(result.id, convertedData);
+                });
 
                 return newValueMaps;
             });

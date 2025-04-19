@@ -14,25 +14,37 @@ const levenshtein = (s, t) => {
     return arr[t.length][s.length];
 };
 
-console.log("test", levenshtein('duck', 'dark')); // 2
-console.log("test", levenshtein('foo', 'foobar')); // 3
-console.log("test", levenshtein('sect', 'section3')); // 3
-console.log("test", levenshtein('Jo', 'Joshua Buenaventura')); // 3
-console.log("test", levenshtein('', 'Joshua Buenaventura')); // 3
-console.log("test", levenshtein('', 'Joshua Buenaventura')); // 3
+// console.log('test', levenshtein('duck', 'dark')); // 2
+// console.log('test', levenshtein('foo', 'foobar')); // 3
+// console.log('test', levenshtein('sect', 'section3')); // 3
+// console.log('test', levenshtein('Jo', 'Joshua Buenaventura')); // 3
+// console.log('test', levenshtein('', 'Joshua Buenaventura')); // 3
+// console.log('test', levenshtein('', 'Joshua Buenaventura')); // 3
 
-class Schedules {
-    constructor(db) {
-        if (Schedules.instance) {
-            return Schedules.instance;
-        }
+export default class Schedules {
+    static db = null;
+    static nameIDs = [];
+    static _initialized = false;
 
-        this.db = db;
-        Schedules.instance = this;
-        this.nameIDs = [];
+    static async init() {
+        if (this._initialized) return;
+
+        this.db = await openDB('schedules', 1, {
+            upgrade(db) {
+                if (!db.objectStoreNames.contains('schedules')) {
+                    const store = db.createObjectStore('schedules', { keyPath: 'id' });
+                    store.createIndex('by_name', 'nameID', { unique: true });
+                }
+            },
+        });
+
+        const schedules = await this.getAll();
+        this.nameIDs = schedules.map((schedule) => schedule.nameID);
+        this._initialized = true;
     }
 
-    async getAll() {
+    static async getAll() {
+        if (!this.db) throw new Error('Schedules not initialized');
         const tx = this.db.transaction('schedules', 'readonly');
         const store = tx.objectStore('schedules');
         const schedules = await store.getAll();
@@ -40,49 +52,30 @@ class Schedules {
         return schedules;
     }
 
-    static async init() {
-        if (!Schedules.instance) {
-            const db = await openDB('schedules', 1, {
-                upgrade(db) {
-                    if (!db.objectStoreNames.contains('schedules')) {
-                        const store = db.createObjectStore('schedules', { keyPath: 'id' });
-                        store.createIndex('by_name', 'nameID', { unique: true });
-                    }
-                },
-            });
-            Schedules.instance = new Schedules(db);
+    static async upsert(schedule) {
+        if (!this._initialized) throw new Error('Schedules not initialized');
 
-            const schedules = await Schedules.instance.getAll();
-
-            const names = schedules.map((schedule) => schedule.nameID);
-
-            Schedules.instance.nameIDs = names;
-        }
-        return Schedules.instance;
-    }
-
-    async upsert(schedule) {
         schedule.nameID = Array.isArray(schedule?.n) ? schedule.n.join(' ') : '';
 
-        if (schedule?.nameID === '') {
-            return;
-        }
+        if (!schedule.nameID) return;
 
         const tx = this.db.transaction('schedules', 'readwrite');
         const store = tx.objectStore('schedules');
         await store.put(schedule);
         await tx.done;
+
+        // Update nameIDs if new
+        if (!this.nameIDs.includes(schedule.nameID)) {
+            this.nameIDs.push(schedule.nameID);
+        }
     }
 
-    getAllNames() {
+    static getAllNames() {
         return this.nameIDs;
     }
 
-    searchNames(query, threshold = 20) {
+    static searchNames(query, threshold = 20) {
         query = query.toLowerCase();
-
-        console.log('🚀 ~ Schedules ~ searchNames ~ query:', query);
-        console.log('🚀 ~ Schedules ~ returnthis.nameIDs.filter ~ this.nameIDs:', this.nameIDs);
 
         return this.nameIDs.filter((name) => {
             const distance = levenshtein(query, name.toLowerCase());
@@ -90,10 +83,10 @@ class Schedules {
         });
     }
 
-    async getSchedulesByFuzzyName(query) {
-        const matchedNames = this.searchNames(query);
-        console.log('🚀 ~ Schedules ~ getSchedulesByFuzzyName ~ matchedNames:', matchedNames);
+    static async getSchedulesByFuzzyName(query) {
+        if (!this._initialized) throw new Error('Schedules not initialized');
 
+        const matchedNames = this.searchNames(query);
         const tx = this.db.transaction('schedules', 'readonly');
         const store = tx.objectStore('schedules');
         const schedules = [];
@@ -110,6 +103,3 @@ class Schedules {
         return schedules;
     }
 }
-
-const schedules = await Schedules.init();
-export default schedules;
