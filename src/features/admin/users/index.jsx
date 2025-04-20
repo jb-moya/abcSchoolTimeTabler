@@ -19,12 +19,12 @@ const Users = () => {
         <div className='App container mx-auto px-4 mb-10'>
             <Breadcrumbs title='Users' links={links} />
 
-            <div role='tablist' className='tabs tabs-lifted tabs-lg'>
+            <div role='tablist' className='tabs tabs-lifted tabs-lg w-full flex'>
                 <input
                     type='radio'
-                    name='my_tabs_2'
+                    name='tabs'
                     role='tab'
-                    className='tab'
+                    className='tab text-xs sm:text-sm md:text-base'
                     aria-label='Create New User'
                     checked={activeTab === 'createUser'}
                     onChange={() => {
@@ -32,15 +32,11 @@ const Users = () => {
                         setEditingUser(null);
                     }}
                 />
-                <div role='tabpanel' className='tab-content bg-base-100 border-base-300 rounded-box p-6'>
-                    <CreateUser />
-                </div>
-
                 <input
                     type='radio'
-                    name='my_tabs_2'
+                    name='tabs'
                     role='tab'
-                    className='tab'
+                    className='tab text-xs sm:text-sm md:text-base  '
                     aria-label='User List'
                     checked={activeTab === 'userList'}
                     onChange={() => {
@@ -48,40 +44,32 @@ const Users = () => {
                         setEditingUser(null);
                     }}
                 />
-                <div role='tabpanel' className='tab-content bg-base-100 border-base-300 rounded-box p-6'>
-                    <UserList onEditUser={handleEditUser} />
-                </div>
-
                 <input
                     type='radio'
-                    name='my_tabs_2'
+                    name='tabs'
                     role='tab'
-                    className='tab'
+                    className='tab text-xs sm:text-sm md:text-base'
                     aria-label='Edit User'
                     checked={activeTab === 'editUser'}
                     onChange={() => setActiveTab('editUser')}
                     disabled={!editingUser}
                 />
-                {activeTab === 'editUser' && (
-                    <div role='tabpanel' className='tab-content bg-base-100 border-base-300 rounded-box p-6'>
-                        <EditUser userId={editingUser} />
-                    </div>
-                )}
-
                 <input
                     type='radio'
-                    name='my_tabs_2'
+                    name='tabs'
                     role='tab'
-                    className='tab'
+                    className='tab text-xs sm:text-sm md:text-base'
                     aria-label='User Logs'
                     checked={activeTab === 'userLogs'}
                     onChange={() => setActiveTab('userLogs')}
                 />
-                {activeTab === 'userLogs' && (
-                    <div role='tabpanel' className='tab-content bg-base-100 border-base-300 rounded-box p-6'>
-                        <UserLogs />
-                    </div>
-                )}
+            </div>
+
+            <div className='bg-base-100 border border-t-0 border-base-300 rounded-box rounded-t-none p-6 w-full'>
+                {activeTab === 'createUser' && <CreateUser />}
+                {activeTab === 'userList' && <UserList onEditUser={handleEditUser} />}
+                {activeTab === 'editUser' && editingUser && <EditUser userId={editingUser} />}
+                {activeTab === 'userLogs' && <UserLogs />}
             </div>
         </div>
     );
