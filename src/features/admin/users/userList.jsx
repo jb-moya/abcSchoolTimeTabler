@@ -20,6 +20,14 @@ const UserList = ({ onEditUser }) => {
     const { editUser, loading: editUserLoading, error: editUserError } = useEditUser();
     const { toggleStatus, loading: toggleStatusLoading, error: toggleStatusError } = useToggleAllowedStatus();
 
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+    const totalPages = Math.ceil(users.length / itemsPerPage);
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentUsers = users.slice(indexOfFirstItem, indexOfLastItem);
+
     const handleEdit = (userId) => {
         onEditUser(userId);
     };
@@ -57,8 +65,34 @@ const UserList = ({ onEditUser }) => {
         );
     }
 
+    const handlePageChange = (newPage) => {
+        if (newPage >= 1 && newPage <= totalPages) {
+            setCurrentPage(newPage);
+        }
+    };
+
     return (
         <div className='w-full max-w-[95vw] mx-auto'>
+            {/* Pagination added by Enzo */}
+            <div className='flex justify-start mb-4'>
+                <div className='join'>
+                    <button
+                        className={`join-item btn btn-sm ${currentPage === 1 ? 'btn-disabled' : ''}`}
+                        onClick={() => handlePageChange(currentPage - 1)}
+                    >
+                        «
+                    </button>
+                    <button className='join-item w-32 btn btn-sm'>
+                        Page {currentPage} of {totalPages}
+                    </button>
+                    <button
+                        className={`join-item btn btn-sm ${currentPage === totalPages ? 'btn-disabled' : ''}`}
+                        onClick={() => handlePageChange(currentPage + 1)}
+                    >
+                        »
+                    </button>
+                </div>
+            </div>
             <div className='overflow-x-auto'>
                 <table className='table table-zebra w-full'>
                     <thead>
@@ -96,7 +130,7 @@ const UserList = ({ onEditUser }) => {
                         </tr>
                     </thead>
                     <tbody>
-                        {users.map((user) => (
+                        {currentUsers.map((user) => (
                             <tr key={user?.id}>
                                 <td className='whitespace-nowrap'>
                                     <div>{user?.email || 'N/A'}</div>
@@ -111,8 +145,8 @@ const UserList = ({ onEditUser }) => {
                                             (user?.role || 'unknown role').toLowerCase() === 'super admin'
                                                 ? 'badge-error'
                                                 : (user?.role || 'unknown role').toLowerCase() === 'admin'
-                                                ? 'badge-primary'
-                                                : 'badge-ghost'
+                                                  ? 'badge-primary'
+                                                  : 'badge-ghost'
                                         }`}
                                     >
                                         {user?.role || 'unknown role'}
