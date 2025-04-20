@@ -14,7 +14,6 @@ import { addDocument } from '../../hooks/firebaseCRUD/addDocument';
 import { useSelector } from 'react-redux';
 import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
 import { COLLECTION_ABBREVIATION } from '../../constants';
-import { s } from 'motion/react-client';
 
 const ImportingFullScreenLoader = () => {
     return createPortal(
@@ -1369,7 +1368,7 @@ const ExportImportDBButtons = ({
 
             // Add all teachers
             for (const teacher of addedTeachers) {
-                console.log('teacher: ', teacher);
+                // console.log('teacher: ', teacher);
 
                 const departmentIndex = addedDepartments.findIndex(
                     (d) => d.department.trim().toLowerCase() === teacher.department.trim().toLowerCase()
@@ -1385,12 +1384,22 @@ const ExportImportDBButtons = ({
                 const adviserSection = addedSections.find(
                     (section) => section.adviser.trim().toLowerCase() === teacher.teacher.trim().toLowerCase()
                 );
+
+                // console.log('adviserSection: ', adviserSection);
                 
                 const isAdviser = !!adviserSection;
 
-                if (isAdviser) {
+                const sectionProgram = addedPrograms.find(
+                    (program) => program.program.trim().toLowerCase() === adviserSection.program.trim().toLowerCase()
+                );
 
-                    const startTime = adviserSection.startTime;
+                // console.log('sectionProgram: ', sectionProgram);
+
+                const sectionProgAndYear = sectionProgram[adviserSection.year];
+
+                // console.log('sectionProgAndYear: ', sectionProgAndYear);
+
+                if (isAdviser) {
 
                     // Add advisory schedule
                     teacher.additionalTeacherScheds.push({
@@ -1399,9 +1408,12 @@ const ExportImportDBButtons = ({
                         d: 60,
                         f: defaultNumberOfSchoolDays,
                         sh: false,
-                        t: startTime,
+                        t: sectionProgAndYear.startTime,
                     });
+
                 }
+
+                // console.log('teacher: ', teacher);
 
                 await addDocument({
                     collectionName: 'teachers',
