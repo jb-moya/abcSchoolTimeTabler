@@ -1384,22 +1384,16 @@ const ExportImportDBButtons = ({
                 const adviserSection = addedSections.find(
                     (section) => section.adviser.trim().toLowerCase() === teacher.teacher.trim().toLowerCase()
                 );
-
-                // console.log('adviserSection: ', adviserSection);
                 
                 const isAdviser = !!adviserSection;
 
-                const sectionProgram = addedPrograms.find(
-                    (program) => program.program.trim().toLowerCase() === adviserSection.program.trim().toLowerCase()
-                );
-
-                // console.log('sectionProgram: ', sectionProgram);
-
-                const sectionProgAndYear = sectionProgram[adviserSection.year];
-
-                // console.log('sectionProgAndYear: ', sectionProgAndYear);
-
                 if (isAdviser) {
+
+                    const sectionProgram = addedPrograms.find(
+                        (program) => program.program.trim().toLowerCase() === adviserSection.program.trim().toLowerCase()
+                    );
+
+                    const sectionProgAndYear = sectionProgram[adviserSection.year];
 
                     // Add advisory schedule
                     teacher.additionalTeacherScheds.push({
