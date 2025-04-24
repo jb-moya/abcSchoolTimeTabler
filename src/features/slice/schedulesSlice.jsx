@@ -15,6 +15,7 @@ const schedules = createSlice({
                 id,
                 data: action.payload.d,
                 name: action.payload.n,
+                status: action.payload.s,
             };
 
             state.schedules[id] = mappedObj;

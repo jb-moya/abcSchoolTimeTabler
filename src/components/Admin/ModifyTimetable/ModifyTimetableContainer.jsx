@@ -255,16 +255,19 @@ const ModifyTimetableContainer = ({
         console.log('🚀 ~ save ~ valueMap:', valueMap);
 
         console.log('array          dddddddddd: ', array);
-
+        console.log('errorCount: ', errorCount);
+        const status = errorCount > 0 ? 'Error ' + errorCount : 'Verified';
+        console.log('status: ', status);
         const n = 5;
         let resultarray = [];
         array.forEach((row) => {
             let tableArray = [];
             let result = processRows(row[1], n);
-            console.log('ROW LOG: ', row);
+            // console.log('ROW LOG: ', row);
             tableArray.push(row[0]);
             tableArray.push(result);
-            tableArray.push(row[2]);
+            // tableArray.push(row[2]);
+            // tableArray.push(status);
             resultarray.push(tableArray);
         });
 
@@ -308,6 +311,7 @@ const ModifyTimetableContainer = ({
                     entryData: {
                         n: scheduleVerName,
                         d: stringifiedTimeTable,
+                        s: status,
                     },
                 });
             } else {
@@ -320,6 +324,7 @@ const ModifyTimetableContainer = ({
                     entryData: {
                         n: scheduleVerName,
                         d: stringifiedTimeTable,
+                        s: status,
                     },
                 });
             }
