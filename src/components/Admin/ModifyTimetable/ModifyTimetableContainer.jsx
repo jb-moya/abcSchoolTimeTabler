@@ -882,7 +882,6 @@ const ModifyTimetableContainer = ({
                         </button>
                         <button
                             className='btn btn-primary flex-1'
-                            disabled={errorCount > 0}
                             onClick={() => document.getElementById('confirm_schedule_save_modal').showModal()}
                         >
                             Save
