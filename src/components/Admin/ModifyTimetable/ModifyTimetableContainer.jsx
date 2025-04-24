@@ -773,7 +773,7 @@ const ModifyTimetableContainer = ({
                     <div className='modal-box'>
                         <form method='dialog'>
                             <button className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2'>✕</button>
-                            <h3 className='font-bold text-lg mb-4'>Error Details</h3>
+                            {overlapsDisplay.length > 0 && <h3 className='font-bold text-lg mb-4'>Error Details</h3>}
                             <div className='flex flex-col space-y-4'>
                                 {overlapsDisplay.length > 0 ? (
                                     Object.entries(
@@ -795,8 +795,8 @@ const ModifyTimetableContainer = ({
                                         </button>
                                     ))
                                 ) : (
-                                    <div className='flex justify-center gap-2 items-center'>
-                                        <span className='text-xl'>No errors found!</span>
+                                    <div className='flex justify-center font-semibold gap-2 items-center p-4'>
+                                        <span className='text-2xl'>No errors found!</span>
                                         <span className='flex'>
                                             <PiConfetti className='text-2xl text-primary' />
                                             <PiConfetti className='text-2xl text-secondary' />
