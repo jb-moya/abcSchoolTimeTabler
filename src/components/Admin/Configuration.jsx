@@ -4,12 +4,15 @@ import { useSelector } from 'react-redux';
 import { useEditDocument } from '../../hooks/firebaseCRUD/useEditDocument';
 import { COLLECTION_ABBREVIATION } from '../../constants';
 import LoadingButton from '../LoadingButton';
+import { BiInfoCircle } from 'react-icons/bi';
 
 const configuration_invalid_values_code = {
     minimum_workload_above_maximum: 'Minimum workload cannot be greater than maximum workload',
     minimum_workload_below_lower_bound: 'Minimum workload cannot be less than or equal to zero',
     maximum_workload_less_than_minimum: 'Maximum workload cannot be less than minimum workload',
     maximum_workload_less_than_zero: 'Maximum workload cannot be less than or equal to zero',
+    max_abc_iteration_less_than_zero: 'Max iteration of ABC algorithm cannot be less than or equal to zero',
+    max_abc_iteration_greater_than_max: 'Max iteration of ABC algorithm cannot be greater than 10,000,000',
 };
 // import ModifyTimetable from '@features/admin/modify-timetable';
 
@@ -54,6 +57,10 @@ function Configuration() {
         return defaultValues.defaultMaximumTeachingLoad || 1800;
     });
 
+    const [defaultABCMaxIteration, setDefaultABCMaxIteration] = useState(() => {
+        return defaultValues.defaultABCMaxIteration || 10000;
+    });
+
     useEffect(() => {
         if (configurations) {
             setDefaultNumberOfSchoolDays(configurations[1].defaultNumOfSchoolDays || 5);
@@ -63,6 +70,7 @@ function Configuration() {
             setDefaultAfternoonStart(configurations[1].defaultAfternoonStart || '01:00 PM');
             setDefaultMinimumTeachingLoad(configurations[1].defaultMinimumTeachingLoad || 1300);
             setDefaultMaximumTeachingLoad(configurations[1].defaultMaximumTeachingLoad || 1800);
+            setDefaultABCMaxIteration(configurations[1].defaultABCMaxIteration || 10000);
         }
     }, [configurations]);
 
@@ -72,6 +80,7 @@ function Configuration() {
     const maxDuration = 1000;
     const minNumOfSchoolDays = 1;
     const maxNumOfSchoolDays = 7;
+    const maxABCIteration = 10000000;
 
     const handleChangeDefaultSubjectClassDuration = (e, setter) => {
         const value = parseInt(e.target.value, 10);
@@ -82,6 +91,11 @@ function Configuration() {
         } else if (value > maxDuration) {
             setter(maxDuration);
         }
+    };
+
+    const handleChangeMaxABCIteration = (e) => {
+        const value = parseInt(e.target.value, 10);
+        setDefaultABCMaxIteration(value);
     };
 
     const handleChangeMinTeachingLoad = (e) => {
@@ -112,13 +126,14 @@ function Configuration() {
 
     const handleSetTempValues = () => {
         setTempValues({
-            defaultClassDuration,
+            defaultClassDuration: defaultClassDuration,
             morningStartTime: defaultMorningStart,
             afternoonStartTime: defaultAfternoonStart,
-            defaultMinimumTeachingLoad,
-            defaultMaximumTeachingLoad,
+            minTeachingLoad: defaultMinimumTeachingLoad,
+            maxTeachingLoad: defaultMaximumTeachingLoad,
             defaultNumOfSchoolDays: defaultNumberOfSchoolDays,
-            defaultBreakTimeDuration,
+            defaultBreakTimeDuration: defaultBreakTimeDuration,
+            defaultABCMaxIteration: defaultABCMaxIteration,
         });
     };
 
@@ -135,6 +150,7 @@ function Configuration() {
         setDefaultMaximumTeachingLoad(tempValues.maxTeachingLoad);
         setDefaultNumberOfSchoolDays(tempValues.defaultNumOfSchoolDays);
         setDefaultBreakTimeDuration(tempValues.defaultBreakTimeDuration);
+        setDefaultABCMaxIteration(tempValues.defaultABCMaxIteration);
         setEditMode(false);
         setValidationErrors('');
     };
@@ -149,6 +165,10 @@ function Configuration() {
                 throw new Error(configuration_invalid_values_code.maximum_workload_less_than_minimum);
             } else if (defaultMaximumTeachingLoad <= minWorkloadBound) {
                 throw new Error(configuration_invalid_values_code.maximum_workload_less_than_zero);
+            } else if (defaultABCMaxIteration <= 0) {
+                throw new Error(configuration_invalid_values_code.max_abc_iteration_less_than_zero);
+            } else if (defaultABCMaxIteration > maxABCIteration) {
+                throw new Error(configuration_invalid_values_code.max_abc_iteration_greater_than_max);
             }
 
             await editDocument({
@@ -165,6 +185,7 @@ function Configuration() {
                     defaultMaximumTeachingLoad: defaultMaximumTeachingLoad,
                     defaultNumberOfSchoolDays: defaultNumberOfSchoolDays,
                     defaultBreakTimeDuration: defaultBreakTimeDuration,
+                    defaultABCMaxIteration: defaultABCMaxIteration,
                 },
             });
 
@@ -215,8 +236,8 @@ function Configuration() {
             <div className='grid sm:grid-cols-2 grid-cols-1 gap-6 text-left'>
                 <div className='flex flex-col gap-2'>
                     <div className='flex flex-row form-control items-center'>
-                        <label className='w-[250px] label'>Number of Days in a Week (fixed)</label>
-                        <label className='input input-sm w-[250px] input-bordered flex gap-2'>
+                        <label className='w-[350px] label'>Number of Days in a Week (fixed)</label>
+                        <label className='input input-sm w-[350px] input-bordered flex gap-2'>
                             <input
                                 type='number'
                                 placeholder='e.g., 5 (Mon-Fri)'
@@ -232,8 +253,8 @@ function Configuration() {
                     </div>
 
                     <div className='flex flex-row form-control items-center'>
-                        <label className='w-[250px] label'>Default Class Duration</label>
-                        <label className='input input-sm w-[250px] input-bordered flex gap-2'>
+                        <label className='w-[350px] label'>Default Class Duration</label>
+                        <label className='input input-sm w-[350px] input-bordered flex gap-2'>
                             <input
                                 type='number'
                                 placeholder='Default class duration (mins)'
@@ -250,8 +271,8 @@ function Configuration() {
                     </div>
 
                     <div className='flex flex-row form-control items-center'>
-                        <label className='w-[250px] label'>Break Time Duration</label>
-                        <label className='input input-sm w-[250px] input-bordered flex gap-2'>
+                        <label className='w-[350px] label'>Break Time Duration</label>
+                        <label className='input input-sm w-[350px] input-bordered flex gap-2'>
                             <input
                                 type='number'
                                 placeholder='Break Time Duration'
@@ -266,11 +287,40 @@ function Configuration() {
                             <span className='opacity-60'>mins</span>
                         </label>
                     </div>
+
+                    <div className='flex flex-row form-control items-center'>
+                        <label className='w-[350px] label flex justify-start gap-2'>
+                            <span>Max Timetable Generation Iteration</span>
+                            <span
+                                className='tooltip'
+                                data-tip='
+                                The maximum number of iterations for the ABC algorithm to generate a timetable. 
+                                The algorithm will stop generating timetables if it reaches this number of iterations.
+                                Higher value means longer computation time, but potentially better timetables.'
+                            >
+                                <BiInfoCircle size={20} className='opacity-60' />
+                            </span>
+                        </label>
+                        <label className='input input-sm w-[350px] input-bordered flex gap-2'>
+                            <input
+                                type='number'
+                                placeholder='Max Timetable Generation Iteration'
+                                className='font-semibold w-full disabled:text-base-content'
+                                value={loading ? 'Loading...' : defaultABCMaxIteration}
+                                onChange={(e) => handleChangeMaxABCIteration(e, setDefaultABCMaxIteration)}
+                                max={maxABCIteration}
+                                min={0}
+                                step={1}
+                                disabled={!editMode || loading}
+                            />
+                            <span className='opacity-60'>mins</span>
+                        </label>
+                    </div>
                 </div>
 
                 <div className='flex flex-col gap-2'>
                     <div className='flex flex-row form-control items-center'>
-                        <label className='w-[250px] label'>Morning Start Times</label>
+                        <label className='w-[350px] label'>Morning Start Times</label>
                         <label className='flex items-center gap-2'>
                             <div className='w-[200px]'>
                                 <TimeSelector
@@ -285,7 +335,7 @@ function Configuration() {
                     </div>
 
                     <div className='flex flex-row form-control items-center'>
-                        <label className='w-[250px] label'>Afternoon Start Times</label>
+                        <label className='w-[350px] label'>Afternoon Start Times</label>
                         <label className='flex items-center gap-2'>
                             <div className='w-[200px]'>
                                 <TimeSelector
@@ -300,7 +350,7 @@ function Configuration() {
                     </div>
 
                     <div className='flex flex-row form-control items-center'>
-                        <label className='w-[250px] label font-medium'>Minimum Teaching Load</label>
+                        <label className='w-[350px] label font-medium'>Minimum Teaching Load</label>
                         <div className='flex flex-col sm:flex-row gap-4'>
                             <div className='flex-1'>
                                 <div className='w-[200px]'>
@@ -324,7 +374,7 @@ function Configuration() {
                     </div>
 
                     <div className='flex flex-row form-control items-center'>
-                        <label className='w-[250px] label font-medium'>Maximum Teaching Load</label>
+                        <label className='w-[350px] label font-medium'>Maximum Teaching Load</label>
                         <div className='flex-1'>
                             <div className='w-[200px]'>
                                 <label className='input input-sm input-bordered flex gap-2'>

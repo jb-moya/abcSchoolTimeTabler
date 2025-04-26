@@ -787,7 +787,7 @@ function Timetable() {
         
         console.log("🚀 ~ handleButtonClick ~ subjectConfigurationSubjectIsOverlappable:", subjectConfigurationSubjectIsOverlappable)
         
-        const maxIterations = 3000;
+        const maxIterations = configurations[1].defaultABCMaxIteration;
         const beesPopulations = 4;
         const beesEmployed = 2;
         const beesOnlooker = 2;

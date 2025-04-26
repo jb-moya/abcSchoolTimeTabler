@@ -12,6 +12,7 @@ const timetableConfigurationSlice = createSlice({
                 defaultAfternoonStart: '01:00 PM',
                 defaultMinimumTeachingLoad: 1300,
                 defaultMaximumTeachingLoad: 1800,
+                defaultABCMaxIteration: 10000,
             },
         },
         loading: true,
