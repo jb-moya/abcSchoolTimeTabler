@@ -13,6 +13,7 @@ import { addDocument } from '../../../hooks/firebaseCRUD/addDocument';
 import { editDocument } from '../../../hooks/firebaseCRUD/editDocument';
 import { useSelector } from 'react-redux';
 import { COLLECTION_ABBREVIATION } from '../../../constants';
+import { CiExport } from 'react-icons/ci';
 
 function processRows(data, n) {
     function generateKey(row) {
@@ -254,16 +255,19 @@ const ModifyTimetableContainer = ({
         console.log('🚀 ~ save ~ valueMap:', valueMap);
 
         console.log('array          dddddddddd: ', array);
-
+        console.log('errorCount: ', errorCount);
+        const status = errorCount > 0 ? 'Error ' + errorCount : 'Verified';
+        console.log('status: ', status);
         const n = 5;
         let resultarray = [];
         array.forEach((row) => {
             let tableArray = [];
             let result = processRows(row[1], n);
-            console.log('ROW LOG: ', row);
+            // console.log('ROW LOG: ', row);
             tableArray.push(row[0]);
             tableArray.push(result);
-            tableArray.push(row[2]);
+            // tableArray.push(row[2]);
+            // tableArray.push(status);
             resultarray.push(tableArray);
         });
 
@@ -307,6 +311,7 @@ const ModifyTimetableContainer = ({
                     entryData: {
                         n: scheduleVerName,
                         d: stringifiedTimeTable,
+                        s: status,
                     },
                 });
             } else {
@@ -319,6 +324,7 @@ const ModifyTimetableContainer = ({
                     entryData: {
                         n: scheduleVerName,
                         d: stringifiedTimeTable,
+                        s: status,
                     },
                 });
             }
@@ -773,7 +779,7 @@ const ModifyTimetableContainer = ({
                     <div className='modal-box'>
                         <form method='dialog'>
                             <button className='btn btn-sm btn-circle btn-ghost absolute right-2 top-2'>✕</button>
-                            <h3 className='font-bold text-lg mb-4'>Error Details</h3>
+                            {overlapsDisplay.length > 0 && <h3 className='font-bold text-lg mb-4'>Error Details</h3>}
                             <div className='flex flex-col space-y-4'>
                                 {overlapsDisplay.length > 0 ? (
                                     Object.entries(
@@ -795,8 +801,8 @@ const ModifyTimetableContainer = ({
                                         </button>
                                     ))
                                 ) : (
-                                    <div className='flex justify-center gap-2 items-center'>
-                                        <span className='text-xl'>No errors found!</span>
+                                    <div className='flex justify-center font-semibold gap-2 items-center p-4'>
+                                        <span className='text-2xl'>No errors found!</span>
                                         <span className='flex'>
                                             <PiConfetti className='text-2xl text-primary' />
                                             <PiConfetti className='text-2xl text-secondary' />
@@ -821,14 +827,6 @@ const ModifyTimetableContainer = ({
                         </div>
                     </button>
 
-                    {/* EXPORT */}
-                    <button
-                        className='btn btn-primary btn-outline flex-row items-center justify-center cursor-pointer'
-                        onClick={() => setShowExport(true)}
-                    >
-                        EXPORT
-                    </button>
-
                     {showExport && valueMap.size > 0 && (
                         <ExportSchedules
                             // stores
@@ -847,7 +845,7 @@ const ModifyTimetableContainer = ({
                     {/* EXPORT */}
 
                     <div className='flex flex-row flex-wrap items-center gap-2 justify-between'>
-                        <button onClick={add} className='btn btn-secondary'>
+                        <button onClick={add} className='btn btn-primary'>
                             Add
                         </button>
                         <div className='form-control'>
@@ -876,27 +874,26 @@ const ModifyTimetableContainer = ({
                         <button
                             onClick={undo}
                             disabled={historyIndex <= 1} // Disable if at the start of history
-                            className='btn btn-secondary'
+                            className='btn btn-primary'
                         >
                             Undo
                         </button>
                         <button
                             onClick={redo}
-                            className='btn btn-secondary'
+                            className='btn btn-primary'
                             disabled={historyIndex === history.length - 1} // Disable if at the start of history
                         >
                             Redo
                         </button>
                         <button
-                            className='btn btn-secondary flex-1'
-                            disabled={errorCount > 0}
+                            className='btn btn-primary flex-1'
                             onClick={() => document.getElementById('confirm_schedule_save_modal').showModal()}
                         >
                             Save
                         </button>
 
                         <button
-                            className={clsx('btn btn-primary flex-1', {
+                            className={clsx('btn btn-secondary flex-1', {
                                 'btn-disabled': deployLoading,
                             })}
                             disabled={deployLoading}
@@ -911,9 +908,41 @@ const ModifyTimetableContainer = ({
                                 'Deploy'
                             )}
                         </button>
+                        {/* EXPORT */}
+                        <button
+                            className='btn btn-secondary flex-row items-center justify-center cursor-pointer'
+                            onClick={() => setShowExport(true)}
+                        >
+                            Export <CiExport size={20} />
+                        </button>
                     </div>
                 </div>
-
+                <div className='pt-10'>
+                    {firebaseId !== null && (
+                        <div className='flex items-center px-8'>
+                            <label className='mr-4 text-center'>Schedule Name:</label>
+                            <input
+                                type='text'
+                                className={`input input-bordered w-1/3 ${
+                                    errorField === 'timetable_name' ? 'border-red-500' : ''
+                                }`}
+                                value={scheduleVerName}
+                                onChange={(e) => setScheduleVerName(e.target.value)}
+                                placeholder='Enter name'
+                                ref={inputNameRef}
+                            />
+                            <div className='ml-auto justify-end flex flex-col w-40 items-end'>
+                                {deployLoading && deployRemaining > 0 && (
+                                    // {1 > 0 && (
+                                    <span className='flex items-center gap-2 text-green-500'>
+                                        <IoIosAdd />
+                                        <span>{deployRemaining} to overwrite</span>
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
                 {/* Conditional rendering for empty paginatedValue */}
                 {Array.from(paginatedValueMap.entries()).length === 0 ? (
                     <div className='text-center text-lg font-semibold pt-10'>No Value</div>
@@ -938,30 +967,6 @@ const ModifyTimetableContainer = ({
                             >
                                 {/* Card for each section */}
                                 <div className='card bg-base-100 w-full shadow-xl pt-5'>
-                                    {firebaseId !== null && (
-                                        <div className='flex items-center px-8'>
-                                            <label className='mr-4 text-center'>Schedule Name:</label>
-                                            <input
-                                                type='text'
-                                                className={`input input-bordered w-1/3 ${
-                                                    errorField === 'timetable_name' ? 'border-red-500' : ''
-                                                }`}
-                                                value={scheduleVerName}
-                                                onChange={(e) => setScheduleVerName(e.target.value)}
-                                                placeholder='Enter name'
-                                                ref={inputNameRef}
-                                            />
-                                            <div className='ml-auto justify-end flex flex-col w-40 items-end'>
-                                                {deployLoading && deployRemaining > 0 && (
-                                                    // {1 > 0 && (
-                                                    <span className='flex items-center gap-2 text-green-500'>
-                                                        <IoIosAdd />
-                                                        <span>{deployRemaining} to overwrite</span>
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
                                     <div className='card-body'>
                                         {/* Dynamically render section name */}
                                         <h2 className='card-title capitalize'>{key}</h2>
