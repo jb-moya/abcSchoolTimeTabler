@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import ErrorText from '@components/Typography/ErrorText';
 import InputText from '../../components/Input/InputText';
 import { loginUser } from '../userSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { setLoading } from '../userSlice';
+import LoadingButton from '../../components/LoadingButton';
 
 function Login() {
     const navigate = useNavigate();
@@ -40,7 +40,7 @@ function Login() {
 
             navigate('/app/dashboard');
         } catch (error) {
-            toast.error(error);
+            console.log('🚀 ~ submitForm ~ error:', error);
         } finally {
             setIsLoggingIn(false);
         }
@@ -50,15 +50,10 @@ function Login() {
         setLoginObj({ ...loginObj, [updateType]: value });
     };
 
-    // function goToGuestPage() {
-    //     window.location.href = '/search';
-    // }
-
     return (
         <div>
             <form onSubmit={(e) => submitForm(e)}>
                 <div className='mb-6'>
-                    {/* Email input */}
                     <InputText
                         type='email'
                         defaultValue={loginObj.email}
@@ -69,7 +64,6 @@ function Login() {
                         disabled={loading}
                     />
 
-                    {/* Password input */}
                     <InputText
                         defaultValue={loginObj.password}
                         type='password'
@@ -81,41 +75,16 @@ function Login() {
                     />
                 </div>
 
-                {/* Forgot password link */}
-                {/* <div className='text-right mb-4'>
-                    <Link to='/forgot-password' className='text-sm text-primary hover:underline'>
-                        Forgot Password?
-                    </Link>
-                </div> */}
-
-                {/* Error message */}
                 {userError && <ErrorText styleClass='mt-2 text-center'>{userError}</ErrorText>}
 
-                {/* Submit button */}
-                <button
+                <LoadingButton
                     type='submit'
-                    className={`btn mt-4 w-full btn-primary text-white transition-all duration-75 ease-in-out flex items-center justify-center ${
-                        isLoggingIn ? 'cursor-not-allowed ' : ''
-                    }`}
-                    disabled={isLoggingIn}
+                    isLoading={isLoggingIn}
+                    loadingText='Logging In'
+                    className='btn mt-4 w-full btn-primary text-white transition-all duration-75 ease-in-out flex items-center justify-center'
                 >
-                    {isLoggingIn ? (
-                        <>
-                            <span className='loading loading-spinner'></span>
-                            Logging In
-                        </>
-                    ) : (
-                        'Login'
-                    )}
-                </button>
-
-                {/* Register link */}
-                {/* <div className='text-center mt-6 text-gray-600'>
-                    Sign as Guest?{' '}
-                    <button className='text-primary hover:underline' onClick={goToGuestPage}>
-                        here
-                    </button>
-                </div> */}
+                    Login
+                </LoadingButton>
             </form>
         </div>
     );

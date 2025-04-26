@@ -7,20 +7,16 @@ import { toast } from 'sonner';
 import NearbyBuildingDropdown from './nearbyBuildingDropdown';
 import { PiBuildingApartment } from 'react-icons/pi';
 
-import { addDocument } from '../../../hooks/firebaseCRUD/addDocument';
-import { editDocument } from '../../../hooks/firebaseCRUD/editDocument';
-import { deleteDocument } from '../../../hooks/firebaseCRUD/deleteDocument';
+import { useAddDocument } from '../../../hooks/firebaseCRUD/useAddDocument';
+import { useEditDocument } from '../../../hooks/firebaseCRUD/useEditDocument';
+import { useDeleteDocument } from '../../../hooks/firebaseCRUD/useDeleteDocument';
 import { COLLECTION_ABBREVIATION } from '../../../constants';
 import { useSelector } from 'react-redux';
+import LoadingButton from '../../LoadingButton';
 
-const AddBuildingContainer = ({
-    buildings,
-    close,
-    setErrorMessage,
-    setErrorField,
-    errorMessage,
-    errorField,
-}) => {
+const AddBuildingContainer = ({ buildings, close, setErrorMessage, setErrorField, errorMessage, errorField }) => {
+    const { addDocument, loading: isAddLoading, error: addError } = useAddDocument();
+
     const inputBuildingNameRef = useRef();
     const { user: currentUser } = useSelector((state) => state.user);
 
@@ -260,9 +256,16 @@ const AddBuildingContainer = ({
                             <button className='btn btn-secondary' onClick={handleReset}>
                                 Reset
                             </button>
-                            <button className='btn btn-primary' onClick={handleAddBuilding}>
+
+                            <LoadingButton
+                                onClick={handleAddBuilding}
+                                isLoading={isAddLoading}
+                                loadingText='Adding Building...'
+                                disabled={isAddLoading}
+                                className='btn btn-primary'
+                            >
                                 Add Building
-                            </button>
+                            </LoadingButton>
                         </div>
                     </div>
 
@@ -380,9 +383,9 @@ const AddBuildingContainer = ({
     );
 };
 
-const RoomListContainer = ({ 
-    editable = false
-}) => {
+const RoomListContainer = ({ editable = false }) => {
+    const { deleteDocument, loading: isDeleteLoading, error: deleteError } = useDeleteDocument();
+    const { editDocument, loading: isEditLoading, error: editError } = useEditDocument();
 
     const { sections, loading: sectionsLoading, error: sectionsError } = useSelector((state) => state.sections);
     const { buildings, loading: buildingsLoading, error: buildingsError } = useSelector((state) => state.buildings);
@@ -423,50 +426,41 @@ const RoomListContainer = ({
     }, [editNumberOfFloors]);
 
     const handleNumberOfFloorsChange = (value) => {
-
         if (value < editNumberOfFloors) {
-
-            const hasSectionOnFloorToRemove = Object.values(sections).some(section => 
-                section.roomDetails.buildingId === editBuildingID &&
-                section.roomDetails.floorIdx === editNumberOfFloors - 1
+            const hasSectionOnFloorToRemove = Object.values(sections).some(
+                (section) =>
+                    section.roomDetails.buildingId === editBuildingID && section.roomDetails.floorIdx === editNumberOfFloors - 1
             );
-            
+
             if (hasSectionOnFloorToRemove) {
-                alert("Error: There are section(s) on assigned on this floor. Operation aborted.");
+                alert('Error: There are section(s) on assigned on this floor. Operation aborted.');
                 return;
             }
-            
-            setEditNumberOfFloors(value);
 
+            setEditNumberOfFloors(value);
         } else {
-
             setEditNumberOfFloors(value);
-
         }
-
     };
 
     const handleNumberOfRoomsChange = (floorIndex, value) => {
-
         if (value < editNumberOfRooms[floorIndex]) {
-
-            const hasSectionOnRoomToRemove = Object.values(sections).some(section => 
-                section.roomDetails.buildingId === editBuildingID &&
-                section.roomDetails.floorIdx === floorIndex &&
-                section.roomDetails.roomIdx >= editNumberOfRooms[floorIndex] - 1
+            const hasSectionOnRoomToRemove = Object.values(sections).some(
+                (section) =>
+                    section.roomDetails.buildingId === editBuildingID &&
+                    section.roomDetails.floorIdx === floorIndex &&
+                    section.roomDetails.roomIdx >= editNumberOfRooms[floorIndex] - 1
             );
-            
+
             if (hasSectionOnRoomToRemove) {
-                alert("Error: There are section(s) on assigned on this room. Operation aborted.");
+                alert('Error: There are section(s) on assigned on this room. Operation aborted.');
                 return;
             }
-            
+
             const updatedRooms = [...editNumberOfRooms];
             updatedRooms[floorIndex] = value;
             setEditNumberOfRooms(updatedRooms);
-
         } else {
-
             const roomsCount = Math.max(1, Number(value));
 
             const updatedRooms = [...editNumberOfRooms];
@@ -484,9 +478,7 @@ const RoomListContainer = ({
 
             updatedRoomNames[floorIndex] = newRooms;
             setEditRoomNames(updatedRoomNames);
-
         }
-
     };
 
     const handleRoomNameChange = (floorIndex, roomIndex, newRoomName) => {
@@ -503,7 +495,7 @@ const RoomListContainer = ({
         setEditRoomNames(updatedRoomNames);
     };
 
-// =====================================================================================================================
+    // =====================================================================================================================
 
     const handleEdit = (building) => {
         console.log('Editing building:', building);
@@ -526,7 +518,6 @@ const RoomListContainer = ({
     };
 
     const handleSaveBuildingEditClick = async () => {
-
         if (!editBuildingName.trim()) {
             setErrorMessage('Building name cannot be empty');
             setErrorField('buildingName');
@@ -610,7 +601,6 @@ const RoomListContainer = ({
 
             document.getElementById('edit_building_modal').close();
         }
-
     };
 
     const handleCancelBuildingEditClick = () => {
@@ -630,7 +620,7 @@ const RoomListContainer = ({
         document.getElementById('edit_building_modal').close();
     };
 
-// =====================================================================================================================
+    // =====================================================================================================================
 
     const handleDelete = async (id) => {
         try {
@@ -679,7 +669,7 @@ const RoomListContainer = ({
         deleteButton.onclick = async () => await handleDelete(id);
     };
 
-// =====================================================================================================================
+    // =====================================================================================================================
 
     const handleClose = () => {
         const modal = document.getElementById('add_building_modal');
@@ -690,7 +680,7 @@ const RoomListContainer = ({
         }
     };
 
-// =====================================================================================================================
+    // =====================================================================================================================
 
     const debouncedSearch = useCallback(
         debounce((searchValue, buildings) => {
@@ -719,7 +709,7 @@ const RoomListContainer = ({
         console.log('hatdog: ', buildings);
     }, [buildings]);
 
-// =====================================================================================================================
+    // =====================================================================================================================
 
     if (sectionsLoading || buildingsLoading) {
         return (
@@ -868,9 +858,16 @@ const RoomListContainer = ({
                                     <button className='btn btn-secondary' onClick={handleCancelBuildingEditClick}>
                                         Cancel
                                     </button>
-                                    <button className='btn btn-primary' onClick={handleSaveBuildingEditClick}>
+
+                                    <LoadingButton
+                                        onClick={handleSaveBuildingEditClick}
+                                        disabled={isEditLoading}
+                                        isLoading={isEditLoading}
+                                        loadingText='Updating...'
+                                        className='btn btn-primary'
+                                    >
                                         Update Building
-                                    </button>
+                                    </LoadingButton>
                                 </div>
                             </div>
 
@@ -986,9 +983,17 @@ const RoomListContainer = ({
                     <h3 className='font-bold text-lg'>Confirm Delete</h3>
                     <p>Are you sure you want to delete this building?</p>
                     <div className='modal-action'>
-                        <button className='btn btn-error' id='delete_button'>
+                        <LoadingButton
+                            id='delete_button'
+                            onClick={handleDelete}
+                            isLoading={isDeleteLoading}
+                            loadingText='Deleting...'
+                            disabled={isDeleteLoading}
+                            className='btn btn-error'
+                        >
                             Delete
-                        </button>
+                        </LoadingButton>
+
                         <button className='btn btn-secondary' onClick={() => document.getElementById('delete_modal').close()}>
                             Cancel
                         </button>

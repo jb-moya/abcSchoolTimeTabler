@@ -11,9 +11,10 @@ import ViewRooms from '../RoomsAndBuildings/ViewRooms';
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
 import AdditionalScheduleForSection from './AdditionalScheduleForSection';
 
-import { editDocument } from '../../../hooks/firebaseCRUD/editDocument';
+import { useEditDocument } from '../../../hooks/firebaseCRUD/useEditDocument';
 import { COLLECTION_ABBREVIATION } from '../../../constants';
 import { useSelector } from 'react-redux';
+import LoadingButton from '../../LoadingButton';
 
 const SectionEdit = ({
     // STORES
@@ -31,6 +32,8 @@ const SectionEdit = ({
     numOfSchoolDays = 5,
     breakTimeDuration,
 }) => {
+    const { editDocument, loading: isEditLoading, error: editError } = useEditDocument();
+    
     const { user: currentUser } = useSelector((state) => state.user);
 
     const [editSectionAdviser, setEditSectionAdviser] = useState('');
@@ -157,7 +160,6 @@ const SectionEdit = ({
             console.log('check_1!');
 
             try {
-
                 const section_schedules = editAdditionalScheds.map((sched) => ({
                     n: sched.name,
                     su: sched.subject,
@@ -924,13 +926,15 @@ const SectionEdit = ({
                         {/* Add button centered at the bottom */}
                         <div className='flex mt-6 justify-center gap-2'>
                             <div className='flex justify-end space-x-2'>
-                                <button
-                                    className='btn btn-primary'
+                                <LoadingButton
                                     onClick={async () => await handleSaveSectionEditClick(section.id)}
-                                    disabled={!isEndTimeValid}
+                                    disabled={isEditLoading || !isEndTimeValid}
+                                    isLoading={isEditLoading}
+                                    loadingText='Updating Section...'
+                                    className='btn btn-primary'
                                 >
-                                    <div>Update Section</div>
-                                </button>
+                                    Update Section
+                                </LoadingButton>
                             </div>
                             <button className='btn btn-error' onClick={() => resetStates()}>
                                 Reset

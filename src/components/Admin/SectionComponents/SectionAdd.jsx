@@ -10,10 +10,11 @@ import TimeSelector from '@utils/timeSelector';
 
 import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
 
-import { addDocument } from '../../../hooks/firebaseCRUD/addDocument';
-import { editDocument } from '../../../hooks/firebaseCRUD/editDocument';
+import { useAddDocument } from '../../../hooks/firebaseCRUD/useAddDocument';
+import { useEditDocument } from '../../../hooks/firebaseCRUD/useEditDocument';
 import { COLLECTION_ABBREVIATION } from '../../../constants';
 import { useSelector } from 'react-redux';
+import LoadingButton from '../../LoadingButton';
 
 const AddSectionContainer = ({
     // STORES
@@ -31,6 +32,9 @@ const AddSectionContainer = ({
     numOfSchoolDays = 5,
     breakTimeDuration,
 }) => {
+    const { addDocument, loading: isAddLoading, error: addError } = useAddDocument();
+    const { editDocument, loading: isEditLoading, error: editError } = useEditDocument();
+
     const inputNameRef = useRef();
 
     const { user: currentUser } = useSelector((state) => state.user);
@@ -800,21 +804,18 @@ const AddSectionContainer = ({
 
             {errorMessage && <p className='text-red-500 text-sm my-4 font-medium select-none '>{errorMessage}</p>}
 
-            {/* <div className='flex justify-center gap-4 mt-4'>
-                <button className='btn btn-secondary' onClick={handleReset}>
-                    Reset
-                </button>
-                <button className='btn btn-primary' onClick={handleAddEntry} disabled={!isEndTimeValid}>
-                    Add Section
-                </button>
-            </div> */}
-
             {/* Add button centered at the bottom */}
             <div className='flex mt-6 justify-center gap-2'>
                 <div className='flex justify-end space-x-2'>
-                    <button className='btn btn-primary flex items-center' onClick={handleAddEntry} disabled={!isEndTimeValid}>
-                        <div>Add Section</div>
-                    </button>
+                    <LoadingButton
+                        onClick={handleAddEntry}
+                        isLoading={isAddLoading || isEditLoading}
+                        loadingText='Adding Section...'
+                        disabled={isAddLoading || isEditLoading}
+                        className='btn btn-primary flex items-center'
+                    >
+                        Add Section
+                    </LoadingButton>
                 </div>
                 <button className='btn btn-error border-0' onClick={handleReset}>
                     Reset

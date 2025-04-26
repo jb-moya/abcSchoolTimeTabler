@@ -2,11 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { RiEdit2Fill } from 'react-icons/ri';
 import { toast } from 'sonner';
 
-import { editDocument } from '../../hooks/firebaseCRUD/editDocument';
+import { useEditDocument } from '../../hooks/firebaseCRUD/useEditDocument';
 
 import calculateTotalClass from '../../utils/calculateTotalClass';
 import { COLLECTION_ABBREVIATION } from '../../constants';
 import { useSelector } from 'react-redux';
+import LoadingButton from '../LoadingButton';
 
 const SubjectEdit = ({
     // STORES
@@ -23,7 +24,8 @@ const SubjectEdit = ({
     numOfSchoolDays = 5,
     breakTimeDuration,
 }) => {
-    
+    const { editDocument, loading: isEditLoading, error: editError } = useEditDocument();
+
     const inputNameRef = useRef(null);
     const { user: currentUser } = useSelector((state) => state.user);
 
@@ -41,7 +43,7 @@ const SubjectEdit = ({
         }
     }, [subject]);
 
-// =============================================================================
+    // =============================================================================
 
     const handleEditSubject = async () => {
         if (!editSubjectValue.trim()) {
@@ -170,8 +172,6 @@ const SubjectEdit = ({
                 let dayTimeSlots = {};
                 let positionTimeSlots = {};
 
-                
-
                 for (let subjectID of newProgram[grade].subjects) {
                     const { fixedDays, fixedPositions } = newProgram[grade];
 
@@ -239,14 +239,13 @@ const SubjectEdit = ({
             });
 
             if (originalProgram !== newProgram) {
-
                 const schedules = {
                     7: [],
                     8: [],
                     9: [],
                     10: [],
                 };
-                
+
                 [7, 8, 9, 10].forEach((grade) => {
                     schedules[grade] = newProgram[grade].additionalScheds.map((sched) => ({
                         n: sched.name,
@@ -436,7 +435,6 @@ const SubjectEdit = ({
             newSection.fixedPositions[editSubjectId] = result.map(([_, pos]) => pos);
 
             if (originalSection !== newSection) {
-
                 const section_schedules = newSection.additionalScheds.map((sched) => ({
                     n: sched.name,
                     su: sched.subject,
@@ -489,7 +487,7 @@ const SubjectEdit = ({
         handleReset();
     };
 
-// =============================================================================
+    // =============================================================================
 
     return (
         <div className='flex items-center justify-center'>
@@ -548,9 +546,16 @@ const SubjectEdit = ({
                     {errorMessage && <p className='flex justify-center text-red-500 text-sm my-4 font-medium'>{errorMessage}</p>}
 
                     <div className='flex justify-center gap-2'>
-                        <button className='btn btn-primary' onClick={handleEditSubject}>
+                        <LoadingButton
+                            onClick={handleEditSubject}
+                            disabled={isEditLoading}
+                            isLoading={isEditLoading}
+                            loadingText='Updating Subject...'
+                            className='btn btn-primary'
+                        >
                             Update Subject
-                        </button>
+                        </LoadingButton>
+
                         <button className='btn btn-error' onClick={handleReset}>
                             Reset
                         </button>

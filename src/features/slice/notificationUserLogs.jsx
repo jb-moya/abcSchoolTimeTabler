@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { ABBREVIATION_COLLECTION, ABBREVIATION_OPERATION } from '../../constants';
 import { toast } from 'sonner';
-import formatFirebaseDate from '../../utils/formatDate';
+
 const logs = createSlice({
     name: 'notificationUserLogs',
     initialState: {
@@ -52,8 +52,11 @@ const logs = createSlice({
         setLoading: (state, action) => {
             state.loading = action.payload;
         },
+        clearLogs: (state, action) => {
+            state.logs = [];
+        },
     },
 });
 
-export const { upsert, remove, setLoading, resetNewLogsCount } = logs.actions;
+export const { upsert, remove, setLoading, resetNewLogsCount, clearLogs } = logs.actions;
 export default logs.reducer;

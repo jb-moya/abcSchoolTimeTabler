@@ -1,19 +1,18 @@
 import { useState } from 'react';
-import { addDoc, collection, doc, getDocs, writeBatch } from 'firebase/firestore';
+import { collection, setDoc, doc, getDocs, writeBatch } from 'firebase/firestore';
 import { firestore } from '../firebase/firebase';
 import { toast } from 'sonner';
 import { useSelector } from 'react-redux';
 import chunkArray from '../utils/chunkArray';
 
-function useDeployTimetables() {
+function useOverwriteCollection() {
     const [isLoading, setIsLoading] = useState(false);
     const [remaining, setRemaining] = useState(0);
-    const { user, loading: userLoading } = useSelector((state) => state.user);
+    const { loading: userLoading } = useSelector((state) => state.user);
 
-    const itemsCollection = collection(firestore, 'timetables');
     const batchLimit = 500;
 
-    const handleDeployTimetables = async (timetables) => {
+    const handleDeployTimetables = async ({ collections = [] }) => {
         if (userLoading) {
             return;
         }
@@ -21,57 +20,56 @@ function useDeployTimetables() {
         setIsLoading(true);
 
         try {
-            // 1. Delete existing timetables
-            const existingDocs = await getDocs(itemsCollection);
-            const deleteChunks = chunkArray(existingDocs.docs, batchLimit);
+            for (const collectionToOverwrite of collections) {
+                const itemsCollection = collection(firestore, collectionToOverwrite.name);
 
-            for (const chunk of deleteChunks) {
-                const batch = writeBatch(firestore);
-                chunk.forEach((docSnap) => batch.delete(docSnap.ref));
-                await batch.commit();
-            }
+                const existingDocs = await getDocs(itemsCollection);
+                const deleteChunks = chunkArray(existingDocs.docs, batchLimit);
 
-            // 2. Prepare new timetable data
-            const schedules = [];
-            timetables.forEach((value, key) => {
-                console.log(`${key}: ${value}`);
-                console.log(value);
+                for (const chunk of deleteChunks) {
+                    const batch = writeBatch(firestore);
+                    chunk.forEach((docSnap) => batch.delete(docSnap.ref));
+                    await batch.commit();
+                }
 
-                const obj = {
-                    n: value[0].split(' ').map((str) => str.toLowerCase()),
-                    a: JSON.stringify([value.slice(0, 2)]),
-                    t: value[2],
-                    u: user.uid,
-                    m: value[3],
-                    sa: value[4],
-                    sr: value[5],
-                    tr: value[6],
-                    td: value[7],
-                };
+                setRemaining(collectionToOverwrite.entries.length);
 
-                schedules.push(obj);
-            });
+                const addChunks =
+                    Array.isArray(collectionToOverwrite?.entries) && collectionToOverwrite.entries.length > 0
+                        ? chunkArray(collectionToOverwrite.entries, batchLimit)
+                        : [];
 
-            const addChunks = chunkArray(schedules, batchLimit);
+                if (collectionToOverwrite.name === 'counters') {
+                    continue;
+                }
 
-            // console.log('vv');
-            // console.log(schedules);
-            setRemaining(schedules.length);
+                let counter = 1;
+                const counterRef = doc(firestore, `counters/${collectionToOverwrite.name}Counter`);
 
-            for (const chunk of addChunks) {
-                const batch = writeBatch(firestore);
-                chunk.forEach((item) => {
-                    const newDocRef = doc(itemsCollection);
-                    batch.set(newDocRef, item);
-                });
-                await batch.commit();
+                for (const chunk of addChunks) {
+                    const batch = writeBatch(firestore);
+                    chunk.forEach((item) => {
+                        const newDocRef = collectionToOverwrite?.toCount
+                            ? doc(itemsCollection, counter.toString()) // use custom ID
+                            : doc(itemsCollection); // auto-generated ID
+
+                        counter += 1;
+                        batch.set(newDocRef, item);
+                    });
+
+                    await batch.commit();
+                }
+
+                if (collectionToOverwrite?.toCount) {
+                    await setDoc(counterRef, { highest_custom_id: counter - 1 });
+                }
             }
 
             toast.success('Timetables deployed successfully');
         } catch (error) {
             setIsLoading(false);
-            console.error('Error deploying timetables:', error);
-            toast.error('Error deploying timetables');
+            console.error('Error overwriting entries:', error);
+            toast.error('Error overwriting entries: ' + error.message);
         } finally {
             setIsLoading(false);
         }
@@ -80,4 +78,4 @@ function useDeployTimetables() {
     return { handleDeployTimetables, isLoading, remaining };
 }
 
-export default useDeployTimetables;
+export default useOverwriteCollection;

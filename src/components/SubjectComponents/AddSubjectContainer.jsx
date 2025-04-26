@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
-import { addDocument } from '../../hooks/firebaseCRUD/addDocument';
+import { useAddDocument } from '../../hooks/firebaseCRUD/useAddDocument';
 import { useSelector } from 'react-redux';
 import { COLLECTION_ABBREVIATION } from '../../constants';
+import LoadingButton from '../LoadingButton';
 
 const AddSubjectContainer = ({
     // STORES
@@ -17,6 +18,8 @@ const AddSubjectContainer = ({
     setErrorField,
     defaultSubjectClassDuration,
 }) => {
+    const { addDocument, loading: isAddLoading, error: addError } = useAddDocument();
+
     const inputNameRef = useRef();
     const { user: currentUser } = useSelector((state) => state.user);
 
@@ -160,9 +163,16 @@ const AddSubjectContainer = ({
             {errorMessage && <p className='text-red-500 text-sm my-4 font-medium select-none '>{errorMessage}</p>}
 
             <div className='flex justify-center gap-2'>
-                <button className='btn btn-primary' onClick={handleAddSubject}>
+                <LoadingButton
+                    onClick={handleAddSubject}
+                    isLoading={isAddLoading}
+                    loadingText='Adding Subject...'
+                    disabled={isAddLoading}
+                    className='btn btn-primary'
+                >
                     Add Subject
-                </button>
+                </LoadingButton>
+
                 <button className='btn btn-error border-0' onClick={handleReset}>
                     Reset
                 </button>

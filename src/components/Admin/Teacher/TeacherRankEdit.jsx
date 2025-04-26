@@ -3,11 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import AdditionalScheduleForTeacherRank from './AdditionalScheduleForTeacherRank';
 
-import { editDocument } from '../../../hooks/firebaseCRUD/editDocument';
+import { useEditDocument } from '../../../hooks/firebaseCRUD/useEditDocument';
 
 import { toast } from 'sonner';
 import { COLLECTION_ABBREVIATION } from '../../../constants';
 import { useSelector } from 'react-redux';
+import LoadingButton from '../../LoadingButton';
 
 const TeacherRankEdit = ({
     // STORES
@@ -21,6 +22,8 @@ const TeacherRankEdit = ({
     setErrorField,
     numOfSchoolDays = 5,
 }) => {
+    const { editDocument, loading: isEditLoading, error: editError } = useEditDocument();
+
     const { user: currentUser } = useSelector((state) => state.user);
 
     const [editRankId, setEditRankId] = useState(rank.id || null);
@@ -115,7 +118,6 @@ const TeacherRankEdit = ({
 
         if (editRankValue.trim().toLowerCase() === currentRank.trim().toLowerCase()) {
             try {
-
                 const schedules = editAdditionalRankScheds.map((sched) => ({
                     n: sched.name,
                     su: sched.subject,
@@ -175,7 +177,7 @@ const TeacherRankEdit = ({
                         sh: sched.shown,
                         t: sched.time,
                     }));
-    
+
                     await editDocument({
                         collectionName: 'ranks',
                         collectionAbbreviation: COLLECTION_ABBREVIATION.RANKS,
@@ -393,22 +395,29 @@ const TeacherRankEdit = ({
                             changes to reflect on all associated teachers?
                         </div>
                         <div className='mt-4 flex justify-center items-center gap-3'>
-                            <button
-                                className='btn btn-sm bg-green-400 hover:bg-green-200'
+                            <LoadingButton
                                 onClick={async () => {
                                     await handleSaveRankEditClick(true);
                                 }}
+                                disabled={isEditLoading}
+                                isLoading={isEditLoading}
+                                loadingText='Updating Rank...'
+                                className='btn btn-sm bg-green-400 hover:bg-green-200'
                             >
                                 Yes
-                            </button>
-                            <button
-                                className='btn btn-sm'
+                            </LoadingButton>
+
+                            <LoadingButton
                                 onClick={async () => {
                                     await handleSaveRankEditClick(false);
                                 }}
+                                disabled={isEditLoading}
+                                isLoading={isEditLoading}
+                                loadingText='Updating Rank...'
+                                className='btn btn-sm'
                             >
                                 No
-                            </button>
+                            </LoadingButton>
                         </div>
                     </div>
 

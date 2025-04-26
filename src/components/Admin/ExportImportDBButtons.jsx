@@ -9,11 +9,9 @@ import { saveAs } from 'file-saver';
 import { toast } from 'sonner';
 import { BiUpload } from 'react-icons/bi';
 
-import { deleteAllCollections } from '../../hooks/firebaseCRUD/deleteAllDocuments';
-import { addDocument } from '../../hooks/firebaseCRUD/addDocument';
 import { useSelector } from 'react-redux';
 import { getTimeSlotString, getTimeSlotIndex } from '@utils/timeSlotMapper';
-import { COLLECTION_ABBREVIATION } from '../../constants';
+import useOverwriteCollection from '../../hooks/useDeployTimetables';
 
 const ImportingFullScreenLoader = () => {
     return createPortal(
@@ -26,7 +24,6 @@ const ImportingFullScreenLoader = () => {
 };
 
 const ExportImportDBButtons = ({
-    // STORES
     programs,
     subjects,
     teachers,
@@ -34,16 +31,16 @@ const ExportImportDBButtons = ({
     departments,
     buildings,
     sections,
-    // STORES
 
     defaultNumberOfSchoolDays,
     breakTimeDuration,
 }) => {
-
     const [isImporting, setIsImporting] = useState(false);
     const { user: currentUser } = useSelector((state) => state.user);
 
-// =============================================================================================================
+    const { handleDeployTimetables, isLoading: deployLoading, remaining: deployRemaining } = useOverwriteCollection();
+
+    // =============================================================================================================
 
     const exportDB = (format) => {
         try {
@@ -66,14 +63,8 @@ const ExportImportDBButtons = ({
 
             document.getElementById('import-format-modal').close();
 
-            try {
-                // await onClear();
-                await deleteAllCollections();
-                toast.success('Data cleared successfully');
-            } catch (error) {
-                toast.error('Error clearing data');
-                console.error('Error clearing data:', error);
-            }
+            // await deleteAllCollections();
+            // toast.success('Data cleared successfully');
 
             console.log('🚀 ~ importDB ~ data:', data);
 
@@ -306,7 +297,7 @@ const ExportImportDBButtons = ({
             const sectionProgram = programs[section.program];
 
             const building = buildings[section.roomDetails.buildingId];
-            
+
             const floor = building.rooms[section.roomDetails.floorIdx];
             const room = floor[section.roomDetails.roomIdx];
 
@@ -1298,42 +1289,23 @@ const ExportImportDBButtons = ({
         // ======================== ADD ALL ENTRIES TO DATABASE ======================== //
 
         try {
-            // Add all subjects
-            for (const subject of addedSubjects) {
-                await addDocument({
-                    collectionName: 'subjects',
-                    collectionAbbreviation: COLLECTION_ABBREVIATION.SUBJECTS,
-                    userName: currentUser?.username || 'unknown user',
-                    itemName: subject?.subject || 'an item',
-                    entryData: {
-                        s: subject.subject,
-                        cd: Number(subject.classduration),
-                        wm: Number(subject.weeklyminutes),
-                    },
-                });
-            }
+            console.log('CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC');
 
-            // Add all ranks
-            for (const rank of addedRanks) {
-                await addDocument({
-                    collectionName: 'ranks',
-                    collectionAbbreviation: COLLECTION_ABBREVIATION.RANKS,
-                    userName: currentUser?.username || 'unknown user',
-                    itemName: rank?.rank || 'an item',
-                    entryData: {
-                        r: rank.rank,
-                        ar: [],
-                    },
-                });
-            }
+            const subjectEntries = addedSubjects.map((subject) => ({
+                s: subject.subject,
+                cd: Number(subject.classduration),
+                wm: Number(subject.weeklyminutes),
+            }));
 
-            // Add all buildings
-            for (const building of addedBuildings) {
+            const rankEntries = addedRanks.map((rank) => ({
+                r: rank.rank,
+                ar: [],
+            }));
 
-                console.log('building.data: ', building.data);
-
+            const buildingEntries = addedBuildings.map((building) => {
                 const names = {};
-                Object.entries(Object.values(building.data)).forEach(([key_out, val_out]) =>{
+
+                Object.entries(Object.values(building.data)).forEach(([key_out, val_out]) => {
                     names[key_out] = {};
 
                     Object.entries(val_out).forEach(([key_in, val_in]) => {
@@ -1355,30 +1327,22 @@ const ExportImportDBButtons = ({
                     2
                 );
 
-                await addDocument({
-                    collectionName: 'buildings',
-                    collectionAbbreviation: COLLECTION_ABBREVIATION.BUILDINGS,
-                    userName: currentUser?.username || 'unknown user',
-                    itemName: building?.name || 'an item',
-                    entryData: {
-                        d: buildingData,
-                    },
-                });
-            }
+                return {
+                    d: buildingData,
+                };
+            });
 
-            // Add all teachers
-            for (const teacher of addedTeachers) {
-                // console.log('teacher: ', teacher);
+            const teacherEntries = addedTeachers
+                .map((teacher) => {
+                    const departmentIndex = addedDepartments.findIndex(
+                        (d) => d.department.trim().toLowerCase() === teacher.department.trim().toLowerCase()
+                    );
 
-                const departmentIndex = addedDepartments.findIndex(
-                    (d) => d.department.trim().toLowerCase() === teacher.department.trim().toLowerCase()
-                );
-
-                if (departmentIndex === -1) {
-                    // Skip this teacher if department is not found
-                    console.warn(`Skipping teacher at index ${i} because department was not found.`);
-                    continue;
-                }
+                    if (departmentIndex === -1) {
+                        // Skip this teacher if department is not found
+                        console.warn(`Skipping teacher because department was not found.`);
+                        return null;
+                    }
 
                 // Check if teacher is an adviser of a section
                 const adviserSection = addedSections.find(
@@ -1392,6 +1356,7 @@ const ExportImportDBButtons = ({
                     const sectionProgram = addedPrograms.find(
                         (program) => program.program.trim().toLowerCase() === adviserSection.program.trim().toLowerCase()
                     );
+
 
                     const sectionProgAndYear = sectionProgram[adviserSection.year];
 
@@ -1407,26 +1372,18 @@ const ExportImportDBButtons = ({
 
                 }
 
-                // console.log('teacher: ', teacher);
-
-                await addDocument({
-                    collectionName: 'teachers',
-                    collectionAbbreviation: COLLECTION_ABBREVIATION.TEACHERS,
-                    userName: currentUser?.username || 'unknown user',
-                    itemName: teacher?.teacher || 'an item',
-                    entryData: {
+                    return {
                         t: teacher.teacher,
                         r: teacher.rank,
                         d: departmentIndex + 1,
                         s: teacher.subjects,
                         y: teacher.yearLevels,
                         at: teacher.additionalTeacherScheds,
-                    },
-                });
-            }
+                    };
+                })
+                .filter((entry) => entry !== null);
 
-            // Add all departments
-            for (const department of addedDepartments) {
+            const departmentEntries = addedDepartments.map((department) => {
                 const headIndex =
                     department.departmenthead && department.departmenthead.trim() !== ''
                         ? addedTeachers.findIndex(
@@ -1436,97 +1393,116 @@ const ExportImportDBButtons = ({
                           )
                         : '';
 
-                await addDocument({
-                    collectionName: 'departments',
-                    collectionAbbreviation: COLLECTION_ABBREVIATION.DEPARTMENTS,
-                    userName: currentUser?.username || 'unknown user',
-                    itemName: department?.department || 'an item',
-                    entryData: {
-                        n: department.department,
-                        h: headIndex === '' ? '' : headIndex + 1,
-                    },
-                });
-            }
+                return {
+                    n: department.department,
+                    h: headIndex === '' ? '' : headIndex + 1,
+                };
+            });
 
-            // Add all programs
-            for (const program of addedPrograms) {
-                await addDocument({
-                    collectionName: 'programs',
-                    collectionAbbreviation: COLLECTION_ABBREVIATION.PROGRAMS,
-                    userName: currentUser?.username || 'unknown user',
-                    itemName: program?.program || 'an item',
-                    entryData: {
-                        p: program.program,
-                        7: {
-                            s: program[7].subjects,
-                            fd: program[7].fixedDays,
-                            fp: program[7].fixedPositions,
-                            sh: program[7].shift,
-                            st: program[7].startTime,
-                            et: program[7].endTime,
-                            as: program[7].additionalScheds,
-                            m: program[7].modality,
-                        },
-                        8: {
-                            s: program[8].subjects,
-                            fd: program[8].fixedDays,
-                            fp: program[8].fixedPositions,
-                            sh: program[8].shift,
-                            st: program[8].startTime,
-                            et: program[8].endTime,
-                            as: program[8].additionalScheds,
-                            m: program[8].modality,
-                        },
-                        9: {
-                            s: program[9].subjects,
-                            fd: program[9].fixedDays,
-                            fp: program[9].fixedPositions,
-                            sh: program[9].shift,
-                            st: program[9].startTime,
-                            et: program[9].endTime,
-                            as: program[9].additionalScheds,
-                            m: program[9].modality,
-                        },
-                        10: {
-                            s: program[10].subjects,
-                            fd: program[10].fixedDays,
-                            fp: program[10].fixedPositions,
-                            sh: program[10].shift,
-                            st: program[10].startTime,
-                            et: program[10].endTime,
-                            as: program[10].additionalScheds,
-                            m: program[10].modality,
-                        },
-                    },
-                });
-            }
+            const programEntries = addedPrograms.map((program) => ({
+                p: program.program,
+                7: {
+                    s: program[7].subjects,
+                    fd: program[7].fixedDays,
+                    fp: program[7].fixedPositions,
+                    sh: program[7].shift,
+                    st: program[7].startTime,
+                    et: program[7].endTime,
+                    as: program[7].additionalScheds,
+                    m: program[7].modality,
+                },
+                8: {
+                    s: program[8].subjects,
+                    fd: program[8].fixedDays,
+                    fp: program[8].fixedPositions,
+                    sh: program[8].shift,
+                    st: program[8].startTime,
+                    et: program[8].endTime,
+                    as: program[8].additionalScheds,
+                    m: program[8].modality,
+                },
+                9: {
+                    s: program[9].subjects,
+                    fd: program[9].fixedDays,
+                    fp: program[9].fixedPositions,
+                    sh: program[9].shift,
+                    st: program[9].startTime,
+                    et: program[9].endTime,
+                    as: program[9].additionalScheds,
+                    m: program[9].modality,
+                },
+                10: {
+                    s: program[10].subjects,
+                    fd: program[10].fixedDays,
+                    fp: program[10].fixedPositions,
+                    sh: program[10].shift,
+                    st: program[10].startTime,
+                    et: program[10].endTime,
+                    as: program[10].additionalScheds,
+                    m: program[10].modality,
+                },
+            }));
 
-            // Add all sections
-            for (const section of addedSections_2) {
+            const sectionEntries = addedSections_2.map((section) => ({
+                s: section.section,
+                t: section.teacher,
+                p: section.program,
+                y: section.year,
+                ss: section.subjects,
+                fd: section.fixedDays,
+                fp: section.fixedPositions,
+                m: section.modality,
+                sh: section.shift,
+                st: section.startTime,
+                et: section.endTime,
+                as: section.additionalScheds,
+                rd: section.roomDetails,
+            }));
 
-                await addDocument({
-                    collectionName: 'sections',
-                    collectionAbbreviation: COLLECTION_ABBREVIATION.SECTIONS,
-                    userName: currentUser?.username || 'unknown user',
-                    itemName: section?.section || 'an item',
-                    entryData: {
-                        s: section.section,
-                        t: section.teacher,
-                        p: section.program,
-                        y: section.year,
-                        ss: section.subjects,
-                        fd: section.fixedDays,
-                        fp: section.fixedPositions,
-                        m: section.modality,
-                        sh: section.shift,
-                        st: section.startTime,
-                        et: section.endTime,
-                        as: section.additionalScheds,
-                        rd: section.roomDetails,
-                    },
-                });
-                
-            }
+            const batchOverwrite = [
+                {
+                    name: 'counters',
+                    entries: [],
+                    toCount: false,
+                },
+                {
+                    name: 'subjects',
+                    entries: subjectEntries,
+                    toCount: true,
+                },
+                {
+                    name: 'ranks',
+                    entries: rankEntries,
+                    toCount: true,
+                },
+                {
+                    name: 'buildings',
+                    entries: buildingEntries,
+                    toCount: true,
+                },
+                {
+                    name: 'teachers',
+                    entries: teacherEntries,
+                    toCount: true,
+                },
+                {
+                    name: 'departments',
+                    entries: departmentEntries,
+                    toCount: true,
+                },
+                {
+                    name: 'programs',
+                    entries: programEntries,
+                    toCount: true,
+                },
+                {
+                    name: 'sections',
+                    entries: sectionEntries,
+                    toCount: true,
+                },
+            ];
+
+            await handleDeployTimetables({ collections: batchOverwrite });
 
             console.log('All data has been added successfully');
         } catch (error) {

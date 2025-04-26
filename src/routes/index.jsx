@@ -3,19 +3,10 @@
 import { lazy } from 'react';
 
 const Dashboard = lazy(() => import('../pages/protected/Dashboard'));
-const Welcome = lazy(() => import('../pages/protected/Welcome'));
 const Page404 = lazy(() => import('../pages/404'));
 const Blank = lazy(() => import('../pages/protected/Blank'));
-const Leads = lazy(() => import('../pages/protected/Leads'));
-const Integration = lazy(() => import('../pages/protected/Integration'));
 const Users = lazy(() => import('../pages/protected/admin/Users'));
-const Team = lazy(() => import('../pages/protected/Team'));
-const Transactions = lazy(() => import('../pages/protected/Transactions'));
-const Bills = lazy(() => import('../pages/protected/Bills'));
 const ProfileSettings = lazy(() => import('../pages/protected/ProfileSettings'));
-const GettingStarted = lazy(() => import('../pages/GettingStarted'));
-const DocFeatures = lazy(() => import('../pages/DocFeatures'));
-const DocComponents = lazy(() => import('../pages/DocComponents'));
 const Timetable = lazy(() => import('../pages/protected/admin/Timetable'));
 const ModifyTeachers = lazy(() => import('../pages/protected/admin/ModifyTeachers'));
 const ModifySubjects = lazy(() => import('../pages/protected/admin/ModifySubjects'));
@@ -86,44 +77,8 @@ const routes = [
         component: DisplaySectionSchedule, // view rendered
     },
     {
-        path: '/welcome', // the url
-        component: Welcome, // view rendered
-    },
-    {
-        path: '/leads',
-        component: Leads,
-    },
-    {
-        path: '/settings-team',
-        component: Team,
-    },
-    {
-        path: '/transactions',
-        component: Transactions,
-    },
-    {
         path: '/settings-profile',
         component: ProfileSettings,
-    },
-    {
-        path: '/settings-billing',
-        component: Bills,
-    },
-    {
-        path: '/getting-started',
-        component: GettingStarted,
-    },
-    {
-        path: '/features',
-        component: DocFeatures,
-    },
-    {
-        path: '/components',
-        component: DocComponents,
-    },
-    {
-        path: '/integration',
-        component: Integration,
     },
     {
         path: '/404',

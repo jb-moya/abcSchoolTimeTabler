@@ -6,10 +6,11 @@ import { RiDeleteBin7Line } from 'react-icons/ri';
 import SearchableDropdownToggler from '../searchableDropdown';
 import AdditionalScheduleForTeacher from './AdditionalScheduleForTeacher';
 
-import { editDocument } from '../../../hooks/firebaseCRUD/editDocument';
+import { useEditDocument } from '../../../hooks/firebaseCRUD/useEditDocument';
 import { useSelector } from 'react-redux';
 import { toast } from 'sonner';
 import { COLLECTION_ABBREVIATION } from '../../../constants';
+import LoadingButton from '../../LoadingButton';
 
 const TeacherEdit = ({
     // STORES
@@ -25,6 +26,7 @@ const TeacherEdit = ({
     setErrorField,
     numOfSchoolDays = 5,
 }) => {
+    const { editDocument, loading: isEditLoading, error: editError } = useEditDocument();
 
     const { user: currentUser } = useSelector((state) => state.user);
 
@@ -73,7 +75,7 @@ const TeacherEdit = ({
         }
     }, [editTeacherRank]);
 
-// ==================================================================================
+    // ==================================================================================
 
     const handleSaveTeacherEditClick = async (teacherId) => {
         console.log('editTaecersId', editTeacherId);
@@ -95,7 +97,6 @@ const TeacherEdit = ({
 
         if (editTeacherValue.trim().toLowerCase() === currentTeacher.trim().toLowerCase()) {
             try {
-
                 const schedules = editTeacherAdditionalScheds.map((sched) => ({
                     n: sched.name,
                     su: sched.subject,
@@ -117,7 +118,7 @@ const TeacherEdit = ({
                         r: editTeacherRank,
                         s: editTeacherCurr,
                         y: editTeacherYearLevels,
-                        at: schedules
+                        at: schedules,
                     },
                 });
             } catch {
@@ -147,7 +148,6 @@ const TeacherEdit = ({
                 return;
             } else {
                 try {
-
                     const schedules = editTeacherAdditionalScheds.map((sched) => ({
                         n: sched.name,
                         su: sched.subject,
@@ -191,7 +191,7 @@ const TeacherEdit = ({
         }
     };
 
-// ==================================================================================
+    // ==================================================================================
 
     // Rank
     const handleRankChange = (event) => {
@@ -231,7 +231,7 @@ const TeacherEdit = ({
         }
     };
 
-// ==============================================================================
+    // ==============================================================================
 
     const resetStates = () => {
         setEditTeacherValue(teacher.teacher);
@@ -253,7 +253,7 @@ const TeacherEdit = ({
         // handleReset();
     };
 
-// ==============================================================================
+    // ==============================================================================
 
     return (
         <div className=''>
@@ -494,9 +494,16 @@ const TeacherEdit = ({
                     {errorMessage && <p className='text-red-500 text-sm my-4 font-medium select-none '>{errorMessage}</p>}
 
                     <div className='flex justify-center gap-2 mt-4'>
-                        <button className='btn btn-primary' onClick={() => handleSaveTeacherEditClick(teacher.id)}>
+                        <LoadingButton
+                            onClick={() => handleSaveTeacherEditClick(teacher.id)}
+                            disabled={isEditLoading}
+                            isLoading={isEditLoading}
+                            loadingText='Editing Teacher...'
+                            className='btn btn-primary'
+                        >
                             Edit Teacher
-                        </button>
+                        </LoadingButton>
+
                         <button className='btn btn-error' onClick={() => resetStates()}>
                             Reset
                         </button>

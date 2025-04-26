@@ -5,11 +5,12 @@ import SearchableDropdownToggler from '../searchableDropdown';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import AdditionalScheduleForTeacher from './AdditionalScheduleForTeacher';
 
-import { addDocument } from '../../../hooks/firebaseCRUD/addDocument';
+import { useAddDocument } from '../../../hooks/firebaseCRUD/useAddDocument';
 
 import { toast } from 'sonner';
 import { COLLECTION_ABBREVIATION } from '../../../constants';
 import { useSelector } from 'react-redux';
+import LoadingButton from '../../LoadingButton';
 
 const AddTeacherContainer = ({
     // STORES
@@ -25,6 +26,9 @@ const AddTeacherContainer = ({
     setErrorField,
     numOfSchoolDays = 5,
 }) => {
+    const { addDocument, loading: isAddLoading, error: addError } = useAddDocument();
+
+
     const inputNameRef = useRef();
 
     const { user: currentUser } = useSelector((state) => state.user);
@@ -77,7 +81,6 @@ const AddTeacherContainer = ({
         }
 
         try {
-
             const schedules = additionalTeacherScheds.map((sched) => ({
                 n: sched.name,
                 su: sched.subject,
@@ -423,9 +426,16 @@ const AddTeacherContainer = ({
             {errorMessage && <p className='text-red-500 text-sm my-4 font-medium select-none '>{errorMessage}</p>}
 
             <div className='flex justify-center gap-2 mt-4'>
-                <button className='btn btn-primary' onClick={handleAddTeacher}>
+                <LoadingButton
+                    onClick={handleAddTeacher}
+                    isLoading={isAddLoading}
+                    loadingText='Adding Teacher...'
+                    disabled={isAddLoading}
+                    className='btn btn-primary'
+                >
                     Add Teacher
-                </button>
+                </LoadingButton>
+
                 <button className='btn btn-error' onClick={handleReset}>
                     Reset
                 </button>

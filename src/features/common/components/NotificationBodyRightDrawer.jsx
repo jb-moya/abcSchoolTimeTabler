@@ -1,17 +1,19 @@
 import { useSelector } from 'react-redux';
-import formatFirebaseDate from '../../../utils/formatDate';
+import { GrClear } from 'react-icons/gr';
+import { useDispatch } from 'react-redux';
+import { clearLogs } from '../../slice/notificationUserLogs';
 
 function NotificationBodyRightDrawer() {
     const { logs: userLogs } = useSelector((state) => state.notificationUserLogs);
-    console.log('🚀 ~ userLogsuserLogsuserLogsuserLogsuserLogsuserLogs ~ logs:', userLogs);
+    const dispatch = useDispatch();
 
     const getBgClassByOperation = (operation) => {
         switch (operation) {
             case 'added':
                 return 'bg-green-100';
-            case 'removed':
+            case 'deleted':
                 return 'bg-red-100';
-            case 'updated':
+            case 'edited':
             case 'modified':
                 return 'bg-yellow-100';
             default:
@@ -43,6 +45,16 @@ function NotificationBodyRightDrawer() {
             ) : (
                 <div className='text-center text-gray-500 mt-8'>No activity logs yet.</div>
             )}
+
+            <button
+                className='btn btn-xs w-full self-end btn-ghost'
+                onClick={() => {
+                    dispatch(clearLogs());
+                }}
+            >
+                <GrClear />
+                Clear Notifications
+            </button>
         </div>
     );
 }

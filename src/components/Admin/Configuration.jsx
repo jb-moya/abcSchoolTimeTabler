@@ -1,18 +1,28 @@
 import { useState, useEffect } from 'react';
 import TimeSelector from '@utils/timeSelector';
-import { setMaxTeacherLoad, setMinTeacherLoad } from '@features/configurationSlice';
-import { useDispatch, useSelector } from 'react-redux';
-import { editDocument } from '../../hooks/firebaseCRUD/editDocument';
+import { useSelector } from 'react-redux';
+import { useEditDocument } from '../../hooks/firebaseCRUD/useEditDocument';
 import { COLLECTION_ABBREVIATION } from '../../constants';
+import LoadingButton from '../LoadingButton';
+
+const configuration_invalid_values_code = {
+    minimum_workload_above_maximum: 'Minimum workload cannot be greater than maximum workload',
+    minimum_workload_below_lower_bound: 'Minimum workload cannot be less than or equal to zero',
+    maximum_workload_less_than_minimum: 'Maximum workload cannot be less than minimum workload',
+    maximum_workload_less_than_zero: 'Maximum workload cannot be less than or equal to zero',
+};
+// import ModifyTimetable from '@features/admin/modify-timetable';
 
 function Configuration() {
-    const dispatch = useDispatch();
+    const { editDocument, loading: isEditLoading, error: editError } = useEditDocument();
 
     const { configurations, loading } = useSelector((state) => state.configuration);
     const { user: currentUser } = useSelector((state) => state.user);
 
     const [editMode, setEditMode] = useState(false);
     const [tempValues, setTempValues] = useState({});
+
+    const [validationError, setValidationErrors] = useState('');
 
     const defaultValues = configurations[1] || {};
 
@@ -58,7 +68,7 @@ function Configuration() {
 
     const timeInterval = 5;
     const workloadInterval = 100;
-    const minWorkloadBound = 100;
+    const minWorkloadBound = 0;
     const maxDuration = 1000;
     const minNumOfSchoolDays = 1;
     const maxNumOfSchoolDays = 7;
@@ -77,29 +87,27 @@ function Configuration() {
     const handleChangeMinTeachingLoad = (e) => {
         let value = parseInt(e.target.value, 10);
 
-        if (value < 100) {
-            value = 100;
-        } else if (value > defaultMaximumTeachingLoad) {
-            value = defaultMaximumTeachingLoad;
-        }
+        // if (value < 100) {
+        //     value = 100;
+        // } else if (value > defaultMaximumTeachingLoad) {
+        //     value = defaultMaximumTeachingLoad;
+        // }
 
         setDefaultMinimumTeachingLoad(value);
-        dispatch(setMinTeacherLoad(value));
     };
 
     const handleChangeMaxTeachingLoad = (e) => {
         const value = parseInt(e.target.value, 10);
-        if (value >= defaultMinimumTeachingLoad) {
-            setDefaultMaximumTeachingLoad(value);
-            dispatch(setMaxTeacherLoad(value));
-        }
+        // if (value >= defaultMinimumTeachingLoad) {
+        setDefaultMaximumTeachingLoad(value);
+        // }
     };
 
     const handleChangeNumOfSchoolDays = (e) => {
         const value = parseInt(e.target.value, 10);
-        if (value >= minNumOfSchoolDays && value <= maxNumOfSchoolDays) {
-            setDefaultNumberOfSchoolDays(value);
-        }
+        // if (value >= minNumOfSchoolDays && value <= maxNumOfSchoolDays) {
+        setDefaultNumberOfSchoolDays(value);
+        // }
     };
 
     const handleSetTempValues = () => {
@@ -128,10 +136,21 @@ function Configuration() {
         setDefaultNumberOfSchoolDays(tempValues.defaultNumOfSchoolDays);
         setDefaultBreakTimeDuration(tempValues.defaultBreakTimeDuration);
         setEditMode(false);
+        setValidationErrors('');
     };
 
     const handleConfirm = async () => {
         try {
+            if (defaultMinimumTeachingLoad > defaultMaximumTeachingLoad) {
+                throw new Error(configuration_invalid_values_code.minimum_workload_above_maximum);
+            } else if (defaultMinimumTeachingLoad <= minWorkloadBound) {
+                throw new Error(configuration_invalid_values_code.minimum_workload_below_lower_bound);
+            } else if (defaultMaximumTeachingLoad < defaultMinimumTeachingLoad) {
+                throw new Error(configuration_invalid_values_code.maximum_workload_less_than_minimum);
+            } else if (defaultMaximumTeachingLoad <= minWorkloadBound) {
+                throw new Error(configuration_invalid_values_code.maximum_workload_less_than_zero);
+            }
+
             await editDocument({
                 collectionName: 'timetableConfiguration',
                 collectionAbbreviation: COLLECTION_ABBREVIATION.TIMETABLE_CONFIGURATIONS,
@@ -148,10 +167,11 @@ function Configuration() {
                     defaultBreakTimeDuration: defaultBreakTimeDuration,
                 },
             });
+
+            setEditMode(false);
         } catch (error) {
-            console.log(error);
+            setValidationErrors(error.message);
         }
-        setEditMode(false);
     };
 
     if (loading) {
@@ -163,11 +183,40 @@ function Configuration() {
         <div className='mb-10 px-6'>
             <h1 className='divider text-2xl font-bold text-center mb-10'>Configuration</h1>
 
-            <div className='grid grid-cols-2 gap-6'>
+            <div>
+                {validationError && (
+                    <div className='mb-4'>
+                        <div className='alert alert-error shadow-lg'>
+                            <div>
+                                <svg
+                                    xmlns='http://www.w3.org/2000/svg'
+                                    className='stroke-current flex-shrink-0 h-6 w-6'
+                                    fill='none'
+                                    viewBox='0 0 24 24'
+                                >
+                                    <path
+                                        strokeLinecap='round'
+                                        strokeLinejoin='round'
+                                        strokeWidth='2'
+                                        d='M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z'
+                                    />
+                                </svg>
+                            </div>
+                            <div className='flex flex-col gap-2'>
+                                <div>
+                                    <span>{validationError}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            <div className='grid sm:grid-cols-2 grid-cols-1 gap-6 text-left'>
                 <div className='flex flex-col gap-2'>
-                    <div className='flex flex-row form-control'>
-                        <label className='w-[250px] label'>Number of Days in a Week</label>
-                        <label className='input input-sm w-[250px] input-bordered flex items-center gap-2'>
+                    <div className='flex flex-row form-control items-center'>
+                        <label className='w-[250px] label'>Number of Days in a Week (fixed)</label>
+                        <label className='input input-sm w-[250px] input-bordered flex gap-2'>
                             <input
                                 type='number'
                                 placeholder='e.g., 5 (Mon-Fri)'
@@ -176,15 +225,15 @@ function Configuration() {
                                 onChange={handleChangeNumOfSchoolDays}
                                 max={maxNumOfSchoolDays}
                                 min={minNumOfSchoolDays}
-                                disabled={!editMode || loading}
+                                disabled={true}
                             />
                             <span className='opacity-60'>days</span>
                         </label>
                     </div>
 
-                    <div className='flex flex-row form-control'>
+                    <div className='flex flex-row form-control items-center'>
                         <label className='w-[250px] label'>Default Class Duration</label>
-                        <label className='input input-sm w-[250px] input-bordered flex items-center gap-2'>
+                        <label className='input input-sm w-[250px] input-bordered flex gap-2'>
                             <input
                                 type='number'
                                 placeholder='Default class duration (mins)'
@@ -200,9 +249,9 @@ function Configuration() {
                         </label>
                     </div>
 
-                    <div className='flex flex-row form-control'>
+                    <div className='flex flex-row form-control items-center'>
                         <label className='w-[250px] label'>Break Time Duration</label>
-                        <label className='input input-sm w-[250px] input-bordered flex items-center gap-2'>
+                        <label className='input input-sm w-[250px] input-bordered flex gap-2'>
                             <input
                                 type='number'
                                 placeholder='Break Time Duration'
@@ -220,7 +269,7 @@ function Configuration() {
                 </div>
 
                 <div className='flex flex-col gap-2'>
-                    <div className='flex flex-row form-control'>
+                    <div className='flex flex-row form-control items-center'>
                         <label className='w-[250px] label'>Morning Start Times</label>
                         <label className='flex items-center gap-2'>
                             <div className='w-[200px]'>
@@ -235,7 +284,7 @@ function Configuration() {
                         </label>
                     </div>
 
-                    <div className='flex flex-row form-control'>
+                    <div className='flex flex-row form-control items-center'>
                         <label className='w-[250px] label'>Afternoon Start Times</label>
                         <label className='flex items-center gap-2'>
                             <div className='w-[200px]'>
@@ -250,12 +299,12 @@ function Configuration() {
                         </label>
                     </div>
 
-                    <div className='flex flex-row form-control'>
+                    <div className='flex flex-row form-control items-center'>
                         <label className='w-[250px] label font-medium'>Minimum Teaching Load</label>
                         <div className='flex flex-col sm:flex-row gap-4'>
                             <div className='flex-1'>
                                 <div className='w-[200px]'>
-                                    <label className='input input-sm input-bordered flex items-center gap-2'>
+                                    <label className='input input-sm input-bordered flex gap-2'>
                                         <input
                                             type='number'
                                             placeholder='e.g., 1300'
@@ -274,11 +323,11 @@ function Configuration() {
                         </div>
                     </div>
 
-                    <div className='flex flex-row form-control'>
+                    <div className='flex flex-row form-control items-center'>
                         <label className='w-[250px] label font-medium'>Maximum Teaching Load</label>
                         <div className='flex-1'>
                             <div className='w-[200px]'>
-                                <label className='input input-sm input-bordered flex items-center gap-2'>
+                                <label className='input input-sm input-bordered flex gap-2'>
                                     <input
                                         type='number'
                                         placeholder='e.g., 1800'
@@ -302,9 +351,16 @@ function Configuration() {
                             </button>
                         ) : (
                             <div className='flex gap-2'>
-                                <button className='btn btn-primary' onClick={handleConfirm}>
+                                <LoadingButton
+                                    onClick={handleConfirm}
+                                    disabled={isEditLoading}
+                                    isLoading={isEditLoading}
+                                    loadingText='Changing ...'
+                                    className='btn btn-primary'
+                                >
                                     Confirm Changes
-                                </button>
+                                </LoadingButton>
+
                                 <button className='btn btn-secondary' onClick={handleCancel}>
                                     Cancel
                                 </button>

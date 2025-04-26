@@ -928,6 +928,13 @@ function Timetable() {
             enableLogging: false,
         };
 
+        console.log("🚀 ~ handleButtonClick ~ params2.buildingAdjacency:", params2.buildingAdjacency)
+        console.log("🚀 ~ handleButtonClick ~ params2.teacherReservationConfig:", params2.teacherReservationConfig)
+        console.log("🚀 ~ handleButtonClick ~ params2.teacherReservationConfigID:", params2.teacherReservationConfigID)
+        console.log("🚀 ~ handleButtonClick ~ params2.subjectConfigurationSubjectIsOverlappable:", params2.subjectConfigurationSubjectIsOverlappable)
+
+        return;
+
         let generatedTimetable = [];
 
         setTimetableGenerationStatus('running');

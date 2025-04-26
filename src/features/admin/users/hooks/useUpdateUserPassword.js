@@ -29,6 +29,8 @@ export const useEditUserPassword = () => {
             }
 
             setLoading(false);
+
+            throw err;
         }
     };
 

@@ -8,13 +8,14 @@ import SearchableDropdownToggler from '../searchableDropdown';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { IoWarningSharp } from 'react-icons/io5';
 
-import { editDocument } from '../../../hooks/firebaseCRUD/editDocument';
+import { useEditDocument } from '../../../hooks/firebaseCRUD/useEditDocument';
 
 import AdditionalScheduleForProgram from './AdditionalScheduleForProgram';
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
 import TimeSelector from '@utils/timeSelector';
 import { COLLECTION_ABBREVIATION } from '../../../constants';
 import { useSelector } from 'react-redux';
+import LoadingButton from '../../LoadingButton';
 
 const ProgramEdit = ({
     subjects,
@@ -30,7 +31,8 @@ const ProgramEdit = ({
     numOfSchoolDays = 5,
     breakTimeDuration,
 }) => {
-
+    const { editDocument, loading: isEditLoading, error: editError } = useEditDocument();
+    
     const inputNameRef = useRef();
 
     const { user: currentUser } = useSelector((state) => state.user);
@@ -104,7 +106,7 @@ const ProgramEdit = ({
 
     const isAddButtonDisabled = Object.values(validEndTimes).some((value) => !value);
 
-// ==========================================================================
+    // ==========================================================================
 
     const initializeStates = () => {
         if (!program) return;
@@ -146,7 +148,7 @@ const ProgramEdit = ({
         }
     }, [program]);
 
-// ==========================================================================
+    // ==========================================================================
 
     const [sectionDetailsToUpdate, setSectionDetailsToUpdate] = useState({
         shiftAndStartTime: false,
@@ -155,7 +157,7 @@ const ProgramEdit = ({
         modality: false,
     });
 
-// ==========================================================================
+    // ==========================================================================
 
     // Subjects
     const handleSubjectSelection = (grade, selectedList) => {
@@ -342,7 +344,7 @@ const ProgramEdit = ({
         }));
     };
 
-// ==========================================================================
+    // ==========================================================================
 
     const updateProgramDependencies = async () => {
         // Update program dependencies in SECTIONS
@@ -469,7 +471,6 @@ const ProgramEdit = ({
             }
 
             if (originalSection !== newSection) {
-
                 const section_schedules = newSection.additionalScheds.map((sched) => ({
                     n: sched.name,
                     su: sched.subject,
@@ -583,14 +584,13 @@ const ProgramEdit = ({
 
         if (editProgramValue.trim().toLowerCase() === currentProgram.trim().toLowerCase()) {
             try {
-
                 const schedules = {
                     7: [],
                     8: [],
                     9: [],
                     10: [],
                 };
-                
+
                 [7, 8, 9, 10].forEach((grade) => {
                     schedules[grade] = editAdditionalScheds[grade].map((sched) => ({
                         n: sched.name,
@@ -652,8 +652,7 @@ const ProgramEdit = ({
                     },
                 });
 
-                updateProgramDependencies();
-                
+                await updateProgramDependencies();
             } catch (error) {
                 console.error('Error updating program: ', error);
             } finally {
@@ -734,7 +733,7 @@ const ProgramEdit = ({
                         },
                     });
 
-                    updateProgramDependencies();
+                    await updateProgramDependencies();
                 } catch (error) {
                     console.error('Error updating program: ', error);
                 } finally {
@@ -754,7 +753,7 @@ const ProgramEdit = ({
         }
     };
 
-// ===========================================================================
+    // ===========================================================================
 
     const resetStates = () => {
         setEditProgramId(null);
@@ -804,7 +803,7 @@ const ProgramEdit = ({
         });
     };
 
-// ==========================================================================
+    // ==========================================================================
 
     const handleConfirmationModalClose = () => {
         setSectionDetailsToUpdate({
@@ -1263,12 +1262,16 @@ const ProgramEdit = ({
                             </div>
                         </div>
                         <div className='mt-4 flex justify-center items-center gap-3'>
-                            <button
-                                className='btn btn-sm bg-green-400 hover:bg-green-200'
+                            <LoadingButton
                                 onClick={() => handleSaveProgramEditClick()}
+                                disabled={isEditLoading}
+                                isLoading={isEditLoading}
+                                loadingText='Saving...'
+                                className='btn btn-sm bg-green-400 hover:bg-green-200'
                             >
-                                Confirm
-                            </button>
+                                Save Program
+                            </LoadingButton>
+
                             <button className='btn btn-sm' onClick={() => handleConfirmationModalClose()}>
                                 Cancel
                             </button>

@@ -1,9 +1,7 @@
 import Login from '../features/user/Login';
 import AuthenticationBackgroundSwiper from '../containers/AuthenticationBackgroundSwiper';
-import { useNavigate } from 'react-router-dom';
 
 function ExternalPage() {
-    const navigate = useNavigate();
 
     return (
         <div className='relative h-screen w-screen'>
@@ -21,13 +19,6 @@ function ExternalPage() {
                     </h2>
 
                     <Login />
-
-                    {/* <div className='mt-6 text-center'>
-                        <div className='text-sm text-gray-500'>Don&apos;t have an account?</div>
-                        <button className='mt-1 btn-sm btn btn-ghost btn-wide' onClick={() => navigate('/auth/register')}>
-                            Sign Up
-                        </button>
-                    </div> */}
                 </div>
             </div>
         </div>

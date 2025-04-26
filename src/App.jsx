@@ -60,11 +60,8 @@ import formatFirebaseDate from './utils/formatDate.js';
 
 const Layout = lazy(() => import('./containers/Layout'));
 const Login = lazy(() => import('./pages/Login.jsx'));
-const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
-const Documentation = lazy(() => import('./pages/Documentation'));
 const GuestPage = lazy(() => import('./pages/Guest.jsx'));
 const SuspenseContent = lazy(() => import('./containers/SuspenseContent'));
-const Authentication = lazy(() => import('./pages/Authentication'));
 const Page404 = lazy(() => import('./pages/404'));
 const Unauthorized = lazy(() => import('./pages/Unauthorized'));
 
@@ -170,16 +167,9 @@ function App() {
                             element={userLoading ? <SuspenseContent /> : user ? <Navigate to='/app/dashboard' /> : <Login />}
                         />
 
-                        {/* <Route
-                            path='/auth/register'
-                            element={user && !userLoading ? <Navigate to='/app/dashboard' /> : <Register />}
-                        /> */}
                         <Route path='/404' element={<Page404 />} />
-                        <Route path='/auth/:mode' element={<Authentication />} />
-                        <Route path='/forgot-password' element={<ForgotPassword />} />
-                        <Route path='/documentation' element={<Documentation />} />
+                        <Route path='*' element={<Page404 />} />
                         <Route path='/unauthorized' element={<Unauthorized />} />
-                        {/* Place new routes over this */}
                         <Route
                             path='/app/*'
                             element={
@@ -188,8 +178,6 @@ function App() {
                                 </ProtectedRoute>
                             }
                         />
-                        {/* <Route path='*' element={<Navigate to={token ? '/app/welcome' : '/search'} replace />} /> */}
-                        {/* <Route path='*' element={<Navigate to={user ? '/app/welcome' : '/search'} replace />} /> */}
                     </Routes>
                 </Router>
             </Suspense>

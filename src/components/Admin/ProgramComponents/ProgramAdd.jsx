@@ -7,13 +7,14 @@ import SearchableDropdownToggler from '../searchableDropdown';
 import { RiEdit2Fill, RiDeleteBin7Line } from 'react-icons/ri';
 import { IoWarningSharp } from 'react-icons/io5';
 
-import { addDocument } from '../../../hooks/firebaseCRUD/addDocument';
+import { useAddDocument } from '../../../hooks/firebaseCRUD/useAddDocument';
 
 import AdditionalScheduleForProgram from './AdditionalScheduleForProgram';
 import FixedScheduleMaker from '../FixedSchedules/fixedScheduleMaker';
 import TimeSelector from '@utils/timeSelector';
 import { useSelector } from 'react-redux';
 import { COLLECTION_ABBREVIATION } from '../../../constants';
+import LoadingButton from '../../LoadingButton';
 
 const AddProgramContainer = ({
     // STORES
@@ -30,15 +31,17 @@ const AddProgramContainer = ({
     numOfSchoolDays = 5,
     breakTimeDuration,
 }) => {
+    const { addDocument, loading: isAddLoading, error: addError } = useAddDocument();
+
 
     const inputNameRef = useRef();
     const { user: currentUser } = useSelector((state) => state.user);
 
-// ===============================================================================
+    // ===============================================================================
 
     const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 
-// ===============================================================================
+    // ===============================================================================
 
     const [inputValue, setInputValue] = useState('');
 
@@ -108,7 +111,7 @@ const AddProgramContainer = ({
 
     const isAddButtonDisabled = Object.values(validEndTimes).some((value) => !value);
 
-// ==============================================================================
+    // ==============================================================================
 
     // Input
     const handleInputChange = (e) => {
@@ -285,7 +288,7 @@ const AddProgramContainer = ({
         }));
     };
 
-// ==============================================================================
+    // ==============================================================================
 
     const handleAddEntry = async () => {
         if (!inputValue.trim()) {
@@ -335,14 +338,13 @@ const AddProgramContainer = ({
             setErrorField('program');
         } else {
             try {
-
                 const schedules = {
                     7: [],
                     8: [],
                     9: [],
                     10: [],
                 };
-                
+
                 [7, 8, 9, 10].forEach((grade) => {
                     schedules[grade] = additionalScheds[grade].map((sched) => ({
                         n: sched.name,
@@ -840,13 +842,23 @@ const AddProgramContainer = ({
                     {/* Add button centered at the bottom */}
                     <div className='flex mt-6 justify-center gap-2'>
                         <div className='flex justify-end space-x-2'>
-                            <button
+                            {/* <button
                                 className='btn btn-primary flex items-center'
                                 onClick={handleAddEntry}
                                 disabled={isAddButtonDisabled}
                             >
                                 <div>Add Program</div>
-                            </button>
+                            </button> */}
+
+                            <LoadingButton
+                                onClick={handleAddEntry}
+                                isLoading={isAddLoading}
+                                loadingText='Adding Program...'
+                                disabled={isAddButtonDisabled || isAddLoading}
+                                className='btn btn-primary flex items-center'
+                            >
+                                Add Program
+                            </LoadingButton>
                         </div>
                         <button className='btn btn-error border-0' onClick={handleReset}>
                             Reset

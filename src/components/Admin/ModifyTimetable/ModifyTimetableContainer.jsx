@@ -3,16 +3,17 @@ import DragDrop from './DragDrop';
 import { generateTimeSlots } from '../utils';
 import { produce } from 'immer';
 import { PiConfetti } from 'react-icons/pi';
-import useDeployTimetables from '../../../hooks/useDeployTimetables';
+import useOverwriteCollection from '../../../hooks/useDeployTimetables';
 import mapToArray from './mapToArray';
 import mapToArrayDeploy from './mapToArrayDeploy';
 import clsx from 'clsx';
 import { IoIosAdd, IoIosWarning } from 'react-icons/io';
 import ExportSchedules from './ExportSchedules';
-import { addDocument } from '../../../hooks/firebaseCRUD/addDocument';
-import { editDocument } from '../../../hooks/firebaseCRUD/editDocument';
+import { useAddDocument } from '../../../hooks/firebaseCRUD/useAddDocument';
+import { useEditDocument } from '../../../hooks/firebaseCRUD/useEditDocument';
 import { useSelector } from 'react-redux';
 import { COLLECTION_ABBREVIATION } from '../../../constants';
+import LoadingButton from '../../LoadingButton';
 
 function processRows(data, n) {
     function generateKey(row) {
@@ -61,11 +62,14 @@ const ModifyTimetableContainer = ({
     errorField,
     setErrorField,
 }) => {
+    const { addDocument, loading: isAddLoading, error: addError } = useAddDocument();
+    const { editDocument, loading: isEditLoading, error: editError } = useEditDocument();
+
     const { user: currentUser } = useSelector((state) => state.user);
 
     const inputNameRef = useRef();
 
-    const { handleDeployTimetables, isLoading: deployLoading, remaining: deployRemaining } = useDeployTimetables();
+    const { handleDeployTimetables, isLoading: deployLoading, remaining: deployRemaining } = useOverwriteCollection();
 
     const [scheduleVerName, setScheduleVerName] = useState(timetableName);
 
@@ -164,17 +168,37 @@ const ModifyTimetableContainer = ({
 
         console.log('resultarray: ', resultarray.slice(0, 3));
 
-        handleDeployTimetables(resultarray);
+        const schedules = [];
+        resultarray.forEach((value, key) => {
+            console.log(`${key}: ${value}`);
+            console.log(value);
+
+            const obj = {
+                n: value[0].split(' ').map((str) => str.toLowerCase()),
+                a: JSON.stringify([value.slice(0, 2)]),
+                t: value[2],
+                u: currentUser.uid,
+                m: value[3],
+                sa: value[4],
+                sr: value[5],
+                tr: value[6],
+                td: value[7],
+            };
+
+            schedules.push(obj);
+        });
+
+        const batchOverwrite = [{ name: 'timetables', entries: schedules }];
+
+        await handleDeployTimetables({ collections: batchOverwrite });
     };
 
-    // ================================================================================================================
-
-    const tableRefs = useRef({}); // Make sure this initializes as an object
-    const [history, setHistory] = useState([new Map()]); // history stack (array of Maps)
-    const [historyIndex, setHistoryIndex] = useState(0); // current position in history
+    const tableRefs = useRef({});
+    const [history, setHistory] = useState([new Map()]);
+    const [historyIndex, setHistoryIndex] = useState(0);
     const isUndoRedo = useRef(false);
-    const renderCount = useRef(0); // Track render count
-    const [paginatedValueMap, setPaginatedValueMap] = useState(new Map()); // Store paginated data in state
+    const renderCount = useRef(0);
+    const [paginatedValueMap, setPaginatedValueMap] = useState(new Map());
     const [search, setSearch] = useState('');
     const [searchField, setSearchField] = useState('');
     const [errorCount, setErrorCount] = useState(0);
@@ -185,15 +209,15 @@ const ModifyTimetableContainer = ({
     const [timeSlots, setTimeSlots] = useState([]);
     const [tableHeight, setTableHeight] = useState(0);
     const [tableWidth, setTableWidth] = useState(0);
-    const [currentPage, setCurrentPage] = useState(1); // State to track the current page
-    const [itemsPerPage, setItemsPerPage] = useState(1); // Default items per page
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(1);
     const totalPages = Math.ceil(valueMap?.size / itemsPerPage);
-    const [pageNumbers, setPageNumbers] = useState([]); // State for page numbers
-    const [editMode, setEditMode] = useState(false); // State for page numbers
+    const [pageNumbers, setPageNumbers] = useState([]);
+    const [editMode, setEditMode] = useState(false);
 
     const generatePageNumbers = (filtered) => {
         const pages = [];
-        const pageCount = Math.ceil(filtered.size / itemsPerPage); // Calculate total pages based on filtered data
+        const pageCount = Math.ceil(filtered.size / itemsPerPage);
 
         if (pageCount <= 6) {
             for (let i = 1; i <= pageCount; i++) {
@@ -230,30 +254,25 @@ const ModifyTimetableContainer = ({
         setCurrentPage(page);
     };
 
-    // ===============================================================================================================
-
     const undo = () => {
         if (historyIndex > 1) {
-            isUndoRedo.current = true; // Indicate this is an undo action
-            setHistoryIndex((prevIndex) => prevIndex - 1); // Move back in history
-            setValueMap(new Map(history[historyIndex - 1])); // Set valueMap to the previous state
+            isUndoRedo.current = true;
+            setHistoryIndex((prevIndex) => prevIndex - 1);
+            setValueMap(new Map(history[historyIndex - 1]));
         }
     };
 
     const redo = () => {
         if (historyIndex < history.length - 1) {
-            isUndoRedo.current = true; // Indicate this is a redo action
-            setHistoryIndex((prevIndex) => prevIndex + 1); // Move forward in history
-            setValueMap(new Map(history[historyIndex + 1])); // Set valueMap to the next state
+            isUndoRedo.current = true;
+            setHistoryIndex((prevIndex) => prevIndex + 1);
+            setValueMap(new Map(history[historyIndex + 1]));
         }
     };
 
     const save = async () => {
         const array = mapToArray(valueMap);
         console.log('IDTNIGNA: ', firebaseId);
-        console.log('🚀 ~ save ~ valueMap:', valueMap);
-
-        console.log('array          dddddddddd: ', array);
 
         const n = 5;
         let resultarray = [];
@@ -342,28 +361,23 @@ const ModifyTimetableContainer = ({
         console.log('add');
     };
 
-    // ===============================================================================================================
-
     useEffect(() => {
         const overlaps = detectOverlaps(valueMap);
-        // console.log('overlaps', overlaps);
         setOverlapsDisplay(overlaps);
         const resolvedMap = updateOverlapFields(overlaps);
-        // console.log('resolvedmap: ', resolvedMap);
         setValueMap(resolvedMap);
 
         if (!deepEqualMaps(history[historyIndex], valueMap)) {
-            const newHistory = history.slice(0, historyIndex + 1); // Remove future history if undo/redo happened
+            const newHistory = history.slice(0, historyIndex + 1);
             if (overlaps.length > 0) {
-                setHistory([...newHistory, new Map(resolvedMap)]); // Add current valueMap to history
+                setHistory([...newHistory, new Map(resolvedMap)]);
             } else {
-                setHistory([...newHistory, new Map(valueMap)]); // Add current valueMap to history
+                setHistory([...newHistory, new Map(valueMap)]);
             }
-            setHistoryIndex((prevIndex) => prevIndex + 1); // Update the history index
+            setHistoryIndex((prevIndex) => prevIndex + 1);
         }
 
-        isUndoRedo.current = false; // Reset the flag
-        // console.log('overlaps: ');
+        isUndoRedo.current = false;
     }, [valueMap]);
 
     function deepEqualMaps(map1, map2) {
@@ -1051,9 +1065,16 @@ const ModifyTimetableContainer = ({
                                 )}
 
                                 <div className='flex justify-center gap-2'>
-                                    <button className='btn btn-primary' onClick={save}>
-                                        Confirm
-                                    </button>
+                                    <LoadingButton
+                                        onClick={save}
+                                        isLoading={isAddLoading || isEditLoading}
+                                        loadingText='Saving...'
+                                        disabled={isAddLoading || isEditLoading}
+                                        className='btn btn-primary'
+                                    >
+                                        Save
+                                    </LoadingButton>
+
                                     <button className='btn btn-error border-0' onClick={handleReset}>
                                         Reset
                                     </button>
@@ -1093,7 +1114,7 @@ const ModifyTimetableContainer = ({
                             </div>
                         </div>
                         <div className='flex justify-end gap-2'>
-                            <button
+                            {/* <button
                                 className='btn btn-primary flex-1'
                                 onClick={async () => {
                                     await deploy();
@@ -1111,7 +1132,23 @@ const ModifyTimetableContainer = ({
                                 ) : (
                                     'Yes, Deploy timetables'
                                 )}
-                            </button>
+                            </button> */}
+
+                            <LoadingButton
+                                onClick={async () => {
+                                    await deploy();
+
+                                    document.getElementById('confirm_schedule_save_modal').close();
+                                    handleReset();
+                                }}
+                                disabled={deployLoading}
+                                isLoading={isAddLoading}
+                                loadingText='Deploying... This may take a while'
+                                className='btn btn-primary flex-1'
+                            >
+                                Yes, Deploy timetables
+                            </LoadingButton>
+
                             <button
                                 className='btn btn-error'
                                 disabled={deployLoading}

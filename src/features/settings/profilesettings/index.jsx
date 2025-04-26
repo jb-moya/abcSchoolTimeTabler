@@ -4,6 +4,7 @@ import InputText from '../../../components/Input/InputText';
 import { useSelector } from 'react-redux';
 import { useEditUserPassword } from '../../admin/users/hooks/useUpdateUserPassword';
 import { toast } from 'sonner';
+import LoadingButton from '../../../components/LoadingButton';
 
 function ProfileSettings() {
     const { user, loading: userLoading } = useSelector((state) => state.user);
@@ -15,7 +16,7 @@ function ProfileSettings() {
 
             toast.success('Password updated successfully');
         } catch (err) {
-            console.log(err);
+            toast.error(err.message);
         }
     };
 
@@ -92,13 +93,33 @@ function ProfileSettings() {
                         </div>
                     )}
                     <div className='mt-8 gap-2 flex justify-end'>
-                        <button className={'btn btn-outline float-right mr-2'} onClick={resetForm} disabled={editUserLoading}>
+                        {/* <button className={'btn btn-outline float-right mr-2'} onClick={resetForm} disabled={editUserLoading}>
                             Reset
                         </button>
                         <button type='submit' className='btn btn-primary float-right' disabled={editUserLoading}>
                             {editUserLoading && <span className='loading loading-spinner'></span>}
                             {editUserLoading ? 'Loading' : 'Save'}
-                        </button>
+                        </button> */}
+
+                        <LoadingButton
+                            type='button'
+                            onClick={resetForm}
+                            isLoading={editUserLoading}
+                            disabled={editUserLoading}
+                            className='btn btn-outline float-right mr-2'
+                        >
+                            Reset
+                        </LoadingButton>
+
+                        <LoadingButton
+                            type='submit'
+                            isLoading={editUserLoading}
+                            disabled={editUserLoading}
+                            loadingText='Saving...'
+                            className='btn btn-primary float-right'
+                        >
+                            Save
+                        </LoadingButton>
                     </div>
                 </form>
             </TitleCard>

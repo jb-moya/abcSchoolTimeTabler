@@ -41,21 +41,12 @@ const UserLogs = () => {
         fetchCount();
     }, []);
 
-    // Initial logs fetch
     useEffect(() => {
         dispatch(resetLogs());
         dispatch(fetchLogs({ lastVisible: null, limitItems: itemsPerPage }));
         setCurrentPage(1);
     }, [dispatch]);
 
-    // Toast for total logs (only once after count is fetched)
-    useEffect(() => {
-        if (!loadingLogsCount && logsCount > 0) {
-            toast.success(`Total logs: ${logsCount}`);
-        }
-    }, [loadingLogsCount, logsCount]);
-
-    // Handle page changes (additional logs loading)
     const handlePageChange = (newPage) => {
         if (newPage > currentPage && userLogs.length < logsCount) {
             dispatch(fetchLogs({ lastVisible, limitItems: itemsPerPage }));

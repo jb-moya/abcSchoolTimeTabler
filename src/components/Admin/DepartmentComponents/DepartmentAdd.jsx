@@ -2,9 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 
 import { toast } from 'sonner';
 
-import { addDocument } from '../../../hooks/firebaseCRUD/addDocument';
+import { useAddDocument } from '../../../hooks/firebaseCRUD/useAddDocument';
 import { useSelector } from 'react-redux';
 import { COLLECTION_ABBREVIATION } from '../../../constants';
+import LoadingButton from '../../LoadingButton';
 
 const AddDepartmentContainer = ({
     // STORES
@@ -18,6 +19,9 @@ const AddDepartmentContainer = ({
     // reduxFunction,
 }) => {
     const inputNameRef = useRef();
+
+    const { addDocument, loading: isAddLoading, error: addError } = useAddDocument();
+
     const { user: currentUser } = useSelector((state) => state.user);
 
     // ===================================================================================
@@ -47,7 +51,7 @@ const AddDepartmentContainer = ({
         }
 
         try {
-			await addDocument({
+            await addDocument({
                 collectionName: 'departments',
                 collectionAbbreviation: COLLECTION_ABBREVIATION.DEPARTMENTS,
                 userName: currentUser?.username || 'unknown user',
@@ -118,9 +122,16 @@ const AddDepartmentContainer = ({
 
             <div className='flex justify-center gap-2'>
                 <div className='flex justify-end space-x-2'>
-                    <button className='btn btn-primary' onClick={handleAddDepartment}>
+                    <LoadingButton
+                        onClick={handleAddDepartment}
+                        isLoading={isAddLoading}
+                        loadingText='Adding Department'
+                        disabled={isAddLoading}
+                        className='btn btn-primary'
+                    >
                         Add Department
-                    </button>
+                    </LoadingButton>
+
                     <button className='btn btn-error border-0' onClick={handleReset}>
                         Reset
                     </button>

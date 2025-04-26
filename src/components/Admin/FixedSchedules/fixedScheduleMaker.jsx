@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DndContext } from '@dnd-kit/core';
 import { produce } from 'immer';
 
@@ -44,9 +44,6 @@ const getSubjectsPerPosition = (subs, subjectsStore, numOfSchoolDays, additional
             const day = fixedDay[j];
             const pos = fixedPos[j];
 
-            // console.log('🚀 ~ getSubjectsPerPosition ~ day:', day);
-            // console.log('🚀 ~ getSubjectsPerPosition ~ pos:', pos);
-
             if (day === 0 || pos === 0) {
                 continue;
             }
@@ -63,10 +60,7 @@ const getSubjectsPerPosition = (subs, subjectsStore, numOfSchoolDays, additional
 };
 
 const FixedScheduleMaker = ({
-    // STORES
     subjectsStore,
-    // STORES
-
     viewingMode = 0,
     pvs = 0,
     program = 0,
@@ -81,9 +75,6 @@ const FixedScheduleMaker = ({
     setFixedPositions = () => {},
     numOfSchoolDays = 5,
 }) => {
-
-// ==============================================================================
-
     const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
     const [editMode, setEditMode] = useState(false);
@@ -103,9 +94,6 @@ const FixedScheduleMaker = ({
         setPositions(produce(fixedPositions, (draft) => draft));
     }, [selectedSubjects, fixedDays, fixedPositions]);
 
-    // console.log("🚀 ~ useEffect ~ subjects:", subjects)
-    // setSubjectsPerPosition(subjects);
-
     useEffect(() => {
         const subjects = getSubjectsPerPosition(subs, subjectsStore, numOfSchoolDays, additionalSchedules, days, positions);
 
@@ -116,7 +104,6 @@ const FixedScheduleMaker = ({
         }
     }, [subs, days, positions, subjectsStore, numOfSchoolDays, additionalSchedules, mergeData]);
 
-    // Initialize days and positions when fixedDays or fixedPositions change
     useEffect(() => {
         if (!subs || subs.length === 0) return;
         let totalNumOfClasses = calculateTotalClass(subjectsStore, subs, numOfSchoolDays);
@@ -147,8 +134,8 @@ const FixedScheduleMaker = ({
                 positions.forEach((pos, idx) => {
                     if (pos > totalTimeslot) {
                         console.log('AAAAAAAAAAAAAAAAAAAAAA');
-                        draft.positions[subjectID][idx] = 0; // Update positions
-                        draft.days[subjectID][idx] = 0; // Update days
+                        draft.positions[subjectID][idx] = 0;
+                        draft.days[subjectID][idx] = 0;
                     }
                 });
             });
@@ -156,17 +143,11 @@ const FixedScheduleMaker = ({
 
         setPositions(updatedData.positions);
         setDays(updatedData.days);
-
-        // setFixedDays(updatedData.days);
-        // setFixedPositions(updatedData.positions);
     }, [totalTimeslot, days, positions]);
-    // }, [totalTimeslot, days, positions, setFixedDays, setFixedPositions]);
 
     useEffect(() => {
         console.log('is updating positions', positions);
     }, [positions]);
-
-    // Initialize days and positions when fixedDays or fixedPositions change
 
     const findConsecutiveRanges = (schedule) => {
         const mergeData = schedule.map((days, idx) => {
@@ -177,11 +158,9 @@ const FixedScheduleMaker = ({
             for (let i = 0; i < days.length; i++) {
                 if (days[i] !== 0) {
                     if (start === null) {
-                        // Start of a new range
                         start = i;
                         currentSubject = days[i];
                     } else if (days[i] !== currentSubject) {
-                        // Subject changed, close the current range
                         ranges.push({
                             start: { dayIndex: start, positionIndex: idx },
                             end: { dayIndex: i - 1, positionIndex: idx },
@@ -192,7 +171,6 @@ const FixedScheduleMaker = ({
                     }
                 } else {
                     if (start !== null) {
-                        // End of the current range
                         ranges.push({
                             start: { dayIndex: start, positionIndex: idx },
                             end: { dayIndex: i - 1, positionIndex: idx },
@@ -204,7 +182,6 @@ const FixedScheduleMaker = ({
                 }
             }
 
-            // Add the final range if still open
             if (start !== null) {
                 ranges.push({
                     start: { dayIndex: start, positionIndex: idx },
@@ -216,8 +193,6 @@ const FixedScheduleMaker = ({
             return ranges;
         });
 
-        // console.log('mergeData', mergeData);
-
         return mergeData;
     };
 
@@ -225,18 +200,18 @@ const FixedScheduleMaker = ({
         setFixedDays((prev) =>
             produce(prev, (draft) => {
                 if (isForSection) {
-                    Object.assign(draft, days); // Save only the days directly
+                    Object.assign(draft, days);
                 } else {
-                    draft[grade] = days; // Save the days for the specific grade
+                    draft[grade] = days;
                 }
             })
         );
         setFixedPositions((prev) =>
             produce(prev, (draft) => {
                 if (isForSection) {
-                    Object.assign(draft, positions); // Save only the positions directly
+                    Object.assign(draft, positions);
                 } else {
-                    draft[grade] = positions; // Save the positions for the specific grade
+                    draft[grade] = positions;
                 }
             })
         );
@@ -280,7 +255,6 @@ const FixedScheduleMaker = ({
         setEditMode(!editMode);
     };
 
-    // DRAG AND DROP
     const handleDragEnd = (event) => {
         const { active, over } = event;
         if (!over) return;
@@ -288,16 +262,11 @@ const FixedScheduleMaker = ({
         const draggedSubjectID = active.data.current.subjectID;
         const targetContainerID = over.data.current.subjectID;
 
-        // Dragged and target container details
         const { grade: draggedGrade, dayIdx: draggedDay, posIdx: draggedPos } = active.data.current;
         const { day: targetDay, position: targetPos } = over.data.current;
 
-        // Skip if dragged item is being dropped on itself or an invalid container
         if (draggedSubjectID !== targetContainerID && targetContainerID !== -1) return;
 
-        // console.log('subjectsPerPosition', subjectsPerPosition);
-
-        // Helper function to count slots
         const countSlots = (subs, key, otherKey, targetValue, excludedValue) =>
             subs.reduce((count, subID) => {
                 const items = key === 'days' ? days[subID] : positions[subID];
@@ -307,11 +276,9 @@ const FixedScheduleMaker = ({
                 );
             }, 0);
 
-        // Calculate slots with your conditions
         const daySlots = countSlots(subs, 'days', 'positions', targetDay, days[draggedSubjectID]?.[draggedDay]);
         const positionSlots = countSlots(subs, 'positions', 'days', targetPos, positions[draggedSubjectID]?.[draggedDay]);
 
-        // Validate slots
         if (daySlots === totalTimeslot && positionSlots >= numOfSchoolDays) {
             alert(`No spots left in ${dayNames[targetDay - 1]} and position ${targetPos}.`);
             return;
@@ -325,18 +292,13 @@ const FixedScheduleMaker = ({
             return;
         }
 
-        // Check if the target spot is occupied
         const isOccupied = subs.some((subID) =>
             days[subID]?.some(
                 (day, idx) => day === targetDay && positions[subID]?.[idx] === targetPos && targetDay !== 0 && targetPos !== 0
             )
         );
 
-        // console.log('targetPos', targetPos);
-        // console.log('targetDay', targetDay);
-
         if (isOccupied) {
-            // alert('This spot is already taken!');
             return;
         }
 
@@ -421,7 +383,6 @@ const FixedScheduleMaker = ({
                     <DndContext onDragEnd={handleDragEnd}>
                         <div className='flex gap-10 justify-center'>
                             <div className='flex flex-col w-6/12'>
-                                {/* Spawn point(s) for subject blocks */}
                                 <div className='font-bold'>Subjects</div>
                                 {subs?.map((subject, index) => (
                                     <div
@@ -454,7 +415,6 @@ const FixedScheduleMaker = ({
                             </div>
                             <div className={`min-w-max ${editMode ? '' : ''}`}>
                                 <div>
-                                    {/* Header */}
                                     {subs?.length > 0 && (
                                         <div className='grid grid-cols-6 gap-0'>
                                             <div className='w-20 h-7 font-bold'></div>
@@ -475,7 +435,6 @@ const FixedScheduleMaker = ({
                                             })}
                                         </div>
                                     )}
-                                    {/* Schedule */}
                                     {Array.from({
                                         length: totalTimeslot,
                                     }).map((_, subIndex) => (
@@ -484,7 +443,6 @@ const FixedScheduleMaker = ({
                                                 {subIndex + 1}
                                             </div>
 
-                                            {/* Droppable cells for schedule */}
                                             {Array.from({
                                                 length: numOfSchoolDays,
                                             }).map((_, index) => (

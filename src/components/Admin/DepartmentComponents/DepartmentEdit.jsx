@@ -3,11 +3,14 @@ import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { RiEdit2Fill } from 'react-icons/ri';
 
-import { editDocument } from '../../../hooks/firebaseCRUD/editDocument';
+import { useEditDocument } from '../../../hooks/firebaseCRUD/useEditDocument';
 import { COLLECTION_ABBREVIATION } from '../../../constants';
 import { useSelector } from 'react-redux';
+import LoadingButton from '../../LoadingButton';
+import { ImInfo } from 'react-icons/im';
 
 const DepartmentEdit = ({ departments, teachers, department, setErrorMessage, errorMessage, setErrorField }) => {
+    const { editDocument, loading: isEditLoading, error: editError } = useEditDocument();
     const inputNameRef = useRef(null);
     const { user: currentUser } = useSelector((state) => state.user);
 
@@ -125,19 +128,7 @@ const DepartmentEdit = ({ departments, teachers, department, setErrorMessage, er
                             <div className='flex flex-wrap gap-2'>
                                 {selectedTeacher || department.head ? (
                                     <div className='badge badge-primary cursor-pointer flex items-center gap-2'>
-                                        {/* Display Teacher's Name */}
                                         {teachers[selectedTeacher || department.head]?.teacher || 'N/A'}
-
-                                        {/* Close Button (x) */}
-                                        {/* <span
-										className="text-red-500 font-bold cursor-pointer"
-										onClick={(e) => {
-											e.stopPropagation(); // Prevent event from propagating to parent div
-											setSelectedTeacher(null); // Set selectedTeacher to null
-										}}
-										>
-										x
-										</span> */}
                                     </div>
                                 ) : (
                                     <span className='text-gray-500'>No teacher selected</span>
@@ -145,7 +136,15 @@ const DepartmentEdit = ({ departments, teachers, department, setErrorMessage, er
                             </div>
                         </div>
 
-                        <label className='block text-sm font-medium mb-2'>Search and Select Teacher:</label>
+                        <label className='text-sm font-medium flex'>
+                            <div>Search and Select Teacher:</div>
+                            <div
+                                className='lg:tooltip ml-2'
+                                data-tip='To assign teacher to this department, refer to the teacher list under "Modify Teachers" tab'
+                            >
+                                <ImInfo size={20} className='text-blue-500'/>
+                            </div>
+                        </label>
                         <div className='card bg-base-100 shadow-lg p-4'>
                             {/* Search Bar */}
                             <input
@@ -156,7 +155,6 @@ const DepartmentEdit = ({ departments, teachers, department, setErrorMessage, er
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
 
-                            {/* Filtered Teacher List */}
                             <ul className='flex flex-col bg-base-100 rounded-lg max-h-[8rem] overflow-y-auto border border-base-content border-opacity-20 w-full space-y-1'>
                                 {Object.keys(teachers)
                                     .filter(
@@ -170,7 +168,7 @@ const DepartmentEdit = ({ departments, teachers, department, setErrorMessage, er
                                             className='border-b last:border-b-0 border-base-content border-opacity-20'
                                         >
                                             <button
-                                                className='w-full text-left py-2 px-4 hover:bg-blue-100'
+                                                className='w-full text-left py-2 px-4 hover:bg-base-300'
                                                 onClick={() => handleTeacherClick(teachers[key].id)}
                                             >
                                                 {teachers[key].teacher}
@@ -181,7 +179,11 @@ const DepartmentEdit = ({ departments, teachers, department, setErrorMessage, er
                                     (key) =>
                                         teachers[key].department === department.id &&
                                         teachers[key].teacher.toLowerCase().includes(searchTerm.toLowerCase())
-                                ).length === 0 && <li className='text-gray-500 text-center py-2'>No teachers found</li>}
+                                ).length === 0 && (
+                                    <li className='text-gray-500 text-center py-2'>
+                                        No teachers found under this department yet.
+                                    </li>
+                                )}
                             </ul>
                         </div>
                     </div>
@@ -189,9 +191,16 @@ const DepartmentEdit = ({ departments, teachers, department, setErrorMessage, er
                     {errorMessage && <p className='flex justify-center text-red-500 text-sm my-4 font-medium'>{errorMessage}</p>}
 
                     <div className='flex justify-center gap-2 mt-4'>
-                        <button className='btn btn-primary ' onClick={handleSaveDepartmentEditClick}>
+                        <LoadingButton
+                            onClick={handleSaveDepartmentEditClick}
+                            disabled={isEditLoading}
+                            isLoading={isEditLoading}
+                            loadingText='Updating Department...'
+                            className='btn btn-primary'
+                        >
                             Update Department
-                        </button>
+                        </LoadingButton>
+
                         <button className='btn btn-error ' onClick={handleResetDepartmentEditClick}>
                             Reset
                         </button>

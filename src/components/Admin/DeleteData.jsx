@@ -3,14 +3,18 @@ import { useEffect } from 'react';
 import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
 import { RiDeleteBin7Line } from 'react-icons/ri';
 
-import { deleteDocument } from '../../hooks/firebaseCRUD/deleteDocument';
-import { editDocument } from '../../hooks/firebaseCRUD/editDocument';
+import { useDeleteDocument } from '../../hooks/firebaseCRUD/useDeleteDocument';
+import { useEditDocument } from '../../hooks/firebaseCRUD/useEditDocument';
 import { useSelector } from 'react-redux';
 
 import { toast } from 'sonner';
 import { COLLECTION_ABBREVIATION } from '../../constants';
+import LoadingButton from '../LoadingButton';
 
 const DeleteData = ({ id, collection, callback }) => {
+    const { deleteDocument, loading: isDeleteLoading, error: deleteError } = useDeleteDocument();
+    const { editDocument, loading: isEditLoading, error: editError } = useEditDocument();
+
     // ===============================================================================================
     const { user: currentUser } = useSelector((state) => state.user);
 
@@ -237,10 +241,15 @@ const DeleteData = ({ id, collection, callback }) => {
                             Cancel
                         </label>
 
-                        {/* Confirm Delete Button */}
-                        <button className='btn btn-sm btn-error text-white' onClick={handleDelete}>
+                        <LoadingButton
+                            onClick={handleDelete}
+                            isLoading={isDeleteLoading || isEditLoading}
+                            loadingText='Deleting...'
+                            disabled={isDeleteLoading || isEditLoading}
+                            className='btn btn-sm btn-error text-white'
+                        >
                             Delete
-                        </button>
+                        </LoadingButton>
                     </div>
                 </div>
             </div>

@@ -10,6 +10,7 @@ import { convertToTime } from '@utils/convertToTime';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Schedules from '../../indexedDB/savedSearchedSchedules';
+import LoadingButton from '../../components/LoadingButton';
 
 const ScheduleModal = ({
     outerKey,
@@ -195,7 +196,6 @@ const ScheduleModal = ({
     );
 };
 
-
 const Search = () => {
     // const dispatch = useDispatch();
     const [query, setQuery] = useState('');
@@ -211,7 +211,6 @@ const Search = () => {
     const [valueMaps, setValueMaps] = useState(new Map());
     const [scheduleReady, setScheduleReady] = useState(false);
     const { search, loading, error } = useSearchTimetable();
-    
 
     useEffect(() => {
         const scheduleInit = async () => {
@@ -534,7 +533,7 @@ const Search = () => {
                     </div>
                 )}
 
-                <button
+                {/* <button
                     className='btn btn-sm flex items-center justify-center text-white bg-black rounded-full px-4 text-sm lg:text-base hover:bg-gray-800'
                     onClick={handleSearch}
                     disabled={loading || query.trim() === ''}
@@ -547,7 +546,18 @@ const Search = () => {
                         <IoSearch className='mr-2' />
                     )}
                     {loading ? 'Searching...' : 'Search'}
-                </button>
+                </button> */}
+
+                <LoadingButton
+                    onClick={handleSearch}
+                    isLoading={loading}
+                    loadingText='Searching...'
+                    disabled={query.trim() === ''}
+                    className='btn btn-sm flex items-center justify-center text-white bg-black rounded-full px-4 text-sm lg:text-base hover:bg-gray-800'
+                >
+                    <IoSearch className='mr-2' />
+                    Search
+                </LoadingButton>
             </div>
         </div>
     );
