@@ -17,4 +17,13 @@ export default defineConfig({
             '@public': path.resolve(__dirname, 'public'),
         },
     },
+    build: {
+        minify: 'terser',
+        terserOptions: {
+            compress: {
+                drop_console: true, // 🔥 removes all console.*
+                drop_debugger: true, // (optional) removes debugger statements
+            },
+        },
+    },
 });
