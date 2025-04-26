@@ -3,14 +3,12 @@ import { IoChevronDown, IoRemove, IoAdd } from 'react-icons/io5';
 import clsx from 'clsx';
 import escapeRegExp from '@utils/escapeRegExp';
 
-
 const NearbyBuildingDropdown = ({
     availableBuildings,
     nearbyBuildings,
     setNearbyBuildings,
     currentBuildingId, // Add this prop
 }) => {
-
     const [searchValue, setSearchValue] = useState('');
 
     const searchInputRef = useRef(null);
@@ -24,18 +22,12 @@ const NearbyBuildingDropdown = ({
             return pattern.test(building.name);
         });
 
-    // useEffect(() => {
-    //     console.log('filteredBuildings: ', filteredBuildings);
-    // }, [filteredBuildings]);
+    const handleToggleBuilding = (building) => {
+        const isAlreadyNearby = nearbyBuildings.some((nearbyBuilding) => nearbyBuilding.id === building.id);
 
-    // useEffect(() => {
-    //     console.log('availableBuildings: ', availableBuildings);
-    // }, [availableBuildings]);
-
-    const handleToggleBuilding = (buildingId) => {
-        const updatedList = nearbyBuildings.includes(buildingId)
-            ? nearbyBuildings.filter((id) => id !== buildingId)
-            : [...nearbyBuildings, buildingId];
+        const updatedList = isAlreadyNearby
+            ? nearbyBuildings.filter((nearbyBuilding) => nearbyBuilding.id !== building.id)
+            : [...nearbyBuildings, { id: building.id, name: building.name }];
 
         setNearbyBuildings(updatedList);
     };
@@ -62,7 +54,7 @@ const NearbyBuildingDropdown = ({
                         <div className='px-4 py-2 opacity-50'>No buildings found</div>
                     ) : (
                         filteredBuildings.map((building) => (
-                            <li key={building.id} role='button' onClick={() => handleToggleBuilding(building.id)}>
+                            <li key={building.id} role='button' onClick={() => handleToggleBuilding(building)}>
                                 <div className='flex justify-between items-center'>
                                     <a className={clsx('w-full')}>{availableBuildings[building.id]?.name}</a>
                                     {nearbyBuildings.some((b) => b.id === building.id) ? (
@@ -82,11 +74,11 @@ const NearbyBuildingDropdown = ({
                 <div className='flex flex-wrap gap-2 mt-3'>
                     {nearbyBuildings.map((building) => (
                         <span
-                            key={availableBuildings[building]?.id}
+                            key={availableBuildings[building?.id]?.id}
                             className='badge badge-primary gap-2 cursor-pointer'
                             onClick={() => handleToggleBuilding(building)}
                         >
-                            {availableBuildings[building]?.name}
+                            {availableBuildings[building?.id]?.name}
                             <IoRemove size={16} className='ml-2' />
                         </span>
                     ))}
