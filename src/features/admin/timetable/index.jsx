@@ -196,7 +196,7 @@ function Timetable() {
         const buildingInfo = new Int32Array([...buildingInfoArray]);
         const buildingAdjacency = new Int32Array([...buildingAdjacencyArray]);
 
-        // console.log('🚀 ~ handleButtonClick ~ buildingAdjacencyArray:', buildingAdjacencyArray);
+        console.log('🚀 ~ handleButtonClick ~ buildingAdjacencyArray:', buildingAdjacencyArray);
 
         const subjectMapReverse = Object.entries(subjectData).reduce((acc, [, subject], index) => {
             acc[subject.id] = {
@@ -784,8 +784,10 @@ function Timetable() {
         const subjectConfigurationSubjectIsOverlappable = new Int32Array([...subjectConfigurationSubjectIsOverlappableArray]);
         const sectionConfiguration = new Int32Array([...sectionConfigurationArray]);
         const sectionSubjectConfiguration = new Int32Array([...sectionSubjectConfigurationArray]);
-
-        const maxIterations = 40000;
+        
+        console.log("🚀 ~ handleButtonClick ~ subjectConfigurationSubjectIsOverlappable:", subjectConfigurationSubjectIsOverlappable)
+        
+        const maxIterations = 3000;
         const beesPopulations = 4;
         const beesEmployed = 2;
         const beesOnlooker = 2;
@@ -859,8 +861,10 @@ function Timetable() {
         // teacherReservationConfigIDArray = [-1];
 
         const teacherReservationConfigID = new Int32Array([...teacherReservationConfigIDArray]);
+        console.log("🚀 ~ handleButtonClick ~ teacherReservationConfigIDArray:", teacherReservationConfigIDArray)
 
         const teacherReservationConfig = new Int32Array([...teacherReservationConfigArray]);
+        console.log("🚀 ~ handleButtonClick ~ teacherReservationConfigArray:", teacherReservationConfigArray)
 
         const teacherSubjects = new Int32Array([...teacherSubjectArray]);
         const teacherWeekLoadConfig = new Int32Array([...teacherWeekLoadConfigArray]);
@@ -927,7 +931,7 @@ function Timetable() {
 
             enableLogging: false,
         };
-
+        
         console.log("🚀 ~ handleButtonClick ~ params2.buildingAdjacency:", params2.buildingAdjacency)
         console.log("🚀 ~ handleButtonClick ~ params2.teacherReservationConfig:", params2.teacherReservationConfig)
         console.log("🚀 ~ handleButtonClick ~ params2.teacherReservationConfigID:", params2.teacherReservationConfigID)
