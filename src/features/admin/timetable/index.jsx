@@ -933,7 +933,7 @@ function Timetable() {
         console.log("🚀 ~ handleButtonClick ~ params2.teacherReservationConfigID:", params2.teacherReservationConfigID)
         console.log("🚀 ~ handleButtonClick ~ params2.subjectConfigurationSubjectIsOverlappable:", params2.subjectConfigurationSubjectIsOverlappable)
 
-        return;
+        // return;
 
         let generatedTimetable = [];
 
