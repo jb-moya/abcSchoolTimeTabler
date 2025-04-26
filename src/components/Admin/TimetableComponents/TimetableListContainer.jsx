@@ -110,7 +110,7 @@ const TimetableListContainer = () => {
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Object.entries(searchSchedResult).slice(indexOfFirstItem, indexOfLastItem);
-
+    console.log('currentItems: ', currentItems);
     // const buildingData = {
     //     floors: 2,
     //     id: 1,
@@ -244,6 +244,7 @@ const TimetableListContainer = () => {
                                     <tr>
                                         <th className='whitespace-nowrap'>ID</th>
                                         <th className='whitespace-nowrap'>Name</th>
+                                        <th className='whitespace-nowrap'>Status</th>
                                         <th className='w-28 text-right'>Actions</th>
                                     </tr>
                                 </thead>
@@ -260,7 +261,15 @@ const TimetableListContainer = () => {
                                                 <th>{schedule.id}</th>
 
                                                 <td>{schedule.name}</td>
-
+                                                <td>
+                                                    <div
+                                                        className={`badge ${
+                                                            schedule.status === 'Verified' ? 'badge-success' : 'badge-error'
+                                                        }`}
+                                                    >
+                                                        {schedule.status}
+                                                    </div>
+                                                </td>
                                                 <td className='w-28'>
                                                     <div className='flex'>
                                                         <button

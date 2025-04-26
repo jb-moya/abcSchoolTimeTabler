@@ -44,7 +44,7 @@ function LeftSidebar() {
                                 onClick={() => navigate('/app/dashboard')}
                             >
                                 <img className='mask self-start mask-squircle w-10' src='/Batasan Logo.png' alt='DashWind Logo' />
-                                BHS Timetabling
+                                BHNHS Timetabling
                             </button>
                             <div className='pl-10 flex gap-2'>
                                 <div className='tooltip tooltip-bottom' data-tip={`redirect`}>
