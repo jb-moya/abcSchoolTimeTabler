@@ -704,7 +704,7 @@ const SectionEdit = ({
                                     </div>
                                     <hr className='my-2'></hr>
                                     <div className='mt-4 text-sm'>
-                                        <table className='min-w-full bg-white font-normal border border-gray-300'>
+                                        <table className='min-w-full font-normal border border-gray-300'>
                                             <thead>
                                                 <tr>
                                                     <th className='py-2 px-4 border-b border-gray-200 font-normal text-left'>
