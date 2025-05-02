@@ -10,7 +10,7 @@ function ExternalPage() {
                 <div className='w-full max-w-sm bg-base-100 bg-opacity-90 backdrop-blur-md rounded-lg  shadow-2xl p-8'>
                     <div className='mb-4 flex flex-col justify-center items-center select-none'>
                         <img src='/Batasan Logo.png' alt='Logo' className='h-16 w-16 mb-2' />
-                        <div className='text-2xl font-bold text-center'>Batasan High School</div>
+                        <div className='text-2xl font-bold text-center'>Batasan Hills<br/>  National High School</div>
                         <div className='text-sm text-center text-gray-500'>Timetabling System</div>
                     </div>
 
