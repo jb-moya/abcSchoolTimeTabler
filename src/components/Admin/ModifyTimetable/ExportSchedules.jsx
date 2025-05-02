@@ -6,8 +6,21 @@ import { getTimeSlotString } from '@utils/timeSlotMapper';
 import colors from '@utils/colors';
 import { useSelector } from 'react-redux';
 
-const ExportSchedules = ({ programs, buildings, sections, teachers, ranks, departments, schedule, close }) => {
-    // ======================================================================================================
+import depedLogo from '@assets/pictures/DEPED_Logo.png';
+import bhnhsLogo from '@assets/pictures/BHNHS_logo.png';
+
+const ExportSchedules = ({ 
+    programs, 
+    buildings,
+    sections, 
+    teachers, 
+    ranks, 
+    departments, 
+    schedule, 
+    close 
+}) => {
+    
+// ======================================================================================================
 
     const { configurations } = useSelector((state) => state.configuration);
 
@@ -15,7 +28,7 @@ const ExportSchedules = ({ programs, buildings, sections, teachers, ranks, depar
 
     const selectedDays = days.slice(0, configurations[1].defaultNumberOfSchoolDays);
 
-    // ======================================================================================================
+// ======================================================================================================
 
     const [timetable, setTimetable] = useState(schedule);
 
@@ -25,26 +38,38 @@ const ExportSchedules = ({ programs, buildings, sections, teachers, ranks, depar
         }
     }, [schedule]);
 
-    // =====================================================================================================
+// =====================================================================================================
 
     const sectionScheds = [];
     const teacherScheds = [];
+
+    const getImageBuffer = async (url) => {
+        const response = await fetch(url);
+        const arrayBuffer = await response.arrayBuffer();
+        return arrayBuffer;
+      };
+
+    function columnLetterToNumber(letter) {
+        let num = 0;
+        for (let i = 0; i < letter.length; i++) {
+            num *= 26;
+            num += letter.charCodeAt(i) - 64; // A = 65
+        }
+        return num;
+    }
 
     const exportTeacherScheds = async () => {
         const workbook = new ExcelJS.Workbook();
 
         for (const sched of teacherScheds) {
-            const key = Object.keys(sched)[0]; // Extract the first key of the sched object
-            const val = sched[key]; // Extract the first value of the sched object
 
-            console.log('key: ', key);
-            console.log('val: ', val);
+            let row = 0;
 
-            const parts = key.split(' - '); // Split at " - "
-            const teacherName = parts[0].replace('Teacher: ', ''); // Remove 'Teacher: '
+            const key = Object.keys(sched)[0];
+            const val = sched[key];
 
-            console.log('parts: ', parts);
-            console.log('teacherName: ', teacherName);
+            const parts = key.split(' - ');
+            const teacherName = parts[0].replace('Teacher: ', '');
 
             if (!teacherName) {
                 console.error('Teacher name not found in key:', key);
@@ -53,31 +78,186 @@ const ExportSchedules = ({ programs, buildings, sections, teachers, ranks, depar
 
             const worksheet = workbook.addWorksheet(teacherName);
 
-            // ***************** TEMPORARY *****************
+            /*
+                IMAGES
+            */
+            // const DEPED_logo = await getImageBuffer(depedLogo);
+            // const school_logo = await getImageBuffer(bhnhsLogo);
+            
+            // const DEPEDId = workbook.addImage({
+            //     buffer: DEPED_logo,
+            //     extension: 'png',
+            // });
+
+            // const schoolId = workbook.addImage({
+            //     buffer: school_logo,
+            //     extension: 'png',
+            // });
+            
+            /*
+                IMAGES
+            */
+
+
+            // ***************** HEADER *****************
             // **
+
             const teacher = Object.values(teachers).find((teacher) => teacher.teacher === teacherName);
             if (!teacher) {
                 console.error('Teacher not found:', teacherName);
                 return;
             }
-            worksheet.addRow(['Name', teacherName]);
-            worksheet.addRow(['Rank', ranks[teacher.rank].rank]);
-            worksheet.addRow(['Department', departments[teacher.department].name]);
-            worksheet.addRow(['TIME', 'No. of Minutes', ...selectedDays]);
 
-            worksheet.getColumn(1).eachCell((cell) => {
-                worksheet.getCell(cell.address).font = { bold: true };
+            let sectionDisplay = '';
+
+            const sectionAssignment = Object.values(sections).find(
+            (section) => section.teacher === teacher.id
+            );
+
+            if (sectionAssignment) {
+                const sectionProgram = Object.values(programs).find(
+                    (program) => program.id === sectionAssignment.program
+                );
+
+                const programName = sectionProgram ? sectionProgram.program : '';
+                sectionDisplay = `${sectionAssignment.year} - ${sectionAssignment.section} (${programName})`;
+            }
+
+            const departmentName = departments[teacher.department]?.name || '';
+            const rankName = ranks[teacher.rank]?.rank || '';
+            const additionalSchedules = teachers[teacher.id]?.additionalTeacherScheds || [];
+
+            let ancillaryLoad = 0;
+            let advisoryLoad = 0;
+
+            additionalSchedules.forEach((sched) => {
+                if (!sched.shown) {
+
+                    if (!sched.shown && sched.name === 'Advisory Load') {
+                        advisoryLoad += sched.duration * sched.frequency;
+                    } else {
+                        ancillaryLoad += sched.duration * sched.frequency;
+                    }
+
+                }
             });
+            
+            worksheet.addRow(['']);
+            row++;
 
-            worksheet.getRow(4).eachCell((cell) => {
+            // HEADER
+            const header = ['Republic of the Philippines', 'DEPARTMENT OF EDUCATION', 'National Capital Region',
+                'Schools of Division of Quezon City', 'BATASAN HILLS NATIONAL HIGH SCHOOL'
+            ];
+
+            let s = 0;
+            for (let i = 2; i < 7; i++) {
+                worksheet.addRow(['', '', '', header[s]]);
+                worksheet.mergeCells(`D${i}:F${i}`);
+
+                const cell = worksheet.getCell(`D${row}`);
+                cell.alignment = { vertical: 'middle', horizontal: 'center' };
+
+                row++;
+                s++;
+            }
+            for (let x = 2; x < 7; x++) {
+                const cell = worksheet.getCell(`D${x}`);
+                cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            }
+
+            worksheet.addRow(['']);
+            row= row + 2;
+
+            // DEPARTMENT PROGRAM
+            worksheet.addRow(['', '', '', `${departmentName} Teacher's Program`]);
+            worksheet.mergeCells(`D${row}:F${row}`);
+            worksheet.getRow(row).eachCell((cell) => {
+                if (typeof cell.value === 'string') {
+                    cell.value = cell.value.toUpperCase();
+                }
+
                 cell.alignment = { vertical: 'middle', horizontal: 'center' };
                 cell.font = { bold: true };
             });
+            row++;
+
+            // SCHOOL YEAR
+            worksheet.addRow(['', '', '', '', 'S.Y. 2025 - 2026']);
+            worksheet.getRow(row).eachCell((cell) => {
+                cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                cell.font = { bold: true };
+            });
+            row++;
+
+            // TEACHER NAME AND RANK
+            let col = String.fromCharCode('B'.charCodeAt(0) + (selectedDays.length + 2 - 1));
+            let start = columnLetterToNumber('B');
+            let end = columnLetterToNumber(col);
+
+            worksheet.addRow(['', `${teacherName} - ${rankName}`]);
+            worksheet.mergeCells(`B${row}:${col}${row}`);
+            
+            for (let i = start; i <= end; i++) {
+                const cellRef = worksheet.getRow(row).getCell(i);
+
+                cellRef.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
+                };
+            }
+
+            const cell = worksheet.getCell(`B${row}`);
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            cell.font = { bold: true };
+            row++;
+
+            // TABLE HEADERS
+            col = String.fromCharCode('B'.charCodeAt(0) + (selectedDays.length + 2 - 1));
+            start = columnLetterToNumber('B');
+            end = columnLetterToNumber(col);
+
+            worksheet.addRow(['', 'TIME', 'No. of Minutes', ...selectedDays]);
+            for (let i = start; i <= end; i++) {
+                const cellRef = worksheet.getRow(row).getCell(i);
+
+                cellRef.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
+                };
+            }
+            worksheet.getRow(row).eachCell((cell) => {
+                cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                cell.font = { bold: true };
+            });
+            row++;
+
+            worksheet.addRow(['']);
+            for (let i = start; i <= end; i++) {
+                const cellRef = worksheet.getRow(row).getCell(i);
+
+                const border = {
+                    top: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                };
+
+                if (i === start) {
+                    border.left = { style: 'thin' };
+                }
+                if (i === end) {
+                    border.right = { style: 'thin' };
+                }
+
+                cellRef.border = border;
+            }
+            row++;
 
             // **
-            // ***************** TEMPORARY *****************
-
-            // worksheet.addRow(['']);
+            // ***************** HEADER *****************
 
             const timeslots = [];
             const startTimes = [];
@@ -87,7 +267,7 @@ const ExportSchedules = ({ programs, buildings, sections, teachers, ranks, depar
 
             const classBlocks = [];
 
-            for (const [key, value] of val.entries()) {
+            for (const [, value] of val.entries()) {
                 const timeslot = `${getTimeSlotString(value.start + 72)} - ${getTimeSlotString(value.end + 72)}`;
                 const classBlock = [
                     timeslot,
@@ -176,27 +356,37 @@ const ExportSchedules = ({ programs, buildings, sections, teachers, ranks, depar
                 }
             }
 
-            // console.log('sects', sects);
-            // console.log('classBlocks: ', classBlocks);
-            // console.log('normalizedTimeslots: ', normalizedTimeslots);
-
-            let row = 6;
+            let totalTeacherLoad = 0;
             for (const [key, value] of normalizedTimeslots.entries()) {
                 const backgroundColor = row % 2 === 0 ? 'FFF0FFFF' : 'FFF0F0F5';
 
-                worksheet.mergeCells(`A${row}:A${row + 2}`);
-                worksheet.mergeCells(`B${row}:B${row + 2}`);
+                col = String.fromCharCode('B'.charCodeAt(0) + 1);
+                start = columnLetterToNumber('B');
+                end = columnLetterToNumber('C');
 
-                worksheet.getCell(`A${row}`).value = key;
-                worksheet.getCell(`A${row}`).alignment = { vertical: 'middle', horizontal: 'center' };
-                worksheet.getCell(`A${row}`).font = { bold: true };
-                worksheet.getCell(`A${row}`).fill = {
+                worksheet.mergeCells(`B${row}:B${row + 2}`);
+                worksheet.mergeCells(`C${row}:C${row + 2}`);
+
+                worksheet.getCell(`B${row}`).value = key;
+                worksheet.getCell(`B${row}`).alignment = { vertical: 'middle', horizontal: 'center' };
+                worksheet.getCell(`B${row}`).fill = {
                     type: 'pattern',
                     pattern: 'solid',
                     fgColor: { argb: backgroundColor },
                 };
 
-                let column = 'C';
+                for (let i = start; i <= end; i++) {
+                    const cellRef = worksheet.getRow(row).getCell(i);
+    
+                    cellRef.border = {
+                        top: { style: 'thin' },
+                        left: { style: 'thin' },
+                        bottom: { style: 'thin' },
+                        right: { style: 'thin' }
+                    };
+                }
+
+                let column = 'D';
                 let totalMinutes = 0;
                 for (let i = 0; i < value.length; i++) {
                     const data = value[i];
@@ -218,6 +408,22 @@ const ExportSchedules = ({ programs, buildings, sections, teachers, ranks, depar
 
                     worksheet.getCell(`${column}${row}`).font = { bold: true };
 
+                    for (let r = row; r <= row + 2; r++) {
+                        const cell = worksheet.getCell(`${column}${r}`);
+                        cell.border = {
+                            left: { style: 'thin' },
+                            right: { style: 'thin' },
+                        };
+
+                        if (r === row) {
+                            cell.border.top = { style: 'thin' };
+                        }
+
+                        if (r === row + 2) {
+                            cell.border.bottom = { style: 'thin' };
+                        }
+                    }
+
                     worksheet.getCell(`${column}${row}`).fill = {
                         type: 'pattern',
                         pattern: 'solid',
@@ -237,18 +443,111 @@ const ExportSchedules = ({ programs, buildings, sections, teachers, ranks, depar
                     column = String.fromCharCode(column.charCodeAt(0) + 1);
                 }
 
-                worksheet.getCell(`B${row}`).value = totalMinutes;
-                worksheet.getCell(`B${row}`).alignment = { vertical: 'middle', horizontal: 'center' };
-                worksheet.getCell(`B${row}`).font = { bold: true };
+                totalTeacherLoad += totalMinutes;
+
+                worksheet.getCell(`C${row}`).value = totalMinutes;
+                worksheet.getCell(`C${row}`).alignment = { vertical: 'middle', horizontal: 'center' };
 
                 // Move to the next set of rows
                 row += 3;
             }
 
+            start = columnLetterToNumber('B');
+            end = columnLetterToNumber('D');
+
+            worksheet.addRow(['', 'Advisory Class', '', sectionDisplay]);
+            worksheet.addRow(['', 'Ancillary Task Load', '', ancillaryLoad]);
+            worksheet.addRow(['', 'Total No. of Minutes on Teaching Load', '', totalTeacherLoad]);
+            worksheet.addRow(['', 'Advisory Task Load', '', advisoryLoad]);
+            worksheet.addRow(['', 'Total No. of Minutes of Workload', '', ancillaryLoad + totalTeacherLoad + advisoryLoad]);
+
+            for (let x = row; x < row + 5; x++) {
+                for (let i = start; i <= end; i++) {
+                    const cellRef = worksheet.getRow(x).getCell(i);
+    
+                    cellRef.border = {
+                        top: { style: 'thin' },
+                        left: { style: 'thin' },
+                        bottom: { style: 'thin' },
+                        right: { style: 'thin' }
+                    };
+                }
+
+                worksheet.getCell(`B${x}`).alignment = { vertical: 'middle' };
+                worksheet.getCell(`B${x}`).font = { bold: true };
+
+                worksheet.getCell(`C${x}`).alignment = { vertical: 'middle', horizontal: 'right' };
+
+                if (x === row + 4) worksheet.getCell(`D${x}`).font = { bold: true };
+
+                worksheet.mergeCells(`B${x}:C${x}`);
+
+            }
+            row += 6;
+
+            worksheet.addRow(['']);
+
+            worksheet.getCell(`B${row}`).value = 'Prepared By:';
+            worksheet.getCell(`F${row}`).value = 'Conforme:';
+
+            worksheet.getCell(`B${row}`).alignment = { vertical: 'middle' };
+            worksheet.getCell(`F${row}`).alignment = { vertical: 'middle' };
+
+            worksheet.getCell(`B${row}`).font = { bold: true };
+            worksheet.getCell(`F${row}`).font = { bold: true };
+
+            row++;
+
+            worksheet.mergeCells(`B${row}:D${row}`);
+            worksheet.mergeCells(`F${row}:H${row}`);
+
+            worksheet.getCell(`B${row}`).border = { bottom: { style: 'thin' }};
+            worksheet.getCell(`F${row}`).border = { bottom: { style: 'thin' }};
+
+            row++;
+
+            worksheet.getCell(`C${row}`).value = 'Position';
+            worksheet.getCell(`G${row}`).value = 'Position';
+
+            worksheet.getCell(`C${row}`).alignment = { vertical: 'middle', horizontal: 'center' };
+            worksheet.getCell(`G${row}`).alignment = { vertical: 'middle', horizontal: 'center' };
+
+            worksheet.getCell(`C${row}`).font = { italic: true };
+            worksheet.getCell(`G${row}`).font = { italic: true };
+
+            row += 2;
+
+            worksheet.getCell(`D${row}`).value = 'Approved By:';
+            worksheet.getCell(`D${row}`).alignment = { vertical: 'middle' };
+            worksheet.getCell(`D${row}`).font = { bold: true };
+
+            row++;
+
+            worksheet.mergeCells(`D${row}:F${row}`);
+            worksheet.getCell(`D${row}`).border = { bottom: { style: 'thin' }};
+
+            row++;
+
+            worksheet.getCell(`E${row}`).value = 'Position';
+            worksheet.getCell(`E${row}`).alignment = { vertical: 'middle', horizontal: 'center' };
+            worksheet.getCell(`E${row}`).font = { italic: true };
+
+            row++;
+
+            // worksheet.addImage(DEPEDId, {
+            //     tl: { col: 2.6, row: 1 },
+            //     ext: { width: 100, height: 100 },
+            // });
+
+            // worksheet.addImage(schoolId, {
+            //     tl: { col: 6, row: 1 },
+            //     ext: { width: 100, height: 100 },
+            // });
+
             // COLUMN WIDTH
-            worksheet.getColumn(1).width = 25;
-            worksheet.getColumn(2).width = 25;
-            let startingCol = 3;
+            worksheet.getColumn(2).width = 20;
+            worksheet.getColumn(3).width = 20;
+            let startingCol = 4;
             for (let i = 0; i < configurations[1].defaultNumberOfSchoolDays; i++) {
                 worksheet.getColumn(startingCol).width = 20;
                 startingCol++;
@@ -261,8 +560,7 @@ const ExportSchedules = ({ programs, buildings, sections, teachers, ranks, depar
     };
 
     const exportSectionScheds = async () => {
-        // console.log('Exporting section schedules...');
-        // console.log('sectionScheds: ', sectionScheds);
+
         const workbook = new ExcelJS.Workbook();
 
         for (const sched of sectionScheds) {
@@ -294,61 +592,69 @@ const ExportSchedules = ({ programs, buildings, sections, teachers, ranks, depar
                 buildings[section.roomDetails.buildingId]?.rooms[section.roomDetails.floorIdx]?.[section.roomDetails.roomIdx]
                     ?.roomName || '';
 
-            const startColumn = 'A';
+            const startColumn = 'B';
             const startColumn_2 = 'C';
-            const endColumn = String.fromCharCode(65 + Number(configurations[1].defaultNumberOfSchoolDays) + 1);
+            const endColumn = String.fromCharCode(66 + Number(configurations[1].defaultNumberOfSchoolDays));
 
-            worksheet.mergeCells(`${startColumn}1:${endColumn}1`);
-            worksheet.mergeCells(`${startColumn}2:${endColumn}2`);
-            worksheet.mergeCells('A3:A4');
-            worksheet.mergeCells('B3:B4');
-            worksheet.mergeCells(`${startColumn_2}3:${endColumn}3`);
+            worksheet.mergeCells(`${startColumn}2:${endColumn}2`); // Section name cell
+            worksheet.mergeCells(`${startColumn}3:${endColumn}3`); // Program name cell
+            worksheet.mergeCells(`${startColumn}4:${startColumn}5`); // Time header label cell
+            worksheet.mergeCells(`${startColumn_2}4:${endColumn}4`); // Day header label cell
 
-            worksheet.getCell('A1').value = sectionName;
-            worksheet.getCell('A2').value = programs[section.program]?.program || '';
-            worksheet.getCell('A3').value = 'TIME';
-            worksheet.getCell('B3').value = 'Minutes';
-            worksheet.getCell('C3').value = 'Day';
+            worksheet.getCell(`${startColumn}2`).value = sectionName;
+            worksheet.getCell(`${startColumn}3`).value = programs[section.program]?.program || '';
+            worksheet.getCell(`${startColumn}4`).value = 'TIME';
+            worksheet.getCell(`${startColumn_2}4`).value = 'Day';
 
-            worksheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
-            worksheet.getCell('A2').alignment = { horizontal: 'center', vertical: 'middle' };
-            worksheet.getCell('A3').alignment = { horizontal: 'center', vertical: 'middle' };
-            worksheet.getCell('B3').alignment = { horizontal: 'center', vertical: 'middle' };
-            worksheet.getCell('C3').alignment = { horizontal: 'center', vertical: 'middle' };
+            worksheet.getCell(`${startColumn}2`).alignment = { horizontal: 'center', vertical: 'middle' };
+            worksheet.getCell(`${startColumn}3`).alignment = { horizontal: 'center', vertical: 'middle' };
+            worksheet.getCell(`${startColumn}4`).alignment = { horizontal: 'center', vertical: 'middle' };
+            worksheet.getCell(`${startColumn_2}4`).alignment = { horizontal: 'center', vertical: 'middle' };
 
-            worksheet.getCell('A1').font = { bold: true, size: 14 };
-            worksheet.getCell('A2').font = { bold: true, size: 12 };
-            worksheet.getCell('A3').font = { bold: true };
-            worksheet.getCell('B3').font = { bold: true };
-            worksheet.getCell('C3').font = { bold: true };
+            worksheet.getCell(`${startColumn}2`).font = { bold: true, size: 14 };
+            worksheet.getCell(`${startColumn}3`).font = { bold: true, size: 12 };
+            worksheet.getCell(`${startColumn}4`).font = { bold: true };
+            worksheet.getCell(`${startColumn_2}4`).font = { bold: true };
+
+            worksheet.getCell(`${startColumn}2`).border = { top: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } ,bottom: { style: 'thin' } };
+            worksheet.getCell(`${startColumn}3`).border = { top: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } ,bottom: { style: 'thin' } };
+            worksheet.getCell(`${startColumn}4`).border = { top: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } ,bottom: { style: 'thin' } };
+            worksheet.getCell(`${startColumn_2}4`).border = { top: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } ,bottom: { style: 'thin' } };
+
+            // col = String.fromCharCode(startColumn.charCodeAt(0) + Number(configurations[1].defaultNumberOfSchoolDays));
+            // start = columnLetterToNumber('B');
+            // end = columnLetterToNumber(col);
+
+            worksheet.getCell(`${startColumn}6`).border = { top: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } ,bottom: { style: 'thin' } };
 
             let column = 'C';
             for (let i = 0; i < configurations[1].defaultNumberOfSchoolDays; i++) {
-                worksheet.getCell(`${column}4`).value = days[i];
-                worksheet.getCell(`${column}5`).value = section.modality[i] === 1 ? 'ONSITE' : 'OFFSITE';
+                worksheet.getCell(`${column}5`).value = days[i];
+                worksheet.getCell(`${column}6`).value = section.modality[i] === 1 ? 'ONSITE' : 'OFFSITE';
 
-                worksheet.getCell(`${column}4`).alignment = { horizontal: 'center', vertical: 'middle' };
                 worksheet.getCell(`${column}5`).alignment = { horizontal: 'center', vertical: 'middle' };
+                worksheet.getCell(`${column}6`).alignment = { horizontal: 'center', vertical: 'middle' };
 
-                worksheet.getCell(`${column}4`).font = { bold: true };
-                worksheet.getCell(`${column}5`).font = {
+                worksheet.getCell(`${column}5`).font = { bold: true };
+                worksheet.getCell(`${column}6`).font = {
                     color: { argb: 'FFFFFFFF' },
                     bold: true,
                 };
 
-                worksheet.getCell(`${column}5`).fill = {
+                worksheet.getCell(`${column}6`).fill = {
                     type: 'pattern',
                     pattern: 'solid',
                     fgColor: { argb: section.modality[i] === 1 ? 'FF006400' : 'FF8B0000' },
                 };
+
+                worksheet.getCell(`${column}5`).border = { top: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } ,bottom: { style: 'thin' } };
+                worksheet.getCell(`${column}6`).border = { top: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } ,bottom: { style: 'thin' } };
 
                 column = String.fromCharCode(column.charCodeAt(0) + 1);
             }
 
             // **
             // ***************** TEMPORARY *****************
-
-            worksheet.addRow(['']);
 
             const timeslots = [];
             const startTimes = [];
@@ -358,7 +664,7 @@ const ExportSchedules = ({ programs, buildings, sections, teachers, ranks, depar
 
             const classBlocks = [];
 
-            for (const [key, value] of val.entries()) {
+            for (const [, value] of val.entries()) {
                 const timeslot = `${getTimeSlotString(value.start + 72)} - ${getTimeSlotString(value.end + 72)}`;
                 const classBlock = [
                     timeslot,
@@ -436,39 +742,32 @@ const ExportSchedules = ({ programs, buildings, sections, teachers, ranks, depar
                 }
             }
 
-            // console.log('sects', sects);
-            // console.log('classBlocks: ', classBlocks);
-            // console.log('normalizedTimeslots: ', normalizedTimeslots);
-
-            let row = 6;
+            let row = 7;
+            let counter = 0;
             for (const [key, value] of normalizedTimeslots.entries()) {
-                const backgroundColor = row % 2 === 0 ? 'FFF0FFFF' : 'FFF0F0F5';
+                const backgroundColor = counter % 2 === 0 ? 'FFF0FFFF' : 'FFF0F0F5';
 
-                worksheet.mergeCells(`A${row}:A${row}`);
                 worksheet.mergeCells(`B${row}:B${row + 1}`);
 
-                worksheet.getCell(`A${row}`).value = key;
-                worksheet.getCell(`A${row}`).alignment = { vertical: 'middle', horizontal: 'center' };
-                worksheet.getCell(`A${row}`).font = { bold: true };
-                worksheet.getCell(`A${row}`).fill = {
+                worksheet.getCell(`B${row}`).value = key;
+                worksheet.getCell(`B${row}`).alignment = { vertical: 'middle', horizontal: 'center' };
+                worksheet.getCell(`B${row}`).font = { bold: true };
+                worksheet.getCell(`B${row}`).fill = {
                     type: 'pattern',
                     pattern: 'solid',
                     fgColor: { argb: backgroundColor },
                 };
 
-                let column = 'C';
-                let minutes = 0;
+                worksheet.getCell(`B${row}`).border = { top: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } ,bottom: { style: 'thin' } };
 
+                let column = 'C';
                 let mergedStartCell = null;
                 let mergedEndCell = null;
 
                 for (let i = 0; i < value.length; i++) {
                     const data = value[i];
 
-                    minutes = data.minutes >= minutes ? data.minutes : minutes;
-
                     let bgColor;
-                    let currentColumn = column;
 
                     if (data.subject === null && data.teacher === null && !data.additional) {
                         let startCell = `${column}${row}`;
@@ -512,54 +811,40 @@ const ExportSchedules = ({ programs, buildings, sections, teachers, ranks, depar
                         fgColor: { argb: bgColor },
                     };
 
+                    worksheet.getCell(`${column}${row}`).border = { top: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
+                    worksheet.getCell(`${column}${row + 1}`).border = { left: { style: 'thin' }, right: { style: 'thin' } ,bottom: { style: 'thin' } };
+
                     column = String.fromCharCode(column.charCodeAt(0) + 1);
                 }
 
-                worksheet.getCell(`B${row}`).value = minutes;
-                worksheet.getCell(`B${row}`).alignment = { vertical: 'middle', horizontal: 'center' };
-                worksheet.getCell(`B${row}`).font = { bold: true };
-
                 // Move to the next set of rows
                 row += 2;
+                counter++;
             }
 
-            const startCol = 'B';
-            const endCol = String.fromCharCode(65 + Number(configurations[1].defaultNumberOfSchoolDays) + 1);
+            worksheet.getCell(`B${row}`).value = 'Adviser';
+            worksheet.getCell(`B${row + 1}`).value = 'Room';
+            worksheet.getCell(`C${row}`).value = teacher;
+            worksheet.getCell(`C${row + 1}`).value = room;
 
-            worksheet.mergeCells(`${startCol}${row}:${endCol}${row}`);
-            worksheet.mergeCells(`${startCol}${row + 1}:${endCol}${row + 1}`);
-
-            worksheet.getCell(`A${row}`).value = 'Adviser';
-            worksheet.getCell(`A${row + 1}`).value = 'Room';
-            worksheet.getCell(`B${row}`).value = teacher;
-            worksheet.getCell(`B${row + 1}`).value = room;
-
-            worksheet.getCell(`A${row}`).alignment = { vertical: 'middle', horizontal: 'center' };
-            worksheet.getCell(`A${row + 1}`).alignment = { vertical: 'middle', horizontal: 'center' };
             worksheet.getCell(`B${row}`).alignment = { vertical: 'middle', horizontal: 'center' };
             worksheet.getCell(`B${row + 1}`).alignment = { vertical: 'middle', horizontal: 'center' };
+            worksheet.getCell(`C${row}`).alignment = { vertical: 'middle', horizontal: 'center' };
+            worksheet.getCell(`C${row + 1}`).alignment = { vertical: 'middle', horizontal: 'center' };
 
-            worksheet.getCell(`A${row}`).font = { bold: true };
-            worksheet.getCell(`A${row + 1}`).font = { bold: true };
             worksheet.getCell(`B${row}`).font = { bold: true };
             worksheet.getCell(`B${row + 1}`).font = { bold: true };
+            worksheet.getCell(`C${row}`).font = { bold: true };
+            worksheet.getCell(`C${row + 1}`).font = { bold: true };
 
-            worksheet.getCell(`B${row}`).fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: '8C78E0' },
-            };
-            worksheet.getCell(`B${row + 1}`).fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: 'AFFF66' },
-            };
+            worksheet.getCell(`B${row}`).border = { top: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' }, bottom: { style: 'thin' } };
+            worksheet.getCell(`B${row + 1}`).border = { top: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' }, bottom: { style: 'thin' } };
+            worksheet.getCell(`C${row}`).border = { top: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' }, bottom: { style: 'thin' } };
+            worksheet.getCell(`C${row + 1}`).border = { top: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' }, bottom: { style: 'thin' } };
 
             // COLUMN WIDTH
-            worksheet.getColumn(1).width = 25;
-            worksheet.getColumn(2).width = 15;
-            let startingCol = 3;
-            for (let i = 0; i < configurations[1].defaultNumberOfSchoolDays; i++) {
+            let startingCol = 2;
+            for (let i = 0; i < configurations[1].defaultNumberOfSchoolDays + 1; i++) {
                 worksheet.getColumn(startingCol).width = 20;
                 startingCol++;
             }
