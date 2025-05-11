@@ -784,9 +784,12 @@ function Timetable() {
         const subjectConfigurationSubjectIsOverlappable = new Int32Array([...subjectConfigurationSubjectIsOverlappableArray]);
         const sectionConfiguration = new Int32Array([...sectionConfigurationArray]);
         const sectionSubjectConfiguration = new Int32Array([...sectionSubjectConfigurationArray]);
-        
-        console.log("🚀 ~ handleButtonClick ~ subjectConfigurationSubjectIsOverlappable:", subjectConfigurationSubjectIsOverlappable)
-        
+
+        console.log(
+            '🚀 ~ handleButtonClick ~ subjectConfigurationSubjectIsOverlappable:',
+            subjectConfigurationSubjectIsOverlappable
+        );
+
         const maxIterations = configurations[1].defaultABCMaxIteration;
         const beesPopulations = 4;
         const beesEmployed = 2;
@@ -861,10 +864,10 @@ function Timetable() {
         // teacherReservationConfigIDArray = [-1];
 
         const teacherReservationConfigID = new Int32Array([...teacherReservationConfigIDArray]);
-        console.log("🚀 ~ handleButtonClick ~ teacherReservationConfigIDArray:", teacherReservationConfigIDArray)
+        console.log('🚀 ~ handleButtonClick ~ teacherReservationConfigIDArray:', teacherReservationConfigIDArray);
 
         const teacherReservationConfig = new Int32Array([...teacherReservationConfigArray]);
-        console.log("🚀 ~ handleButtonClick ~ teacherReservationConfigArray:", teacherReservationConfigArray)
+        console.log('🚀 ~ handleButtonClick ~ teacherReservationConfigArray:', teacherReservationConfigArray);
 
         const teacherSubjects = new Int32Array([...teacherSubjectArray]);
         const teacherWeekLoadConfig = new Int32Array([...teacherWeekLoadConfigArray]);
@@ -931,11 +934,14 @@ function Timetable() {
 
             enableLogging: false,
         };
-        
-        console.log("🚀 ~ handleButtonClick ~ params2.buildingAdjacency:", params2.buildingAdjacency)
-        console.log("🚀 ~ handleButtonClick ~ params2.teacherReservationConfig:", params2.teacherReservationConfig)
-        console.log("🚀 ~ handleButtonClick ~ params2.teacherReservationConfigID:", params2.teacherReservationConfigID)
-        console.log("🚀 ~ handleButtonClick ~ params2.subjectConfigurationSubjectIsOverlappable:", params2.subjectConfigurationSubjectIsOverlappable)
+
+        console.log('🚀 ~ handleButtonClick ~ params2.buildingAdjacency:', params2.buildingAdjacency);
+        console.log('🚀 ~ handleButtonClick ~ params2.teacherReservationConfig:', params2.teacherReservationConfig);
+        console.log('🚀 ~ handleButtonClick ~ params2.teacherReservationConfigID:', params2.teacherReservationConfigID);
+        console.log(
+            '🚀 ~ handleButtonClick ~ params2.subjectConfigurationSubjectIsOverlappable:',
+            params2.subjectConfigurationSubjectIsOverlappable
+        );
 
         // return;
 
@@ -1479,7 +1485,9 @@ function Timetable() {
         const resultMap = new Map(); // Initialize the outer Map
         // const { configurations, configurationsLoading } = useSelector((state) => state.configuration);
         console.log('defaultMorningStart: ', configurations[1].defaultMorningStart);
-        const timeslotindex = getTimeSlotIndex(configurations[1].defaultMorningStart);
+        // const timeslotindex = getTimeSlotIndex(configurations[1].defaultMorningStart);
+        //always 6am start
+        const timeslotindex = 72;
         console.log('timeslotindex: ', timeslotindex);
         console.log('inputMap: ', inputMap);
         // Iterate through each entry in the input HashMap
