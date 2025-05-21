@@ -24,6 +24,15 @@ const TimetableListContainer = () => {
     console.log('teachers: ', teachers);
     console.log('sections: ', sections);
 
+    //fetched data from db
+    const [programsSched, setProgramsSched] = useState(programs);
+    const [buildingsSched, setBuildingsSched] = useState(buildings);
+    const [sectionsSched, setSectionsSched] = useState(sections);
+    const [teachersSched, setTeachersSched] = useState(teachers);
+    const [ranksSched, setRanksSched] = useState(ranks);
+    const [departmentsSched, setDepartmentsSched] = useState(departments);
+    const [subjectsSched, setSubjectsSched] = useState(subjects);
+
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -44,6 +53,13 @@ const TimetableListContainer = () => {
         setEditSchedFirebaseId(FirebaseId);
         setEditSchedName(schedules[FirebaseId].name);
         setTimetable(newTimetable);
+        setBuildingsSched(JSON.parse(schedules[FirebaseId].buildingsSched));
+        setProgramsSched(JSON.parse(schedules[FirebaseId].programsSched));
+        setSectionsSched(JSON.parse(schedules[FirebaseId].sectionsSched));
+        setTeachersSched(JSON.parse(schedules[FirebaseId].teachersSched));
+        setRanksSched(JSON.parse(schedules[FirebaseId].ranksSched));
+        setDepartmentsSched(JSON.parse(schedules[FirebaseId].departmentsSched));
+        setSubjectsSched(JSON.parse(schedules[FirebaseId].subjectsSched));
     };
 
     const resetTimetable = () => {
@@ -313,6 +329,13 @@ const TimetableListContainer = () => {
                                 setErrorMessage={setErrorMessage}
                                 errorField={errorField}
                                 setErrorField={setErrorField}
+                                programsSched={programsSched}
+                                buildingsSched={buildingsSched}
+                                sectionsSched={sectionsSched}
+                                teachersSched={teachersSched}
+                                ranksSched={ranksSched}
+                                departmentsSched={departmentsSched}
+                                subjectsSched={subjectsSched}
                             />
                         </div>
                     </div>

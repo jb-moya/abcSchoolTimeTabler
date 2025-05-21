@@ -62,6 +62,13 @@ const ModifyTimetableContainer = ({
     setErrorMessage,
     errorField,
     setErrorField,
+    programsSched,
+    buildingsSched,
+    sectionsSched,
+    teachersSched,
+    ranksSched,
+    departmentsSched,
+    subjectsSched,
 }) => {
     const { addDocument, loading: isAddLoading, error: addError } = useAddDocument();
     const { editDocument, loading: isEditLoading, error: editError } = useEditDocument();
@@ -99,7 +106,7 @@ const ModifyTimetableContainer = ({
 
     const deploy = async () => {
         console.log('deploying', valueMap);
-        const array = mapToArrayDeploy(valueMap, buildings, sections);
+        const array = mapToArrayDeploy(valueMap, buildingsSched, sectionsSched);
 
         const n = 5;
         let resultarray = [];
@@ -125,22 +132,22 @@ const ModifyTimetableContainer = ({
                     }
                 }
                 console.log('sec id: ', currSectionID);
-                modalityArray = sections[currSectionID]?.modality;
-                console.log('adviser ID: ', sections[currSectionID]?.teacher);
+                modalityArray = sectionsSched[currSectionID]?.modality;
+                console.log('adviser ID: ', sectionsSched[currSectionID]?.teacher);
 
-                sectionAdviser = teachers[sections[currSectionID]?.teacher]?.teacher;
+                sectionAdviser = teachersSched[sectionsSched[currSectionID]?.teacher]?.teacher;
                 console.log('sectionAdviser: ', sectionAdviser);
 
                 sectionRoom =
-                    buildings[sections[currSectionID]?.roomDetails?.buildingId]?.rooms[
-                        sections[currSectionID]?.roomDetails?.floorIdx
-                    ][sections[currSectionID]?.roomDetails?.roomIdx].roomName;
-                console.log('buildings: ', buildings);
-                console.log('b', buildings[sections[currSectionID]?.roomDetails?.buildingId]);
+                    buildingsSched[sectionsSched[currSectionID]?.roomDetails?.buildingId]?.rooms[
+                        sectionsSched[currSectionID]?.roomDetails?.floorIdx
+                    ][sectionsSched[currSectionID]?.roomDetails?.roomIdx].roomName;
+                console.log('buildings: ', buildingsSched);
+                console.log('b', buildingsSched[sectionsSched[currSectionID]?.roomDetails?.buildingId]);
                 console.log(
                     'r',
-                    buildings[sections[currSectionID]?.roomDetails?.buildingId]?.rooms[
-                        sections[currSectionID]?.roomDetails?.floorIdx
+                    buildingsSched[sectionsSched[currSectionID]?.roomDetails?.buildingId]?.rooms[
+                        sectionsSched[currSectionID]?.roomDetails?.floorIdx
                     ]
                 );
 
@@ -152,10 +159,10 @@ const ModifyTimetableContainer = ({
                         break;
                     }
                 }
-                teacherDepartment = departments[teachers[currTeacherID]?.department]?.name;
+                teacherDepartment = departmentsSched[teachersSched[currTeacherID]?.department]?.name;
                 console.log('teacherDepartment: ', teacherDepartment);
 
-                teacherRank = ranks[teachers[currTeacherID]?.rank]?.rank;
+                teacherRank = ranksSched[teachersSched[currTeacherID]?.rank]?.rank;
                 console.log('teacherRank: ', teacherRank);
             }
             console.log('modalityArray: ', modalityArray);
@@ -294,6 +301,13 @@ const ModifyTimetableContainer = ({
         });
 
         const stringifiedTimeTable = JSON.stringify(resultarray);
+        const stringifiedPrograms = JSON.stringify(programs);
+        const stringifiedBuildings = JSON.stringify(buildings);
+        const stringifiedSections = JSON.stringify(sections);
+        const stringifiedTeachers = JSON.stringify(teachers);
+        const stringifiedRanks = JSON.stringify(ranks);
+        const stringifiedDepartments = JSON.stringify(departments);
+        const stringifiedSubjects = JSON.stringify(subjects);
 
         console.log('stringified table: ', stringifiedTimeTable);
 
@@ -334,6 +348,13 @@ const ModifyTimetableContainer = ({
                         n: scheduleVerName,
                         d: stringifiedTimeTable,
                         s: status,
+                        p: stringifiedPrograms,
+                        b: stringifiedBuildings,
+                        sc: stringifiedSections,
+                        t: stringifiedTeachers,
+                        r: stringifiedRanks,
+                        dp: stringifiedDepartments,
+                        sb: stringifiedSubjects,
                     },
                 });
             } else {
@@ -347,6 +368,13 @@ const ModifyTimetableContainer = ({
                         n: scheduleVerName,
                         d: stringifiedTimeTable,
                         s: status,
+                        p: programsSched,
+                        b: buildingsSched,
+                        sc: sectionsSched,
+                        t: teachersSched,
+                        r: ranksSched,
+                        dp: departmentsSched,
+                        sb: subjectsSched,
                     },
                 });
             }
@@ -568,14 +596,14 @@ const ModifyTimetableContainer = ({
     // ===============================================================================================================
 
     const Column = ({ section_id, type }) => {
-        console.log('section_id: ', section_id);
-        console.log('type: ', type);
-        console.log('sections: ', sections);
+        // console.log('section_id: ', section_id);
+        // console.log('type: ', type);
+        // console.log('sections: ', sections);
         let modality_Array = [];
         if (type === 's') {
             modality_Array = sections[section_id]?.modality;
-            console.log('modality array: ', modality_Array);
-            console.log('sections: ', sections[section_id]);
+            // console.log('modality array: ', modality_Array);
+            // console.log('sections: ', sections[section_id]);
         }
 
         // const Column = () => {
@@ -847,12 +875,12 @@ const ModifyTimetableContainer = ({
                     {showExport && valueMap.size > 0 && (
                         <ExportSchedules
                             // stores
-                            programs={programs}
-                            buildings={buildings}
-                            sections={sections}
-                            teachers={teachers}
-                            ranks={ranks}
-                            departments={departments}
+                            programs={programsSched}
+                            buildings={buildingsSched}
+                            sections={sectionsSched}
+                            teachers={teachersSched}
+                            ranks={ranksSched}
+                            departments={departmentsSched}
                             // stores
 
                             schedule={valueMap}
@@ -1033,9 +1061,9 @@ const ModifyTimetableContainer = ({
                                                 addClicked={addClicked}
                                                 setAddClicked={setAddClicked}
                                                 containerType={containerType}
-                                                teachers={teachers}
-                                                subjects={subjects}
-                                                sections={sections}
+                                                teachers={teachersSched}
+                                                subjects={subjectsSched}
+                                                sections={sectionsSched}
                                             />
                                         </div>
                                     </div>
