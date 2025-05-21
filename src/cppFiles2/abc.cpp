@@ -180,7 +180,7 @@ void ABC::getViolation(int64_t* result_violation) {
 		const auto& offset_duration = Timetable::getOffsetDuration();
 
 		const TimeDuration max_teacher_work_load = teacher.getMaxWeekWorkLoad();
-		const TimeDuration min_teacher_work_load = teacher.getMinWeekWorkLoad();
+		// const TimeDuration min_teacher_work_load = teacher.getMinWeekWorkLoad();
 		const TimeDuration break_time_duration = best_solution.timetable.getBreakTimeDuration();
 
 		int total_week_workload = 0;
@@ -277,9 +277,9 @@ void ABC::getViolation(int64_t* result_violation) {
 			teacher_violations[EXCEED_MAX_WORKLOAD_INT][teacher_id]++;
 		}
 
-		if (total_week_workload < min_teacher_work_load) {
-			teacher_violations[BELOW_MIN_WORKLOAD_INT][teacher_id]++;
-		}
+		// if (total_week_workload < min_teacher_work_load) {
+		// 	teacher_violations[BELOW_MIN_WORKLOAD_INT][teacher_id]++;
+		// }
 
 		// print("total_week_workload", total_week_workload, max_teacher_work_load, min_teacher_work_load, teacher_id);
 	}

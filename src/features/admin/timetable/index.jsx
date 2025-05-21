@@ -197,6 +197,7 @@ function Timetable() {
         const buildingAdjacency = new Int32Array([...buildingAdjacencyArray]);
 
         console.log('🚀 ~ handleButtonClick ~ buildingAdjacencyArray:', buildingAdjacencyArray);
+        console.log('🚀 ~ handleButtonClick ~ buildingAdjacencyArray:', buildingAdjacencyArray);
 
         const subjectMapReverse = Object.entries(subjectData).reduce((acc, [, subject], index) => {
             acc[subject.id] = {

@@ -27,7 +27,7 @@ struct ObjectiveFunction {
 				bee.total_cost -= bee.teacher_violations[teacher_id].class_timeslot_overlap;
 				bee.total_cost -= bee.teacher_violations[teacher_id].no_break;
 				bee.total_cost -= bee.teacher_violations[teacher_id].exceed_workload;
-				bee.total_cost -= bee.teacher_violations[teacher_id].below_min_workload;
+				// bee.total_cost -= bee.teacher_violations[teacher_id].below_min_workload;
 				bee.total_cost -= bee.teacher_violations[teacher_id].class_proximity;
 			}
 
@@ -40,7 +40,7 @@ struct ObjectiveFunction {
 			const auto& offset_duration = bee.timetable.getOffsetDuration();
 
 			const TimeDuration max_teacher_work_load = teacher.getMaxWeekWorkLoad();
-			const TimeDuration min_teacher_work_load = teacher.getMinWeekWorkLoad();
+			// const TimeDuration min_teacher_work_load = teacher.getMinWeekWorkLoad();
 			const TimeDuration break_time_duration = bee.timetable.getBreakTimeDuration();
 
 			int total_week_workload = 0;
@@ -104,7 +104,6 @@ struct ObjectiveFunction {
 
 							int distance = from_building.getDistanceTo(from_section_location, to_section_location, to_building);
 
-
 							bee.teacher_violations[teacher_id].class_proximity += distance;
 
 							previous_section_class = section_id;
@@ -154,29 +153,30 @@ struct ObjectiveFunction {
 				bee.teacher_violations[teacher_id].exceed_workload++;
 			}
 
-			if (total_week_workload < min_teacher_work_load) {
-				bee.teacher_violations[teacher_id].exceed_workload++;
-			}
+			// if (total_week_workload < min_teacher_work_load) {
+			// 	bee.teacher_violations[teacher_id].exceed_workload++;
+			// }
 
 			if (show_penalty) {
 				print("teacher", teacher_id);
 				print("a", bee.teacher_violations[teacher_id].class_timeslot_overlap);
 				print("a", bee.teacher_violations[teacher_id].no_break);
 				print("a", bee.teacher_violations[teacher_id].exceed_workload);
-				print("a", bee.teacher_violations[teacher_id].below_min_workload);
+				// print("a", bee.teacher_violations[teacher_id].below_min_workload);
 				print("a", bee.teacher_violations[teacher_id].class_proximity);
 			}
 
 			bee.total_cost += bee.teacher_violations[teacher_id].class_timeslot_overlap;
 			bee.total_cost += bee.teacher_violations[teacher_id].no_break;
 			bee.total_cost += bee.teacher_violations[teacher_id].exceed_workload;
-			bee.total_cost += bee.teacher_violations[teacher_id].below_min_workload;
+			// bee.total_cost += bee.teacher_violations[teacher_id].below_min_workload;
 			bee.total_cost += bee.teacher_violations[teacher_id].class_proximity;
 
 			if (bee.teacher_violations[teacher_id].class_timeslot_overlap == 0 &&
 			    bee.teacher_violations[teacher_id].no_break == 0 &&
-			    bee.teacher_violations[teacher_id].exceed_workload == 0 &&
-			    bee.teacher_violations[teacher_id].below_min_workload == 0) {
+			    bee.teacher_violations[teacher_id].exceed_workload == 0
+			// && bee.teacher_violations[teacher_id].below_min_workload == 0
+			) {
 				bee.timetable.teachers_with_conflicts.erase(teacher_id);
 			} else {
 				bee.timetable.teachers_with_conflicts.insert(teacher_id);

@@ -1,6 +1,7 @@
 import { expose } from 'comlink';
 // import abcWasm from './cppFiles2/abc2.js';
-import abcWasm from './cppFiles2/abc5.js';
+// import abcWasm from './cppFiles2/abc5.js';
+import abcWasm from './cppFiles2/abc4-26-25.js';
 import { unpackIntegers } from './utils/packInt16ToInt64.js';
 
 function allocateAndSetBuffer(wasm, dataArray) {
@@ -16,16 +17,16 @@ function allocateAndSetBuffer(wasm, dataArray) {
     return buffer;
 }
 
-// const VIOLATION_TYPE = {
-//     1: 'CLASS_TIMESLOT_OVERLAP_INT',
-//     2: 'NO_BREAK_INT',
-//     3: 'EXCEED_MAX_WORKLOAD_INT',
-//     4: 'BELOW_MIN_WORKLOAD_INT',
-//     5: 'EARLY_BREAK_INT',
-//     6: 'SMALL_BREAK_GAP_INT',
-//     7: 'LATE_BREAK_INT',
-//     8: 'CLASS_PROXIMITY_INT',
-// };
+const VIOLATION_TYPE = {
+    1: 'CLASS_TIMESLOT_OVERLAP_INT',
+    2: 'NO_BREAK_INT',
+    3: 'EXCEED_MAX_WORKLOAD_INT',
+    4: 'BELOW_MIN_WORKLOAD_INT',
+    5: 'EARLY_BREAK_INT',
+    6: 'SMALL_BREAK_GAP_INT',
+    7: 'LATE_BREAK_INT',
+    8: 'CLASS_PROXIMITY_INT',
+};
 
 /**
  * Asynchronously generates a timetable based on the provided parameters.
@@ -220,11 +221,11 @@ const getTimetable = async (params) =>
                     break;
                 }
 
-                // const violation_type = VIOLATION_TYPE[resultArray[0]];
-                // const field = resultArray[1];
-                // const violation_count = resultArray[2];
+                const violation_type = VIOLATION_TYPE[resultArray[0]];
+                const field = resultArray[1];
+                const violation_count = resultArray[2];
 
-                // console.log('vio', violation_type, field, violation_count);
+                console.log('vio', violation_type, field, violation_count);
             }
 
             console.log('timetable result', timetable);

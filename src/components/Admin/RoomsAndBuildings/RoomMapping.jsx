@@ -563,8 +563,11 @@ const RoomListContainer = ({ editable = false }) => {
                 n: editBuildingName,
                 f: editNumberOfFloors,
                 r: names,
-                i: editBuildingImage || '',
-                nb: editNearbyBuildings,
+                i: editBuildingImage || '', // Base64 string
+                nb: editNearbyBuildings.map((building) => ({
+                    id: building.id,
+                    n: building.name,
+                })),
             };
 
             const string_building = JSON.stringify(buildingData, null, 2);
@@ -798,11 +801,32 @@ const RoomListContainer = ({ editable = false }) => {
                             <h2 className='text-lg font-bold mb-2'>{building.name}</h2>
                             <div className='text-sm'>
                                 {Object.entries(building.rooms || {}).map(([floorIndex, rooms]) => (
-                                    <div key={floorIndex}>
-                                        Floor {Number(floorIndex) + 1}: {Object.keys(rooms).length} Rooms
+                                    <div key={floorIndex} className='flex justify-between'>
+                                        <span>Floor {Number(floorIndex) + 1}</span>
+                                        <span>{Object.keys(rooms).length} Rooms</span>
                                     </div>
                                 ))}
                             </div>
+                            <div className='pt-2'>
+                                {building?.nearbyBuildings?.length > 0 ? (
+                                    <div>
+                                        <div className='flex justify-between items-center'>
+                                            <span className='text-sm'>Nearby Buildings:</span>
+                                            <span className='text-xs opacity-70'>{building.nearbyBuildings.length} total</span>
+                                        </div>
+                                        <ul className='pl-4 text-left list-disc'>
+                                            {building.nearbyBuildings.map((itsNearbyBuilding) => (
+                                                <li key={itsNearbyBuilding.id} className='text-sm'>
+                                                    {itsNearbyBuilding.name}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ) : (
+                                    <div className='text-sm opacity-50'>No nearby buildings</div>
+                                )}
+                            </div>
+
                             {editable && (
                                 <div className='flex justify-end mt-2 gap-2'>
                                     <button className='btn btn-xs btn-ghost text-blue-500' onClick={() => handleEdit(building)}>

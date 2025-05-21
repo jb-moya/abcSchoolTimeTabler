@@ -447,6 +447,10 @@ const ExportSchedules = ({
 
                 worksheet.getCell(`C${row}`).value = totalMinutes;
                 worksheet.getCell(`C${row}`).alignment = { vertical: 'middle', horizontal: 'center' };
+                totalTeacherLoad += totalMinutes;
+
+                worksheet.getCell(`C${row}`).value = totalMinutes;
+                worksheet.getCell(`C${row}`).alignment = { vertical: 'middle', horizontal: 'center' };
 
                 // Move to the next set of rows
                 row += 3;

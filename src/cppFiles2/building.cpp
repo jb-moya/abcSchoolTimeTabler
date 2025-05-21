@@ -24,11 +24,11 @@ int Building::getDistanceTo(Location& from, Location& to_location, Building& to_
 	if (id != to_building_id) {
 		is_same_building = false;
 
-		auto adjacent_building = Building::getAdjacentBuildings(id);
+		auto adjacent_building = Building::getAdjacentBuildings(to_building_id);
 
 		auto it = std::find(adjacent_building.begin(), adjacent_building.end(), to_building_id);
-		if (it != adjacent_building.end()) {
-			total_cost += 100;
+		if (it == adjacent_building.end()) {
+			total_cost += 1;
 
 			// std::cout << "adjacent building" << std::endl;
 		}
